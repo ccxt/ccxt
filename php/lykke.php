@@ -124,7 +124,7 @@ class lykke extends Exchange {
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'dateTime'));
         $side = $this->safe_string($trade, 'action');
         if ($side !== null) {
-            $side = strtolower ($side);
+            $side = strtolower($side);
         }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
@@ -163,7 +163,7 @@ class lykke extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetWallets ();
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currency = $balance['AssetId'];
@@ -180,7 +180,7 @@ class lykke extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrdersIdCancel (array ( 'id' => $id ));
+        return $this->privatePostOrdersIdCancel (array( 'id' => $id ));
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -224,12 +224,12 @@ class lykke extends Exchange {
         //                 MinVolume =>  0.4,
         //         MinInvertedVolume =>  0.001                                  } )
         //
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['Id'];
             $name = $market['Name'];
-            list ($baseId, $quoteId) = explode ('/', $name);
+            list($baseId, $quoteId) = explode('/', $name);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -247,12 +247,12 @@ class lykke extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow(10, -$precision['amount']),
+                        'max' => pow(10, $precision['amount']),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow(10, -$precision['price']),
+                        'max' => pow(10, $precision['price']),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -325,9 +325,9 @@ class lykke extends Exchange {
             $symbol = $market['symbol'];
         $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'LastMatchTime'));
         $timestamp = null;
-        if ((is_array ($order) && array_key_exists ('Registered', $order)) && ($order['Registered'])) {
+        if ((is_array($order) && array_key_exists('Registered', $order)) && ($order['Registered'])) {
             $timestamp = $this->parse8601 ($order['Registered']);
-        } else if ((is_array ($order) && array_key_exists ('CreatedAt', $order)) && ($order['CreatedAt'])) {
+        } else if ((is_array($order) && array_key_exists('CreatedAt', $order)) && ($order['CreatedAt'])) {
             $timestamp = $this->parse8601 ($order['CreatedAt']);
         }
         $price = $this->safe_float($order, 'Price');
@@ -393,8 +393,8 @@ class lykke extends Exchange {
         ), $params));
         $orderbook = array (
             'timestamp' => null,
-            'bids' => array (),
-            'asks' => array (),
+            'bids' => array(),
+            'asks' => array(),
         );
         $timestamp = null;
         for ($i = 0; $i < count ($response); $i++) {
@@ -441,6 +441,6 @@ class lykke extends Exchange {
                 if ($params)
                     $body = $this->json ($params);
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

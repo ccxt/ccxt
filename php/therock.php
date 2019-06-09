@@ -137,7 +137,7 @@ class therock extends Exchange {
         //                   minimum_quantity_offer =>    0.0005,
         //                   base_currency_decimals =>    2,
         //                  trade_currency_decimals =>    4,
-        //                                leverages => array ()                           ),
+        //                                leverages => array()                           ),
         //                {                      $id =>   "LTCEUR",
         //                              description =>   "Trade Litecoin with Euro",
         //                                     type =>   "currency",
@@ -149,12 +149,12 @@ class therock extends Exchange {
         //                   minimum_quantity_offer =>    0.01,
         //                   base_currency_decimals =>    2,
         //                  trade_currency_decimals =>    2,
-        //                                leverages => array ()                            } ) }
+        //                                leverages => array()                            } ) }
         //
         $markets = $this->safe_value($response, 'funds');
-        $result = array ();
+        $result = array();
         if ($markets === null) {
-            throw new ExchangeError ($this->id . ' fetchMarkets got an unexpected response');
+            throw new ExchangeError($this->id . ' fetchMarkets got an unexpected response');
         } else {
             for ($i = 0; $i < count ($markets); $i++) {
                 $market = $markets[$i];
@@ -208,7 +208,7 @@ class therock extends Exchange {
         $this->load_markets();
         $response = $this->privateGetBalances ();
         $balances = $response['balances'];
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -268,8 +268,8 @@ class therock extends Exchange {
         $this->load_markets();
         $response = $this->publicGetFundsTickers ($params);
         $tickers = $this->index_by($response['tickers'], 'fund_id');
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
-        $result = array ();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $this->markets_by_id[$id];
@@ -344,9 +344,9 @@ class therock extends Exchange {
         }
         $fee = null;
         $feeCost = null;
-        $transactions = $this->safe_value($trade, 'transactions', array ());
+        $transactions = $this->safe_value($trade, 'transactions', array());
         $transactionsByType = $this->group_by($transactions, 'type');
-        $feeTransactions = $this->safe_value($transactionsByType, 'paid_commission', array ());
+        $feeTransactions = $this->safe_value($transactionsByType, 'paid_commission', array());
         for ($i = 0; $i < count ($feeTransactions); $i++) {
             if ($feeCost === null) {
                 $feeCost = 0;
@@ -506,7 +506,7 @@ class therock extends Exchange {
         $currencyId = $this->safe_string($item, 'currency');
         $code = null;
         if ($currencyId !== null) {
-            $currencyId = strtoupper ($currencyId);
+            $currencyId = strtoupper($currencyId);
             $code = $this->common_currency_code($currencyId);
         }
         $amount = $this->safe_float($item, 'price');
@@ -604,15 +604,15 @@ class therock extends Exchange {
         //         ),
         //         "meta" => {
         //             "total_count" => 1221,
-        //             "first" => array ( "page" => 1, "href" => "https://api.therocktrading.com/v1/transactions?page=1" ),
+        //             "first" => array( "page" => 1, "href" => "https://api.therocktrading.com/v1/transactions?page=1" ),
         //             "previous" => null,
-        //             "current" => array ( "page" => 1, "href" => "https://api.therocktrading.com/v1/transactions?page=1" ),
-        //             "next" => array ( "page" => 2, "href" => "https://api.therocktrading.com/v1/transactions?page=2" ),
-        //             "last" => array ( "page" => 1221, "href" => "https://api.therocktrading.com/v1/transactions?page=1221" )
+        //             "current" => array( "page" => 1, "href" => "https://api.therocktrading.com/v1/transactions?page=1" ),
+        //             "next" => array( "page" => 2, "href" => "https://api.therocktrading.com/v1/transactions?page=2" ),
+        //             "last" => array( "page" => 1221, "href" => "https://api.therocktrading.com/v1/transactions?page=1221" )
         //         }
         //     }
         //
-        $transactions = $this->safe_value($response, 'transactions', array ());
+        $transactions = $this->safe_value($response, 'transactions', array());
         return $this->parse_ledger($transactions, $currency, $since, $limit);
     }
 
@@ -711,13 +711,13 @@ class therock extends Exchange {
         //
         $id = $this->safe_string($transaction, 'id');
         $type = $this->parse_transaction_type ($this->safe_string($transaction, 'type'));
-        $detail = $this->safe_value($transaction, 'transfer_detail', array ());
+        $detail = $this->safe_value($transaction, 'transfer_detail', array());
         $txid = $this->safe_string($detail, 'id');
         $address = $this->safe_string($detail, 'recipient');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = null;
         if ($currencyId !== null) {
-            $currencyId = strtoupper ($currencyId);
+            $currencyId = strtoupper($currencyId);
             $code = $this->common_currency_code($currencyId);
         }
         $amount = $this->safe_float($transaction, 'price');
@@ -833,15 +833,15 @@ class therock extends Exchange {
         //         ),
         //         "meta" => {
         //             "total_count" => 1221,
-        //             "first" => array ( "page" => 1, "href" => "https://api.therocktrading.com/v1/transactions?page=1" ),
+        //             "first" => array( "page" => 1, "href" => "https://api.therocktrading.com/v1/transactions?page=1" ),
         //             "previous" => null,
-        //             "current" => array ( "page" => 1, "href" => "https://api.therocktrading.com/v1/transactions?page=1" ),
-        //             "next" => array ( "page" => 2, "href" => "https://api.therocktrading.com/v1/transactions?page=2" ),
-        //             "last" => array ( "page" => 1221, "href" => "https://api.therocktrading.com/v1/transactions?page=1221" )
+        //             "current" => array( "page" => 1, "href" => "https://api.therocktrading.com/v1/transactions?page=1" ),
+        //             "next" => array( "page" => 2, "href" => "https://api.therocktrading.com/v1/transactions?page=2" ),
+        //             "last" => array( "page" => 1221, "href" => "https://api.therocktrading.com/v1/transactions?page=1221" )
         //         }
         //     }
         //
-        $transactions = $this->safe_value($response, 'transactions', array ());
+        $transactions = $this->safe_value($response, 'transactions', array());
         $transactionTypes = array ( 'withdraw', 'atm_payment' );
         $depositsAndWithdrawals = $this->filter_by_array($transactions, 'type', $transactionTypes, false);
         return $this->parseTransactions ($depositsAndWithdrawals, $currency, $since, $limit);
@@ -891,7 +891,7 @@ class therock extends Exchange {
         $id = $this->safe_string($order, 'id');
         $symbol = null;
         $marketId = $this->safe_string($order, 'fund_id');
-        if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
         }
@@ -971,7 +971,7 @@ class therock extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -1010,13 +1010,13 @@ class therock extends Exchange {
         //         )
         //     }
         //
-        $orders = $this->safe_value($response, 'orders', array ());
+        $orders = $this->safe_value($response, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -1055,7 +1055,7 @@ class therock extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -1095,11 +1095,11 @@ class therock extends Exchange {
         //                                     currency => "EUR",
         //                                     trade_id =>  440492                     }   ) } ),
         //         meta => { total_count =>    31,
-        //                       first => array ( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
+        //                       first => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
         //                    previous =>    null,
-        //                     current => array ( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
-        //                        next => array ( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" ),
-        //                        last => array ( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" )  } }
+        //                     current => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=1" ),
+        //                        next => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" ),
+        //                        last => array( href => "https://api.therocktrading.com/v1/funds/BTCXRP/trades?page=2" )  } }
         //
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
@@ -1172,7 +1172,7 @@ class therock extends Exchange {
                 $url .= '?' . $this->rawencode ($query);
             }
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -1183,15 +1183,15 @@ class therock extends Exchange {
         //     {
         //         "$errors":
         //         array (
-        //             array ( "$message" => ":currency is not a valid value for param currency","code" => "11","meta" => array ( "key":"currency","value":":currency") ),
-        //             array ( "$message" => "Address allocation limit reached for currency :currency.","code" => "13" ),
-        //             array ( "$message" => "Request already running", "code" => "50"),
-        //             array ( "$message" => "cannot specify multiple address types", "code" => "12" ),
-        //             array ( "$message" => ":address_type is invalid", "code" => "12" )
+        //             array( "$message" => ":currency is not a valid value for param currency","code" => "11","meta" => array ( "key":"currency","value":":currency") ),
+        //             array( "$message" => "Address allocation limit reached for currency :currency.","code" => "13" ),
+        //             array( "$message" => "Request already running", "code" => "50"),
+        //             array( "$message" => "cannot specify multiple address types", "code" => "12" ),
+        //             array( "$message" => ":address_type is invalid", "code" => "12" )
         //         )
         //     }
         //
-        $errors = $this->safe_value($response, 'errors', array ());
+        $errors = $this->safe_value($response, 'errors', array());
         $numErrors = is_array ($errors) ? count ($errors) : 0;
         if ($numErrors > 0) {
             $feedback = $this->id . ' ' . $body;
@@ -1201,15 +1201,15 @@ class therock extends Exchange {
             for ($i = 0; $i < $numErrors; $i++) {
                 $error = $errors[$i];
                 $message = $this->safe_string($error, 'message');
-                if (is_array ($exact) && array_key_exists ($message, $exact)) {
-                    throw new $exact[$message] ($feedback);
+                if (is_array($exact) && array_key_exists($message, $exact)) {
+                    throw new $exact[$message]($feedback);
                 }
                 $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
                 if ($broadKey !== null) {
-                    throw new $broad[$broadKey] ($feedback);
+                    throw new $broad[$broadKey]($feedback);
                 }
             }
-            throw new ExchangeError ($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown $message
         }
     }
 }

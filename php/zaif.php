@@ -102,16 +102,16 @@ class zaif extends Exchange {
             'options' => array (
                 // zaif schedule defines several market-specific fees
                 'fees' => array (
-                    'BTC/JPY' => array ( 'maker' => 0, 'taker' => 0 ),
-                    'BCH/JPY' => array ( 'maker' => 0, 'taker' => 0.3 / 100 ),
-                    'BCH/BTC' => array ( 'maker' => 0, 'taker' => 0.3 / 100 ),
-                    'PEPECASH/JPY' => array ( 'maker' => 0, 'taker' => 0.01 / 100 ),
-                    'PEPECASH/BT' => array ( 'maker' => 0, 'taker' => 0.01 / 100 ),
+                    'BTC/JPY' => array( 'maker' => 0, 'taker' => 0 ),
+                    'BCH/JPY' => array( 'maker' => 0, 'taker' => 0.3 / 100 ),
+                    'BCH/BTC' => array( 'maker' => 0, 'taker' => 0.3 / 100 ),
+                    'PEPECASH/JPY' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),
+                    'PEPECASH/BT' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),
                 ),
             ),
             'exceptions' => array (
                 'exact' => array (
-                    'unsupported currency_pair' => '\\ccxt\\BadRequest', // array ("error" => "unsupported currency_pair")
+                    'unsupported currency_pair' => '\\ccxt\\BadRequest', // array("error" => "unsupported currency_pair")
                 ),
                 'broad' => array (
                 ),
@@ -121,12 +121,12 @@ class zaif extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetCurrencyPairsAll ();
-        $result = array ();
+        $result = array();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
             $id = $market['currency_pair'];
             $symbol = $market['name'];
-            list ($base, $quote) = explode ('/', $symbol);
+            list($base, $quote) = explode('/', $symbol);
             $precision = array (
                 'amount' => -log10 ($market['item_unit_step']),
                 'price' => $market['aux_unit_point'],
@@ -167,19 +167,19 @@ class zaif extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetInfo ();
         $balances = $response['return'];
-        $result = array ( 'info' => $balances );
-        $currencies = is_array ($balances['funds']) ? array_keys ($balances['funds']) : array ();
+        $result = array( 'info' => $balances );
+        $currencies = is_array($balances['funds']) ? array_keys($balances['funds']) : array();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $balance = $balances['funds'][$currency];
-            $uppercase = strtoupper ($currency);
+            $uppercase = strtoupper($currency);
             $account = array (
                 'free' => $balance,
                 'used' => 0.0,
                 'total' => $balance,
             );
-            if (is_array ($balances) && array_key_exists ('deposit', $balances)) {
-                if (is_array ($balances['deposit']) && array_key_exists ($currency, $balances['deposit'])) {
+            if (is_array($balances) && array_key_exists('deposit', $balances)) {
+                if (is_array($balances['deposit']) && array_key_exists($currency, $balances['deposit'])) {
                     $account['total'] = $balances['deposit'][$currency];
                     $account['used'] = $account['total'] - $account['free'];
                 }
@@ -265,7 +265,7 @@ class zaif extends Exchange {
         if ($numTrades === 1) {
             $firstTrade = $response[0];
             if (!$firstTrade) {
-                $response = array ();
+                $response = array();
             }
         }
         return $this->parse_trades($response, $market, $since, $limit);
@@ -274,7 +274,7 @@ class zaif extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type === 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' allows limit orders only');
         $response = $this->privatePostTrade (array_merge (array (
             'currency_pair' => $this->market_id($symbol),
             'action' => ($side === 'buy') ? 'bid' : 'ask',
@@ -320,15 +320,15 @@ class zaif extends Exchange {
     }
 
     public function parse_orders ($orders, $market = null, $since = null, $limit = null, $params = array ()) {
-        $result = array ();
-        $ids = is_array ($orders) ? array_keys ($orders) : array ();
+        $result = array();
+        $ids = is_array($orders) ? array_keys($orders) : array();
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $order = array_merge (array ( 'id' => $id ), $orders[$id]);
+            $order = array_merge (array( 'id' => $id ), $orders[$id]);
             $result[] = array_merge ($this->parse_order($order, $market), $params);
         }
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
@@ -375,7 +375,7 @@ class zaif extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         if ($code === 'JPY') {
-            throw new ExchangeError ($this->id . ' withdraw() does not allow ' . $code . ' withdrawals');
+            throw new ExchangeError($this->id . ' withdraw() does not allow ' . $code . ' withdrawals');
         }
         $request = array (
             'currency' => $currency['id'],
@@ -397,7 +397,7 @@ class zaif extends Exchange {
 
     public function nonce () {
         $nonce = floatval ($this->milliseconds () / 1000);
-        return sprintf ('%.8f', $nonce);
+        return sprintf('%.8f', $nonce);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -426,7 +426,7 @@ class zaif extends Exchange {
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -434,25 +434,25 @@ class zaif extends Exchange {
             return;
         }
         //
-        //     array ("$error" => "unsupported currency_pair")
+        //     array("$error" => "unsupported currency_pair")
         //
         $feedback = $this->id . ' ' . $body;
         $error = $this->safe_string($response, 'error');
         if ($error !== null) {
             $exact = $this->exceptions['exact'];
-            if (is_array ($exact) && array_key_exists ($error, $exact)) {
-                throw new $exact[$error] ($feedback);
+            if (is_array($exact) && array_key_exists($error, $exact)) {
+                throw new $exact[$error]($feedback);
             }
             $broad = $this->exceptions['broad'];
             $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
             if ($broadKey !== null) {
-                throw new $broad[$broadKey] ($feedback);
+                throw new $broad[$broadKey]($feedback);
             }
-            throw new ExchangeError ($feedback); // unknown message
+            throw new ExchangeError($feedback); // unknown message
         }
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
-            throw new ExchangeError ($feedback);
+            throw new ExchangeError($feedback);
         }
     }
 }

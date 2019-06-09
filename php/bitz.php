@@ -230,16 +230,16 @@ class bitz extends Exchange {
         //          source =>   "api"                                           }
         //
         $markets = $response['data'];
-        $ids = is_array ($markets) ? array_keys ($markets) : array ();
-        $result = array ();
+        $ids = is_array($markets) ? array_keys($markets) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $markets[$id];
             $numericId = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'coinFrom');
             $quoteId = $this->safe_string($market, 'coinTo');
-            $base = strtoupper ($baseId);
-            $quote = strtoupper ($quoteId);
+            $base = strtoupper($baseId);
+            $quote = strtoupper($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -264,7 +264,7 @@ class bitz extends Exchange {
                         'max' => $this->safe_float($market, 'maxTrade'),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
+                        'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
                     'cost' => array (
@@ -304,12 +304,12 @@ class bitz extends Exchange {
         //     }
         //
         $balances = $response['data']['info'];
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'name');
-            $code = strtoupper ($currencyId);
-            if (is_array ($this->markets_by_id) && array_key_exists ($currencyId, $this->markets_by_id)) {
+            $code = strtoupper($currencyId);
+            if (is_array($this->markets_by_id) && array_key_exists($currencyId, $this->markets_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
             } else {
                 $code = $this->common_currency_code($code);
@@ -392,7 +392,7 @@ class bitz extends Exchange {
         if ($microtime === null) {
             return $microtime;
         }
-        $parts = explode (' ', $microtime);
+        $parts = explode(' ', $microtime);
         $milliseconds = floatval ($parts[0]);
         $seconds = intval ($parts[1]);
         $total = $this->sum ($seconds, $milliseconds);
@@ -443,10 +443,10 @@ class bitz extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         if ($symbols !== null) {
             $ids = $this->market_ids($symbols);
-            $request['symbols'] = implode (',', $ids);
+            $request['symbols'] = implode(',', $ids);
         }
         $response = $this->marketGetTickerall (array_merge ($request, $params));
         //
@@ -479,13 +479,13 @@ class bitz extends Exchange {
         //
         $tickers = $response['data'];
         $timestamp = $this->parse_microtime ($this->safe_string($response, 'microtime'));
-        $result = array ();
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $result = array();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $ticker = $tickers[$id];
             $market = null;
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
             }
             $ticker = $this->parse_ticker($tickers[$id], $market);
@@ -494,9 +494,9 @@ class bitz extends Exchange {
                 if ($market !== null) {
                     $symbol = $market['symbol'];
                 } else {
-                    list ($baseId, $quoteId) = explode ('_', $id);
-                    $base = strtoupper ($baseId);
-                    $quote = strtoupper ($quoteId);
+                    list($baseId, $quoteId) = explode('_', $id);
+                    $base = strtoupper($baseId);
+                    $quote = strtoupper($quoteId);
                     $base = $this->common_currency_code($baseId);
                     $quote = $this->common_currency_code($quoteId);
                     $symbol = $base . '/' . $quote;
@@ -644,7 +644,7 @@ class bitz extends Exchange {
             }
         } else {
             if ($since !== null) {
-                throw new ExchangeError ($this->id . ' fetchOHLCV requires a $limit argument if the $since argument is specified');
+                throw new ExchangeError($this->id . ' fetchOHLCV requires a $limit argument if the $since argument is specified');
             }
         }
         $response = $this->marketGetKline (array_merge ($request, $params));
@@ -684,7 +684,7 @@ class bitz extends Exchange {
             '2' => 'closed', // filled
             '3' => 'canceled',
         );
-        if (is_array ($statuses) && array_key_exists ($status, $statuses)) {
+        if (is_array($statuses) && array_key_exists($status, $statuses)) {
             return $statuses[$status];
         }
         return $status;
@@ -714,11 +714,11 @@ class bitz extends Exchange {
             $quoteId = $this->safe_string($order, 'coinTo');
             if (($baseId !== null) && ($quoteId !== null)) {
                 $marketId = $baseId . '_' . $quoteId;
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                     $market = $this->safe_value($this->markets_by_id, $marketId);
                 } else {
-                    $base = strtoupper ($baseId);
-                    $quote = strtoupper ($quoteId);
+                    $base = strtoupper($baseId);
+                    $quote = strtoupper($quoteId);
                     $base = $this->common_currency_code($base);
                     $quote = $this->common_currency_code($quote);
                     $symbol = $base . '/' . $quote;
@@ -772,12 +772,12 @@ class bitz extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type !== 'limit') {
-            throw new ExchangeError ($this->id . ' createOrder allows limit orders only');
+            throw new ExchangeError($this->id . ' createOrder allows limit orders only');
         }
         $market = $this->market ($symbol);
         $orderType = ($side === 'buy') ? '1' : '2';
         if (!$this->password)
-            throw new ExchangeError ($this->id . ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD" (a trade password is NOT THE SAME as your login password)');
+            throw new ExchangeError($this->id . ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD" (a trade password is NOT THE SAME as your login password)');
         $request = array (
             'symbol' => $market['id'],
             'type' => $orderType,
@@ -846,7 +846,7 @@ class bitz extends Exchange {
     public function cancel_orders ($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->tradePostCancelEntrustSheet (array_merge (array (
-            'ids' => implode (',', $ids),
+            'ids' => implode(',', $ids),
         ), $params));
         //
         //     {
@@ -922,7 +922,7 @@ class bitz extends Exchange {
     public function fetch_orders_with_method ($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         }
         $market = $this->market ($symbol);
         $request = array (
@@ -998,7 +998,7 @@ class bitz extends Exchange {
         if ($orders) {
             return $this->parse_orders($response['data']['data'], null, $since, $limit);
         } else {
-            return array ();
+            return array();
         }
     }
 
@@ -1039,9 +1039,9 @@ class bitz extends Exchange {
                 'nonce' => $this->nonce (),
             ), $params)));
             $body .= '&sign=' . $this->hash ($this->encode ($body . $this->secret));
-            $headers = array ( 'Content-type' => 'application/x-www-form-urlencoded' );
+            $headers = array( 'Content-type' => 'application/x-www-form-urlencoded' );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -1055,27 +1055,27 @@ class bitz extends Exchange {
                 $feedback = $this->id . ' ' . $body;
                 $exceptions = $this->exceptions;
                 //
-                //     array ("$status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api")
+                //     array("$status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api")
                 //
                 if ($status === '200') {
                     //
-                    //     array ("$status":200,"msg":"","data":-200031,"time":1535999806,"microtime":"0.85476800 1535999806","source":"api")
+                    //     array("$status":200,"msg":"","data":-200031,"time":1535999806,"microtime":"0.85476800 1535999806","source":"api")
                     //
                     $code = $this->safe_integer($response, 'data');
                     if ($code !== null) {
-                        if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                            throw new $exceptions[$code] ($feedback);
+                        if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
+                            throw new $exceptions[$code]($feedback);
                         } else {
-                            throw new ExchangeError ($feedback);
+                            throw new ExchangeError($feedback);
                         }
                     } else {
                         return; // no error
                     }
                 }
-                if (is_array ($exceptions) && array_key_exists ($status, $exceptions)) {
-                    throw new $exceptions[$status] ($feedback);
+                if (is_array($exceptions) && array_key_exists($status, $exceptions)) {
+                    throw new $exceptions[$status]($feedback);
                 } else {
-                    throw new ExchangeError ($feedback);
+                    throw new ExchangeError($feedback);
                 }
             }
         }

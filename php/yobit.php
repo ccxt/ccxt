@@ -64,7 +64,7 @@ class yobit extends liqui {
                     'taker' => 0.002,
                 ),
                 'funding' => array (
-                    'withdraw' => array (),
+                    'withdraw' => array(),
                 ),
             ),
             'commonCurrencies' => array (
@@ -142,7 +142,7 @@ class yobit extends liqui {
             ),
             'exceptions' => array (
                 'broad' => array (
-                    'Total transaction amount' => '\\ccxt\\ExchangeError', // array ( "success" => 0, "error" => "Total transaction amount is less than minimal total => 0.00010000")
+                    'Total transaction amount' => '\\ccxt\\ExchangeError', // array( "success" => 0, "error" => "Total transaction amount is less than minimal total => 0.00010000")
                     'Insufficient funds' => '\\ccxt\\InsufficientFunds',
                     'invalid key' => '\\ccxt\\AuthenticationError',
                 ),
@@ -157,7 +157,7 @@ class yobit extends liqui {
             '2' => 'canceled',
             '3' => 'open', // or partially-filled and closed? https://github.com/ccxt/ccxt/issues/1594
         );
-        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+        if (is_array($statuses) && array_key_exists($status, $statuses))
             return $statuses[$status];
         return $status;
     }
@@ -166,20 +166,20 @@ class yobit extends liqui {
         $this->load_markets();
         $response = $this->privatePostGetInfo ();
         $balances = $response['return'];
-        $result = array ( 'info' => $balances );
-        $sides = array ( 'free' => 'funds', 'total' => 'funds_incl_orders' );
-        $keys = is_array ($sides) ? array_keys ($sides) : array ();
+        $result = array( 'info' => $balances );
+        $sides = array( 'free' => 'funds', 'total' => 'funds_incl_orders' );
+        $keys = is_array($sides) ? array_keys($sides) : array();
         for ($i = 0; $i < count ($keys); $i++) {
             $key = $keys[$i];
             $side = $sides[$key];
-            if (is_array ($balances) && array_key_exists ($side, $balances)) {
-                $currencies = is_array ($balances[$side]) ? array_keys ($balances[$side]) : array ();
+            if (is_array($balances) && array_key_exists($side, $balances)) {
+                $currencies = is_array($balances[$side]) ? array_keys($balances[$side]) : array();
                 for ($j = 0; $j < count ($currencies); $j++) {
                     $lowercase = $currencies[$j];
-                    $uppercase = strtoupper ($lowercase);
+                    $uppercase = strtoupper($lowercase);
                     $currency = $this->common_currency_code($uppercase);
                     $account = null;
-                    if (is_array ($result) && array_key_exists ($currency, $result)) {
+                    if (is_array($result) && array_key_exists($currency, $result)) {
                         $account = $result[$currency];
                     } else {
                         $account = $this->account ();
@@ -252,9 +252,9 @@ class yobit extends liqui {
         }
         $method = $this->options['fetchMyTradesMethod'];
         $response = $this->$method (array_merge ($request, $params));
-        $trades = $this->safe_value($response, 'return', array ());
-        $ids = is_array ($trades) ? array_keys ($trades) : array ();
-        $result = array ();
+        $trades = $this->safe_value($response, 'return', array());
+        $ids = is_array($trades) ? array_keys($trades) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $trade = $this->parse_trade(array_merge ($trades[$id], array (

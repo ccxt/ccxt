@@ -91,24 +91,24 @@ class fcoin extends Exchange {
                 ),
             ),
             'limits' => array (
-                'amount' => array ( 'min' => 0.01, 'max' => 100000 ),
+                'amount' => array( 'min' => 0.01, 'max' => 100000 ),
             ),
             'options' => array (
                 'createMarketBuyOrderRequiresPrice' => true,
                 'limits' => array (
-                    'BTM/USDT' => array ( 'amount' => array ( 'min' => 0.1, 'max' => 10000000 )),
-                    'ETC/USDT' => array ( 'amount' => array ( 'min' => 0.001, 'max' => 400000 )),
-                    'ETH/USDT' => array ( 'amount' => array ( 'min' => 0.001, 'max' => 10000 )),
-                    'LTC/USDT' => array ( 'amount' => array ( 'min' => 0.001, 'max' => 40000 )),
-                    'BCH/USDT' => array ( 'amount' => array ( 'min' => 0.001, 'max' => 5000 )),
-                    'BTC/USDT' => array ( 'amount' => array ( 'min' => 0.001, 'max' => 1000 )),
-                    'ICX/ETH' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 3000000 )),
-                    'OMG/ETH' => array ( 'amount' => array ( 'min' => 0.01, 'max' => 500000 )),
-                    'FT/USDT' => array ( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
-                    'ZIL/ETH' => array ( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
-                    'ZIP/ETH' => array ( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
-                    'FT/BTC' => array ( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
-                    'FT/ETH' => array ( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
+                    'BTM/USDT' => array( 'amount' => array ( 'min' => 0.1, 'max' => 10000000 )),
+                    'ETC/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 400000 )),
+                    'ETH/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 10000 )),
+                    'LTC/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 40000 )),
+                    'BCH/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 5000 )),
+                    'BTC/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 1000 )),
+                    'ICX/ETH' => array( 'amount' => array ( 'min' => 0.01, 'max' => 3000000 )),
+                    'OMG/ETH' => array( 'amount' => array ( 'min' => 0.01, 'max' => 500000 )),
+                    'FT/USDT' => array( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
+                    'ZIL/ETH' => array( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
+                    'ZIP/ETH' => array( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
+                    'FT/BTC' => array( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
+                    'FT/ETH' => array( 'amount' => array ( 'min' => 1, 'max' => 10000000 )),
                 ),
             ),
             'exceptions' => array (
@@ -132,16 +132,16 @@ class fcoin extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetSymbols ();
-        $result = array ();
+        $result = array();
         $markets = $response['data'];
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['name'];
             $baseId = $market['base_currency'];
             $quoteId = $market['quote_currency'];
-            $base = strtoupper ($baseId);
+            $base = strtoupper($baseId);
             $base = $this->common_currency_code($base);
-            $quote = strtoupper ($quoteId);
+            $quote = strtoupper($quoteId);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
@@ -150,12 +150,12 @@ class fcoin extends Exchange {
             );
             $limits = array (
                 'price' => array (
-                    'min' => pow (10, -$precision['price']),
-                    'max' => pow (10, $precision['price']),
+                    'min' => pow(10, -$precision['price']),
+                    'max' => pow(10, $precision['price']),
                 ),
             );
             $active = $this->safe_value($market, 'tradable', false);
-            if (is_array ($this->options['limits']) && array_key_exists ($symbol, $this->options['limits'])) {
+            if (is_array($this->options['limits']) && array_key_exists($symbol, $this->options['limits'])) {
                 $limits = array_merge ($this->options['limits'][$symbol], $limits);
             }
             $result[] = array (
@@ -177,13 +177,13 @@ class fcoin extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccountsBalance ($params);
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         $balances = $response['data'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $balance['currency'];
-            $code = strtoupper ($currencyId);
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            $code = strtoupper($currencyId);
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
             } else {
                 $code = $this->common_currency_code($code);
@@ -198,7 +198,7 @@ class fcoin extends Exchange {
     }
 
     public function parse_bids_asks ($orders, $priceKey = 0, $amountKey = 1) {
-        $result = array ();
+        $result = array();
         $length = is_array ($orders) ? count ($orders) : 0;
         $halfLength = intval ($length / 2);
         // .= 2 in the for loop below won't transpile
@@ -220,7 +220,7 @@ class fcoin extends Exchange {
             if (($limit === 20) || ($limit === 150)) {
                 $limit = 'L' . (string) $limit;
             } else {
-                throw new ExchangeError ($this->id . ' fetchOrderBook supports $limit of 20 or 150. Other values are not accepted');
+                throw new ExchangeError($this->id . ' fetchOrderBook supports $limit of 20 or 150. Other values are not accepted');
             }
         } else {
             $limit = 'L20';
@@ -250,9 +250,9 @@ class fcoin extends Exchange {
         if ($market === null) {
             $tickerType = $this->safe_string($ticker, 'type');
             if ($tickerType !== null) {
-                $parts = explode ('.', $tickerType);
+                $parts = explode('.', $tickerType);
                 $id = $parts[1];
-                if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                     $market = $this->markets_by_id[$id];
                 }
             }
@@ -292,7 +292,7 @@ class fcoin extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = intval ($trade['ts']);
-        $side = strtolower ($trade['side']);
+        $side = strtolower($trade['side']);
         $orderId = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
@@ -334,7 +334,7 @@ class fcoin extends Exchange {
             if ($side === 'buy') {
                 if ($this->options['createMarketBuyOrderRequiresPrice']) {
                     if ($price === null) {
-                        throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
                         $amount = $amount * $price;
                     }
@@ -380,7 +380,7 @@ class fcoin extends Exchange {
             'filled' => 'closed',
             'pending_cancel' => 'canceled',
         );
-        if (is_array ($statuses) && array_key_exists ($status, $statuses)) {
+        if (is_array($statuses) && array_key_exists($status, $statuses)) {
             return $statuses[$status];
         }
         return $status;
@@ -393,7 +393,7 @@ class fcoin extends Exchange {
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'symbol');
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             }
         }
@@ -457,18 +457,18 @@ class fcoin extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array ( 'states' => 'submitted,partial_filled' );
+        $request = array( 'states' => 'submitted,partial_filled' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array ( 'states' => 'filled' );
+        $request = array( 'states' => 'filled' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrders() requires a `$symbol` argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -497,7 +497,7 @@ class fcoin extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 100, $params = array ()) {
         $this->load_markets();
         if ($limit === null) {
-            throw new ExchangeError ($this->id . ' fetchOHLCV requires a $limit argument');
+            throw new ExchangeError($this->id . ' fetchOHLCV requires a $limit argument');
         }
         $market = $this->market ($symbol);
         $request = array_merge (array (
@@ -553,7 +553,7 @@ class fcoin extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
@@ -565,11 +565,11 @@ class fcoin extends Exchange {
             $status = $this->safe_string($response, 'status');
             if ($status !== '0') {
                 $feedback = $this->id . ' ' . $body;
-                if (is_array ($this->exceptions) && array_key_exists ($status, $this->exceptions)) {
+                if (is_array($this->exceptions) && array_key_exists($status, $this->exceptions)) {
                     $exceptions = $this->exceptions;
-                    throw new $exceptions[$status] ($feedback);
+                    throw new $exceptions[$status]($feedback);
                 }
-                throw new ExchangeError ($feedback);
+                throw new ExchangeError($feedback);
             }
         }
     }

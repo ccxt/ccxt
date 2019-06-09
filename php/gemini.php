@@ -88,11 +88,11 @@ class gemini extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetSymbols ();
-        $result = array ();
+        $result = array();
         for ($p = 0; $p < count ($markets); $p++) {
             $id = $markets[$p];
             $market = $id;
-            $uppercase = strtoupper ($market);
+            $uppercase = strtoupper($market);
             $base = mb_substr ($uppercase, 0, 3);
             $quote = mb_substr ($uppercase, 3, 6);
             $symbol = $base . '/' . $quote;
@@ -157,13 +157,13 @@ class gemini extends Exchange {
     public function parse_trade ($trade, $market) {
         $timestamp = $trade['timestampms'];
         $order = null;
-        if (is_array ($trade) && array_key_exists ('order_id', $trade))
+        if (is_array($trade) && array_key_exists('order_id', $trade))
             $order = (string) $trade['order_id'];
         $fee = $this->safe_float($trade, 'fee_amount');
         if ($fee !== null) {
             $currency = $this->safe_string($trade, 'fee_currency');
             if ($currency !== null) {
-                if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
+                if (is_array($this->currencies_by_id) && array_key_exists($currency, $this->currencies_by_id))
                     $currency = $this->currencies_by_id[$currency]['code'];
                 $currency = $this->common_currency_code($currency);
             }
@@ -182,7 +182,7 @@ class gemini extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => strtolower ($trade['type']),
+            'side' => strtolower($trade['type']),
             'price' => $price,
             'cost' => $price * $amount,
             'amount' => $amount,
@@ -202,7 +202,7 @@ class gemini extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostBalances ();
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -249,7 +249,7 @@ class gemini extends Exchange {
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'symbol');
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             }
         }
@@ -265,7 +265,7 @@ class gemini extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
-            'side' => strtolower ($order['side']),
+            'side' => strtolower($order['side']),
             'price' => $price,
             'average' => $average,
             'cost' => $cost,
@@ -298,7 +298,7 @@ class gemini extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type === 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' allows limit orders only');
         $nonce = $this->nonce ();
         $order = array (
             'client_order_id' => (string) $nonce,
@@ -317,12 +317,12 @@ class gemini extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostOrderCancel (array ( 'order_id' => $id ));
+        return $this->privatePostOrderCancel (array( 'order_id' => $id ));
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -357,7 +357,7 @@ class gemini extends Exchange {
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         if ($limit !== null) {
             $request['limit_transfers'] = $limit;
         }
@@ -373,7 +373,7 @@ class gemini extends Exchange {
         $code = null;
         if ($currency === null) {
             $currencyId = $this->safe_string($transaction, 'currency');
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $currency = $this->currencies_by_id[$currencyId];
             }
         }
@@ -383,7 +383,7 @@ class gemini extends Exchange {
         $address = $this->safe_string($transaction, 'destination');
         $type = $this->safe_string($transaction, 'type');
         if ($type !== null) {
-            $type = strtolower ($type);
+            $type = strtolower($type);
         }
         $status = 'pending';
         // When deposits show as Advanced or Complete they are available for trading.
@@ -439,14 +439,14 @@ class gemini extends Exchange {
             );
         }
         $url = $this->urls['api'] . $url;
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('result', $response))
+        if (is_array($response) && array_key_exists('result', $response))
             if ($response['result'] === 'error')
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json ($response));
         return $response;
     }
 

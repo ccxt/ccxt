@@ -82,14 +82,14 @@ class ccex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $result = array ();
+        $result = array();
         $response = $this->webGetPairs ();
         $markets = $response['pairs'];
         for ($i = 0; $i < count ($markets); $i++) {
             $id = $markets[$i];
-            list ($baseId, $quoteId) = explode ('-', $id);
-            $base = strtoupper ($baseId);
-            $quote = strtoupper ($quoteId);
+            list($baseId, $quoteId) = explode('-', $id);
+            $base = strtoupper($baseId);
+            $quote = strtoupper($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -128,7 +128,7 @@ class ccex extends Exchange {
         $this->load_markets();
         $response = $this->privateGetGetbalances ();
         $balances = $response['result'];
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['Currency'];
@@ -158,35 +158,35 @@ class ccex extends Exchange {
 
     public function fetch_order_books ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $orderbooks = array ();
+        $orderbooks = array();
         $response = $this->publicGetFullorderbook ();
-        $sides = is_array ($response['result']) ? array_keys ($response['result']) : array ();
+        $sides = is_array($response['result']) ? array_keys($response['result']) : array();
         for ($i = 0; $i < count ($sides); $i++) {
             $side = $sides[$i];
             $bidasks = $response['result'][$side];
             $bidasksByMarketId = $this->group_by($bidasks, 'Market');
-            $marketIds = is_array ($bidasksByMarketId) ? array_keys ($bidasksByMarketId) : array ();
+            $marketIds = is_array($bidasksByMarketId) ? array_keys($bidasksByMarketId) : array();
             for ($j = 0; $j < count ($marketIds); $j++) {
                 $marketId = $marketIds[$j];
                 $symbol = $marketId;
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                     $market = $this->markets_by_id[$symbol];
                     $symbol = $market['symbol'];
                 } else {
-                    list ($baseId, $quoteId) = explode ('-', $symbol);
+                    list($baseId, $quoteId) = explode('-', $symbol);
                     $invertedId = $quoteId . '-' . $baseId;
-                    if (is_array ($this->markets_by_id) && array_key_exists ($invertedId, $this->markets_by_id)) {
+                    if (is_array($this->markets_by_id) && array_key_exists($invertedId, $this->markets_by_id)) {
                         $market = $this->markets_by_id[$invertedId];
                         $symbol = $market['symbol'];
                     }
                 }
-                if (!(is_array ($orderbooks) && array_key_exists ($symbol, $orderbooks)))
-                    $orderbooks[$symbol] = array ();
+                if (!(is_array($orderbooks) && array_key_exists($symbol, $orderbooks)))
+                    $orderbooks[$symbol] = array();
                 $orderbooks[$symbol][$side] = $bidasksByMarketId[$marketId];
             }
         }
-        $result = array ();
-        $keys = is_array ($orderbooks) ? array_keys ($orderbooks) : array ();
+        $result = array();
+        $keys = is_array($orderbooks) ? array_keys($orderbooks) : array();
         for ($k = 0; $k < count ($keys); $k++) {
             $key = $keys[$k];
             $result[$key] = $this->parse_order_book($orderbooks[$key], null, 'buy', 'sell', 'Rate', 'Quantity');
@@ -227,19 +227,19 @@ class ccex extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->webGetPrices ($params);
-        $result = array ();
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $result = array();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $ticker = $tickers[$id];
             $market = null;
             $symbol = null;
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
-                $uppercase = strtoupper ($id);
-                list ($base, $quote) = explode ('-', $uppercase);
+                $uppercase = strtoupper($id);
+                list($base, $quote) = explode('-', $uppercase);
                 $base = $this->common_currency_code($base);
                 $quote = $this->common_currency_code($quote);
                 $symbol = $base . '/' . $quote;
@@ -253,7 +253,7 @@ class ccex extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->webGetMarket (array_merge (array (
-            'market' => strtolower ($market['id']),
+            'market' => strtolower($market['id']),
         ), $params));
         $ticker = $response['ticker'];
         return $this->parse_ticker($ticker, $market);
@@ -269,7 +269,7 @@ class ccex extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => strtolower ($trade['OrderType']),
+            'side' => strtolower($trade['OrderType']),
             'price' => $trade['Price'],
             'amount' => $trade['Quantity'],
         );
@@ -302,7 +302,7 @@ class ccex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateGetCancel (array ( 'uuid' => $id ));
+        return $this->privateGetCancel (array( 'uuid' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -316,7 +316,7 @@ class ccex extends Exchange {
                 'nonce' => $nonce,
             ), $params));
             $url .= '?' . $this->urlencode ($query);
-            $headers = array ( 'apisign' => $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512') );
+            $headers = array( 'apisign' => $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512') );
         } else if ($api === 'public') {
             $url .= '?' . $this->urlencode (array_merge (array (
                 'a' => 'get' . $path,
@@ -324,16 +324,16 @@ class ccex extends Exchange {
         } else {
             $url .= '/' . $this->implode_params($path, $params) . '.json';
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api === 'web')
             return $response;
-        if (is_array ($response) && array_key_exists ('success', $response))
+        if (is_array($response) && array_key_exists('success', $response))
             if ($response['success'])
                 return $response;
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' ' . $this->json ($response));
     }
 }

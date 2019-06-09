@@ -141,10 +141,10 @@ class coinbase extends Exchange {
                 'internal_server_error' => '\\ccxt\\ExchangeError', // 500 Internal server error
             ),
             'markets' => array (
-                'BTC/USD' => array ( 'id' => 'btc-usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-                'LTC/USD' => array ( 'id' => 'ltc-usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
-                'ETH/USD' => array ( 'id' => 'eth-usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
-                'BCH/USD' => array ( 'id' => 'bch-usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD' ),
+                'BTC/USD' => array( 'id' => 'btc-usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
+                'LTC/USD' => array( 'id' => 'ltc-usd', 'symbol' => 'LTC/USD', 'base' => 'LTC', 'quote' => 'USD' ),
+                'ETH/USD' => array( 'id' => 'eth-usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD' ),
+                'BCH/USD' => array( 'id' => 'bch-usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD' ),
             ),
             'options' => array (
                 'accounts' => array (
@@ -158,7 +158,7 @@ class coinbase extends Exchange {
 
     public function fetch_time ($params = array ()) {
         $response = $this->publicGetTime ($params);
-        $data = $this->safe_value($response, 'data', array ());
+        $data = $this->safe_value($response, 'data', array());
         return $this->parse8601 ($this->safe_string($data, 'iso'));
     }
 
@@ -172,7 +172,7 @@ class coinbase extends Exchange {
         // they don't have an endpoint for all historical trades
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
         }
         $this->load_markets();
         $query = $this->omit ($params, array ( 'account_id', 'accountId' ));
@@ -186,7 +186,7 @@ class coinbase extends Exchange {
         // they don't have an endpoint for all historical trades
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
         }
         $this->load_markets();
         $query = $this->omit ($params, array ( 'account_id', 'accountId' ));
@@ -199,7 +199,7 @@ class coinbase extends Exchange {
     public function fetch_transactions_with_method ($method, $code = null, $since = null, $limit = null, $params = array ()) {
         $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
         if ($accountId === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchTransactionsWithMethod requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
+            throw new ArgumentsRequired($this->id . ' fetchTransactionsWithMethod requires an account_id or $accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
         }
         $this->load_markets();
         $query = $this->omit ($params, array ( 'account_id', 'accountId' ));
@@ -280,8 +280,8 @@ class coinbase extends Exchange {
         //           ),
         //           "payout_at" => "2015-02-18T16:54:00-08:00"
         //         }
-        $amountObject = $this->safe_value($transaction, 'amount', array ());
-        $feeObject = $this->safe_value($transaction, 'fee', array ());
+        $amountObject = $this->safe_value($transaction, 'amount', array());
+        $feeObject = $this->safe_value($transaction, 'fee', array());
         $id = $this->safe_string($transaction, 'id');
         $timestamp = $this->parse8601 ($this->safe_value($transaction, 'created_at'));
         $updated = $this->parse8601 ($this->safe_value($transaction, 'updated_at'));
@@ -361,10 +361,10 @@ class coinbase extends Exchange {
         //     }
         //
         $symbol = null;
-        $totalObject = $this->safe_value($trade, 'total', array ());
-        $amountObject = $this->safe_value($trade, 'amount', array ());
-        $subtotalObject = $this->safe_value($trade, 'subtotal', array ());
-        $feeObject = $this->safe_value($trade, 'fee', array ());
+        $totalObject = $this->safe_value($trade, 'total', array());
+        $amountObject = $this->safe_value($trade, 'amount', array());
+        $subtotalObject = $this->safe_value($trade, 'subtotal', array());
+        $feeObject = $this->safe_value($trade, 'fee', array());
         $id = $this->safe_string($trade, 'id');
         $timestamp = $this->parse8601 ($this->safe_value($trade, 'created_at'));
         if ($market === null) {
@@ -413,7 +413,7 @@ class coinbase extends Exchange {
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetCurrencies ($params);
         $currencies = $response['data'];
-        $result = array ();
+        $result = array();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $id = $currency['id'];
@@ -496,18 +496,18 @@ class coinbase extends Exchange {
         $response = $this->privateGetAccounts ();
         $balances = $response['data'];
         $accounts = $this->safe_value($params, 'type', $this->options['accounts']);
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             if ($this->in_array($balance['type'], $accounts)) {
                 $currencyId = $balance['balance']['currency'];
                 $code = $currencyId;
-                if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id))
+                if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))
                     $code = $this->currencies_by_id[$currencyId]['code'];
                 $total = $this->safe_float($balance['balance'], 'amount');
                 $free = $total;
                 $used = null;
-                if (is_array ($result) && array_key_exists ($code, $result)) {
+                if (is_array($result) && array_key_exists($code, $result)) {
                     $result[$code]['free'] .= $total;
                     $result[$code]['total'] .= $total;
                 } else {
@@ -550,7 +550,7 @@ class coinbase extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
@@ -561,7 +561,7 @@ class coinbase extends Exchange {
         if (($body[0] === '{') || ($body[0] === '[')) {
             $feedback = $this->id . ' ' . $body;
             //
-            //    array ("error" => "invalid_request", "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.")
+            //    array("error" => "invalid_request", "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.")
             //
             // or
             //
@@ -577,10 +577,10 @@ class coinbase extends Exchange {
             $exceptions = $this->exceptions;
             $errorCode = $this->safe_string($response, 'error');
             if ($errorCode !== null) {
-                if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
-                    throw new $exceptions[$errorCode] ($feedback);
+                if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
+                    throw new $exceptions[$errorCode]($feedback);
                 } else {
-                    throw new ExchangeError ($feedback);
+                    throw new ExchangeError($feedback);
                 }
             }
             $errors = $this->safe_value($response, 'errors');
@@ -590,10 +590,10 @@ class coinbase extends Exchange {
                     if ($numErrors > 0) {
                         $errorCode = $this->safe_string($errors[0], 'id');
                         if ($errorCode !== null) {
-                            if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
-                                throw new $exceptions[$errorCode] ($feedback);
+                            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
+                                throw new $exceptions[$errorCode]($feedback);
                             } else {
-                                throw new ExchangeError ($feedback);
+                                throw new ExchangeError($feedback);
                             }
                         }
                     }
@@ -601,7 +601,7 @@ class coinbase extends Exchange {
             }
             $data = $this->safe_value($response, 'data');
             if ($data === null)
-                throw new ExchangeError ($this->id . ' failed due to a malformed $response ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json ($response));
         }
     }
 }

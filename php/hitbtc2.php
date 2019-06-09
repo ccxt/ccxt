@@ -560,7 +560,7 @@ class hitbtc2 extends hitbtc {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetSymbol ();
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['id'];
@@ -612,7 +612,7 @@ class hitbtc2 extends hitbtc {
 
     public function fetch_currencies ($params = array ()) {
         $currencies = $this->publicGetCurrency ($params);
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $currency['id'];
@@ -625,11 +625,11 @@ class hitbtc2 extends hitbtc {
             $payout = $this->safe_value($currency, 'payoutEnabled');
             $transfer = $this->safe_value($currency, 'transferEnabled');
             $active = $payin && $payout && $transfer;
-            if (is_array ($currency) && array_key_exists ('disabled', $currency))
+            if (is_array($currency) && array_key_exists('disabled', $currency))
                 if ($currency['disabled'])
                     $active = false;
             $type = 'fiat';
-            if ((is_array ($currency) && array_key_exists ('crypto', $currency)) && $currency['crypto'])
+            if ((is_array($currency) && array_key_exists('crypto', $currency)) && $currency['crypto'])
                 $type = 'crypto';
             $result[$code] = array (
                 'id' => $id,
@@ -645,12 +645,12 @@ class hitbtc2 extends hitbtc {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -658,7 +658,7 @@ class hitbtc2 extends hitbtc {
                     ),
                     'withdraw' => array (
                         'min' => null,
-                        'max' => pow (10, $precision),
+                        'max' => pow(10, $precision),
                     ),
                 ),
             );
@@ -692,7 +692,7 @@ class hitbtc2 extends hitbtc {
         $method = 'privateGet' . $this->capitalize ($type) . 'Balance';
         $query = $this->omit ($params, 'type');
         $balances = $this->$method ($query);
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['currency'];
@@ -797,7 +797,7 @@ class hitbtc2 extends hitbtc {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
             $id = $ticker['symbol'];
@@ -814,8 +814,8 @@ class hitbtc2 extends hitbtc {
         $ticker = $this->publicGetTickerSymbol (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        if (is_array ($ticker) && array_key_exists ('message', $ticker))
-            throw new ExchangeError ($this->id . ' ' . $ticker['message']);
+        if (is_array($ticker) && array_key_exists('message', $ticker))
+            throw new ExchangeError($this->id . ' ' . $ticker['message']);
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -837,7 +837,7 @@ class hitbtc2 extends hitbtc {
         $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
         if ($marketId !== null) {
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             } else {
@@ -859,7 +859,7 @@ class hitbtc2 extends hitbtc {
             );
         }
         $orderId = null;
-        if (is_array ($trade) && array_key_exists ('clientOrderId', $trade))
+        if (is_array($trade) && array_key_exists('clientOrderId', $trade))
             $orderId = $trade['clientOrderId'];
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'quantity');
@@ -884,7 +884,7 @@ class hitbtc2 extends hitbtc {
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = null;
-        $request = array ();
+        $request = array();
         if ($code !== null) {
             $currency = $this->currency ($code);
             $request['asset'] = $currency['id'];
@@ -949,7 +949,7 @@ class hitbtc2 extends hitbtc {
         $updated = $this->parse8601 ($this->safe_string($transaction, 'updatedAt'));
         $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
             $currency = $this->currencies_by_id[$currencyId];
             $code = $currency['code'];
         } else {
@@ -996,7 +996,7 @@ class hitbtc2 extends hitbtc {
             'failed' => 'failed',
             'success' => 'ok',
         );
-        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
+        return (is_array($statuses) && array_key_exists($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1020,8 +1020,8 @@ class hitbtc2 extends hitbtc {
         $market = $this->market ($symbol);
         // their max accepted length is 32 characters
         $uuid = $this->uuid ();
-        $parts = explode ('-', $uuid);
-        $clientOrderId = implode ('', $parts);
+        $parts = explode('-', $uuid);
+        $clientOrderId = implode('', $parts);
         $clientOrderId = mb_substr ($clientOrderId, 0, 32);
         $amount = floatval ($amount);
         $request = array (
@@ -1039,7 +1039,7 @@ class hitbtc2 extends hitbtc {
         $response = $this->privatePostOrder (array_merge ($request, $params));
         $order = $this->parse_order($response);
         if ($order['status'] === 'rejected')
-            throw new InvalidOrder ($this->id . ' $order was rejected by the exchange ' . $this->json ($order));
+            throw new InvalidOrder($this->id . ' $order was rejected by the exchange ' . $this->json ($order));
         $id = $order['id'];
         $this->orders[$id] = $order;
         return $order;
@@ -1049,8 +1049,8 @@ class hitbtc2 extends hitbtc {
         $this->load_markets();
         // their max accepted length is 32 characters
         $uuid = $this->uuid ();
-        $parts = explode ('-', $uuid);
-        $requestClientId = implode ('', $parts);
+        $parts = explode('-', $uuid);
+        $requestClientId = implode('', $parts);
         $requestClientId = mb_substr ($requestClientId, 0, 32);
         $request = array (
             'clientOrderId' => $id,
@@ -1112,7 +1112,7 @@ class hitbtc2 extends hitbtc {
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = null;
         if ($marketId !== null) {
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             } else {
@@ -1130,7 +1130,7 @@ class hitbtc2 extends hitbtc {
         $id = (string) $order['clientOrderId'];
         $price = $this->safe_float($order, 'price');
         if ($price === null) {
-            if (is_array ($this->orders) && array_key_exists ($id, $this->orders))
+            if (is_array($this->orders) && array_key_exists($id, $this->orders))
                 $price = $this->orders[$id]['price'];
         }
         $remaining = null;
@@ -1205,7 +1205,7 @@ class hitbtc2 extends hitbtc {
         $numOrders = is_array ($response) ? count ($response) : 0;
         if ($numOrders > 0)
             return $this->parse_order($response[0]);
-        throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
+        throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
     }
 
     public function fetch_open_order ($id, $symbol = null, $params = array ()) {
@@ -1219,7 +1219,7 @@ class hitbtc2 extends hitbtc {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        $request = array ();
+        $request = array();
         if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
@@ -1231,7 +1231,7 @@ class hitbtc2 extends hitbtc {
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        $request = array ();
+        $request = array();
         if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
@@ -1242,7 +1242,7 @@ class hitbtc2 extends hitbtc {
             $request['from'] = $this->iso8601 ($since);
         $response = $this->privateGetHistoryOrder (array_merge ($request, $params));
         $parsedOrders = $this->parse_orders($response, $market);
-        $orders = array ();
+        $orders = array();
         for ($i = 0; $i < count ($parsedOrders); $i++) {
             $order = $parsedOrders[$i];
             $status = $order['status'];
@@ -1317,7 +1317,7 @@ class hitbtc2 extends hitbtc {
         $numOrders = is_array ($response) ? count ($response) : 0;
         if ($numOrders > 0)
             return $this->parse_trades($response, $market, $since, $limit);
-        throw new OrderNotFound ($this->id . ' order ' . $id . ' not found, ' . $this->id . '.fetchOrderTrades() requires an exchange-specific order $id, you need to grab it from order["info"]["$id"]');
+        throw new OrderNotFound($this->id . ' order ' . $id . ' not found, ' . $this->id . '.fetchOrderTrades() requires an exchange-specific order $id, you need to grab it from order["info"]["$id"]');
     }
 
     public function create_deposit_address ($code, $params = array ()) {
@@ -1397,7 +1397,7 @@ class hitbtc2 extends hitbtc {
             );
         }
         $url = $this->urls['api'] . $url;
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
@@ -1405,24 +1405,24 @@ class hitbtc2 extends hitbtc {
             return;
         if ($code >= 400) {
             $feedback = $this->id . ' ' . $body;
-            // array ("$code":504,"$message":"Gateway Timeout","description":"")
+            // array("$code":504,"$message":"Gateway Timeout","description":"")
             if (($code === 503) || ($code === 504))
-                throw new ExchangeNotAvailable ($feedback);
-            // array ("error":{"$code":20002,"$message":"Order not found","description":"")}
+                throw new ExchangeNotAvailable($feedback);
+            // array("error":{"$code":20002,"$message":"Order not found","description":"")}
             if ($body[0] === '{') {
-                if (is_array ($response) && array_key_exists ('error', $response)) {
+                if (is_array($response) && array_key_exists('error', $response)) {
                     $code = $this->safe_string($response['error'], 'code');
                     $exceptions = $this->exceptions;
-                    if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                        throw new $exceptions[$code] ($feedback);
+                    if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
+                        throw new $exceptions[$code]($feedback);
                     }
                     $message = $this->safe_string($response['error'], 'message');
                     if ($message === 'Duplicate clientOrderId') {
-                        throw new InvalidOrder ($feedback);
+                        throw new InvalidOrder($feedback);
                     }
                 }
             }
-            throw new ExchangeError ($feedback);
+            throw new ExchangeError($feedback);
         }
     }
 }

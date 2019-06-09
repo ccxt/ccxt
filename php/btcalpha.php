@@ -108,7 +108,7 @@ class btcalpha extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetPairs ();
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['name'];
@@ -132,8 +132,8 @@ class btcalpha extends Exchange {
                         'max' => floatval ($market['maximum_order_size']),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow(10, -$precision['price']),
+                        'max' => pow(10, $precision['price']),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -171,7 +171,7 @@ class btcalpha extends Exchange {
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         $id = $this->safe_string($trade, 'id');
         $side = null;
-        if (is_array ($trade) && array_key_exists ('my_side', $trade)) {
+        if (is_array($trade) && array_key_exists('my_side', $trade)) {
             $side = $this->safe_string($trade, 'my_side');
         } else {
             $side = $this->safe_string($trade, 'side');
@@ -197,7 +197,7 @@ class btcalpha extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        $request = array ();
+        $request = array();
         if ($symbol !== null) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
@@ -237,7 +237,7 @@ class btcalpha extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetWallets ($params);
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currency = $this->common_currency_code($balance['currency']);
@@ -316,7 +316,7 @@ class btcalpha extends Exchange {
             'price' => $this->price_to_precision($symbol, $price),
         ), $params));
         if (!$response['success'])
-            throw new InvalidOrder ($this->id . ' ' . $this->json ($response));
+            throw new InvalidOrder($this->id . ' ' . $this->json ($response));
         return $this->parse_order($response, $market);
     }
 
@@ -337,7 +337,7 @@ class btcalpha extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         $market = null;
         if ($symbol) {
             $market = $this->market ($symbol);
@@ -365,7 +365,7 @@ class btcalpha extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         if ($symbol) {
             $market = $this->market ($symbol);
             $request['pair'] = $market['id'];
@@ -387,7 +387,7 @@ class btcalpha extends Exchange {
             $url .= 'v1/';
         }
         $url .= $this->implode_params($path, $params);
-        $headers = array ( 'Accept' => 'application/json' );
+        $headers = array( 'Accept' => 'application/json' );
         if ($api === 'public') {
             if (strlen ($query))
                 $url .= '?' . $query;
@@ -405,7 +405,7 @@ class btcalpha extends Exchange {
             $headers['X-SIGN'] = $this->hmac ($this->encode ($payload), $this->encode ($this->secret));
             $headers['X-NONCE'] = (string) $this->nonce ();
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
@@ -418,11 +418,11 @@ class btcalpha extends Exchange {
         if (($body[0] === '{') || ($body[0] === '[')) {
             $message = $this->id . ' ' . $this->safe_value($response, 'detail', $body);
             if ($code === 401 || $code === 403) {
-                throw new AuthenticationError ($message);
+                throw new AuthenticationError($message);
             } else if ($code === 429) {
-                throw new DDoSProtection ($message);
+                throw new DDoSProtection($message);
             }
-            throw new ExchangeError ($message);
+            throw new ExchangeError($message);
         }
     }
 }

@@ -100,13 +100,13 @@ class bitmarket extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BCH/PLN' => array ( 'id' => 'BCCPLN', 'symbol' => 'BCH/PLN', 'base' => 'BCH', 'quote' => 'PLN' ),
-                'BTG/PLN' => array ( 'id' => 'BTGPLN', 'symbol' => 'BTG/PLN', 'base' => 'BTG', 'quote' => 'PLN' ),
-                'BTC/PLN' => array ( 'id' => 'BTCPLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
-                'BTC/EUR' => array ( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'LTC/PLN' => array ( 'id' => 'LTCPLN', 'symbol' => 'LTC/PLN', 'base' => 'LTC', 'quote' => 'PLN' ),
-                'LTC/BTC' => array ( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'LiteMineX/BTC' => array ( 'id' => 'LiteMineXBTC', 'symbol' => 'LiteMineX/BTC', 'base' => 'LiteMineX', 'quote' => 'BTC' ),
+                'BCH/PLN' => array( 'id' => 'BCCPLN', 'symbol' => 'BCH/PLN', 'base' => 'BCH', 'quote' => 'PLN' ),
+                'BTG/PLN' => array( 'id' => 'BTGPLN', 'symbol' => 'BTG/PLN', 'base' => 'BTG', 'quote' => 'PLN' ),
+                'BTC/PLN' => array( 'id' => 'BTCPLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
+                'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
+                'LTC/PLN' => array( 'id' => 'LTCPLN', 'symbol' => 'LTC/PLN', 'base' => 'LTC', 'quote' => 'PLN' ),
+                'LTC/BTC' => array( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
+                'LiteMineX/BTC' => array( 'id' => 'LiteMineXBTC', 'symbol' => 'LiteMineX/BTC', 'base' => 'LiteMineX', 'quote' => 'BTC' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -184,14 +184,14 @@ class bitmarket extends Exchange {
         $response = $this->privatePostInfo ();
         $data = $response['data'];
         $balance = $data['balances'];
-        $result = array ( 'info' => $data );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $result = array( 'info' => $data );
+        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (is_array ($balance['available']) && array_key_exists ($currency, $balance['available']))
+            if (is_array($balance['available']) && array_key_exists($currency, $balance['available']))
                 $account['free'] = $balance['available'][$currency];
-            if (is_array ($balance['blocked']) && array_key_exists ($currency, $balance['blocked']))
+            if (is_array($balance['blocked']) && array_key_exists($currency, $balance['blocked']))
                 $account['used'] = $balance['blocked'][$currency];
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -297,13 +297,13 @@ class bitmarket extends Exchange {
         $result = array (
             'info' => $response,
         );
-        if (is_array ($response['data']) && array_key_exists ('id', $response['data']))
+        if (is_array($response['data']) && array_key_exists('id', $response['data']))
             $result['id'] = $response['id'];
         return $result;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancel (array ( 'id' => $id ));
+        return $this->privatePostCancel (array( 'id' => $id ));
     }
 
     public function is_fiat ($currency) {
@@ -325,22 +325,22 @@ class bitmarket extends Exchange {
         );
         if ($this->is_fiat ($code)) {
             $method = 'privatePostWithdrawFiat';
-            if (is_array ($params) && array_key_exists ('account', $params)) {
+            if (is_array($params) && array_key_exists('account', $params)) {
                 $request['account'] = $params['account']; // bank account $code for withdrawal
             } else {
-                throw new ExchangeError ($this->id . ' requires account parameter to withdraw fiat currency');
+                throw new ExchangeError($this->id . ' requires account parameter to withdraw fiat currency');
             }
-            if (is_array ($params) && array_key_exists ('account2', $params)) {
+            if (is_array($params) && array_key_exists('account2', $params)) {
                 $request['account2'] = $params['account2']; // bank SWIFT $code (EUR only)
             } else {
                 if ($currency === 'EUR')
-                    throw new ExchangeError ($this->id . ' requires account2 parameter to withdraw EUR');
+                    throw new ExchangeError($this->id . ' requires account2 parameter to withdraw EUR');
             }
-            if (is_array ($params) && array_key_exists ('withdrawal_note', $params)) {
+            if (is_array($params) && array_key_exists('withdrawal_note', $params)) {
                 $request['withdrawal_note'] = $params['withdrawal_note']; // a 10-character user-specified withdrawal note (PLN only)
             } else {
                 if ($currency === 'PLN')
-                    throw new ExchangeError ($this->id . ' requires withdrawal_note parameter to withdraw PLN');
+                    throw new ExchangeError($this->id . ' requires withdrawal_note parameter to withdraw PLN');
             }
         } else {
             $method = 'privatePostWithdraw';
@@ -370,6 +370,6 @@ class bitmarket extends Exchange {
                 'API-Hash' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

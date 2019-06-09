@@ -93,7 +93,7 @@ class coinmate extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data');
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($data); $i++) {
             $market = $data[$i];
             $id = $this->safe_string($market, 'name');
@@ -137,12 +137,12 @@ class coinmate extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalances ();
         $balances = $response['data'];
-        $result = array ( 'info' => $balances );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $result = array( 'info' => $balances );
+        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (is_array ($balances) && array_key_exists ($currency, $balances)) {
+            if (is_array($balances) && array_key_exists($currency, $balances)) {
                 $account['free'] = $balances[$currency]['available'];
                 $account['used'] = $balances[$currency]['reserved'];
                 $account['total'] = $balances[$currency]['balance'];
@@ -242,7 +242,7 @@ class coinmate extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelOrder (array ( 'orderId' => $id ));
+        return $this->privatePostCancelOrder (array( 'orderId' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -259,20 +259,20 @@ class coinmate extends Exchange {
                 'clientId' => $this->uid,
                 'nonce' => $nonce,
                 'publicKey' => $this->apiKey,
-                'signature' => strtoupper ($signature),
+                'signature' => strtoupper($signature),
             ), $params));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('error', $response))
+        if (is_array($response) && array_key_exists('error', $response))
             if ($response['error'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }

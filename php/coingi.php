@@ -92,17 +92,17 @@ class coingi extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $response = $this->wwwGet ();
-        $parts = explode ('do=currencyPairSelector-selectCurrencyPair" class="active">', $response);
-        $currencyParts = explode ('<div class="currency-pair-label">', $parts[1]);
-        $result = array ();
+        $parts = explode('do=currencyPairSelector-selectCurrencyPair" class="active">', $response);
+        $currencyParts = explode('<div class="currency-pair-label">', $parts[1]);
+        $result = array();
         for ($i = 1; $i < count ($currencyParts); $i++) {
             $currencyPart = $currencyParts[$i];
-            $idParts = explode ('</div>', $currencyPart);
+            $idParts = explode('</div>', $currencyPart);
             $id = $idParts[0];
             $symbol = $id;
-            $id = str_replace ('/', '-', $id);
-            $id = strtolower ($id);
-            list ($base, $quote) = explode ('/', $symbol);
+            $id = str_replace('/', '-', $id);
+            $id = strtolower($id);
+            list($base, $quote) = explode('/', $symbol);
             $precision = array (
                 'amount' => 8,
                 'price' => 8,
@@ -117,11 +117,11 @@ class coingi extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow(10, -$precision['amount']),
+                        'max' => pow(10, $precision['amount']),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
+                        'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
                     'cost' => array (
@@ -136,20 +136,20 @@ class coingi extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $lowercaseCurrencies = array ();
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $lowercaseCurrencies = array();
+        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $lowercaseCurrencies[] = strtolower ($currency);
+            $lowercaseCurrencies[] = strtolower($currency);
         }
         $balances = $this->userPostBalance (array (
-            'currencies' => implode (',', $lowercaseCurrencies),
+            'currencies' => implode(',', $lowercaseCurrencies),
         ));
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency']['name'];
-            $currency = strtoupper ($currency);
+            $currency = strtoupper($currency);
             $account = array (
                 'free' => $balance['available'],
                 'used' => $balance['blocked'] . $balance['inOrders'] . $balance['withdrawing'],
@@ -205,14 +205,14 @@ class coingi extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->currentGet24hourRollingAggregation ($params);
-        $result = array ();
+        $result = array();
         for ($t = 0; $t < count ($response); $t++) {
             $ticker = $response[$t];
-            $base = strtoupper ($ticker['currencyPair']['base']);
-            $quote = strtoupper ($ticker['currencyPair']['counter']);
+            $base = strtoupper($ticker['currencyPair']['base']);
+            $quote = strtoupper($ticker['currencyPair']['counter']);
             $symbol = $base . '/' . $quote;
             $market = null;
-            if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets)) {
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 $market = $this->markets[$symbol];
             }
             $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -223,9 +223,9 @@ class coingi extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $tickers = $this->fetch_tickers(null, $params);
-        if (is_array ($tickers) && array_key_exists ($symbol, $tickers))
+        if (is_array($tickers) && array_key_exists($symbol, $tickers))
             return $tickers[$symbol];
-        throw new ExchangeError ($this->id . ' return did not contain ' . $symbol);
+        throw new ExchangeError($this->id . ' return did not contain ' . $symbol);
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -271,7 +271,7 @@ class coingi extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->userPostCancelOrder (array ( 'orderId' => $id ));
+        return $this->userPostCancelOrder (array( 'orderId' => $id ));
     }
 
     public function sign ($path, $api = 'current', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -297,14 +297,14 @@ class coingi extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'current', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (gettype ($response) !== 'string') {
-            if (is_array ($response) && array_key_exists ('errors', $response))
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            if (is_array($response) && array_key_exists('errors', $response))
+                throw new ExchangeError($this->id . ' ' . $this->json ($response));
         }
         return $response;
     }

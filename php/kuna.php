@@ -63,19 +63,19 @@ class kuna extends acx {
         $pricePrecisions = array (
             'UAH' => 0,
         );
-        $markets = array ();
+        $markets = array();
         $response = $this->publicGetTickers ($params);
-        $ids = is_array ($response) ? array_keys ($response) : array ();
+        $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             for ($j = 0; $j < count ($quotes); $j++) {
                 $quoteId = $quotes[$j];
-                $index = mb_strpos ($id, $quoteId);
+                $index = mb_strpos($id, $quoteId);
                 $slice = mb_substr ($id, $index);
                 if (($index > 0) && ($slice === $quoteId)) {
-                    $baseId = str_replace ($quoteId, '', $id);
-                    $base = strtoupper ($baseId);
-                    $quote = strtoupper ($quoteId);
+                    $baseId = str_replace($quoteId, '', $id);
+                    $base = strtoupper($baseId);
+                    $quote = strtoupper($quoteId);
                     $base = $this->common_currency_code($base);
                     $quote = $this->common_currency_code($quote);
                     $symbol = $base . '/' . $quote;
@@ -93,12 +93,12 @@ class kuna extends acx {
                         'precision' => $precision,
                         'limits' => array (
                             'amount' => array (
-                                'min' => pow (10, -$precision['amount']),
-                                'max' => pow (10, $precision['amount']),
+                                'min' => pow(10, -$precision['amount']),
+                                'max' => pow(10, $precision['amount']),
                             ),
                             'price' => array (
-                                'min' => pow (10, -$precision['price']),
-                                'max' => pow (10, $precision['price']),
+                                'min' => pow(10, -$precision['price']),
+                                'max' => pow(10, $precision['price']),
                             ),
                             'cost' => array (
                                 'min' => null,
@@ -119,7 +119,7 @@ class kuna extends acx {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
         $orders = $this->privateGetOrders (array_merge (array (
@@ -172,10 +172,10 @@ class kuna extends acx {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null)
-            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privateGetTradesMy (array ( 'market' => $market['id'] ));
+        $response = $this->privateGetTradesMy (array( 'market' => $market['id'] ));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 }

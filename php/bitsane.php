@@ -81,8 +81,8 @@ class bitsane extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $currencies = $this->publicGetAssetsCurrencies ($params);
-        $ids = is_array ($currencies) ? array_keys ($currencies) : array ();
-        $result = array ();
+        $ids = is_array($currencies) ? array_keys($currencies) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $currency = $currencies[$id];
@@ -112,11 +112,11 @@ class bitsane extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => $this->safe_float($currency, 'minAmountTrade'),
-                        'max' => pow (10, $precision),
+                        'max' => pow(10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -131,8 +131,8 @@ class bitsane extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAssetsPairs ();
-        $result = array ();
-        $marketIds = is_array ($markets) ? array_keys ($markets) : array ();
+        $result = array();
+        $marketIds = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count ($marketIds); $i++) {
             $id = $marketIds[$i];
             $market = $markets[$id];
@@ -165,8 +165,8 @@ class bitsane extends Exchange {
                         'max' => $maxLimit,
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow(10, -$precision['price']),
+                        'max' => pow(10, $precision['price']),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -214,14 +214,14 @@ class bitsane extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         if ($symbols) {
             $ids = $this->market_ids($symbols);
-            $request['pairs'] = implode (',', $ids);
+            $request['pairs'] = implode(',', $ids);
         }
         $tickers = $this->publicGetTicker (array_merge ($request, $params));
-        $marketIds = is_array ($tickers) ? array_keys ($tickers) : array ();
-        $result = array ();
+        $marketIds = is_array($tickers) ? array_keys($tickers) : array();
+        $result = array();
         for ($i = 0; $i < count ($marketIds); $i++) {
             $id = $marketIds[$i];
             $market = $this->safe_value($this->marketsById, $id);
@@ -282,14 +282,14 @@ class bitsane extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalances ($params);
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         $balances = $response['result'];
-        $ids = is_array ($balances) ? array_keys ($balances) : array ();
+        $ids = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $balance = $balances[$id];
             $code = $id;
-            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$id]['code'];
             } else {
                 $code = $this->common_currency_code($code);
@@ -436,7 +436,7 @@ class bitsane extends Exchange {
                 'X-BS-SIGNATURE' => $this->hmac ($payload64, $this->encode ($this->secret), 'sha384'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -450,10 +450,10 @@ class bitsane extends Exchange {
                 if ($statusCode !== '0') {
                     $feedback = $this->id . ' ' . $this->json ($response);
                     $exceptions = $this->exceptions;
-                    if (is_array ($exceptions) && array_key_exists ($statusCode, $exceptions)) {
-                        throw new $exceptions[$statusCode] ($feedback);
+                    if (is_array($exceptions) && array_key_exists($statusCode, $exceptions)) {
+                        throw new $exceptions[$statusCode]($feedback);
                     } else {
-                        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                        throw new ExchangeError($this->id . ' ' . $this->json ($response));
                     }
                 }
             }

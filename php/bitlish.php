@@ -125,13 +125,13 @@ class bitlish extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetPairs ();
-        $result = array ();
-        $keys = is_array ($markets) ? array_keys ($markets) : array ();
+        $result = array();
+        $keys = is_array($markets) ? array_keys($markets) : array();
         for ($p = 0; $p < count ($keys); $p++) {
             $market = $markets[$keys[$p]];
             $id = $market['id'];
             $symbol = $market['name'];
-            list ($base, $quote) = explode ('/', $symbol);
+            list($base, $quote) = explode('/', $symbol);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -179,8 +179,8 @@ class bitlish extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
-        $result = array ();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $this->safe_value($this->markets_by_id, $id);
@@ -190,8 +190,8 @@ class bitlish extends Exchange {
             } else {
                 $baseId = mb_substr ($id, 0, 3);
                 $quoteId = mb_substr ($id, 3, 6);
-                $base = strtoupper ($baseId);
-                $quote = strtoupper ($quoteId);
+                $base = strtoupper($baseId);
+                $quote = strtoupper($quoteId);
                 $base = $this->common_currency_code($base);
                 $quote = $this->common_currency_code($quote);
                 $symbol = $base . '/' . $quote;
@@ -267,13 +267,13 @@ class bitlish extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalance ();
-        $result = array ( 'info' => $response );
-        $currencies = is_array ($response) ? array_keys ($response) : array ();
-        $balance = array ();
+        $result = array( 'info' => $response );
+        $currencies = is_array($response) ? array_keys($response) : array();
+        $balance = array();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
             $account = $response[$currency];
-            $currency = strtoupper ($currency);
+            $currency = strtoupper($currency);
             // issue #4 bitlish names Dash as DSH, instead of DASH
             if ($currency === 'DSH')
                 $currency = 'DASH';
@@ -281,11 +281,11 @@ class bitlish extends Exchange {
                 $currency = 'DOGE';
             $balance[$currency] = $account;
         }
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
+            if (is_array($balance) && array_key_exists($currency, $balance)) {
                 $account['free'] = floatval ($balance[$currency]['funds']);
                 $account['used'] = floatval ($balance[$currency]['holded']);
                 $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -320,7 +320,7 @@ class bitlish extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelTrade (array ( 'id' => $id ));
+        return $this->privatePostCancelTrade (array( 'id' => $id ));
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -329,10 +329,10 @@ class bitlish extends Exchange {
         $currency = $this->currency ($code);
         if ($code !== 'BTC') {
             // they did not document other types...
-            throw new NotSupported ($this->id . ' currently supports BTC withdrawals only, until they document other currencies...');
+            throw new NotSupported($this->id . ' currently supports BTC withdrawals only, until they document other currencies...');
         }
         $response = $this->privatePostWithdraw (array_merge (array (
-            'currency' => strtolower ($currency),
+            'currency' => strtolower($currency),
             'amount' => floatval ($amount),
             'account' => $address,
             'payment_method' => 'bitcoin', // they did not document other types...
@@ -351,13 +351,13 @@ class bitlish extends Exchange {
                     $url .= '?' . $this->urlencode ($params);
             } else {
                 $body = $this->json ($params);
-                $headers = array ( 'Content-Type' => 'application/json' );
+                $headers = array( 'Content-Type' => 'application/json' );
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->json (array_merge (array ( 'token' => $this->apiKey ), $params));
-            $headers = array ( 'Content-Type' => 'application/json' );
+            $body = $this->json (array_merge (array( 'token' => $this->apiKey ), $params));
+            $headers = array( 'Content-Type' => 'application/json' );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

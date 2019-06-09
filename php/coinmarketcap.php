@@ -89,7 +89,7 @@ class coinmarketcap extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        throw new ExchangeError ('Fetching order books is not supported by the API of ' . $this->id);
+        throw new ExchangeError('Fetching order books is not supported by the API of ' . $this->id);
     }
 
     public function currency_code ($base, $name) {
@@ -133,7 +133,7 @@ class coinmarketcap extends Exchange {
             'PutinCoin' => 'PutinCoin', // conflict with PUT (Profile Utility Token)
             'Rcoin' => 'Rcoin', // conflict with RCN (Ripio Credit Network)
         );
-        if (is_array ($currencies) && array_key_exists ($name, $currencies))
+        if (is_array($currencies) && array_key_exists($name, $currencies))
             return $currencies[$name];
         return $base;
     }
@@ -142,13 +142,13 @@ class coinmarketcap extends Exchange {
         $markets = $this->publicGetTicker (array (
             'limit' => 0,
         ));
-        $result = array ();
+        $result = array();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
             $currencies = $this->currencyCodes;
             for ($i = 0; $i < count ($currencies); $i++) {
                 $quote = $currencies[$i];
-                $quoteId = strtolower ($quote);
+                $quoteId = strtolower($quote);
                 $baseId = $market['id'];
                 $base = $this->currency_code ($market['symbol'], $market['name']);
                 $symbol = $base . '/' . $quote;
@@ -169,7 +169,7 @@ class coinmarketcap extends Exchange {
 
     public function fetch_global ($currency = 'USD') {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         if ($currency)
             $request['convert'] = $currency;
         return $this->publicGetGlobal ($request);
@@ -177,11 +177,11 @@ class coinmarketcap extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
-        if (is_array ($ticker) && array_key_exists ('last_updated', $ticker))
+        if (is_array($ticker) && array_key_exists('last_updated', $ticker))
             if ($ticker['last_updated'])
                 $timestamp = intval ($ticker['last_updated']) * 1000;
         $change = null;
-        if (is_array ($ticker) && array_key_exists ('percent_change_24h', $ticker))
+        if (is_array($ticker) && array_key_exists('percent_change_24h', $ticker))
             if ($ticker['percent_change_24h'])
                 $change = $this->safe_float($ticker, 'percent_change_24h');
         $last = null;
@@ -189,12 +189,12 @@ class coinmarketcap extends Exchange {
         $volume = null;
         if ($market !== null) {
             $priceKey = 'price_' . $market['quoteId'];
-            if (is_array ($ticker) && array_key_exists ($priceKey, $ticker))
+            if (is_array($ticker) && array_key_exists($priceKey, $ticker))
                 if ($ticker[$priceKey])
                     $last = $this->safe_float($ticker, $priceKey);
             $symbol = $market['symbol'];
             $volumeKey = '24h_volume_' . $market['quoteId'];
-            if (is_array ($ticker) && array_key_exists ($volumeKey, $ticker))
+            if (is_array($ticker) && array_key_exists($volumeKey, $ticker))
                 if ($ticker[$volumeKey])
                     $volume = $this->safe_float($ticker, $volumeKey);
         }
@@ -230,14 +230,14 @@ class coinmarketcap extends Exchange {
         if ($currency)
             $request['convert'] = $currency;
         $response = $this->publicGetTicker (array_merge ($request, $params));
-        $tickers = array ();
+        $tickers = array();
         for ($t = 0; $t < count ($response); $t++) {
             $ticker = $response[$t];
-            $currencyId = strtolower ($currency);
+            $currencyId = strtolower($currency);
             $id = $ticker['id'] . '/' . $currencyId;
             $symbol = $id;
             $market = null;
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             }
@@ -262,7 +262,7 @@ class coinmarketcap extends Exchange {
         $currencies = $this->publicGetTicker (array_merge (array (
             'limit' => 0,
         ), $params));
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $currency['symbol'];
@@ -282,12 +282,12 @@ class coinmarketcap extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -308,14 +308,14 @@ class coinmarketcap extends Exchange {
         $query = $this->omit ($params, $this->extract_params($path));
         if ($query)
             $url .= '?' . $this->urlencode ($query);
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('error', $response)) {
+        if (is_array($response) && array_key_exists('error', $response)) {
             if ($response['error']) {
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json ($response));
             }
         }
         return $response;

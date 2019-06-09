@@ -79,8 +79,8 @@ class bxinth extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetPairing ();
-        $keys = is_array ($markets) ? array_keys ($markets) : array ();
-        $result = array ();
+        $keys = is_array($markets) ? array_keys($markets) : array();
+        $result = array();
         for ($p = 0; $p < count ($keys); $p++) {
             $market = $markets[$keys[$p]];
             $id = (string) $market['pairing_id'];
@@ -107,9 +107,9 @@ class bxinth extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
-        $balance = $this->safe_value($response, 'balance', array ());
-        $result = array ( 'info' => $balance );
-        $currencyIds = is_array ($balance) ? array_keys ($balance) : array ();
+        $balance = $this->safe_value($response, 'balance', array());
+        $result = array( 'info' => $balance );
+        $currencyIds = is_array($balance) ? array_keys($balance) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->common_currency_code($currencyId);
@@ -166,8 +166,8 @@ class bxinth extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGet ($params);
-        $result = array ();
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $result = array();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $ticker = $tickers[$id];
@@ -243,7 +243,7 @@ class bxinth extends Exchange {
         if ($market === null) {
             $marketId = $this->safe_string($order, 'pairing_id');
             if ($marketId !== null)
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))
                     $market = $this->markets_by_id[$marketId];
         }
         if ($market !== null)
@@ -266,7 +266,7 @@ class bxinth extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
@@ -298,16 +298,16 @@ class bxinth extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api === 'public')
             return $response;
-        if (is_array ($response) && array_key_exists ('success', $response))
+        if (is_array($response) && array_key_exists('success', $response))
             if ($response['success'])
                 return $response;
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' ' . $this->json ($response));
     }
 }

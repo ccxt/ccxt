@@ -61,15 +61,15 @@ class lakebtc extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTicker ();
-        $result = array ();
-        $keys = is_array ($markets) ? array_keys ($markets) : array ();
+        $result = array();
+        $keys = is_array($markets) ? array_keys($markets) : array();
         for ($k = 0; $k < count ($keys); $k++) {
             $id = $keys[$k];
             $market = $markets[$id];
             $baseId = mb_substr ($id, 0, 3);
             $quoteId = mb_substr ($id, 3, 6);
-            $base = strtoupper ($baseId);
-            $quote = strtoupper ($quoteId);
+            $base = strtoupper($baseId);
+            $quote = strtoupper($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -88,12 +88,12 @@ class lakebtc extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetAccountInfo ();
         $balances = $response['balance'];
-        $result = array ( 'info' => $response );
-        $ids = is_array ($balances) ? array_keys ($balances) : array ();
+        $result = array( 'info' => $response );
+        $ids = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $code = $id;
-            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
                 $currency = $this->currencies_by_id[$id];
                 $code = $currency['code'];
             }
@@ -149,13 +149,13 @@ class lakebtc extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
-        $result = array ();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $symbol = $ids[$i];
             $ticker = $tickers[$symbol];
             $market = null;
-            if (is_array ($this->markets_by_id) && array_key_exists ($symbol, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$symbol];
                 $symbol = $market['symbol'];
             }
@@ -199,7 +199,7 @@ class lakebtc extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($type === 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' allows limit orders only');
         $method = 'privatePost' . $this->capitalize ($side) . 'Order';
         $market = $this->market ($symbol);
         $order = array (
@@ -233,14 +233,14 @@ class lakebtc extends Exchange {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $queryParams = '';
-            if (is_array ($params) && array_key_exists ('params', $params)) {
+            if (is_array($params) && array_key_exists('params', $params)) {
                 $paramsList = $params['params'];
-                $queryParams = implode (',', $paramsList);
+                $queryParams = implode(',', $paramsList);
             }
             $query = $this->urlencode (array (
                 'tonce' => $nonce,
                 'accesskey' => $this->apiKey,
-                'requestmethod' => strtolower ($method),
+                'requestmethod' => strtolower($method),
                 'id' => $nonce,
                 'method' => $path,
                 'params' => $queryParams,
@@ -258,13 +258,13 @@ class lakebtc extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('error', $response))
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        if (is_array($response) && array_key_exists('error', $response))
+            throw new ExchangeError($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }

@@ -61,7 +61,7 @@ class tidebit extends Exchange {
                         'k',
                         'depth',
                     ),
-                    'post' => array (),
+                    'post' => array(),
                 ),
                 'private' => array (
                     'get' => array (
@@ -109,7 +109,7 @@ class tidebit extends Exchange {
                 'funding' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'withdraw' => array (), // There is only 1% fee on withdrawals to your bank account.
+                    'withdraw' => array(), // There is only 1% fee on withdrawals to your bank account.
                 ),
             ),
             'exceptions' => array (
@@ -125,7 +125,7 @@ class tidebit extends Exchange {
         $response = $this->privateGetDepositAddress (array_merge (array (
             'currency' => $currency['id'],
         ), $params));
-        if (is_array ($response) && array_key_exists ('success', $response)) {
+        if (is_array($response) && array_key_exists('success', $response)) {
             if ($response['success']) {
                 $address = $this->safe_string($response, 'address');
                 $tag = $this->safe_string($response, 'addressTag');
@@ -141,12 +141,12 @@ class tidebit extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetMarkets ();
-        $result = array ();
+        $result = array();
         for ($p = 0; $p < count ($markets); $p++) {
             $market = $markets[$p];
             $id = $market['id'];
             $symbol = $market['name'];
-            list ($baseId, $quoteId) = explode ('/', $symbol);
+            list($baseId, $quoteId) = explode('/', $symbol);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $result[] = array (
@@ -166,12 +166,12 @@ class tidebit extends Exchange {
         $this->load_markets();
         $response = $this->privateGetMembersMe ();
         $balances = $response['accounts'];
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currencyId = $balance['currency'];
-            $code = strtoupper ($currencyId);
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id))
+            $code = strtoupper($currencyId);
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))
                 $code = $this->currencies_by_id[$currencyId]['code'];
             $account = array (
                 'free' => floatval ($balance['balance']),
@@ -232,20 +232,20 @@ class tidebit extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
-        $result = array ();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = null;
             $symbol = $id;
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
                 $base = mb_substr ($id, 0, 3);
                 $quote = mb_substr ($id, 3, 6);
-                $base = strtoupper ($base);
-                $quote = strtoupper ($quote);
+                $base = strtoupper($base);
+                $quote = strtoupper($quote);
                 $base = $this->common_currency_code($base);
                 $quote = $this->common_currency_code($quote);
                 $symbol = $base . '/' . $quote;
@@ -375,11 +375,11 @@ class tidebit extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $result = $this->privatePostOrderDelete (array ( 'id' => $id ));
+        $result = $this->privatePostOrderDelete (array( 'id' => $id ));
         $order = $this->parse_order($result);
         $status = $order['status'];
         if ($status === 'closed' || $status === 'canceled') {
-            throw new OrderNotFound ($this->id . ' ' . $this->json ($order));
+            throw new OrderNotFound($this->id . ' ' . $this->json ($order));
         }
         return $order;
     }
@@ -390,12 +390,12 @@ class tidebit extends Exchange {
         $currency = $this->currency ($code);
         $id = $this->safe_string($params, 'id');
         if ($id === null) {
-            throw new ExchangeError ($this->id . ' withdraw() requires an extra $id param (withdraw account $id according to withdraws/bind_account_list endpoint');
+            throw new ExchangeError($this->id . ' withdraw() requires an extra $id param (withdraw account $id according to withdraws/bind_account_list endpoint');
         }
         $request = array (
             'id' => $id,
             'currency_type' => 'coin', // or 'cash'
-            'currency' => strtolower ($currency),
+            'currency' => strtolower($currency),
             'body' => $amount,
             // 'address' => $address, // they don't allow withdrawing to direct addresses?
         );
@@ -440,10 +440,10 @@ class tidebit extends Exchange {
                 $url .= '?' . $suffix;
             } else {
                 $body = $suffix;
-                $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
+                $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
             }
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
@@ -452,8 +452,8 @@ class tidebit extends Exchange {
             $errorCode = $this->safe_string($error, 'code');
             $feedback = $this->id . ' ' . $this->json ($response);
             $exceptions = $this->exceptions;
-            if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
-                throw new $exceptions[$errorCode] ($feedback);
+            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
+                throw new $exceptions[$errorCode]($feedback);
             }
             // fallback to default $error handler
         }

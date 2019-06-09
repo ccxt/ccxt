@@ -61,7 +61,7 @@ class btcturk extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetTicker ();
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($response); $i++) {
             $market = $response[$i];
             $id = $market['pair'];
@@ -69,8 +69,8 @@ class btcturk extends Exchange {
             $quoteId = mb_substr ($id, 3, 6);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
-            $baseId = strtolower ($baseId);
-            $quoteId = strtolower ($quoteId);
+            $baseId = strtolower($baseId);
+            $quoteId = strtolower($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -89,11 +89,11 @@ class btcturk extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
+                        'min' => pow(10, -$precision['amount']),
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
+                        'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
                     'cost' => array (
@@ -108,8 +108,8 @@ class btcturk extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privateGetBalance ();
-        $result = array ( 'info' => $response );
-        $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $result = array( 'info' => $response );
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currencies[$code];
@@ -117,7 +117,7 @@ class btcturk extends Exchange {
             $free = $currency['id'] . '_available';
             $total = $currency['id'] . '_balance';
             $used = $currency['id'] . '_reserved';
-            if (is_array ($response) && array_key_exists ($free, $response)) {
+            if (is_array($response) && array_key_exists($free, $response)) {
                 $account['free'] = $this->safe_float($response, $free);
                 $account['total'] = $this->safe_float($response, $total);
                 $account['used'] = $this->safe_float($response, $used);
@@ -169,12 +169,12 @@ class btcturk extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
             $symbol = $ticker['pair'];
             $market = null;
-            if (is_array ($this->markets_by_id) && array_key_exists ($symbol, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$symbol];
                 $symbol = $market['symbol'];
             }
@@ -187,7 +187,7 @@ class btcturk extends Exchange {
         $this->load_markets();
         $tickers = $this->fetch_tickers();
         $result = null;
-        if (is_array ($tickers) && array_key_exists ($symbol, $tickers))
+        if (is_array($tickers) && array_key_exists($symbol, $tickers))
             $result = $tickers[$symbol];
         return $result;
     }
@@ -231,7 +231,7 @@ class btcturk extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array ();
+        $request = array();
         if ($limit !== null)
             $request['last'] = $limit;
         $response = $this->publicGetOhlcdata (array_merge ($request, $params));
@@ -246,8 +246,8 @@ class btcturk extends Exchange {
             'OrderMethod' => ($type === 'market') ? 1 : 0,
         );
         if ($type === 'market') {
-            if (!(is_array ($params) && array_key_exists ('Total', $params)))
-                throw new ExchangeError ($this->id . ' createOrder requires the "Total" extra parameter for market orders ($amount and $price are both ignored)');
+            if (!(is_array($params) && array_key_exists('Total', $params)))
+                throw new ExchangeError($this->id . ' createOrder requires the "Total" extra parameter for market orders ($amount and $price are both ignored)');
         } else {
             $order['Price'] = $price;
             $order['Amount'] = $amount;
@@ -260,7 +260,7 @@ class btcturk extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelOrder (array ( 'id' => $id ));
+        return $this->privatePostCancelOrder (array( 'id' => $id ));
     }
 
     public function nonce () {
@@ -269,7 +269,7 @@ class btcturk extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if ($this->id === 'btctrader')
-            throw new ExchangeError ($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
+            throw new ExchangeError($this->id . ' is an abstract base API for BTCExchange, BTCTurk');
         $url = $this->urls['api'] . '/' . $path;
         if ($api === 'public') {
             if ($params)
@@ -287,6 +287,6 @@ class btcturk extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

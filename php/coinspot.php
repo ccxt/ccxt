@@ -52,22 +52,22 @@ class coinspot extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/AUD' => array ( 'id' => 'BTC', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD' ),
-                'LTC/AUD' => array ( 'id' => 'LTC', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD' ),
-                'DOGE/AUD' => array ( 'id' => 'DOGE', 'symbol' => 'DOGE/AUD', 'base' => 'DOGE', 'quote' => 'AUD' ),
+                'BTC/AUD' => array( 'id' => 'BTC', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD' ),
+                'LTC/AUD' => array( 'id' => 'LTC', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD' ),
+                'DOGE/AUD' => array( 'id' => 'DOGE', 'symbol' => 'DOGE/AUD', 'base' => 'DOGE', 'quote' => 'AUD' ),
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostMyBalances ();
-        $result = array ( 'info' => $response );
-        if (is_array ($response) && array_key_exists ('balance', $response)) {
+        $result = array( 'info' => $response );
+        if (is_array($response) && array_key_exists('balance', $response)) {
             $balances = $response['balance'];
-            $currencies = is_array ($balances) ? array_keys ($balances) : array ();
+            $currencies = is_array($balances) ? array_keys($balances) : array();
             for ($c = 0; $c < count ($currencies); $c++) {
                 $currency = $currencies[$c];
-                $uppercase = strtoupper ($currency);
+                $uppercase = strtoupper($currency);
                 $account = array (
                     'free' => $balances[$currency],
                     'used' => 0.0,
@@ -92,7 +92,7 @@ class coinspot extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $response = $this->publicGetLatest ($params);
         $id = $this->market_id($symbol);
-        $id = strtolower ($id);
+        $id = strtolower($id);
         $ticker = $response['prices'][$id];
         $timestamp = $this->milliseconds ();
         $last = $this->safe_float($ticker, 'last');
@@ -129,7 +129,7 @@ class coinspot extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePostMy' . $this->capitalize ($side);
         if ($type === 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' allows limit orders only');
         $order = array (
             'cointype' => $this->market_id($symbol),
             'amount' => $amount,
@@ -139,25 +139,25 @@ class coinspot extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' cancelOrder () is not fully implemented yet');
+        throw new NotSupported($this->id . ' cancelOrder () is not fully implemented yet');
         // $method = 'privatePostMyBuy';
-        // return $this->$method (array ( 'id' => $id ));
+        // return $this->$method (array( 'id' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         if (!$this->apiKey)
-            throw new AuthenticationError ($this->id . ' requires apiKey for all requests');
+            throw new AuthenticationError($this->id . ' requires apiKey for all requests');
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $body = $this->json (array_merge (array ( 'nonce' => $nonce ), $params));
+            $body = $this->json (array_merge (array( 'nonce' => $nonce ), $params));
             $headers = array (
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,
                 'sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

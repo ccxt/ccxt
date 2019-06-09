@@ -141,7 +141,7 @@ class cex extends Exchange {
             'dateFrom' => $since,
         );
         $response = $this->privatePostArchivedOrdersPair (array_merge ($request, $params));
-        $results = array ();
+        $results = array();
         for ($i = 0; $i < count ($response); $i++) {
             // cancelled (unfilled):
             //    { id => '4005785516',
@@ -344,12 +344,12 @@ class cex extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetCurrencyLimits ();
-        $result = array ();
+        $result = array();
         for ($p = 0; $p < count ($markets['data']['pairs']); $p++) {
             $market = $markets['data']['pairs'][$p];
             $id = $market['symbol1'] . '/' . $market['symbol2'];
             $symbol = $id;
-            list ($base, $quote) = explode ('/', $symbol);
+            list($base, $quote) = explode('/', $symbol);
             $result[] = array (
                 'id' => $id,
                 'info' => $market,
@@ -382,13 +382,13 @@ class cex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalance ();
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         $ommited = array ( 'username', 'timestamp' );
         $balances = $this->omit ($response, $ommited);
-        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
+        $currencies = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            if (is_array ($balances) && array_key_exists ($currency, $balances)) {
+            if (is_array($balances) && array_key_exists($currency, $balances)) {
                 $account = array (
                     'free' => $this->safe_float($balances[$currency], 'available', 0.0),
                     'used' => $this->safe_float($balances[$currency], 'orders', 0.0),
@@ -432,12 +432,12 @@ class cex extends Exchange {
             $since = $this->milliseconds () - 86400000; // yesterday
         } else {
             if ($this->options['fetchOHLCVWarning']) {
-                throw new ExchangeError ($this->id . " fetchOHLCV warning => CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add (array ( 'options' => array ( 'fetchOHLCVWarning' => false ))) to constructor $params to suppress this warning message.");
+                throw new ExchangeError($this->id . " fetchOHLCV warning => CEX can return historical candles for a certain date only, this might produce an empty or null reply. Set exchange.options['fetchOHLCVWarning'] = false or add (array( 'options' => array ( 'fetchOHLCVWarning' => false ))) to constructor $params to suppress this warning message.");
             }
         }
         $ymd = $this->ymd ($since);
-        $ymd = explode ('-', $ymd);
-        $ymd = implode ('', $ymd);
+        $ymd = explode('-', $ymd);
+        $ymd = implode('', $ymd);
         $request = array (
             'pair' => $market['id'],
             'yyyymmdd' => $ymd,
@@ -445,18 +445,18 @@ class cex extends Exchange {
         try {
             $response = $this->publicGetOhlcvHdYyyymmddPair (array_merge ($request, $params));
             $key = 'data' . $this->timeframes[$timeframe];
-            $ohlcvs = json_decode ($response[$key], $as_associative_array = true);
+            $ohlcvs = json_decode($response[$key], $as_associative_array = true);
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         } catch (Exception $e) {
             if ($e instanceof NullResponse) {
-                return array ();
+                return array();
             }
         }
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = null;
-        if (is_array ($ticker) && array_key_exists ('timestamp', $ticker)) {
+        if (is_array($ticker) && array_key_exists('timestamp', $ticker)) {
             $timestamp = intval ($ticker['timestamp']) * 1000;
         }
         $volume = $this->safe_float($ticker, 'volume');
@@ -494,15 +494,15 @@ class cex extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         $response = $this->publicGetTickersCurrencies (array_merge (array (
-            'currencies' => implode ('/', $currencies),
+            'currencies' => implode('/', $currencies),
         ), $params));
         $tickers = $response['data'];
-        $result = array ();
+        $result = array();
         for ($t = 0; $t < count ($tickers); $t++) {
             $ticker = $tickers[$t];
-            $symbol = str_replace (':', '/', $ticker['pair']);
+            $symbol = str_replace(':', '/', $ticker['pair']);
             $market = $this->markets[$symbol];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
@@ -548,7 +548,7 @@ class cex extends Exchange {
             if ($side === 'buy') {
                 if ($this->options['createMarketBuyOrderRequiresPrice']) {
                     if ($price === null) {
-                        throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
                         $amount = $amount * $price;
                     }
@@ -575,14 +575,14 @@ class cex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ( 'id' => $id ));
+        return $this->privatePostCancelOrder (array( 'id' => $id ));
     }
 
     public function parse_order ($order, $market = null) {
         // Depending on the call, 'time' can be a unix int, unix string or ISO string
         // Yes, really
         $timestamp = $this->safe_value($order, 'time');
-        if (gettype ($timestamp) === 'string' && mb_strpos ($timestamp, 'T') !== false) {
+        if (gettype ($timestamp) === 'string' && mb_strpos($timestamp, 'T') !== false) {
             // ISO8601 string
             $timestamp = $this->parse8601 ($timestamp);
         } else {
@@ -592,7 +592,7 @@ class cex extends Exchange {
         $symbol = null;
         if ($market === null) {
             $symbol = $order['symbol1'] . '/' . $order['symbol2'];
-            if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets))
+            if (is_array($this->markets) && array_key_exists($symbol, $this->markets))
                 $market = $this->market ($symbol);
         }
         $status = $order['status'];
@@ -627,7 +627,7 @@ class cex extends Exchange {
                 $feeRate = $this->safe_float($order, 'tradingFeeTaker', $feeRate);
             if ($feeRate)
                 $feeRate /= 100.0; // convert to mathematically-correct percentage coefficients => 1.0 = 100%
-            if ((is_array ($order) && array_key_exists ($baseFee, $order)) || (is_array ($order) && array_key_exists ($baseTakerFee, $order))) {
+            if ((is_array($order) && array_key_exists($baseFee, $order)) || (is_array($order) && array_key_exists($baseTakerFee, $order))) {
                 $baseFeeCost = $this->safe_float($order, $baseFee);
                 if ($baseFeeCost === null)
                     $baseFeeCost = $this->safe_float($order, $baseTakerFee);
@@ -636,7 +636,7 @@ class cex extends Exchange {
                     'rate' => $feeRate,
                     'cost' => $baseFeeCost,
                 );
-            } else if ((is_array ($order) && array_key_exists ($quoteFee, $order)) || (is_array ($order) && array_key_exists ($quoteTakerFee, $order))) {
+            } else if ((is_array($order) && array_key_exists($quoteFee, $order)) || (is_array($order) && array_key_exists($quoteTakerFee, $order))) {
                 $quoteFeeCost = $this->safe_float($order, $quoteFee);
                 if ($quoteFeeCost === null)
                     $quoteFeeCost = $this->safe_float($order, $quoteTakerFee);
@@ -652,8 +652,8 @@ class cex extends Exchange {
         $side = $order['type'];
         $trades = null;
         $orderId = $order['id'];
-        if (is_array ($order) && array_key_exists ('vtx', $order)) {
-            $trades = array ();
+        if (is_array($order) && array_key_exists('vtx', $order)) {
+            $trades = array();
             for ($i = 0; $i < count ($order['vtx']); $i++) {
                 $item = $order['vtx'][$i];
                 $tradeSide = $this->safe_string($item, 'type');
@@ -808,7 +808,7 @@ class cex extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         $method = 'privatePostOpenOrders';
         $market = null;
         if ($symbol !== null) {
@@ -818,7 +818,7 @@ class cex extends Exchange {
         }
         $orders = $this->$method (array_merge ($request, $params));
         for ($i = 0; $i < count ($orders); $i++) {
-            $orders[$i] = array_merge ($orders[$i], array ( 'status' => 'open' ));
+            $orders[$i] = array_merge ($orders[$i], array( 'status' => 'open' ));
         }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -827,10 +827,10 @@ class cex extends Exchange {
         $this->load_markets();
         $method = 'privatePostArchivedOrdersPair';
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchClosedOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a $symbol argument');
         }
         $market = $this->market ($symbol);
-        $request = array ( 'pair' => $market['id'] );
+        $request = array( 'pair' => $market['id'] );
         $response = $this->$method (array_merge ($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
@@ -861,30 +861,30 @@ class cex extends Exchange {
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $body = $this->json (array_merge (array (
                 'key' => $this->apiKey,
-                'signature' => strtoupper ($signature),
+                'signature' => strtoupper($signature),
                 'nonce' => $nonce,
             ), $query));
             $headers = array (
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (!$response) {
-            throw new NullResponse ($this->id . ' returned ' . $this->json ($response));
+            throw new NullResponse($this->id . ' returned ' . $this->json ($response));
         } else if ($response === true || $response === 'true') {
             return $response;
-        } else if (is_array ($response) && array_key_exists ('e', $response)) {
-            if (is_array ($response) && array_key_exists ('ok', $response))
+        } else if (is_array($response) && array_key_exists('e', $response)) {
+            if (is_array($response) && array_key_exists('ok', $response))
                 if ($response['ok'] === 'ok')
                     return $response;
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
-        } else if (is_array ($response) && array_key_exists ('error', $response)) {
+            throw new ExchangeError($this->id . ' ' . $this->json ($response));
+        } else if (is_array($response) && array_key_exists('error', $response)) {
             if ($response['error'])
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json ($response));
         }
         return $response;
     }
@@ -892,7 +892,7 @@ class cex extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         if ($code === 'XRP' || $code === 'XLM') {
             // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            throw new NotSupported ($this->id . ' fetchDepositAddress does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
+            throw new NotSupported($this->id . ' fetchDepositAddress does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
         }
         $this->load_markets();
         $currency = $this->currency ($code);

@@ -68,9 +68,9 @@ class bithumb extends Exchange {
             'exceptions' => array (
                 'Bad Request(SSL)' => '\\ccxt\\BadRequest',
                 'Bad Request(Bad Method)' => '\\ccxt\\BadRequest',
-                'Bad Request.(Auth Data)' => '\\ccxt\\AuthenticationError', // array ( "status" => "5100", "message" => "Bad Request.(Auth Data)" )
+                'Bad Request.(Auth Data)' => '\\ccxt\\AuthenticationError', // array( "status" => "5100", "message" => "Bad Request.(Auth Data)" )
                 'Not Member' => '\\ccxt\\AuthenticationError',
-                'Invalid Apikey' => '\\ccxt\\AuthenticationError', // array ("status":"5300","message":"Invalid Apikey")
+                'Invalid Apikey' => '\\ccxt\\AuthenticationError', // array("status":"5300","message":"Invalid Apikey")
                 'Method Not Allowed.(Access IP)' => '\\ccxt\\PermissionDenied',
                 'Method Not Allowed.(BTC Adress)' => '\\ccxt\\InvalidAddress',
                 'Method Not Allowed.(Access)' => '\\ccxt\\PermissionDenied',
@@ -78,15 +78,15 @@ class bithumb extends Exchange {
                 'Invalid Parameter' => '\\ccxt\\BadRequest',
                 '5600' => '\\ccxt\\ExchangeError',
                 'Unknown Error' => '\\ccxt\\ExchangeError',
-                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array ("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+                'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions' => '\\ccxt\\ExchangeError', // array("status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
             ),
         ));
     }
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetTickerAll ();
-        $currencies = is_array ($markets['data']) ? array_keys ($markets['data']) : array ();
-        $result = array ();
+        $currencies = is_array($markets['data']) ? array_keys($markets['data']) : array();
+        $result = array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $id = $currencies[$i];
             if ($id !== 'date') {
@@ -137,13 +137,13 @@ class bithumb extends Exchange {
         $response = $this->privatePostInfoBalance (array_merge (array (
             'currency' => 'ALL',
         ), $params));
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         $balances = $response['data'];
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            $lowercase = strtolower ($currency);
+            $lowercase = strtolower($currency);
             $account['total'] = $this->safe_float($balances, 'total_' . $lowercase);
             $account['used'] = $this->safe_float($balances, 'in_use_' . $lowercase);
             $account['free'] = $this->safe_float($balances, 'available_' . $lowercase);
@@ -212,15 +212,15 @@ class bithumb extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickerAll ($params);
-        $result = array ();
+        $result = array();
         $timestamp = $response['data']['date'];
         $tickers = $this->omit ($response['data'], 'date');
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;
             $market = null;
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             }
@@ -245,11 +245,11 @@ class bithumb extends Exchange {
 
     public function parse_trade ($trade, $market) {
         // a workaround for their bug in date format, hours are not 0-padded
-        list ($transaction_date, $transaction_time) = explode (' ', $trade['transaction_date']);
+        list($transaction_date, $transaction_time) = explode(' ', $trade['transaction_date']);
         if (strlen ($transaction_time) < 8)
             $transaction_time = '0' . $transaction_time;
         $timestamp = $this->parse8601 ($transaction_date . ' ' . $transaction_time);
-        $timestamp -= 9 * 3600000; // they report UTC . 9 hours (is_array (Korean timezone) && array_key_exists (server, Korean timezone))
+        $timestamp -= 9 * 3600000; // they report UTC . 9 hours (is_array(Korean timezone) && array_key_exists(server, Korean timezone))
         $side = ($trade['type'] === 'ask') ? 'sell' : 'buy';
         return array (
             'id' => $this->safe_string($trade, 'cont_no'),
@@ -298,7 +298,7 @@ class bithumb extends Exchange {
         }
         $response = $this->$method (array_merge ($request, $params));
         $id = null;
-        if (is_array ($response) && array_key_exists ('order_id', $response)) {
+        if (is_array($response) && array_key_exists('order_id', $response)) {
             if ($response['order_id'])
                 $id = (string) $response['order_id'];
         }
@@ -309,12 +309,12 @@ class bithumb extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $side_in_params = (is_array ($params) && array_key_exists ('side', $params));
+        $side_in_params = (is_array($params) && array_key_exists('side', $params));
         if (!$side_in_params)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $side parameter (sell or buy) and a $currency parameter');
-        $currency = (is_array ($params) && array_key_exists ('currency', $params));
+            throw new ExchangeError($this->id . ' cancelOrder requires a $side parameter (sell or buy) and a $currency parameter');
+        $currency = (is_array($params) && array_key_exists('currency', $params));
         if (!$currency)
-            throw new ExchangeError ($this->id . ' cancelOrder requires a $currency parameter');
+            throw new ExchangeError($this->id . ' cancelOrder requires a $currency parameter');
         $side = ($params['side'] === 'buy') ? 'bid' : 'ask';
         return $this->privatePostTradeCancel (array (
             'order_id' => $id,
@@ -335,7 +335,7 @@ class bithumb extends Exchange {
         if ($currency === 'XRP' || $currency === 'XMR') {
             $destination = $this->safe_string($params, 'destination');
             if (($tag === null) && ($destination === null)) {
-                throw new ExchangeError ($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
+                throw new ExchangeError($this->id . ' ' . $code . ' withdraw() requires a $tag argument or an extra $destination param');
             } else if ($tag !== null) {
                 $request['destination'] = $tag;
             }
@@ -375,7 +375,7 @@ class bithumb extends Exchange {
                 'Api-Nonce' => $nonce,
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -384,9 +384,9 @@ class bithumb extends Exchange {
         if (strlen ($body) < 2)
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            if (is_array ($response) && array_key_exists ('status', $response)) {
+            if (is_array($response) && array_key_exists('status', $response)) {
                 //
-                //     array ("$status":"5100","$message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
+                //     array("$status":"5100","$message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions")
                 //
                 $status = $this->safe_string($response, 'status');
                 $message = $this->safe_string($response, 'message');
@@ -395,12 +395,12 @@ class bithumb extends Exchange {
                         return; // no error
                     $feedback = $this->id . ' ' . $this->json ($response);
                     $exceptions = $this->exceptions;
-                    if (is_array ($exceptions) && array_key_exists ($status, $exceptions)) {
-                        throw new $exceptions[$status] ($feedback);
-                    } else if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
-                        throw new $exceptions[$message] ($feedback);
+                    if (is_array($exceptions) && array_key_exists($status, $exceptions)) {
+                        throw new $exceptions[$status]($feedback);
+                    } else if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
+                        throw new $exceptions[$message]($feedback);
                     } else {
-                        throw new ExchangeError ($feedback);
+                        throw new ExchangeError($feedback);
                     }
                 }
             }
@@ -409,10 +409,10 @@ class bithumb extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('status', $response)) {
+        if (is_array($response) && array_key_exists('status', $response)) {
             if ($response['status'] === '0000')
                 return $response;
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' ' . $this->json ($response));
         }
         return $response;
     }

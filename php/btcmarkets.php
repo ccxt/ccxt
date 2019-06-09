@@ -89,7 +89,7 @@ class btcmarkets extends Exchange {
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         if ($limit !== null)
             $request['limit'] = $limit;
         if ($since !== null)
@@ -157,7 +157,7 @@ class btcmarkets extends Exchange {
         $timestamp = $this->safe_integer($item, 'creationTime');
         $lastUpdate = $this->safe_integer($item, 'lastUpdate');
         $transferType = $this->safe_string($item, 'transferType');
-        $cryptoPaymentDetail = $this->safe_value($item, 'cryptoPaymentDetail', array ());
+        $cryptoPaymentDetail = $this->safe_value($item, 'cryptoPaymentDetail', array());
         $address = $this->safe_string($cryptoPaymentDetail, 'address');
         $txid = $this->safe_string($cryptoPaymentDetail, 'txId');
         $type = null;
@@ -199,7 +199,7 @@ class btcmarkets extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetV2MarketActive ();
-        $result = array ();
+        $result = array();
         $markets = $response['markets'];
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
@@ -220,7 +220,7 @@ class btcmarkets extends Exchange {
                     $pricePrecision = 4;
                 }
                 $amountPrecision = -log10 ($minAmount);
-                $minPrice = pow (10, -$pricePrecision);
+                $minPrice = pow(10, -$pricePrecision);
             }
             $precision = array (
                 'amount' => $amountPrecision,
@@ -261,7 +261,7 @@ class btcmarkets extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetAccountBalance ();
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -406,7 +406,7 @@ class btcmarkets extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $ids[$i] = intval ($ids[$i]);
         }
-        return $this->privatePostOrderCancel (array ( 'orderIds' => $ids ));
+        return $this->privatePostOrderCancel (array( 'orderIds' => $ids ));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -459,7 +459,7 @@ class btcmarkets extends Exchange {
     }
 
     public function parse_my_trades ($trades, $market = null, $since = null, $limit = null) {
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($trades); $i++) {
             $trade = $this->parse_my_trade ($trades[$i], $market);
             $result[] = $trade;
@@ -531,7 +531,7 @@ class btcmarkets extends Exchange {
         ), $params));
         $numOrders = is_array ($response['orders']) ? count ($response['orders']) : 0;
         if ($numOrders < 1)
-            throw new OrderNotFound ($this->id . ' No matching $order found => ' . $id);
+            throw new OrderNotFound($this->id . ' No matching $order found => ' . $id);
         $order = $response['orders'][0];
         return $this->parse_order($order);
     }
@@ -554,7 +554,7 @@ class btcmarkets extends Exchange {
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' => fetchOrders requires a `$symbol` argument.');
+            throw new ArgumentsRequired($this->id . ' => fetchOrders requires a `$symbol` argument.');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -565,7 +565,7 @@ class btcmarkets extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' => fetchOpenOrders requires a `$symbol` argument.');
+            throw new ArgumentsRequired($this->id . ' => fetchOpenOrders requires a `$symbol` argument.');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -581,7 +581,7 @@ class btcmarkets extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' => fetchMyTrades requires a `$symbol` argument.');
+            throw new ArgumentsRequired($this->id . ' => fetchMyTrades requires a `$symbol` argument.');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -628,22 +628,22 @@ class btcmarkets extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
             }
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if ($body[0] === '{') {
-            if (is_array ($response) && array_key_exists ('success', $response)) {
+            if (is_array($response) && array_key_exists('success', $response)) {
                 if (!$response['success']) {
                     $error = $this->safe_string($response, 'errorCode');
                     $message = $this->id . ' ' . $this->json ($response);
-                    if (is_array ($this->exceptions) && array_key_exists ($error, $this->exceptions)) {
+                    if (is_array($this->exceptions) && array_key_exists($error, $this->exceptions)) {
                         $ExceptionClass = $this->exceptions[$error];
-                        throw new $ExceptionClass ($message);
+                        throw new $ExceptionClass($message);
                     } else {
-                        throw new ExchangeError ($message);
+                        throw new ExchangeError($message);
                     }
                 }
             }

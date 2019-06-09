@@ -93,21 +93,21 @@ class uex extends Exchange {
             'exceptions' => array (
                 // descriptions from ↓ exchange
                 // '0' => 'no error', // succeed
-                '4' => '\\ccxt\\InsufficientFunds', // array ("code":"4","msg":"余额不足:0E-16","data":null)
-                '5' => '\\ccxt\\InvalidOrder', // fail to order array ("code":"5","msg":"Price fluctuates more than1000.0%","data":null)
-                '6' => '\\ccxt\\InvalidOrder', // the quantity value less than the minimum one array ("code":"6","msg":"数量小于最小值:0.001","data":null)
-                '7' => '\\ccxt\\InvalidOrder', // the quantity value more than the maximum one array ("code":"7","msg":"数量大于最大值:10000","data":null)
+                '4' => '\\ccxt\\InsufficientFunds', // array("code":"4","msg":"余额不足:0E-16","data":null)
+                '5' => '\\ccxt\\InvalidOrder', // fail to order array("code":"5","msg":"Price fluctuates more than1000.0%","data":null)
+                '6' => '\\ccxt\\InvalidOrder', // the quantity value less than the minimum one array("code":"6","msg":"数量小于最小值:0.001","data":null)
+                '7' => '\\ccxt\\InvalidOrder', // the quantity value more than the maximum one array("code":"7","msg":"数量大于最大值:10000","data":null)
                 '8' => '\\ccxt\\InvalidOrder', // fail to cancel order
                 '9' => '\\ccxt\\ExchangeError', // transaction be frozen
                 '13' => '\\ccxt\\ExchangeError', // Sorry, the program made an error, please contact with the manager.
                 '19' => '\\ccxt\\InsufficientFunds', // Available balance is insufficient.
-                '22' => '\\ccxt\\OrderNotFound', // The order does not exist. array ("code":"22","msg":"not exist order","data":null)
+                '22' => '\\ccxt\\OrderNotFound', // The order does not exist. array("code":"22","msg":"not exist order","data":null)
                 '23' => '\\ccxt\\InvalidOrder', // Lack of parameters of numbers of transaction
                 '24' => '\\ccxt\\InvalidOrder', // Lack of parameters of transaction price
                 '100001' => '\\ccxt\\ExchangeError', // System is abnormal
                 '100002' => '\\ccxt\\ExchangeNotAvailable', // Update System
-                '100004' => '\\ccxt\\ExchangeError', // array ("code":"100004","msg":"request parameter illegal","data":null)
-                '100005' => '\\ccxt\\AuthenticationError', // array ("code":"100005","msg":"request sign illegal","data":null)
+                '100004' => '\\ccxt\\ExchangeError', // array("code":"100004","msg":"request parameter illegal","data":null)
+                '100005' => '\\ccxt\\AuthenticationError', // array("code":"100005","msg":"request sign illegal","data":null)
                 '100007' => '\\ccxt\\PermissionDenied', // illegal IP
                 '110002' => '\\ccxt\\ExchangeError', // unknown currency code
                 '110003' => '\\ccxt\\AuthenticationError', // fund password error
@@ -120,8 +120,8 @@ class uex extends Exchange {
                 '110032' => '\\ccxt\\PermissionDenied', // The user has no authority to do this operation.
                 '110033' => '\\ccxt\\ExchangeError', // fail to recharge
                 '110034' => '\\ccxt\\ExchangeError', // fail to withdraw
-                '-100' => '\\ccxt\\ExchangeError', // array ("code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null)
-                '-1000' => '\\ccxt\\ExchangeNotAvailable', // array ("msg":"System maintenance!","code":"-1000","data":null)
+                '-100' => '\\ccxt\\ExchangeError', // array("code":"-100","msg":"Your request path is not exist or you can try method GET/POST.","data":null)
+                '-1000' => '\\ccxt\\ExchangeNotAvailable', // array("msg":"System maintenance!","code":"-1000","data":null)
             ),
             'requiredCredentials' => array (
                 'apiKey' => true,
@@ -130,26 +130,26 @@ class uex extends Exchange {
             'options' => array (
                 'createMarketBuyOrderRequiresPrice' => true,
                 'limits' => array (
-                    'BTC/USDT' => array ( 'amount' => array ( 'min' => 0.001 ), 'price' => array ( 'min' => 0.01 )),
-                    'ETH/USDT' => array ( 'amount' => array ( 'min' => 0.001 ), 'price' => array ( 'min' => 0.01 )),
-                    'BCH/USDT' => array ( 'amount' => array ( 'min' => 0.001 ), 'price' => array ( 'min' => 0.01 )),
-                    'ETH/BTC' => array ( 'amount' => array ( 'min' => 0.001 ), 'price' => array ( 'min' => 0.000001 )),
-                    'BCH/BTC' => array ( 'amount' => array ( 'min' => 0.001 ), 'price' => array ( 'min' => 0.000001 )),
-                    'LEEK/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'CTXC/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'COSM/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'MANA/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'LBA/BTC' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'OLT/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'DTA/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'KNT/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'REN/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'LBA/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'EXC/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'ZIL/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'RATING/ETH' => array ( 'amount' => array ( 'min' => 100 ), 'price' => array ( 'min' => 100 )),
-                    'CENNZ/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
-                    'TTC/ETH' => array ( 'amount' => array ( 'min' => 10 ), 'price' => array ( 'min' => 10 )),
+                    'BTC/USDT' => array( 'amount' => array ( 'min' => 0.001 ), 'price' => array( 'min' => 0.01 )),
+                    'ETH/USDT' => array( 'amount' => array ( 'min' => 0.001 ), 'price' => array( 'min' => 0.01 )),
+                    'BCH/USDT' => array( 'amount' => array ( 'min' => 0.001 ), 'price' => array( 'min' => 0.01 )),
+                    'ETH/BTC' => array( 'amount' => array ( 'min' => 0.001 ), 'price' => array( 'min' => 0.000001 )),
+                    'BCH/BTC' => array( 'amount' => array ( 'min' => 0.001 ), 'price' => array( 'min' => 0.000001 )),
+                    'LEEK/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'CTXC/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'COSM/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'MANA/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'LBA/BTC' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'OLT/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'DTA/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'KNT/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'REN/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'LBA/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'EXC/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'ZIL/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'RATING/ETH' => array( 'amount' => array ( 'min' => 100 ), 'price' => array( 'min' => 100 )),
+                    'CENNZ/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
+                    'TTC/ETH' => array( 'amount' => array ( 'min' => 10 ), 'price' => array( 'min' => 10 )),
                 ),
             ),
         ));
@@ -194,15 +194,15 @@ class uex extends Exchange {
         //                        base_coin => "eth",
         //                  price_precision =>  6        )]}
         //
-        $result = array ();
+        $result = array();
         $markets = $response['data'];
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['symbol'];
             $baseId = $market['base_coin'];
             $quoteId = $market['count_coin'];
-            $base = strtoupper ($baseId);
-            $quote = strtoupper ($quoteId);
+            $base = strtoupper($baseId);
+            $quote = strtoupper($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -211,7 +211,7 @@ class uex extends Exchange {
                 'price' => $market['price_precision'],
             );
             $active = true;
-            $defaultLimits = $this->safe_value($this->options['limits'], $symbol, array ());
+            $defaultLimits = $this->safe_value($this->options['limits'], $symbol, array());
             $limits = array_replace_recursive (array (
                 'amount' => array (
                     'min' => null,
@@ -267,12 +267,12 @@ class uex extends Exchange {
         //                                       coin => "ren"         )])}
         //
         $balances = $response['data']['coin_list'];
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $balance['coin'];
-            $code = strtoupper ($currencyId);
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            $code = strtoupper($currencyId);
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
             } else {
                 $code = $this->common_currency_code($code);
@@ -330,8 +330,8 @@ class uex extends Exchange {
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($ticker, 'symbol');
-            $marketId = strtolower ($marketId);
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            $marketId = strtolower($marketId);
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             }
         }
@@ -421,7 +421,7 @@ class uex extends Exchange {
         }
         $side = $this->safe_string_2($trade, 'side', 'type');
         if ($side !== null) {
-            $side = strtolower ($side);
+            $side = strtolower($side);
         }
         $id = $this->safe_string($trade, 'id');
         $symbol = null;
@@ -443,8 +443,8 @@ class uex extends Exchange {
         if ($feeCost !== null) {
             $feeCurrency = $this->safe_string($trade, 'feeCoin');
             if ($feeCurrency !== null) {
-                $currencyId = strtolower ($feeCurrency);
-                if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+                $currencyId = strtolower($feeCurrency);
+                if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                     $feeCurrency = $this->currencies_by_id[$currencyId]['code'];
                 }
             }
@@ -535,7 +535,7 @@ class uex extends Exchange {
             if ($side === 'buy') {
                 if ($this->options['createMarketBuyOrderRequiresPrice']) {
                     if ($price === null) {
-                        throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
                         $amount = $amount * $price;
                     }
@@ -545,7 +545,7 @@ class uex extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $orderType = ($type === 'limit') ? '1' : '2';
-        $orderSide = strtoupper ($side);
+        $orderSide = strtoupper($side);
         $amountToPrecision = $this->amount_to_precision($symbol, $amount);
         $request = array (
             'side' => $orderSide,
@@ -575,7 +575,7 @@ class uex extends Exchange {
         //
         //     { code => '0',
         //        msg => 'suc',
-        //       data => array ( 'order_id' : 34343 ) }
+        //       data => array( 'order_id' : 34343 ) }
         //
         $result = $this->parse_order($response['data'], $market);
         return array_merge ($result, array (
@@ -597,7 +597,7 @@ class uex extends Exchange {
             'symbol' => $market['id'],
         );
         $response = $this->privatePostCancelOrder (array_merge ($request, $params));
-        $order = $this->safe_value($response, 'data', array ());
+        $order = $this->safe_value($response, 'data', array());
         return array_merge ($this->parse_order($order), array (
             'id' => $id,
             'symbol' => $symbol,
@@ -615,7 +615,7 @@ class uex extends Exchange {
             '5' => 'canceled', // PENDING_CANCEL(5,"pending withdrawak")
             '6' => 'canceled', // EXPIRED(6,"abnormal orders")
         );
-        if (is_array ($statuses) && array_key_exists ($status, $statuses)) {
+        if (is_array($statuses) && array_key_exists($status, $statuses)) {
             return $statuses[$status];
         }
         return $status;
@@ -625,7 +625,7 @@ class uex extends Exchange {
         //
         // createOrder
         //
-        //     array ("order_id":34343)
+        //     array("order_id":34343)
         //
         // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
@@ -693,19 +693,19 @@ class uex extends Exchange {
         //
         $side = $this->safe_string($order, 'side');
         if ($side !== null)
-            $side = strtolower ($side);
+            $side = strtolower($side);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         if ($market === null) {
             $baseId = $this->safe_string($order, 'baseCoin');
             $quoteId = $this->safe_string($order, 'countCoin');
             $marketId = $baseId . $quoteId;
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 if (($baseId !== null) && ($quoteId !== null)) {
-                    $base = strtoupper ($baseId);
-                    $quote = strtoupper ($quoteId);
+                    $base = strtoupper($baseId);
+                    $quote = strtoupper($quoteId);
                     $base = $this->common_currency_code($base);
                     $quote = $this->common_currency_code($quote);
                     $symbol = $base . '/' . $quote;
@@ -735,8 +735,8 @@ class uex extends Exchange {
         $cost = $this->safe_float($order, 'total_price');
         $id = $this->safe_string_2($order, 'id', 'order_id');
         $trades = null;
-        $tradeList = $this->safe_value($order, 'tradeList', array ());
-        $feeCurrencies = array ();
+        $tradeList = $this->safe_value($order, 'tradeList', array());
+        $feeCurrencies = array();
         $feeCost = null;
         for ($i = 0; $i < count ($tradeList); $i++) {
             $trade = $this->parse_trade($tradeList[$i], $market);
@@ -747,7 +747,7 @@ class uex extends Exchange {
             $tradeFeeCurrency = $trade['fee']['currency'];
             $feeCurrencies[$tradeFeeCurrency] = $trade['fee']['cost'];
             if ($trades === null) {
-                $trades = array ();
+                $trades = array();
             }
             $lastTradeTimestamp = $trade['timestamp'];
             $trades[] = array_merge ($trade, array (
@@ -756,7 +756,7 @@ class uex extends Exchange {
         }
         if ($feeCost !== null) {
             $feeCurrency = null;
-            $keys = is_array ($feeCurrencies) ? array_keys ($feeCurrencies) : array ();
+            $keys = is_array($feeCurrencies) ? array_keys($feeCurrencies) : array();
             $numCurrencies = is_array ($keys) ? count ($keys) : 0;
             if ($numCurrencies === 1) {
                 $feeCurrency = $keys[0];
@@ -790,7 +790,7 @@ class uex extends Exchange {
 
     public function fetch_orders_with_method ($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrdersWithMethod() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersWithMethod() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -834,7 +834,7 @@ class uex extends Exchange {
         //                                     status =>    2                                 } ) } }
         //
         // privateGetNewOrder returns resultList, privateGetAllOrder returns orderList
-        $orders = $this->safe_value_2($response['data'], 'orderList', 'resultList', array ());
+        $orders = $this->safe_value_2($response['data'], 'orderList', 'resultList', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -896,7 +896,7 @@ class uex extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchMyTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -925,7 +925,7 @@ class uex extends Exchange {
         //                                   bid_id =>  3669539,
         //                                   ask_id =>  3669583        } ) } }
         //
-        $trades = $this->safe_value($response['data'], 'resultList', array ());
+        $trades = $this->safe_value($response['data'], 'resultList', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -953,15 +953,15 @@ class uex extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         if ($data === null) {
-            throw new InvalidAddress ($this->id . ' privateGetDepositAddressList() returned no data');
+            throw new InvalidAddress($this->id . ' privateGetDepositAddressList() returned no data');
         }
         $addressList = $this->safe_value($data, 'addressList');
         if ($addressList === null) {
-            throw new InvalidAddress ($this->id . ' privateGetDepositAddressList() returned no $address list');
+            throw new InvalidAddress($this->id . ' privateGetDepositAddressList() returned no $address list');
         }
         $numAddresses = is_array ($addressList) ? count ($addressList) : 0;
         if ($numAddresses < 1) {
-            throw new InvalidAddress ($this->id . ' privatePostDepositAddresses() returned no addresses');
+            throw new InvalidAddress($this->id . ' privatePostDepositAddresses() returned no addresses');
         }
         $firstAddress = $addressList[0];
         $address = $this->safe_string($firstAddress, 'address');
@@ -977,7 +977,7 @@ class uex extends Exchange {
 
     public function fetch_transactions_by_type ($type, $code = null, $since = null, $limit = null, $params = array ()) {
         if ($code === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchWithdrawals requires a $currency $code argument');
+            throw new ArgumentsRequired($this->id . ' fetchWithdrawals requires a $currency $code argument');
         }
         $currency = $this->currency ($code);
         $request = array (
@@ -1036,7 +1036,7 @@ class uex extends Exchange {
     }
 
     public function parse_transactions_by_type ($type, $transactions, $code = null, $since = null, $limit = null) {
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($transactions); $i++) {
             $transaction = $this->parse_transaction (array_merge (array (
                 'type' => $type,
@@ -1133,7 +1133,7 @@ class uex extends Exchange {
         $this->load_markets();
         $fee = $this->safe_float($params, 'fee');
         if ($fee === null) {
-            throw new ArgumentsRequired ($this->id . 'requires a "$fee" extra parameter in its last argument');
+            throw new ArgumentsRequired($this->id . 'requires a "$fee" extra parameter in its last argument');
         }
         $this->check_address($address);
         $currency = $this->currency ($code);
@@ -1168,7 +1168,7 @@ class uex extends Exchange {
                 'api_key' => $this->apiKey,
                 'time' => $timestamp,
             )));
-            $keys = is_array ($query) ? array_keys ($query) : array ();
+            $keys = is_array($query) ? array_keys($query) : array();
             for ($i = 0; $i < count ($keys); $i++) {
                 $key = $keys[$i];
                 $auth .= $key;
@@ -1186,7 +1186,7 @@ class uex extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -1196,17 +1196,17 @@ class uex extends Exchange {
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
             //
-            // array ("$code":"0","msg":"suc","data":array ())
+            // array("$code":"0","msg":"suc","data":array())
             //
             $code = $this->safe_string($response, 'code');
             // $message = $this->safe_string($response, 'msg');
             $feedback = $this->id . ' ' . $this->json ($response);
             $exceptions = $this->exceptions;
             if ($code !== '0') {
-                if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                    throw new $exceptions[$code] ($feedback);
+                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
+                    throw new $exceptions[$code]($feedback);
                 } else {
-                    throw new ExchangeError ($feedback);
+                    throw new ExchangeError($feedback);
                 }
             }
         }

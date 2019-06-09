@@ -194,7 +194,7 @@ class cobinhood extends Exchange {
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetMarketCurrencies ($params);
         $currencies = $response['result']['currencies'];
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $currency['currency'];
@@ -242,11 +242,11 @@ class cobinhood extends Exchange {
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarketTradingPairs ();
         $markets = $response['result']['trading_pairs'];
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['id'];
-            list ($baseId, $quoteId) = explode ('-', $id);
+            list($baseId, $quoteId) = explode('-', $id);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -288,10 +288,10 @@ class cobinhood extends Exchange {
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($ticker, 'trading_pair_id');
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else {
-                list ($baseId, $quoteId) = explode ('-', $marketId);
+                list($baseId, $quoteId) = explode('-', $marketId);
                 $base = $this->common_currency_code($baseId);
                 $quote = $this->common_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
@@ -339,7 +339,7 @@ class cobinhood extends Exchange {
         $this->load_markets();
         $response = $this->publicGetMarketTickers ($params);
         $tickers = $response['result']['tickers'];
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
             $result[] = $this->parse_ticker($tickers[$i]);
         }
@@ -439,12 +439,12 @@ class cobinhood extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetWalletBalances ($params);
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         $balances = $response['result']['balances'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currency = $balance['currency'];
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currency, $this->currencies_by_id))
+            if (is_array($this->currencies_by_id) && array_key_exists($currency, $this->currencies_by_id))
                 $currency = $this->currencies_by_id[$currency]['code'];
             $account = array (
                 'used' => floatval ($balance['on_order']),
@@ -469,7 +469,7 @@ class cobinhood extends Exchange {
             'cancelled' => 'canceled',
             'triggered' => 'triggered',
         );
-        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+        if (is_array($statuses) && array_key_exists($status, $statuses))
             return $statuses[$status];
         return $status;
     }
@@ -604,7 +604,7 @@ class cobinhood extends Exchange {
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
@@ -633,7 +633,7 @@ class cobinhood extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array ();
+        $request = array();
         if ($symbol !== null) {
             $request['trading_pair_id'] = $market['id'];
         }
@@ -677,7 +677,7 @@ class cobinhood extends Exchange {
         //                                                  memo => "12345678",
         //                                                  type => "exchange"      } ) } }
         //
-        $addresses = $this->safe_value($response['result'], 'deposit_addresses', array ());
+        $addresses = $this->safe_value($response['result'], 'deposit_addresses', array());
         $address = null;
         $tag = null;
         if (strlen ($addresses) > 0) {
@@ -714,7 +714,7 @@ class cobinhood extends Exchange {
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchDeposits() requires a $currency $code argument');
+            throw new ExchangeError($this->id . ' fetchDeposits() requires a $currency $code argument');
         }
         $currency = $this->currency ($code);
         $request = array (
@@ -727,7 +727,7 @@ class cobinhood extends Exchange {
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null) {
-            throw new ExchangeError ($this->id . ' fetchWithdrawals() requires a $currency $code argument');
+            throw new ExchangeError($this->id . ' fetchWithdrawals() requires a $currency $code argument');
         }
         $currency = $this->currency ($code);
         $request = array (
@@ -752,7 +752,7 @@ class cobinhood extends Exchange {
             'tx_rejected' => 'failed',
             'tx_confirmed' => 'ok',
         );
-        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
+        return (is_array($statuses) && array_key_exists($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -760,7 +760,7 @@ class cobinhood extends Exchange {
         $code = null;
         if ($currency === null) {
             $currencyId = $this->safe_string($transaction, 'currency');
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $currency = $this->currencies_by_id[$currencyId];
             } else {
                 $code = $this->common_currency_code($currencyId);
@@ -783,7 +783,7 @@ class cobinhood extends Exchange {
             $id = $depositId;
             $address = $this->safe_string($transaction, 'from_address');
         }
-        $additionalInfo = $this->safe_value($transaction, 'additional_info', array ());
+        $additionalInfo = $this->safe_value($transaction, 'additional_info', array());
         $tag = $this->safe_string($additionalInfo, 'memo');
         return array (
             'info' => $transaction,
@@ -808,7 +808,7 @@ class cobinhood extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        $headers = array ();
+        $headers = array();
         if ($api === 'private') {
             $this->check_required_credentials();
             // $headers['device_id'] = $this->apiKey;
@@ -823,7 +823,7 @@ class cobinhood extends Exchange {
             $headers['Content-type'] = 'application/json; charset=UTF-8';
             $body = $this->json ($query);
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
@@ -831,24 +831,24 @@ class cobinhood extends Exchange {
             return;
         }
         if ($body[0] !== '{') {
-            throw new ExchangeError ($this->id . ' ' . $body);
+            throw new ExchangeError($this->id . ' ' . $body);
         }
         $feedback = $this->id . ' ' . $this->json ($response);
         $errorCode = $this->safe_value($response['error'], 'error_code');
         if ($method === 'DELETE' || $method === 'GET') {
             if ($errorCode === 'parameter_error') {
-                if (mb_strpos ($url, 'trading/orders/') !== false) {
+                if (mb_strpos($url, 'trading/orders/') !== false) {
                     // Cobinhood returns vague "parameter_error" on fetchOrder() and cancelOrder() calls
                     // for invalid order IDs as well as orders that are not "open"
-                    throw new InvalidOrder ($feedback);
+                    throw new InvalidOrder($feedback);
                 }
             }
         }
         $exceptions = $this->exceptions;
-        if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
-            throw new $exceptions[$errorCode] ($feedback);
+        if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
+            throw new $exceptions[$errorCode]($feedback);
         }
-        throw new ExchangeError ($feedback);
+        throw new ExchangeError($feedback);
     }
 
     public function nonce () {

@@ -73,8 +73,8 @@ class crypton extends Exchange {
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarkets ();
         $markets = $response['result'];
-        $result = array ();
-        $keys = is_array ($markets) ? array_keys ($markets) : array ();
+        $result = array();
+        $keys = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
             $market = $markets[$id];
@@ -120,8 +120,8 @@ class crypton extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetBalances ($params);
-        $result = array ( 'info' => $balances );
-        $keys = is_array ($balances) ? array_keys ($balances) : array ();
+        $result = array( 'info' => $balances );
+        $keys = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
             $currency = $this->common_currency_code($id);
@@ -180,14 +180,14 @@ class crypton extends Exchange {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
         $tickers = $response['result'];
-        $keys = is_array ($tickers) ? array_keys ($tickers) : array ();
-        $result = array ();
+        $keys = is_array($tickers) ? array_keys($tickers) : array();
+        $result = array();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
             $ticker = $tickers[$id];
             $market = null;
             $symbol = $id;
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
@@ -201,9 +201,9 @@ class crypton extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($trade['time']);
         $symbol = null;
-        if (is_array ($trade) && array_key_exists ('market', $trade)) {
+        if (is_array($trade) && array_key_exists('market', $trade)) {
             $marketId = $trade['market'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 $symbol = $this->parse_symbol ($marketId);
@@ -213,7 +213,7 @@ class crypton extends Exchange {
             $symbol = $market['symbol'];
         }
         $fee = null;
-        if (is_array ($trade) && array_key_exists ('fee', $trade)) {
+        if (is_array($trade) && array_key_exists('fee', $trade)) {
             $fee = array (
                 'cost' => $this->safe_float($trade, 'fee'),
                 'currency' => $this->common_currency_code($trade['feeCurrency']),
@@ -249,7 +249,7 @@ class crypton extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array ();
+        $request = array();
         if ($limit !== null)
             $request['limit'] = $limit;
         $response = $this->privateGetFills (array_merge ($request, $params));
@@ -264,7 +264,7 @@ class crypton extends Exchange {
         $type = $order['type'];
         $symbol = null;
         $marketId = $order['market'];
-        if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
         } else {
@@ -272,7 +272,7 @@ class crypton extends Exchange {
         }
         $timestamp = $this->parse8601 ($order['createdAt']);
         $fee = null;
-        if (is_array ($order) && array_key_exists ('fee', $order)) {
+        if (is_array($order) && array_key_exists('fee', $order)) {
             $fee = array (
                 'cost' => floatval ($order['fee']),
                 'currency' => $this->common_currency_code($order['feeCurrency']),
@@ -315,7 +315,7 @@ class crypton extends Exchange {
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         $market = null;
         if ($symbol !== null) {
             $request['market'] = $this->market_id($symbol);
@@ -347,7 +347,7 @@ class crypton extends Exchange {
     }
 
     public function parse_symbol ($id) {
-        list ($base, $quote) = explode ('-', $id);
+        list($base, $quote) = explode('-', $id);
         $base = $this->common_currency_code($base);
         $quote = $this->common_currency_code($quote);
         return $base . '/' . $quote;
@@ -398,14 +398,14 @@ class crypton extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
         if ($body[0] === '{') {
             $success = $this->safe_value($response, 'success');
             if (!$success) {
-                throw new ExchangeError ($this->id . ' ' . $body);
+                throw new ExchangeError($this->id . ' ' . $body);
             }
         }
     }

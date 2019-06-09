@@ -50,10 +50,10 @@ class btcbox extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/JPY' => array ( 'id' => 'btc', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'taker' => 0.05 / 100, 'maker' => 0.05 / 100 ),
-                'ETH/JPY' => array ( 'id' => 'eth', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100 ),
-                'LTC/JPY' => array ( 'id' => 'ltc', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100 ),
-                'BCH/JPY' => array ( 'id' => 'bch', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bch', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100 ),
+                'BTC/JPY' => array( 'id' => 'btc', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy', 'taker' => 0.05 / 100, 'maker' => 0.05 / 100 ),
+                'ETH/JPY' => array( 'id' => 'eth', 'symbol' => 'ETH/JPY', 'base' => 'ETH', 'quote' => 'JPY', 'baseId' => 'eth', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100 ),
+                'LTC/JPY' => array( 'id' => 'ltc', 'symbol' => 'LTC/JPY', 'base' => 'LTC', 'quote' => 'JPY', 'baseId' => 'ltc', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100 ),
+                'BCH/JPY' => array( 'id' => 'bch', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bch', 'quoteId' => 'jpy', 'taker' => 0.10 / 100, 'maker' => 0.10 / 100 ),
             ),
             'exceptions' => array (
                 '104' => '\\ccxt\\AuthenticationError',
@@ -73,19 +73,19 @@ class btcbox extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostBalance ();
-        $result = array ( 'info' => $balances );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $result = array( 'info' => $balances );
+        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $lowercase = strtolower ($currency);
+            $lowercase = strtolower($currency);
             if ($lowercase === 'dash')
                 $lowercase = 'drk';
             $account = $this->account ();
             $free = $lowercase . '_balance';
             $used = $lowercase . '_lock';
-            if (is_array ($balances) && array_key_exists ($free, $balances))
+            if (is_array($balances) && array_key_exists($free, $balances))
                 $account['free'] = floatval ($balances[$free]);
-            if (is_array ($balances) && array_key_exists ($used, $balances))
+            if (is_array($balances) && array_key_exists($used, $balances))
                 $account['used'] = floatval ($balances[$used]);
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
@@ -96,7 +96,7 @@ class btcbox extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array ();
+        $request = array();
         $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['baseId'];
@@ -137,7 +137,7 @@ class btcbox extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array ();
+        $request = array();
         $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['baseId'];
@@ -164,7 +164,7 @@ class btcbox extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array ();
+        $request = array();
         $numSymbols = is_array ($this->symbols) ? count ($this->symbols) : 0;
         if ($numSymbols > 1)
             $request['coin'] = $market['baseId'];
@@ -204,7 +204,7 @@ class btcbox extends Exchange {
         );
         $response = $this->privatePostTradeCancel (array_merge ($request, $params));
         //
-        //     array ("result":true, "$id":"11")
+        //     array("result":true, "$id":"11")
         //
         return $this->parse_order($response, $market);
     }
@@ -223,7 +223,7 @@ class btcbox extends Exchange {
 
     public function parse_order ($order, $market = null) {
         //
-        // array ("$id":11,"datetime":"2014-10-21 10:47:20","type":"sell","$price":42000,"amount_original":1.2,"amount_outstanding":1.2,"$status":"closed","$trades":array ())
+        // array("$id":11,"datetime":"2014-10-21 10:47:20","type":"sell","$price":42000,"amount_original":1.2,"amount_outstanding":1.2,"$status":"closed","$trades":array())
         //
         $id = $this->safe_string($order, 'id');
         $datetimeString = $this->safe_string($order, 'datetime');
@@ -348,11 +348,11 @@ class btcbox extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        // typical error $response => array ("$result":false,"code":"401")
+        // typical error $response => array("$result":false,"code":"401")
         if ($httpCode >= 400)
             return; // resort to defaultErrorHandler
         if ($body[0] !== '{')
@@ -363,8 +363,8 @@ class btcbox extends Exchange {
         $errorCode = $this->safe_value($response, 'code');
         $feedback = $this->id . ' ' . $this->json ($response);
         $exceptions = $this->exceptions;
-        if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions))
-            throw new $exceptions[$errorCode] ($feedback);
-        throw new ExchangeError ($feedback); // unknown message
+        if (is_array($exceptions) && array_key_exists($errorCode, $exceptions))
+            throw new $exceptions[$errorCode]($feedback);
+        throw new ExchangeError($feedback); // unknown message
     }
 }
