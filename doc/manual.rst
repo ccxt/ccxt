@@ -258,7 +258,7 @@ The ccxt library currently supports the following 136 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `lakebtc <https://www.lakebtc.com>`__                                                     | lakebtc            | `LakeBTC <https://www.lakebtc.com>`__                                                      | 2     | `API <https://www.lakebtc.com/s/api_v2>`__                                                      |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `lbank <https://www.lbank.info/sign-up.html?icode=7QCY&lang=en-US>`__                     | lbank              | `LBank <https://www.lbank.info/sign-up.html?icode=7QCY&lang=en-US>`__                      | 1     | `API <https://github.com/LBank-exchange/lbank-official-api-docs>`__                             |                                                                      |
+| `lbank <https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US>`__                        | lbank              | `LBank <https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US>`__                         | 1     | `API <https://github.com/LBank-exchange/lbank-official-api-docs>`__                             |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `liqui <https://liqui.io>`__                                                              | liqui              | `Liqui <https://liqui.io>`__                                                               | 3     | `API <https://liqui.io/api>`__                                                                  |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -2617,12 +2617,16 @@ The exchange will close your market order for the best price available. You are 
 ::
 
    // camelCaseNotation
-   exchange.createMarketBuyOrder (symbol, amount[, params])
    exchange.createMarketSellOrder (symbol, amount[, params])
+   exchange.createMarketBuyOrder (symbol, amount[, params])
 
    // underscore_notation
-   exchange.create_market_buy_order (symbol, amount[, params])
    exchange.create_market_sell_order (symbol, amount[, params])
+   exchange.create_market_buy_order (symbol, amount[, params])
+
+   // using general createOrder, type = 'market' and side = 'buy' or 'sell'
+   exchange.createOrder (symbol, 'market', 'sell', amount, ...)
+   exchange.create_order (symbol, 'market', 'buy', amount, ...)
 
 **Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the ``.has['createMarketOrder']`` exchange property:
 
