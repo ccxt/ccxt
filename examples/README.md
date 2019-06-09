@@ -71,6 +71,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Experiments : Creating a Crypto Twitter Bot to Announce Newly Listed CryptoCoins](https://medium.com/@kennychuaio/experiments-creating-a-crypto-twitter-bot-to-announce-newly-listed-cryptocoins-9cd23930f5cb) – An article on how to integrate with CCXT and Twitter to get new currencies from exchanges automatically.
 
+[CCXT Exercise Index (Python)](https://coil.com/p/sarantium/CCXT-Exercise-Index/U3-ljsKK1) – All CCXT exercises for Python by number and subject. It will be continuously updated as more exercises are added!
+
 [How to make your own trading bot](https://codeburst.io/how-to-make-your-own-trading-bot-83b5c6e35036) – A tutorial on algortrading in Python.
 
 [Writing crypto trading bot in Python with Telegram and ccxt](https://medium.com/@maxAvdyushkin/writing-crypto-trading-bot-in-python-with-telegram-and-ccxt-80632a00c637) – A tutorial on programming a Telegram bot in Python with CCXT
