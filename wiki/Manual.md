@@ -2389,12 +2389,16 @@ The exchange will close your market order for the best price available. You are 
 
 ```
 // camelCaseNotation
-exchange.createMarketBuyOrder (symbol, amount[, params])
 exchange.createMarketSellOrder (symbol, amount[, params])
+exchange.createMarketBuyOrder (symbol, amount[, params])
 
 // underscore_notation
-exchange.create_market_buy_order (symbol, amount[, params])
 exchange.create_market_sell_order (symbol, amount[, params])
+exchange.create_market_buy_order (symbol, amount[, params])
+
+// using general createOrder, type = 'market' and side = 'buy' or 'sell'
+exchange.createOrder (symbol, 'market', 'sell', amount, ...)
+exchange.create_order (symbol, 'market', 'buy', amount, ...)
 ```
 
 **Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the `.has['createMarketOrder']` exchange property:
