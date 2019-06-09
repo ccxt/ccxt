@@ -2659,7 +2659,7 @@ Suppose you’re trading BTC/USD and the current market price for BTC is over 90
 
 **With market buys some exchanges require the total cost of the order in the quote currency!** The logic behind it is simple, instead of taking the amount of base currency to buy or sell some exchanges operate with *“how much quote currency you want to spend on buying in total”*.
 
-To place a market buy order with those exchanges you would not specify an amount of 2 BTC, instead you should somehow specify the total cost of the order, that is, 18000 USD in this example. The exchanges that treat ``market buy`` orders in this way have an exchange-specific option ``createMarketBuyRequiresPrice`` that allows specifying the total cost of a ``market buy`` order in two ways.
+To place a market buy order with those exchanges you would not specify an amount of 2 BTC, instead you should somehow specify the total cost of the order, that is, 18000 USD in this example. The exchanges that treat ``market buy`` orders in this way have an exchange-specific option ``createMarketBuyOrderRequiresPrice`` that allows specifying the total cost of a ``market buy`` order in two ways.
 
 The first is the default and if you specify the ``price`` along with the ``amount`` the total cost of the order would be calculated inside the lib from those two values with a simple multiplication (``cost = amount * price``). The resulting ``cost`` would be the amount in USD quote currency that will be spent on this particular market buy order.
 
@@ -2674,13 +2674,13 @@ The first is the default and if you specify the ``price`` along with the ``amoun
        'secret': 'YOUR_SECRET',
        'enableRateLimit': true,
        // 'options': {
-       //     'createMarketBuyRequiresPrice': true, // default
+       //     'createMarketBuyOrderRequiresPrice': true, // default
        // },
    })
 
    ;(async () => {
 
-       // when `createMarketBuyRequiresPrice` is true, we can pass the price
+       // when `createMarketBuyOrderRequiresPrice` is true, we can pass the price
        // so that the total cost of the order would be calculated inside the library
        // by multiplying the amount over price (amount * price)
 
@@ -2691,13 +2691,13 @@ The first is the default and if you specify the ``price`` along with the ``amoun
 
        // note that we don't use createMarketBuyOrder here, instead we use createOrder
        // createMarketBuyOrder will omit the price and will not work when
-       // exchange.options['createMarketBuyRequiresPrice'] = true
+       // exchange.options['createMarketBuyOrderRequiresPrice'] = true
        const order = await exchange.createOrder (symbol, 'market', 'buy', amount, price)
 
        console.log (order)
    })
 
-The second alternative is useful in cases when the user wants to calculate and specify the resulting total cost of the order himself. That can be done by setting the ``createMarketBuyRequiresPrice`` option to ``false`` to switch it off:
+The second alternative is useful in cases when the user wants to calculate and specify the resulting total cost of the order himself. That can be done by setting the ``createMarketBuyOrderRequiresPrice`` option to ``false`` to switch it off:
 
 .. code:: javascript
 
@@ -2706,16 +2706,16 @@ The second alternative is useful in cases when the user wants to calculate and s
        'secret': 'YOUR_SECRET',
        'enableRateLimit': true,
        'options': {
-           'createMarketBuyRequiresPrice': false, // switch off
+           'createMarketBuyOrderRequiresPrice': false, // switch off
        },
    })
 
    // or, to switch it off later, after the exchange instantiation, you can do
-   exchange.options['createMarketBuyRequiresPrice'] = false
+   exchange.options['createMarketBuyOrderRequiresPrice'] = false
 
    ;(async () => {
 
-       // when `createMarketBuyRequiresPrice` is true, we can pass the price
+       // when `createMarketBuyOrderRequiresPrice` is true, we can pass the price
        // so that the total cost of the order would be calculated inside the library
        // by multiplying the amount over price (amount * price)
 
