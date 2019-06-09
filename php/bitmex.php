@@ -954,7 +954,7 @@ class bitmex extends Exchange {
         if (is_array($trade) && array_key_exists('execComm', $trade)) {
             $feeCost = $this->safe_float($trade, 'execComm');
             $feeCost = $feeCost / 100000000;
-            $currencyId = $this->safe_string($trade, 'currency');
+            $currencyId = $this->safe_string($trade, 'settlCurrency');
             $currencyId = strtoupper($currencyId);
             $feeCurrency = $this->common_currency_code($currencyId);
             $feeRate = $this->safe_float($trade, 'commission');
@@ -978,6 +978,10 @@ class bitmex extends Exchange {
                 $symbol = $marketId;
             }
         }
+        $type = $this->safe_string($trade, 'ordType');
+        if ($type !== null) {
+            $type = strtolower($type);
+        }
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -985,7 +989,7 @@ class bitmex extends Exchange {
             'symbol' => $symbol,
             'id' => $id,
             'order' => $order,
-            'type' => null,
+            'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
             'price' => $price,
