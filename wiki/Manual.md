@@ -3450,7 +3450,7 @@ In case you experience any difficulty connecting to a particular exchange, do th
   logging.basicConfig(level=logging.DEBUG)
   ```
 - Use verbose mode to make sure that the used API credentials correspond to the keys you intend to use. Make sure there's no confusion of keypairs.
-- Try a fresh new keypair if possible.
+- **Try a fresh new keypair if possible.**
 - Check the permissions on the keypair with the exchange website!
 - If it is a Cloudflare protection error, try these examples:
   - https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
