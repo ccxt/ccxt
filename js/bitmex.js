@@ -978,7 +978,7 @@ module.exports = class bitmex extends Exchange {
             }
         }
         let type = this.safeString (trade, 'ordType');
-        if (type !== 'undefined') {
+        if (type !== undefined) {
             type = type.toLowerCase ();
         }
         return {
