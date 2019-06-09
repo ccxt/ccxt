@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.661'
+const version = '1.18.662'
 
 Exchange.ccxtVersion = version
 
@@ -15149,7 +15149,7 @@ module.exports = class bitmex extends Exchange {
         if ('execComm' in trade) {
             let feeCost = this.safeFloat (trade, 'execComm');
             feeCost = feeCost / 100000000;
-            let currencyId = this.safeString (trade, 'currency');
+            let currencyId = this.safeString (trade, 'settlCurrency');
             currencyId = currencyId.toUpperCase ();
             const feeCurrency = this.commonCurrencyCode (currencyId);
             let feeRate = this.safeFloat (trade, 'commission');
@@ -15173,6 +15173,10 @@ module.exports = class bitmex extends Exchange {
                 symbol = marketId;
             }
         }
+        let type = this.safeString (trade, 'ordType');
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -15180,7 +15184,7 @@ module.exports = class bitmex extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': order,
-            'type': undefined,
+            'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,

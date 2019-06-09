@@ -908,7 +908,7 @@ class bitmex (Exchange):
         if 'execComm' in trade:
             feeCost = self.safe_float(trade, 'execComm')
             feeCost = feeCost / 100000000
-            currencyId = self.safe_string(trade, 'currency')
+            currencyId = self.safe_string(trade, 'settlCurrency')
             currencyId = currencyId.upper()
             feeCurrency = self.common_currency_code(currencyId)
             feeRate = self.safe_float(trade, 'commission')
@@ -928,6 +928,9 @@ class bitmex (Exchange):
                 symbol = market['symbol']
             else:
                 symbol = marketId
+        type = self.safe_string(trade, 'ordType')
+        if type is not None:
+            type = type.lower()
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -935,7 +938,7 @@ class bitmex (Exchange):
             'symbol': symbol,
             'id': id,
             'order': order,
-            'type': None,
+            'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
