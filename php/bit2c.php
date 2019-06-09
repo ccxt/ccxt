@@ -71,6 +71,7 @@ class bit2c extends Exchange {
                 'ETC/NIS' => array( 'id' => 'EtcNis', 'symbol' => 'ETC/NIS', 'base' => 'ETC', 'quote' => 'NIS' ),
                 'BTG/NIS' => array( 'id' => 'BtgNis', 'symbol' => 'BTG/NIS', 'base' => 'BTG', 'quote' => 'NIS' ),
                 'BSV/NIS' => array( 'id' => 'BchSvNis', 'symbol' => 'BSV/NIS', 'base' => 'BSV', 'quote' => 'NIS' ),
+                'GRIN/NIS' => array( 'id' => 'GrinNis', 'symbol' => 'GRIN/NIS', 'base' => 'GRIN', 'quote' => 'NIS' ),
             ),
             'fees' => array (
                 'trading' => array (
