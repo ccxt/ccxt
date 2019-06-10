@@ -675,7 +675,6 @@ module.exports = class latoken extends Exchange {
                 let param = {
                     'timestamp': Date.now(),
                 }
-                console.log('params',param);
                 query1 = '?' + this.urlencode (param)
                 let dataToSign = '/api/v1/' + path + '/' + params; 
                 //rewrite with this.hmac
