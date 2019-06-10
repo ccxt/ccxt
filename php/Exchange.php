@@ -1056,7 +1056,7 @@ class Exchange {
         return $token . '.' . $this->urlencodeBase64($signature);
     }
 
-    public static function sign_rsa($request, $secret, $alg = 'RS256') {
+    public static function rsa($request, $secret, $alg = 'RS256') {
         $algorithms = array(
             'RS256' => \OPENSSL_ALGO_SHA256,
             'RS384' => \OPENSSL_ALGO_SHA384,
@@ -1069,10 +1069,6 @@ class Exchange {
         $signature = null;
         \openssl_sign($request, $signature, $secret, $algName);
         return $signature;
-    }
-
-    public static function signRSA($request, $secret, $alg = 'RS256') {
-        return static::sign_rsa($request, $secret, $alg);
     }
 
     public function raise_error($exception_type, $url, $method = 'GET', $error = null, $details = null) {
