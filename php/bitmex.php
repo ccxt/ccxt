@@ -149,6 +149,7 @@ class bitmex extends Exchange {
                     'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'options' => array (
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
@@ -195,10 +196,10 @@ class bitmex extends Exchange {
             $lotSize = $this->safe_float($market, 'lotSize');
             $tickSize = $this->safe_float($market, 'tickSize');
             if ($lotSize !== null) {
-                $precision['amount'] = $this->precision_from_string($this->truncate_to_string ($lotSize, 16));
+                $precision['amount'] = $lotSize;
             }
             if ($tickSize !== null) {
-                $precision['price'] = $this->precision_from_string($this->truncate_to_string ($tickSize, 16));
+                $precision['price'] = $tickSize;
             }
             $limits = array (
                 'amount' => array (

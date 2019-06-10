@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.664'
+const version = '1.18.665'
 
 Exchange.ccxtVersion = version
 
@@ -4604,6 +4604,7 @@ const ROUND    = 0                  // rounding mode
 
 const DECIMAL_PLACES     = 0        // digits counting mode
     , SIGNIFICANT_DIGITS = 1
+    , TICK_SIZE = 2
 
 const NO_PADDING    = 0             // zero-padding mode
     , PAD_WITH_ZERO = 1
@@ -4613,6 +4614,7 @@ const precisionConstants = {
     TRUNCATE,
     DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
+    TICK_SIZE,
     NO_PADDING,
     PAD_WITH_ZERO,
 }
@@ -4672,6 +4674,9 @@ const decimalToPrecision = (x, roundingMode
                              , paddingMode        = NO_PADDING) => {
 
     if (numPrecisionDigits < 0) {
+        if (countingMode === TICK_SIZE) {
+            throw new Error (`TICK_SIZE cant be used with negative numPrecisionDigits`)
+        }
         let toNearest = Math.pow (10, -numPrecisionDigits)
         if (roundingMode === ROUND) {
             return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
@@ -4679,6 +4684,34 @@ const decimalToPrecision = (x, roundingMode
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ()
         }
+    }
+
+/*  handle tick size */
+    if (countingMode === TICK_SIZE) {
+        const missing = x % numPrecisionDigits
+        const reminder = x / numPrecisionDigits
+        if (reminder !== Math.floor(reminder)) {
+            if (roundingMode === ROUND) {
+                if (x > 0) {
+                    if (missing >= numPrecisionDigits / 2) {
+                        x = x - missing + numPrecisionDigits
+                    } else {
+                        x = x - missing
+                    }
+                } else {
+                    if (missing >= numPrecisionDigits / 2) {
+                        x = Number(x) - missing
+                    } else {
+                        x = Number(x) - missing - numPrecisionDigits
+                    }
+                }
+            } else if (roundingMode === TRUNCATE) {
+                x = x - missing
+            }
+        }
+        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
+        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
+        return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
 /*  Convert to a string (if needed), skip leading minus sign (if any)   */
@@ -4845,6 +4878,7 @@ module.exports = {
     TRUNCATE,
     DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
+    TICK_SIZE,
     NO_PADDING,
     PAD_WITH_ZERO,
 }
@@ -14199,6 +14233,7 @@ module.exports = class bitmarket extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -14344,6 +14379,7 @@ module.exports = class bitmex extends Exchange {
                     'Account has insufficient Available Balance': InsufficientFunds,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
@@ -14390,10 +14426,10 @@ module.exports = class bitmex extends Exchange {
             const lotSize = this.safeFloat (market, 'lotSize');
             const tickSize = this.safeFloat (market, 'tickSize');
             if (lotSize !== undefined) {
-                precision['amount'] = this.precisionFromString (this.truncate_to_string (lotSize, 16));
+                precision['amount'] = lotSize;
             }
             if (tickSize !== undefined) {
-                precision['price'] = this.precisionFromString (this.truncate_to_string (tickSize, 16));
+                precision['price'] = tickSize;
             }
             const limits = {
                 'amount': {
@@ -15452,7 +15488,7 @@ module.exports = class bitmex extends Exchange {
     }
 };
 
-},{"./base/Exchange":8,"./base/errors":9}],40:[function(require,module,exports){
+},{"./base/Exchange":8,"./base/errors":9,"./base/functions/number":15}],40:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------

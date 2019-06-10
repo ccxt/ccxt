@@ -13,6 +13,7 @@ from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bitmex (Exchange):
@@ -157,6 +158,7 @@ class bitmex (Exchange):
                     'Account has insufficient Available Balance': InsufficientFunds,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 # https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 # https://github.com/ccxt/ccxt/issues/4789
@@ -201,9 +203,9 @@ class bitmex (Exchange):
             lotSize = self.safe_float(market, 'lotSize')
             tickSize = self.safe_float(market, 'tickSize')
             if lotSize is not None:
-                precision['amount'] = self.precision_from_string(self.truncate_to_string(lotSize, 16))
+                precision['amount'] = lotSize
             if tickSize is not None:
-                precision['price'] = self.precision_from_string(self.truncate_to_string(tickSize, 16))
+                precision['price'] = tickSize
             limits = {
                 'amount': {
                     'min': None,
