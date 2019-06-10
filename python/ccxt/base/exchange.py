@@ -950,10 +950,6 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def binary_to_string(s):
-        return s.decode('ascii')
-
-    @staticmethod
     def base64urlencode(s):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
