@@ -971,14 +971,14 @@ class Exchange(object):
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
         if alg[:2] == 'RS':
-            signature = Exchange.rsa_sign(token, secret, alg)
+            signature = Exchange.rsa(token, secret, alg)
         else:
             algorithm = algos[alg]
             signature = Exchange.hmac(token, secret, algorithm, 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
 
     @staticmethod
-    def rsa_sign(request, secret, alg='RS256'):
+    def rsa(request, secret, alg='RS256'):
         algorithms = {
             "RS256": hashes.SHA256(),
             "RS384": hashes.SHA384(),
