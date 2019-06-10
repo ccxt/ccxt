@@ -336,7 +336,7 @@ class xbtce extends Exchange {
             if ($body)
                 $auth .= $body;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
-            $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $this->binary_to_string($signature);
+            $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $this->decode ($signature);
             $headers['Authorization'] = 'HMAC ' . $credentials;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

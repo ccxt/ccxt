@@ -346,7 +346,7 @@ class negociecoins extends Exchange {
             $payload = implode('', array($this->apiKey, $method, $uri, $timestamp, $nonce, $content));
             $secret = base64_decode ($this->secret);
             $signature = $this->hmac ($this->encode ($payload), $secret, 'sha256', 'base64');
-            $signature = $this->binary_to_string($signature);
+            $signature = $this->decode ($signature);
             $auth = implode(':', array($this->apiKey, $signature, $nonce, $timestamp));
             $headers = array (
                 'Authorization' => 'amx ' . $auth,
