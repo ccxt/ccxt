@@ -647,10 +647,6 @@ class Exchange {
         return implode('', func_get_args());
     }
 
-    public function binary_to_string($binary) {
-        return $binary;
-    }
-
     public static function json($data, $params = array()) {
         $options = array(
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
