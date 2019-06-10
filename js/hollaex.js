@@ -108,6 +108,23 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
+    async fetchOrderBook (symbol) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        let response = await this.publicGetOrderbooks (this.extend (request));
+        response = response[market['id']];
+        let result = {
+            'bids': response['bids'],
+            'asks': response['asks'],
+            'datetime': response['timestamp'],
+            'timestamp': undefined,
+        };
+        return result;
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
