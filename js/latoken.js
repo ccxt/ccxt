@@ -73,7 +73,7 @@ module.exports = class latoken extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/6286552/54519214-0f693600-4977-11e9-9ff4-6ea2f62875b0.png',
                 'api': {
-                    'v1':  'https://preprod-node-public-api.nekotal.tech/api/v1', //'https://api.latoken.com/api/v1',
+                    'v1':  'https://api.latoken.com/api/v1',
                 },
                 'www': 'https://www.latoken.com',
                 'doc': [
