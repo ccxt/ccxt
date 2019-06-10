@@ -27,7 +27,7 @@ const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
 
 /*  .............................................   */
 
-function signRSA (request, secret, alg = 'RS256') {
+function rsa (request, secret, alg = 'RS256') {
     const algos = {
         'RS256': 'pkcs1-sha256',
         'RS512': 'pkcs1-sha512',
@@ -112,7 +112,7 @@ module.exports = {
     hmac,
     jwt,
     totp,
-    RSASign,
+    rsa,
 }
 
 /*  ------------------------------------------------------------------------ */
