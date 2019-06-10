@@ -108,22 +108,73 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol) {
+    async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
         };
-        let response = await this.publicGetOrderbooks (this.extend (request));
+        let response = await this.publicGetOrderbooks (this.extend (request, params));
         response = response[market['id']];
         let result = {
             'bids': response['bids'],
             'asks': response['asks'],
             'datetime': response['timestamp'],
-            'timestamp': undefined,
+            'timestamp': this.milliseconds (),
         };
         return result;
     }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetTicker (this.extend ({
+            'symbol': market['id'],
+        }, params));
+        let timestamp = this.milliseconds ();
+        let last = this.safeFloat (response, 'last');
+        let close = this.safeFloat (response, 'close');
+        let high = this.safeFloat (response, 'high');
+        let low = this.safeFloat (response, 'low');
+        let open = this.safeFloat (response, 'open');
+        let datetime = this.safeString (response, 'timestamp');
+        let baseVolume = this.safeFloat (response, 'volume');
+        let result = {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'high': high,
+            'low': low,
+            'open': open,
+            'close': close,
+            'last': last,
+            'baseVolume': baseVolume,
+            'info': response,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'quoteVolume': undefined,
+        };
+        return result;
+    }
+
+
+
+
+
+
+
+
+
+
+
+    
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
