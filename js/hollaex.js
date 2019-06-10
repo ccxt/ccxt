@@ -116,11 +116,13 @@ module.exports = class hollaex extends Exchange {
         };
         let response = await this.publicGetOrderbooks (this.extend (request, params));
         response = response[market['id']];
+        let datetime = response['timestamp'];
+        let timestamp = new Date (datetime).getTime ();
         let result = {
             'bids': response['bids'],
             'asks': response['asks'],
-            'datetime': response['timestamp'],
-            'timestamp': this.milliseconds (),
+            'datetime': datetime,
+            'timestamp': timestamp,
         };
         return result;
     }
@@ -131,13 +133,13 @@ module.exports = class hollaex extends Exchange {
         let response = await this.publicGetTicker (this.extend ({
             'symbol': market['id'],
         }, params));
-        let timestamp = this.milliseconds ();
         let last = this.safeFloat (response, 'last');
         let close = this.safeFloat (response, 'close');
         let high = this.safeFloat (response, 'high');
         let low = this.safeFloat (response, 'low');
         let open = this.safeFloat (response, 'open');
         let datetime = this.safeString (response, 'timestamp');
+        let timestamp = new Date (datetime).getTime ();
         let baseVolume = this.safeFloat (response, 'volume');
         let result = {
             'symbol': symbol,
@@ -164,6 +166,35 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetTrades (this.extend ({
+            'symbol': market['id'],
+        }, params));
+        return this.parseTrades (response[market['id']], market);
+    }
+
+    parseTrade (trade, market = undefined) {
+        let symbol = (market !== undefined) ? market['symbol'] : undefined;
+        let side = this.safeString (trade, 'side');
+        let datetime = this.safeString (trade, 'timestamp');
+        let timestamp = new Date (datetime).getTime ();
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'size');
+        return {
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'order': undefined,
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'info': trade,
+        };
+    }
 
 
 
@@ -174,7 +205,7 @@ module.exports = class hollaex extends Exchange {
 
 
 
-    
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
