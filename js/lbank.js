@@ -507,7 +507,7 @@ module.exports = class lbank extends Exchange {
             let secretLength = true ? this.secret.length : null;  // eslint-disable-line
             for (let i = 0; i < secretLength; i++) {
                 let start = i * 64;
-                let end = start + 64;
+                let end = this.sum (start, 64);
                 if (start > secretLength) {
                     break;
                 }
