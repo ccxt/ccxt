@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.661'
+const version = '1.18.665'
 
 Exchange.ccxtVersion = version
 
@@ -4604,6 +4604,7 @@ const ROUND    = 0                  // rounding mode
 
 const DECIMAL_PLACES     = 0        // digits counting mode
     , SIGNIFICANT_DIGITS = 1
+    , TICK_SIZE = 2
 
 const NO_PADDING    = 0             // zero-padding mode
     , PAD_WITH_ZERO = 1
@@ -4613,6 +4614,7 @@ const precisionConstants = {
     TRUNCATE,
     DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
+    TICK_SIZE,
     NO_PADDING,
     PAD_WITH_ZERO,
 }
@@ -4672,6 +4674,9 @@ const decimalToPrecision = (x, roundingMode
                              , paddingMode        = NO_PADDING) => {
 
     if (numPrecisionDigits < 0) {
+        if (countingMode === TICK_SIZE) {
+            throw new Error (`TICK_SIZE cant be used with negative numPrecisionDigits`)
+        }
         let toNearest = Math.pow (10, -numPrecisionDigits)
         if (roundingMode === ROUND) {
             return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
@@ -4679,6 +4684,34 @@ const decimalToPrecision = (x, roundingMode
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ()
         }
+    }
+
+/*  handle tick size */
+    if (countingMode === TICK_SIZE) {
+        const missing = x % numPrecisionDigits
+        const reminder = x / numPrecisionDigits
+        if (reminder !== Math.floor(reminder)) {
+            if (roundingMode === ROUND) {
+                if (x > 0) {
+                    if (missing >= numPrecisionDigits / 2) {
+                        x = x - missing + numPrecisionDigits
+                    } else {
+                        x = x - missing
+                    }
+                } else {
+                    if (missing >= numPrecisionDigits / 2) {
+                        x = Number(x) - missing
+                    } else {
+                        x = Number(x) - missing - numPrecisionDigits
+                    }
+                }
+            } else if (roundingMode === TRUNCATE) {
+                x = x - missing
+            }
+        }
+        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
+        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
+        return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
 /*  Convert to a string (if needed), skip leading minus sign (if any)   */
@@ -4845,6 +4878,7 @@ module.exports = {
     TRUNCATE,
     DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
+    TICK_SIZE,
     NO_PADDING,
     PAD_WITH_ZERO,
 }
@@ -8863,11 +8897,11 @@ module.exports = class bit2c extends Exchange {
             'markets': {
                 'BTC/NIS': { 'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS' },
                 'ETH/NIS': { 'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS' },
-                'BCH/NIS': { 'id': 'BchAbcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
+                'BCH/NIS': { 'id': 'BchabcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS' },
                 'LTC/NIS': { 'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS' },
                 'ETC/NIS': { 'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS' },
                 'BTG/NIS': { 'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS' },
-                'BSV/NIS': { 'id': 'BchSvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS' },
+                'BSV/NIS': { 'id': 'BchsvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS' },
                 'GRIN/NIS': { 'id': 'GrinNis', 'symbol': 'GRIN/NIS', 'base': 'GRIN', 'quote': 'NIS' },
             },
             'fees': {
@@ -14199,6 +14233,7 @@ module.exports = class bitmarket extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -14344,6 +14379,7 @@ module.exports = class bitmex extends Exchange {
                     'Account has insufficient Available Balance': InsufficientFunds,
                 },
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
@@ -14390,10 +14426,10 @@ module.exports = class bitmex extends Exchange {
             const lotSize = this.safeFloat (market, 'lotSize');
             const tickSize = this.safeFloat (market, 'tickSize');
             if (lotSize !== undefined) {
-                precision['amount'] = this.precisionFromString (this.truncate_to_string (lotSize, 16));
+                precision['amount'] = lotSize;
             }
             if (tickSize !== undefined) {
-                precision['price'] = this.precisionFromString (this.truncate_to_string (tickSize, 16));
+                precision['price'] = tickSize;
             }
             const limits = {
                 'amount': {
@@ -15149,7 +15185,7 @@ module.exports = class bitmex extends Exchange {
         if ('execComm' in trade) {
             let feeCost = this.safeFloat (trade, 'execComm');
             feeCost = feeCost / 100000000;
-            let currencyId = this.safeString (trade, 'currency');
+            let currencyId = this.safeString (trade, 'settlCurrency');
             currencyId = currencyId.toUpperCase ();
             const feeCurrency = this.commonCurrencyCode (currencyId);
             let feeRate = this.safeFloat (trade, 'commission');
@@ -15173,6 +15209,10 @@ module.exports = class bitmex extends Exchange {
                 symbol = marketId;
             }
         }
+        let type = this.safeString (trade, 'ordType');
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -15180,7 +15220,7 @@ module.exports = class bitmex extends Exchange {
             'symbol': symbol,
             'id': id,
             'order': order,
-            'type': undefined,
+            'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
@@ -15448,7 +15488,7 @@ module.exports = class bitmex extends Exchange {
     }
 };
 
-},{"./base/Exchange":8,"./base/errors":9}],40:[function(require,module,exports){
+},{"./base/Exchange":8,"./base/errors":9,"./base/functions/number":15}],40:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------

@@ -149,6 +149,7 @@ class bitmex extends Exchange {
                     'Account has insufficient Available Balance' => '\\ccxt\\InsufficientFunds',
                 ),
             ),
+            'precisionMode' => TICK_SIZE,
             'options' => array (
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
@@ -195,10 +196,10 @@ class bitmex extends Exchange {
             $lotSize = $this->safe_float($market, 'lotSize');
             $tickSize = $this->safe_float($market, 'tickSize');
             if ($lotSize !== null) {
-                $precision['amount'] = $this->precision_from_string($this->truncate_to_string ($lotSize, 16));
+                $precision['amount'] = $lotSize;
             }
             if ($tickSize !== null) {
-                $precision['price'] = $this->precision_from_string($this->truncate_to_string ($tickSize, 16));
+                $precision['price'] = $tickSize;
             }
             $limits = array (
                 'amount' => array (
@@ -954,7 +955,7 @@ class bitmex extends Exchange {
         if (is_array($trade) && array_key_exists('execComm', $trade)) {
             $feeCost = $this->safe_float($trade, 'execComm');
             $feeCost = $feeCost / 100000000;
-            $currencyId = $this->safe_string($trade, 'currency');
+            $currencyId = $this->safe_string($trade, 'settlCurrency');
             $currencyId = strtoupper($currencyId);
             $feeCurrency = $this->common_currency_code($currencyId);
             $feeRate = $this->safe_float($trade, 'commission');
@@ -978,6 +979,10 @@ class bitmex extends Exchange {
                 $symbol = $marketId;
             }
         }
+        $type = $this->safe_string($trade, 'ordType');
+        if ($type !== null) {
+            $type = strtolower($type);
+        }
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -985,7 +990,7 @@ class bitmex extends Exchange {
             'symbol' => $symbol,
             'id' => $id,
             'order' => $order,
-            'type' => null,
+            'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
             'price' => $price,

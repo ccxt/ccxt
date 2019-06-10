@@ -345,7 +345,7 @@ module.exports = class negociecoins extends Exchange {
             let payload = [ this.apiKey, method, uri, timestamp, nonce, content ].join ('');
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (payload), secret, 'sha256', 'base64');
-            signature = this.binaryToString (signature);
+            signature = this.decode (signature);
             let auth = [ this.apiKey, signature, nonce, timestamp ].join (':');
             headers = {
                 'Authorization': 'amx ' + auth,
