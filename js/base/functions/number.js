@@ -21,6 +21,7 @@ const ROUND    = 0                  // rounding mode
 
 const DECIMAL_PLACES     = 0        // digits counting mode
     , SIGNIFICANT_DIGITS = 1
+    , TICK_SIZE = 2
 
 const NO_PADDING    = 0             // zero-padding mode
     , PAD_WITH_ZERO = 1
@@ -30,6 +31,7 @@ const precisionConstants = {
     TRUNCATE,
     DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
+    TICK_SIZE,
     NO_PADDING,
     PAD_WITH_ZERO,
 }
@@ -89,6 +91,9 @@ const decimalToPrecision = (x, roundingMode
                              , paddingMode        = NO_PADDING) => {
 
     if (numPrecisionDigits < 0) {
+        if (countingMode === TICK_SIZE) {
+            throw new Error (`TICK_SIZE cant be used with negative numPrecisionDigits`)
+        }
         let toNearest = Math.pow (10, -numPrecisionDigits)
         if (roundingMode === ROUND) {
             return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
@@ -96,6 +101,34 @@ const decimalToPrecision = (x, roundingMode
         if (roundingMode === TRUNCATE) {
             return (x - (x % toNearest)).toString ()
         }
+    }
+
+/*  handle tick size */
+    if (countingMode === TICK_SIZE) {
+        const missing = x % numPrecisionDigits
+        const reminder = x / numPrecisionDigits
+        if (reminder !== Math.floor(reminder)) {
+            if (roundingMode === ROUND) {
+                if (x > 0) {
+                    if (missing >= numPrecisionDigits / 2) {
+                        x = x - missing + numPrecisionDigits
+                    } else {
+                        x = x - missing
+                    }
+                } else {
+                    if (missing >= numPrecisionDigits / 2) {
+                        x = Number(x) - missing
+                    } else {
+                        x = Number(x) - missing - numPrecisionDigits
+                    }
+                }
+            } else if (roundingMode === TRUNCATE) {
+                x = x - missing
+            }
+        }
+        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
+        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
+        return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
 /*  Convert to a string (if needed), skip leading minus sign (if any)   */
@@ -262,6 +295,7 @@ module.exports = {
     TRUNCATE,
     DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
+    TICK_SIZE,
     NO_PADDING,
     PAD_WITH_ZERO,
 }
