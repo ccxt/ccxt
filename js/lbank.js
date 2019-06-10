@@ -501,8 +501,22 @@ module.exports = class lbank extends Exchange {
             let query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
-            let queryString = this.rawencode (query) + '&secret_key=' + this.secret;
-            query['sign'] = this.hash (this.encode (queryString)).toUpperCase ();
+            let queryString = this.rawencode (query);
+            let message = this.hash (this.encode (queryString)).toUpperCase ();
+            let secretArr = ['-----BEGIN RSA PRIVATE KEY-----'];
+            let secretLength = true ? this.secret.length : null;  // eslint-disable-line
+            for (let i = 0; i < secretLength; i++) {
+                let start = i * 64;
+                let end = start + 64;
+                if (start > secretLength) {
+                    break;
+                }
+                secretArr.push (this.secret.slice (start, end));
+            }
+            secretArr.push ('-----END RSA PRIVATE KEY-----');
+            let secret = secretArr.join ("\n"); // eslint-disable-line
+            let sign = this.binaryToBase64 (this.signRSA (message, secret, 'RS256'));
+            query['sign'] = sign;
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }
