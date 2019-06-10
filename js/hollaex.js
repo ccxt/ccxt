@@ -71,7 +71,7 @@ module.exports = class hollaex extends Exchange {
 
     async fetchMarkets () {
         let response = await this.publicGetConstant ();
-        let markets = response['pairs'];
+        let markets = this.safeValue (response, 'pairs');
         let keys = Object.keys (markets);
         let result = [];
         for (let i = 0; i < keys.length; i++) {
@@ -116,13 +116,13 @@ module.exports = class hollaex extends Exchange {
         };
         let response = await this.publicGetOrderbooks (this.extend (request, params));
         response = response[market['id']];
-        let datetime = response['timestamp'];
+        let datetime = this.safeString (response, 'timestamp');
         let timestamp = new Date (datetime).getTime ();
         let result = {
             'bids': response['bids'],
             'asks': response['asks'],
-            'datetime': datetime,
             'timestamp': timestamp,
+            'datetime': datetime,
         };
         return result;
     }
@@ -133,34 +133,34 @@ module.exports = class hollaex extends Exchange {
         let response = await this.publicGetTicker (this.extend ({
             'symbol': market['id'],
         }, params));
-        let last = this.safeFloat (response, 'last');
-        let close = this.safeFloat (response, 'close');
-        let high = this.safeFloat (response, 'high');
-        let low = this.safeFloat (response, 'low');
-        let open = this.safeFloat (response, 'open');
-        let datetime = this.safeString (response, 'timestamp');
+        let last = response['last'];
+        let close = response['close'];
+        let high = response['high'];
+        let low = response['low'];
+        let open = response['open'];
+        let datetime = response['timestamp'];
         let timestamp = new Date (datetime).getTime ();
-        let baseVolume = this.safeFloat (response, 'volume');
+        let baseVolume = response['volume'];
         let result = {
             'symbol': symbol,
+            'info': response,
             'timestamp': timestamp,
             'datetime': datetime,
             'high': high,
             'low': low,
-            'open': open,
-            'close': close,
-            'last': last,
-            'baseVolume': baseVolume,
-            'info': response,
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
+            'open': open,
+            'close': close,
+            'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
+            'baseVolume': baseVolume,
             'quoteVolume': undefined,
         };
         return result;
@@ -195,17 +195,6 @@ module.exports = class hollaex extends Exchange {
             'info': trade,
         };
     }
-
-
-
-
-
-
-
-
-
-
-
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = this.implodeParams (path, params);
