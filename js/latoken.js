@@ -680,10 +680,8 @@ module.exports = class latoken extends Exchange {
                 //rewrite with this.hmac
                 signature = crypto.createHmac('sha256', this.secret).update(dataToSign+query1).digest('hex');
             } else {
-                console.log('params',params);
                 params['timestamp'] = this.nonce();
                 query1 = '?' + this.urlencode (params);
-                console.log(query1)
                 let dataToSign = '/api/v1/' + path; 
                 //rewrite with this.hmac
                 signature = crypto.createHmac('sha256', this.secret).update(dataToSign+query1).digest('hex');
