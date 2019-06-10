@@ -1117,54 +1117,61 @@ module.exports = class bitmex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'symbol': this.marketId (symbol),
             'side': this.capitalize (side),
             'orderQty': amount,
             'ordType': this.capitalize (type),
         };
-        if (price !== undefined)
+        if (price !== undefined) {
             request['price'] = price;
-        let response = await this.privatePostOrder (this.extend (request, params));
-        let order = this.parseOrder (response);
-        let id = order['id'];
+        }
+        const response = await this.privatePostOrder (this.extend (request, params));
+        const order = this.parseOrder (response);
+        const id = this.safeString (order, 'id');
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'orderID': id,
         };
-        if (amount !== undefined)
+        if (amount !== undefined) {
             request['orderQty'] = amount;
-        if (price !== undefined)
+        }
+        if (price !== undefined) {
             request['price'] = price;
-        let response = await this.privatePutOrder (this.extend (request, params));
-        let order = this.parseOrder (response);
+        }
+        const response = await this.privatePutOrder (this.extend (request, params));
+        const order = this.parseOrder (response);
         this.orders[order['id']] = order;
         return this.extend ({ 'info': response }, order);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateDeleteOrder (this.extend ({ 'orderID': id }, params));
+        const response = await this.privateDeleteOrder (this.extend ({ 'orderID': id }, params));
         let order = response[0];
-        let error = this.safeString (order, 'error');
-        if (error !== undefined)
-            if (error.indexOf ('Unable to cancel order due to existing state') >= 0)
+        const error = this.safeString (order, 'error');
+        if (error !== undefined) {
+            if (error.indexOf ('Unable to cancel order due to existing state') >= 0) {
                 throw new OrderNotFound (this.id + ' cancelOrder() failed: ' + error);
+            }
+        }
         order = this.parseOrder (order);
         this.orders[order['id']] = order;
         return this.extend ({ 'info': response }, order);
     }
 
     isFiat (currency) {
-        if (currency === 'EUR')
+        if (currency === 'EUR') {
             return true;
-        if (currency === 'PLN')
+        }
+        if (currency === 'PLN') {
             return true;
+        }
         return false;
     }
 
@@ -1175,14 +1182,14 @@ module.exports = class bitmex extends Exchange {
         if (code !== 'BTC') {
             throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
         }
-        let request = {
+        const request = {
             'currency': 'XBt', // temporarily
             'amount': amount,
             'address': address,
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
-        let response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
+        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
         return {
             'info': response,
             'id': response['transactID'],
@@ -1233,7 +1240,7 @@ module.exports = class bitmex extends Exchange {
                 params = this.omit (params, '_format');
             }
         }
-        let url = this.urls['api'] + query;
+        const url = this.urls['api'] + query;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let auth = method + query;
