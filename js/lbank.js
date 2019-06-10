@@ -515,7 +515,7 @@ module.exports = class lbank extends Exchange {
             }
             secretArr.push ('-----END RSA PRIVATE KEY-----');
             let secret = secretArr.join ("\n"); // eslint-disable-line
-            let sign = this.binaryToBase64 (this.signRSA (message, secret, 'RS256'));
+            let sign = this.binaryToBase64 (this.rsa (message, secret, 'RS256'));
             query['sign'] = sign;
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
