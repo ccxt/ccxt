@@ -328,7 +328,7 @@ class negociecoins (Exchange):
             payload = ''.join([self.apiKey, method, uri, timestamp, nonce, content])
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(payload), secret, hashlib.sha256, 'base64')
-            signature = self.binary_to_string(signature)
+            signature = self.decode(signature)
             auth = ':'.join([self.apiKey, signature, nonce, timestamp])
             headers = {
                 'Authorization': 'amx ' + auth,

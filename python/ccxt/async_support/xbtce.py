@@ -318,6 +318,6 @@ class xbtce (Exchange):
             if body:
                 auth += body
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
-            credentials = self.uid + ':' + self.apiKey + ':' + nonce + ':' + self.binary_to_string(signature)
+            credentials = self.uid + ':' + self.apiKey + ':' + nonce + ':' + self.decode(signature)
             headers['Authorization'] = 'HMAC ' + credentials
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

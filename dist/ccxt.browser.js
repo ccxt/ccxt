@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.665'
+const version = '1.18.666'
 
 Exchange.ccxtVersion = version
 
@@ -4244,7 +4244,6 @@ module.exports =
     , utf16ToBase64:  string => CryptoJS.enc.Utf16 .parse (string).toString (CryptoJS.enc.Base64)
     , base64ToBinary: string => CryptoJS.enc.Base64.parse (string)
     , base64ToString: string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
-    , binaryToString: string => string
 
     , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
 
@@ -60277,7 +60276,7 @@ module.exports = class negociecoins extends Exchange {
             let payload = [ this.apiKey, method, uri, timestamp, nonce, content ].join ('');
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (payload), secret, 'sha256', 'base64');
-            signature = this.binaryToString (signature);
+            signature = this.decode (signature);
             let auth = [ this.apiKey, signature, nonce, timestamp ].join (':');
             headers = {
                 'Authorization': 'amx ' + auth,
@@ -86061,7 +86060,7 @@ module.exports = class xbtce extends Exchange {
             if (body)
                 auth += body;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            let credentials = this.uid + ':' + this.apiKey + ':' + nonce + ':' + this.binaryToString (signature);
+            let credentials = this.uid + ':' + this.apiKey + ':' + nonce + ':' + this.decode (signature);
             headers['Authorization'] = 'HMAC ' + credentials;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

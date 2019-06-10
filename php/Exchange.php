@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.665';
+$version = '1.18.666';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.665';
+    const VERSION = '1.18.666';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -645,10 +645,6 @@ class Exchange {
 
     public static function binary_concat() {
         return implode('', func_get_args());
-    }
-
-    public function binary_to_string($binary) {
-        return $binary;
     }
 
     public static function json($data, $params = array()) {
