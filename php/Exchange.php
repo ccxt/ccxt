@@ -1051,7 +1051,7 @@ class Exchange {
             }
             $signature =  static::hmac($token, $secret, $algName, 'binary');
         } elseif ($algoType === 'RS') {
-            $signature = static::sign_rsa($token, $secret, $alg);
+            $signature = static::rsa($token, $secret, $alg);
         }
         return $token . '.' . $this->urlencodeBase64($signature);
     }
