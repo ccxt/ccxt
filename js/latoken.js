@@ -300,8 +300,8 @@ module.exports = class latoken extends Exchange {
             'pairId': orderbook['pairId'],
             'symbol': orderbook['symbol'],
             'spread': orderbook['spread'],
-            'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey]) : null,
-            'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey]) : null,
+            'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey]) : 'empty',
+            'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey]) : 'empty',
         };
     }
 
@@ -405,7 +405,7 @@ module.exports = class latoken extends Exchange {
             'pairId': trades['pairId'],
             'symbol': trades['symbol'],
             'tradeCount': trades['tradeCount'],
-            'trades': (tradeKey in trades) ? this.parseEachTrade (trades[tradeKey]) : null,
+            'trades': (tradeKey in trades) ? this.parseEachTrade (trades[tradeKey]) : 'empty',
         };
     }
 
@@ -453,7 +453,7 @@ module.exports = class latoken extends Exchange {
             'pairId': trades['pairId'],
             'symbol': trades['symbol'],
             'tradeCount': trades['tradeCount'],
-            'trades': (tradeKey in trades) ? this.parseOrderTrades (trades[tradeKey]) : null,
+            'trades': (tradeKey in trades) ? this.parseOrderTrades (trades[tradeKey]) : 'empty',
         };
     }
 
@@ -641,7 +641,7 @@ module.exports = class latoken extends Exchange {
             if (path === 'account/balances' && (typeof (params) === 'string')) {
                 url += '/' + params;
                 let param = {
-                    'timestamp': Date.now (),
+                    'timestamp': this.nonce (),
                 };
                 let query1 = '?' + this.urlencode (param);
                 let dataToSign = '/api/v1/' + path + '/' + params;
