@@ -14,7 +14,7 @@ module.exports = class hollaex extends Exchange {
             'name': 'HollaEx',
             'countries': [ 'KR' ], // Korea
             'rateLimit': 667, // ?
-            'version': 'v1',
+            'version': 'v0',
             'has': {
                 'CORS': false,
                 'fetchTicker': true,
@@ -31,13 +31,13 @@ module.exports = class hollaex extends Exchange {
             },
             'urls': {
                 'logo': '',
-                'api': 'https://api.hollaex.com/v0',
+                'api': 'https://api.hollaex.com',
                 'www': 'https://hollaex.com',
                 'doc': 'https://apidocs.hollaex.com',
             },
             'requiredCredentials': {
                 'apiKey': true,
-                'secret': true,
+                'secret': false,
             },
             'api': {
                 'public': {
@@ -61,9 +61,11 @@ module.exports = class hollaex extends Exchange {
                     'post': [
                         'user/request-withdrawal',
                         'order',
+                    ],
+                    'delete': [
                         'user/orders',
                         'user/orders/',
-                    ],
+                    ]
                 },
             },
         });
@@ -196,32 +198,56 @@ module.exports = class hollaex extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + '/';
-        if (api === 'public') {
-            url += request;
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privateGetUserBalance (params);
+        let result = { 'info': response };
+        let free = {};
+        let used = {};
+        let total = {};
+        let currencyId = Object.keys (this.currencies_by_id);
+        for (let i = 0; i < currencyId.length; i++) {
+            let currency = this.currencies_by_id[currencyId[i]].code;
+            let responseCurr = currencyId[i];
+            if (responseCurr === 'eur') {
+                responseCurr = 'fiat';
             }
-        } else {
-            this.checkRequiredCredentials ();
-            url += this.version + '/' + request;
-            let nonce = this.nonce ().toString ();
-            let json = this.json (this.extend ({
-                'access_token': this.apiKey,
-                'nonce': nonce,
-            }, params));
-            let payload = this.stringToBase64 (this.encode (json));
-            body = this.decode (payload);
-            let secret = this.secret.toUpperCase ();
-            let signature = this.hmac (payload, this.encode (secret), 'sha512');
-            headers = {
-                'content-type': 'application/json',
-                'X-COINONE-PAYLOAD': payload,
-                'X-COINONE-SIGNATURE': signature,
+            free[currency] = response[responseCurr + '_available'];
+            total[currency] = response[responseCurr + '_balance'];
+            // used[currency] = total[currency] - free[currency];
+            used[currency] = undefined;
+            result[currency] = {
+                'free': free[currency],
+                'used': used[currency],
+                'total': total[currency],
             };
+        }
+        result['free'] = free;
+        result['used'] = used;
+        result['total'] = total;
+        return result;
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let query = '/' + this.version + '/' + path;
+        if (method === 'GET') {
+            if (Object.keys (params).length) {
+                query += '?' + this.urlencode (params);
+            }
+        }
+        let url = this.urls['api'] + query;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            let accessToken = 'Bearer ' + this.apiKey;
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': accessToken,
+            };
+            if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+                if (Object.keys (params).length) {
+                    body = this.json (params);
+                }
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
