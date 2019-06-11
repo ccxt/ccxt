@@ -205,7 +205,6 @@ module Ccxt
         
         parts = name.split('_')
         camelcase = parts[0] + parts[1..-1].map{|p| self.capitalize(p)}.join('')
-        puts "#{symbol} is #{camelcase}"
         self.class.class_eval { alias_method camelcase.to_sym, symbol }
       end
       
