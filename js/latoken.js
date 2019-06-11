@@ -3,7 +3,19 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, DDoSProtection, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+
+// const {  
+//     ExchangeError, 
+//     ArgumentsRequired, 
+//     ExchangeNotAvailable, 
+//     InsufficientFunds, 
+//     OrderNotFound, 
+//     InvalidOrder, 
+//     DDoSProtection, 
+//     InvalidNonce, 
+//     AuthenticationError, 
+//     InvalidAddress } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------
 
@@ -73,7 +85,7 @@ module.exports = class latoken extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/6286552/54519214-0f693600-4977-11e9-9ff4-6ea2f62875b0.png',
                 'api': {
-                    'v1':  'https://preprod-node-public-api.nekotal.tech/api/v1', //'https://api.latoken.com/api/v1',
+                    'v1': 'https://api.latoken.com/api/v1',
                 },
                 'www': 'https://www.latoken.com',
                 'doc': [
@@ -121,7 +133,34 @@ module.exports = class latoken extends Exchange {
             'options': {
                 'timeframe': 5 * 1000, // 5 sec, default
             },
-            'exceptions': undefined,
+            'exceptions': {
+                'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
+                'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
+                '400': BadRequest,
+                '401': AuthenticationError,
+                '403': NotSupported,
+                '404': NotSupported,
+                '405': NotSupported,
+                '429': DDoSProtection,
+                '500': ExchangeError,
+                '503': ExchangeNotAvailable,
+                '200004': InsufficientFunds,
+                '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
+                '300000': InvalidOrder,
+                '400001': AuthenticationError,
+                '400002': InvalidNonce,
+                '400003': AuthenticationError,
+                '400004': AuthenticationError,
+                '400005': AuthenticationError,
+                '400006': AuthenticationError,
+                '400007': AuthenticationError,
+                '400008': NotSupported,
+                '400100': ArgumentsRequired,
+                '411100': AccountSuspended,
+                '500000': ExchangeError,
+            }
         });
     }
 
@@ -209,8 +248,7 @@ module.exports = class latoken extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        console.log('params',params)
-        if (Object.entries(params).length !== 0) {
+        if (Object.keys (params).length) {
             let balance = await this.privateGetAccountBalances(params);
             let result = {};
             result.currencyId = balance['currencyId'];
@@ -257,23 +295,27 @@ module.exports = class latoken extends Exchange {
     parseBidAsk (bidask) {
         let price = parseFloat (bidask['price'])
         let amount = parseFloat(bidask['amount'])
-        return {
-            'price': price,
-            'amount': amount,
-        }
-    }
-    //rewrited
-    parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
-        return Object.values (bidasks || []).map (bidask => this.parseBidAsk (bidask, priceKey, amountKey))
+        return  {
+            'price': price, 
+            'amount': amount
+        } 
     }
 
-    parseOrderBook (orderbook, asksKey = 'asks', bidsKey = 'bids', priceKey = 0, amountKey = 0) {
+    parseBidsAsks (bidasks) {
+        let res = [];
+        for (let i = 0; i < bidasks.length; i++) {
+            res.push(this.parseBidAsk(bidasks[i]));
+        }
+        return res;
+    }
+
+    parseOrderBook (orderbook, asksKey = 'asks', bidsKey = 'bids') {
         return {
             'pairId': orderbook['pairId'],
             'symbol': orderbook['symbol'],
             'spread': orderbook['spread'],
-            'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey], priceKey, amountKey) : null,
-            'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey], priceKey, amountKey) : null,
+            'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey]) : null,
+            'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey]) : null,
         }
     }
 
@@ -311,8 +353,8 @@ module.exports = class latoken extends Exchange {
         return this.parseTicker(response, market);
     }
 
-    async fetchCurrencies(params = undefined){
-        if (params !== undefined) {
+    async fetchCurrencies(params = {}){
+        if (Object.keys (params).length) {
             const currencies = await this.publicGetExchangeInfoCurrencies(params);
             let id = currencies['currencyId'];
             let symbol = currencies['symbol'];
@@ -364,16 +406,20 @@ module.exports = class latoken extends Exchange {
         }
     }
 
-    parseTrades (trades, sideKey = 0, priceKey = 0, amountKey = 0, timestampKey = 0) {
-        return Object.values (trades || []).map (trade => this.parseOneTrade (trade, sideKey, priceKey, amountKey, timestampKey))
+    parseEachTrade (trades) {
+        let res = [];
+        for (let i = 0; i < trades.length; i++) {
+            res.push(this.parseOneTrade(trades[i]));
+        }
+        return res;
     }
 
-    parseTrade (trades, tradeKey = 'trades', sideKey = 0, priceKey = 0, amountKey = 0, timestampKey = 0) {
+    parseTrade (trades, tradeKey = 'trades') {
         return {
             'pairId': trades['pairId'],
             'symbol': trades['symbol'],
             'tradeCount': trades['tradeCount'],
-            'trades': (tradeKey in trades) ? this.parseTrades (trades[tradeKey], sideKey, priceKey, amountKey, timestampKey) : null,
+            'trades': (tradeKey in trades) ? this.parseEachTrade (trades[tradeKey]) : null,
         }
     }
 
@@ -408,16 +454,20 @@ module.exports = class latoken extends Exchange {
         }
     }
 
-    parseOrderTrades (trades, idKey = 0, orderKey = 0, commisionKey = 0, sideKey = 0, priceKey = 0, amountKey = 0, timeKey = 0) {
-        return Object.values (trades || []).map (trade => this.parseOneOrderTrade (trade, idKey, orderKey, commisionKey, sideKey, priceKey, amountKey, timeKey))
+    parseOrderTrades (trades) {
+        let res = [];
+        for (let i = 0; i < trades.length; i++) {
+           res.push(this.parseOneOrderTrade(trades[i])); 
+        }
+        return res;
     }
 
-    parseOrderTrade (trades, tradeKey = 'trades', idKey = 0, orderKey = 0, commisionKey = 0, sideKey = 0, priceKey = 0, amountKey = 0, timeKey = 0) {
+    parseOrderTrade (trades, tradeKey = 'trades') {
         return {
             'pairId': trades['pairId'],
             'symbol': trades['symbol'],
             'tradeCount': trades['tradeCount'],
-            'trades': (tradeKey in trades) ? this.parseOrderTrades (trades[tradeKey], idKey, orderKey, commisionKey, sideKey, priceKey, amountKey, timeKey) : null,
+            'trades': (tradeKey in trades) ? this.parseOrderTrades (trades[tradeKey]) : null,
         }
     }
 
@@ -553,12 +603,12 @@ module.exports = class latoken extends Exchange {
         return orders;
     }
 
-    async fetchOrder(id) {
+    async fetchOrder(id, params = {}) {
         await this.loadMarkets();
         let request = {
             'orderId': id,
         }
-        let response = await this.privateGetOrderGetOrder(request);
+        let response = await this.privateGetOrderGetOrder(this.extend(request, params));
         let orderId = response['orderId'];
         let cliOrdId = response['cliOrdId'];
         let pairId = this.safeValue(response, 'pairId');
@@ -681,15 +731,9 @@ module.exports = class latoken extends Exchange {
             } else {
                 params['timestamp'] = this.nonce();
                 query1 = '?' + this.urlencode (params);
-<<<<<<< HEAD
                 let dataToSign = '/api/v1/' + path;
                 signature = this.hmac(this.encode(dataToSign + query1), this.encode(this.secret), 'sha256')
 
-=======
-                let dataToSign = '/api/v1/' + path; 
-                //rewrite with this.hmac
-                signature = crypto.createHmac('sha256', this.secret).update(dataToSign+query1).digest('hex');
->>>>>>> 9c2a91fd532789a4d2f12d0f9d31fa3118a65832
             }
             headers = {
                 'X-LA-KEY': this.apiKey,
@@ -701,14 +745,16 @@ module.exports = class latoken extends Exchange {
         return {'url': url, 'method': method, 'body': body, 'headers': headers};
     }
 
-    handleErrors (body, response) {
-        const msg = this.safeString (response, 'error');
-        const success = this.safeValue (response, 'success', true);
-        if (msg !== undefined) {
-            throw new ExchangeError (msg);
+    handleErrors (code, reason, url, method, headers, body, response) {
+        if (!response) {
+            return;
         }
-        if (!success) {
-            throw new ExchangeError (this.id + ' ' + body);
+        const errorCode = this.safeString (response, 'code');
+        const message = this.safeString (response, 'msg');
+        const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
+        if (ExceptionClass !== undefined) {
+            throw new ExceptionClass (this.id + ' ' + message);
         }
     }
+
 };
