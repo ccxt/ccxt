@@ -265,14 +265,29 @@ module.exports = class hollaex extends Exchange {
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
+        let status = undefined;
         let info = order;
         let lastTradeTimestamp = undefined;
-        let status = undefined;
         let remaining = undefined;
         let cost = undefined;
         let trades = undefined;
         let fee = undefined;
         return { id, datetime, timestamp, lastTradeTimestamp, status, symbol, type, side, price, amount, filled, remaining, cost, trades, fee, info };
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let order = {
+            'symbol': market['id'],
+            'side': side,
+            'size': amount,
+            'type': type,
+            'price': price,
+        };
+        let response = await this.privatePostOrder (this.extend (order, params));
+        response['created_at'] = new Date ().toISOString ();
+        return this.parseOrder (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
