@@ -63,7 +63,6 @@ module.exports = class hollaex extends Exchange {
                         'order',
                     ],
                     'delete': [
-                        'user/orders',
                         'user/orders/{orderId}',
                     ],
                 },
@@ -255,9 +254,9 @@ module.exports = class hollaex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    parseOrder (order, market = undefined) {
-        let id = this.safeString (order, 'id');
+    async parseOrder (order, market = undefined) {
         let symbol = this.safeString (market, 'symbol');
+        let id = this.safeString (order, 'id');
         let datetime = this.safeString (order, 'created_at');
         let timestamp = new Date (datetime).getTime ();
         let type = this.safeString (order, 'type');
@@ -288,6 +287,13 @@ module.exports = class hollaex extends Exchange {
         let response = await this.privatePostOrder (this.extend (order, params));
         response['created_at'] = new Date ().toISOString ();
         return this.parseOrder (response, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        let response = await this.privateDeleteUserOrdersOrderId (this.extend ({
+            'orderId': id,
+        }, params));
+        return this.parseOrder (response);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
