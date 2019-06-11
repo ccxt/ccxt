@@ -21,10 +21,8 @@ module.exports = class latoken extends Exchange {
                 'CORS': false,
                 'publicAPI': true,
                 'pivateAPI': true,
-                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
-                'createDepositAddress': false,
                 'createLimitOrder': true,
                 'createMarketOrder': false,
                 'createOrder': true,
@@ -89,7 +87,7 @@ module.exports = class latoken extends Exchange {
                         'exchangeInfo/currencies',
                         'marketData/orderBook',
                         'marketData/trades',
-                        'marketData/ticker'
+                        'marketData/ticker',
                     ],
                 },
                 'private': {
@@ -98,12 +96,12 @@ module.exports = class latoken extends Exchange {
                         'order/trades',
                         'order/status',
                         'order/active',
-                        'order/get_order'
+                        'order/get_order',
                     ],
                     'post': [
                         'order/new',
                         'order/cancel',
-                        'order/cancel_all'
+                        'order/cancel_all',
                     ],
                     'delete': [
                         'account/order',
@@ -148,7 +146,7 @@ module.exports = class latoken extends Exchange {
                 '400100': ArgumentsRequired,
                 '411100': AccountSuspended,
                 '500000': ExchangeError,
-            }
+            },
         });
     }
 
@@ -156,60 +154,60 @@ module.exports = class latoken extends Exchange {
         return this.milliseconds ();
     }
 
-    async currentTime(){
-        const response = await this.publicGetExchangeInfoTime();
-        let time = this.safeString(response, 'time');
-        let timeSeconds = this.safeInteger(response, 'unixTimeSeconds');
-        let timeMiliseconds = this.safeInteger(response, 'unixTimeMiliseconds');
+    async currentTime () {
+        const response = await this.publicGetExchangeInfoTime ();
+        let time = this.safeString (response, 'time');
+        let timeSeconds = this.safeInteger (response, 'unixTimeSeconds');
+        let timeMiliseconds = this.safeInteger (response, 'unixTimeMiliseconds');
         return {
             'time': time,
             'timeSeconds': timeSeconds,
             'timeMiliseconds': timeMiliseconds,
-        }
+        };
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetExchangeInfoPairs(params);
+        let markets = await this.publicGetExchangeInfoPairs (params);
         let result = [];
-            for (let i = 0; i < markets.length; i++) {
-                let market = markets[i];
-                let id = market['pairId'];
-                let baseId = market['baseCurrency'];
-                let quoteId = market['quotedCurrency'];
-                let base = this.commonCurrencyCode (baseId);
-                let quote = this.commonCurrencyCode (quoteId);
-                let symbol =  market['symbol'];
-                let precision = {
-                    'price': market['pricePrecision'],
-                    'amount': market['amountPrecision'],
-                };
-                let limits = {
-                    'amount': {
-                        'min': this.safeFloat (market, 'minQty'),
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': Math.pow (10, -precision['price']),
-                        'max': undefined,
-                    },
-                };
-                limits['cost'] = {
-                    'min': market['amountPrecision'],
+        for (let i = 0; i < markets.length; i++) {
+            let market = markets[i];
+            let id = market['pairId'];
+            let baseId = market['baseCurrency'];
+            let quoteId = market['quotedCurrency'];
+            let base = this.commonCurrencyCode (baseId);
+            let quote = this.commonCurrencyCode (quoteId);
+            let symbol = market['symbol'];
+            let precision = {
+                'price': market['pricePrecision'],
+                'amount': market['amountPrecision'],
+            };
+            let limits = {
+                'amount': {
+                    'min': this.safeFloat (market, 'minQty'),
                     'max': undefined,
-                };
-                result.push ({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': true,
-                    'precision': precision,
-                    'limits': limits,
-                    'info': market,
-                });
-            }
+                },
+                'price': {
+                    'min': Math.pow (10, -precision['price']),
+                    'max': undefined,
+                },
+            };
+            limits['cost'] = {
+                'min': market['amountPrecision'],
+                'max': undefined,
+            };
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': true,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
+        }
         return result;
     }
 
@@ -237,7 +235,7 @@ module.exports = class latoken extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         if (Object.keys (params).length) {
-            let balance = await this.privateGetAccountBalances(params);
+            let balance = await this.privateGetAccountBalances (params);
             let result = {};
             result.currencyId = balance['currencyId'];
             result.symbol = balance['symbol'];
@@ -254,20 +252,20 @@ module.exports = class latoken extends Exchange {
                 'available': result.available,
                 'frozen': result.frozen,
                 'pending': result.pending,
-            }
-        } 
-        let balances = await this.privateGetAccountBalances(params);
+            };
+        }
+        let balances = await this.privateGetAccountBalances (params);
         let result = [];
         for (let i = 0; i < balances.length; i++) {
             let balance = balances[i];
             let currencyId = balance['currencyId'];
             let symbol = balance['symbol'];
             let name = balance['name'];
-            let amount = this.safeFloat(balance, 'amount');
-            let available = this.safeFloat(balance, 'available');
-            let frozen = this.safeValue(balance, 'frozen');
-            let pending = this.safeValue(balance, 'pending');
-            result.push({
+            let amount = this.safeFloat (balance, 'amount');
+            let available = this.safeFloat (balance, 'available');
+            let frozen = this.safeValue (balance, 'frozen');
+            let pending = this.safeValue (balance, 'pending');
+            result.push ({
                 'currencyId': currencyId,
                 'symbol': symbol,
                 'name': name,
@@ -281,18 +279,18 @@ module.exports = class latoken extends Exchange {
     }
 
     parseBidAsk (bidask) {
-        let price = parseFloat (bidask['price'])
-        let amount = parseFloat(bidask['amount'])
-        return  {
-            'price': price, 
-            'amount': amount
-        } 
+        let price = parseFloat (bidask['price']);
+        let amount = parseFloat (bidask['amount']);
+        return {
+            'price': price,
+            'amount': amount,
+        };
     }
 
     parseBidsAsks (bidasks) {
         let res = [];
         for (let i = 0; i < bidasks.length; i++) {
-            res.push(this.parseBidAsk(bidasks[i]));
+            res.push (this.parseBidAsk (bidasks[i]));
         }
         return res;
     }
@@ -304,46 +302,46 @@ module.exports = class latoken extends Exchange {
             'spread': orderbook['spread'],
             'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey]) : null,
             'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey]) : null,
-        }
+        };
     }
 
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market(symbol);
+        let market = this.market (symbol);
         let request = {
             'symbol': market['symbol'],
         };
-        let response = await this.publicGetMarketDataOrderBook (this.extend(request, params));
-        let orderbook = this.parseOrderBook(response);
+        let response = await this.publicGetMarketDataOrderBook (this.extend (request, params));
+        let orderbook = this.parseOrderBook (response);
         return orderbook;
     }
 
-    parseTicker( ticker, market = undefined) {
-        let symbol = this.findSymbol(this.safeString(ticker, 'symbol'), market);
+    parseTicker (ticker, market = undefined) {
+        let symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
         return {
-            'id': this.safeValue(ticker, 'pairId'),
+            'id': this.safeValue (ticker, 'pairId'),
             'symbol': symbol,
-            'volume': this.safeFloat(ticker, 'volume'),
-            'openPrice': this.safeFloat(ticker, 'open'),
-            'lowPrice': this.safeFloat(ticker, 'low'),
-            'highPrice': this.safeFloat(ticker, 'high'),
-            'closePrice': this.safeFloat(ticker, 'close'),
-            'priceChange': this.safeFloat(ticker, 'priceChange'),
-        }
+            'volume': this.safeFloat (ticker, 'volume'),
+            'openPrice': this.safeFloat (ticker, 'open'),
+            'lowPrice': this.safeFloat (ticker, 'low'),
+            'highPrice': this.safeFloat (ticker, 'high'),
+            'closePrice': this.safeFloat (ticker, 'close'),
+            'priceChange': this.safeFloat (ticker, 'priceChange'),
+        };
     }
 
-    async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
-        let market = this.market(symbol);
-        let response = await this.publicGetMarketDataTicker( this.extend({
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let response = await this.publicGetMarketDataTicker (this.extend ({
             'symbol': market['symbol'],
         }, params));
-        return this.parseTicker(response, market);
+        return this.parseTicker (response, market);
     }
 
-    async fetchCurrencies(params = {}){
+    async fetchCurrencies (params = {}) {
         if (Object.keys (params).length) {
-            const currencies = await this.publicGetExchangeInfoCurrencies(params);
+            const currencies = await this.publicGetExchangeInfoCurrencies (params);
             let id = currencies['currencyId'];
             let symbol = currencies['symbol'];
             let name = currencies['name'];
@@ -357,27 +355,27 @@ module.exports = class latoken extends Exchange {
                 'precision': precision,
                 'type': type,
                 'fee': fee,
-            }
+            };
         }
-        const currencies = await this.publicGetExchangeInfoCurrencies();
+        const currencies = await this.publicGetExchangeInfoCurrencies ();
         let result = [];
-            for (let i = 0; i < currencies.length; i ++) {
-                let currency = currencies[i];
-                let id = currency['currencyId'];
-                let symbol = currency['symbol'];
-                let name = currency['name'];
-                let precision = currency['precission'];
-                let type = currency['type'];
-                let fee = currency['fee'];
-                result.push({
-                    'id': id,
-                    'symbol': symbol,
-                    'name': name,
-                    'precision': precision,
-                    'type': type,
-                    'fee': fee,
-                })
-            }
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = currencies[i];
+            let id = currency['currencyId'];
+            let symbol = currency['symbol'];
+            let name = currency['name'];
+            let precision = currency['precission'];
+            let type = currency['type'];
+            let fee = currency['fee'];
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'name': name,
+                'precision': precision,
+                'type': type,
+                'fee': fee,
+            });
+        }
         return result;
     }
 
@@ -385,21 +383,22 @@ module.exports = class latoken extends Exchange {
         let side = this.safeString (trade, 'side');
         let price = parseFloat (trade['price']);
         let amount = parseFloat (trade['amount']);
-        let timestamp = this.safeValue(trade,'timestamp');
+        let timestamp = this.safeValue (trade, 'timestamp');
         return {
             'side': side,
             'price': price,
             'amount': amount,
             'timestamp': timestamp,
-        }
+        };
     }
 
     parseEachTrade (trades) {
         let res = [];
         for (let i = 0; i < trades.length; i++) {
-            res.push(this.parseOneTrade(trades[i]));
+            res.push (this.parseOneTrade (trades[i]));
         }
         return res;
+        // return Object.values (trades || []).map (trade => this.parseOneTrade (trade, sideKey, priceKey, amountKey, timestampKey))
     }
 
     parseTrade (trades, tradeKey = 'trades') {
@@ -408,29 +407,29 @@ module.exports = class latoken extends Exchange {
             'symbol': trades['symbol'],
             'tradeCount': trades['tradeCount'],
             'trades': (tradeKey in trades) ? this.parseEachTrade (trades[tradeKey]) : null,
-        }
+        };
     }
 
     async fetchTrades (symbol, limit = 100, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let resp = {
             'symbol': market['symbol'],
             'limit': limit,
         };
         let response = await this.publicGetMarketDataTrades (this.extend (resp, params));
-        let trades = this.parseTrade(response)
+        let trades = this.parseTrade (response);
         return trades;
     }
 
     parseOneOrderTrade (trade) {
         let id = this.safeString (trade, 'id');
-        let orderId = this.safeString(trade, 'orderId');
+        let orderId = this.safeString (trade, 'orderId');
         let commision = parseFloat (trade['commision']);
-        let side = this.safeString(trade,'side');
-        let price = this.safeFloat(trade, 'price');
-        let amount = this.safeFloat(trade, 'amount');
-        let time = this.safeValue(trade, 'timestamp');
+        let side = this.safeString (trade, 'side');
+        let price = this.safeFloat (trade, 'price');
+        let amount = this.safeFloat (trade, 'amount');
+        let time = this.safeValue (trade, 'timestamp');
         return {
             'id': id,
             'orderId': orderId,
@@ -439,13 +438,13 @@ module.exports = class latoken extends Exchange {
             'price': price,
             'amount': amount,
             'time': time,
-        }
+        };
     }
 
     parseOrderTrades (trades) {
         let res = [];
         for (let i = 0; i < trades.length; i++) {
-           res.push(this.parseOneOrderTrade(trades[i])); 
+            res.push (this.parseOneOrderTrade (trades[i]));
         }
         return res;
     }
@@ -456,17 +455,17 @@ module.exports = class latoken extends Exchange {
             'symbol': trades['symbol'],
             'tradeCount': trades['tradeCount'],
             'trades': (tradeKey in trades) ? this.parseOrderTrades (trades[tradeKey]) : null,
-        }
+        };
     }
 
     async fetchMyTrades (symbol = undefined, params = {}, limit = 10) {
         await this.loadMarkets ();
         let request = {
             'symbol': symbol,
-            'limit': limit
+            'limit': limit,
         };
-        let response = await this.privateGetOrderTrades (this.extend(request, params));
-        return this.parseOrderTrade(response);
+        let response = await this.privateGetOrderTrades (this.extend (request, params));
+        return this.parseOrderTrade (response);
     }
 
     parseOrderStatus (status) {
@@ -482,17 +481,17 @@ module.exports = class latoken extends Exchange {
     parseOrder (response) {
         let orderId = response['orderId'];
         let cliOrdId = response['cliOrdId'];
-        let pairId = this.safeValue(response, 'pairId');
+        let pairId = this.safeValue (response, 'pairId');
         let symbol = response['symbol'];
         let side = response['side'];
         let orderType = response['orderType'];
-        let price = this.safeFloat(response, 'price');
-        let amount = this.safeFloat(response, 'amount');
+        let price = this.safeFloat (response, 'price');
+        let amount = this.safeFloat (response, 'amount');
         let orderStatus = response['orderStatus'];
-        let executedAmount = this.safeFloat(response, 'executedAmount');
-        let reaminingAmount = this.safeFloat(response, 'reaminingAmount');
-        let timeCreated = this.safeValue(response, 'timeCreated');
-        let timeFilled = (this.safeValue(response, 'timeFilled') == undefined) ? null : this.safeValue(response, 'timeFilled');
+        let executedAmount = this.safeFloat (response, 'executedAmount');
+        let reaminingAmount = this.safeFloat (response, 'reaminingAmount');
+        let timeCreated = this.safeValue (response, 'timeCreated');
+        let timeFilled = (this.safeValue (response, 'timeFilled') === undefined) ? null : this.safeValue (response, 'timeFilled');
         return {
             'orderId': orderId,
             'cliOrdId': cliOrdId,
@@ -507,7 +506,7 @@ module.exports = class latoken extends Exchange {
             'reaminingAmount': reaminingAmount,
             'timeCreated': timeCreated,
             'timeFilled': timeFilled,
-        }
+        };
     }
 
     async fetchActiveOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
@@ -526,38 +525,38 @@ module.exports = class latoken extends Exchange {
         return this.fetchOrdersByStatus (symbol, 'partiallyFilled', since, limit, params);
     }
 
-    parseOrders(orders) {
+    parseOrders (orders) {
         let result = [];
         for (let i = 0; i < orders.length; i++) {
             let order = orders[i];
-            let  orderId =  order['orderId'];
-            let  cliOrdId =  order['cliOrdId'];
-            let  pairId =  this.safeValue(order, 'pairId');
-            let  symbol =  order['symbol'];
-            let  side =  order['side'];
-            let  orderType =  order['orderType'];
-            let  price =  this.safeFloat(order, 'price');
-            let  amount =  this.safeFloat(order, 'amount');
-            let  orderStatus =  order['orderStatus'];
-            let  executedAmount =  this.safeFloat(order, 'executedAmount');
-            let  reaminingAmount =  this.safeFloat(order, 'reaminingAmount');
-            let  timeCreated =  this.safeValue(order, 'timeCreated');
-            let timeFilled = (this.safeValue(order, 'timeFilled') == undefined) ? null : this.safeValue(order, 'timeFilled');
-            result.push({
-            'orderId': orderId,
-            'cliOrdId': cliOrdId,
-            'pairId': pairId,
-            'symbol': symbol,
-            'side': side,
-            'orderType': orderType,
-            'price': price,
-            'amount': amount,
-            'orderStatus': orderStatus,
-            'executedAmount': executedAmount,
-            'reaminingAmount': reaminingAmount,
-            'timeCreated': timeCreated,
-            'timeFilled': timeFilled
-            })
+            let orderId = order['orderId'];
+            let cliOrdId = order['cliOrdId'];
+            let pairId = this.safeValue (order, 'pairId');
+            let symbol = order['symbol'];
+            let side = order['side'];
+            let orderType = order['orderType'];
+            let price = this.safeFloat (order, 'price');
+            let amount = this.safeFloat (order, 'amount');
+            let orderStatus = order['orderStatus'];
+            let executedAmount = this.safeFloat (order, 'executedAmount');
+            let reaminingAmount = this.safeFloat (order, 'reaminingAmount');
+            let timeCreated = this.safeValue (order, 'timeCreated');
+            let timeFilled = (this.safeValue (order, 'timeFilled') === undefined) ? null : this.safeValue (order, 'timeFilled');
+            result.push ({
+                'orderId': orderId,
+                'cliOrdId': cliOrdId,
+                'pairId': pairId,
+                'symbol': symbol,
+                'side': side,
+                'orderType': orderType,
+                'price': price,
+                'amount': amount,
+                'orderStatus': orderStatus,
+                'executedAmount': executedAmount,
+                'reaminingAmount': reaminingAmount,
+                'timeCreated': timeCreated,
+                'timeFilled': timeFilled,
+            });
         }
         return result;
     }
@@ -579,37 +578,37 @@ module.exports = class latoken extends Exchange {
         return orders;
     }
 
-    async fetchAllActiveOrders(symbol, limit = 50, params = {}) {
-        await this.loadMarkets();
+    async fetchAllActiveOrders (symbol, limit = 50, params = {}) {
+        await this.loadMarkets ();
         let request = {
             'symbol': symbol,
             'limit': limit,
-        }
-        request['timestamp'] = this.nonce();
-        let response = await this.privateGetOrderActive(this.extend(request, params));
-        let orders = this.parseOrders(response);
+        };
+        request['timestamp'] = this.nonce ();
+        let response = await this.privateGetOrderActive (this.extend (request, params));
+        let orders = this.parseOrders (response);
         return orders;
     }
 
-    async fetchOrder(id, params = {}) {
-        await this.loadMarkets();
+    async fetchOrder (id, params = {}) {
+        await this.loadMarkets ();
         let request = {
             'orderId': id,
-        }
-        let response = await this.privateGetOrderGetOrder(this.extend(request, params));
+        };
+        let response = await this.privateGetOrderGetOrder (this.extend (request, params));
         let orderId = response['orderId'];
         let cliOrdId = response['cliOrdId'];
-        let pairId = this.safeValue(response, 'pairId');
+        let pairId = this.safeValue (response, 'pairId');
         let symbol = response['symbol'];
         let side = response['side'];
         let orderType = response['orderType'];
-        let price = this.safeFloat(response, 'price');
-        let amount = this.safeFloat(response, 'amount');
+        let price = this.safeFloat (response, 'price');
+        let amount = this.safeFloat (response, 'amount');
         let orderStatus = response['orderStatus'];
-        let executedAmount = this.safeFloat(response, 'executedAmount');
-        let reaminingAmount = this.safeFloat(response, 'reaminingAmount');
-        let timeCreated = this.safeValue(response, 'timeCreated');
-        let timeFilled = (this.safeValue(response, 'timeFilled') == undefined) ? null : this.safeValue(response, 'timeFilled');
+        let executedAmount = this.safeFloat (response, 'executedAmount');
+        let reaminingAmount = this.safeFloat (response, 'reaminingAmount');
+        let timeCreated = this.safeValue (response, 'timeCreated');
+        let timeFilled = (this.safeValue (response, 'timeFilled') === undefined) ? null : this.safeValue (response, 'timeFilled');
         return {
             'orderId': orderId,
             'cliOrdId': cliOrdId,
@@ -624,20 +623,20 @@ module.exports = class latoken extends Exchange {
             'reaminingAmount': reaminingAmount,
             'timestamp': timeCreated,
             'timeFilled': timeFilled,
-        }
+        };
     }
 
-     parseNewOrder(response) {
+    parseNewOrder (response) {
         return ({
             'orderId': response['orderId'],
             'cliOrdId': response['cliOrdId'],
-            'pairId': this.safeValue(response, 'pairId'),
+            'pairId': this.safeValue (response, 'pairId'),
             'symbol': response['symbol'],
             'side': response['side'],
             'orderType': response['orderType'],
-            'price': this.safeFloat(response, 'price'),
-            'amount': this.safeFloat(response, 'amount'),
-        })
+            'price': this.safeFloat (response, 'price'),
+            'amount': this.safeFloat (response, 'amount'),
+        });
     }
 
     async createOrder (symbol, cliOrdId, side, price, amount, orderType, timeAlive, params = {}) {
@@ -651,86 +650,86 @@ module.exports = class latoken extends Exchange {
             'timeAlive': timeAlive,
 
         };
-        let result = await this.privatePostOrderNew(this.extend(order, params));
-        return this.parseNewOrder(result);
+        let result = await this.privatePostOrderNew (this.extend (order, params));
+        return this.parseNewOrder (result);
     }
 
     async cancelOrder (id, params = {}) {
-        await this.loadMarkets();
+        await this.loadMarkets ();
         if (id === undefined)
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a id argument');
         await this.loadMarkets ();
         let response = await this.privatePostOrderCancel (this.extend ({
-            'orderId': id
+            'orderId': id,
         }, params));
-        return this.parseOrder(response)
+        return this.parseOrder (response);
     }
 
-    parseAllOrders(orders) {
+    parseAllOrders (orders) {
         let pairId = orders['pairId'];
-        let symbol = orders['symbol']
+        let symbol = orders['symbol'];
         let canceledOrders = [];
         for (let i = 0; i < orders.cancelledOrders.length; i++) {
-            canceledOrders.push(
-                orders.cancelledOrders[i]
-            )
+            canceledOrders.push (orders.cancelledOrders[i]);
         }
         let result = {
             'pairId': pairId,
             'symbol': symbol,
             'cancelledOrders': canceledOrders,
-        }
+        };
         return result;
     }
 
-    async cancelAllOrders(symbol, params = {}) {
-        await this.loadMarkets();
-        let response =  await this.privatePostOrderCancelAll(this.extend({
-            'symbol': symbol
+    async cancelAllOrders (symbol, params = {}) {
+        await this.loadMarkets ();
+        let response = await this.privatePostOrderCancelAll (this.extend ({
+            'symbol': symbol,
         }, params));
-        return this.parseAllOrders(response);
+        return this.parseAllOrders (response);
     }
 
     sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
-        let signature;
-        let query1;
         let url = this.urls['api']['v1'];
         url += '/' + path;
         if (api === 'public') {
             headers = {
                 'Content-type': 'application/json',
-                'x-lat-timestamp': this.nonce(),
+                'x-lat-timestamp': this.nonce (),
                 'x-lat-timeframe': this.options['timeframe'],
             };
-            if ((path === 'exchangeInfo/pairs' || 'exchangeInfo/currencies') && (typeof(params) === 'string')) {
+            if ((path === 'exchangeInfo/pairs' || 'exchangeInfo/currencies') && (typeof (params) === 'string')) {
                 url += '/' + params;
             }
             url += '?' + this.urlencode (params);
-        } else  if (api === 'private') {
-            this.checkRequiredCredentials();
-            if (path === 'account/balances' && (typeof(params) === 'string')) {
+        } else if (api === 'private') {
+            this.checkRequiredCredentials ();
+            if (path === 'account/balances' && (typeof (params) === 'string')) {
                 url += '/' + params;
                 let param = {
-                    'timestamp': Date.now(),
-                }
-                query1 = '?' + this.urlencode (param)
+                    'timestamp': Date.now (),
+                };
+                let query1 = '?' + this.urlencode (param);
                 let dataToSign = '/api/v1/' + path + '/' + params;
-                signature = this.hmac(this.encode(dataToSign + query1), this.encode(this.secret), 'sha256')
+                let signature = this.hmac (this.encode (dataToSign + query1), this.encode (this.secret), 'sha256');
+                url += query1;
+                headers = {
+                    'X-LA-KEY': this.apiKey,
+                    'X-LA-SIGNATURE': signature,
+                };
             } else {
-                params['timestamp'] = this.nonce();
-                query1 = '?' + this.urlencode (params);
+                params['timestamp'] = this.nonce ();
+                let query1 = '?' + this.urlencode (params);
                 let dataToSign = '/api/v1/' + path;
-                signature = this.hmac(this.encode(dataToSign + query1), this.encode(this.secret), 'sha256')
-
+                let signature = this.hmac (this.encode (dataToSign + query1), this.encode (this.secret), 'sha256');
+                url += query1;
+                headers = {
+                    'X-LA-KEY': this.apiKey,
+                    'X-LA-SIGNATURE': signature,
+                };
             }
-            headers = {
-                'X-LA-KEY': this.apiKey,
-                'X-LA-SIGNATURE': signature,
-            };
-            body = this.urlencode(params);
-            url += query1;
+            body = this.urlencode (params);
         }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers};
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
@@ -744,5 +743,4 @@ module.exports = class latoken extends Exchange {
             throw new ExceptionClass (this.id + ' ' + message);
         }
     }
-
 };
