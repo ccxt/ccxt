@@ -490,7 +490,7 @@ module.exports = class latoken extends Exchange {
         let executedAmount = this.safeFloat (response, 'executedAmount');
         let reaminingAmount = this.safeFloat (response, 'reaminingAmount');
         let timeCreated = this.safeValue (response, 'timeCreated');
-        let timeFilled = this.safeValue (response, 'timeFilled'); //(this.safeValue (response, 'timeFilled') === undefined) ? null : this.safeValue (response, 'timeFilled');
+        let timeFilled = this.safeValue (response, 'timeFilled');
         return {
             'orderId': orderId,
             'cliOrdId': cliOrdId,
