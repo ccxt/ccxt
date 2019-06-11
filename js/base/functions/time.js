@@ -106,7 +106,7 @@ const parseDate = (x) => {
         }
     }
 
-    return this.parse8601 (x);
+    return parse8601 (x);
 }
 
 module.exports =
