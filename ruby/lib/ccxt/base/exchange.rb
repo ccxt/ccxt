@@ -20,7 +20,7 @@ module Ccxt
     include ExchangeHelpers
 
     attr_accessor :id, :version, :certified, :enableRateLimit
-    attr_accessor :rateLimit, :timeout, :asyncio_loop, :aiohttp_proxy
+    attr_accessor :rateLimit, :timeout,
     attr_accessor :session, :logger, :userAgent, :userAgents
     attr_accessor :verbose, :markets, :symbols, :fees
     attr_accessor :ids, :tickers, :api, :parseJsonResponse
@@ -47,9 +47,6 @@ module Ccxt
       @enableRateLimit = false
       @rateLimit = 2000  # milliseconds = seconds * 1000
       @timeout = 10000   # milliseconds = seconds * 1000
-      @asyncio_loop = nil
-      @aiohttp_proxy = nil
-      @aiohttp_trust_env = false
       @session = nil
       @logger = nil
       @userAgent = nil
