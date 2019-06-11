@@ -1065,7 +1065,7 @@ class bitmex (Exchange):
             request['price'] = price
         response = await self.privatePostOrder(self.extend(request, params))
         order = self.parse_order(response)
-        id = order['id']
+        id = self.safe_string(order, 'id')
         self.orders[id] = order
         return self.extend({'info': response}, order)
 

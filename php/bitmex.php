@@ -1123,11 +1123,12 @@ class bitmex extends Exchange {
             'orderQty' => $amount,
             'ordType' => $this->capitalize ($type),
         );
-        if ($price !== null)
+        if ($price !== null) {
             $request['price'] = $price;
+        }
         $response = $this->privatePostOrder (array_merge ($request, $params));
         $order = $this->parse_order($response);
-        $id = $order['id'];
+        $id = $this->safe_string($order, 'id');
         $this->orders[$id] = $order;
         return array_merge (array( 'info' => $response ), $order);
     }
@@ -1137,10 +1138,12 @@ class bitmex extends Exchange {
         $request = array (
             'orderID' => $id,
         );
-        if ($amount !== null)
+        if ($amount !== null) {
             $request['orderQty'] = $amount;
-        if ($price !== null)
+        }
+        if ($price !== null) {
             $request['price'] = $price;
+        }
         $response = $this->privatePutOrder (array_merge ($request, $params));
         $order = $this->parse_order($response);
         $this->orders[$order['id']] = $order;
@@ -1152,19 +1155,23 @@ class bitmex extends Exchange {
         $response = $this->privateDeleteOrder (array_merge (array( 'orderID' => $id ), $params));
         $order = $response[0];
         $error = $this->safe_string($order, 'error');
-        if ($error !== null)
-            if (mb_strpos($error, 'Unable to cancel $order due to existing state') !== false)
+        if ($error !== null) {
+            if (mb_strpos($error, 'Unable to cancel $order due to existing state') !== false) {
                 throw new OrderNotFound($this->id . ' cancelOrder() failed => ' . $error);
+            }
+        }
         $order = $this->parse_order($order);
         $this->orders[$order['id']] = $order;
         return array_merge (array( 'info' => $response ), $order);
     }
 
     public function is_fiat ($currency) {
-        if ($currency === 'EUR')
+        if ($currency === 'EUR') {
             return true;
-        if ($currency === 'PLN')
+        }
+        if ($currency === 'PLN') {
             return true;
+        }
         return false;
     }
 
