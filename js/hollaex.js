@@ -17,10 +17,10 @@ module.exports = class hollaex extends Exchange {
             'version': 'v0',
             'has': {
                 'CORS': false,
+                'fetchMarkets': true,
                 'fetchTicker': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
-                'fetchMarkets': true,
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
@@ -56,7 +56,7 @@ module.exports = class hollaex extends Exchange {
                         'user/withdrawals',
                         'user/trades',
                         'user/orders',
-                        'user/orders/',
+                        'user/orders/{orderId}',
                     ],
                     'post': [
                         'user/request-withdrawal',
@@ -64,8 +64,8 @@ module.exports = class hollaex extends Exchange {
                     ],
                     'delete': [
                         'user/orders',
-                        'user/orders/',
-                    ]
+                        'user/orders/{orderId}',
+                    ],
                 },
             },
         });
@@ -228,16 +228,68 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = '/' + this.version + '/' + path;
-        if (method === 'GET') {
-            if (Object.keys (params).length) {
-                query += '?' + this.urlencode (params);
-            }
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let orderId = this.safeValue (params, 'orderId');
+        let request = {
+            'symbol': market['id'],
+            'orderId': orderId,
+        };
+        if (orderId === undefined) {
+            request['orderId'] = id;
         }
-        let url = this.urls['api'] + query;
-        if (api === 'private') {
+        let response = await this.privateGetUserOrdersOrderId (this.extend (request), params);
+        return this.parseOrder (response, market);
+    }
+
+    async fetchOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let request = {
+            'symbol': market['id'],
+        };
+        let response = await this.privateGetUserOrders (this.extend (request, params));
+        return this.parseOrders (response, market);
+    }
+
+    parseOrder (order, market = undefined) {
+        let id = this.safeString (order, 'id');
+        let symbol = this.safeString (market, 'symbol');
+        let datetime = this.safeString (order, 'created_at');
+        let timestamp = new Date (datetime).getTime ();
+        let type = this.safeString (order, 'type');
+        let side = this.safeString (order, 'side');
+        let price = this.safeFloat (order, 'price');
+        let amount = this.safeFloat (order, 'size');
+        let filled = this.safeFloat (order, 'filled');
+        let info = order;
+        let lastTradeTimestamp = undefined;
+        let status = undefined;
+        let remaining = undefined;
+        let cost = undefined;
+        let trades = undefined;
+        let fee = undefined;
+        return { id, datetime, timestamp, lastTradeTimestamp, status, symbol, type, side, price, amount, filled, remaining, cost, trades, fee, info };
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'] + '/' + this.version;
+        if (api === 'public') {
+            const query = this.omit (params, this.extractParams (path));
+            url += '/' + this.implodeParams (path, params);
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else if (api === 'private') {
             this.checkRequiredCredentials ();
+            const query = this.omit (params, this.extractParams (path));
+            url += '/' + this.implodeParams (path, params);
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
             let accessToken = 'Bearer ' + this.apiKey;
             headers = {
                 'Content-Type': 'application/json',
