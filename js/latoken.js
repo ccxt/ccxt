@@ -525,42 +525,6 @@ module.exports = class latoken extends Exchange {
         return this.fetchOrdersByStatus (symbol, 'partiallyFilled', since, limit, params);
     }
 
-    parseOrders (orders) {
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
-            let orderId = order['orderId'];
-            let cliOrdId = order['cliOrdId'];
-            let pairId = this.safeValue (order, 'pairId');
-            let symbol = order['symbol'];
-            let side = order['side'];
-            let orderType = order['orderType'];
-            let price = this.safeFloat (order, 'price');
-            let amount = this.safeFloat (order, 'amount');
-            let orderStatus = order['orderStatus'];
-            let executedAmount = this.safeFloat (order, 'executedAmount');
-            let reaminingAmount = this.safeFloat (order, 'reaminingAmount');
-            let timeCreated = this.safeValue (order, 'timeCreated');
-            let timeFilled = (this.safeValue (order, 'timeFilled') === undefined) ? null : this.safeValue (order, 'timeFilled');
-            result.push ({
-                'orderId': orderId,
-                'cliOrdId': cliOrdId,
-                'pairId': pairId,
-                'symbol': symbol,
-                'side': side,
-                'orderType': orderType,
-                'price': price,
-                'amount': amount,
-                'orderStatus': orderStatus,
-                'executedAmount': executedAmount,
-                'reaminingAmount': reaminingAmount,
-                'timeCreated': timeCreated,
-                'timeFilled': timeFilled,
-            });
-        }
-        return result;
-    }
-
     async fetchOrdersByStatus (symbol, status, since = undefined, limit = 100, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
@@ -596,34 +560,7 @@ module.exports = class latoken extends Exchange {
             'orderId': id,
         };
         let response = await this.privateGetOrderGetOrder (this.extend (request, params));
-        let orderId = response['orderId'];
-        let cliOrdId = response['cliOrdId'];
-        let pairId = this.safeValue (response, 'pairId');
-        let symbol = response['symbol'];
-        let side = response['side'];
-        let orderType = response['orderType'];
-        let price = this.safeFloat (response, 'price');
-        let amount = this.safeFloat (response, 'amount');
-        let orderStatus = response['orderStatus'];
-        let executedAmount = this.safeFloat (response, 'executedAmount');
-        let reaminingAmount = this.safeFloat (response, 'reaminingAmount');
-        let timeCreated = this.safeValue (response, 'timeCreated');
-        let timeFilled = (this.safeValue (response, 'timeFilled') === undefined) ? null : this.safeValue (response, 'timeFilled');
-        return {
-            'orderId': orderId,
-            'cliOrdId': cliOrdId,
-            'pairId': pairId,
-            'symbol': symbol,
-            'side': side,
-            'orderType': orderType,
-            'price': price,
-            'amount': amount,
-            'orderStatus': orderStatus,
-            'executedAmount': executedAmount,
-            'reaminingAmount': reaminingAmount,
-            'timestamp': timeCreated,
-            'timeFilled': timeFilled,
-        };
+        return (this.parseOrder (response));
     }
 
     parseNewOrder (response) {
