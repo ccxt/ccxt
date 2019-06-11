@@ -20,7 +20,7 @@ module Ccxt
     include ExchangeHelpers
 
     attr_accessor :id, :version, :certified, :enableRateLimit
-    attr_accessor :rateLimit, :timeout,
+    attr_accessor :rateLimit, :timeout
     attr_accessor :session, :logger, :userAgent, :userAgents
     attr_accessor :verbose, :markets, :symbols, :fees
     attr_accessor :ids, :tickers, :api, :parseJsonResponse
@@ -196,6 +196,19 @@ module Ccxt
         end
       end
 
+      # convert all properties from underscore notation foo_bar to camelcase notation fooBar
+      self.methods.each do |symbol|  
+        next if RUBY_METHODS.include?(symbol)
+        name = symbol.to_s
+        next if (name =~ /^[[:punct:]]|[[:punct:]]$/)
+        next unless (name.include?('_'))
+        
+        parts = name.split('_')
+        camelcase = parts[0] + parts[1..-1].map{|p| self.capitalize(p)}.join('')
+        puts "#{symbol} is #{camelcase}"
+        self.class.class_eval { alias_method camelcase.to_sym, symbol }
+      end
+      
       if self.api
         define_rest_api('request') if self.api
       end
@@ -211,6 +224,37 @@ module Ccxt
         'defaultCost' => 1.0
       }
     end
+    
+    RUBY_METHODS = Set[
+      :define_singleton_method,
+      :enum_for,
+      :instance_eval,
+      :instance_exec,
+      :instance_of?,
+      :instance_variable_defined?,
+      :instance_variable_get,
+      :instance_variable_set,
+      :instance_variables,
+      :object_id,
+      :pretty_inspect,
+      :pretty_print,
+      :pretty_print_cycle,
+      :pretty_print_inspect,
+      :pretty_print_instance_variables,
+      :private_methods,
+      :protected_methods,
+      :public_method,
+      :public_methods,
+      :public_send,
+      :remove_instance_variable,
+      :singleton_class,
+      :singleton_method,
+      :singleton_methods,
+      :to_enum,
+      :to_json,
+      :to_s,
+      :yield_self
+    ].freeze
 
     def describe
       return {}
