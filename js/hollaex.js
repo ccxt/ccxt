@@ -59,7 +59,7 @@ module.exports = class hollaex extends Exchange {
                         'user/orders/{orderId}',
                     ],
                     'post': [
-                        'user/request-withdrawal',
+                        'user/{requestWithdrawal}',
                         'order',
                     ],
                     'delete': [
@@ -239,7 +239,7 @@ module.exports = class hollaex extends Exchange {
         if (orderId === undefined) {
             request['orderId'] = id;
         }
-        let response = await this.privateGetUserOrdersOrderId (this.extend (request), params);
+        let response = await this.privateGetUserOrdersOrderId (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -308,6 +308,28 @@ module.exports = class hollaex extends Exchange {
         }
         let response = await this.privateGetUserTrades (this.extend (request, params));
         return this.parseTrades (response.data, market, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
+        await this.loadMarkets ();
+        let currency = this.currencies[code]['id'];
+        let request = {
+            'currency': currency,
+            'amount': amount,
+            'address': address,
+            'requestWithdrawal': 'request-withdrawal',
+        };
+        let response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
+    }
+
+    async test () {
+        await this.loadMarkets();
+        console.log(this.currencies['BTC']['id']);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
