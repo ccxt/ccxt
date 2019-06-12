@@ -43,6 +43,7 @@ module.exports = class buda extends Exchange {
                 'status': 'error',
                 'updated': undefined,
                 'eta': undefined,
+                'url': undefined,
             },
             'api': {
                 'public': {
