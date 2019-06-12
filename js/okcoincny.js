@@ -24,6 +24,7 @@ module.exports = class okcoincny extends okcoinusd {
                 },
                 'www': 'https://www.okcoin.cn',
                 'doc': 'https://www.okcoin.cn/rest_getStarted.html',
+                'referral': 'https://www.okcoin.cn',
             },
             'markets': {
                 'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'spot', 'spot': true, 'future': false },

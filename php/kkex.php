@@ -92,8 +92,8 @@ class kkex extends Exchange {
                 'funding' => array (
                     'tierBased' => false,
                     'percentage' => false,
-                    'withdraw' => array (),
-                    'deposit' => array (),
+                    'withdraw' => array(),
+                    'deposit' => array(),
                 ),
             ),
             'options' => array (
@@ -107,19 +107,19 @@ class kkex extends Exchange {
         $tickers = $tickers['tickers'];
         $products = $this->publicGetProducts ($params);
         $products = $products['products'];
-        $markets = array ();
+        $markets = array();
         for ($k = 0; $k < count ($tickers); $k++) {
-            $keys = is_array ($tickers[$k]) ? array_keys ($tickers[$k]) : array ();
+            $keys = is_array($tickers[$k]) ? array_keys($tickers[$k]) : array();
             $markets[] = $keys[0];
         }
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $id = $markets[$i];
             $market = $markets[$i];
             $baseId = '';
             $quoteId = '';
-            $precision = array ();
-            $limits = array ();
+            $precision = array();
+            $limits = array();
             for ($j = 0; $j < count ($products); $j++) {
                 $p = $products[$j];
                 if ($p['mark_asset'] . $p['base_asset'] === $market) {
@@ -147,8 +147,8 @@ class kkex extends Exchange {
                     );
                 }
             }
-            $base = strtoupper ($baseId);
-            $quote = strtoupper ($quoteId);
+            $base = strtoupper($baseId);
+            $quote = strtoupper($quoteId);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -234,9 +234,9 @@ class kkex extends Exchange {
         //        $result =>    true                                          }
         //
         $tickers = $response['tickers'];
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
-            $ids = is_array ($tickers[$i]) ? array_keys ($tickers[$i]) : array ();
+            $ids = is_array($tickers[$i]) ? array_keys($tickers[$i]) : array();
             $id = $ids[0];
             $market = $this->safe_value($this->markets_by_id, $id);
             if ($market !== null) {
@@ -306,12 +306,12 @@ class kkex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostUserinfo ();
-        $result = array ( 'info' => $balances['info'] );
+        $result = array( 'info' => $balances['info'] );
         $funds = $balances['info']['funds'];
-        $assets = is_array ($funds['free']) ? array_keys ($funds['free']) : array ();
+        $assets = is_array($funds['free']) ? array_keys($funds['free']) : array();
         for ($i = 0; $i < count ($assets); $i++) {
             $currency = $assets[$i];
-            $uppercase = strtoupper ($currency);
+            $uppercase = strtoupper($currency);
             $uppercase = $this->common_currency_code($uppercase);
             $account = $this->account ();
             $account['free'] = floatval ($funds['free'][$currency]);
@@ -324,7 +324,7 @@ class kkex extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if (!$symbol) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -336,7 +336,7 @@ class kkex extends Exchange {
         if ($response['result']) {
             return $this->parse_order($response['order'], $market);
         }
-        throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
+        throw new OrderNotFound($this->id . ' order ' . $id . ' not found');
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
@@ -458,7 +458,7 @@ class kkex extends Exchange {
             if ($side === 'buy') {
                 if ($this->options['createMarketBuyOrderRequiresPrice']) {
                     if ($price === null) {
-                        throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
                         $amount = $amount * $price;
                     }
@@ -496,7 +496,7 @@ class kkex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' cancelOrder requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -540,23 +540,23 @@ class kkex extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'public') {
             $url .= '?' . $this->urlencode ($params);
-            $headers = array ( 'Content-Type' => 'application/json' );
+            $headers = array( 'Content-Type' => 'application/json' );
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $signature = array_merge (array ( 'nonce' => $nonce, 'api_key' => $this->apiKey ), $params);
+            $signature = array_merge (array( 'nonce' => $nonce, 'api_key' => $this->apiKey ), $params);
             $signature = $this->urlencode ($this->keysort ($signature));
             $signature .= '&secret_key=' . $this->secret;
             $signature = $this->hash ($this->encode ($signature), 'md5');
-            $signature = strtoupper ($signature);
+            $signature = strtoupper($signature);
             $body = array_merge (array (
                 'api_key' => $this->apiKey,
                 'sign' => $signature,
                 'nonce' => $nonce,
             ), $params);
             $body = $this->urlencode ($body);
-            $headers = array ( 'Content-Type' => 'application/x-www-form-urlencoded' );
+            $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

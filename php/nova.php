@@ -68,11 +68,11 @@ class nova extends Exchange {
     public function fetch_markets ($params = array ()) {
         $response = $this->publicGetMarkets ();
         $markets = $response['markets'];
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['marketname'];
-            list ($quote, $base) = explode ('_', $id);
+            list($quote, $base) = explode('_', $id);
             $symbol = $base . '/' . $quote;
             $active = true;
             if ($market['disabled'])
@@ -139,7 +139,7 @@ class nova extends Exchange {
             'id' => null,
             'order' => null,
             'type' => null,
-            'side' => strtolower ($trade['tradetype']),
+            'side' => strtolower($trade['tradetype']),
             'price' => $this->safe_float($trade, 'price'),
             'amount' => $this->safe_float($trade, 'amount'),
         );
@@ -158,7 +158,7 @@ class nova extends Exchange {
         $this->load_markets();
         $response = $this->privatePostGetbalances ();
         $balances = $response['balances'];
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $currency = $balance['currency'];
@@ -176,22 +176,22 @@ class nova extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' allows limit orders only');
         $this->load_markets();
         $amount = (string) $amount;
         $price = (string) $price;
         $market = $this->market ($symbol);
         $order = array (
-            'tradetype' => strtoupper ($side),
+            'tradetype' => strtoupper($side),
             'tradeamount' => $amount,
             'tradeprice' => $price,
             'tradebase' => 1,
             'pair' => $market['id'],
         );
         $response = $this->privatePostTradePair (array_merge ($order, $params));
-        $tradeItems = $this->safe_value($response, 'tradeitems', array ());
+        $tradeItems = $this->safe_value($response, 'tradeitems', array());
         $tradeItemsByType = $this->index_by($tradeItems, 'type');
-        $created = $this->safe_value($tradeItemsByType, 'created', array ());
+        $created = $this->safe_value($tradeItemsByType, 'created', array());
         $orderId = $this->safe_string($created, 'orderid');
         return array (
             'info' => $response,
@@ -251,7 +251,7 @@ class nova extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $url .= '?' . $this->urlencode (array ( 'nonce' => $nonce ));
+            $url .= '?' . $this->urlencode (array( 'nonce' => $nonce ));
             $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512', 'base64');
             $body = $this->urlencode (array_merge (array (
                 'apikey' => $this->apiKey,
@@ -261,14 +261,14 @@ class nova extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('status', $response))
+        if (is_array($response) && array_key_exists('status', $response))
             if ($response['status'] !== 'success')
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }

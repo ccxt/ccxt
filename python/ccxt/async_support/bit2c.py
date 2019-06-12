@@ -75,11 +75,12 @@ class bit2c (Exchange):
             'markets': {
                 'BTC/NIS': {'id': 'BtcNis', 'symbol': 'BTC/NIS', 'base': 'BTC', 'quote': 'NIS'},
                 'ETH/NIS': {'id': 'EthNis', 'symbol': 'ETH/NIS', 'base': 'ETH', 'quote': 'NIS'},
-                'BCH/NIS': {'id': 'BchAbcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
+                'BCH/NIS': {'id': 'BchabcNis', 'symbol': 'BCH/NIS', 'base': 'BCH', 'quote': 'NIS'},
                 'LTC/NIS': {'id': 'LtcNis', 'symbol': 'LTC/NIS', 'base': 'LTC', 'quote': 'NIS'},
                 'ETC/NIS': {'id': 'EtcNis', 'symbol': 'ETC/NIS', 'base': 'ETC', 'quote': 'NIS'},
                 'BTG/NIS': {'id': 'BtgNis', 'symbol': 'BTG/NIS', 'base': 'BTG', 'quote': 'NIS'},
-                'BSV/NIS': {'id': 'BchSvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS'},
+                'BSV/NIS': {'id': 'BchsvNis', 'symbol': 'BSV/NIS', 'base': 'BSV', 'quote': 'NIS'},
+                'GRIN/NIS': {'id': 'GrinNis', 'symbol': 'GRIN/NIS', 'base': 'GRIN', 'quote': 'NIS'},
             },
             'fees': {
                 'trading': {
@@ -159,20 +160,20 @@ class bit2c (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         method = 'privatePostOrderAddOrder'
-        order = {
+        request = {
             'Amount': amount,
             'Pair': self.market_id(symbol),
         }
         if type == 'market':
             method += 'MarketPrice' + self.capitalize(side)
         else:
-            order['Price'] = price
-            order['Total'] = amount * price
-            order['IsBid'] = (side == 'buy')
-        result = await getattr(self, method)(self.extend(order, params))
+            request['Price'] = price
+            request['Total'] = amount * price
+            request['IsBid'] = (side == 'buy')
+        response = await getattr(self, method)(self.extend(request, params))
         return {
-            'info': result,
-            'id': result['NewOrder']['id'],
+            'info': response,
+            'id': response['NewOrder']['id'],
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -198,16 +199,17 @@ class bit2c (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+        await self.load_markets()
         market = self.market(symbol)
-        response = await self.privateGetOrderMyOrders(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = await self.privateGetOrderMyOrders(self.extend(request, params))
         orders = self.safe_value(response, market['id'], {})
-        asks = self.safe_value(orders, 'ask')
-        bids = self.safe_value(orders, 'bid')
+        asks = self.safe_value(orders, 'ask', [])
+        bids = self.safe_value(orders, 'bid', [])
         return self.parse_orders(self.array_concat(asks, bids), market, since, limit)
 
     def parse_order(self, order, market=None):

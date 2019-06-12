@@ -31,11 +31,11 @@ class jubi extends btcbox {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAllticker ();
-        $keys = is_array ($markets) ? array_keys ($markets) : array ();
-        $result = array ();
+        $keys = is_array($markets) ? array_keys($markets) : array();
+        $result = array();
         for ($p = 0; $p < count ($keys); $p++) {
             $id = $keys[$p];
-            $base = strtoupper ($id);
+            $base = strtoupper($id);
             $quote = 'CNY'; // todo
             $symbol = $base . '/' . $quote;
             $base = $this->common_currency_code($base);

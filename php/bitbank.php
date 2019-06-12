@@ -72,14 +72,14 @@ class bitbank extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BCH/BTC' => array ( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bcc', 'quoteId' => 'btc' ),
-                'BCH/JPY' => array ( 'id' => 'bcc_jpy', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bcc', 'quoteId' => 'jpy' ),
-                'MONA/BTC' => array ( 'id' => 'mona_btc', 'symbol' => 'MONA/BTC', 'base' => 'MONA', 'quote' => 'BTC', 'baseId' => 'mona', 'quoteId' => 'btc' ),
-                'MONA/JPY' => array ( 'id' => 'mona_jpy', 'symbol' => 'MONA/JPY', 'base' => 'MONA', 'quote' => 'JPY', 'baseId' => 'mona', 'quoteId' => 'jpy' ),
-                'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc' ),
-                'LTC/BTC' => array ( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc' ),
-                'XRP/JPY' => array ( 'id' => 'xrp_jpy', 'symbol' => 'XRP/JPY', 'base' => 'XRP', 'quote' => 'JPY', 'baseId' => 'xrp', 'quoteId' => 'jpy' ),
-                'BTC/JPY' => array ( 'id' => 'btc_jpy', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy' ),
+                'BCH/BTC' => array( 'id' => 'bcc_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bcc', 'quoteId' => 'btc' ),
+                'BCH/JPY' => array( 'id' => 'bcc_jpy', 'symbol' => 'BCH/JPY', 'base' => 'BCH', 'quote' => 'JPY', 'baseId' => 'bcc', 'quoteId' => 'jpy' ),
+                'MONA/BTC' => array( 'id' => 'mona_btc', 'symbol' => 'MONA/BTC', 'base' => 'MONA', 'quote' => 'BTC', 'baseId' => 'mona', 'quoteId' => 'btc' ),
+                'MONA/JPY' => array( 'id' => 'mona_jpy', 'symbol' => 'MONA/JPY', 'base' => 'MONA', 'quote' => 'JPY', 'baseId' => 'mona', 'quoteId' => 'jpy' ),
+                'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc' ),
+                'LTC/BTC' => array( 'id' => 'ltc_btc', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'ltc', 'quoteId' => 'btc' ),
+                'XRP/JPY' => array( 'id' => 'xrp_jpy', 'symbol' => 'XRP/JPY', 'base' => 'XRP', 'quote' => 'JPY', 'baseId' => 'xrp', 'quoteId' => 'jpy' ),
+                'BTC/JPY' => array( 'id' => 'btc_jpy', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'btc', 'quoteId' => 'jpy' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -181,7 +181,7 @@ class bitbank extends Exchange {
             $id = $this->safe_string($trade, 'trade_id');
         }
         $fee = null;
-        if (is_array ($trade) && array_key_exists ('fee_amount_quote', $trade)) {
+        if (is_array($trade) && array_key_exists('fee_amount_quote', $trade)) {
             $fee = array (
                 'currency' => $market['quote'],
                 'cost' => $this->safe_float($trade, 'fee_amount_quote'),
@@ -229,11 +229,11 @@ class bitbank extends Exchange {
         $market = $this->market ($symbol);
         $date = $this->milliseconds ();
         $date = $this->ymd ($date);
-        $date = explode ('-', $date);
+        $date = explode('-', $date);
         $response = $this->publicGetPairCandlestickCandletypeYyyymmdd (array_merge (array (
             'pair' => $market['id'],
             'candletype' => $this->timeframes[$timeframe],
-            'yyyymmdd' => implode ('', $date),
+            'yyyymmdd' => implode('', $date),
         ), $params));
         $ohlcv = $response['data']['candlestick'][0]['ohlcv'];
         return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
@@ -242,13 +242,13 @@ class bitbank extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetUserAssets ($params);
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         $balances = $response['data']['assets'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $id = $balance['asset'];
             $code = $id;
-            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$id]['code'];
             }
             $account = array (
@@ -264,7 +264,7 @@ class bitbank extends Exchange {
     public function parse_order ($order, $market = null) {
         $marketId = $this->safe_string($order, 'pair');
         $symbol = null;
-        if ($marketId && !$market && (is_array ($this->marketsById) && array_key_exists ($marketId, $this->marketsById))) {
+        if ($marketId && !$market && (is_array($this->marketsById) && array_key_exists($marketId, $this->marketsById))) {
             $market = $this->marketsById[$marketId];
         }
         if ($market)
@@ -290,10 +290,10 @@ class bitbank extends Exchange {
         }
         $type = $this->safe_string($order, 'type');
         if ($type !== null)
-            $type = strtolower ($type);
+            $type = strtolower($type);
         $side = $this->safe_string($order, 'side');
         if ($side !== null)
-            $side = strtolower ($side);
+            $side = strtolower($side);
         return array (
             'id' => $this->safe_string($order, 'order_id'),
             'datetime' => $this->iso8601 ($timestamp),
@@ -318,7 +318,7 @@ class bitbank extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         if ($price === null)
-            throw new InvalidOrder ($this->id . ' createOrder requires a $price argument for both $market and limit orders');
+            throw new InvalidOrder($this->id . ' createOrder requires a $price argument for both $market and limit orders');
         $request = array (
             'pair' => $market['id'],
             'amount' => $this->amount_to_precision($symbol, $amount),
@@ -373,7 +373,7 @@ class bitbank extends Exchange {
             $this->load_markets();
             $market = $this->market ($symbol);
         }
-        $request = array ();
+        $request = array();
         if ($market !== null)
             $request['pair'] = $market['id'];
         if ($limit !== null)
@@ -402,8 +402,8 @@ class bitbank extends Exchange {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
-        if (!(is_array ($params) && array_key_exists ('uuid', $params))) {
-            throw new ExchangeError ($this->id . ' uuid is required for withdrawal');
+        if (!(is_array($params) && array_key_exists('uuid', $params))) {
+            throw new ExchangeError($this->id . ' uuid is required for withdrawal');
         }
         $this->load_markets();
         $currency = $this->currency ($code);
@@ -451,7 +451,7 @@ class bitbank extends Exchange {
                 'ACCESS-SIGNATURE' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret)),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -526,9 +526,9 @@ class bitbank extends Exchange {
             $message = $this->safe_string($errorMessages, $code, 'Error');
             $ErrorClass = $this->safe_value($errorClasses, $code);
             if ($ErrorClass !== null) {
-                throw new $ErrorClass ($message);
+                throw new $ErrorClass($message);
             } else {
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json ($response));
             }
         }
         return $response;

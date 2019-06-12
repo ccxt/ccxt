@@ -75,7 +75,10 @@ class binance (Exchange):
                 },
                 'www': 'https://www.binance.com',
                 'referral': 'https://www.binance.com/?ref=10205187',
-                'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                'doc': [
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
+                ],
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
@@ -118,6 +121,7 @@ class binance (Exchange):
                         'depth',
                         'trades',
                         'aggTrades',
+                        'historicalTrades',
                         'klines',
                         'ticker/24hr',
                         'ticker/allPrices',
@@ -154,125 +158,9 @@ class binance (Exchange):
                     'taker': 0.001,
                     'maker': 0.001,
                 },
-                # should be deleted, these are outdated and inaccurate
-                'funding': {
-                    'tierBased': False,
-                    'percentage': False,
-                    'withdraw': {
-                        'ADA': 1.0,
-                        'ADX': 4.7,
-                        'AION': 1.9,
-                        'AMB': 11.4,
-                        'APPC': 6.5,
-                        'ARK': 0.1,
-                        'ARN': 3.1,
-                        'AST': 10.0,
-                        'BAT': 18.0,
-                        'BCD': 1.0,
-                        'BCH': 0.001,
-                        'BCPT': 10.2,
-                        'BCX': 1.0,
-                        'BNB': 0.7,
-                        'BNT': 1.5,
-                        'BQX': 1.6,
-                        'BRD': 6.4,
-                        'BTC': 0.001,
-                        'BTG': 0.001,
-                        'BTM': 5.0,
-                        'BTS': 1.0,
-                        'CDT': 67.0,
-                        'CMT': 37.0,
-                        'CND': 47.0,
-                        'CTR': 5.4,
-                        'DASH': 0.002,
-                        'DGD': 0.06,
-                        'DLT': 11.7,
-                        'DNT': 51.0,
-                        'EDO': 2.5,
-                        'ELF': 6.5,
-                        'ENG': 2.1,
-                        'ENJ': 42.0,
-                        'EOS': 1.0,
-                        'ETC': 0.01,
-                        'ETF': 1.0,
-                        'ETH': 0.01,
-                        'EVX': 2.5,
-                        'FUEL': 45.0,
-                        'FUN': 85.0,
-                        'GAS': 0,
-                        'GTO': 20.0,
-                        'GVT': 0.53,
-                        'GXS': 0.3,
-                        'HCC': 0.0005,
-                        'HSR': 0.0001,
-                        'ICN': 3.5,
-                        'ICX': 1.3,
-                        'INS': 1.5,
-                        'IOTA': 0.5,
-                        'KMD': 0.002,
-                        'KNC': 2.6,
-                        'LEND': 54.0,
-                        'LINK': 12.8,
-                        'LLT': 54.0,
-                        'LRC': 9.1,
-                        'LSK': 0.1,
-                        'LTC': 0.01,
-                        'LUN': 0.29,
-                        'MANA': 74.0,
-                        'MCO': 0.86,
-                        'MDA': 4.7,
-                        'MOD': 2.0,
-                        'MTH': 34.0,
-                        'MTL': 1.9,
-                        'NAV': 0.2,
-                        'NEBL': 0.01,
-                        'NEO': 0.0,
-                        'NULS': 2.1,
-                        'OAX': 8.3,
-                        'OMG': 0.57,
-                        'OST': 17.0,
-                        'POE': 88.0,
-                        'POWR': 8.6,
-                        'PPT': 0.25,
-                        'QSP': 21.0,
-                        'QTUM': 0.01,
-                        'RCN': 35.0,
-                        'RDN': 2.2,
-                        'REQ': 18.1,
-                        'RLC': 4.1,
-                        'SALT': 1.3,
-                        'SBTC': 1.0,
-                        'SNGLS': 42,
-                        'SNM': 29.0,
-                        'SNT': 32.0,
-                        'STORJ': 5.9,
-                        'STRAT': 0.1,
-                        'SUB': 7.4,
-                        'TNB': 82.0,
-                        'TNT': 47.0,
-                        'TRIG': 6.7,
-                        'TRX': 129.0,
-                        'USDT': 23.0,
-                        'VEN': 1.8,
-                        'VIB': 28.0,
-                        'VIBE': 7.2,
-                        'WABI': 3.5,
-                        'WAVES': 0.002,
-                        'WINGS': 9.3,
-                        'WTC': 0.5,
-                        'XLM': 0.01,
-                        'XMR': 0.04,
-                        'XRP': 0.25,
-                        'XVG': 0.1,
-                        'XZC': 0.02,
-                        'YOYOW': 39.0,
-                        'ZEC': 0.005,
-                        'ZRX': 5.7,
-                    },
-                    'deposit': {},
-                },
             },
             'commonCurrencies': {
+                'BCC': 'BCC',  # kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO': 'YOYOW',
             },
             # exchange-specific options
@@ -293,6 +181,10 @@ class binance (Exchange):
                 },
             },
             'exceptions': {
+                'API key does not exist': AuthenticationError,
+                'Order would trigger immediately.': InvalidOrder,
+                'Account has insufficient balance for requested action.': InsufficientFunds,
+                'Rest API trading is not enabled.': ExchangeNotAvailable,
                 '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder,  # createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce,  # 'your time is ahead of server'
@@ -369,17 +261,17 @@ class binance (Exchange):
             }
             if 'PRICE_FILTER' in filters:
                 filter = filters['PRICE_FILTER']
-                # PRICE_FILTER reports zero values for minPrice and maxPrice
+                # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
-                # therefore limits['price']['min'] and limits['price']['max]
-                # don't have any meaningful value except None
-                #
-                #     entry['limits']['price'] = {
-                #         'min': self.safe_float(filter, 'minPrice'),
-                #         'max': self.safe_float(filter, 'maxPrice'),
-                #     }
-                #
+                # therefore limits['price']['max'] doesn't have any meaningful value except None
+                entry['limits']['price'] = {
+                    'min': self.safe_float(filter, 'minPrice'),
+                    'max': None,
+                }
+                maxPrice = self.safe_float(filter, 'maxPrice')
+                if (maxPrice is not None) and(maxPrice > 0):
+                    entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
             if 'LOT_SIZE' in filters:
                 filter = filters['LOT_SIZE']
@@ -521,6 +413,8 @@ class binance (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
+        if 'isDustTrade' in trade:
+            return self.parse_dust_trade(trade, market)
         #
         # aggregate trades
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -605,8 +499,8 @@ class binance (Exchange):
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
-            'cost': price * amount,
             'amount': amount,
+            'cost': price * amount,
             'fee': fee,
         }
 
@@ -918,6 +812,102 @@ class binance (Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def fetch_my_dust_trades(self, symbol=None, since=None, limit=None, params={}):
+        #
+        # Bianance provides an opportunity to trade insignificant(i.e. non-tradable and non-withdrawable)
+        # token leftovers(of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
+        # The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
+        # https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
+        #
+        self.load_markets()
+        request = self.extend({}, params)
+        response = self.wapiGetUserAssetDribbletLog(request)
+        # {success:    True,
+        #   results: {total:    1,
+        #               rows: [{    transfered_total: "1.06468458",
+        #                         service_charge_total: "0.02172826",
+        #                                      tran_id: 2701371634,
+        #                                         logs: [{             tranId:  2701371634,
+        #                                                   serviceChargeAmount: "0.00012819",
+        #                                                                   uid: "35103861",
+        #                                                                amount: "0.8012",
+        #                                                           operateTime: "2018-10-07 17:56:07",
+        #                                                      transferedAmount: "0.00628141",
+        #                                                             fromAsset: "ADA"                  }],
+        #                                 operate_time: "2018-10-07 17:56:06"                                }]} }
+        rows = response['results']['rows']
+        data = []
+        for i in range(0, len(rows)):
+            logs = rows[i]['logs']
+            for j in range(0, len(logs)):
+                logs[j]['isDustTrade'] = True
+                data.append(logs[j])
+        trades = self.parse_trades(data, None, since, limit)
+        return self.filter_by_since_limit(trades, since, limit)
+
+    def parse_dust_trade(self, trade, market=None):
+        # {             tranId:  2701371634,
+        #   serviceChargeAmount: "0.00012819",
+        #                   uid: "35103861",
+        #                amount: "0.8012",
+        #           operateTime: "2018-10-07 17:56:07",
+        #      transferedAmount: "0.00628141",
+        #             fromAsset: "ADA"                  },
+        order = self.safe_string(trade, 'tranId')
+        time = self.safe_string(trade, 'operateTime')
+        timestamp = self.parse8601(time)
+        datetime = self.iso8601(timestamp)
+        tradedCurrency = self.safeCurrencyCode(trade, 'fromAsset')
+        earnedCurrency = self.currency('BNB')['code']
+        applicantSymbol = earnedCurrency + '/' + tradedCurrency
+        tradedCurrencyIsQuote = False
+        if applicantSymbol in self.markets:
+            tradedCurrencyIsQuote = True
+        #
+        # Warning
+        # Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
+        # So the parser should either set the `fee.cost` to `0` or add it on top of the earned
+        # BNB `amount`(or `cost` depending on the trade `side`). The second of the above options
+        # is much more illustrative and therefore preferable.
+        #
+        fee = {
+            'currency': earnedCurrency,
+            'cost': self.safe_float(trade, 'serviceChargeAmount'),
+        }
+        symbol = None
+        amount = None
+        cost = None
+        side = None
+        if tradedCurrencyIsQuote:
+            symbol = applicantSymbol
+            amount = self.sum(self.safe_float(trade, 'transferedAmount'), fee['cost'])
+            cost = self.safe_float(trade, 'amount')
+            side = 'buy'
+        else:
+            symbol = tradedCurrency + '/' + earnedCurrency
+            amount = self.safe_float(trade, 'amount')
+            cost = self.sum(self.safe_float(trade, 'transferedAmount'), fee['cost'])
+            side = 'sell'
+        price = cost / amount
+        id = None
+        type = None
+        takerOrMaker = None
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'cost': cost,
+            'fee': fee,
+            'info': trade,
+        }
+
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         currency = None
@@ -1044,11 +1034,6 @@ class binance (Exchange):
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
         amount = self.safe_float(transaction, 'amount')
-        feeCost = None
-        fee = {
-            'cost': feeCost,
-            'currency': code,
-        }
         return {
             'info': transaction,
             'id': id,
@@ -1062,7 +1047,7 @@ class binance (Exchange):
             'currency': code,
             'status': status,
             'updated': None,
-            'fee': fee,
+            'fee': None,
         }
 
     def fetch_deposit_address(self, code, params={}):
@@ -1143,14 +1128,19 @@ class binance (Exchange):
         url += '/' + path
         if api == 'wapi':
             url += '.html'
-        # v1 special case for userDataStream
-        if path == 'userDataStream':
+        userDataStream = (path == 'userDataStream')
+        if path == 'historicalTrades':
+            headers = {
+                'X-MBX-APIKEY': self.apiKey,
+            }
+        elif userDataStream:
+            # v1 special case for userDataStream
             body = self.urlencode(params)
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        elif (api == 'private') or (api == 'wapi'):
+        if (api == 'private') or (api == 'wapi' and path != 'systemStatus'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({
                 'timestamp': self.nonce(),
@@ -1167,8 +1157,12 @@ class binance (Exchange):
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
-            if params:
-                url += '?' + self.urlencode(params)
+            # userDataStream endpoints are public, but POST, PUT, DELETE
+            # therefore they don't accept URL query arguments
+            # https://github.com/ccxt/ccxt/issues/5224
+            if not userDataStream:
+                if params:
+                    url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
@@ -1200,23 +1194,20 @@ class binance (Exchange):
                             parsedMessage = None
                         if parsedMessage is not None:
                             response = parsedMessage
+                exceptions = self.exceptions
+                message = self.safe_string(response, 'msg')
+                if message in exceptions:
+                    ExceptionClass = exceptions[message]
+                    raise ExceptionClass(self.id + ' ' + message)
                 # checks against error codes
                 error = self.safe_string(response, 'code')
                 if error is not None:
-                    exceptions = self.exceptions
                     if error in exceptions:
                         # a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                         # despite that their message is very confusing, it is raised by Binance
                         # on a temporary ban(the API key is valid, but disabled for a while)
                         if (error == '-2015') and self.options['hasAlreadyAuthenticatedSuccessfully']:
                             raise DDoSProtection(self.id + ' temporary banned: ' + body)
-                        message = self.safe_string(response, 'msg')
-                        if message == 'Order would trigger immediately.':
-                            raise InvalidOrder(self.id + ' ' + body)
-                        elif message == 'Account has insufficient balance for requested action.':
-                            raise InsufficientFunds(self.id + ' ' + body)
-                        elif message == 'Rest API trading is not enabled.':
-                            raise ExchangeNotAvailable(self.id + ' ' + body)
                         raise exceptions[error](self.id + ' ' + body)
                     else:
                         raise ExchangeError(self.id + ' ' + body)

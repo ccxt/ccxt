@@ -63,7 +63,10 @@ module.exports = class binance extends Exchange {
                 },
                 'www': 'https://www.binance.com',
                 'referral': 'https://www.binance.com/?ref=10205187',
-                'doc': 'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                'doc': [
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
+                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
+                ],
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
@@ -106,6 +109,7 @@ module.exports = class binance extends Exchange {
                         'depth',
                         'trades',
                         'aggTrades',
+                        'historicalTrades',
                         'klines',
                         'ticker/24hr',
                         'ticker/allPrices',
@@ -142,125 +146,9 @@ module.exports = class binance extends Exchange {
                     'taker': 0.001,
                     'maker': 0.001,
                 },
-                // should be deleted, these are outdated and inaccurate
-                'funding': {
-                    'tierBased': false,
-                    'percentage': false,
-                    'withdraw': {
-                        'ADA': 1.0,
-                        'ADX': 4.7,
-                        'AION': 1.9,
-                        'AMB': 11.4,
-                        'APPC': 6.5,
-                        'ARK': 0.1,
-                        'ARN': 3.1,
-                        'AST': 10.0,
-                        'BAT': 18.0,
-                        'BCD': 1.0,
-                        'BCH': 0.001,
-                        'BCPT': 10.2,
-                        'BCX': 1.0,
-                        'BNB': 0.7,
-                        'BNT': 1.5,
-                        'BQX': 1.6,
-                        'BRD': 6.4,
-                        'BTC': 0.001,
-                        'BTG': 0.001,
-                        'BTM': 5.0,
-                        'BTS': 1.0,
-                        'CDT': 67.0,
-                        'CMT': 37.0,
-                        'CND': 47.0,
-                        'CTR': 5.4,
-                        'DASH': 0.002,
-                        'DGD': 0.06,
-                        'DLT': 11.7,
-                        'DNT': 51.0,
-                        'EDO': 2.5,
-                        'ELF': 6.5,
-                        'ENG': 2.1,
-                        'ENJ': 42.0,
-                        'EOS': 1.0,
-                        'ETC': 0.01,
-                        'ETF': 1.0,
-                        'ETH': 0.01,
-                        'EVX': 2.5,
-                        'FUEL': 45.0,
-                        'FUN': 85.0,
-                        'GAS': 0,
-                        'GTO': 20.0,
-                        'GVT': 0.53,
-                        'GXS': 0.3,
-                        'HCC': 0.0005,
-                        'HSR': 0.0001,
-                        'ICN': 3.5,
-                        'ICX': 1.3,
-                        'INS': 1.5,
-                        'IOTA': 0.5,
-                        'KMD': 0.002,
-                        'KNC': 2.6,
-                        'LEND': 54.0,
-                        'LINK': 12.8,
-                        'LLT': 54.0,
-                        'LRC': 9.1,
-                        'LSK': 0.1,
-                        'LTC': 0.01,
-                        'LUN': 0.29,
-                        'MANA': 74.0,
-                        'MCO': 0.86,
-                        'MDA': 4.7,
-                        'MOD': 2.0,
-                        'MTH': 34.0,
-                        'MTL': 1.9,
-                        'NAV': 0.2,
-                        'NEBL': 0.01,
-                        'NEO': 0.0,
-                        'NULS': 2.1,
-                        'OAX': 8.3,
-                        'OMG': 0.57,
-                        'OST': 17.0,
-                        'POE': 88.0,
-                        'POWR': 8.6,
-                        'PPT': 0.25,
-                        'QSP': 21.0,
-                        'QTUM': 0.01,
-                        'RCN': 35.0,
-                        'RDN': 2.2,
-                        'REQ': 18.1,
-                        'RLC': 4.1,
-                        'SALT': 1.3,
-                        'SBTC': 1.0,
-                        'SNGLS': 42,
-                        'SNM': 29.0,
-                        'SNT': 32.0,
-                        'STORJ': 5.9,
-                        'STRAT': 0.1,
-                        'SUB': 7.4,
-                        'TNB': 82.0,
-                        'TNT': 47.0,
-                        'TRIG': 6.7,
-                        'TRX': 129.0,
-                        'USDT': 23.0,
-                        'VEN': 1.8,
-                        'VIB': 28.0,
-                        'VIBE': 7.2,
-                        'WABI': 3.5,
-                        'WAVES': 0.002,
-                        'WINGS': 9.3,
-                        'WTC': 0.5,
-                        'XLM': 0.01,
-                        'XMR': 0.04,
-                        'XRP': 0.25,
-                        'XVG': 0.1,
-                        'XZC': 0.02,
-                        'YOYOW': 39.0,
-                        'ZEC': 0.005,
-                        'ZRX': 5.7,
-                    },
-                    'deposit': {},
-                },
             },
             'commonCurrencies': {
+                'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
                 'YOYO': 'YOYOW',
             },
             // exchange-specific options
@@ -281,6 +169,10 @@ module.exports = class binance extends Exchange {
                 },
             },
             'exceptions': {
+                'API key does not exist': AuthenticationError,
+                'Order would trigger immediately.': InvalidOrder,
+                'Account has insufficient balance for requested action.': InsufficientFunds,
+                'Rest API trading is not enabled.': ExchangeNotAvailable,
                 '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                 '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
                 '-1021': InvalidNonce, // 'your time is ahead of server'
@@ -360,17 +252,18 @@ module.exports = class binance extends Exchange {
             };
             if ('PRICE_FILTER' in filters) {
                 let filter = filters['PRICE_FILTER'];
-                // PRICE_FILTER reports zero values for minPrice and maxPrice
+                // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['min'] and limits['price']['max]
-                // don't have any meaningful value except undefined
-                //
-                //     entry['limits']['price'] = {
-                //         'min': this.safeFloat (filter, 'minPrice'),
-                //         'max': this.safeFloat (filter, 'maxPrice'),
-                //     };
-                //
+                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
+                entry['limits']['price'] = {
+                    'min': this.safeFloat (filter, 'minPrice'),
+                    'max': undefined,
+                };
+                const maxPrice = this.safeFloat (filter, 'maxPrice');
+                if ((maxPrice !== undefined) && (maxPrice > 0)) {
+                    entry['limits']['price']['max'] = maxPrice;
+                }
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
             }
             if ('LOT_SIZE' in filters) {
@@ -516,8 +409,8 @@ module.exports = class binance extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             'interval': this.timeframes[timeframe],
         };
@@ -527,11 +420,14 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        let response = await this.publicGetKlines (this.extend (request, params));
+        const response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        if ('isDustTrade' in trade) {
+            return this.parseDustTrade (trade, market);
+        }
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -620,8 +516,8 @@ module.exports = class binance extends Exchange {
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
-            'cost': price * amount,
             'amount': amount,
+            'cost': price * amount,
             'fee': fee,
         };
     }
@@ -973,6 +869,108 @@ module.exports = class binance extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchMyDustTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // Bianance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
+        // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
+        // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
+        // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
+        //
+        await this.loadMarkets ();
+        let request = this.extend ({}, params);
+        let response = await this.wapiGetUserAssetDribbletLog (request);
+        // { success:    true,
+        //   results: { total:    1,
+        //               rows: [ {     transfered_total: "1.06468458",
+        //                         service_charge_total: "0.02172826",
+        //                                      tran_id: 2701371634,
+        //                                         logs: [ {              tranId:  2701371634,
+        //                                                   serviceChargeAmount: "0.00012819",
+        //                                                                   uid: "35103861",
+        //                                                                amount: "0.8012",
+        //                                                           operateTime: "2018-10-07 17:56:07",
+        //                                                      transferedAmount: "0.00628141",
+        //                                                             fromAsset: "ADA"                  } ],
+        //                                 operate_time: "2018-10-07 17:56:06"                                } ] } }
+        let rows = response['results']['rows'];
+        let data = [];
+        for (let i = 0; i < rows.length; i++) {
+            let logs = rows[i]['logs'];
+            for (let j = 0; j < logs.length; j++) {
+                logs[j]['isDustTrade'] = true;
+                data.push (logs[j]);
+            }
+        }
+        const trades = this.parseTrades (data, undefined, since, limit);
+        return this.filterBySinceLimit (trades, since, limit);
+    }
+
+    parseDustTrade (trade, market = undefined) {
+        // {              tranId:  2701371634,
+        //   serviceChargeAmount: "0.00012819",
+        //                   uid: "35103861",
+        //                amount: "0.8012",
+        //           operateTime: "2018-10-07 17:56:07",
+        //      transferedAmount: "0.00628141",
+        //             fromAsset: "ADA"                  },
+        let order = this.safeString (trade, 'tranId');
+        let time = this.safeString (trade, 'operateTime');
+        let timestamp = this.parse8601 (time);
+        let datetime = this.iso8601 (timestamp);
+        let tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
+        let earnedCurrency = this.currency ('BNB')['code'];
+        let applicantSymbol = earnedCurrency + '/' + tradedCurrency;
+        let tradedCurrencyIsQuote = false;
+        if (applicantSymbol in this.markets) {
+            tradedCurrencyIsQuote = true;
+        }
+        //
+        // Warning
+        // Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
+        // So the parser should either set the `fee.cost` to `0` or add it on top of the earned
+        // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
+        // is much more illustrative and therefore preferable.
+        //
+        let fee = {
+            'currency': earnedCurrency,
+            'cost': this.safeFloat (trade, 'serviceChargeAmount'),
+        };
+        let symbol = undefined;
+        let amount = undefined;
+        let cost = undefined;
+        let side = undefined;
+        if (tradedCurrencyIsQuote) {
+            symbol = applicantSymbol;
+            amount = this.sum (this.safeFloat (trade, 'transferedAmount'), fee['cost']);
+            cost = this.safeFloat (trade, 'amount');
+            side = 'buy';
+        } else {
+            symbol = tradedCurrency + '/' + earnedCurrency;
+            amount = this.safeFloat (trade, 'amount');
+            cost = this.sum (this.safeFloat (trade, 'transferedAmount'), fee['cost']);
+            side = 'sell';
+        }
+        let price = cost / amount;
+        let id = undefined;
+        let type = undefined;
+        let takerOrMaker = undefined;
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'cost': cost,
+            'fee': fee,
+            'info': trade,
+        };
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let currency = undefined;
@@ -1113,11 +1111,6 @@ module.exports = class binance extends Exchange {
         }
         let status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         let amount = this.safeFloat (transaction, 'amount');
-        const feeCost = undefined;
-        let fee = {
-            'cost': feeCost,
-            'currency': code,
-        };
         return {
             'info': transaction,
             'id': id,
@@ -1131,7 +1124,7 @@ module.exports = class binance extends Exchange {
             'currency': code,
             'status': status,
             'updated': undefined,
-            'fee': fee,
+            'fee': undefined,
         };
     }
 
@@ -1216,16 +1209,23 @@ module.exports = class binance extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         url += '/' + path;
-        if (api === 'wapi')
+        if (api === 'wapi') {
             url += '.html';
-        // v1 special case for userDataStream
-        if (path === 'userDataStream') {
+        }
+        const userDataStream = (path === 'userDataStream');
+        if (path === 'historicalTrades') {
+            headers = {
+                'X-MBX-APIKEY': this.apiKey,
+            };
+        } else if (userDataStream) {
+            // v1 special case for userDataStream
             body = this.urlencode (params);
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-        } else if ((api === 'private') || (api === 'wapi')) {
+        }
+        if ((api === 'private') || (api === 'wapi' && path !== 'systemStatus')) {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.extend ({
                 'timestamp': this.nonce (),
@@ -1243,8 +1243,13 @@ module.exports = class binance extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if (Object.keys (params).length)
-                url += '?' + this.urlencode (params);
+            // userDataStream endpoints are public, but POST, PUT, DELETE
+            // therefore they don't accept URL query arguments
+            // https://github.com/ccxt/ccxt/issues/5224
+            if (!userDataStream) {
+                if (Object.keys (params).length)
+                    url += '?' + this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -1283,24 +1288,21 @@ module.exports = class binance extends Exchange {
                         }
                     }
                 }
+                const exceptions = this.exceptions;
+                const message = this.safeString (response, 'msg');
+                if (message in exceptions) {
+                    const ExceptionClass = exceptions[message];
+                    throw new ExceptionClass (this.id + ' ' + message);
+                }
                 // checks against error codes
                 let error = this.safeString (response, 'code');
                 if (error !== undefined) {
-                    const exceptions = this.exceptions;
                     if (error in exceptions) {
                         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
                         // despite that their message is very confusing, it is raised by Binance
                         // on a temporary ban (the API key is valid, but disabled for a while)
                         if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection (this.id + ' temporary banned: ' + body);
-                        }
-                        const message = this.safeString (response, 'msg');
-                        if (message === 'Order would trigger immediately.') {
-                            throw new InvalidOrder (this.id + ' ' + body);
-                        } else if (message === 'Account has insufficient balance for requested action.') {
-                            throw new InsufficientFunds (this.id + ' ' + body);
-                        } else if (message === 'Rest API trading is not enabled.') {
-                            throw new ExchangeNotAvailable (this.id + ' ' + body);
                         }
                         throw new exceptions[error] (this.id + ' ' + body);
                     } else {

@@ -579,8 +579,15 @@ class cobinhood (Exchange):
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        result = self.privateGetTradingOrderHistory(params)
-        orders = self.parse_orders(result['result']['orders'], None, since, limit)
+        request = {}
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['trading_pair_id'] = market['id']
+        if limit is not None:
+            request['limit'] = limit  # default 50, max 100
+        result = self.privateGetTradingOrderHistory(self.extend(request, params))
+        orders = self.parse_orders(result['result']['orders'], market, since, limit)
         if symbol is not None:
             return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
         return self.filter_by_since_limit(orders, since, limit)
@@ -670,7 +677,7 @@ class cobinhood (Exchange):
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         if code is None:
-            raise ExchangeError(self.id + ' fetchDeposits() requires a currency code arguemnt')
+            raise ExchangeError(self.id + ' fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -681,7 +688,7 @@ class cobinhood (Exchange):
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
         if code is None:
-            raise ExchangeError(self.id + ' fetchWithdrawals() requires a currency code arguemnt')
+            raise ExchangeError(self.id + ' fetchWithdrawals() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

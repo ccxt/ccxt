@@ -20,6 +20,7 @@ class bitso extends Exchange {
                 'CORS' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
+                'fetchOrder' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766335-715ce7aa-5ed5-11e7-88a8-173a27bb30fe.jpg',
@@ -92,12 +93,12 @@ class bitso extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetAvailableBooks ();
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets['payload']); $i++) {
             $market = $markets['payload'][$i];
             $id = $market['book'];
-            $symbol = str_replace ('_', '/', strtoupper ($id));
-            list ($base, $quote) = explode ('/', $symbol);
+            $symbol = str_replace('_', '/', strtoupper($id));
+            list($base, $quote) = explode('/', $symbol);
             $limits = array (
                 'amount' => array (
                     'min' => $this->safe_float($market, 'minimum_amount'),
@@ -133,10 +134,10 @@ class bitso extends Exchange {
         $this->load_markets();
         $response = $this->privateGetBalance ();
         $balances = $response['payload']['balances'];
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
-            $currency = strtoupper ($balance['currency']);
+            $currency = strtoupper($balance['currency']);
             $account = array (
                 'free' => floatval ($balance['available']),
                 'used' => floatval ($balance['locked']),
@@ -199,7 +200,7 @@ class bitso extends Exchange {
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($trade, 'book');
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))
                 $market = $this->markets_by_id[$marketId];
         }
         if ($market !== null)
@@ -217,7 +218,7 @@ class bitso extends Exchange {
         if ($feeCost !== null) {
             $feeCurrency = $this->safe_string($trade, 'fees_currency');
             if ($feeCurrency !== null) {
-                if (is_array ($this->currencies_by_id) && array_key_exists ($feeCurrency, $this->currencies_by_id))
+                if (is_array($this->currencies_by_id) && array_key_exists($feeCurrency, $this->currencies_by_id))
                     $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
             }
             $fee = array (
@@ -261,7 +262,7 @@ class bitso extends Exchange {
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        $markerInParams = (is_array ($params) && array_key_exists ('marker', $params));
+        $markerInParams = (is_array($params) && array_key_exists('marker', $params));
         // warn the user with an exception if the user wants to filter
         // starting from $since timestamp, but does not set the trade id with an extra 'marker' param
         if (($since !== null) && !$markerInParams)
@@ -300,7 +301,7 @@ class bitso extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateDeleteOrdersOid (array ( 'oid' => $id ));
+        return $this->privateDeleteOrdersOid (array( 'oid' => $id ));
     }
 
     public function parse_order_status ($status) {
@@ -308,37 +309,53 @@ class bitso extends Exchange {
             'partial-fill' => 'open', // this is a common substitution in ccxt
             'completed' => 'closed',
         );
-        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+        if (is_array($statuses) && array_key_exists($status, $statuses))
             return $statuses[$status];
         return $status;
     }
 
     public function parse_order ($order, $market = null) {
-        $side = $order['side'];
+        $id = $this->safe_string($order, 'oid');
+        $side = $this->safe_string($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
-        if ($market === null) {
-            $marketId = $order['book'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+        $marketId = $this->safe_string($order, 'book');
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('_', $marketId);
+                $base = $this->common_currency_code(strtoupper($baseId));
+                $quote = $this->common_currency_code(strtoupper($quoteId));
+                $symbol = $base . '/' . $quote;
+            }
         }
-        if ($market)
-            $symbol = $market['symbol'];
-        $orderType = $order['type'];
-        $timestamp = $this->parse8601 ($order['created_at']);
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
+        }
+        $orderType = $this->safe_string($order, 'type');
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'original_amount');
         $remaining = $this->safe_float($order, 'unfilled_amount');
-        $filled = $amount - $remaining;
-        $result = array (
+        $filled = null;
+        if ($amount !== null) {
+            if ($remaining !== null) {
+                $filled = $amount - $remaining;
+            }
+        }
+        return array (
             'info' => $order,
-            'id' => $order['oid'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $symbol,
             'type' => $orderType,
             'side' => $side,
-            'price' => $this->safe_float($order, 'price'),
+            'price' => $price,
             'amount' => $amount,
             'cost' => null,
             'remaining' => $remaining,
@@ -346,7 +363,6 @@ class bitso extends Exchange {
             'status' => $status,
             'fee' => null,
         );
-        return $result;
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = 25, $params = array ()) {
@@ -355,7 +371,7 @@ class bitso extends Exchange {
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
-        $markerInParams = (is_array ($params) && array_key_exists ('marker', $params));
+        $markerInParams = (is_array($params) && array_key_exists('marker', $params));
         // warn the user with an exception if the user wants to filter
         // starting from $since timestamp, but does not set the trade id with an extra 'marker' param
         if (($since !== null) && !$markerInParams)
@@ -378,15 +394,17 @@ class bitso extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $market = $this->market ($symbol);
         $response = $this->privateGetOrdersOid (array (
             'oid' => $id,
         ));
-        $numOrders = is_array ($response['payload']) ? count ($response['payload']) : 0;
-        if (!gettype ($response['payload']) === 'array' && count (array_filter (array_keys ($response['payload']), 'is_string')) == 0 || ($numOrders !== 1)) {
-            throw new OrderNotFound ($this->id . ' => The order ' . $id . ' not found.');
+        $payload = $this->safe_value($response, 'payload');
+        if (gettype ($payload) === 'array' && count (array_filter (array_keys ($payload), 'is_string')) == 0) {
+            $numOrders = is_array ($response['payload']) ? count ($response['payload']) : 0;
+            if ($numOrders === 1) {
+                return $this->parse_order($payload[0]);
+            }
         }
-        return $this->parse_order($response['payload'][0], $market);
+        throw new OrderNotFound($this->id . ' => The order ' . $id . ' not found.');
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -408,7 +426,7 @@ class bitso extends Exchange {
         $address = $this->safe_string($response['payload'], 'account_identifier');
         $tag = null;
         if ($code === 'XRP') {
-            $parts = explode ('?dt=', $address);
+            $parts = explode('?dt=', $address);
             $address = $parts[0];
             $tag = $parts[1];
         }
@@ -431,9 +449,9 @@ class bitso extends Exchange {
             'BCH' => 'Bcash',
             'LTC' => 'Litecoin',
         );
-        $method = (is_array ($methods) && array_key_exists ($code, $methods)) ? $methods[$code] : null;
+        $method = (is_array($methods) && array_key_exists($code, $methods)) ? $methods[$code] : null;
         if ($method === null) {
-            throw new ExchangeError ($this->id . ' not valid withdraw coin => ' . $code);
+            throw new ExchangeError($this->id . ' not valid withdraw coin => ' . $code);
         }
         $request = array (
             'amount' => $amount,
@@ -459,7 +477,7 @@ class bitso extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $request = implode ('', array ($nonce, $method, $endpoint));
+            $request = implode('', array($nonce, $method, $endpoint));
             if ($method !== 'GET') {
                 if ($query) {
                     $body = $this->json ($query);
@@ -473,7 +491,7 @@ class bitso extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -482,9 +500,9 @@ class bitso extends Exchange {
         if (strlen ($body) < 2)
             return; // fallback to default $error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
-            if (is_array ($response) && array_key_exists ('success', $response)) {
+            if (is_array($response) && array_key_exists('success', $response)) {
                 //
-                //     array ("$success":false,"$error":{"$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237")}
+                //     array("$success":false,"$error":{"$code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237")}
                 //
                 $success = $this->safe_value($response, 'success', false);
                 if (gettype ($success) === 'string') {
@@ -497,13 +515,13 @@ class bitso extends Exchange {
                     $feedback = $this->id . ' ' . $this->json ($response);
                     $error = $this->safe_value($response, 'error');
                     if ($error === null)
-                        throw new ExchangeError ($feedback);
+                        throw new ExchangeError($feedback);
                     $code = $this->safe_string($error, 'code');
                     $exceptions = $this->exceptions;
-                    if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                        throw new $exceptions[$code] ($feedback);
+                    if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
+                        throw new $exceptions[$code]($feedback);
                     } else {
-                        throw new ExchangeError ($feedback);
+                        throw new ExchangeError($feedback);
                     }
                 }
             }
@@ -512,9 +530,9 @@ class bitso extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('success', $response))
+        if (is_array($response) && array_key_exists('success', $response))
             if ($response['success'])
                 return $response;
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' ' . $this->json ($response));
     }
 }

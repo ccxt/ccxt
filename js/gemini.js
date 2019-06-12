@@ -230,9 +230,6 @@ module.exports = class gemini extends Exchange {
         }
         let price = this.safeFloat (order, 'price');
         let average = this.safeFloat (order, 'avg_execution_price');
-        if (average !== 0.0) {
-            price = average; // prefer filling (execution) price over the submitted price
-        }
         let cost = undefined;
         if (filled !== undefined) {
             if (average !== undefined) {
@@ -359,8 +356,14 @@ module.exports = class gemini extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        let response = await this.privatePostTransfers (this.extend (request, params));
+        const request = {};
+        if (limit !== undefined) {
+            request['limit_transfers'] = limit;
+        }
+        if (since !== undefined) {
+            request['timestamp'] = since;
+        }
+        const response = await this.privatePostTransfers (this.extend (request, params));
         return this.parseTransactions (response);
     }
 
@@ -376,31 +379,38 @@ module.exports = class gemini extends Exchange {
         if (currency !== undefined) {
             code = currency['code'];
         }
+        const address = this.safeString (transaction, 'destination');
         let type = this.safeString (transaction, 'type');
         if (type !== undefined) {
             type = type.toLowerCase ();
         }
         let status = 'pending';
         // When deposits show as Advanced or Complete they are available for trading.
-        if (transaction['status'])
+        if (transaction['status']) {
             status = 'ok';
+        }
+        let fee = undefined;
+        const feeAmount = this.safeFloat (transaction, 'feeAmount');
+        if (feeAmount !== undefined) {
+            fee = {
+                'cost': feeAmount,
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'eid'),
             'txid': this.safeString (transaction, 'txHash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': undefined, // or is it defined?
+            'address': address,
             'tag': undefined, // or is it defined?
             'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': this.safeFloat (transaction, 'amount'),
             'currency': code,
             'status': status,
             'updated': undefined,
-            'fee': {
-                'cost': undefined,
-                'rate': undefined,
-            },
+            'fee': fee,
         };
     }
 

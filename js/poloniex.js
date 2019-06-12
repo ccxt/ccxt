@@ -14,6 +14,7 @@ module.exports = class poloniex extends Exchange {
             'name': 'Poloniex',
             'countries': [ 'US' ],
             'rateLimit': 1000, // up to 6 calls per second
+            'certified': true, // 2019-06-07
             'has': {
                 'CORS': false,
                 'createDepositAddress': true,
@@ -22,7 +23,7 @@ module.exports = class poloniex extends Exchange {
                 'fetchClosedOrders': 'emulated',
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': 'emulated',
+                'fetchDeposits': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrder': true, // true endpoint for a single open order
@@ -36,7 +37,8 @@ module.exports = class poloniex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactions': true,
-                'fetchWithdrawals': 'emulated', // but almost true )
+                'fetchWithdrawals': true,
+                'cancelAllOrders': true,
                 'withdraw': true,
             },
             'timeframes': {
@@ -53,9 +55,10 @@ module.exports = class poloniex extends Exchange {
                     'public': 'https://poloniex.com/public',
                     'private': 'https://poloniex.com/tradingApi',
                 },
-                'www': 'https://poloniex.com',
+                'www': 'https://www.poloniex.com',
                 'doc': 'https://docs.poloniex.com',
                 'fees': 'https://poloniex.com/fees',
+                'referral': 'https://www.poloniex.com/?utm_source=ccxt&utm_medium=web',
             },
             'api': {
                 'public': {
@@ -74,6 +77,7 @@ module.exports = class poloniex extends Exchange {
                         'buy',
                         'cancelLoanOffer',
                         'cancelOrder',
+                        'cancelAllOrders',
                         'closeMarginPosition',
                         'createLoanOffer',
                         'generateNewAddress',
@@ -93,6 +97,7 @@ module.exports = class poloniex extends Exchange {
                         'returnOpenLoanOffers',
                         'returnOpenOrders',
                         'returnOrderTrades',
+                        'returnOrderStatus',
                         'returnTradableBalances',
                         'returnTradeHistory',
                         'sell',
@@ -177,6 +182,7 @@ module.exports = class poloniex extends Exchange {
                     'Nonce must be greater': InvalidNonce,
                     'You have already called cancelOrder or moveOrder on this order.': CancelPending,
                     'Amount must be at least': InvalidOrder, // {"error":"Amount must be at least 0.000001."}
+                    'is either completed or does not exist': InvalidOrder, // {"error":"Order 587957810791 is either completed or does not exist."}
                 },
             },
         });
@@ -457,7 +463,37 @@ module.exports = class poloniex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['date']);
+        //
+        // fetchMyTrades (symbol defined, specific market)
+        //
+        //     {
+        //         globalTradeID: 394698946,
+        //         tradeID: 45210255,
+        //         date: '2018-10-23 17:28:55',
+        //         type: 'sell',
+        //         rate: '0.03114126',
+        //         amount: '0.00018753',
+        //         total: '0.00000583'
+        //     }
+        //
+        // fetchMyTrades (symbol undefined, all markets)
+        //
+        //     {
+        //         globalTradeID: 394131412,
+        //         tradeID: '5455033',
+        //         date: '2018-10-16 18:05:17',
+        //         rate: '0.06935244',
+        //         amount: '1.40308443',
+        //         total: '0.09730732',
+        //         fee: '0.00100000',
+        //         orderNumber: '104768235081',
+        //         type: 'sell',
+        //         category: 'exchange'
+        //     }
+        //
+        const id = this.safeString (trade, 'globalTradeID');
+        const orderId = this.safeString (trade, 'orderNumber');
+        const timestamp = this.parse8601 (this.safeString (trade, 'date'));
         let symbol = undefined;
         let base = undefined;
         let quote = undefined;
@@ -477,10 +513,11 @@ module.exports = class poloniex extends Exchange {
             base = market['base'];
             quote = market['quote'];
         }
-        let side = trade['type'];
+        const side = this.safeString (trade, 'type');
         let fee = undefined;
-        let cost = this.safeFloat (trade, 'total');
-        let amount = this.safeFloat (trade, 'amount');
+        const price = this.safeFloat (trade, 'rate');
+        const cost = this.safeFloat (trade, 'total');
+        const amount = this.safeFloat (trade, 'amount');
         if ('fee' in trade) {
             let rate = this.safeFloat (trade, 'fee');
             let feeCost = undefined;
@@ -505,11 +542,11 @@ module.exports = class poloniex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'tradeID'),
-            'order': this.safeString (trade, 'orderNumber'),
+            'id': id,
+            'order': orderId,
             'type': 'limit',
             'side': side,
-            'price': this.safeFloat (trade, 'rate'),
+            'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
@@ -545,6 +582,58 @@ module.exports = class poloniex extends Exchange {
         if (limit !== undefined)
             request['limit'] = parseInt (limit);
         let response = await this.privatePostReturnTradeHistory (this.extend (request, params));
+        //
+        // specific market (symbol defined)
+        //
+        //     [
+        //         {
+        //             globalTradeID: 394700861,
+        //             tradeID: 45210354,
+        //             date: '2018-10-23 18:01:58',
+        //             type: 'buy',
+        //             rate: '0.03117266',
+        //             amount: '0.00000652',
+        //             total: '0.00000020'
+        //         },
+        //         {
+        //             globalTradeID: 394698946,
+        //             tradeID: 45210255,
+        //             date: '2018-10-23 17:28:55',
+        //             type: 'sell',
+        //             rate: '0.03114126',
+        //             amount: '0.00018753',
+        //             total: '0.00000583'
+        //         }
+        //     ]
+        //
+        // all markets (symbol undefined)
+        //
+        //     {
+        //         BTC_BCH: [{
+        //             globalTradeID: 394131412,
+        //             tradeID: '5455033',
+        //             date: '2018-10-16 18:05:17',
+        //             rate: '0.06935244',
+        //             amount: '1.40308443',
+        //             total: '0.09730732',
+        //             fee: '0.00100000',
+        //             orderNumber: '104768235081',
+        //             type: 'sell',
+        //             category: 'exchange'
+        //         }, {
+        //             globalTradeID: 394126818,
+        //             tradeID: '5455007',
+        //             date: '2018-10-16 16:55:34',
+        //             rate: '0.06935244',
+        //             amount: '0.00155709',
+        //             total: '0.00010798',
+        //             fee: '0.00200000',
+        //             orderNumber: '104768179137',
+        //             type: 'sell',
+        //             category: 'exchange'
+        //         }],
+        //     }
+        //
         let result = [];
         if (market !== undefined) {
             result = this.parseTrades (response, market);
@@ -863,8 +952,39 @@ module.exports = class poloniex extends Exchange {
             }
             throw e;
         }
-        if (id in this.orders)
+        if (id in this.orders) {
             this.orders[id]['status'] = 'canceled';
+        }
+        return response;
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['currencyPair'] = market['id'];
+        }
+        const response = await this.privatePostCancelAllOrders (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "message": "Orders canceled",
+        //         "orderNumbers": [
+        //             503749,
+        //             888321,
+        //             7315825,
+        //             7316824
+        //         ]
+        //     }
+        //
+        const orderIds = this.safeValue (response, 'orderNumbers', []);
+        for (let i = 0; i < orderIds.length; i++) {
+            const id = orderIds[i].toString ();
+            if (id in this.orders) {
+                this.orders[id]['status'] = 'canceled';
+            }
+        }
         return response;
     }
 
@@ -1090,24 +1210,34 @@ module.exports = class poloniex extends Exchange {
         //
         // deposits
         //
-        //      {      currency: "BTC",
-        //              address: "1MEtiqJWru53FhhHrfJPPvd2tC3TPDVcmW",
-        //               amount: "0.01063000",
-        //        confirmations:  1,
-        //                 txid: "6b2b0e1888d6d491591facc0d37b5ebec540ac1efb241fdbc22bcc20d1822fb6",
-        //            timestamp:  1507916888,
-        //               status: "COMPLETE"                                                          }
+        //     {
+        //         "txid": "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
+        //         "type": "deposit",
+        //         "amount": "49798.01987021",
+        //         "status": "COMPLETE",
+        //         "address": "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
+        //         "currency": "DOGE",
+        //         "timestamp": 1524321838,
+        //         "confirmations": 3371,
+        //         "depositNumber": 134587098
+        //     }
         //
         // withdrawals
         //
-        //      { withdrawalNumber:  9290444,
-        //                currency: "ETH",
-        //                 address: "0x731015ff2e75261d50433fbd05bd57e942336149",
-        //                  amount: "0.15500000",
-        //                     fee: "0.00500000",
-        //               timestamp:  1514099289,
-        //                  status: "COMPLETE: 0x74d444493b4bca668992021fd9e54b5292b8e71d9927af1f076f554e4bea5b2d",
-        //               ipAddress: "5.228.227.214"                                                                 },
+        //     {
+        //         "fee": "0.00050000",
+        //         "type": "withdrawal",
+        //         "amount": "0.40234387",
+        //         "status": "COMPLETE: fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
+        //         "address": "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
+        //         "currency": "BTC",
+        //         "canCancel": 0,
+        //         "ipAddress": "185.230.101.31",
+        //         "paymentID": null,
+        //         "timestamp": 1523834337,
+        //         "canResendEmail": 0,
+        //         "withdrawalNumber": 11162900
+        //     }
         //
         let timestamp = this.safeInteger (transaction, 'timestamp');
         if (timestamp !== undefined) {
@@ -1133,8 +1263,8 @@ module.exports = class poloniex extends Exchange {
             }
             status = this.parseTransactionStatus (status);
         }
-        const id = this.safeString (transaction, 'withdrawalNumber');
-        const type = (id !== undefined) ? 'withdrawal' : 'deposit';
+        const type = this.safeString (transaction, 'type');
+        const id = this.safeString2 (transaction, 'withdrawalNumber', 'depositNumber');
         let amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         let feeCost = this.safeFloat (transaction, 'fee');

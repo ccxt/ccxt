@@ -30,26 +30,27 @@ class crex24 (Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'cancelAllOrders': True,
+                'CORS': False,
+                'editOrder': True,
+                'fetchBidsAsks': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'CORS': False,
-                'fetchBidsAsks': True,
-                'fetchTickers': True,
-                'fetchOHLCV': False,
+                'fetchDeposits': True,
+                'fetchFundingFees': False,
                 'fetchMyTrades': True,
+                'fetchOHLCV': False,
+                'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': False,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'withdraw': True,
+                'fetchOrderTrades': True,
+                'fetchTickers': True,
                 'fetchTradingFee': False,  # actually, True, but will be implemented later
                 'fetchTradingFees': False,  # actually, True, but will be implemented later
-                'fetchFundingFees': False,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
                 'fetchTransactions': True,
-                'fetchOrderTrades': True,
-                'editOrder': True,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -879,7 +880,7 @@ class crex24 (Exchange):
         #
         return self.parse_order(response)
 
-    async def cancel_all_orders(self, symbols=None, params={}):
+    async def cancel_all_orders(self, symbol=None, params={}):
         response = await self.tradingPostCancelAllOrders(params)
         #
         #     [
@@ -1029,8 +1030,8 @@ class crex24 (Exchange):
         if currency is not None:
             code = currency['code']
         type = self.safe_string(transaction, 'type')
-        timestamp = self.parse8601(transaction, 'createdAt')
-        updated = self.parse8601(transaction, 'processedAt')
+        timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
+        updated = self.parse8601(self.safe_string(transaction, 'processedAt'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_float(transaction, 'amount')
         feeCost = self.safe_float(transaction, 'fee')

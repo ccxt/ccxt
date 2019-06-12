@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -32,6 +32,8 @@ module.exports = class huobipro extends Exchange {
                 'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchCurrencies': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -93,6 +95,7 @@ module.exports = class huobipro extends Exchange {
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'dw/deposit-virtual/sharedAddressWithTag', // https://github.com/ccxt/ccxt/issues/4851
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
@@ -147,6 +150,9 @@ module.exports = class huobipro extends Exchange {
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
+            },
+            'commonCurrencies': {
+                'HOT': 'Hydro Protocol', // conflict with HOT (Holo) https://github.com/ccxt/ccxt/issues/4929
             },
         });
     }
@@ -256,7 +262,7 @@ module.exports = class huobipro extends Exchange {
                 'limits': {
                     'amount': {
                         'min': Math.pow (10, -precision['amount']),
-                        'max': Math.pow (10, precision['amount']),
+                        'max': undefined,
                     },
                     'price': {
                         'min': Math.pow (10, -precision['price']),
@@ -657,14 +663,16 @@ module.exports = class huobipro extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetOrderOrdersId (this.extend ({
+        const request = {
             'id': id,
-        }, params));
-        return this.parseOrder (response['data']);
+        };
+        const response = await this.privateGetOrderOrdersId (this.extend (request, params));
+        const order = this.safeValue (response, 'data');
+        return this.parseOrder (order);
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'partial-filled': 'open',
             'partial-canceled': 'canceled',
             'filled': 'closed',
@@ -801,7 +809,9 @@ module.exports = class huobipro extends Exchange {
                     // despite that cost = amount * price is in quote currency and should have quote precision
                     // the exchange API requires the cost supplied in 'amount' to be of base precision
                     // more about it here: https://github.com/ccxt/ccxt/pull/4395
-                    request['amount'] = this.amountToPrecision (symbol, parseFloat (amount) * parseFloat (price));
+                    // we use priceToPrecision instead of amountToPrecision here
+                    // because in this case the amount is in the quote currency
+                    request['amount'] = this.priceToPrecision (symbol, parseFloat (amount) * parseFloat (price));
                 }
             }
         }
@@ -832,7 +842,7 @@ module.exports = class huobipro extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
+        const response = await this.privatePostOrderOrdersIdSubmitcancel ({ 'id': id });
         //
         //     let response = {
         //         'status': 'ok',
@@ -847,16 +857,55 @@ module.exports = class huobipro extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privateGetDwDepositVirtualAddresses (this.extend ({
+        const currency = this.currency (code);
+        // if code == 'EOS':
+        //     res = huobi.request('/dw/deposit-virtual/sharedAddressWithTag', 'private', 'GET', {'currency': 'eos', 'chain': 'eos1'})
+        //     address_info = res['data']
+        // else:
+        //     address_info = self.broker.fetch_deposit_address(code)
+        const request = {
             'currency': currency['id'].toLowerCase (),
-        }, params));
-        let address = this.safeString (response, 'data');
+        };
+        // https://github.com/ccxt/ccxt/issues/4851
+        const info = this.safeValue (currency, 'info', {});
+        const currencyAddressWithTag = this.safeValue (info, 'currency-addr-with-tag');
+        let method = 'privateGetDwDepositVirtualAddresses';
+        if (currencyAddressWithTag) {
+            method = 'privateGetDwDepositVirtualSharedAddressWithTag';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // privateGetDwDepositVirtualSharedAddressWithTag
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": {
+        //             "address": "huobideposit",
+        //             "tag": "1937002"
+        //         }
+        //     }
+        //
+        // privateGetDwDepositVirtualAddresses
+        //
+        //     {
+        //         "status": "ok",
+        //         "data": "0xd7842ec9ba2bc20354e12f0e925a4e285a64187b"
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        let address = undefined;
+        let tag = undefined;
+        if (currencyAddressWithTag) {
+            address = this.safeString (data, 'address');
+            tag = this.safeString (data, 'tag');
+        } else {
+            address = this.safeString (response, 'data');
+        }
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'info': response,
         };
     }
@@ -971,5 +1020,137 @@ module.exports = class huobipro extends Exchange {
                 }
             }
         }
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a code argument');
+        }
+        if (limit === undefined || limit > 100) {
+            limit = 100;
+        }
+        await this.loadMarkets ();
+        const request = {};
+        let currency = this.currency (code);
+        request['currency'] = currency['id'];
+        request['type'] = 'deposit';
+        request['from'] = 0; // From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
+        request['size'] = limit; // Maximum transfers that can be fetched is 100
+        let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        // return response
+        return this.parseTransactions (response['data'], currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a code argument');
+        }
+        if (limit === undefined || limit > 100) {
+            limit = 100;
+        }
+        await this.loadMarkets ();
+        const request = {};
+        let currency = this.currency (code);
+        request['currency'] = currency['id'];
+        request['type'] = 'withdraw'; // Huobi uses withdraw for withdrawals
+        request['from'] = 0; // From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from
+        request['size'] = limit; // Maximum transfers that can be fetched is 100
+        let response = await this.privateGetQueryDepositWithdraw (this.extend (request, params));
+        // return response
+        return this.parseTransactions (response['data'], currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //     {
+        //         'id': 8211029,
+        //         'type': 'deposit',
+        //         'currency': 'eth',
+        //         'chain': 'eth',
+        //         'tx-hash': 'bd315....',
+        //         'amount': 0.81162421,
+        //         'address': '4b8b....',
+        //         'address-tag': '',
+        //         'fee': 0,
+        //         'state': 'safe',
+        //         'created-at': 1542180380965,
+        //         'updated-at': 1542180788077
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         'id': 6908275,
+        //         'type': 'withdraw',
+        //         'currency': 'btc',
+        //         'chain': 'btc',
+        //         'tx-hash': 'c1a1a....',
+        //         'amount': 0.80257005,
+        //         'address': '1QR....',
+        //         'address-tag': '',
+        //         'fee': 0.0005,
+        //         'state': 'confirmed',
+        //         'created-at': 1552107295685,
+        //         'updated-at': 1552108032859
+        //     }
+        //
+        let timestamp = this.safeInteger (transaction, 'created-at');
+        let updated = this.safeInteger (transaction, 'updated-at');
+        let code = this.safeCurrencyCode (transaction, 'currency');
+        let type = this.safeString (transaction, 'type');
+        if (type === 'withdraw') {
+            type = 'withdrawal';
+        }
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        let tag = this.safeString (transaction, 'address-tag');
+        let feeCost = this.safeFloat (transaction, 'fee');
+        if (feeCost !== undefined) {
+            feeCost = Math.abs (feeCost);
+        }
+        return {
+            'info': transaction,
+            'id': this.safeString (transaction, 'id'),
+            'txid': this.safeString (transaction, 'tx-hash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'address'),
+            'tag': tag,
+            'type': type,
+            'amount': this.safeFloat (transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            // deposit statuses
+            'unknown': 'failed',
+            'confirming': 'pending',
+            'confirmed': 'ok',
+            'safe': 'ok',
+            'orphan': 'failed',
+            // withdrawal statuses
+            'submitted': 'pending',
+            'canceled': 'canceled',
+            'reexamine': 'pending',
+            'reject': 'failed',
+            'pass': 'pending',
+            'wallet-reject': 'failed',
+            // 'confirmed': 'ok', // present in deposit statuses
+            'confirm-error': 'failed',
+            'repealed': 'failed',
+            'wallet-transfer': 'pending',
+            'pre-transfer': 'pending',
+        };
+        return this.safeString (statuses, status, status);
     }
 };

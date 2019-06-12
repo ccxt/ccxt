@@ -71,6 +71,7 @@ module.exports = class bxinth extends Exchange {
             'commonCurrencies': {
                 'DAS': 'DASH',
                 'DOG': 'DOGE',
+                'LEO': 'LeoCoin',
             },
         });
     }
@@ -104,17 +105,17 @@ module.exports = class bxinth extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostBalance ();
-        let balance = response['balance'];
-        let result = { 'info': balance };
-        let currencies = Object.keys (balance);
-        for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
-            let code = this.commonCurrencyCode (currency);
-            let account = {
-                'free': parseFloat (balance[currency]['available']),
+        const response = await this.privatePostBalance (params);
+        const balance = this.safeValue (response, 'balance', {});
+        const result = { 'info': balance };
+        const currencyIds = Object.keys (balance);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.commonCurrencyCode (currencyId);
+            const account = {
+                'free': this.safeFloat (balance[currencyId], 'available'),
                 'used': 0.0,
-                'total': parseFloat (balance[currency]['total']),
+                'total': this.safeFloat (balance[currencyId], 'total'),
             };
             account['used'] = account['total'] - account['free'];
             result[code] = account;
@@ -124,10 +125,11 @@ module.exports = class bxinth extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetOrderbook (this.extend ({
+        const request = {
             'pairing': this.marketId (symbol),
-        }, params));
-        return this.parseOrderBook (orderbook);
+        };
+        const response = await this.publicGetOrderbook (this.extend (request, params));
+        return this.parseOrderBook (response);
     }
 
     parseTicker (ticker, market = undefined) {

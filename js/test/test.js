@@ -146,6 +146,7 @@ let loadExchange = async exchange => {
     let symbols = [
         'BTC/CNY',
         'BTC/USD',
+        'BTC/USDT',
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
@@ -185,6 +186,7 @@ let testExchange = async exchange => {
     let symbol = exchange.symbols[0]
     let symbols = [
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
@@ -212,7 +214,7 @@ let testExchange = async exchange => {
         await testSymbol (exchange, symbol)
     }
 
-    if (!exchange.apiKey || (exchange.apiKey.length < 1))
+    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1)))
         return true
 
     exchange.checkRequiredCredentials ()

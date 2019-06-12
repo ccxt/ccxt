@@ -45,12 +45,12 @@ class mixcoins extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/USD' => array ( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'maker' => 0.0015, 'taker' => 0.0025 ),
-                'ETH/BTC' => array ( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'BCH/BTC' => array ( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'LSK/BTC' => array ( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'maker' => 0.0015, 'taker' => 0.0025 ),
-                'BCH/USD' => array ( 'id' => 'bch_usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'ETH/USD' => array ( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'BTC/USD' => array( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'maker' => 0.0015, 'taker' => 0.0025 ),
+                'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'BCH/BTC' => array( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'LSK/BTC' => array( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'maker' => 0.0015, 'taker' => 0.0025 ),
+                'BCH/USD' => array( 'id' => 'bch_usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'ETH/USD' => array( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'maker' => 0.001, 'taker' => 0.0015 ),
             ),
         ));
     }
@@ -58,13 +58,13 @@ class mixcoins extends Exchange {
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostInfo ();
         $balance = $response['result']['wallet'];
-        $result = array ( 'info' => $balance );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $result = array( 'info' => $balance );
+        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $lowercase = strtolower ($currency);
+            $lowercase = strtolower($currency);
             $account = $this->account ();
-            if (is_array ($balance) && array_key_exists ($lowercase, $balance)) {
+            if (is_array($balance) && array_key_exists($lowercase, $balance)) {
                 $account['free'] = floatval ($balance[$lowercase]['avail']);
                 $account['used'] = floatval ($balance[$lowercase]['lock']);
                 $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -155,7 +155,7 @@ class mixcoins extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancel (array ( 'id' => $id ));
+        return $this->privatePostCancel (array( 'id' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -175,14 +175,14 @@ class mixcoins extends Exchange {
                 'Sign' => $this->hmac ($this->encode ($body), $this->secret, 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('status', $response))
+        if (is_array($response) && array_key_exists('status', $response))
             if ($response['status'] === 200)
                 return $response;
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+        throw new ExchangeError($this->id . ' ' . $this->json ($response));
     }
 }

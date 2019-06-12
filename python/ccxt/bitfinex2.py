@@ -31,7 +31,7 @@ class bitfinex2 (bitfinex):
                 'fetchDepositAddress': False,
                 'fetchClosedOrders': False,
                 'fetchFundingFees': False,
-                'fetchMyTrades': False,
+                'fetchMyTrades': False,  # has to be False https://github.com/ccxt/ccxt/issues/4971
                 'fetchOHLCV': True,
                 'fetchOpenOrders': False,
                 'fetchOrder': True,
@@ -57,7 +57,11 @@ class bitfinex2 (bitfinex):
             'rateLimit': 1500,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
-                'api': 'https://api.bitfinex.com',
+                'api': {
+                    'v1': 'https://api.bitfinex.com',
+                    'public': 'https://api-pub.bitfinex.com',
+                    'private': 'https://api.bitfinex.com',
+                },
                 'www': 'https://www.bitfinex.com',
                 'doc': [
                     'https://docs.bitfinex.com/v2/docs/',
@@ -119,6 +123,7 @@ class bitfinex2 (bitfinex):
                         'auth/r/funding/trades/{symbol}/hist',
                         'auth/r/info/margin/{key}',
                         'auth/r/info/funding/{key}',
+                        'auth/r/ledgers/hist',
                         'auth/r/movements/hist',
                         'auth/r/movements/{currency}/hist',
                         'auth/r/stats/perf:{timeframe}/hist',
@@ -172,6 +177,7 @@ class bitfinex2 (bitfinex):
                 },
             },
             'options': {
+                'precision': 'R0',  # P0, P1, P2, P3, P4, R0
                 'orderTypes': {
                     'MARKET': None,
                     'EXCHANGE MARKET': 'market',
@@ -287,10 +293,15 @@ class bitfinex2 (bitfinex):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetBookSymbolPrecision(self.extend({
+        precision = self.safe_value(self.options, 'precision', 'R0')
+        request = {
             'symbol': self.market_id(symbol),
-            'precision': 'R0',
-        }, params))
+            'precision': precision,
+        }
+        if limit is not None:
+            request['len'] = limit  # 25 or 100
+        fullRequest = self.extend(request, params)
+        orderbook = self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
         result = {
             'bids': [],
@@ -299,12 +310,12 @@ class bitfinex2 (bitfinex):
             'datetime': self.iso8601(timestamp),
             'nonce': None,
         }
+        priceIndex = 1 if (fullRequest['precision'] == precision) else 0
         for i in range(0, len(orderbook)):
             order = orderbook[i]
-            price = order[1]
-            amount = order[2]
-            side = 'bids' if (amount > 0) else 'asks'
-            amount = abs(amount)
+            price = order[priceIndex]
+            amount = abs(order[2])
+            side = 'bids' if (order[2] > 0) else 'asks'
             result[side].append([price, amount])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
@@ -515,11 +526,12 @@ class bitfinex2 (bitfinex):
         raise NotSupported(self.id + ' withdraw not implemented yet')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        # self.has['fetchMyTrades'] is set to False
+        # https://github.com/ccxt/ccxt/issues/4971
         self.load_markets()
         market = None
         request = {
             'end': self.milliseconds(),
-            '_bfx': 1,
         }
         if since is not None:
             request['start'] = since
@@ -562,7 +574,7 @@ class bitfinex2 (bitfinex):
             request = api + request
         else:
             request = self.version + request
-        url = self.urls['api'] + '/' + request
+        url = self.urls['api'][api] + '/' + request
         if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)

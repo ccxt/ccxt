@@ -15,6 +15,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -47,6 +48,8 @@ class huobipro (Exchange):
                 'fetchMyTrades': True,
                 'withdraw': True,
                 'fetchCurrencies': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
             },
             'timeframes': {
                 '1m': '1min',
@@ -108,6 +111,7 @@ class huobipro (Exchange):
                         'order/matchresults',  # 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
+                        'dw/deposit-virtual/sharedAddressWithTag',  # https://github.com/ccxt/ccxt/issues/4851
                         'query/deposit-withdraw',
                         'margin/loan-orders',  # 借贷订单
                         'margin/accounts/balance',  # 借贷账户详情
@@ -162,6 +166,9 @@ class huobipro (Exchange):
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
                 'createOrderMethod': 'privatePostOrderOrdersPlace',
                 'language': 'en-US',
+            },
+            'commonCurrencies': {
+                'HOT': 'Hydro Protocol',  # conflict with HOT(Holo) https://github.com/ccxt/ccxt/issues/4929
             },
         })
 
@@ -265,7 +272,7 @@ class huobipro (Exchange):
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -precision['amount']),
-                        'max': math.pow(10, precision['amount']),
+                        'max': None,
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),
@@ -620,10 +627,12 @@ class huobipro (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrderOrdersId(self.extend({
+        request = {
             'id': id,
-        }, params))
-        return self.parse_order(response['data'])
+        }
+        response = await self.privateGetOrderOrdersId(self.extend(request, params))
+        order = self.safe_value(response, 'data')
+        return self.parse_order(order)
 
     def parse_order_status(self, status):
         statuses = {
@@ -749,7 +758,9 @@ class huobipro (Exchange):
                     # despite that cost = amount * price is in quote currency and should have quote precision
                     # the exchange API requires the cost supplied in 'amount' to be of base precision
                     # more about it here: https://github.com/ccxt/ccxt/pull/4395
-                    request['amount'] = self.amount_to_precision(symbol, float(amount) * float(price))
+                    # we use priceToPrecision instead of amountToPrecision here
+                    # because in self case the amount is in the quote currency
+                    request['amount'] = self.price_to_precision(symbol, float(amount) * float(price))
         if type == 'limit' or type == 'ioc' or type == 'limit-maker':
             request['price'] = self.price_to_precision(symbol, price)
         method = self.options['createOrderMethod']
@@ -790,15 +801,52 @@ class huobipro (Exchange):
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privateGetDwDepositVirtualAddresses(self.extend({
+        # if code == 'EOS':
+        #     res = huobi.request('/dw/deposit-virtual/sharedAddressWithTag', 'private', 'GET', {'currency': 'eos', 'chain': 'eos1'})
+        #     address_info = res['data']
+        # else:
+        #     address_info = self.broker.fetch_deposit_address(code)
+        request = {
             'currency': currency['id'].lower(),
-        }, params))
-        address = self.safe_string(response, 'data')
+        }
+        # https://github.com/ccxt/ccxt/issues/4851
+        info = self.safe_value(currency, 'info', {})
+        currencyAddressWithTag = self.safe_value(info, 'currency-addr-with-tag')
+        method = 'privateGetDwDepositVirtualAddresses'
+        if currencyAddressWithTag:
+            method = 'privateGetDwDepositVirtualSharedAddressWithTag'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # privateGetDwDepositVirtualSharedAddressWithTag
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": {
+        #             "address": "huobideposit",
+        #             "tag": "1937002"
+        #         }
+        #     }
+        #
+        # privateGetDwDepositVirtualAddresses
+        #
+        #     {
+        #         "status": "ok",
+        #         "data": "0xd7842ec9ba2bc20354e12f0e925a4e285a64187b"
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        address = None
+        tag = None
+        if currencyAddressWithTag:
+            address = self.safe_string(data, 'address')
+            tag = self.safe_string(data, 'tag')
+        else:
+            address = self.safe_string(response, 'data')
         self.check_address(address)
         return {
             'currency': code,
             'address': address,
-            'tag': None,
+            'tag': tag,
             'info': response,
         }
 
@@ -898,3 +946,125 @@ class huobipro (Exchange):
                     if code in exceptions:
                         raise exceptions[code](feedback)
                     raise ExchangeError(feedback)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a code argument')
+        if limit is None or limit > 100:
+            limit = 100
+        await self.load_markets()
+        request = {}
+        currency = self.currency(code)
+        request['currency'] = currency['id']
+        request['type'] = 'deposit'
+        request['from'] = 0  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
+        request['size'] = limit  # Maximum transfers that can be fetched is 100
+        response = await self.privateGetQueryDepositWithdraw(self.extend(request, params))
+        # return response
+        return self.parseTransactions(response['data'], currency, since, limit)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a code argument')
+        if limit is None or limit > 100:
+            limit = 100
+        await self.load_markets()
+        request = {}
+        currency = self.currency(code)
+        request['currency'] = currency['id']
+        request['type'] = 'withdraw'  # Huobi uses withdraw for withdrawals
+        request['from'] = 0  # From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from
+        request['size'] = limit  # Maximum transfers that can be fetched is 100
+        response = await self.privateGetQueryDepositWithdraw(self.extend(request, params))
+        # return response
+        return self.parseTransactions(response['data'], currency, since, limit)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchDeposits
+        #
+        #     {
+        #         'id': 8211029,
+        #         'type': 'deposit',
+        #         'currency': 'eth',
+        #         'chain': 'eth',
+        #         'tx-hash': 'bd315....',
+        #         'amount': 0.81162421,
+        #         'address': '4b8b....',
+        #         'address-tag': '',
+        #         'fee': 0,
+        #         'state': 'safe',
+        #         'created-at': 1542180380965,
+        #         'updated-at': 1542180788077
+        #     }
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         'id': 6908275,
+        #         'type': 'withdraw',
+        #         'currency': 'btc',
+        #         'chain': 'btc',
+        #         'tx-hash': 'c1a1a....',
+        #         'amount': 0.80257005,
+        #         'address': '1QR....',
+        #         'address-tag': '',
+        #         'fee': 0.0005,
+        #         'state': 'confirmed',
+        #         'created-at': 1552107295685,
+        #         'updated-at': 1552108032859
+        #     }
+        #
+        timestamp = self.safe_integer(transaction, 'created-at')
+        updated = self.safe_integer(transaction, 'updated-at')
+        code = self.safeCurrencyCode(transaction, 'currency')
+        type = self.safe_string(transaction, 'type')
+        if type == 'withdraw':
+            type = 'withdrawal'
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        tag = self.safe_string(transaction, 'address-tag')
+        feeCost = self.safe_float(transaction, 'fee')
+        if feeCost is not None:
+            feeCost = abs(feeCost)
+        return {
+            'info': transaction,
+            'id': self.safe_string(transaction, 'id'),
+            'txid': self.safe_string(transaction, 'tx-hash'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'address': self.safe_string(transaction, 'address'),
+            'tag': tag,
+            'type': type,
+            'amount': self.safe_float(transaction, 'amount'),
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': {
+                'currency': code,
+                'cost': feeCost,
+                'rate': None,
+            },
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            # deposit statuses
+            'unknown': 'failed',
+            'confirming': 'pending',
+            'confirmed': 'ok',
+            'safe': 'ok',
+            'orphan': 'failed',
+            # withdrawal statuses
+            'submitted': 'pending',
+            'canceled': 'canceled',
+            'reexamine': 'pending',
+            'reject': 'failed',
+            'pass': 'pending',
+            'wallet-reject': 'failed',
+            # 'confirmed': 'ok',  # present in deposit statuses
+            'confirm-error': 'failed',
+            'repealed': 'failed',
+            'wallet-transfer': 'pending',
+            'pre-transfer': 'pending',
+        }
+        return self.safe_string(statuses, status, status)

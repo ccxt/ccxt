@@ -505,7 +505,7 @@ class hitbtc extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetSymbols ();
-        $result = array ();
+        $result = array();
         for ($p = 0; $p < count ($markets['symbols']); $p++) {
             $market = $markets['symbols'][$p];
             $id = $market['symbol'];
@@ -559,7 +559,7 @@ class hitbtc extends Exchange {
         $query = $this->omit ($params, 'type');
         $response = $this->$method ($query);
         $balances = $response['balance'];
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             $code = $balance['currency_code'];
@@ -618,8 +618,8 @@ class hitbtc extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTicker ($params);
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
-        $result = array ();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $this->markets_by_id[$id];
@@ -636,8 +636,8 @@ class hitbtc extends Exchange {
         $ticker = $this->publicGetSymbolTicker (array_merge (array (
             'symbol' => $market['id'],
         ), $params));
-        if (is_array ($ticker) && array_key_exists ('message', $ticker))
-            throw new ExchangeError ($this->id . ' ' . $ticker['message']);
+        if (is_array($ticker) && array_key_exists('message', $ticker))
+            throw new ExchangeError($this->id . ' ' . $ticker['message']);
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -736,10 +736,10 @@ class hitbtc extends Exchange {
         // check if $amount can be evenly divided into lots
         // they want integer $quantity in lot units
         $quantity = floatval ($amount) / $market['lot'];
-        $wholeLots = (int) round ($quantity);
+        $wholeLots = (int) round($quantity);
         $difference = $quantity - $wholeLots;
         if (abs ($difference) > $market['step'])
-            throw new ExchangeError ($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $market['lot']);
+            throw new ExchangeError($this->id . ' $order $amount should be evenly divisible by lot unit size of ' . (string) $market['lot']);
         $clientOrderId = $this->milliseconds ();
         $request = array (
             'clientOrderId' => (string) $clientOrderId,
@@ -756,7 +756,7 @@ class hitbtc extends Exchange {
         $response = $this->tradingPostNewOrder (array_merge ($request, $params));
         $order = $this->parse_order($response['ExecutionReport'], $market);
         if ($order['status'] === 'rejected')
-            throw new InvalidOrder ($this->id . ' $order was rejected by the exchange ' . $this->json ($order));
+            throw new InvalidOrder($this->id . ' $order was rejected by the exchange ' . $this->json ($order));
         return $order;
     }
 
@@ -806,7 +806,7 @@ class hitbtc extends Exchange {
                 $remaining *= $market['lot'];
         } else {
             $marketId = $this->safe_string($order, 'symbol');
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))
                 $market = $this->markets_by_id[$marketId];
         }
         if ($amountDefined) {
@@ -855,7 +855,7 @@ class hitbtc extends Exchange {
         if ($response['orders'][0]) {
             return $this->parse_order($response['orders'][0]);
         }
-        throw new OrderNotFound ($this->id . ' fetchOrder() error => ' . $this->response);
+        throw new OrderNotFound($this->id . ' fetchOrder() error => ' . $this->response);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -864,7 +864,7 @@ class hitbtc extends Exchange {
         $market = null;
         $request = array (
             'sort' => 'desc',
-            'statuses' => implode (',', $statuses),
+            'statuses' => implode(',', $statuses),
         );
         if ($symbol !== null) {
             $market = $this->market ($symbol);
@@ -880,7 +880,7 @@ class hitbtc extends Exchange {
         $statuses = array ( 'filled', 'canceled', 'rejected', 'expired' );
         $request = array (
             'sort' => 'desc',
-            'statuses' => implode (',', $statuses),
+            'statuses' => implode(',', $statuses),
             'max_results' => 1000,
         );
         if ($symbol !== null) {
@@ -934,7 +934,7 @@ class hitbtc extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $payload = array ( 'nonce' => $nonce, 'apikey' => $this->apiKey );
+            $payload = array( 'nonce' => $nonce, 'apikey' => $this->apiKey );
             $query = array_merge ($payload, $query);
             if ($method === 'GET')
                 $url .= '?' . $this->urlencode ($query);
@@ -949,21 +949,21 @@ class hitbtc extends Exchange {
             }
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
-                'X-Signature' => strtolower ($this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512')),
+                'X-Signature' => strtolower($this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512')),
             );
         }
         $url = $this->urls['api'] . $url;
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('code', $response)) {
-            if (is_array ($response) && array_key_exists ('ExecutionReport', $response)) {
+        if (is_array($response) && array_key_exists('code', $response)) {
+            if (is_array($response) && array_key_exists('ExecutionReport', $response)) {
                 if ($response['ExecutionReport']['orderRejectReason'] === 'orderExceedsLimit')
-                    throw new InsufficientFunds ($this->id . ' ' . $this->json ($response));
+                    throw new InsufficientFunds($this->id . ' ' . $this->json ($response));
             }
-            throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            throw new ExchangeError($this->id . ' ' . $this->json ($response));
         }
         return $response;
     }

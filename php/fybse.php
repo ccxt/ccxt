@@ -46,7 +46,7 @@ class fybse extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/SEK' => array ( 'id' => 'SEK', 'symbol' => 'BTC/SEK', 'base' => 'BTC', 'quote' => 'SEK' ),
+                'BTC/SEK' => array( 'id' => 'SEK', 'symbol' => 'BTC/SEK', 'base' => 'BTC', 'quote' => 'SEK' ),
             ),
         ));
     }
@@ -56,14 +56,14 @@ class fybse extends Exchange {
         $btc = floatval ($balance['btcBal']);
         $symbol = $this->symbols[0];
         $quote = $this->markets[$symbol]['quote'];
-        $lowercase = strtolower ($quote) . 'Bal';
+        $lowercase = strtolower($quote) . 'Bal';
         $fiat = floatval ($balance[$lowercase]);
         $crypto = array (
             'free' => $btc,
             'used' => 0.0,
             'total' => $btc,
         );
-        $result = array ( 'BTC' => $crypto );
+        $result = array( 'BTC' => $crypto );
         $result[$quote] = array (
             'free' => $fiat,
             'used' => 0.0,
@@ -83,9 +83,9 @@ class fybse extends Exchange {
         $timestamp = $this->milliseconds ();
         $last = null;
         $volume = null;
-        if (is_array ($ticker) && array_key_exists ('last', $ticker))
+        if (is_array($ticker) && array_key_exists('last', $ticker))
             $last = $this->safe_float($ticker, 'last');
-        if (is_array ($ticker) && array_key_exists ('vol', $ticker))
+        if (is_array($ticker) && array_key_exists('vol', $ticker))
             $volume = $this->safe_float($ticker, 'vol');
         return array (
             'symbol' => $symbol,
@@ -137,7 +137,7 @@ class fybse extends Exchange {
         $response = $this->privatePostPlaceorder (array_merge (array (
             'qty' => $amount,
             'price' => $price,
-            'type' => strtoupper ($side[0]),
+            'type' => strtoupper($side[0]),
         ), $params));
         return array (
             'info' => $response,
@@ -146,7 +146,7 @@ class fybse extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelpendingorder (array ( 'orderNo' => $id ));
+        return $this->privatePostCancelpendingorder (array( 'orderNo' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -156,22 +156,22 @@ class fybse extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array ( 'timestamp' => $nonce ), $params));
+            $body = $this->urlencode (array_merge (array( 'timestamp' => $nonce ), $params));
             $headers = array (
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'key' => $this->apiKey,
                 'sig' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha1'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if ($api === 'private')
-            if (is_array ($response) && array_key_exists ('error', $response))
+            if (is_array($response) && array_key_exists('error', $response))
                 if ($response['error'])
-                    throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                    throw new ExchangeError($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }

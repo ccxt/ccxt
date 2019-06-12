@@ -77,14 +77,14 @@ class independentreserve extends Exchange {
     public function fetch_markets ($params = array ()) {
         $baseCurrencies = $this->publicGetGetValidPrimaryCurrencyCodes ();
         $quoteCurrencies = $this->publicGetGetValidSecondaryCurrencyCodes ();
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($baseCurrencies); $i++) {
             $baseId = $baseCurrencies[$i];
-            $baseIdUppercase = strtoupper ($baseId);
+            $baseIdUppercase = strtoupper($baseId);
             $base = $this->common_currency_code($baseIdUppercase);
             for ($j = 0; $j < count ($quoteCurrencies); $j++) {
                 $quoteId = $quoteCurrencies[$j];
-                $quoteIdUppercase = strtoupper ($quoteId);
+                $quoteIdUppercase = strtoupper($quoteId);
                 $quote = $this->common_currency_code($quoteIdUppercase);
                 $id = $baseId . '/' . $quoteId;
                 $symbol = $base . '/' . $quote;
@@ -105,11 +105,11 @@ class independentreserve extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privatePostGetAccounts ();
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyCode = $balance['CurrencyCode'];
-            $uppercase = strtoupper ($currencyCode);
+            $uppercase = strtoupper($currencyCode);
             $currency = $this->common_currency_code($uppercase);
             $account = $this->account ();
             $account['free'] = $balance['AvailableBalance'];
@@ -179,14 +179,14 @@ class independentreserve extends Exchange {
             $market = $this->find_market($order['PrimaryCurrencyCode'] . '/' . $order['SecondaryCurrencyCode']);
         }
         $orderType = $this->safe_value($order, 'Type');
-        if (mb_strpos ($orderType, 'Market') !== false)
+        if (mb_strpos($orderType, 'Market') !== false)
             $orderType = 'market';
-        else if (mb_strpos ($orderType, 'Limit') !== false)
+        else if (mb_strpos($orderType, 'Limit') !== false)
             $orderType = 'limit';
         $side = null;
-        if (mb_strpos ($orderType, 'Bid') !== false)
+        if (mb_strpos($orderType, 'Bid') !== false)
             $side = 'buy';
-        else if (mb_strpos ($orderType, 'Offer') !== false)
+        else if (mb_strpos($orderType, 'Offer') !== false)
             $side = 'sell';
         $timestamp = $this->parse8601 ($order['CreatedTimestampUtc']);
         $amount = $this->safe_float($order, 'VolumeOrdered');
@@ -248,7 +248,7 @@ class independentreserve extends Exchange {
             'PartiallyFilledAndExpired' => 'canceled',
             'Expired' => 'canceled',
         );
-        if (is_array ($statuses) && array_key_exists ($status, $statuses))
+        if (is_array($statuses) && array_key_exists($status, $statuses))
             return $statuses[$status];
         return $status;
     }
@@ -299,9 +299,9 @@ class independentreserve extends Exchange {
             $symbol = $market['symbol'];
         $side = $this->safe_string($trade, 'OrderType');
         if ($side !== null) {
-            if (mb_strpos ($side, 'Bid') !== false)
+            if (mb_strpos($side, 'Bid') !== false)
                 $side = 'buy';
-            else if (mb_strpos ($side, 'Offer') !== false)
+            else if (mb_strpos($side, 'Offer') !== false)
                 $side = 'sell';
         }
         return array (
@@ -354,7 +354,7 @@ class independentreserve extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array ( 'orderGuid' => $id ));
+        return $this->privatePostCancelOrder (array( 'orderGuid' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -370,25 +370,25 @@ class independentreserve extends Exchange {
                 'apiKey=' . $this->apiKey,
                 'nonce=' . (string) $nonce,
             );
-            $keys = is_array ($params) ? array_keys ($params) : array ();
+            $keys = is_array($params) ? array_keys($params) : array();
             for ($i = 0; $i < count ($keys); $i++) {
                 $key = $keys[$i];
                 $value = (string) $params[$key];
                 $auth[] = $key . '=' . $value;
             }
-            $message = implode (',', $auth);
+            $message = implode(',', $auth);
             $signature = $this->hmac ($this->encode ($message), $this->encode ($this->secret));
-            $query = $this->ordered (array ());
+            $query = $this->ordered (array());
             $query['apiKey'] = $this->apiKey;
             $query['nonce'] = $nonce;
-            $query['signature'] = strtoupper ($signature);
+            $query['signature'] = strtoupper($signature);
             for ($i = 0; $i < count ($keys); $i++) {
                 $key = $keys[$i];
                 $query[$key] = $params[$key];
             }
             $body = $this->json ($query);
-            $headers = array ( 'Content-Type' => 'application/json' );
+            $headers = array( 'Content-Type' => 'application/json' );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

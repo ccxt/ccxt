@@ -240,6 +240,7 @@ def test_exchange(exchange):
     symbol = keys[0]
     symbols = [
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',

@@ -16,6 +16,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
@@ -36,7 +37,7 @@ class fcoin (Exchange):
             'version': 'v2',
             'accounts': None,
             'accountsById': None,
-            'hostname': 'api.fcoin.com',
+            'hostname': 'fcoin.com',
             'has': {
                 'CORS': False,
                 'fetchDepositAddress': False,
@@ -64,11 +65,11 @@ class fcoin (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
-                'api': 'https://api.fcoin.com',
+                'api': 'https://api.{hostname}',
                 'www': 'https://www.fcoin.com',
                 'referral': 'https://www.fcoin.com/i/Z5P7V',
                 'doc': 'https://developer.fcoin.com',
-                'fees': 'https://support.fcoin.com/hc/en-us/articles/360003715514-Trading-Rules',
+                'fees': 'https://fcoinjp.zendesk.com/hc/en-us/articles/360018727371',
             },
             'api': {
                 'market': {
@@ -142,6 +143,7 @@ class fcoin (Exchange):
             'commonCurrencies': {
                 'DAG': 'DAGX',
                 'PAI': 'PCHAIN',
+                'MT': 'Mariana Token',
             },
         })
 
@@ -169,6 +171,7 @@ class fcoin (Exchange):
                     'max': math.pow(10, precision['price']),
                 },
             }
+            active = self.safe_value(market, 'tradable', False)
             if symbol in self.options['limits']:
                 limits = self.extend(self.options['limits'][symbol], limits)
             result.append({
@@ -178,7 +181,7 @@ class fcoin (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'active': active,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -223,15 +226,15 @@ class fcoin (Exchange):
     def fetch_order_book(self, symbol=None, limit=None, params={}):
         self.load_markets()
         if limit is not None:
-            if (limit == 20) or (limit == 100):
+            if (limit == 20) or (limit == 150):
                 limit = 'L' + str(limit)
             else:
-                raise ExchangeError(self.id + ' fetchOrderBook supports limit of 20, 100 or no limit. Other values are not accepted')
+                raise ExchangeError(self.id + ' fetchOrderBook supports limit of 20 or 150. Other values are not accepted')
         else:
-            limit = 'full'
+            limit = 'L20'
         request = self.extend({
             'symbol': self.market_id(symbol),
-            'level': limit,  # L20, L100, full
+            'level': limit,  # L20, L150
         }, params)
         response = self.marketGetDepthLevelSymbol(request)
         orderbook = response['data']
@@ -240,9 +243,10 @@ class fcoin (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.marketGetTickerSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        ticker = self.marketGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker['data'], market)
 
     def parse_ticker(self, ticker, market=None):
@@ -424,21 +428,23 @@ class fcoin (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = self.extend({
+        request = {
             'order_id': id,
-        }, params)
-        response = self.privateGetOrdersOrderId(request)
+        }
+        response = self.privateGetOrdersOrderId(self.extend(request, params))
         return self.parse_order(response['data'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = self.fetch_orders(symbol, since, limit, {'states': 'submitted,partial_filled'})
-        return result
+        request = {'states': 'submitted,partial_filled'}
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = self.fetch_orders(symbol, since, limit, {'states': 'filled'})
-        return result
+        request = {'states': 'filled'}
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -481,7 +487,10 @@ class fcoin (Exchange):
         request += '' if (api == 'private') else (api + '/')
         request += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + request
+        url = self.implode_params(self.urls['api'], {
+            'hostname': self.hostname,
+        })
+        url += request
         if (api == 'public') or (api == 'market'):
             if query:
                 url += '?' + self.urlencode(query)

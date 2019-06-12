@@ -34,6 +34,7 @@ class bitfinex (Exchange):
             # new metainfo interface
             'has': {
                 'CORS': False,
+                'cancelAllOrders': True,
                 'createDepositAddress': True,
                 'deposit': True,
                 'fetchClosedOrders': True,
@@ -67,7 +68,11 @@ class bitfinex (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766244-e328a50c-5ed2-11e7-947b-041416579bb3.jpg',
-                'api': 'https://api.bitfinex.com',
+                'api': {
+                    'v2': 'https://api-pub.bitfinex.com',  # https://github.com/ccxt/ccxt/issues/5109
+                    'public': 'https://api.bitfinex.com',
+                    'private': 'https://api.bitfinex.com',
+                },
                 'www': 'https://www.bitfinex.com',
                 'doc': [
                     'https://docs.bitfinex.com/v1/docs',
@@ -75,8 +80,26 @@ class bitfinex (Exchange):
                 ],
             },
             'api': {
+                # v2 symbol ids require a 't' prefix
+                # just the public part of it(use bitfinex2 for everything else)
                 'v2': {
                     'get': [
+                        'platform/status',
+                        'tickers',
+                        'ticker/{symbol}',
+                        'trades/{symbol}/hist',
+                        'book/{symbol}/{precision}',
+                        'book/{symbol}/P0',
+                        'book/{symbol}/P1',
+                        'book/{symbol}/P2',
+                        'book/{symbol}/P3',
+                        'book/{symbol}/R0',
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
+                        'stats1/{key}:{size}:{symbol}/{section}',
+                        'stats1/{key}:{size}:{symbol}:long/last',
+                        'stats1/{key}:{size}:{symbol}:long/hist',
+                        'stats1/{key}:{size}:{symbol}:short/last',
+                        'stats1/{key}:{size}:{symbol}:short/hist',
                         'candles/trade:{timeframe}:{symbol}/{section}',
                         'candles/trade:{timeframe}:{symbol}/last',
                         'candles/trade:{timeframe}:{symbol}/hist',
@@ -93,7 +116,6 @@ class bitfinex (Exchange):
                         'symbols',
                         'symbols_details',
                         'tickers',
-                        'today',
                         'trades/{symbol}',
                     ],
                 },
@@ -269,11 +291,13 @@ class bitfinex (Exchange):
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
                 'ATM': 'ATMI',
+                'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
                 'BAB': 'BCH',
                 'CTX': 'CTXC',
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
+                'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
                 'IOT': 'IOTA',
@@ -289,8 +313,12 @@ class bitfinex (Exchange):
                 'SNG': 'SNGLS',
                 'SPK': 'SPANK',
                 'STJ': 'STORJ',
+                'TSD': 'TUSD',
                 'YYW': 'YOYOW',
+                'UDC': 'USDC',
+                'UST': 'USDT',
                 'UTN': 'UTNP',
+                'XCH': 'XCHF',
             },
             'exceptions': {
                 'exact': {
@@ -384,6 +412,10 @@ class bitfinex (Exchange):
                     'ZRX': 'zrx',
                     'XTZ': 'tezos',
                 },
+                'orderTypes': {
+                    'limit': 'exchange limit',
+                    'market': 'exchange market',
+                },
             },
         })
 
@@ -438,11 +470,15 @@ class bitfinex (Exchange):
         }
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetSymbolsDetails()
+        ids = self.publicGetSymbols()
+        details = self.publicGetSymbolsDetails()
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['pair'].upper()
+        for i in range(0, len(details)):
+            market = details[i]
+            id = self.safe_string(market, 'pair')
+            if not self.in_array(id, ids):
+                continue
+            id = id.upper()
             baseId = id[0:3]
             quoteId = id[3:6]
             base = self.common_currency_code(baseId)
@@ -450,7 +486,7 @@ class bitfinex (Exchange):
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_precision'],
-                'amount': market['price_precision'],
+                'amount': None,
             }
             limits = {
                 'amount': {
@@ -480,6 +516,9 @@ class bitfinex (Exchange):
             })
         return result
 
+    def amount_to_precision(self, symbol, amount):
+        return self.number_to_string(amount)
+
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         rate = market[takerOrMaker]
@@ -508,11 +547,17 @@ class bitfinex (Exchange):
                 currency = balance['currency']
                 uppercase = currency.upper()
                 uppercase = self.common_currency_code(uppercase)
-                account = self.account()
-                account['free'] = float(balance['available'])
-                account['total'] = float(balance['amount'])
-                account['used'] = account['total'] - account['free']
-                result[uppercase] = account
+                # bitfinex had BCH previously, now it's BAB, but the old
+                # BCH symbol is kept for backward-compatibility
+                # we need a workaround here so that the old BCH balance
+                # would not override the new BAB balance(BAB is unified to BCH)
+                # https://github.com/ccxt/ccxt/issues/4989
+                if not(uppercase in list(result.keys())):
+                    account = self.account()
+                    account['free'] = float(balance['available'])
+                    account['total'] = float(balance['amount'])
+                    account['used'] = account['total'] - account['free']
+                    result[uppercase] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -598,6 +643,8 @@ class bitfinex (Exchange):
             feeCurrency = self.safe_string(trade, 'fee_currency')
             if feeCurrency in self.currencies_by_id:
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            else:
+                feeCurrency = self.common_currency_code(feeCurrency)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -644,16 +691,11 @@ class bitfinex (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        orderType = type
-        # todo: support more order types(“exchange stop” / “exchange trailing-stop” / “exchange fill-or-kill”)
-        if (type == 'limit') or (type == 'market'):
-            orderType = 'exchange ' + type
-        amount = self.amount_to_precision(symbol, amount)
         order = {
             'symbol': self.market_id(symbol),
-            'amount': amount,
             'side': side,
-            'type': orderType,
+            'amount': self.amount_to_precision(symbol, amount),
+            'type': self.safe_string(self.options['orderTypes'], type, type),
             'ocoorder': False,
             'buy_price_oco': 0,
             'sell_price_oco': 0,
@@ -665,9 +707,30 @@ class bitfinex (Exchange):
         result = self.privatePostOrderNew(self.extend(order, params))
         return self.parse_order(result)
 
+    def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+        self.load_markets()
+        order = {
+            'order_id': id,
+        }
+        if price is not None:
+            order['price'] = self.price_to_precision(symbol, price)
+        if amount is not None:
+            order['amount'] = self.number_to_string(amount)
+        if symbol is not None:
+            order['symbol'] = self.market_id(symbol)
+        if side is not None:
+            order['side'] = side
+        if type is not None:
+            order['type'] = self.safe_string(self.options['orderTypes'], type, type)
+        result = self.privatePostOrderCancelReplace(self.extend(order, params))
+        return self.parse_order(result)
+
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         return self.privatePostOrderCancel({'order_id': int(id)})
+
+    def cancel_all_orders(self, symbol=None, params={}):
+        return self.privatePostOrderCancelAll(params)
 
     def parse_order(self, order, market=None):
         side = order['side']
@@ -840,6 +903,22 @@ class bitfinex (Exchange):
         return self.parseTransactions(response, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id": 12042490,
+        #         "fee": "-0.02",
+        #         "txid": "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
+        #         "type": "DEPOSIT",
+        #         "amount": "2099.849999",
+        #         "method": "RIPPLE",
+        #         "status": "COMPLETED",
+        #         "address": "2505189261",
+        #         "currency": "XRP",
+        #         "timestamp": "1551730524.0",
+        #         "description": "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
+        #         "timestamp_created": "1551730523.0"
+        #     }
+        #
         timestamp = self.safe_float(transaction, 'timestamp_created')
         if timestamp is not None:
             timestamp = int(timestamp * 1000)
@@ -868,7 +947,7 @@ class bitfinex (Exchange):
             'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': self.safe_string(transaction, 'address'),
+            'address': self.safe_string(transaction, 'address'),  # todo: self is actually the tag for XRP transfers(the address is missing)
             'tag': None,  # refix it properly for the tag from description
             'type': type,
             'amount': self.safe_float(transaction, 'amount'),
@@ -926,7 +1005,7 @@ class bitfinex (Exchange):
         else:
             request = '/' + self.version + request
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + request
+        url = self.urls['api'][api] + request
         if (api == 'public') or (path.find('/hist') >= 0):
             if query:
                 suffix = '?' + self.urlencode(query)

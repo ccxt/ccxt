@@ -389,19 +389,41 @@ class cointiger (huobipro):
         response = self.publicGetHistoryTrade(self.extend(request, params))
         return self.parse_trades(response['data']['trade_data'], market, since, limit)
 
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades_v1(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 100
-        response = self.privateGetOrderTrade(self.extend({
+        request = {
             'symbol': market['id'],
             'offset': 1,
             'limit': limit,
-        }, params))
+        }
+        response = self.privateGetOrderTrade(self.extend(request, params))
         return self.parse_trades(response['data']['list'], market, since, limit)
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        week = 604800000  # milliseconds
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+        if since is None:
+            since = self.milliseconds() - week  # week ago
+        self.load_markets()
+        market = self.market(symbol)
+        start = self.ymd(since)
+        end = self.ymd(self.sum(since, week))  # one week
+        if limit is None:
+            limit = 1000
+        request = {
+            'symbol': market['id'],
+            'start-date': start,
+            'end-date': end,
+            'size': limit,
+        }
+        response = self.v2GetOrderMatchResults(self.extend(request, params))
+        return self.parse_trades(response['data'], market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -705,8 +727,14 @@ class cointiger (huobipro):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        if not self.password:
-            raise AuthenticationError(self.id + ' createOrder requires exchange.password to be set to user trading password(not login passwordnot )')
+        #
+        # obsolete since v2
+        # https://github.com/ccxt/ccxt/issues/4815
+        #
+        #     if not self.password:
+        #         raise AuthenticationError(self.id + ' createOrder requires exchange.password to be set to user trading password(not login passwordnot )')
+        #     }
+        #
         self.check_required_credentials()
         market = self.market(symbol)
         orderType = 1 if (type == 'limit') else 2
@@ -715,7 +743,7 @@ class cointiger (huobipro):
             'side': side.upper(),
             'type': orderType,
             'volume': self.amount_to_precision(symbol, amount),
-            'capital_password': self.password,
+            # 'capital_password': self.password,  # obsolete since v2, https://github.com/ccxt/ccxt/issues/4815
         }
         if (type == 'market') and(side == 'buy'):
             if price is None:
@@ -728,14 +756,20 @@ class cointiger (huobipro):
                 order['price'] = self.price_to_precision(symbol, 0)
             else:
                 order['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostOrder(self.extend(order, params))
+        response = self.v2PostOrder(self.extend(order, params))
         #
-        #     {"order_id":34343}
+        #     {
+        #         "code": "0",
+        #         "msg": "suc",
+        #         "data": {
+        #             "order_id": 481
+        #         }
+        #     }
         #
         timestamp = self.milliseconds()
         return {
             'info': response,
-            'id': str(response['data']['order_id']),
+            'id': self.safe_string(response['data'], 'order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,

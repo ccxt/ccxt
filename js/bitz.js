@@ -40,13 +40,13 @@ module.exports = class bitz extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api': {
-                    'market': 'https://apiv2.bitz.com',
-                    'trade': 'https://apiv2.bitz.com',
-                    'assets': 'https://apiv2.bitz.com',
+                    'market': 'https://apiv2.bit-z.pro',
+                    'trade': 'https://apiv2.bit-z.pro',
+                    'assets': 'https://apiv2.bit-z.pro',
                 },
                 'www': 'https://www.bit-z.com',
-                'doc': 'https://apidoc.bit-z.com/en',
-                'fees': 'https://www.bit-z.com/about/fee',
+                'doc': 'https://apidoc.bit-z.com/en/',
+                'fees': 'https://www.bit-z.com/fee?type=1',
                 'referral': 'https://u.bit-z.com/register?invite_code=1429193',
             },
             'api': {

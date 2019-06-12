@@ -7,8 +7,8 @@
 ![npm Yearly Downloads](https://img.shields.io/npm/dy/ccxt.svg)
 ![Dependent repos (via libraries.io)](https://img.shields.io/librariesio/dependent-repos/npm/ccxt.svg)
 ![Dependents (via libraries.io)](https://img.shields.io/librariesio/dependents/npm/ccxt.svg)
-![npm bundle size](https://img.shields.io/bundlephobia/min/ccxt.svg)
-![npm bundle size](https://img.shields.io/bundlephobia/minzip/ccxt.svg)
+<!-- ![npm bundle size](https://img.shields.io/bundlephobia/min/ccxt.svg) -->
+<!-- ![npm bundle size](https://img.shields.io/bundlephobia/minzip/ccxt.svg) -->
 
 ## Python / PyPI
 
@@ -30,19 +30,23 @@
 ![GitHub stars](https://img.shields.io/github/stars/ccxt/ccxt.svg?style=social)
 ![GitHub watchers](https://img.shields.io/github/watchers/ccxt/ccxt.svg?style=social)
 
-### GitHub Stats
-
-![GitHub language count](https://img.shields.io/github/languages/count/ccxt/ccxt.svg)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/ccxt/ccxt.svg)
 ![GitHub repo size in bytes](https://img.shields.io/github/repo-size/ccxt/ccxt.svg)
-![GitHub contributors](https://img.shields.io/github/contributors/ccxt/ccxt.svg)
 <!-- ![GitHub weekly commit activity](https://img.shields.io/github/commit-activity/w/ccxt/ccxt.svg) -->
 <!-- ![GitHub yearly commit activity](https://img.shields.io/github/commit-activity/y/ccxt/ccxt.svg) -->
+
+![GitHub language count](https://img.shields.io/github/languages/count/ccxt/ccxt.svg)
+![GitHub contributors](https://img.shields.io/github/contributors/ccxt/ccxt.svg)
 
 ### GitHub Search Hits
 
 ![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/binance.svg)
+![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/bitmex.svg)
 ![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/bittrex.svg)
+![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/coinbase.svg)
+![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/gdax.svg)
+![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/kraken.svg)
+![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/poloniex.svg)
 
 ## Opencollective
 

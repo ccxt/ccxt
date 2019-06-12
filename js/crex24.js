@@ -17,26 +17,27 @@ module.exports = class crex24 extends Exchange {
             'version': 'v2',
             // new metainfo interface
             'has': {
+                'cancelAllOrders': true,
+                'CORS': false,
+                'editOrder': true,
+                'fetchBidsAsks': true,
+                'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'CORS': false,
-                'fetchBidsAsks': true,
-                'fetchTickers': true,
-                'fetchOHLCV': false,
+                'fetchDeposits': true,
+                'fetchFundingFees': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
-                'withdraw': true,
+                'fetchOrderTrades': true,
+                'fetchTickers': true,
                 'fetchTradingFee': false, // actually, true, but will be implemented later
                 'fetchTradingFees': false, // actually, true, but will be implemented later
-                'fetchFundingFees': false,
-                'fetchDeposits': true,
-                'fetchWithdrawals': true,
                 'fetchTransactions': true,
-                'fetchOrderTrades': true,
-                'editOrder': true,
+                'fetchWithdrawals': true,
+                'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -921,7 +922,7 @@ module.exports = class crex24 extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbols = undefined, params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         const response = await this.tradingPostCancelAllOrders (params);
         //
         //     [
@@ -1084,8 +1085,8 @@ module.exports = class crex24 extends Exchange {
             code = currency['code'];
         }
         let type = this.safeString (transaction, 'type');
-        let timestamp = this.parse8601 (transaction, 'createdAt');
-        let updated = this.parse8601 (transaction, 'processedAt');
+        let timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
+        let updated = this.parse8601 (this.safeString (transaction, 'processedAt'));
         let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let amount = this.safeFloat (transaction, 'amount');
         const feeCost = this.safeFloat (transaction, 'fee');

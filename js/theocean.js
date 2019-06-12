@@ -22,13 +22,14 @@ module.exports = class theocean extends Exchange {
                 '1d': '86400',
             },
             'has': {
+                'cancelAllOrders': true,
                 'CORS': false, // ?
-                'fetchTickers': true,
+                'fetchClosedOrders': true,
                 'fetchOHLCV': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOpenOrders': true,
-                'fetchClosedOrders': true,
+                'fetchTickers': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/43103756-d56613ce-8ed7-11e8-924e-68f9d4bcacab.jpg',
@@ -581,7 +582,7 @@ module.exports = class theocean extends Exchange {
         });
     }
 
-    async cancelAllOrders (params = {}) {
+    async cancelAllOrders (symbol = undefined, params = {}) {
         const response = await this.privateDeleteOrder (params);
         //
         //     [{

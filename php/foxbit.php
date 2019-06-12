@@ -55,11 +55,11 @@ class foxbit extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/VEF' => array ( 'id' => 'BTCVEF', 'symbol' => 'BTC/VEF', 'base' => 'BTC', 'quote' => 'VEF', 'brokerId' => 1, 'broker' => 'SurBitcoin' ),
-                'BTC/VND' => array ( 'id' => 'BTCVND', 'symbol' => 'BTC/VND', 'base' => 'BTC', 'quote' => 'VND', 'brokerId' => 3, 'broker' => 'VBTC' ),
-                'BTC/BRL' => array ( 'id' => 'BTCBRL', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'brokerId' => 4, 'broker' => 'FoxBit' ),
-                'BTC/PKR' => array ( 'id' => 'BTCPKR', 'symbol' => 'BTC/PKR', 'base' => 'BTC', 'quote' => 'PKR', 'brokerId' => 8, 'broker' => 'UrduBit' ),
-                'BTC/CLP' => array ( 'id' => 'BTCCLP', 'symbol' => 'BTC/CLP', 'base' => 'BTC', 'quote' => 'CLP', 'brokerId' => 9, 'broker' => 'ChileBit' ),
+                'BTC/VEF' => array( 'id' => 'BTCVEF', 'symbol' => 'BTC/VEF', 'base' => 'BTC', 'quote' => 'VEF', 'brokerId' => 1, 'broker' => 'SurBitcoin' ),
+                'BTC/VND' => array( 'id' => 'BTCVND', 'symbol' => 'BTC/VND', 'base' => 'BTC', 'quote' => 'VND', 'brokerId' => 3, 'broker' => 'VBTC' ),
+                'BTC/BRL' => array( 'id' => 'BTCBRL', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'brokerId' => 4, 'broker' => 'FoxBit' ),
+                'BTC/PKR' => array( 'id' => 'BTCPKR', 'symbol' => 'BTC/PKR', 'base' => 'BTC', 'quote' => 'PKR', 'brokerId' => 8, 'broker' => 'UrduBit' ),
+                'BTC/CLP' => array( 'id' => 'BTCCLP', 'symbol' => 'BTC/CLP', 'base' => 'BTC', 'quote' => 'CLP', 'brokerId' => 9, 'broker' => 'ChileBit' ),
             ),
             'options' => array (
                 'brokerId' => '4', // https://blinktrade.com/docs/#brokers
@@ -72,16 +72,16 @@ class foxbit extends Exchange {
             'BalanceReqID' => $this->nonce (),
         ));
         $balances = $this->safe_value($response['Responses'], $this->options['brokerId']);
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         if ($balances !== null) {
-            $currencyIds = is_array ($this->currencies_by_id) ? array_keys ($this->currencies_by_id) : array ();
+            $currencyIds = is_array($this->currencies_by_id) ? array_keys($this->currencies_by_id) : array();
             for ($i = 0; $i < count ($currencyIds); $i++) {
                 $currencyId = $currencyIds[$i];
                 $currency = $this->currencies_by_id[$currencyId];
                 $code = $currency['code'];
                 // we only set the balance for the $currency if that $currency is present in $response
                 // otherwise we will lose the info if the $currency balance has been funded or traded or not
-                if (is_array ($balances) && array_key_exists ($currencyId, $balances)) {
+                if (is_array($balances) && array_key_exists($currencyId, $balances)) {
                     $account = $this->account ();
                     $account['used'] = floatval ($balances[$currencyId . '_locked']) * 1e-8;
                     $account['total'] = floatval ($balances[$currencyId]) * 1e-8;
@@ -109,7 +109,7 @@ class foxbit extends Exchange {
             'crypto_currency' => $market['base'],
         ), $params));
         $timestamp = $this->milliseconds ();
-        $lowercaseQuote = strtolower ($market['quote']);
+        $lowercaseQuote = strtolower($market['quote']);
         $quoteVolume = 'vol_' . $lowercaseQuote;
         $last = $this->safe_float($ticker, 'last');
         return array (
@@ -162,7 +162,7 @@ class foxbit extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         if ($type === 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
+            throw new ExchangeError($this->id . ' allows limit orders only');
         $market = $this->market ($symbol);
         $orderSide = ($side === 'buy') ? '1' : '2';
         $order = array (
@@ -198,7 +198,7 @@ class foxbit extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
-            $request = array_merge (array ( 'MsgType' => $path ), $query);
+            $request = array_merge (array( 'MsgType' => $path ), $query);
             $body = $this->json ($request);
             $headers = array (
                 'APIKey' => $this->apiKey,
@@ -207,14 +207,14 @@ class foxbit extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array ($response) && array_key_exists ('Status', $response))
+        if (is_array($response) && array_key_exists('Status', $response))
             if ($response['Status'] !== 200)
-                throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+                throw new ExchangeError($this->id . ' ' . $this->json ($response));
         return $response;
     }
 }

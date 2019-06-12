@@ -65,12 +65,12 @@ class tidex extends liqui {
 
     public function fetch_currencies ($params = array ()) {
         $currencies = $this->webGetCurrency ($params);
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $currency['symbol'];
             $precision = $currency['amountPoint'];
-            $code = strtoupper ($id);
+            $code = strtoupper($id);
             $code = $this->common_currency_code($code);
             $active = $currency['visible'] === true;
             $canWithdraw = $currency['withdrawEnable'] === true;
@@ -97,11 +97,11 @@ class tidex extends liqui {
                 'limits' => array (
                     'amount' => array (
                         'min' => null,
-                        'max' => pow (10, $precision),
+                        'max' => pow(10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -162,6 +162,6 @@ class tidex extends liqui {
                 }
             }
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

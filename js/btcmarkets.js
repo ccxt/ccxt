@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, NotSupported, InvalidOrder, DDoSProtection } = require ('./base/errors');
+const { ExchangeError, OrderNotFound, ArgumentsRequired, InvalidOrder, DDoSProtection } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -49,9 +49,10 @@ module.exports = class btcmarkets extends Exchange {
                     'get': [
                         'account/balance',
                         'account/{id}/tradingfee',
+                        'fundtransfer/history',
                         'v2/order/open',
                         'v2/order/open/{id}',
-                        'v2/order/history/{id}',
+                        'v2/order/history/{instrument}/{currency}/',
                         'v2/order/trade/history/{id}',
                         'v2/transaction/history/{currency}',
                     ],
@@ -85,6 +86,116 @@ module.exports = class btcmarkets extends Exchange {
         });
     }
 
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (limit !== undefined)
+            request['limit'] = limit;
+        if (since !== undefined)
+            request['since'] = since;
+        const response = await this.privateGetFundtransferHistory (this.extend (request, params));
+        const transactions = response['fundTransfers'];
+        return this.parseTransactions (transactions, undefined, since, limit);
+    }
+
+    parseTransactionStatus (status) {
+        // todo: find more statuses
+        const statuses = {
+            'Complete': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (item, currency = undefined) {
+        //
+        //     {
+        //         status: 'Complete',
+        //         fundTransferId: 1904311906,
+        //         description: 'ETH withdraw from [me@email.com] to Address: 0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3 amount: 8.28965701 fee: 0.00000000',
+        //         creationTime: 1529418358525,
+        //         currency: 'ETH',
+        //         amount: 828965701,
+        //         fee: 0,
+        //         transferType: 'WITHDRAW',
+        //         errorMessage: null,
+        //         lastUpdate: 1529418376754,
+        //         cryptoPaymentDetail: {
+        //             address: '0xF123aa44FadEa913a7da99cc2eE202Db684Ce0e3',
+        //             txId: '0x8fe483b6f9523559b9ebffb29624f98e86227d2660d4a1fd4785d45e51c662c2'
+        //         }
+        //     }
+        //
+        //     {
+        //         status: 'Complete',
+        //         fundTransferId: 494077500,
+        //         description: 'BITCOIN Deposit, B 0.1000',
+        //         creationTime: 1501077601015,
+        //         currency: 'BTC',
+        //         amount: 10000000,
+        //         fee: 0,
+        //         transferType: 'DEPOSIT',
+        //         errorMessage: null,
+        //         lastUpdate: 1501077601133,
+        //         cryptoPaymentDetail: null
+        //     }
+        //
+        //     {
+        //         "fee": 0,
+        //         "amount": 56,
+        //         "status": "Complete",
+        //         "currency": "BCHABC",
+        //         "lastUpdate": 1542339164044,
+        //         "description": "BitcoinCashABC Deposit, P 0.00000056",
+        //         "creationTime": 1542339164003,
+        //         "errorMessage": null,
+        //         "transferType": "DEPOSIT",
+        //         "fundTransferId": 2527326972,
+        //         "cryptoPaymentDetail": null
+        //     }
+        //
+        const timestamp = this.safeInteger (item, 'creationTime');
+        const lastUpdate = this.safeInteger (item, 'lastUpdate');
+        const transferType = this.safeString (item, 'transferType');
+        const cryptoPaymentDetail = this.safeValue (item, 'cryptoPaymentDetail', {});
+        const address = this.safeString (cryptoPaymentDetail, 'address');
+        const txid = this.safeString (cryptoPaymentDetail, 'txId');
+        let type = undefined;
+        if (transferType === 'DEPOSIT')
+            type = 'deposit';
+        else if (transferType === 'WITHDRAW') {
+            type = 'withdrawal';
+        } else {
+            type = transferType;
+        }
+        const fee = this.safeFloat (item, 'fee');
+        const status = this.parseTransactionStatus (this.safeString (item, 'status'));
+        const ccy = this.safeString (item, 'currency');
+        const code = this.commonCurrencyCode (ccy);
+        // todo: this logic is duplicated below
+        let amount = this.safeFloat (item, 'amount');
+        if (amount !== undefined) {
+            amount = amount * 1e-8;
+        }
+        return {
+            'id': this.safeString (item, 'fundTransferId'),
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'tag': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': lastUpdate,
+            'fee': {
+                'currency': code,
+                'cost': fee,
+            },
+            'info': item,
+        };
+    }
+
     async fetchMarkets (params = {}) {
         let response = await this.publicGetV2MarketActive ();
         let result = [];
@@ -97,6 +208,7 @@ module.exports = class btcmarkets extends Exchange {
             let base = this.commonCurrencyCode (baseId);
             let quote = this.commonCurrencyCode (quoteId);
             let symbol = base + '/' + quote;
+            // todo: refactor this
             let fee = (quote === 'AUD') ? 0.0085 : 0.0022;
             let pricePrecision = 2;
             let amountPrecision = 4;
@@ -135,6 +247,7 @@ module.exports = class btcmarkets extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'active': undefined,
                 'maker': fee,
                 'taker': fee,
                 'limits': limits,
@@ -354,10 +467,10 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let multiplier = 100000000;
-        let side = (order['orderSide'] === 'Bid') ? 'buy' : 'sell';
-        let type = (order['ordertype'] === 'Limit') ? 'limit' : 'market';
-        let timestamp = order['creationTime'];
+        const multiplier = 100000000;
+        const side = (order['orderSide'] === 'Bid') ? 'buy' : 'sell';
+        const type = (order['ordertype'] === 'Limit') ? 'limit' : 'market';
+        const timestamp = this.safeInteger (order, 'creationTime');
         if (market === undefined) {
             market = this.market (order['instrument'] + '/' + order['currency']);
         }
@@ -367,18 +480,32 @@ module.exports = class btcmarkets extends Exchange {
         } else if (order['status'] === 'Fully Matched' || order['status'] === 'Partially Matched') {
             status = 'closed';
         }
-        let price = this.safeFloat (order, 'price') / multiplier;
-        let amount = this.safeFloat (order, 'volume') / multiplier;
-        let remaining = this.safeFloat (order, 'openVolume', 0.0) / multiplier;
-        let filled = amount - remaining;
-        let cost = price * amount;
-        let trades = this.parseMyTrades (order['trades'], market);
+        const price = this.safeFloat (order, 'price') / multiplier;
+        const amount = this.safeFloat (order, 'volume') / multiplier;
+        const remaining = this.safeFloat (order, 'openVolume', 0.0) / multiplier;
+        const filled = amount - remaining;
+        const trades = this.parseMyTrades (order['trades'], market);
+        const numTrades = trades.length;
+        let cost = filled * price;
+        let average = undefined;
+        let lastTradeTimestamp = undefined;
+        if (numTrades > 0) {
+            cost = 0;
+            for (let i = 0; i < numTrades; i++) {
+                const trade = trades[i];
+                cost = this.sum (cost, trade[i]['cost']);
+            }
+            if (filled > 0) {
+                average = cost / filled;
+            }
+            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
+        }
         let result = {
             'info': order,
             'id': order['id'].toString (),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': market['symbol'],
             'type': type,
             'side': side,
@@ -387,6 +514,7 @@ module.exports = class btcmarkets extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'average': average,
             'status': status,
             'trades': trades,
             'fee': undefined,
@@ -407,10 +535,10 @@ module.exports = class btcmarkets extends Exchange {
         return this.parseOrder (order);
     }
 
-    prepareHistoryRequest (market, since = undefined, limit = undefined) {
+    createPaginatedRequest (market, since = undefined, limit = undefined) {
         let request = this.ordered ({
-            'currency': market['quote'],
-            'instrument': market['base'],
+            'currency': market['quoteId'],
+            'instrument': market['baseId'],
         });
         if (limit !== undefined)
             request['limit'] = limit;
@@ -424,37 +552,40 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new NotSupported (this.id + ': fetchOrders requires a `symbol` parameter.');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ': fetchOrders requires a `symbol` argument.');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.prepareHistoryRequest (market, since, limit);
-        let response = await this.privatePostOrderHistory (this.extend (request, params));
+        const market = this.market (symbol);
+        const request = this.createPaginatedRequest (market, since, limit);
+        const response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new NotSupported (this.id + ': fetchOpenOrders requires a `symbol` parameter.');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ': fetchOpenOrders requires a `symbol` argument.');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.prepareHistoryRequest (market, since, limit);
-        let response = await this.privatePostOrderOpen (this.extend (request, params));
+        const market = this.market (symbol);
+        const request = this.createPaginatedRequest (market, since, limit);
+        const response = await this.privatePostOrderOpen (this.extend (request, params));
         return this.parseOrders (response['orders'], market);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
+        const orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new NotSupported (this.id + ': fetchMyTrades requires a `symbol` parameter.');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ': fetchMyTrades requires a `symbol` argument.');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.prepareHistoryRequest (market, since, limit);
-        let response = await this.privatePostOrderTradeHistory (this.extend (request, params));
+        const market = this.market (symbol);
+        const request = this.createPaginatedRequest (market, since, limit);
+        const response = await this.privatePostOrderTradeHistory (this.extend (request, params));
         return this.parseMyTrades (response['trades'], market);
     }
 
@@ -468,23 +599,33 @@ module.exports = class btcmarkets extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
-            // eslint-disable-next-line quotes
-            let auth = uri + "\n" + nonce + "\n";
+            let auth = undefined;
             headers = {
-                'Content-Type': 'application/json',
                 'apikey': this.apiKey,
                 'timestamp': nonce,
             };
-            if (method === 'POST') {
+            if (method === 'post') {
+                headers['Content-Type'] = 'application/json';
+                auth = uri + "\n" + nonce + "\n"; // eslint-disable-line quotes
                 body = this.json (params);
                 auth += body;
+            } else {
+                let query = this.ksort (this.omit (params, this.extractParams (path)));
+                let queryString = '';
+                if (Object.keys (query).length) {
+                    queryString = this.urlencode (query);
+                    url += '?' + queryString;
+                    queryString += "\n"; // eslint-disable-line quotes
+                }
+                auth = uri + "\n" + queryString + nonce + "\n"; // eslint-disable-line quotes
             }
             let secret = this.base64ToBinary (this.secret);
             let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers['signature'] = this.decode (signature);
         } else {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

@@ -64,13 +64,14 @@ class bit2c extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/NIS' => array ( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS' ),
-                'ETH/NIS' => array ( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS' ),
-                'BCH/NIS' => array ( 'id' => 'BchAbcNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
-                'LTC/NIS' => array ( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
-                'ETC/NIS' => array ( 'id' => 'EtcNis', 'symbol' => 'ETC/NIS', 'base' => 'ETC', 'quote' => 'NIS' ),
-                'BTG/NIS' => array ( 'id' => 'BtgNis', 'symbol' => 'BTG/NIS', 'base' => 'BTG', 'quote' => 'NIS' ),
-                'BSV/NIS' => array ( 'id' => 'BchSvNis', 'symbol' => 'BSV/NIS', 'base' => 'BSV', 'quote' => 'NIS' ),
+                'BTC/NIS' => array( 'id' => 'BtcNis', 'symbol' => 'BTC/NIS', 'base' => 'BTC', 'quote' => 'NIS' ),
+                'ETH/NIS' => array( 'id' => 'EthNis', 'symbol' => 'ETH/NIS', 'base' => 'ETH', 'quote' => 'NIS' ),
+                'BCH/NIS' => array( 'id' => 'BchabcNis', 'symbol' => 'BCH/NIS', 'base' => 'BCH', 'quote' => 'NIS' ),
+                'LTC/NIS' => array( 'id' => 'LtcNis', 'symbol' => 'LTC/NIS', 'base' => 'LTC', 'quote' => 'NIS' ),
+                'ETC/NIS' => array( 'id' => 'EtcNis', 'symbol' => 'ETC/NIS', 'base' => 'ETC', 'quote' => 'NIS' ),
+                'BTG/NIS' => array( 'id' => 'BtgNis', 'symbol' => 'BTG/NIS', 'base' => 'BTG', 'quote' => 'NIS' ),
+                'BSV/NIS' => array( 'id' => 'BchsvNis', 'symbol' => 'BSV/NIS', 'base' => 'BSV', 'quote' => 'NIS' ),
+                'GRIN/NIS' => array( 'id' => 'GrinNis', 'symbol' => 'GRIN/NIS', 'base' => 'GRIN', 'quote' => 'NIS' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -86,12 +87,12 @@ class bit2c extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $balance = $this->privateGetAccountBalanceV2 ();
-        $result = array ( 'info' => $balance );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        $result = array( 'info' => $balance );
+        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
+            if (is_array($balance) && array_key_exists($currency, $balance)) {
                 $available = 'AVAILABLE_' . $currency;
                 $account['free'] = $balance[$available];
                 $account['total'] = $balance[$currency];
@@ -151,46 +152,46 @@ class bit2c extends Exchange {
             'pair' => $market['id'],
         ), $params));
         if (gettype ($response) === 'string') {
-            throw new ExchangeError ($response);
+            throw new ExchangeError($response);
         }
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $method = 'privatePostOrderAddOrder';
-        $order = array (
+        $request = array (
             'Amount' => $amount,
             'Pair' => $this->market_id($symbol),
         );
         if ($type === 'market') {
             $method .= 'MarketPrice' . $this->capitalize ($side);
         } else {
-            $order['Price'] = $price;
-            $order['Total'] = $amount * $price;
-            $order['IsBid'] = ($side === 'buy');
+            $request['Price'] = $price;
+            $request['Total'] = $amount * $price;
+            $request['IsBid'] = ($side === 'buy');
         }
-        $result = $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($request, $params));
         return array (
-            'info' => $result,
-            'id' => $result['NewOrder']['id'],
+            'info' => $response,
+            'id' => $response['NewOrder']['id'],
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrderCancelOrder (array ( 'id' => $id ));
+        return $this->privatePostOrderCancelOrder (array( 'id' => $id ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
             // lasttrades is the only endpoint that doesn't require the .json extension/suffix
-            if (mb_strpos ($path, 'lasttrades') < 0) {
+            if (mb_strpos($path, 'lasttrades') < 0) {
                 $url .= '.json';
             }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $query = array_merge (array ( 'nonce' => $nonce ), $params);
+            $query = array_merge (array( 'nonce' => $nonce ), $params);
             $body = $this->urlencode ($query);
             $signature = $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512', 'base64');
             $headers = array (
@@ -199,20 +200,22 @@ class bit2c extends Exchange {
                 'sign' => $this->decode ($signature),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+        }
         $this->load_markets();
-        if ($symbol === null)
-            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders() requires a $symbol argument');
         $market = $this->market ($symbol);
-        $response = $this->privateGetOrderMyOrders (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-        ), $params));
-        $orders = $this->safe_value($response, $market['id'], array ());
-        $asks = $this->safe_value($orders, 'ask');
-        $bids = $this->safe_value($orders, 'bid');
+        );
+        $response = $this->privateGetOrderMyOrders (array_merge ($request, $params));
+        $orders = $this->safe_value($response, $market['id'], array());
+        $asks = $this->safe_value($orders, 'ask', array());
+        $bids = $this->safe_value($orders, 'bid', array());
         return $this->parse_orders($this->array_concat($asks, $bids), $market, $since, $limit);
     }
 
@@ -256,7 +259,7 @@ class bit2c extends Exchange {
         $this->load_markets();
         $market = null;
         $method = 'privateGetOrderOrderhistory';
-        $request = array ();
+        $request = array();
         if ($limit !== null)
             $request['take'] = $limit;
         $request['take'] = $limit;
@@ -285,12 +288,12 @@ class bit2c extends Exchange {
             $timestamp = $this->safe_integer($trade, 'ticks') * 1000;
             $price = $this->safe_float($trade, 'price');
             $amount = $this->safe_float($trade, 'firstAmount');
-            $reference_parts = explode ('|', $reference); // $reference contains => 'pair|$orderId|tradeId'
+            $reference_parts = explode('|', $reference); // $reference contains => 'pair|$orderId|tradeId'
             if ($market === null) {
                 $marketId = $this->safe_string($trade, 'pair');
-                if (is_array ($this->markets_by_id[$marketId]) && array_key_exists ($marketId, $this->markets_by_id[$marketId])) {
+                if (is_array($this->markets_by_id[$marketId]) && array_key_exists($marketId, $this->markets_by_id[$marketId])) {
                     $market = $this->markets_by_id[$marketId];
-                } else if (is_array ($this->markets_by_id) && array_key_exists ($reference_parts[0], $this->markets_by_id)) {
+                } else if (is_array($this->markets_by_id) && array_key_exists($reference_parts[0], $this->markets_by_id)) {
                     $market = $this->markets_by_id[$reference_parts[0]];
                 }
             }

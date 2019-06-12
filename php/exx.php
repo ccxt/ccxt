@@ -94,14 +94,14 @@ class exx extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $markets = $this->publicGetMarkets ();
-        $ids = is_array ($markets) ? array_keys ($markets) : array ();
-        $result = array ();
+        $ids = is_array($markets) ? array_keys($markets) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $markets[$id];
-            list ($baseId, $quoteId) = explode ('_', $id);
-            $upper = strtoupper ($id);
-            list ($base, $quote) = explode ('_', $upper);
+            list($baseId, $quoteId) = explode('_', $id);
+            $upper = strtoupper($id);
+            list($base, $quote) = explode('_', $upper);
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
@@ -121,12 +121,12 @@ class exx extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow(10, -$precision['amount']),
+                        'max' => pow(10, $precision['amount']),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow(10, -$precision['price']),
+                        'max' => pow(10, $precision['price']),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -180,12 +180,12 @@ class exx extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
-        $result = array ();
+        $result = array();
         $timestamp = $this->milliseconds ();
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            if (!(is_array ($this->marketsById) && array_key_exists ($id, $this->marketsById)))
+            if (!(is_array($this->marketsById) && array_key_exists($id, $this->marketsById)))
                 continue;
             $market = $this->marketsById[$id];
             $symbol = $market['symbol'];
@@ -240,9 +240,9 @@ class exx extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $balances = $this->privateGetGetBalance ($params);
-        $result = array ( 'info' => $balances );
+        $result = array( 'info' => $balances );
         $balances = $balances['funds'];
-        $currencies = is_array ($balances) ? array_keys ($balances) : array ();
+        $currencies = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $id = $currencies[$i];
             $balance = $balances[$id];
@@ -274,7 +274,7 @@ class exx extends Exchange {
             $status = 'open';
         }
         $fee = null;
-        if (is_array ($order) && array_key_exists ('fees', $order)) {
+        if (is_array($order) && array_key_exists('fees', $order)) {
             $fee = array (
                 'cost' => $this->safe_float($order, 'fees'),
                 'currency' => $market['quote'],
@@ -349,7 +349,7 @@ class exx extends Exchange {
             'currency' => $market['id'],
         ), $params));
         if (!gettype ($orders) === 'array' && count (array_filter (array_keys ($orders), 'is_string')) == 0) {
-            return array ();
+            return array();
         }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -375,7 +375,7 @@ class exx extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -385,7 +385,7 @@ class exx extends Exchange {
             return; // fallback to default error handler
         if (($body[0] === '{') || ($body[0] === '[')) {
             //
-            //  array ("$result":false,"$message":"服务端忙碌")
+            //  array("$result":false,"$message":"服务端忙碌")
             //  ... and other formats
             //
             $code = $this->safe_string($response, 'code');
@@ -395,23 +395,23 @@ class exx extends Exchange {
                 return;
             if ($code !== null) {
                 $exceptions = $this->exceptions;
-                if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                    throw new $exceptions[$code] ($feedback);
+                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
+                    throw new $exceptions[$code]($feedback);
                 } else if ($code === '308') {
                     // this is returned by the exchange when there are no open orders
-                    // array ("$code":308,"$message":"Not Found Transaction Record")
+                    // array("$code":308,"$message":"Not Found Transaction Record")
                     return;
                 } else {
-                    throw new ExchangeError ($feedback);
+                    throw new ExchangeError($feedback);
                 }
             }
             $result = $this->safe_value($response, 'result');
             if ($result !== null) {
                 if (!$result) {
                     if ($message === '服务端忙碌') {
-                        throw new ExchangeNotAvailable ($feedback);
+                        throw new ExchangeNotAvailable($feedback);
                     } else {
-                        throw new ExchangeError ($feedback);
+                        throw new ExchangeError($feedback);
                     }
                 }
             }

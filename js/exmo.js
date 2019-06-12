@@ -109,9 +109,26 @@ module.exports = class exmo extends Exchange {
                             { 'pair': 'BTC/UAH', 'min_q': '0.001', 'max_q': '1000', 'min_p': '1', 'max_p': '1500000', 'min_a': '10', 'max_a': '15000000' },
                             { 'pair': 'BTC/PLN', 'min_q': '0.001', 'max_q': '1000', 'min_p': '0.001', 'max_p': '90000', 'min_a': '1', 'max_a': '2000000' },
                             { 'pair': 'BTC/TRY', 'min_q': '0.001', 'max_q': '1000', 'min_p': '1', 'max_p': '800000', 'min_a': '40', 'max_a': '6000000' },
+                            { 'pair': 'ROOBEE/BTC', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.0001', 'max_a': '10' },
+                            { 'pair': 'ROOBEE/ETH', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '100' },
+                            { 'pair': 'USDC/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '100' },
+                            { 'pair': 'USDC/ETH', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '1000' },
+                            { 'pair': 'USDC/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '3', 'max_a': '500000' },
+                            { 'pair': 'USDC/USDT', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '3', 'max_a': '500000' },
+                            { 'pair': 'ETZ/BTC', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '10' },
+                            { 'pair': 'ETZ/ETH', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.00000001', 'max_p': '100', 'min_a': '0.001', 'max_a': '100' },
+                            { 'pair': 'ETZ/USDT', 'min_q': '1', 'max_q': '1000000', 'min_p': '0.000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '1000' },
+                            { 'pair': 'PTI/BTC', 'min_q': '1', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '10' },
+                            { 'pair': 'PTI/USDT', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '10000', 'min_a': '0.01', 'max_a': '100000' },
+                            { 'pair': 'PTI/EOS', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.0000001', 'max_p': '5000', 'min_a': '0.01', 'max_a': '20000' },
+                            { 'pair': 'ATMCASH/BTC', 'min_q': '10', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '10' },
+                            { 'pair': 'TRX/UAH', 'min_q': '0.01', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '50000000' },
                             { 'pair': 'ETH/TRY', 'min_q': '0.01', 'max_q': '5000', 'min_p': '0.1', 'max_p': '80000', 'min_a': '10', 'max_a': '6000000' },
                             { 'pair': 'XRP/TRY', 'min_q': '1', 'max_q': '100000', 'min_p': '0.0001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '6000000' },
                             { 'pair': 'XLM/TRY', 'min_q': '0.01', 'max_q': '200000', 'min_p': '0.00001', 'max_p': '100000', 'min_a': '0.1', 'max_a': '6000000' },
+                            { 'pair': 'MNC/BTC', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.00000001', 'max_p': '1', 'min_a': '0.000001', 'max_a': '100' },
+                            { 'pair': 'MNC/ETH', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.0000001', 'max_p': '10', 'min_a': '0.00001', 'max_a': '1000' },
+                            { 'pair': 'MNC/USD', 'min_q': '10', 'max_q': '100000000', 'min_p': '0.000001', 'max_p': '10000', 'min_a': '0.01', 'max_a': '100000' },
                             { 'pair': 'DAI/BTC', 'min_q': '1', 'max_q': '500000', 'min_p': '0.0000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100' },
                             { 'pair': 'DAI/ETH', 'min_q': '1', 'max_q': '500000', 'min_p': '0.000001', 'max_p': '10', 'min_a': '0.0001', 'max_a': '5000' },
                             { 'pair': 'DAI/USD', 'min_q': '1', 'max_q': '500000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.1', 'max_a': '500000' },
@@ -217,6 +234,7 @@ module.exports = class exmo extends Exchange {
                             { 'pair': 'WAVES/RUB', 'min_q': '0.5', 'max_q': '10000', 'min_p': '1', 'max_p': '10000', 'min_a': '1', 'max_a': '50000000' },
                             { 'pair': 'KICK/BTC', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.0000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100' },
                             { 'pair': 'KICK/ETH', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.000001', 'max_p': '1', 'min_a': '0.0001', 'max_a': '5000' },
+                            { 'pair': 'KICK/USDT', 'min_q': '100', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '1000', 'min_a': '0.01', 'max_a': '100000' },
                             { 'pair': 'EOS/EUR', 'min_q': '0.01', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.5', 'max_a': '500000' },
                             { 'pair': 'BCH/EUR', 'min_q': '0.003', 'max_q': '100000', 'min_p': '0.01', 'max_p': '300000', 'min_a': '3', 'max_a': '500000' },
                             { 'pair': 'XRP/EUR', 'min_q': '1', 'max_q': '100000', 'min_p': '0.001', 'max_p': '1000', 'min_a': '0.001', 'max_a': '500000' },
@@ -240,7 +258,7 @@ module.exports = class exmo extends Exchange {
                         'fees': [
                             {
                                 'group': 'crypto',
-                                'title': 'Cryptocurrency',
+                                'title': 'Криптовалюта',
                                 'items': [
                                     { 'prov': 'BTC', 'dep': '0%', 'wd': '0.0005 BTC' },
                                     { 'prov': 'LTC', 'dep': '0%', 'wd': '0.01 LTC' },
@@ -249,7 +267,7 @@ module.exports = class exmo extends Exchange {
                                     { 'prov': 'ETH', 'dep': '0%', 'wd': '0.01 ETH' },
                                     { 'prov': 'WAVES', 'dep': '0%', 'wd': '0.001 WAVES' },
                                     { 'prov': 'ZEC', 'dep': '0%', 'wd': '0.001 ZEC' },
-                                    { 'prov': 'USDT', 'dep': '5 USDT', 'wd': '5 USDT' },
+                                    { 'prov': 'USDT', 'dep': '0%', 'wd': '5 USDT' },
                                     { 'prov': 'XMR', 'dep': '0%', 'wd': '0.05 XMR' },
                                     { 'prov': 'XRP', 'dep': '0%', 'wd': '0.02 XRP' },
                                     { 'prov': 'KICK', 'dep': '0 KICK', 'wd': '50 KICK' },
@@ -258,9 +276,8 @@ module.exports = class exmo extends Exchange {
                                     { 'prov': 'BTG', 'dep': '0%', 'wd': '0.001 BTG' },
                                     { 'prov': 'EOS', 'dep': '', 'wd': '0.05 EOS' },
                                     { 'prov': 'HBZ', 'dep': '65 HBZ', 'wd': '65 HBZ' },
-                                    { 'prov': 'BTCZ', 'dep': '0 %', 'wd': '5 BTCZ' },
                                     { 'prov': 'DXT', 'dep': '20 DXT', 'wd': '20 DXT' },
-                                    { 'prov': 'STQ', 'dep': '100 STQ', 'wd': '100 STQ' },
+                                    { 'prov': 'STQ', 'dep': '-', 'wd': '100 STQ' },
                                     { 'prov': 'XLM', 'dep': '0%', 'wd': '-' },
                                     { 'prov': 'MNX', 'dep': '0%', 'wd': '0.01 MNX' },
                                     { 'prov': 'OMG', 'dep': '0.1 OMG', 'wd': '0.5 OMG' },
@@ -279,60 +296,60 @@ module.exports = class exmo extends Exchange {
                                     { 'prov': 'HB', 'dep': '0%', 'wd': '10 HB' },
                                     { 'prov': 'DAI', 'dep': '0%', 'wd': '1 DAI' },
                                     { 'prov': 'MKR', 'dep': '0%', 'wd': '0.005 MKR' },
+                                    { 'prov': 'MNC', 'dep': '-', 'wd': '15 MNC' },
+                                    { 'prov': 'PTI', 'dep': '0%', 'wd': '10 PTI' },
+                                    { 'prov': 'ATMCASH', 'dep': '0%', 'wd': '5 ATMCASH' },
+                                    { 'prov': 'ETZ', 'dep': '0%', 'wd': '1 ETZ' },
+                                    { 'prov': 'USDC', 'dep': '', 'wd': '0.5 USDC' },
                                 ],
                             },
                             {
                                 'group': 'usd',
                                 'title': 'USD',
                                 'items': [
+                                    { 'prov': 'Payeer', 'dep': '3.95%', 'wd': '-' },
+                                    { 'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%' },
                                     { 'prov': 'Perfect Money', 'dep': '-', 'wd': '0.5%' },
-                                    { 'prov': 'Neteller', 'dep': '3.5% + 0.29 USD', 'wd': '-' },
-                                    { 'prov': 'AdvCash', 'dep': '1.95%', 'wd': '3.95%' },
-                                    { 'prov': 'Payeer', 'dep': '-', 'wd': '0.45%' },
+                                    { 'prov': 'AdvCash', 'dep': '3.45%', 'wd': '2.95%' },
                                     { 'prov': 'Visa', 'dep': '3.45%', 'wd': '-' },
-                                    { 'prov': 'Skrill', 'dep': '2.95%', 'wd': '2.45%' },
-                                    { 'prov': 'Visa/MasterCard (Simplex)', 'dep': '5%', 'wd': '-' },
+                                    { 'prov': 'CryptoCapital', 'dep': '-', 'wd': '0.45%' },
+                                    { 'prov': 'Visa/MasterCard (Simplex)', 'dep': '4.5%', 'wd': '-' },
                                 ],
                             },
                             {
                                 'group': 'eur',
                                 'title': 'EUR',
                                 'items': [
-                                    { 'prov': 'Payeer', 'dep': '-', 'wd': '0.45%' },
-                                    { 'prov': 'CryptoCapital', 'dep': '-', 'wd': '0.45%' },
-                                    { 'prov': 'AdvCash', 'dep': '1%', 'wd': '-' },
-                                    { 'prov': 'Perfect Money', 'dep': '-', 'wd': '2.95%' },
-                                    { 'prov': 'Neteller', 'dep': '3.5%+0.25 EUR', 'wd': '2.95%' },
                                     { 'prov': 'Visa', 'dep': '3.45%', 'wd': '-' },
+                                    { 'prov': 'CryptoCapital', 'dep': '-', 'wd': '0.45%' },
+                                    { 'prov': 'AdvCash', 'dep': '0.45%', 'wd': '-' },
                                     { 'prov': 'Wire Transfer', 'dep': '6.95 EUR', 'wd': '-' },
-                                    { 'prov': 'Skrill', 'dep': '2.95% + 0.29 EUR', 'wd': '-' },
-                                    { 'prov': 'Rapid Transfer', 'dep': '1.5% + 0.29 EUR', 'wd': '-' },
-                                    { 'prov': 'MisterTango SEPA', 'dep': '5 EUR', 'wd': '-' },
                                     { 'prov': 'SEPA', 'dep': '6.95 EUR', 'wd': '-' },
-                                    { 'prov': 'Visa/MasterCard (Simplex)', 'dep': '5%', 'wd': '-' },
+                                    { 'prov': 'Visa/MasterCard (Simplex)', 'dep': '4.5%', 'wd': '-' },
+                                    { 'prov': 'Payeer', 'dep': '3.95%', 'wd': '-' },
+                                    { 'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%' },
                                 ],
                             },
                             {
                                 'group': 'rub',
                                 'title': 'RUB',
                                 'items': [
-                                    { 'prov': 'AdvCash', 'dep': '0.95%', 'wd': '2.95%' },
-                                    { 'prov': 'Payeer', 'dep': '1.95%', 'wd': '-' },
-                                    { 'prov': 'Qiwi', 'dep': '1.95%', 'wd': '3.45%' },
-                                    { 'prov': 'Visa/MasterCard', 'dep': '4%', 'wd': '-' },
-                                    { 'prov': 'Yandex Money', 'dep': '3.45%', 'wd': '3.95%' },
-                                    { 'prov': 'Visa/Mastercard', 'dep': '-', 'wd': '4.45% + 50 RUB' },
+                                    { 'prov': 'Yandex Money', 'dep': '2.95%', 'wd': '1.95%' },
+                                    { 'prov': 'Payeer', 'dep': '3.95%', 'wd': '-' },
+                                    { 'prov': 'AdvCash', 'dep': '3.95%', 'wd': '0.95%' },
+                                    { 'prov': 'Qiwi', 'dep': '3.95%', 'wd': '2.95%' },
+                                    { 'prov': 'Visa/MasterCard', 'dep': '3.95%', 'wd': '4.95% + 60 RUB' },
+                                    { 'prov': 'WebMoney', 'dep': '-', 'wd': '3.5%' },
+                                    { 'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%' },
                                 ],
                             },
                             {
                                 'group': 'pln',
                                 'title': 'PLN',
                                 'items': [
-                                    { 'prov': 'Neteller', 'dep': '3.5% + 4 PLN', 'wd': '-' },
-                                    { 'prov': 'Rapid Transfer', 'dep': '1.5% + 1.21 PLN', 'wd': '-' },
                                     { 'prov': 'CryptoCapital', 'dep': '-', 'wd': '0.45%' },
-                                    { 'prov': 'Skrill', 'dep': '3.5% + 1.21 PLN', 'wd': '1.95%' },
-                                    { 'prov': 'Visa/MasterCard (Simplex)', 'dep': '5%', 'wd': '-' },
+                                    { 'prov': 'Visa/MasterCard (Simplex)', 'dep': '4.5%', 'wd': '-' },
+                                    { 'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%' },
                                 ],
                             },
                             {
@@ -340,8 +357,8 @@ module.exports = class exmo extends Exchange {
                                 'title': 'TRY',
                                 'items': [
                                     { 'prov': 'QR ile yatırma', 'dep': '5.95%', 'wd': '-' },
-                                    { 'prov': 'Visa', 'dep': '0%', 'wd': '-' },
-                                    { 'prov': 'Skrill', 'dep': '2.95% + 3 TRY', 'wd': '1.45%' },
+                                    { 'prov': 'Visa', 'dep': '3.45%', 'wd': '-' },
+                                    { 'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%' },
                                 ],
                             },
                             {
@@ -349,9 +366,10 @@ module.exports = class exmo extends Exchange {
                                 'title': 'UAH',
                                 'items': [
                                     { 'prov': 'Terminal', 'dep': '2.6%', 'wd': '-' },
-                                    { 'prov': 'AdvCash', 'dep': '0.45%', 'wd': '3.45%' },
-                                    { 'prov': 'Visa/MasterCard', 'dep': '2.6%', 'wd': '3.95%' },
-                                    { 'prov': 'Enfins', 'dep': '0%', 'wd': '-' },
+                                    { 'prov': 'EX-CODE', 'dep': '', 'wd': '0.2%' },
+                                    { 'prov': 'AdvCash', 'dep': '-', 'wd': '2.95%' },
+                                    { 'prov': 'Visa/MasterCard', 'dep': '2.6%', 'wd': '3.95% + 20 UAH' },
+                                    { 'prov': 'Enfins', 'dep': '0%', 'wd': '1.95%' },
                                 ],
                             },
                         ],
@@ -392,7 +410,7 @@ module.exports = class exmo extends Exchange {
             let taker = fee;
             let maker = fee;
             return {
-                'info': response,
+                // 'info': response,
                 'maker': maker,
                 'taker': taker,
             };
@@ -758,25 +776,26 @@ module.exports = class exmo extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let prefix = (type === 'market') ? (type + '_') : '';
-        let market = this.market (symbol);
+        const prefix = (type === 'market') ? (type + '_') : '';
+        const market = this.market (symbol);
         if ((type === 'market') && (price === undefined)) {
             price = 0;
         }
-        let request = {
+        const request = {
             'pair': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'type': prefix + side,
             'price': this.priceToPrecision (symbol, price),
         };
-        let response = await this.privatePostOrderCreate (this.extend (request, params));
-        let id = this.safeString (response, 'order_id');
-        let timestamp = this.milliseconds ();
+        const response = await this.privatePostOrderCreate (this.extend (request, params));
+        const id = this.safeString (response, 'order_id');
+        const timestamp = this.milliseconds ();
         amount = parseFloat (amount);
         price = parseFloat (price);
-        let status = 'open';
-        let order = {
+        const status = 'open';
+        const order = {
             'id': id,
+            'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -793,24 +812,51 @@ module.exports = class exmo extends Exchange {
             'trades': undefined,
         };
         this.orders[id] = order;
-        return this.extend ({ 'info': response }, order);
+        return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderCancel ({ 'order_id': id });
-        if (id in this.orders)
+        const request = { 'order_id': id };
+        const response = await this.privatePostOrderCancel (this.extend (request, params));
+        if (id in this.orders) {
             this.orders[id]['status'] = 'canceled';
+        }
         return response;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         try {
-            let response = await this.privatePostOrderTrades ({
+            const request = {
                 'order_id': id.toString (),
+            };
+            const response = await this.privatePostOrderTrades (this.extend (request, params));
+            //
+            //     {
+            //         "type": "buy",
+            //         "in_currency": "BTC",
+            //         "in_amount": "1",
+            //         "out_currency": "USD",
+            //         "out_amount": "100",
+            //         "trades": [
+            //             {
+            //                 "trade_id": 3,
+            //                 "date": 1435488248,
+            //                 "type": "buy",
+            //                 "pair": "BTC_USD",
+            //                 "order_id": 12345,
+            //                 "quantity": 1,
+            //                 "price": 100,
+            //                 "amount": 100
+            //             }
+            //         ]
+            //     }
+            //
+            const order = this.parseOrder (response);
+            return this.extend (order, {
+                'id': id.toString (),
             });
-            return this.parseOrder (response);
         } catch (e) {
             if (e instanceof OrderNotFound) {
                 if (id in this.orders)
@@ -822,11 +868,13 @@ module.exports = class exmo extends Exchange {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
-        if (symbol !== undefined)
+        if (symbol !== undefined) {
             market = this.market (symbol);
-        const response = await this.privatePostOrderTrades (this.extend ({
+        }
+        const request = {
             'order_id': id.toString (),
-        }, params));
+        };
+        const response = await this.privatePostOrderTrades (this.extend (request, params));
         const trades = this.safeValue (response, 'trades');
         return this.parseTrades (trades, market, since, limit);
     }
@@ -900,13 +948,48 @@ module.exports = class exmo extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // fetchOrders, fetchOpenOrders, fetchClosedOrders
+        //
+        //     {
+        //         "order_id": "14",
+        //         "created": "1435517311",
+        //         "type": "buy",
+        //         "pair": "BTC_USD",
+        //         "price": "100",
+        //         "quantity": "1",
+        //         "amount": "100"
+        //     }
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "type": "buy",
+        //         "in_currency": "BTC",
+        //         "in_amount": "1",
+        //         "out_currency": "USD",
+        //         "out_amount": "100",
+        //         "trades": [
+        //             {
+        //                 "trade_id": 3,
+        //                 "date": 1435488248,
+        //                 "type": "buy",
+        //                 "pair": "BTC_USD",
+        //                 "order_id": 12345,
+        //                 "quantity": 1,
+        //                 "price": 100,
+        //                 "amount": 100
+        //             }
+        //         ]
+        //     }
+        //
         let id = this.safeString (order, 'order_id');
         let timestamp = this.safeInteger (order, 'created');
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
         let symbol = undefined;
-        let side = this.safeString (order, 'type');
+        const side = this.safeString (order, 'type');
         if (market === undefined) {
             let marketId = undefined;
             if ('pair' in order) {
@@ -929,33 +1012,29 @@ module.exports = class exmo extends Exchange {
         let cost = this.safeFloat (order, 'amount');
         let filled = 0.0;
         let trades = [];
-        let transactions = this.safeValue (order, 'trades');
+        let transactions = this.safeValue (order, 'trades', []);
         let feeCost = undefined;
-        if (transactions !== undefined) {
-            if (Array.isArray (transactions)) {
-                for (let i = 0; i < transactions.length; i++) {
-                    let trade = this.parseTrade (transactions[i], market);
-                    if (id === undefined) {
-                        id = trade['order'];
-                    }
-                    if (timestamp === undefined) {
-                        timestamp = trade['timestamp'];
-                    }
-                    if (timestamp > trade['timestamp']) {
-                        timestamp = trade['timestamp'];
-                    }
-                    filled = this.sum (filled, trade['amount']);
-                    if (feeCost === undefined) {
-                        feeCost = 0.0;
-                    }
-                    feeCost = this.sum (feeCost, trade['fee']['cost']);
-                    if (cost === undefined) {
-                        cost = 0.0;
-                    }
-                    cost = this.sum (cost, trade['cost']);
-                    trades.push (trade);
+        let lastTradeTimestamp = undefined;
+        let average = undefined;
+        const numTransactions = transactions.length;
+        if (numTransactions > 0) {
+            feeCost = 0;
+            for (let i = 0; i < numTransactions; i++) {
+                let trade = this.parseTrade (transactions[i], market);
+                if (id === undefined) {
+                    id = trade['order'];
                 }
+                if (timestamp === undefined) {
+                    timestamp = trade['timestamp'];
+                }
+                if (timestamp > trade['timestamp']) {
+                    timestamp = trade['timestamp'];
+                }
+                filled = this.sum (filled, trade['amount']);
+                feeCost = this.sum (feeCost, trade['fee']['cost']);
+                trades.push (trade);
             }
+            lastTradeTimestamp = trades[numTransactions - 1]['timestamp'];
         }
         let remaining = undefined;
         if (amount !== undefined) {
@@ -978,9 +1057,15 @@ module.exports = class exmo extends Exchange {
         if (cost === undefined) {
             if (price !== undefined)
                 cost = price * filled;
-        } else if (price === undefined) {
-            if (filled > 0)
-                price = cost / filled;
+        } else {
+            if (filled > 0) {
+                if (average === undefined) {
+                    average = cost / filled;
+                }
+                if (price === undefined) {
+                    price = cost / filled;
+                }
+            }
         }
         let fee = {
             'cost': feeCost,
@@ -990,7 +1075,7 @@ module.exports = class exmo extends Exchange {
             'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
-            'lastTradeTimestamp': undefined,
+            'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
             'symbol': symbol,
             'type': 'limit',
@@ -1000,6 +1085,7 @@ module.exports = class exmo extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
+            'average': average,
             'trades': trades,
             'fee': fee,
             'info': order,

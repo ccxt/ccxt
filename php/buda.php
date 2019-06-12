@@ -124,12 +124,12 @@ class buda extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                'not_authorized' => '\\ccxt\\AuthenticationError',  // array ( message => 'Invalid credentials', code => 'not_authorized' )
-                'forbidden' => '\\ccxt\\PermissionDenied',  // array ( message => 'You dont have access to this resource', code => 'forbidden' )
-                'invalid_record' => '\\ccxt\\ExchangeError',  // array ( message => 'Validation Failed', code => 'invalid_record', errors => array () )
-                'not_found' => '\\ccxt\\ExchangeError',  // array ( message => 'Not found', code => 'not_found' )
-                'parameter_missing' => '\\ccxt\\ExchangeError',  // array ( message => 'Parameter missing', code => 'parameter_missing' )
-                'bad_parameter' => '\\ccxt\\ExchangeError',  // array ( message => 'Bad Parameter format', code => 'bad_parameter' )
+                'not_authorized' => '\\ccxt\\AuthenticationError',  // array( message => 'Invalid credentials', code => 'not_authorized' )
+                'forbidden' => '\\ccxt\\PermissionDenied',  // array( message => 'You dont have access to this resource', code => 'forbidden' )
+                'invalid_record' => '\\ccxt\\ExchangeError',  // array( message => 'Validation Failed', code => 'invalid_record', errors => array() )
+                'not_found' => '\\ccxt\\ExchangeError',  // array( message => 'Not found', code => 'not_found' )
+                'parameter_missing' => '\\ccxt\\ExchangeError',  // array( message => 'Parameter missing', code => 'parameter_missing' )
+                'bad_parameter' => '\\ccxt\\ExchangeError',  // array( message => 'Bad Parameter format', code => 'bad_parameter' )
             ),
         ));
     }
@@ -153,7 +153,7 @@ class buda extends Exchange {
         $markets = $marketsResponse['markets'];
         $currenciesResponse = $this->publicGetCurrencies ();
         $currencies = $currenciesResponse['currencies'];
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $market['id'];
@@ -174,7 +174,7 @@ class buda extends Exchange {
                     'max' => null,
                 ),
                 'price' => array (
-                    'min' => pow (10, -$precision['price']),
+                    'min' => pow(10, -$precision['price']),
                     'max' => null,
                 ),
             );
@@ -201,7 +201,7 @@ class buda extends Exchange {
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetCurrencies ();
         $currencies = $response['currencies'];
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             if (!$currency['managed'])
@@ -209,7 +209,7 @@ class buda extends Exchange {
             $id = $currency['id'];
             $code = $this->common_currency_code($id);
             $precision = $currency['input_decimals'];
-            $minimum = pow (10, -$precision);
+            $minimum = pow(10, -$precision);
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -248,15 +248,15 @@ class buda extends Exchange {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define $codes = array ( 'ETH', 'BTC' ) in args it will only load those
         $this->load_markets();
-        $withdrawFees = array ();
-        $depositFees = array ();
-        $info = array ();
+        $withdrawFees = array();
+        $depositFees = array();
+        $info = array();
         if ($codes === null)
-            $codes = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+            $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currency ($code);
-            $request = array ( 'currency' => $currency['id'] );
+            $request = array( 'currency' => $currency['id'] );
             $withdrawResponse = $this->publicGetCurrenciesCurrencyFeesWithdrawal ($request);
             $depositResponse = $this->publicGetCurrenciesCurrencyFeesDeposit ($request);
             $withdrawFees[$code] = $this->parse_funding_fee ($withdrawResponse['fee']);
@@ -426,7 +426,7 @@ class buda extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalances ();
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         $balances = $response['balances'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
@@ -512,7 +512,7 @@ class buda extends Exchange {
             'received' => 'open',
             'canceling' => 'canceled',
         );
-        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
+        return (is_array($statuses) && array_key_exists($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function parse_order ($order, $market = null) {
@@ -521,14 +521,14 @@ class buda extends Exchange {
         $symbol = null;
         if ($market === null) {
             $marketId = $order['market_id'];
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))
                 $market = $this->markets_by_id[$marketId];
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
         $type = $order['price_type'];
-        $side = strtolower ($order['type']);
+        $side = strtolower($order['type']);
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $amount = floatval ($order['original_amount'][0]);
         $remaining = floatval ($order['amount'][0]);
@@ -577,13 +577,13 @@ class buda extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         if ($this->is_fiat ($code)) {
-            throw new NotSupported ($this->id . ' fetchDepositAddress() for fiat ' . $code . ' is not supported');
+            throw new NotSupported($this->id . ' fetchDepositAddress() for fiat ' . $code . ' is not supported');
         }
         $response = $this->privateGetCurrenciesCurrencyReceiveAddresses (array_merge (array (
             'currency' => $currency['id'],
         ), $params));
         $receiveAddresses = $response['receive_addresses'];
-        $addressPool = array ();
+        $addressPool = array();
         for ($i = 1; $i < count ($receiveAddresses); $i++) {
             $receiveAddress = $receiveAddresses[$i];
             if ($receiveAddress['ready']) {
@@ -594,7 +594,7 @@ class buda extends Exchange {
         }
         $addressPoolLength = is_array ($addressPool) ? count ($addressPool) : 0;
         if ($addressPoolLength < 1) {
-            throw new AddressPending ($this->id . ' => there are no addresses ready for receiving ' . $code . ', retry again later)');
+            throw new AddressPending($this->id . ' => there are no addresses ready for receiving ' . $code . ', retry again later)');
         }
         $address = $addressPool[0];
         return array (
@@ -609,7 +609,7 @@ class buda extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         if ($this->is_fiat ($code))
-            throw new NotSupported ($this->id . ' => fiat fetchDepositAddress() for ' . $code . ' is not supported');
+            throw new NotSupported($this->id . ' => fiat fetchDepositAddress() for ' . $code . ' is not supported');
         $response = $this->privatePostCurrenciesCurrencyReceiveAddresses (array_merge (array (
             'currency' => $currency['id'],
         ), $params));
@@ -630,7 +630,7 @@ class buda extends Exchange {
             'retained' => 'canceled',
             'pending_confirmation' => 'pending',
         );
-        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
+        return (is_array($statuses) && array_key_exists($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -651,8 +651,8 @@ class buda extends Exchange {
         $fee = floatval ($transaction['fee'][0]);
         $feeCurrency = $transaction['fee'][1];
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
-        $type = (is_array ($transaction) && array_key_exists ('deposit_data', $transaction)) ? 'deposit' : 'withdrawal';
-        $data = $this->safe_value($transaction, $type . '_data', array ());
+        $type = (is_array($transaction) && array_key_exists('deposit_data', $transaction)) ? 'deposit' : 'withdrawal';
+        $data = $this->safe_value($transaction, $type . '_data', array());
         $address = $this->safe_value($data, 'target_address');
         $txid = $this->safe_string($data, 'tx_hash');
         $updated = $this->parse8601 ($this->safe_string($data, 'updated_at'));
@@ -678,7 +678,7 @@ class buda extends Exchange {
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null)
-            throw new ExchangeError ($this->id . ' => fetchDeposits() requires a $currency $code argument');
+            throw new ExchangeError($this->id . ' => fetchDeposits() requires a $currency $code argument');
         $currency = $this->currency ($code);
         $response = $this->privateGetCurrenciesCurrencyDeposits (array_merge (array (
             'currency' => $currency['id'],
@@ -691,7 +691,7 @@ class buda extends Exchange {
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         if ($code === null)
-            throw new ExchangeError ($this->id . ' => fetchDeposits() requires a $currency $code argument');
+            throw new ExchangeError($this->id . ' => fetchDeposits() requires a $currency $code argument');
         $currency = $this->currency ($code);
         $response = $this->privateGetCurrenciesCurrencyWithdrawals (array_merge (array (
             'currency' => $currency['id'],
@@ -740,7 +740,7 @@ class buda extends Exchange {
                 $components[] = $this->decode ($base64_body);
             }
             $components[] = $nonce;
-            $message = implode (' ', $components);
+            $message = implode(' ', $components);
             $signature = $this->hmac ($this->encode ($message), $this->encode ($this->secret), 'sha384');
             $headers = array (
                 'X-SBTC-APIKEY' => $this->apiKey,
@@ -749,7 +749,7 @@ class buda extends Exchange {
                 'Content-Type' => 'application/json',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
@@ -762,10 +762,10 @@ class buda extends Exchange {
             $feedback = $this->id . ' ' . $message;
             $exceptions = $this->exceptions;
             if ($errorCode !== null) {
-                if (is_array ($exceptions) && array_key_exists ($errorCode, $exceptions)) {
-                    throw new $exceptions[$errorCode] ($feedback);
+                if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
+                    throw new $exceptions[$errorCode]($feedback);
                 } else {
-                    throw new ExchangeError ($feedback);
+                    throw new ExchangeError($feedback);
                 }
             }
         }
