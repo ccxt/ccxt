@@ -31,6 +31,7 @@ module.exports = class allcoin extends okcoinusd {
                 'status': 'shutdown',
                 'updated': undefined,
                 'eta': undefined,
+                'url': undefined,
             },
             'api': {
                 'web': {
