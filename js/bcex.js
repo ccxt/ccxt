@@ -40,6 +40,7 @@ module.exports = class bcex extends Exchange {
                 'status': 'error',
                 'updated': undefined,
                 'eta': undefined,
+                'url': undefined,
             },
             'api': {
                 'public': {
