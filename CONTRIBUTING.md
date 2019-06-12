@@ -38,6 +38,10 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
 ## How To Contribute Code
 
+- **[MAKE SURE YOUR CODE IS UNIFIED](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes)!**
+
+  ↑ This is the most important rule of all.
+
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
   - `/doc/*` (these files are generated from `/wiki/*`, place your edits there)
@@ -260,7 +264,136 @@ And structurally:
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
 - keep it simple, don't do more than one statement in one line
 
-#### Accessing Dictionary Keys
+#### Sending market ids
+
+Most of exchanges' API endpoints will require an exchange-specific market symbol or trading pair or instrument to be specified in the request.
+
+**We don't send unified symbols to exchanges directly!** They are not interchangeable! There is a significant difference between an *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
+
+- https://github.com/ccxt/ccxt/wiki/Manual#markets
+- https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
+
+**NEVER DO THIS, EXAMPLE OF BAD CODE:**
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const request = {
+      'pair': symbol, // very bad, sending unified symbols to the exchange directly
+   };
+   const response = await this.publicGetEndpoint (request);
+   // parse in a unified way...
+}
+```
+
+**DO NOT DO THIS, ALSO AN EXAMPLE OF BAD CODE:**
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const request = {
+      'symbol': symbol, // very bad, sending unified symbols to the exchange directly
+   };
+   const response = await this.publicGetEndpoint (request);
+   // parse in a unified way...
+}
+```
+
+Instead of sending a unified CCXT symbol to the exchange, we **always** take the exchange-specific market-`id` that corresponds to that symbol. If it so happens that an exchange specific market-id is exactly the same as the CCXT unified symbol – that's a happy coincidence, but we never rely on that in the unified CCXT API.
+
+To get the exchange-specific market-id by a unified CCXT symbol, use the following methods:
+
+- `this.market (symbol)` – returns the entire unified market structure, containing the `id`, `baseId`, `quoteId`, and many other interesting things
+- `this.marketId (symbol)` – returns just the exchange-specific `id` of a market by a unified symbol (if you don't need anything else)
+
+**GOOD EXAMPLES:**
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const market = this.market (symbol); // the entire market structure
+   const request = {
+      'pair': market['id'], // good, they may me equal, but often differ, it's ok
+   };
+   const response = await this.publicGetEndpoint (this.extend (request, params));
+   // parse in a unified way...
+}
+```
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const marketId = this.marketId (symbol); // just the id
+   const request = {
+      'symbol': marketId, // good, they may me equal, but often differ, it's ok
+   };
+   const response = await this.publicGetEndpoint (this.extend (request, params));
+   // parse in a unified way...
+}
+```
+
+#### Parsing symbols
+
+When sending requests to the exchange unified symbols have to be _"converted"_ to exchange-specific market-`id`s like shown above. The same is true on the other side – when receiving an exchange response it has an exchange-specific market-`id` inside it that has to be _"converted back"_ to a unified CCXT symbol.
+
+**We don't put exchange-specific market-`id`s in unified structures directly!** We can't freely interchange symbols with ids! There is a significant difference between an *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
+
+- https://github.com/ccxt/ccxt/wiki/Manual#markets
+- https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
+
+**NEVER DO THIS, EXAMPLE OF BAD CODE:**:
+
+```JavaScript
+parseTrade (trade, market = undefined) {
+   // parsing code...
+   return {
+      'info': trade,
+      'symbol': trade['pair'], // very bad, returning exchange-specific market-ids in a unified structure!
+      // other fields...
+   };
+}
+```
+
+**DO NOT DO THIS, ALSO AN EXAMPLE OF BAD CODE:**
+
+```JavaScript
+parseTrade (trade, market = undefined) {
+   // parsing code...
+   return {
+      'info': trade,
+      'symbol': trade['symbol'], // very bad, returning exchange-specific market-ids in a unified structure!
+      // other fields...
+   };
+}
+```
+
+In order to handle the market-`id` properly it has to be looked-up in the info cached on this exchange with `loadMarkets()`:
+
+**GOOD EXAMPLE:**
+
+```JavaScript
+parseTrade (trade, market = undefined) {
+   let symbol = undefined;
+   const marketId = this.safeString (trade, 'pair');
+   if (marketId !== undefined) {
+      if (marketId in this.markets_by_id) {
+         // look up by an exchange-specific id in the preloaded markets first
+         market = this.markets_by_id[market];
+         symbol = market['symbol'];
+      } else {
+         // try to parse it somehow, if the format is known
+         const [ baseId, quoteId ] = marketId.split ('/');
+         const base = this.commonCurrencyCode (baseId); // unified
+         const quote = this.commonCurrencyCode (quoteId);
+         symbol = base + '/' + quote;
+      }
+   }
+   // parsing code...
+   return {
+      'info': trade,
+      'symbol': symbol, // very good, a unified symbol here now
+      // other fields...
+   };
+}
+```
+
+#### Accessing dictionary keys
 
 In JavaScript, dictionary keys can be accessed in two notations:
 
@@ -273,7 +406,7 @@ While the above does work in JavaScript, it will not work in Python or PHP. In m
 
 To keep the code transpileable, please, remeber this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
 
-#### Sanitizing Input With Safe Methods
+#### Sanitizing input with `safe`-methods
 
 JavaScript is less restrictive than other languages. It will tolerate an attempt to dereference a non-existent key where other languages will throw an Exception:
 
@@ -346,7 +479,7 @@ if ('foo' in params) {
 }
 ```
 
-#### Working With Array Lengths
+#### Working with array lengths
 
 In JavaScript the common syntax to get a length of a string or an array is to reference the `.length` property like shown here:
 
@@ -392,13 +525,13 @@ const arrayLength = someArray.length;
 
 That `.length;` line ending does the trick. The only case when the array `.length` is preferred over the string `.length` is the `for` loop. In the header of the `for` loop, the `.length` always refers to array length (not string length).
 
-#### Adding Numbers And Concatenating Strings
+#### Adding numbers and concatenating strings
 
 In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up numbers or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
 
 The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**. The same logic applies to operator `+=` vs operator `.=` – `this.sum()` has to be used in those cases as well.
 
-#### Formatting Decimal Numbers To Precision
+#### Formatting decimal numbers to precision
 
 The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
 
@@ -490,7 +623,7 @@ foo += this.c ();
 
 - market ids, trading pair symbols, currency ids, token codes, symbolic unification and `commonCurrencies` must be standardized in all parsing methods (`fetchMarkets`, `fetchCurrencies`, `parseTrade`, `parseOrder`, ...)
 - all unified API method names and arguments are standard – can't add or change them freely
-- all parser input must be `safe`-sanitized as [described above](#sainitizing-input-with-safe-methods)
+- all parser input must be `safe`-sanitized as [described above](#sanitizing-input-with-safe-methods)
 - for bulk operations the base methods should be used (`parseTrades`, `parseOrders`, note the `s` plural ending)
 - use as much of base functionality as you can, do not reinvent the wheel, nor the bicycle, nor the bicycle wheel
 - respect default argument values in `fetch`-methods, check if `since` and `limit` are `undefined` and do not send them to the exchange, we intentionally use the exchanges' defaults in such cases
