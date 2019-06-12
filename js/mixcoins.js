@@ -44,49 +44,54 @@ module.exports = class mixcoins extends Exchange {
                 },
             },
             'markets': {
-                'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'maker': 0.0015, 'taker': 0.0025 },
-                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.001, 'taker': 0.0015 },
-                'BCH/BTC': { 'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.001, 'taker': 0.0015 },
-                'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'maker': 0.0015, 'taker': 0.0025 },
-                'BCH/USD': { 'id': 'bch_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'maker': 0.001, 'taker': 0.0015 },
-                'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'maker': 0.001, 'taker': 0.0015 },
+                'BTC/USD': { 'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'btc', 'quoteId': 'usd', 'maker': 0.0015, 'taker': 0.0025 },
+                'ETH/BTC': { 'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.001, 'taker': 0.0015 },
+                'BCH/BTC': { 'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bch', 'quoteId': 'btc', 'maker': 0.001, 'taker': 0.0015 },
+                'LSK/BTC': { 'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc', 'maker': 0.0015, 'taker': 0.0025 },
+                'BCH/USD': { 'id': 'bch_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'baseId': 'bch', 'quoteId': 'usd', 'maker': 0.001, 'taker': 0.0015 },
+                'ETH/USD': { 'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'eth', 'quoteId': 'usd', 'maker': 0.001, 'taker': 0.0015 },
             },
         });
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.privatePostInfo ();
-        let balance = response['result']['wallet'];
-        let result = { 'info': balance };
-        let currencies = Object.keys (this.currencies);
+        await this.loadMarkets ();
+        const response = await this.privatePostInfo (params);
+        const balance = this.safeValue (response['result'], 'wallet');
+        const result = { 'info': balance };
+        const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let lowercase = currency.toLowerCase ();
-            let account = this.account ();
-            if (lowercase in balance) {
-                account['free'] = parseFloat (balance[lowercase]['avail']);
-                account['used'] = parseFloat (balance[lowercase]['lock']);
+            const code = currencies[i];
+            const currencyId = this.currencyid (code);
+            const account = this.account ();
+            if (currencyId in balance) {
+                account['free'] = this.safeFloat (balance[currencyId], 'avail');
+                account['used'] = this.safeFloat (balance[currencyId], 'lock');
                 account['total'] = this.sum (account['free'], account['used']);
             }
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let response = await this.publicGetDepth (this.extend ({
+        await this.loadMarkets ();
+        const request = {
             'market': this.marketId (symbol),
-        }, params));
+        };
+        const response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response['result']);
     }
 
     async fetchTicker (symbol, params = {}) {
-        let response = await this.publicGetTicker (this.extend ({
+        await this.loadMarkets ();
+        const request = {
             'market': this.marketId (symbol),
-        }, params));
-        let ticker = response['result'];
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'last');
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const ticker = this.safeValue (response, 'result');
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -112,7 +117,7 @@ module.exports = class mixcoins extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['date']) * 1000;
+        const timestamp = parseInt (trade['date']) * 1000;
         return {
             'id': trade['id'].toString (),
             'info': trade,
@@ -127,26 +132,29 @@ module.exports = class mixcoins extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
-        }, params));
+        };
+        const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response['result'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let order = {
+        await this.loadMarkets ();
+        const request = {
             'market': this.marketId (symbol),
             'op': side,
             'amount': amount,
         };
         if (type === 'market') {
-            order['order_type'] = 1;
-            order['price'] = price;
+            request['order_type'] = 1;
+            request['price'] = price;
         } else {
-            order['order_type'] = 0;
+            request['order_type'] = 0;
         }
-        let response = await this.privatePostTrade (this.extend (order, params));
+        const response = await this.privatePostTrade (this.extend (request, params));
         return {
             'info': response,
             'id': response['result']['id'].toString (),
@@ -154,14 +162,19 @@ module.exports = class mixcoins extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancel ({ 'id': id });
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        return await this.privatePostCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
@@ -178,10 +191,12 @@ module.exports = class mixcoins extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('status' in response)
-            if (response['status'] === 200)
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('status' in response) {
+            if (response['status'] === 200) {
                 return response;
+            }
+        }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };
