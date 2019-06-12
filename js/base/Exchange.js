@@ -159,6 +159,7 @@ module.exports = class Exchange {
                 'status': 'ok',
                 'updated': undefined,
                 'eta': undefined,
+                'url': undefined,
             },
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
