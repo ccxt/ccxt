@@ -46,42 +46,47 @@ class mixcoins (Exchange):
                 },
             },
             'markets': {
-                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'maker': 0.0015, 'taker': 0.0025},
-                'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.001, 'taker': 0.0015},
-                'BCH/BTC': {'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.001, 'taker': 0.0015},
-                'LSK/BTC': {'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'maker': 0.0015, 'taker': 0.0025},
-                'BCH/USD': {'id': 'bch_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'maker': 0.001, 'taker': 0.0015},
-                'ETH/USD': {'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'maker': 0.001, 'taker': 0.0015},
+                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'btc', 'quoteId': 'usd', 'maker': 0.0015, 'taker': 0.0025},
+                'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.001, 'taker': 0.0015},
+                'BCH/BTC': {'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bch', 'quoteId': 'btc', 'maker': 0.001, 'taker': 0.0015},
+                'LSK/BTC': {'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc', 'maker': 0.0015, 'taker': 0.0025},
+                'BCH/USD': {'id': 'bch_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'baseId': 'bch', 'quoteId': 'usd', 'maker': 0.001, 'taker': 0.0015},
+                'ETH/USD': {'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'eth', 'quoteId': 'usd', 'maker': 0.001, 'taker': 0.0015},
             },
         })
 
     async def fetch_balance(self, params={}):
-        response = await self.privatePostInfo()
-        balance = response['result']['wallet']
+        await self.load_markets()
+        response = await self.privatePostInfo(params)
+        balance = self.safe_value(response['result'], 'wallet')
         result = {'info': balance}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
-            currency = currencies[i]
-            lowercase = currency.lower()
+            code = currencies[i]
+            currencyId = self.currencyid(code)
             account = self.account()
-            if lowercase in balance:
-                account['free'] = float(balance[lowercase]['avail'])
-                account['used'] = float(balance[lowercase]['lock'])
+            if currencyId in balance:
+                account['free'] = self.safe_float(balance[currencyId], 'avail')
+                account['used'] = self.safe_float(balance[currencyId], 'lock')
                 account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
-        response = await self.publicGetDepth(self.extend({
+        await self.load_markets()
+        request = {
             'market': self.market_id(symbol),
-        }, params))
+        }
+        response = await self.publicGetDepth(self.extend(request, params))
         return self.parse_order_book(response['result'])
 
     async def fetch_ticker(self, symbol, params={}):
-        response = await self.publicGetTicker(self.extend({
+        await self.load_markets()
+        request = {
             'market': self.market_id(symbol),
-        }, params))
-        ticker = response['result']
+        }
+        response = await self.publicGetTicker(self.extend(request, params))
+        ticker = self.safe_value(response, 'result')
         timestamp = self.milliseconds()
         last = self.safe_float(ticker, 'last')
         return {
@@ -122,31 +127,38 @@ class mixcoins (Exchange):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTrades(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        order = {
+        await self.load_markets()
+        request = {
             'market': self.market_id(symbol),
             'op': side,
             'amount': amount,
         }
         if type == 'market':
-            order['order_type'] = 1
-            order['price'] = price
+            request['order_type'] = 1
+            request['price'] = price
         else:
-            order['order_type'] = 0
-        response = await self.privatePostTrade(self.extend(order, params))
+            request['order_type'] = 0
+        response = await self.privatePostTrade(self.extend(request, params))
         return {
             'info': response,
             'id': str(response['result']['id']),
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostCancel({'id': id})
+        await self.load_markets()
+        request = {
+            'id': id,
+        }
+        return await self.privatePostCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path

@@ -104,19 +104,23 @@ class mercado (Exchange):
         })
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetCoinOrderbook(self.extend({
+        request = {
             'coin': market['base'],
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        response = await self.publicGetCoinOrderbook(self.extend(request, params))
+        return self.parse_order_book(response)
 
     async def fetch_ticker(self, symbol, params={}):
+        await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetCoinTicker(self.extend({
+        request = {
             'coin': market['base'],
-        }, params))
-        ticker = response['ticker']
-        timestamp = int(ticker['date']) * 1000
+        }
+        response = await self.publicGetCoinTicker(self.extend(request, params))
+        ticker = self.safe_value(response, 'ticker', {})
+        timestamp = self.safe_integer(ticker, 'date') * 1000
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -157,6 +161,7 @@ class mercado (Exchange):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
         method = 'publicGetCoinTrades'
         request = {
@@ -172,22 +177,25 @@ class mercado (Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_balance(self, params={}):
-        response = await self.privatePostGetAccountInfo()
-        balances = response['response_data']['balance']
+        await self.load_markets()
+        response = await self.privatePostGetAccountInfo(params)
+        balances = self.safe_value(response['response_data'], 'balance')
         result = {'info': response}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
-            currency = currencies[i]
-            lowercase = currency.lower()
+            code = currencies[i]
+            currencyId = self.currencyId(code)
+            lowercase = currencyId.lower()
             account = self.account()
             if lowercase in balances:
                 account['free'] = float(balances[lowercase]['available'])
                 account['total'] = float(balances[lowercase]['total'])
                 account['used'] = account['total'] - account['free']
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
         request = {
             'coin_pair': self.market_id(symbol),
         }
@@ -306,11 +314,11 @@ class mercado (Exchange):
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'executed_quantity')
         remaining = amount - filled
-        cost = amount * average
+        cost = filled * average
         lastTradeTimestamp = self.safe_integer(order, 'updated_timestamp')
         if lastTradeTimestamp is not None:
             lastTradeTimestamp = lastTradeTimestamp * 1000
-        result = {
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -329,7 +337,6 @@ class mercado (Exchange):
             'fee': fee,
             'trades': None,  # todo parse trades(operations)
         }
-        return result
 
     async def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
