@@ -273,7 +273,7 @@ Most of exchanges' API endpoints will require an exchange-specific market symbol
 - https://github.com/ccxt/ccxt/wiki/Manual#markets
 - https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
 
-**NEVER DO THIS, EXAMPLE OF BAD CODE:**
+**NEVER DO THIS BAD CODE:**
 
 ```JavaScript
 async fetchTicker (symbol, params = {}) {
@@ -337,7 +337,7 @@ When sending requests to the exchange unified symbols have to be _"converted"_ t
 - https://github.com/ccxt/ccxt/wiki/Manual#markets
 - https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
 
-**NEVER DO THIS, EXAMPLE OF BAD CODE:**:
+**NEVER DO THIS BAD CODE:**:
 
 ```JavaScript
 parseTrade (trade, market = undefined) {
