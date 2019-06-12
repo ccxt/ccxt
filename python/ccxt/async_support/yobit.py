@@ -158,13 +158,11 @@ class yobit (liqui):
             '2': 'canceled',
             '3': 'open',  # or partially-filled and closed? https://github.com/ccxt/ccxt/issues/1594
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostGetInfo()
+        response = await self.privatePostGetInfo(params)
         balances = response['return']
         result = {'info': balances}
         sides = {'free': 'funds', 'total': 'funds_incl_orders'}
@@ -190,9 +188,10 @@ class yobit (liqui):
         return self.parse_balance(result)
 
     async def create_deposit_address(self, code, params={}):
-        response = await self.fetch_deposit_address(code, self.extend({
+        request = {
             'need_new': 1,
-        }, params))
+        }
+        response = await self.fetch_deposit_address(code, self.extend(request, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
         return {
@@ -257,11 +256,12 @@ class yobit (liqui):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privatePostWithdrawCoinsToAddress(self.extend({
+        request = {
             'coinName': currency['id'],
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        response = await self.privatePostWithdrawCoinsToAddress(self.extend(request, params))
         return {
             'info': response,
             'id': None,
