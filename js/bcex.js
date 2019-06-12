@@ -37,7 +37,7 @@ module.exports = class bcex extends Exchange {
                 'referral': 'https://www.bcex.top/user/reg/type/2/pid/758978',
             },
             'status': {
-                'status': 'shutdown',
+                'status': 'error',
                 'updated': undefined,
                 'eta': undefined,
             },
