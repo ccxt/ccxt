@@ -522,8 +522,9 @@ module.exports = class liqui extends Exchange {
             remaining = this.safeFloat (order, 'amount');
         } else {
             remaining = this.safeFloat (order, 'amount');
-            if (id in this.orders)
+            if (id in this.orders) {
                 amount = this.orders[id]['amount'];
+            }
         }
         if (amount !== undefined) {
             if (remaining !== undefined) {
@@ -600,8 +601,9 @@ module.exports = class liqui extends Exchange {
             if (!(cachedOrderId in openOrdersIndexedById)) {
                 // cached order is not in open orders array
                 // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (symbol !== undefined && symbol !== cachedOrder['symbol'])
+                if (symbol !== undefined && symbol !== cachedOrder['symbol']) {
                     continue;
+                }
                 // cached order is absent from the list of open orders -> mark the cached order as closed
                 if (cachedOrder['status'] === 'open') {
                     cachedOrder = this.extend (cachedOrder, {
@@ -623,10 +625,13 @@ module.exports = class liqui extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if ('fetchOrdersRequiresSymbol' in this.options)
-            if (this.options['fetchOrdersRequiresSymbol'])
-                if (symbol === undefined)
+        if ('fetchOrdersRequiresSymbol' in this.options) {
+            if (this.options['fetchOrdersRequiresSymbol']) {
+                if (symbol === undefined) {
                     throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+                }
+            }
+        }
         await this.loadMarkets ();
         let request = {};
         let market = undefined;
@@ -637,8 +642,9 @@ module.exports = class liqui extends Exchange {
         let response = await this.privatePostActiveOrders (this.extend (request, params));
         // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
         let openOrders = [];
-        if ('return' in response)
+        if ('return' in response) {
             openOrders = this.parseOrders (response['return'], market);
+        }
         let allOrders = this.updateCachedOrders (openOrders, symbol);
         let result = this.filterBySymbol (allOrders, symbol);
         return this.filterBySinceLimit (result, since, limit);
@@ -760,8 +766,9 @@ module.exports = class liqui extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (!this.isJsonEncodedObject (body))
+        if (response === undefined) {
             return; // fallback to default error handler
+        }
         if ('success' in response) {
             //
             // 1 - Liqui only returns the integer 'success' key from their private API
@@ -791,10 +798,11 @@ module.exports = class liqui extends Exchange {
             //
             let success = this.safeValue (response, 'success', false);
             if (typeof success === 'string') {
-                if ((success === 'true') || (success === '1'))
+                if ((success === 'true') || (success === '1')) {
                     success = true;
-                else
+                } else {
                     success = false;
+                }
             }
             if (!success) {
                 const code = this.safeString (response, 'code');
