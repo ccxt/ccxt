@@ -747,10 +747,12 @@ Market Structure
 .. code:: javascript
 
    {
-       'id':     'btcusd',   // string literal for referencing within an exchange
-       'symbol': 'BTC/USD',  // uppercase string literal of a pair of currencies
-       'base':   'BTC',      // uppercase string, base currency, 3 or more letters
-       'quote':  'USD',      // uppercase string, quote currency, 3 or more letters
+       'id':     ' btcusd',  // string literal for referencing within an exchange
+       'symbol':  'BTC/USD', // uppercase string literal of a pair of currencies
+       'base':    'BTC',     // uppercase string, unified base currency code, 3 or more letters
+       'quote':   'USD',     // uppercase string, unified quote currency code, 3 or more letters
+       'baseId':  'btc',     // any string, exchange-specific base currency id
+       'quoteId': 'usd',     // any string, exchange-specific quote currency id
        'active': true,       // boolean, market status
        'precision': {        // number of decimal digits "after the dot"
            'price': 8,       // integer, might be missing if not supplied by the exchange
@@ -772,8 +774,10 @@ Each market is an associative array (aka dictionary) with the following keys:
 
 -  ``id``. The string or numeric ID of the market or trade instrument within the exchange. Market ids are used inside exchanges internally to identify trading pairs during the request/response process.
 -  ``symbol``. An uppercase string code representation of a particular trading pair or instrument. This is usually written as ``BaseCurrency/QuoteCurrency`` with a slash as in ``BTC/USD``, ``LTC/CNY`` or ``ETH/EUR``, etc. Symbols are used to reference markets within the ccxt library (explained below).
--  ``base``. An uppercase string code of base fiat or crypto currency.
--  ``quote``. An uppercase string code of quoted fiat or crypto currency.
+-  ``base``. A unified uppercase string code of base fiat or crypto currency. This is the standardized currency code that is used to refer to that currency or token throughout CCXT and throughout the Unified CCXT API, it’s the language that CCXT understands.
+-  ``quote``. A unified uppercase string code of quoted fiat or crypto currency.
+-  ``baseId``. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
+-  ``quoteId``. An exchange-specific id of the quote currency, not unified.
 -  ``active``. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and `reload market cache periodically, as explained below <#market-cache-force-reload>`__.
 -  ``info``. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 -  ``precision``. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
@@ -1867,8 +1871,8 @@ To get historical prices and volumes use the unified ```fetchOHLCV`` <https://gi
 
 Methods for fetching tickers:
 
--  ``fetchTicker (symbol[, params = {}]) // symbol is required, params are optional``
--  ``fetchTickers ([symbols = undefined[, params = {}]]) // both argument are optional (mostly)``
+-  ``fetchTicker (symbol[, params = {}])``, symbol is required, params are optional
+-  ``fetchTickers ([symbols = undefined[, params = {}]])``, both arguments optional
 
 Individually By Symbol
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -2928,19 +2932,32 @@ A seller decides to place a sell limit order on the ask side for a price of 0.70
 
 As the price and amount of the incoming sell (ask) order cover more than one bid order (orders ``b`` and ``i``), the following sequence of events usually happens within an exchange engine very quickly, but not immediately:
 
-1. Order ``b`` is matched against the incoming sell because their prices intersect. Their volumes *“mutually annihilate”* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for this filled part of the order the seller gets a better price than he asked for initially (0.8 instead of 0.7). Most conventional exchanges fill orders for the best price available.
+1. Order ``b`` is matched against the incoming sell because their prices intersect. Their volumes *“mutually annihilate”* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for the filled part of the order the seller gets a better price than he asked for initially. He asked for 0.7 at least but got 0.8 instead which is even better for the seller. Most conventional exchanges fill orders for the best price available.
 
-2. A trade is generated for the order ``b`` against the incoming sell order. That trade *“fills”* the entire order ``b`` and most of the sell order. One trade is generated per each pair of matched orders, whether the amount was filled completely or partially. In this example the amount of 100 fills order ``b`` completely (closed the order ``b``) and also fills the selling order partially (leaves it open in the orderbook).
+2. A trade is generated for the order ``b`` against the incoming sell order. That trade *“fills”* the entire order ``b`` and most of the sell order. One trade is generated per each pair of matched orders, whether the amount was filled completely or partially. In this example the seller amount (100) fills order ``b`` completely (closes the order ``b``) and also fills the selling order partially (leaves it open in the orderbook).
 
-3. Order ``b`` now has a status of ``closed`` and a filled volume of 100. It contains one trade against the selling order. The selling order has ``open`` status and a filled volume of 100. It contains one trade against order ``b``. Thus each order has just one fill-trade so far.
+3. Order ``b`` now has a status of ``closed`` and a filled volume of 100. It contains one trade against the selling order. The selling order has an ``open`` status and a filled volume of 100. It contains one trade against order ``b``. Thus each order has just one fill-trade so far.
 
 4. The incoming sell order has a filled amount of 100 and has yet to fill the remaining amount of 50 from its initial amount of 150 in total.
 
-5. Order ``i`` is matched against the remaining part of incoming sell, because their prices intersect. The amount of buying order ``i`` which is 200 completely annihilates the remaining sell amount of 50. The order ``i`` is filled partially by 50, but the rest of its volume, namely the remaining amount of 150 will stay in the orderbook. The selling order, however, is filled completely by this second match.
+The intermediate state of the orderbook is now (order ``b`` is ``closed`` and is not in the orderbook anymore):
+
+::
+
+       | price  | amount
+   ----|----------------  ↓
+     a |  1.200 | 200     ↓
+     s |  1.100 | 300     ↓
+     k |  0.900 | 100     ↓
+   ----|----------------  ↓ sell remaining 50 for 0.700
+     i |  0.700 | 200     -----------------------------
+     d |  0.500 | 100
+
+5. Order ``i`` is matched against the remaining part of incoming sell, because their prices intersect. The amount of buying order ``i`` which is 200 completely annihilates the remaining sell amount of 50. The order ``i`` is filled partially by 50, but the rest of its volume, namely the remaining amount of 150 will stay in the orderbook. The selling order, however, is fulfilled completely by this second match.
 
 6. A trade is generated for the order ``i`` against the incoming sell order. That trade partially fills order ``i``. And completes the filling of the sell order. Again, this is just one trade for a pair of matched orders.
 
-7. Order ``i`` now has a status of ``open``, a filled amount of 50, and a remaining amount of 150. It contains one filling trade against the selling order. The selling order has a ``closed`` status now, as it was completely filled its total initial amount of 150. However, it contains two trades, the first against order ``b`` and the second against order ``i``. Thus each order can have one or more filling trades, depending on how their volumes were matched by the exchange engine.
+7. Order ``i`` now has a status of ``open``, a filled amount of 50, and a remaining amount of 150. It contains one filling trade against the selling order. The selling order has a ``closed`` status now and it has completely filled its total initial amount of 150. However, it contains two trades, the first against order ``b`` and the second against order ``i``. Thus each order can have one or more filling trades, depending on how their volumes were matched by the exchange engine.
 
 After the above sequence takes place, the updated orderbook will look like this.
 
