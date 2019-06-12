@@ -74,8 +74,9 @@ module.exports = class nova extends Exchange {
             let [ quote, base ] = id.split ('_');
             let symbol = base + '/' + quote;
             let active = true;
-            if (market['disabled'])
+            if (market['disabled']) {
                 active = false;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -174,8 +175,9 @@ module.exports = class nova extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === 'market')
+        if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
+        }
         await this.loadMarkets ();
         amount = amount.toString ();
         price = price.toString ();
@@ -240,13 +242,15 @@ module.exports = class nova extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
-        if (api === 'private')
+        if (api === 'private') {
             url += api + '/';
+        }
         url += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ().toString ();
@@ -265,9 +269,11 @@ module.exports = class nova extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('status' in response)
-            if (response['status'] !== 'success')
+        if ('status' in response) {
+            if (response['status'] !== 'success') {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
+        }
         return response;
     }
 };
