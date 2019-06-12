@@ -172,7 +172,7 @@ module.exports = class hollaex extends Exchange {
         let average = undefined;
         let baseVolume = this.safeFloat (response, 'volume');
         let quoteVolume = undefined;
-        let result = { symbol, info, timestamp, datetime, high, low, bid, bidVolume, ask, askVolume, vwap, open, close, last, previousClose, change, percentage, average, baseVolume, quoteVolume }
+        let result = { symbol, info, timestamp, datetime, high, low, bid, bidVolume, ask, askVolume, vwap, open, close, last, previousClose, change, percentage, average, baseVolume, quoteVolume };
         return result;
     }
 
