@@ -691,8 +691,9 @@ module.exports = class uex extends Exchange {
         //                             status:    2                                 } }
         //
         let side = this.safeString (order, 'side');
-        if (side !== undefined)
+        if (side !== undefined) {
             side = side.toLowerCase ();
+        }
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (market === undefined) {
@@ -1157,8 +1158,9 @@ module.exports = class uex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else {
             this.checkRequiredCredentials ();
             let timestamp = this.seconds ().toString ();
@@ -1189,24 +1191,21 @@ module.exports = class uex extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string')
+        if (response === undefined) {
             return; // fallback to default error handler
-        if (body.length < 2)
-            return; // fallback to default error handler
-        if ((body[0] === '{') || (body[0] === '[')) {
-            //
-            // {"code":"0","msg":"suc","data":{}}
-            //
-            const code = this.safeString (response, 'code');
-            // const message = this.safeString (response, 'msg');
-            const feedback = this.id + ' ' + this.json (response);
-            const exceptions = this.exceptions;
-            if (code !== '0') {
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+        }
+        //
+        // {"code":"0","msg":"suc","data":{}}
+        //
+        const code = this.safeString (response, 'code');
+        // const message = this.safeString (response, 'msg');
+        const feedback = this.id + ' ' + this.json (response);
+        const exceptions = this.exceptions;
+        if (code !== '0') {
+            if (code in exceptions) {
+                throw new exceptions[code] (feedback);
+            } else {
+                throw new ExchangeError (feedback);
             }
         }
     }
