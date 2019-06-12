@@ -488,10 +488,10 @@ foo += this.c ();
 
 **REMEMBER:** The key reason why this library is used at all is **Unification**. When developing a new exchange file the goal is not to implement it somehow, but to implement it in a very pedantic, precise and exact way, just as the other exchanges are implemented. For that you will have to copy bits of logic and make sure that the exchange conforms to the Manual in the following aspects:
 
-- market ids, trading pair symbols, currency ids, token codes, symbolic unification and `commonCurrencies` must be standardized in all parsing methods (`fetchMarkets`, `fetchCurrencies`, `parseTrade`, `parseOrder`)
+- market ids, trading pair symbols, currency ids, token codes, symbolic unification and `commonCurrencies` must be standardized in all parsing methods (`fetchMarkets`, `fetchCurrencies`, `parseTrade`, `parseOrder`, ...)
 - all unified API method names and arguments are standard – can't add or change them freely
 - all parser input must be `safe`-sanitized as [described above](#sainitizing-input-with-safe-methods)
-- for bulk operations the base methods should be used `parseTrades`, `parseOrders` (not the `s` plural ending)
+- for bulk operations the base methods should be used (`parseTrades`, `parseOrders`, note the `s` plural ending)
 - use as much of base functionality as you can, do not reinvent the wheel, nor the bicycle, nor the bicycle wheel
 - respect default argument values in `fetch`-methods, check if `since` and `limit` are `undefined` and do not send them to the exchange, we intentionally use the exchanges' defaults in such cases
 
