@@ -206,39 +206,47 @@ class therock extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetBalances ();
-        $balances = $response['balances'];
+        $response = $this->privateGetBalances ($params);
+        $balances = $this->safe_value($response, 'balances');
         $result = array( 'info' => $response );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['currency'];
-            $free = $balance['trading_balance'];
-            $total = $balance['balance'];
-            $used = $total - $free;
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->common_currency_code($currencyId);
+            $free = $this->safe_float($balance, 'trading_balance');
+            $total = $this->safe_float($balance, 'balance');
+            $used = null;
+            if ($total !== null) {
+                if ($free !== null) {
+                    $used = $total - $free;
+                }
+            }
             $account = array (
                 'free' => $free,
                 'used' => $used,
                 'total' => $total,
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetFundsIdOrderbook (array_merge (array (
+        $request = array (
             'id' => $this->market_id($symbol),
-        ), $params));
-        $timestamp = $this->parse8601 ($orderbook['date']);
+        );
+        $orderbook = $this->publicGetFundsIdOrderbook (array_merge ($request, $params));
+        $timestamp = $this->parse8601 ($this->safe_string($orderbook, 'date'));
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->parse8601 ($ticker['date']);
         $symbol = null;
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -328,8 +336,9 @@ class therock extends Exchange {
         //                         currency => "EUR",
         //                         trade_id =>  440492                     }   ) }
         //
-        if (!$market)
+        if (!$market) {
             $market = $this->markets_by_id[$trade['fund_id']];
+        }
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'date'));
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -1156,8 +1165,9 @@ class therock extends Exchange {
                     $headers['Content-Type'] = 'application/json';
                 } else {
                     $queryString = $this->rawencode ($query);
-                    if (strlen ($queryString))
+                    if (strlen ($queryString)) {
                         $url .= '?' . $queryString;
+                    }
                 }
             }
             $nonce = (string) $this->nonce ();

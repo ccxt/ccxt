@@ -1051,8 +1051,9 @@ class upbit extends Exchange {
         $updated = $this->parse8601 ($this->safe_string($transaction, 'done_at'));
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at', $updated));
         $type = $this->safe_string($transaction, 'type');
-        if ($type === 'withdraw')
+        if ($type === 'withdraw') {
             $type = 'withdrawal';
+        }
         $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_value($this->currencies_by_id, $currencyId);
@@ -1476,8 +1477,9 @@ class upbit extends Exchange {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         }
         if ($api === 'private') {
             $this->check_required_credentials();
@@ -1502,8 +1504,9 @@ class upbit extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if ($response === null)
+        if ($response === null) {
             return; // fallback to default $error handler
+        }
         //
         //   array( 'error' => array ( 'message' => "Missing request parameter $error-> Check the required parameters!", 'name' =>  400 ) ),
         //   array( 'error' => array ( 'message' => "side is missing, side does not have a valid value", 'name' => "validation_error" ) ),

@@ -255,8 +255,9 @@ class theocean extends Exchange {
             throw new InvalidAddress($this->id . ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         $codes = $this->safe_value($this->options, 'fetchBalanceCurrencies');
-        if ($codes === null)
+        if ($codes === null) {
             $codes = $this->safe_value($params, 'codes');
+        }
         if (($codes === null) || (!gettype ($codes) === 'array' && count (array_filter (array_keys ($codes), 'is_string')) == 0)) {
             throw new ExchangeError($this->id . ' fetchBalance() requires a `$codes` parameter (an array of currency $codes)');
         }
@@ -741,12 +742,14 @@ class theocean extends Exchange {
     }
 
     public function fetch_order_from_history ($id, $symbol = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, null, null, array_merge (array (
+        $request = array (
             'orderHash' => $id,
-        ), $params));
+        );
+        $orders = $this->fetch_orders($symbol, null, null, array_merge ($request, $params));
         $ordersById = $this->index_by($orders, 'id');
-        if (is_array($ordersById) && array_key_exists($id, $ordersById))
+        if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
             return $ordersById[$id];
+        }
         throw new OrderNotFound($this->id . ' could not find order ' . $id . ' in order history');
     }
 
@@ -883,10 +886,9 @@ class theocean extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
+        if ($response === null) {
             return; // fallback to default error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default error handler
+        }
         // code 401 and plain $body 'Authentication failed' (with single quotes)
         // this error is sent if you do not submit a proper Content-Type
         if ($body === "'Authentication failed'") {
@@ -906,12 +908,14 @@ class theocean extends Exchange {
                 //
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $exact = $this->exceptions['exact'];
-                if (is_array($exact) && array_key_exists($message, $exact))
+                if (is_array($exact) && array_key_exists($message, $exact)) {
                     throw new $exact[$message]($feedback);
+                }
                 $broad = $this->exceptions['broad'];
                 $broadKey = $this->findBroadlyMatchedKey ($broad, $body);
-                if ($broadKey !== null)
+                if ($broadKey !== null) {
                     throw new $broad[$broadKey]($feedback);
+                }
                 throw new ExchangeError($feedback); // unknown $message
             }
         }

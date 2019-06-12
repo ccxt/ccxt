@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -696,9 +689,10 @@ class theocean (Exchange):
         return getattr(self, method)(id, symbol, self.extend(params))
 
     def fetch_order_from_history(self, id, symbol=None, params={}):
-        orders = self.fetch_orders(symbol, None, None, self.extend({
+        request = {
             'orderHash': id,
-        }, params))
+        }
+        orders = self.fetch_orders(symbol, None, None, self.extend(request, params))
         ordersById = self.index_by(orders, 'id')
         if id in ordersById:
             return ordersById[id]
@@ -824,9 +818,7 @@ class theocean (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
-            return  # fallback to default error handler
-        if len(body) < 2:
+        if response is None:
             return  # fallback to default error handler
         # code 401 and plain body 'Authentication failed'(with single quotes)
         # self error is sent if you do not submit a proper Content-Type

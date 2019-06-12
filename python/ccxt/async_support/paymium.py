@@ -63,7 +63,7 @@ class paymium (Exchange):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
+                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur'},
             },
             'fees': {
                 'trading': {
@@ -74,33 +74,37 @@ class paymium (Exchange):
         })
 
     async def fetch_balance(self, params={}):
-        balances = await self.privateGetUser()
-        result = {'info': balances}
+        await self.load_markets()
+        response = await self.privateGetUser(params)
+        result = {'info': response}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
-            currency = currencies[i]
-            lowercase = currency.lower()
+            code = currencies[i]
+            currencyId = self.currencyId(code)
             account = self.account()
-            balance = 'balance_' + lowercase
-            locked = 'locked_' + lowercase
-            if balance in balances:
-                account['free'] = balances[balance]
-            if locked in balances:
-                account['used'] = balances[locked]
+            balance = 'balance_' + currencyId
+            locked = 'locked_' + currencyId
+            if balance in response:
+                account['free'] = response[balance]
+            if locked in response:
+                account['used'] = response[locked]
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbook = await self.publicGetDataIdDepth(self.extend({
+        await self.load_markets()
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
+        }
+        response = await self.publicGetDataIdDepth(self.extend(request, params))
+        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
-        ticker = await self.publicGetDataIdTicker(self.extend({
+        request = {
             'id': self.market_id(symbol),
-        }, params))
+        }
+        ticker = await self.publicGetDataIdTicker(self.extend(request, params))
         timestamp = ticker['at'] * 1000
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
@@ -148,31 +152,35 @@ class paymium (Exchange):
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetDataIdTrades(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
+        }
+        response = await self.publicGetDataIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        order = {
+        await self.load_markets()
+        request = {
             'type': self.capitalize(type) + 'Order',
             'currency': self.market_id(symbol),
             'direction': side,
             'amount': amount,
         }
         if type != 'market':
-            order['price'] = price
-        response = await self.privatePostUserOrders(self.extend(order, params))
+            request['price'] = price
+        response = await self.privatePostUserOrders(self.extend(request, params))
         return {
             'info': response,
             'id': response['uuid'],
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privateDeleteUserOrdersUUIDCancel(self.extend({
+        request = {
             'UUID': id,
-        }, params))
+        }
+        return await self.privateDeleteUserOrdersUUIDCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

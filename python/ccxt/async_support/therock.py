@@ -207,35 +207,40 @@ class therock (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetBalances()
-        balances = response['balances']
+        response = await self.privateGetBalances(params)
+        balances = self.safe_value(response, 'balances')
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
-            free = balance['trading_balance']
-            total = balance['balance']
-            used = total - free
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.common_currency_code(currencyId)
+            free = self.safe_float(balance, 'trading_balance')
+            total = self.safe_float(balance, 'balance')
+            used = None
+            if total is not None:
+                if free is not None:
+                    used = total - free
             account = {
                 'free': free,
                 'used': used,
                 'total': total,
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetFundsIdOrderbook(self.extend({
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        timestamp = self.parse8601(orderbook['date'])
+        }
+        orderbook = await self.publicGetFundsIdOrderbook(self.extend(request, params))
+        timestamp = self.parse8601(self.safe_string(orderbook, 'date'))
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['date'])
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {

@@ -211,23 +211,24 @@ class virwox (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        order = {
+        request = {
             'instrument': market['symbol'],
             'orderType': side.upper(),
             'amount': amount,
         }
         if type == 'limit':
-            order['price'] = price
-        response = self.privatePostPlaceOrder(self.extend(order, params))
+            request['price'] = price
+        response = self.privatePostPlaceOrder(self.extend(request, params))
         return {
             'info': response,
-            'id': str(response['result']['orderID']),
+            'id': self.safe_string(response['result'], 'orderID'),
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelOrder(self.extend({
+        request = {
             'orderID': id,
-        }, params))
+        }
+        return self.privatePostCancelOrder(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]

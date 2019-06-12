@@ -92,19 +92,19 @@ class southxchange extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privatePostListBalances ();
-        if (!$balances)
+        $response = $this->privatePostListBalances ($params);
+        if (!$response) {
             throw new ExchangeError($this->id . ' fetchBalance got an unrecognized response');
-        $result = array( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
+        }
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count ($response); $i++) {
+            $balance = $response[$i];
             $currencyId = $balance['Currency'];
-            $uppercase = strtoupper($currencyId);
-            $currency = $this->currencies_by_id[$uppercase];
-            $code = $currency['code'];
-            $free = floatval ($balance['Available']);
-            $deposited = floatval ($balance['Deposited']);
-            $unconfirmed = floatval ($balance['Unconfirmed']);
+            $uppercaseId = strtoupper($currencyId);
+            $code = $this->common_currency_code($uppercaseId);
+            $free = $this->safe_float($balance, 'Available');
+            $deposited = $this->safe_float($balance, 'Deposited');
+            $unconfirmed = $this->safe_float($balance, 'Unconfirmed');
             $total = $this->sum ($deposited, $unconfirmed);
             $used = $total - $free;
             $account = array (
@@ -119,17 +119,19 @@ class southxchange extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetBookSymbol (array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-        ), $params));
-        return $this->parse_order_book($orderbook, null, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
+        );
+        $response = $this->publicGetBookSymbol (array_merge ($request, $params));
+        return $this->parse_order_book($response, null, 'BuyOrders', 'SellOrders', 'Price', 'Amount');
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market)
+        if ($market) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'Last');
         return array (
             'symbol' => $symbol,
@@ -178,14 +180,18 @@ class southxchange extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetPriceSymbol (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
-        return $this->parse_ticker($ticker, $market);
+        );
+        $response = $this->publicGetPriceSymbol (array_merge ($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $trade['At'] * 1000;
+        $timestamp = $this->safe_integer($trade, 'At');
+        if ($timestamp !== null) {
+            $timestamp = $timestamp * 1000;
+        }
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -203,9 +209,10 @@ class southxchange extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTradesSymbol (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTradesSymbol (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -220,8 +227,9 @@ class southxchange extends Exchange {
         $cost = null;
         if ($amount !== null) {
             $cost = $price * $amount;
-            if ($remaining !== null)
+            if ($remaining !== null) {
                 $filled = $amount - $remaining;
+            }
         }
         $orderType = strtolower($order['Type']);
         $result = array (
@@ -247,24 +255,26 @@ class southxchange extends Exchange {
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        if ($symbol !== null)
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
-        $response = $this->privatePostListOrders ();
+        }
+        $response = $this->privatePostListOrders ($params);
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $order = array (
+        $request = array (
             'listingCurrency' => $market['base'],
             'referenceCurrency' => $market['quote'],
             'type' => $side,
             'amount' => $amount,
         );
-        if ($type === 'limit')
-            $order['limitPrice'] = $price;
-        $response = $this->privatePostPlaceOrder (array_merge ($order, $params));
+        if ($type === 'limit') {
+            $request['limitPrice'] = $price;
+        }
+        $response = $this->privatePostPlaceOrder (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => (string) $response,
@@ -273,24 +283,27 @@ class southxchange extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array_merge (array (
+        $request = array (
             'orderCode' => $id,
-        ), $params));
+        );
+        return $this->privatePostCancelOrder (array_merge ($request, $params));
     }
 
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privatePostGeneratenewaddress (array_merge (array (
+        $request = array (
             'currency' => $currency['id'],
-        ), $params));
+        );
+        $response = $this->privatePostGeneratenewaddress (array_merge ($request, $params));
         $parts = explode('|', $response);
         $numParts = is_array ($parts) ? count ($parts) : 0;
         $address = $parts[0];
         $this->check_address($address);
         $tag = null;
-        if ($numParts > 1)
+        if ($numParts > 1) {
             $tag = $parts[1];
+        }
         return array (
             'currency' => $code,
             'address' => $address,
