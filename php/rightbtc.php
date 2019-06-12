@@ -193,7 +193,7 @@ class rightbtc extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $symbol = $market['symbol'];
-        $timestamp = $ticker['date'];
+        $timestamp = $this->safe_integer($ticker, 'date');
         $last = $this->divide_safe_float ($ticker, 'last', 1e8);
         $high = $this->divide_safe_float ($ticker, 'high', 1e8);
         $low = $this->divide_safe_float ($ticker, 'low', 1e8);
@@ -227,10 +227,15 @@ class rightbtc extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTickerTradingPair (array_merge (array (
+        $request = array (
             'trading_pair' => $market['id'],
-        ), $params));
-        return $this->parse_ticker($response['result'], $market);
+        );
+        $response = $this->publicGetTickerTradingPair (array_merge ($request, $params));
+        $result = $this->safe_value($response, 'result');
+        if (!$result) {
+            throw new ExchangeError($this->id . ' fetchTicker returned an empty $response for $symbol ' . $symbol);
+        }
+        return $this->parse_ticker($result, $market);
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
