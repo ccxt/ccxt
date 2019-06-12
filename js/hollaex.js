@@ -30,7 +30,7 @@ module.exports = class hollaex extends Exchange {
                 'withdraw': true,
             },
             'urls': {
-                'logo': '',
+                'logo': 'https://user-images.githubusercontent.com/10441291/59324510-26bb8380-8d1a-11e9-91a5-5c89402b6f0c.png',
                 'api': 'https://api.hollaex.com',
                 'www': 'https://hollaex.com',
                 'doc': 'https://apidocs.hollaex.com',
@@ -52,8 +52,6 @@ module.exports = class hollaex extends Exchange {
                     'get': [
                         'user',
                         'user/balance',
-                        'user/deposits',
-                        'user/withdrawals',
                         'user/trades',
                         'user/orders',
                         'user/orders/{orderId}',
@@ -136,6 +134,7 @@ module.exports = class hollaex extends Exchange {
             'asks': response['asks'],
             'timestamp': timestamp,
             'datetime': datetime,
+            'nonce': undefined,
         };
         return result;
     }
@@ -197,7 +196,7 @@ module.exports = class hollaex extends Exchange {
         let timestamp = new Date (datetime).getTime ();
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
-        return {
+        let result = {
             'id': undefined,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -209,6 +208,7 @@ module.exports = class hollaex extends Exchange {
             'amount': amount,
             'info': trade,
         };
+        return result;
     }
 
     async fetchBalance (params = {}) {
@@ -241,20 +241,20 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    // SYMBOL
     async fetchOrder (id, symbol = undefined, params = {}) {
+        if (id === undefined) throw new ArgumentsRequired (this.id + ' fetchOrder requires an orderId argument');
         if (symbol === undefined) throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let orderId = this.safeValue (params, 'orderId');
         let request = {
-            'symbol': market['id'],
             'orderId': orderId,
         };
         if (orderId === undefined) {
             request['orderId'] = id;
         }
         let response = await this.privateGetUserOrdersOrderId (this.extend (request, params));
+        if (symbol !== this.markets_by_id[response['symbol']]['symbol']) throw new BadRequest (this.id + ' symbol argument does not match order\'s symbol');
         return this.parseOrder (response, market);
     }
 
@@ -392,12 +392,6 @@ module.exports = class hollaex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response) {
         if (code >= 400 && code <= 503) {
-            // console.log(code);
-            // console.log('header', headers);
-            // console.log('reason', reason);
-            console.log('response', response);
-            // console.log(method, url);
-            // console.log('body', body);
             const exceptions = this.exceptions;
             const message = this.safeString (response, 'message');
             if (message in exceptions) {
