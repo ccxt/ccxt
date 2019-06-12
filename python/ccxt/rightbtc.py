@@ -203,7 +203,7 @@ class rightbtc (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         symbol = market['symbol']
-        timestamp = ticker['date']
+        timestamp = self.safe_integer(ticker, 'date')
         last = self.divide_safe_float(ticker, 'last', 1e8)
         high = self.divide_safe_float(ticker, 'high', 1e8)
         low = self.divide_safe_float(ticker, 'low', 1e8)
@@ -236,10 +236,14 @@ class rightbtc (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTickerTradingPair(self.extend({
+        request = {
             'trading_pair': market['id'],
-        }, params))
-        return self.parse_ticker(response['result'], market)
+        }
+        response = self.publicGetTickerTradingPair(self.extend(request, params))
+        result = self.safe_value(response, 'result')
+        if not result:
+            raise ExchangeError(self.id + ' fetchTicker returned an empty response for symbol ' + symbol)
+        return self.parse_ticker(result, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()

@@ -45,7 +45,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.669'
+const version = '1.18.670'
 
 Exchange.ccxtVersion = version
 
@@ -66986,7 +66986,7 @@ module.exports = class rightbtc extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
-        let timestamp = ticker['date'];
+        let timestamp = this.safeInteger (ticker, 'date');
         let last = this.divideSafeFloat (ticker, 'last', 1e8);
         let high = this.divideSafeFloat (ticker, 'high', 1e8);
         let low = this.divideSafeFloat (ticker, 'low', 1e8);
@@ -67019,11 +67019,16 @@ module.exports = class rightbtc extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTickerTradingPair (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'trading_pair': market['id'],
-        }, params));
-        return this.parseTicker (response['result'], market);
+        };
+        const response = await this.publicGetTickerTradingPair (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
+        if (!Object.keys (result).length) {
+            throw new ExchangeError (this.id + ' fetchTicker returned an empty response for symbol ' + symbol);
+        }
+        return this.parseTicker (result, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
