@@ -112,9 +112,6 @@ module.exports = class tidex extends Exchange {
                 },
             },
             'options': {
-                // 'fetchOrderMethod': 'privatePostOrderInfo',
-                'fetchMyTradesMethod': 'privatePostTradeHistory',
-                // 'cancelOrderMethod': 'privatePostCancelOrder',
                 'fetchTickersMaxLength': 2048,
             },
         });
