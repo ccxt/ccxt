@@ -36,6 +36,11 @@ module.exports = class bcex extends Exchange {
                 'fees': 'https://bcex.udesk.cn/hc/articles/57085',
                 'referral': 'https://www.bcex.top/user/reg/type/2/pid/758978',
             },
+            'status': {
+                'status': 'shutdown',
+                'updated': undefined,
+                'eta': undefined,
+            },
             'api': {
                 'public': {
                     'get': [
