@@ -171,8 +171,9 @@ class tidebit extends Exchange {
             $balance = $balances[$b];
             $currencyId = $balance['currency'];
             $code = strtoupper($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
+            }
             $account = array (
                 'free' => floatval ($balance['balance']),
                 'used' => floatval ($balance['locked']),
@@ -190,8 +191,9 @@ class tidebit extends Exchange {
         $request = array (
             'market' => $market['id'],
         );
-        if ($limit === null)
+        if ($limit === null) {
             $request['limit'] = $limit; // default = 300
+        }
         $request['market'] = $market['id'];
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
         $timestamp = $orderbook['timestamp'] * 1000;
@@ -202,8 +204,9 @@ class tidebit extends Exchange {
         $timestamp = $ticker['at'] * 1000;
         $ticker = $ticker['ticker'];
         $symbol = null;
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -304,8 +307,9 @@ class tidebit extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if ($limit === null)
+        if ($limit === null) {
             $limit = 30; // default is 30
+        }
         $request = array (
             'market' => $market['id'],
             'period' => $this->timeframes[$timeframe],

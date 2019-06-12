@@ -81,17 +81,16 @@ class vaultoro (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetBalance()
-        balances = response['data']
+        response = self.privateGetBalance(params)
+        balances = self.safe_value(response, 'data')
         result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currencyId = balance['currency_code'].upper()
-            code = currencyId
-            if currencyId in self.currencies_by_id[currencyId]:
-                code = self.currencies_by_id[currencyId]['code']
-            free = balance['cash']
-            used = balance['reserved']
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = balance['currency_code']
+            uppercaseId = currencyId.upper()
+            code = self.common_currency_code(uppercaseId)
+            free = self.safe_float(balance, 'cash')
+            used = self.safe_float(balance, 'reserved')
             total = self.sum(free, used)
             account = {
                 'free': free,
@@ -144,7 +143,7 @@ class vaultoro (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['Time'])
+        timestamp = self.parse8601(self.safe_string(trade, 'Time'))
         return {
             'id': None,
             'info': trade,
@@ -168,12 +167,13 @@ class vaultoro (Exchange):
         self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side) + 'SymbolType'
-        response = getattr(self, method)(self.extend({
+        request = {
             'symbol': market['quoteId'].lower(),
             'type': type,
             'gld': amount,
             'price': price or 1,
-        }, params))
+        }
+        response = getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
             'id': response['data']['Order_ID'],
@@ -181,9 +181,10 @@ class vaultoro (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        return self.privatePostCancelId(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

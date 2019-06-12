@@ -842,10 +842,11 @@ class tidex extends Exchange {
             //
             $success = $this->safe_value($response, 'success', false);
             if (gettype ($success) === 'string') {
-                if (($success === 'true') || ($success === '1'))
+                if (($success === 'true') || ($success === '1')) {
                     $success = true;
-                else
+                } else {
                     $success = false;
+                }
             }
             if (!$success) {
                 $code = $this->safe_string($response, 'code');

@@ -692,8 +692,9 @@ class uex extends Exchange {
         //                             $status =>    2                                 } }
         //
         $side = $this->safe_string($order, 'side');
-        if ($side !== null)
+        if ($side !== null) {
             $side = strtolower($side);
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         if ($market === null) {
@@ -1158,8 +1159,9 @@ class uex extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
-            if ($params)
+            if ($params) {
                 $url .= '?' . $this->urlencode ($params);
+            }
         } else {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds ();
@@ -1190,24 +1192,21 @@ class uex extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
+        if ($response === null) {
             return; // fallback to default error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            //
-            // array("$code":"0","msg":"suc","data":array())
-            //
-            $code = $this->safe_string($response, 'code');
-            // $message = $this->safe_string($response, 'msg');
-            $feedback = $this->id . ' ' . $this->json ($response);
-            $exceptions = $this->exceptions;
-            if ($code !== '0') {
-                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                    throw new $exceptions[$code]($feedback);
-                } else {
-                    throw new ExchangeError($feedback);
-                }
+        }
+        //
+        // array("$code":"0","msg":"suc","data":array())
+        //
+        $code = $this->safe_string($response, 'code');
+        // $message = $this->safe_string($response, 'msg');
+        $feedback = $this->id . ' ' . $this->json ($response);
+        $exceptions = $this->exceptions;
+        if ($code !== '0') {
+            if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
+                throw new $exceptions[$code]($feedback);
+            } else {
+                throw new ExchangeError($feedback);
             }
         }
     }

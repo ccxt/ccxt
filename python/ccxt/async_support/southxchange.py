@@ -90,19 +90,18 @@ class southxchange (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privatePostListBalances()
-        if not balances:
+        response = await self.privatePostListBalances(params)
+        if not response:
             raise ExchangeError(self.id + ' fetchBalance got an unrecognized response')
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
             currencyId = balance['Currency']
-            uppercase = currencyId.upper()
-            currency = self.currencies_by_id[uppercase]
-            code = currency['code']
-            free = float(balance['Available'])
-            deposited = float(balance['Deposited'])
-            unconfirmed = float(balance['Unconfirmed'])
+            uppercaseId = currencyId.upper()
+            code = self.common_currency_code(uppercaseId)
+            free = self.safe_float(balance, 'Available')
+            deposited = self.safe_float(balance, 'Deposited')
+            unconfirmed = self.safe_float(balance, 'Unconfirmed')
             total = self.sum(deposited, unconfirmed)
             used = total - free
             account = {
@@ -115,10 +114,11 @@ class southxchange (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetBookSymbol(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
+        }
+        response = await self.publicGetBookSymbol(self.extend(request, params))
+        return self.parse_order_book(response, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -169,13 +169,16 @@ class southxchange (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetPriceSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        return self.parse_ticker(ticker, market)
+        }
+        response = await self.publicGetPriceSymbol(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):
-        timestamp = trade['At'] * 1000
+        timestamp = self.safe_integer(trade, 'At')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -192,9 +195,10 @@ class southxchange (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTradesSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = await self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_order(self, order, market=None):
@@ -235,21 +239,21 @@ class southxchange (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privatePostListOrders()
+        response = await self.privatePostListOrders(params)
         return self.parse_orders(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        order = {
+        request = {
             'listingCurrency': market['base'],
             'referenceCurrency': market['quote'],
             'type': side,
             'amount': amount,
         }
         if type == 'limit':
-            order['limitPrice'] = price
-        response = await self.privatePostPlaceOrder(self.extend(order, params))
+            request['limitPrice'] = price
+        response = await self.privatePostPlaceOrder(self.extend(request, params))
         return {
             'info': response,
             'id': str(response),
@@ -257,16 +261,18 @@ class southxchange (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostCancelOrder(self.extend({
+        request = {
             'orderCode': id,
-        }, params))
+        }
+        return await self.privatePostCancelOrder(self.extend(request, params))
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privatePostGeneratenewaddress(self.extend({
+        request = {
             'currency': currency['id'],
-        }, params))
+        }
+        response = await self.privatePostGeneratenewaddress(self.extend(request, params))
         parts = response.split('|')
         numParts = len(parts)
         address = parts[0]
