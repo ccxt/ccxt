@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidOrder, OrderNotFound } = require ('./base/errors');
+const { BadRequest, AuthenticationError, NetworkError, ArgumentsRequired, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -67,6 +67,17 @@ module.exports = class hollaex extends Exchange {
                     ],
                 },
             },
+            'exceptions': {
+                'Order not found': OrderNotFound,
+                '400': BadRequest,
+                '403': AuthenticationError,
+                '404': BadRequest,
+                '405': BadRequest,
+                '410': BadRequest,
+                '429': BadRequest,
+                '500': NetworkError,
+                '503': NetworkError,
+            },
         });
     }
 
@@ -110,6 +121,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchOrderBook (symbol, params = {}) {
+        if (symbol === undefined) throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = {
@@ -129,6 +141,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        if (symbol === undefined) throw new ArgumentsRequired (this.id + ' fetchTicker requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTicker (this.extend ({
@@ -168,6 +181,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) throw new ArgumentsRequired (this.id + ' fetchTrades requires a symbol argument');
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.publicGetTrades (this.extend ({
@@ -227,6 +241,7 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
+    // SYMBOL
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         await this.loadMarkets ();
@@ -327,11 +342,6 @@ module.exports = class hollaex extends Exchange {
         };
     }
 
-    async test () {
-        await this.loadMarkets();
-        console.log(this.currencies['BTC']['id']);
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version;
         if (api === 'public') {
@@ -361,26 +371,25 @@ module.exports = class hollaex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    // handleErrors (code, reason, url, method, headers, body, response) {
-    //     if ((body[0] === '{') || (body[0] === '[')) {
-    //         if ('result' in response) {
-    //             let result = response['result'];
-    //             if (result !== 'success') {
-    //                 //
-    //                 //    {  "errorCode": "405",  "status": "maintenance",  "result": "error"}
-    //                 //
-    //                 const code = this.safeString (response, 'errorCode');
-    //                 const feedback = this.id + ' ' + this.json (response);
-    //                 const exceptions = this.exceptions;
-    //                 if (code in exceptions) {
-    //                     throw new exceptions[code] (feedback);
-    //                 } else {
-    //                     throw new ExchangeError (feedback);
-    //                 }
-    //             }
-    //         } else {
-    //             throw new ExchangeError (this.id + ' ' + body);
-    //         }
-    //     }
-    // }
+    handleErrors (code, reason, url, method, headers, body, response) {
+        if (code >= 400 && code <= 503) {
+            // console.log(code);
+            // console.log('header', headers);
+            // console.log('reason', reason);
+            // console.log('response', response);
+            // console.log(method, url);
+            // console.log('body', body);
+            const exceptions = this.exceptions;
+            const message = this.safeString (response, 'message');
+            if (message in exceptions) {
+                const ExceptionClass = exceptions[message];
+                throw new ExceptionClass (this.id + ' ' + message);
+            }
+            if (code in exceptions) {
+                let status = code.toString ();
+                const ExceptionClass = exceptions[status];
+                throw new ExceptionClass (this.id + ' ' + message);
+            }
+        }
+    }
 };
