@@ -264,7 +264,7 @@ And structurally:
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
 - keep it simple, don't do more than one statement in one line
 
-#### Sending market ids
+#### Sending Market Ids
 
 Most of exchanges' API endpoints will require an exchange-specific market symbol or trading pair or instrument to be specified in the request.
 
@@ -328,7 +328,7 @@ async fetchTicker (symbol, params = {}) {
 }
 ```
 
-#### Parsing symbols
+#### Parsing Symbols
 
 When sending requests to the exchange unified symbols have to be _"converted"_ to exchange-specific market-`id`s like shown above. The same is true on the other side – when receiving an exchange response it has an exchange-specific market-`id` inside it that has to be _"converted back"_ to a unified CCXT symbol.
 
@@ -393,7 +393,7 @@ parseTrade (trade, market = undefined) {
 }
 ```
 
-#### Accessing dictionary keys
+#### Accessing Dictionary Keys
 
 In JavaScript, dictionary keys can be accessed in two notations:
 
@@ -406,7 +406,7 @@ While the above does work in JavaScript, it will not work in Python or PHP. In m
 
 To keep the code transpileable, please, remeber this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
 
-#### Sanitizing input with `safe`-methods
+#### Sanitizing Input With `safe`-Methods
 
 JavaScript is less restrictive than other languages. It will tolerate an attempt to dereference a non-existent key where other languages will throw an Exception:
 
@@ -479,7 +479,7 @@ if ('foo' in params) {
 }
 ```
 
-#### Working with array lengths
+#### Working With Array Lengths
 
 In JavaScript the common syntax to get a length of a string or an array is to reference the `.length` property like shown here:
 
@@ -525,17 +525,17 @@ const arrayLength = someArray.length;
 
 That `.length;` line ending does the trick. The only case when the array `.length` is preferred over the string `.length` is the `for` loop. In the header of the `for` loop, the `.length` always refers to array length (not string length).
 
-#### Adding numbers and concatenating strings
+#### Adding Numbers And Concatenating Strings
 
 In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up numbers or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
 
 The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**. The same logic applies to operator `+=` vs operator `.=` – `this.sum()` has to be used in those cases as well.
 
-#### Formatting decimal numbers to precision
+#### Formatting Decimal Numbers To Precision
 
 The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
 
-#### Escaped control characters
+#### Escaped Control Characters
 
 When using strings containing control characters like `"\n"`, `"\t"`, always enclose them in double quotes (`"`), not single quotes (`'`)! Single-quoted strings are not parsed for control characters and are treated as is in many languages apart from JavaScript. Therefore for tabs and newlines to work in PHP, we need to surround them with double quotes (especially in the `sign()` implementation).
 
@@ -556,7 +556,7 @@ const b = "api\nfoobar.com\n";
 
 **↑ The `eslint-*` comments are mandatory!**
 
-#### Using ternary conditionals
+#### Using Ternary Conditionals
 
 Do not use heavy ternary (`?:`) conditionals, **always use brackets in ternary operators!**
 
