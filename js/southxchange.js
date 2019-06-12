@@ -190,7 +190,7 @@ module.exports = class southxchange extends Exchange {
         let timestamp = this.safeInteger (trade, 'At');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
-        };
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
