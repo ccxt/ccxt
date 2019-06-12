@@ -494,6 +494,7 @@ foo += this.c ();
 - for bulk operations the base methods should be used (`parseTrades`, `parseOrders`, note the `s` plural ending)
 - use as much of base functionality as you can, do not reinvent the wheel, nor the bicycle, nor the bicycle wheel
 - respect default argument values in `fetch`-methods, check if `since` and `limit` are `undefined` and do not send them to the exchange, we intentionally use the exchanges' defaults in such cases
+- if you implement a unified method that has some argument – you can't ignore that argument
 
 Please, see the following document for new integrations: https://github.com/ccxt/ccxt/wiki/Requirements
 
