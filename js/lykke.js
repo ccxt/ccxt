@@ -263,11 +263,12 @@ module.exports = class lykke extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         let symbol = undefined;
-        if (market)
+        if (market) {
             symbol = market['symbol'];
-        let close = parseFloat (ticker['lastPrice']);
+        }
+        const close = parseFloat (ticker['lastPrice']);
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -313,14 +314,15 @@ module.exports = class lykke extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.parseOrderStatus (this.safeString (order, 'Status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'Status'));
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (order, 'AssetPairId');
             market = this.safeValue (this.markets_by_id, marketId);
         }
-        if (market)
+        if (market) {
             symbol = market['symbol'];
+        }
         let lastTradeTimestamp = this.parse8601 (this.safeString (order, 'LastMatchTime'));
         let timestamp = undefined;
         if (('Registered' in order) && (order['Registered'])) {
@@ -328,14 +330,15 @@ module.exports = class lykke extends Exchange {
         } else if (('CreatedAt' in order) && (order['CreatedAt'])) {
             timestamp = this.parse8601 (order['CreatedAt']);
         }
-        let price = this.safeFloat (order, 'Price');
-        let amount = this.safeFloat (order, 'Volume');
-        let remaining = this.safeFloat (order, 'RemainingVolume');
-        let filled = amount - remaining;
-        let cost = filled * price;
-        let result = {
+        const price = this.safeFloat (order, 'Price');
+        const amount = this.safeFloat (order, 'Volume');
+        const remaining = this.safeFloat (order, 'RemainingVolume');
+        const filled = amount - remaining;
+        const cost = filled * price;
+        const id = this.safeString (order, 'Id');
+        return {
             'info': order,
-            'id': order['Id'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -351,7 +354,6 @@ module.exports = class lykke extends Exchange {
             'status': status,
             'fee': undefined,
         };
-        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -409,10 +411,11 @@ module.exports = class lykke extends Exchange {
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        let price = parseFloat (bidask[priceKey]);
-        let amount = parseFloat (bidask[amountKey]);
-        if (amount < 0)
+        const price = this.safeFloat (bidask, priceKey);
+        let amount = this.safeFloat (bidask, amountKey);
+        if (amount < 0) {
             amount = -amount;
+        }
         return [ price, amount ];
     }
 
@@ -420,24 +423,30 @@ module.exports = class lykke extends Exchange {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'mobile') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else if (api === 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else if (api === 'private') {
-            if (method === 'GET')
-                if (Object.keys (query).length)
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
+                }
+            }
             this.checkRequiredCredentials ();
             headers = {
                 'api-key': this.apiKey,
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             };
-            if (method === 'POST')
-                if (Object.keys (params).length)
+            if (method === 'POST') {
+                if (Object.keys (params).length) {
                     body = this.json (params);
+                }
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
