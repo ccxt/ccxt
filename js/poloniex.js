@@ -1268,7 +1268,7 @@ module.exports = class poloniex extends Exchange {
             timestamp = timestamp * 1000;
         }
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'currency');
+        const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency === undefined) {
             code = this.commonCurrencyCode (currencyId);
@@ -1326,7 +1326,7 @@ module.exports = class poloniex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        let query = this.extend ({ 'command': path }, params);
+        const query = this.extend ({ 'command': path }, params);
         if (api === 'public') {
             url += '?' + this.urlencode (query);
         } else {
@@ -1350,7 +1350,7 @@ module.exports = class poloniex extends Exchange {
         if ('error' in response) {
             const message = response['error'];
             const feedback = this.id + ' ' + this.json (response);
-            let exact = this.exceptions['exact'];
+            const exact = this.exceptions['exact'];
             if (message in exact) {
                 throw new exact[message] (feedback);
             }
