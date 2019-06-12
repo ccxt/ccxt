@@ -135,24 +135,24 @@ module.exports = class livecoin extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetExchangeTicker ();
-        let restrictions = await this.publicGetExchangeRestrictions ();
-        let restrictionsById = this.indexBy (restrictions['restrictions'], 'currencyPair');
-        let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let id = market['symbol'];
-            let [ baseId, quoteId ] = id.split ('/');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let coinRestrictions = this.safeValue (restrictionsById, symbol);
-            let precision = {
+        const response = await this.publicGetExchangeTicker (params);
+        const restrictions = await this.publicGetExchangeRestrictions ();
+        const restrictionsById = this.indexBy (restrictions['restrictions'], 'currencyPair');
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = market['symbol'];
+            const [ baseId, quoteId ] = id.split ('/');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const coinRestrictions = this.safeValue (restrictionsById, symbol);
+            const precision = {
                 'price': 5,
                 'amount': 8,
                 'cost': 8,
             };
-            let limits = {
+            const limits = {
                 'amount': {
                     'min': Math.pow (10, -precision['amount']),
                     'max': Math.pow (10, precision['amount']),
@@ -183,18 +183,18 @@ module.exports = class livecoin extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetInfoCoinInfo (params);
-        let currencies = response['info'];
+        const response = await this.publicGetInfoCoinInfo (params);
+        const currencies = response['info'];
         let result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['symbol'];
+            const currency = currencies[i];
+            const id = currency['symbol'];
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let code = this.commonCurrencyCode (id);
-            let precision = 8; // default precision, todo: fix "magic constants"
-            let active = (currency['walletStatus'] === 'normal');
+            const code = this.commonCurrencyCode (id);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            const active = (currency['walletStatus'] === 'normal');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -232,8 +232,8 @@ module.exports = class livecoin extends Exchange {
     }
 
     appendFiatCurrencies (result) {
-        let precision = 8;
-        let defaults = {
+        const precision = 8;
+        const defaults = {
             'info': undefined,
             'active': true,
             'fee': undefined,
@@ -249,7 +249,7 @@ module.exports = class livecoin extends Exchange {
                 },
             },
         };
-        let currencies = [
+        const currencies = [
             { 'id': 'USD', 'code': 'USD', 'name': 'US Dollar' },
             { 'id': 'EUR', 'code': 'EUR', 'name': 'Euro' },
             // { 'id': 'RUR', 'code': 'RUB', 'name': 'Russian ruble' },
@@ -260,8 +260,8 @@ module.exports = class livecoin extends Exchange {
             'name': 'Russian ruble',
         });
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let code = currency['code'];
+            const currency = currencies[i];
+            const code = currency['code'];
             result[code] = this.extend (defaults, currency);
         }
         return result;
@@ -269,30 +269,35 @@ module.exports = class livecoin extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetPaymentBalances ();
-        let result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = balance['currency'];
+        const response = await this.privateGetPaymentBalances (params);
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = balance['currency'];
+            const code = this.commonCurrencyCode (currencyId);
             let account = undefined;
-            if (currency in result)
-                account = result[currency];
-            else
+            if (code in result) {
+                account = result[code];
+            } else {
                 account = this.account ();
-            if (balance['type'] === 'total')
-                account['total'] = parseFloat (balance['value']);
-            if (balance['type'] === 'available')
-                account['free'] = parseFloat (balance['value']);
-            if (balance['type'] === 'trade')
-                account['used'] = parseFloat (balance['value']);
-            result[currency] = account;
+            }
+            if (balance['type'] === 'total') {
+                account['total'] = this.safeFloat (balance, 'value');
+            }
+            if (balance['type'] === 'available') {
+                account['free'] = this.safeFloat (balance, 'value');
+            }
+            if (balance['type'] === 'trade') {
+                account['used'] = this.safeFloat (balance, 'value');
+            }
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetExchangeCommissionCommonInfo (params);
+        const response = await this.privateGetExchangeCommissionCommonInfo (params);
         const commission = this.safeFloat (response, 'commission');
         return {
             'info': response,
@@ -303,31 +308,31 @@ module.exports = class livecoin extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'currencyPair': this.marketId (symbol),
             'groupByPrice': 'false',
         };
         if (limit !== undefined) {
             request['depth'] = limit; // 100
         }
-        let orderbook = await this.publicGetExchangeOrderBook (this.extend (request, params));
-        let timestamp = orderbook['timestamp'];
-        return this.parseOrderBook (orderbook, timestamp);
+        const response = await this.publicGetExchangeOrderBook (this.extend (request, params));
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
         }
-        let vwap = this.safeFloat (ticker, 'vwap');
-        let baseVolume = this.safeFloat (ticker, 'volume');
+        const vwap = this.safeFloat (ticker, 'vwap');
+        const baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = undefined;
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
-        let last = this.safeFloat (ticker, 'last');
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -621,15 +626,18 @@ module.exports = class livecoin extends Exchange {
             market = this.market (symbol);
             request['currencyPair'] = market['id'];
         }
-        if (since !== undefined)
+        if (since !== undefined) {
             request['issuedFrom'] = parseInt (since);
-        if (limit !== undefined)
+        }
+        if (limit !== undefined) {
             request['endRow'] = limit - 1;
+        }
         let response = await this.privateGetExchangeClientOrders (this.extend (request, params));
         let result = [];
         let rawOrders = [];
-        if (response['data'])
+        if (response['data']) {
             rawOrders = response['data'];
+        }
         for (let i = 0; i < rawOrders.length; i++) {
             let order = rawOrders[i];
             result.push (this.parseOrder (order, market));
@@ -675,16 +683,17 @@ module.exports = class livecoin extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let currencyPair = market['id'];
-        let response = await this.privatePostExchangeCancellimit (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'orderId': id,
-            'currencyPair': currencyPair,
-        }, params));
-        let message = this.safeString (response, 'message', this.json (response));
+            'currencyPair': market['id'],
+        };
+        const response = await this.privatePostExchangeCancellimit (this.extend (request, params));
+        const message = this.safeString (response, 'message', this.json (response));
         if ('success' in response) {
             if (!response['success']) {
                 throw new InvalidOrder (message);
@@ -707,17 +716,18 @@ module.exports = class livecoin extends Exchange {
         // An example is if you attempt to withdraw more than is allowed when withdrawal fees are considered.
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         let wallet = address;
-        if (tag !== undefined)
+        if (tag !== undefined) {
             wallet += '::' + tag;
-        let request = {
+        }
+        const request = {
             'amount': this.decimalToPrecision (amount, TRUNCATE, currency['precision'], DECIMAL_PLACES),
             'currency': currency['id'],
             'wallet': wallet,
         };
-        let response = await this.privatePostPaymentOutCoin (this.extend (request, params));
-        let id = this.safeInteger (response, 'id');
+        const response = await this.privatePostPaymentOutCoin (this.extend (request, params));
+        const id = this.safeInteger (response, 'id');
         if (id === undefined) {
             throw new InsufficientFunds (this.id + ' insufficient funds to cover requested withdrawal amount post fees ' + this.json (response));
         }
@@ -833,14 +843,14 @@ module.exports = class livecoin extends Exchange {
     }
 
     async fetchDepositAddress (currency, params = {}) {
-        let request = {
+        const request = {
             'currency': currency,
         };
-        let response = await this.privateGetPaymentGetAddress (this.extend (request, params));
+        const response = await this.privateGetPaymentGetAddress (this.extend (request, params));
         let address = this.safeString (response, 'wallet');
         let tag = undefined;
         if (address.indexOf (':') >= 0) {
-            let parts = address.split (':');
+            const parts = address.split (':');
             address = parts[0];
             tag = parts[2];
         }
@@ -855,7 +865,7 @@ module.exports = class livecoin extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
-        let query = this.urlencode (this.keysort (params));
+        const query = this.urlencode (this.keysort (params));
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + query;
@@ -863,9 +873,10 @@ module.exports = class livecoin extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            if (method === 'POST')
+            if (method === 'POST') {
                 body = query;
-            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
+            }
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256');
             headers = {
                 'Api-Key': this.apiKey,
                 'Sign': signature.toUpperCase (),
