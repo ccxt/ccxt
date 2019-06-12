@@ -106,6 +106,7 @@ module.exports = class Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
+                'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTrades': true,
@@ -153,6 +154,11 @@ module.exports = class Exchange {
                     'withdraw': {},
                     'deposit': {},
                 },
+            },
+            'status': {
+                'status': 'ok',
+                'updated': undefined,
+                'eta': undefined,
             },
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
@@ -1058,6 +1064,10 @@ module.exports = class Exchange {
 
     fetchTotalBalance (params = {}) {
         return this.fetchPartialBalance ('total', params)
+    }
+
+    async fetchStatus (params = {}) {
+        return this.status
     }
 
     async fetchTradingFees (params = {}) {
