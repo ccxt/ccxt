@@ -267,8 +267,9 @@ class lykke extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market)
+        if ($market) {
             $symbol = $market['symbol'];
+        }
         $close = floatval ($ticker['lastPrice']);
         return array (
             'symbol' => $symbol,
@@ -321,8 +322,9 @@ class lykke extends Exchange {
             $marketId = $this->safe_string($order, 'AssetPairId');
             $market = $this->safe_value($this->markets_by_id, $marketId);
         }
-        if ($market)
+        if ($market) {
             $symbol = $market['symbol'];
+        }
         $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'LastMatchTime'));
         $timestamp = null;
         if ((is_array($order) && array_key_exists('Registered', $order)) && ($order['Registered'])) {
@@ -335,9 +337,10 @@ class lykke extends Exchange {
         $remaining = $this->safe_float($order, 'RemainingVolume');
         $filled = $amount - $remaining;
         $cost = $filled * $price;
-        $result = array (
+        $id = $this->safe_string($order, 'Id');
+        return array (
             'info' => $order,
-            'id' => $order['Id'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -353,7 +356,6 @@ class lykke extends Exchange {
             'status' => $status,
             'fee' => null,
         );
-        return $result;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -411,10 +413,11 @@ class lykke extends Exchange {
     }
 
     public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {
-        $price = floatval ($bidask[$priceKey]);
-        $amount = floatval ($bidask[$amountKey]);
-        if ($amount < 0)
+        $price = $this->safe_float($bidask, $priceKey);
+        $amount = $this->safe_float($bidask, $amountKey);
+        if ($amount < 0) {
             $amount = -$amount;
+        }
         return array ( $price, $amount );
     }
 
@@ -422,24 +425,30 @@ class lykke extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'mobile') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else if ($api === 'public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else if ($api === 'private') {
-            if ($method === 'GET')
-                if ($query)
+            if ($method === 'GET') {
+                if ($query) {
                     $url .= '?' . $this->urlencode ($query);
+                }
+            }
             $this->check_required_credentials();
             $headers = array (
                 'api-key' => $this->apiKey,
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             );
-            if ($method === 'POST')
-                if ($params)
+            if ($method === 'POST') {
+                if ($params) {
                     $body = $this->json ($params);
+                }
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

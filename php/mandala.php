@@ -1007,8 +1007,9 @@ class mandala extends Exchange {
             }
         }
         if (!$price) {
-            if ($cost && $filled)
+            if ($cost && $filled) {
                 $price = $cost / $filled;
+            }
         }
         $status = $this->safe_value_2($order, 'orderStatus', 'Status');
         $status = $status ? 'closed' : 'open';

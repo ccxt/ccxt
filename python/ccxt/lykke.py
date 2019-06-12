@@ -316,9 +316,10 @@ class lykke (Exchange):
         remaining = self.safe_float(order, 'RemainingVolume')
         filled = amount - remaining
         cost = filled * price
-        result = {
+        id = self.safe_string(order, 'Id')
+        return {
             'info': order,
-            'id': order['Id'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -334,7 +335,6 @@ class lykke (Exchange):
             'status': status,
             'fee': None,
         }
-        return result
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -384,8 +384,8 @@ class lykke (Exchange):
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
-        price = float(bidask[priceKey])
-        amount = float(bidask[amountKey])
+        price = self.safe_float(bidask, priceKey)
+        amount = self.safe_float(bidask, amountKey)
         if amount < 0:
             amount = -amount
         return [price, amount]

@@ -126,17 +126,19 @@ class negociecoins (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetPARTicker(self.extend({
+        request = {
             'PAR': market['id'],
-        }, params))
+        }
+        ticker = await self.publicGetPARTicker(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetPAROrderbook(self.extend({
+        request = {
             'PAR': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook, None, 'bid', 'ask', 'price', 'quantity')
+        }
+        response = await self.publicGetPAROrderbook(self.extend(request, params))
+        return self.parse_order_book(response, None, 'bid', 'ask', 'price', 'quantity')
 
     def parse_trade(self, trade, market=None):
         timestamp = trade['date'] * 1000
@@ -168,8 +170,8 @@ class negociecoins (Exchange):
             'PAR': market['id'],
             'timestamp_inicial': int(since / 1000),
         }
-        trades = await self.publicGetPARTradesTimestampInicial(self.extend(request, params))
-        return self.parse_trades(trades, market, since, limit)
+        response = await self.publicGetPARTradesTimestampInicial(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()

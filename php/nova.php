@@ -75,8 +75,9 @@ class nova extends Exchange {
             list($quote, $base) = explode('_', $id);
             $symbol = $base . '/' . $quote;
             $active = true;
-            if ($market['disabled'])
+            if ($market['disabled']) {
                 $active = false;
+            }
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -156,39 +157,41 @@ class nova extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetbalances ();
-        $balances = $response['balances'];
+        $response = $this->privatePostGetbalances ($params);
+        $balances = $this->safe_value($response, 'balances');
         $result = array( 'info' => $response );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['currency'];
-            $lockbox = floatval ($balance['amount_lockbox']);
-            $trades = floatval ($balance['amount_trades']);
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->common_currency_code($currencyId);
+            $lockbox = $this->safe_float($balance, 'amount_lockbox');
+            $trades = $this->safe_float($balance, 'amount_trades');
             $account = array (
-                'free' => floatval ($balance['amount']),
+                'free' => $this->safe_float($balance, 'amount'),
                 'used' => $this->sum ($lockbox, $trades),
-                'total' => floatval ($balance['amount_total']),
+                'total' => $this->safe_float($balance, 'amount_total'),
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type === 'market')
+        if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
+        }
         $this->load_markets();
         $amount = (string) $amount;
         $price = (string) $price;
         $market = $this->market ($symbol);
-        $order = array (
+        $request = array (
             'tradetype' => strtoupper($side),
             'tradeamount' => $amount,
             'tradeprice' => $price,
             'tradebase' => 1,
             'pair' => $market['id'],
         );
-        $response = $this->privatePostTradePair (array_merge ($order, $params));
+        $response = $this->privatePostTradePair (array_merge ($request, $params));
         $tradeItems = $this->safe_value($response, 'tradeitems', array());
         $tradeItemsByType = $this->index_by($tradeItems, 'type');
         $created = $this->safe_value($tradeItemsByType, 'created', array());
@@ -200,17 +203,19 @@ class nova extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelorder (array_merge (array (
+        $request = array (
             'orderid' => $id,
-        ), $params));
+        );
+        return $this->privatePostCancelorder (array_merge ($request, $params));
     }
 
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privatePostGetnewdepositaddressCurrency (array_merge (array (
-            'currency' => $currency,
-        ), $params));
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        $response = $this->privatePostGetnewdepositaddressCurrency (array_merge ($request, $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         $tag = $this->safe_string($response, 'tag');
@@ -225,9 +230,10 @@ class nova extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privatePostGetdepositaddressCurrency (array_merge (array (
-            'currency' => $currency,
-        ), $params));
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        $response = $this->privatePostGetdepositaddressCurrency (array_merge ($request, $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         $tag = $this->safe_string($response, 'tag');
@@ -241,13 +247,15 @@ class nova extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/';
-        if ($api === 'private')
+        if ($api === 'private') {
             $url .= $api . '/';
+        }
         $url .= $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
@@ -266,9 +274,11 @@ class nova extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('status', $response))
-            if ($response['status'] !== 'success')
+        if (is_array($response) && array_key_exists('status', $response)) {
+            if ($response['status'] !== 'success') {
                 throw new ExchangeError($this->id . ' ' . $this->json ($response));
+            }
+        }
         return $response;
     }
 }
