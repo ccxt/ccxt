@@ -779,6 +779,7 @@ class Exchange {
         $this->transactions = array();
         $this->exceptions = array();
         $this->accounts = array();
+        $this->status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
         $this->limits = array(
             'cost' => array(
                 'min' => null,
@@ -878,6 +879,7 @@ class Exchange {
             'fetchOrderBook' => true,
             'fetchOrderBooks' => false,
             'fetchOrders' => false,
+            'fetchStatus' => 'emulated',
             'fetchTicker' => true,
             'fetchTickers' => false,
             'fetchTrades' => true,
@@ -1894,6 +1896,10 @@ class Exchange {
         $this->load_markets();
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
+    }
+
+    public function fetchStatus($params = array()) {
+        return $this->status;
     }
 
     public function fetchOHLCV($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
