@@ -230,10 +230,11 @@ class zb extends Exchange {
             //                 key => "btc"         }
             $account = $this->account ();
             $currency = $balance['key'];
-            if (is_array($this->currencies_by_id) && array_key_exists($currency, $this->currencies_by_id))
+            if (is_array($this->currencies_by_id) && array_key_exists($currency, $this->currencies_by_id)) {
                 $currency = $this->currencies_by_id[$currency]['code'];
-            else
+            } else {
                 $currency = $this->common_currency_code($balance['enName']);
+            }
             $account['free'] = floatval ($balance['available']);
             $account['used'] = floatval ($balance['freez']);
             $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -340,15 +341,17 @@ class zb extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if ($limit === null)
+        if ($limit === null) {
             $limit = 1000;
+        }
         $request = array (
             'market' => $market['id'],
             'type' => $this->timeframes[$timeframe],
             'limit' => $limit,
         );
-        if ($since !== null)
+        if ($since !== null) {
             $request['since'] = $since;
+        }
         $response = $this->publicGetKline (array_merge ($request, $params));
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
@@ -381,8 +384,9 @@ class zb extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type !== 'limit')
+        if ($type !== 'limit') {
             throw new InvalidOrder($this->id . ' allows limit orders only');
+        }
         $this->load_markets();
         $order = array (
             'price' => $this->price_to_precision($symbol, $price),
@@ -408,8 +412,9 @@ class zb extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        if ($symbol === null)
+        if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+        }
         $this->load_markets();
         $order = array (
             'id' => (string) $id,
@@ -434,8 +439,9 @@ class zb extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = 50, $params = array ()) {
-        if ($symbol === null)
+        if ($symbol === null) {
             throw new ExchangeError($this->id . 'fetchOrders requires a $symbol parameter');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -445,8 +451,9 @@ class zb extends Exchange {
         );
         $method = 'privateGetGetOrdersIgnoreTradeType';
         // tradeType 交易类型1/0[buy/sell]
-        if (is_array($params) && array_key_exists('tradeType', $params))
+        if (is_array($params) && array_key_exists('tradeType', $params)) {
             $method = 'privateGetGetOrdersNew';
+        }
         $response = null;
         try {
             $response = $this->$method (array_merge ($request, $params));
@@ -460,8 +467,9 @@ class zb extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = 10, $params = array ()) {
-        if ($symbol === null)
+        if ($symbol === null) {
             throw new ExchangeError($this->id . 'fetchOpenOrders requires a $symbol parameter');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -471,8 +479,9 @@ class zb extends Exchange {
         );
         $method = 'privateGetGetUnfinishedOrdersIgnoreTradeType';
         // tradeType 交易类型1/0[buy/sell]
-        if (is_array($params) && array_key_exists('tradeType', $params))
+        if (is_array($params) && array_key_exists('tradeType', $params)) {
             $method = 'privateGetGetOrdersNew';
+        }
         $response = null;
         try {
             $response = $this->$method (array_merge ($request, $params));
@@ -505,8 +514,9 @@ class zb extends Exchange {
         $type = 'limit'; // $market $order is not availalbe in ZB
         $timestamp = null;
         $createDateField = $this->get_create_date_field ();
-        if (is_array($order) && array_key_exists($createDateField, $order))
+        if (is_array($order) && array_key_exists($createDateField, $order)) {
             $timestamp = $order[$createDateField];
+        }
         $symbol = null;
         if (is_array($order) && array_key_exists('currency', $order)) {
             // get $symbol from currency
@@ -525,7 +535,7 @@ class zb extends Exchange {
         if (($cost !== null) && ($filled !== null) && ($filled > 0)) {
             $average = $cost / $filled;
         }
-        $result = array (
+        return array (
             'info' => $order,
             'id' => $order['id'],
             'timestamp' => $timestamp,
@@ -543,7 +553,6 @@ class zb extends Exchange {
             'status' => $status,
             'fee' => null,
         );
-        return $result;
     }
 
     public function parse_order_status ($status) {
@@ -553,9 +562,7 @@ class zb extends Exchange {
             '2' => 'closed',
             '3' => 'open', // partial
         );
-        if (is_array($statuses) && array_key_exists($status, $statuses))
-            return $statuses[$status];
-        return $status;
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function get_create_date_field () {
@@ -570,8 +577,9 @@ class zb extends Exchange {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $url .= '/' . $this->version . '/' . $path;
-            if ($params)
+            if ($params) {
                 $url .= '?' . $this->urlencode ($params);
+            }
         } else {
             $query = $this->keysort (array_merge (array (
                 'method' => $path,
@@ -589,12 +597,11 @@ class zb extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
+        if ($response === null) {
             return; // fallback to default error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default error handler
+        }
         if ($body[0] === '{') {
-            $feedback = $this->id . ' ' . $this->json ($response);
+            $feedback = $this->id . ' ' . $body;
             if (is_array($response) && array_key_exists('code', $response)) {
                 $code = $this->safe_string($response, 'code');
                 if (is_array($this->exceptions) && array_key_exists($code, $this->exceptions)) {

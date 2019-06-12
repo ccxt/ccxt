@@ -192,22 +192,25 @@ class _1btcxe (Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        order = {
+        request = {
             'side': side,
             'type': type,
             'currency': self.market_id(symbol),
             'amount': amount,
         }
         if type == 'limit':
-            order['limit_price'] = price
-        result = self.privatePostOrdersNew(self.extend(order, params))
+            request['limit_price'] = price
+        result = self.privatePostOrdersNew(self.extend(request, params))
         return {
             'info': result,
             'id': result,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostOrdersCancel({'id': id})
+        request = {
+            'id': id,
+        }
+        return self.privatePostOrdersCancel(self.extend(request, params))
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
