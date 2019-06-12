@@ -151,36 +151,26 @@ module.exports = class hollaex extends Exchange {
 
     parseTicker (response, market = undefined) {
         let symbol = (market !== undefined) ? market['symbol'] : undefined;
-        let last = this.safeFloat (response, 'last');
-        let close = this.safeFloat (response, 'close');
-        let high = this.safeFloat (response, 'high');
-        let low = this.safeFloat (response, 'low');
-        let open = this.safeFloat (response, 'open');
+        let info = response;
         let datetime = this.safeString (response, 'timestamp');
         let timestamp = new Date (datetime).getTime ();
+        let high = this.safeFloat (response, 'high');
+        let low = this.safeFloat (response, 'low');
+        let bid = undefined;
+        let bidVolume = undefined;
+        let ask = undefined;
+        let askVolume = undefined;
+        let vwap = undefined;
+        let open = this.safeFloat (response, 'open');
+        let close = this.safeFloat (response, 'close');
+        let last = this.safeFloat (response, 'last');
+        let previousClose = undefined;
+        let change = undefined;
+        let percentage = undefined;
+        let average = undefined;
         let baseVolume = this.safeFloat (response, 'volume');
-        let result = {
-            'symbol': symbol,
-            'info': response,
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'high': high,
-            'low': low,
-            'bid': undefined,
-            'bidVolume': undefined,
-            'ask': undefined,
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': open,
-            'close': close,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': undefined,
-        };
+        let quoteVolume = undefined;
+        let result = { symbol, info, timestamp, datetime, high, low, bid, bidVolume, ask, askVolume, vwap, open, close, last, previousClose, change, percentage, average, baseVolume, quoteVolume }
         return result;
     }
 
@@ -196,23 +186,19 @@ module.exports = class hollaex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let symbol = (market !== undefined) ? market['symbol'] : undefined;
-        let side = this.safeString (trade, 'side');
+        let info = trade;
+        let id = undefined;
         let datetime = this.safeString (trade, 'timestamp');
         let timestamp = new Date (datetime).getTime ();
+        let order = undefined;
+        let type = undefined;
+        let side = this.safeString (trade, 'side');
+        let takerOrMaker = undefined;
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
-        let result = {
-            'id': undefined,
-            'timestamp': timestamp,
-            'datetime': datetime,
-            'order': undefined,
-            'symbol': symbol,
-            'type': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'info': trade,
-        };
+        let cost = price * amount;
+        let fee = undefined;
+        let result = { info, id, timestamp, datetime, symbol, order, type, side, takerOrMaker, price, amount, cost, fee };
         return result;
     }
 
@@ -279,36 +265,19 @@ module.exports = class hollaex extends Exchange {
         let id = this.safeString (order, 'id');
         let datetime = this.safeString (order, 'created_at');
         let timestamp = new Date (datetime).getTime ();
+        let lastTradeTimestamp = undefined;
+        let status = undefined;
         let type = this.safeString (order, 'type');
         let side = this.safeString (order, 'side');
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
-        let status = undefined;
-        let info = order;
-        let lastTradeTimestamp = undefined;
-        let remaining = undefined;
-        let cost = undefined;
+        let remaining = amount - filled;
+        let cost = filled * price;
         let trades = undefined;
         let fee = undefined;
-        let result = {
-            'id': id,
-            'datetime': datetime,
-            'timestamp': timestamp,
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': filled,
-            'remaining': remaining,
-            'cost': cost,
-            'trades': trades,
-            'fee': fee,
-            'info': info,
-        };
+        let info = order;
+        let result = { id, datetime, timestamp, lastTradeTimestamp, status, symbol, type, side, price, amount, filled, remaining, cost, trades, fee, info };
         return result;
     }
 
