@@ -837,10 +837,11 @@ module.exports = class tidex extends Exchange {
             //
             let success = this.safeValue (response, 'success', false);
             if (typeof success === 'string') {
-                if ((success === 'true') || (success === '1'))
+                if ((success === 'true') || (success === '1')) {
                     success = true;
-                else
+                } else {
                     success = false;
+                }
             }
             if (!success) {
                 const code = this.safeString (response, 'code');
