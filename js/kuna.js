@@ -113,7 +113,7 @@ module.exports = class kuna extends acx {
     }
 
     async fetchL3OrderBook (symbol, limit = undefined, params = {}) {
-        return this.fetchOrderBook (symbol, limit, params);
+        return await this.fetchOrderBook (symbol, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
