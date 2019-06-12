@@ -596,10 +596,12 @@ In terms of the ccxt library, every exchange offers multiple markets within itse
 
 ```JavaScript
 {
-    'id':     'btcusd',   // string literal for referencing within an exchange
-    'symbol': 'BTC/USD',  // uppercase string literal of a pair of currencies
-    'base':   'BTC',      // uppercase string, base currency, 3 or more letters
-    'quote':  'USD',      // uppercase string, quote currency, 3 or more letters
+    'id':     ' btcusd',  // string literal for referencing within an exchange
+    'symbol':  'BTC/USD', // uppercase string literal of a pair of currencies
+    'base':    'BTC',     // uppercase string, unified base currency code, 3 or more letters
+    'quote':   'USD',     // uppercase string, unified quote currency code, 3 or more letters
+    'baseId':  'btc',     // any string, exchange-specific base currency id
+    'quoteId': 'usd',     // any string, exchange-specific quote currency id
     'active': true,       // boolean, market status
     'precision': {        // number of decimal digits "after the dot"
         'price': 8,       // integer, might be missing if not supplied by the exchange
@@ -622,8 +624,10 @@ Each market is an associative array (aka dictionary) with the following keys:
 
 - `id`. The string or numeric ID of the market or trade instrument within the exchange. Market ids are used inside exchanges internally to identify trading pairs during the request/response process.
 - `symbol`. An uppercase string code representation of a particular trading pair or instrument. This is usually written as `BaseCurrency/QuoteCurrency` with a slash as in `BTC/USD`, `LTC/CNY` or `ETH/EUR`, etc. Symbols are used to reference markets within the ccxt library (explained below).
-- `base`. An uppercase string code of base fiat or crypto currency.
-- `quote`. An uppercase string code of quoted fiat or crypto currency.
+- `base`. A unified uppercase string code of base fiat or crypto currency. This is the standardized currency code that is used to refer to that currency or token throughout CCXT and throughout the Unified CCXT API.
+- `quote`. A unified uppercase string code of quoted fiat or crypto currency.
+- `baseId`. An exchange-specific id of the base currency for this market. Can be any string, literally.
+- `quoteId`. An exchange-specific id of the quote currency.
 - `active`. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and [reload market cache periodically, as explained below](#market-cache-force-reload).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
