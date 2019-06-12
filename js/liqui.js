@@ -38,6 +38,7 @@ module.exports = class liqui extends Exchange {
                 'status': 'shutdown',
                 'updated': undefined,
                 'eta': undefined,
+                'url': undefined,
             },
             'api': {
                 'public': {
