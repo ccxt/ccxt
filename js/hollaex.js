@@ -79,6 +79,11 @@ module.exports = class hollaex extends Exchange {
         });
     }
 
+    countDecimals (value) {
+        if (Math.floor (value) === value) return 0;
+        return value.toString ().split ('.')[1].length || 0;
+    }
+
     async fetchMarkets () {
         let response = await this.publicGetConstant ();
         let markets = this.safeValue (response, 'pairs');
@@ -92,6 +97,11 @@ module.exports = class hollaex extends Exchange {
             let quote = this.commonCurrencyCode (quoteId).toUpperCase ();
             let symbol = base + '/' + quote;
             let active = true;
+            let precision = {
+                'cost': undefined,
+            };
+            precision['price'] = this.countDecimals (parseFloat (market['tick_size']));
+            precision['amount'] = this.countDecimals (parseFloat (market['min_size']));
             let limits = {
                 'amount': {
                     'min': market['min_size'],
@@ -101,18 +111,10 @@ module.exports = class hollaex extends Exchange {
                     'min': market['min_price'],
                     'max': market['max_price'],
                 },
+                'cost': undefined,
             };
-            let entry = {
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'info': market,
-                'acitve': active,
-                'limits': limits,
-            };
+            let info = market;
+            let entry = { id, symbol, base, quote, baseId, quoteId, active, precision, limits, info };
             result.push (entry);
         }
         return result;
@@ -196,7 +198,7 @@ module.exports = class hollaex extends Exchange {
         let takerOrMaker = undefined;
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
-        let cost = price * amount;
+        let cost = parseFloat (this.amountToPrecision (symbol, price * amount));
         let fee = undefined;
         let result = { info, id, timestamp, datetime, symbol, order, type, side, takerOrMaker, price, amount, cost, fee };
         return result;
@@ -216,10 +218,9 @@ module.exports = class hollaex extends Exchange {
             if (responseCurr === 'eur') {
                 responseCurr = 'fiat';
             }
-            free[currency] = response[responseCurr + '_available'];
-            total[currency] = response[responseCurr + '_balance'];
-            // used[currency] = total[currency] - free[currency];
-            used[currency] = undefined;
+            free[currency] = parseFloat (this.currencyToPrecision (currency, response[responseCurr + '_available']));
+            total[currency] = parseFloat (this.currencyToPrecision (currency, response[responseCurr + '_balance']));
+            used[currency] = parseFloat (this.currencyToPrecision (currency, total[currency] - free[currency]));
             result[currency] = {
                 'free': free[currency],
                 'used': used[currency],
@@ -272,8 +273,8 @@ module.exports = class hollaex extends Exchange {
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
-        let remaining = amount - filled;
-        let cost = filled * price;
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
+        let cost = parseFloat (this.amountToPrecision (symbol, filled * price));
         let trades = undefined;
         let fee = undefined;
         let info = order;
