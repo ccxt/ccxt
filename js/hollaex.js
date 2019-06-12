@@ -13,7 +13,7 @@ module.exports = class hollaex extends Exchange {
             'id': 'hollaex',
             'name': 'HollaEx',
             'countries': [ 'KR' ],
-            'rateLimit': 667, // ?
+            'rateLimit': 667,
             'version': 'v0',
             'has': {
                 'CORS': false,
@@ -81,7 +81,7 @@ module.exports = class hollaex extends Exchange {
 
     countDecimals (value) {
         if (Math.floor (value) === value) return 0;
-        return value.toString ().split ('.')[1].length || 0;
+        return String (value).split ('.')[1].length;
     }
 
     async fetchMarkets () {
@@ -114,7 +114,19 @@ module.exports = class hollaex extends Exchange {
                 'cost': undefined,
             };
             let info = market;
-            let entry = { id, symbol, base, quote, baseId, quoteId, active, precision, limits, info };
+            // let entry = { id, symbol, base, quote, baseId, quoteId, active, precision, limits, info };
+            let entry = {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': limits,
+                'info': info,
+            };
             result.push (entry);
         }
         return result;
@@ -172,7 +184,29 @@ module.exports = class hollaex extends Exchange {
         let average = undefined;
         let baseVolume = this.safeFloat (response, 'volume');
         let quoteVolume = undefined;
-        let result = { symbol, info, timestamp, datetime, high, low, bid, bidVolume, ask, askVolume, vwap, open, close, last, previousClose, change, percentage, average, baseVolume, quoteVolume };
+        // let result = { symbol, info, timestamp, datetime, high, low, bid, bidVolume, ask, askVolume, vwap, open, close, last, previousClose, change, percentage, average, baseVolume, quoteVolume };
+        let result = {
+            'symbol': symbol,
+            'info': info,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': bidVolume,
+            'ask': ask,
+            'askVolume': askVolume,
+            'vwap': vwap,
+            'open': open,
+            'close': close,
+            'last': last,
+            'previousClose': previousClose,
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+        };
         return result;
     }
 
@@ -200,7 +234,22 @@ module.exports = class hollaex extends Exchange {
         let amount = this.safeFloat (trade, 'size');
         let cost = parseFloat (this.amountToPrecision (symbol, price * amount));
         let fee = undefined;
-        let result = { info, id, timestamp, datetime, symbol, order, type, side, takerOrMaker, price, amount, cost, fee };
+        // let result = { info, id, timestamp, datetime, symbol, order, type, side, takerOrMaker, price, amount, cost, fee };
+        let result = {
+            'info': info,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'symbol': symbol,
+            'order': order,
+            'type': type,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        };
         return result;
     }
 
@@ -278,7 +327,25 @@ module.exports = class hollaex extends Exchange {
         let trades = undefined;
         let fee = undefined;
         let info = order;
-        let result = { id, datetime, timestamp, lastTradeTimestamp, status, symbol, type, side, price, amount, filled, remaining, cost, trades, fee, info };
+        // let result = { id, datetime, timestamp, lastTradeTimestamp, status, symbol, type, side, price, amount, filled, remaining, cost, trades, fee, info };
+        let result = {
+            'id': id,
+            'datetime': datetime,
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'trades': trades,
+            'fee': fee,
+            'info': info,
+        };
         return result;
     }
 
