@@ -1661,8 +1661,8 @@ To get historical prices and volumes use the unified [`fetchOHLCV`](https://gith
 
 Methods for fetching tickers:
 
-- `fetchTicker (symbol[, params = {}]) // symbol is required, params are optional`
-- `fetchTickers ([symbols = undefined[, params = {}]]) // both argument are optional (mostly)`
+- `fetchTicker (symbol[, params = {}])`, symbol is required, params are optional
+- `fetchTickers ([symbols = undefined[, params = {}]])`, both arguments optional
 
 ### Individually By Symbol
 
