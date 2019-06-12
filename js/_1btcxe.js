@@ -194,15 +194,16 @@ module.exports = class _1btcxe extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        let order = {
+        const request = {
             'side': side,
             'type': type,
             'currency': this.marketId (symbol),
             'amount': amount,
         };
-        if (type === 'limit')
-            order['limit_price'] = price;
-        let result = await this.privatePostOrdersNew (this.extend (order, params));
+        if (type === 'limit') {
+            request['limit_price'] = price;
+        }
+        const result = await this.privatePostOrdersNew (this.extend (request, params));
         return {
             'info': result,
             'id': result,
@@ -210,19 +211,22 @@ module.exports = class _1btcxe extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostOrdersCancel ({ 'id': id });
+        const request = {
+            'id': id,
+        };
+        return await this.privatePostOrdersCancel (this.extend (request, params));
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
         };
-        let response = await this.privatePostWithdrawalsNew (this.extend (request, params));
+        const response = await this.privatePostWithdrawalsNew (this.extend (request, params));
         return {
             'info': response,
             'id': response['result']['uuid'],
@@ -230,12 +234,14 @@ module.exports = class _1btcxe extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (this.id === 'cryptocapital')
+        if (this.id === 'cryptocapital') {
             throw new ExchangeError (this.id + ' is an abstract base API for _1btcxe');
+        }
         let url = this.urls['api'] + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else {
             this.checkRequiredCredentials ();
             let query = this.extend ({
