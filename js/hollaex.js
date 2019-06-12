@@ -269,7 +269,7 @@ module.exports = class hollaex extends Exchange {
         return this.parseOrders (response, market);
     }
 
-    async parseOrder (order, market = undefined) {
+    parseOrder (order, market = undefined) {
         let symbol = this.safeString (market, 'symbol');
         let id = this.safeString (order, 'id');
         let datetime = this.safeString (order, 'created_at');
@@ -286,7 +286,25 @@ module.exports = class hollaex extends Exchange {
         let cost = undefined;
         let trades = undefined;
         let fee = undefined;
-        return { id, datetime, timestamp, lastTradeTimestamp, status, symbol, type, side, price, amount, filled, remaining, cost, trades, fee, info };
+        let result = {
+            'id': id,
+            'datetime': datetime,
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'trades': trades,
+            'fee': fee,
+            'info': info,
+        };
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
