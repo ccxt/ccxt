@@ -95,9 +95,9 @@ module.exports = class negociecoins extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['date'] * 1000;
-        let symbol = (market !== undefined) ? market['symbol'] : undefined;
-        let last = this.safeFloat (ticker, 'last');
+        const timestamp = ticker['date'] * 1000;
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -124,27 +124,29 @@ module.exports = class negociecoins extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.publicGetPARTicker (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'PAR': market['id'],
-        }, params));
+        };
+        const ticker = await this.publicGetPARTicker (this.extend (request, params));
         return this.parseTicker (ticker, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetPAROrderbook (this.extend ({
+        const request = {
             'PAR': this.marketId (symbol),
-        }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bid', 'ask', 'price', 'quantity');
+        };
+        const response = await this.publicGetPAROrderbook (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'bid', 'ask', 'price', 'quantity');
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['date'] * 1000;
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'amount');
-        let symbol = market['symbol'];
-        let cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        const timestamp = trade['date'] * 1000;
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const symbol = market['symbol'];
+        const cost = parseFloat (this.costToPrecision (symbol, price * amount));
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -163,15 +165,16 @@ module.exports = class negociecoins extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (since === undefined)
+        const market = this.market (symbol);
+        if (since === undefined) {
             since = 0;
-        let request = {
+        }
+        const request = {
             'PAR': market['id'],
             'timestamp_inicial': parseInt (since / 1000),
         };
-        let trades = await this.publicGetPARTradesTimestampInicial (this.extend (request, params));
-        return this.parseTrades (trades, market, since, limit);
+        const response = await this.publicGetPARTradesTimestampInicial (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
@@ -208,8 +211,9 @@ module.exports = class negociecoins extends Exchange {
         let symbol = undefined;
         if (market === undefined) {
             market = this.safeValue (this.marketsById, order['pair']);
-            if (market)
+            if (market) {
                 symbol = market['symbol'];
+            }
         }
         let timestamp = this.parse8601 (order['created']);
         let price = this.safeFloat (order, 'price');
@@ -299,10 +303,12 @@ module.exports = class negociecoins extends Exchange {
             // startDate yyyy-MM-dd
             // endDate: yyyy-MM-dd
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['startDate'] = this.ymd (since);
-        if (limit !== undefined)
+        }
+        if (limit !== undefined) {
             request['pageSize'] = limit;
+        }
         let orders = await this.privatePostUserOrders (this.extend (request, params));
         return this.parseOrders (orders, market);
     }
@@ -328,8 +334,9 @@ module.exports = class negociecoins extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         let queryString = this.urlencode (query);
         if (api === 'public') {
-            if (queryString.length)
+            if (queryString.length) {
                 url += '?' + queryString;
+            }
         } else {
             this.checkRequiredCredentials ();
             let timestamp = this.seconds ().toString ();
