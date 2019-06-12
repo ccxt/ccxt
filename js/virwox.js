@@ -220,25 +220,27 @@ module.exports = class virwox extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let order = {
+        const market = this.market (symbol);
+        const request = {
             'instrument': market['symbol'],
             'orderType': side.toUpperCase (),
             'amount': amount,
         };
-        if (type === 'limit')
-            order['price'] = price;
-        let response = await this.privatePostPlaceOrder (this.extend (order, params));
+        if (type === 'limit') {
+            request['price'] = price;
+        }
+        const response = await this.privatePostPlaceOrder (this.extend (request, params));
         return {
             'info': response,
-            'id': response['result']['orderID'].toString (),
+            'id': this.safeString (response['result'], 'orderID'),
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelOrder (this.extend ({
+        const request = {
             'orderID': id,
-        }, params));
+        };
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
