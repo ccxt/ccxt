@@ -39,6 +39,11 @@ module.exports = class buda extends Exchange {
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
             },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+            },
             'api': {
                 'public': {
                     'get': [
