@@ -323,6 +323,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (id === undefined) throw new ArgumentsRequired (this.id + ' cancelOrder requires an id argument');
         let response = await this.privateDeleteUserOrdersOrderId (this.extend ({
             'orderId': id,
         }, params));
@@ -394,7 +395,7 @@ module.exports = class hollaex extends Exchange {
             // console.log(code);
             // console.log('header', headers);
             // console.log('reason', reason);
-            // console.log('response', response);
+            console.log('response', response);
             // console.log(method, url);
             // console.log('body', body);
             const exceptions = this.exceptions;
