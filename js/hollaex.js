@@ -12,7 +12,7 @@ module.exports = class hollaex extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'hollaex',
             'name': 'HollaEx',
-            'countries': [ 'KR' ], // Korea
+            'countries': [ 'KR' ],
             'rateLimit': 667, // ?
             'version': 'v0',
             'has': {
@@ -146,14 +146,19 @@ module.exports = class hollaex extends Exchange {
         let response = await this.publicGetTicker (this.extend ({
             'symbol': market['id'],
         }, params));
-        let last = response['last'];
-        let close = response['close'];
-        let high = response['high'];
-        let low = response['low'];
-        let open = response['open'];
-        let datetime = response['timestamp'];
+        return this.parseTicker (response, market);
+    }
+
+    parseTicker (response, market = undefined) {
+        let symbol = (market !== undefined) ? market['symbol'] : undefined;
+        let last = this.safeFloat (response, 'last');
+        let close = this.safeFloat (response, 'close');
+        let high = this.safeFloat (response, 'high');
+        let low = this.safeFloat (response, 'low');
+        let open = this.safeFloat (response, 'open');
+        let datetime = this.safeString (response, 'timestamp');
         let timestamp = new Date (datetime).getTime ();
-        let baseVolume = response['volume'];
+        let baseVolume = this.safeFloat (response, 'volume');
         let result = {
             'symbol': symbol,
             'info': response,
@@ -270,7 +275,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let symbol = this.safeString (market, 'symbol');
+        let symbol = (market !== undefined) ? market['symbol'] : undefined;
         let id = this.safeString (order, 'id');
         let datetime = this.safeString (order, 'created_at');
         let timestamp = new Date (datetime).getTime ();
