@@ -27,6 +27,7 @@ module.exports = class btctradeim extends coinegg {
                 'status': 'error',
                 'updated': undefined,
                 'eta': undefined,
+                'url': undefined,
             },
             'fees': {
                 'trading': {
