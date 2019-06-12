@@ -1006,8 +1006,9 @@ module.exports = class mandala extends Exchange {
             }
         }
         if (!price) {
-            if (cost && filled)
+            if (cost && filled) {
                 price = cost / filled;
+            }
         }
         let status = this.safeValue2 (order, 'orderStatus', 'Status');
         status = status ? 'closed' : 'open';
