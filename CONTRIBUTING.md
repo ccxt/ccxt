@@ -486,7 +486,7 @@ foo += this.c ();
 
 ### New Exchange Integrations
 
-**REMEMBER:** The key reason why this library is used at all is **Unification**. When developing a new exchange file the goal is not to implement it somehow, but to implement it in a very pedantic, precise and exact way, just as the other exchanges are implemented. For that you will have to copy bits of logic and make sure that the exchange conforms to the Manual in the following aspects:
+**REMEMBER:** The key reason why this library is used at all is **Unification**. When developing a new exchange file the goal is not to implement it somehow, but to implement it in a very pedantic, precise and exact way, just as the other exchanges are implemented. For that we have to copy bits of logic from other exchanges and make sure that the new exchange conforms to the Manual in the following aspects:
 
 - market ids, trading pair symbols, currency ids, token codes, symbolic unification and `commonCurrencies` must be standardized in all parsing methods (`fetchMarkets`, `fetchCurrencies`, `parseTrade`, `parseOrder`, ...)
 - all unified API method names and arguments are standard – can't add or change them freely
