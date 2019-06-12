@@ -903,12 +903,14 @@ module.exports = class theocean extends Exchange {
                 //
                 const feedback = this.id + ' ' + this.json (response);
                 const exact = this.exceptions['exact'];
-                if (message in exact)
+                if (message in exact) {
                     throw new exact[message] (feedback);
+                }
                 const broad = this.exceptions['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, body);
-                if (broadKey !== undefined)
+                if (broadKey !== undefined) {
                     throw new broad[broadKey] (feedback);
+                }
                 throw new ExchangeError (feedback); // unknown message
             }
         }
