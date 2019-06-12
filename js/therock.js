@@ -205,40 +205,48 @@ module.exports = class therock extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalances ();
-        let balances = response['balances'];
-        let result = { 'info': response };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = balance['currency'];
-            let free = balance['trading_balance'];
-            let total = balance['balance'];
-            let used = total - free;
-            let account = {
+        const response = await this.privateGetBalances (params);
+        const balances = this.safeValue (response, 'balances');
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.commonCurrencyCode (currencyId);
+            const free = this.safeFloat (balance, 'trading_balance');
+            const total = this.safeFloat (balance, 'balance');
+            let used = undefined;
+            if (total !== undefined) {
+                if (free !== undefined) {
+                    used = total - free;
+                }
+            }
+            const account = {
                 'free': free,
                 'used': used,
                 'total': total,
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetFundsIdOrderbook (this.extend ({
+        const request = {
             'id': this.marketId (symbol),
-        }, params));
-        let timestamp = this.parse8601 (orderbook['date']);
+        };
+        const orderbook = await this.publicGetFundsIdOrderbook (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (orderbook, 'date'));
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.parse8601 (ticker['date']);
+        const timestamp = this.parse8601 (ticker['date']);
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
+        }
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -327,8 +335,9 @@ module.exports = class therock extends Exchange {
         //                         currency: "EUR",
         //                         trade_id:  440492                     }   ] }
         //
-        if (!market)
+        if (!market) {
             market = this.markets_by_id[trade['fund_id']];
+        }
         const timestamp = this.parse8601 (this.safeString (trade, 'date'));
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
@@ -1155,8 +1164,9 @@ module.exports = class therock extends Exchange {
                     headers['Content-Type'] = 'application/json';
                 } else {
                     const queryString = this.rawencode (query);
-                    if (queryString.length)
+                    if (queryString.length) {
                         url += '?' + queryString;
+                    }
                 }
             }
             let nonce = this.nonce ().toString ();
