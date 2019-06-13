@@ -830,7 +830,7 @@ class okcoinusd (Exchange):
         if market:
             symbol = market['symbol']
         createDateField = self.get_create_date_field()
-        timestamp = self.safeIneteger(order, createDateField)
+        timestamp = self.safe_integer(order, createDateField)
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'deal_amount')
         amount = max(amount, filled)
