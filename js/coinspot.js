@@ -26,6 +26,7 @@ module.exports = class coinspot extends Exchange {
                 },
                 'www': 'https://www.coinspot.com.au',
                 'doc': 'https://www.coinspot.com.au/api',
+                'referral': 'https://www.coinspot.com.au/join/FSM11C',
             },
             'api': {
                 'public': {
@@ -59,7 +60,8 @@ module.exports = class coinspot extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.privatePostMyBalances ();
+        await this.loadMarkets ();
+        const response = await this.privatePostMyBalances (params);
         let result = { 'info': response };
         if ('balance' in response) {
             let balances = response['balance'];
@@ -81,6 +83,7 @@ module.exports = class coinspot extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = this.market (symbol);
         let orderbook = await this.privatePostOrders (this.extend ({
             'cointype': market['id'],
@@ -89,6 +92,7 @@ module.exports = class coinspot extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
         let response = await this.publicGetLatest (params);
         let id = this.marketId (symbol);
         id = id.toLowerCase ();
@@ -119,13 +123,15 @@ module.exports = class coinspot extends Exchange {
         };
     }
 
-    fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         return this.privatePostOrdersHistory (this.extend ({
             'cointype': this.marketId (symbol),
         }, params));
     }
 
-    createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
         let method = 'privatePostMy' + this.capitalize (side);
         if (type === 'market')
             throw new ExchangeError (this.id + ' allows limit orders only');
