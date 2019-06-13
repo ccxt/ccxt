@@ -228,7 +228,7 @@ module.exports = class fcoin extends Exchange {
             'symbol': this.marketId (symbol),
             'level': limit, // L20, L150
         };
-        const response = await this.marketGetDepthLevelSymbol (this.exten (request, params));
+        const response = await this.marketGetDepthLevelSymbol (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data');
         return this.parseOrderBook (orderbook, orderbook['ts'], 'bids', 'asks', 0, 1);
     }
