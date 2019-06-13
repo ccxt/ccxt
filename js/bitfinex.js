@@ -806,26 +806,31 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (symbol !== undefined)
-            if (!(symbol in this.markets))
+        if (symbol !== undefined) {
+            if (!(symbol in this.markets)) {
                 throw new ExchangeError (this.id + ' has no symbol ' + symbol);
+            }
+        }
         let response = await this.privatePostOrders (params);
         let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol !== undefined)
+        if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
+        }
         return orders;
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let request = {};
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['limit'] = limit;
+        }
         let response = await this.privatePostOrdersHist (this.extend (request, params));
         let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol !== undefined)
+        if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
-        orders = this.filterBy (orders, 'status', 'closed');
+        }
+        orders = this.filterByArray (orders, 'status', [ 'closed', 'canceled' ]);
         return orders;
     }
 
