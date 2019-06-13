@@ -511,7 +511,7 @@ module.exports = class latoken extends Exchange {
             'timeAlive': timeAlive,
         };
         let result = await this.privatePostOrderNew (this.extend (order, params));
-        return this.parseNewOrder (result);
+        return this.parseOrder (result);
     }
 
     async cancelOrder (id, params = {}) {
@@ -525,27 +525,24 @@ module.exports = class latoken extends Exchange {
         return this.parseOrder (response);
     }
 
-    parseAllOrders (orders) {
-        let pairId = orders['pairId'];
-        let symbol = orders['symbol'];
-        let canceledOrders = [];
-        for (let i = 0; i < orders.cancelledOrders.length; i++) {
-            canceledOrders.push (orders.cancelledOrders[i]);
-        }
-        let result = {
-            'pairId': pairId,
-            'symbol': symbol,
-            'cancelledOrders': canceledOrders,
-        };
-        return result;
-    }
-
     async cancelAllOrders (symbol, params = {}) {
         await this.loadMarkets ();
+        if (symbol === undefined)
+            throw new ArgumentsRequired (this.symbol + ' cancelAllOrders requires a symbol argument');
         let response = await this.privatePostOrderCancelAll (this.extend ({
             'symbol': symbol,
         }, params));
-        return this.parseAllOrders (response);
+        let result = [];
+        for (let i = 0; i < response.cancelledOrders.length; i++) {
+            let resp = response.cancelledOrders[i];
+            result.push ({
+                'pairId': response.pairId,
+                'symbol': response.symbol,
+                'cancelledOrder': resp,
+            });
+        }
+        let orders = this.parseTrades (result);
+        return orders;
     }
 
     sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
