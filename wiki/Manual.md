@@ -1936,7 +1936,7 @@ To fetch historical trades, the user will need to traverse the data in portions 
 
 In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently.
 
-On the other hand, **not all exchanges support pagination for public trades**. In general the exchanges will provide just the most recent trades.
+On the other hand, **not all exchanges support pagination for public trades at all**. In general the exchanges will provide just the most recent trades.
 
 The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
 
