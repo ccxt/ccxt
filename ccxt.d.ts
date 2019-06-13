@@ -422,6 +422,7 @@ declare module 'ccxt' {
     export class hadax extends huobipro {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
+    export class hollaex extends Exchange {}
     export class huobipro extends Exchange {}
     export class huobiru extends huobipro {}
     export class ice3x extends Exchange {}
