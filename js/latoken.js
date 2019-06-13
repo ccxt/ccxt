@@ -590,7 +590,6 @@ module.exports = class latoken extends Exchange {
             'amount': amount,
             'orderType': orderType,
             'timeAlive': timeAlive,
-
         };
         let result = await this.privatePostOrderNew (this.extend (order, params));
         return this.parseNewOrder (result);
