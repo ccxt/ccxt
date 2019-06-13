@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -236,16 +229,16 @@ class huobipro (Exchange):
 
     async def fetch_markets(self, params={}):
         method = self.options['fetchMarketsMethod']
-        response = await getattr(self, method)()
-        markets = response['data']
+        response = await getattr(self, method)(params)
+        markets = self.safe_value(response, 'data')
         numMarkets = len(markets)
         if numMarkets < 1:
             raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(markets))
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            baseId = market['base-currency']
-            quoteId = market['quote-currency']
+            baseId = self.safe_string(market, 'base-currency')
+            quoteId = self.safe_string(market, 'quote-currency')
             base = baseId.upper()
             quote = quoteId.upper()
             id = baseId + quoteId
@@ -345,14 +338,15 @@ class huobipro (Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.marketGetDepth(self.extend({
+        request = {
             'symbol': market['id'],
             'type': 'step0',
-        }, params))
+        }
+        response = await self.marketGetDepth(self.extend(request, params))
         if 'tick' in response:
             if not response['tick']:
                 raise ExchangeError(self.id + ' fetchOrderBook() returned empty response: ' + self.json(response))
-            orderbook = response['tick']
+            orderbook = self.safe_value(response, 'tick')
             result = self.parse_order_book(orderbook, orderbook['ts'])
             result['nonce'] = orderbook['version']
             return result
@@ -361,15 +355,16 @@ class huobipro (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.marketGetDetailMerged(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = await self.marketGetDetailMerged(self.extend(request, params))
         return self.parse_ticker(response['tick'], market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
         response = await self.marketGetTickers(params)
-        tickers = response['data']
+        tickers = self.safe_value(response, 'data')
         timestamp = self.safe_integer(response, 'ts')
         result = {}
         for i in range(0, len(tickers)):
@@ -454,10 +449,10 @@ class huobipro (Exchange):
         if limit is not None:
             request['size'] = limit
         response = await self.marketGetHistoryTrade(self.extend(request, params))
-        data = response['data']
+        data = self.safe_value(response, 'data')
         result = []
         for i in range(0, len(data)):
-            trades = data[i]['data']
+            trades = self.safe_value(data[i], 'data', [])
             for j in range(0, len(trades)):
                 trade = self.parse_trade(trades[j], market)
                 result.append(trade)
@@ -492,10 +487,11 @@ class huobipro (Exchange):
         return response['data']
 
     async def fetch_currencies(self, params={}):
-        response = await self.publicGetSettingsCurrencys(self.extend({
+        request = {
             'language': self.options['language'],
-        }, params))
-        currencies = response['data']
+        }
+        response = await self.publicGetSettingsCurrencys(self.extend(request, params))
+        currencies = self.safe_value(response, 'data')
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
@@ -524,6 +520,7 @@ class huobipro (Exchange):
             precision = self.safe_integer(currency, 'withdraw-precision')
             code = self.common_currency_code(id.upper())
             active = currency['visible'] and currency['deposit-enabled'] and currency['withdraw-enabled']
+            name = self.safe_string(currency, 'display-name')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -531,7 +528,7 @@ class huobipro (Exchange):
                 # 'payin': currency['deposit-enabled'],
                 # 'payout': currency['withdraw-enabled'],
                 # 'transfer': None,
-                'name': currency['display-name'],
+                'name': name,
                 'active': active,
                 'fee': None,  # todo need to fetch from fee endpoint
                 'precision': precision,
@@ -565,26 +562,28 @@ class huobipro (Exchange):
         await self.load_markets()
         await self.loadAccounts()
         method = self.options['fetchBalanceMethod']
-        response = await getattr(self, method)(self.extend({
+        request = {
             'id': self.accounts[0]['id'],
-        }, params))
-        balances = response['data']['list']
+        }
+        response = await getattr(self, method)(self.extend(request, params))
+        balances = self.safe_value(response['data'], 'list')
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
-            uppercase = balance['currency'].upper()
-            currency = self.common_currency_code(uppercase)
+            currencyId = self.safe_string(balance, 'currency')
+            uppercase = currencyId.upper()
+            code = self.common_currency_code(uppercase)
             account = None
-            if currency in result:
-                account = result[currency]
+            if code in result:
+                account = result[code]
             else:
                 account = self.account()
             if balance['type'] == 'trade':
-                account['free'] = float(balance['balance'])
+                account['free'] = self.safe_float(balance, 'balance')
             if balance['type'] == 'frozen':
-                account['used'] = float(balance['balance'])
+                account['used'] = self.safe_float(balance, 'balance')
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_orders_by_states(self, states, symbol=None, since=None, limit=None, params={}):
@@ -720,7 +719,7 @@ class huobipro (Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        result = {
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -738,7 +737,6 @@ class huobipro (Exchange):
             'status': status,
             'fee': fee,
         }
-        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -766,9 +764,10 @@ class huobipro (Exchange):
         method = self.options['createOrderMethod']
         response = await getattr(self, method)(self.extend(request, params))
         timestamp = self.milliseconds()
+        id = self.safe_string(response, 'data')
         return {
             'info': response,
-            'id': response['data'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -881,9 +880,7 @@ class huobipro (Exchange):
         if tag is not None:
             request['addr-tag'] = tag  # only for XRP?
         response = await self.privatePostDwWithdrawApiCreate(self.extend(request, params))
-        id = None
-        if 'data' in response:
-            id = response['data']
+        id = self.safe_string(response, 'data')
         return {
             'info': response,
             'id': id,
@@ -929,23 +926,20 @@ class huobipro (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            if 'status' in response:
-                #
-                #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
-                #
-                status = self.safe_string(response, 'status')
-                if status == 'error':
-                    code = self.safe_string(response, 'err-code')
-                    feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    raise ExchangeError(feedback)
+        if 'status' in response:
+            #
+            #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            #
+            status = self.safe_string(response, 'status')
+            if status == 'error':
+                code = self.safe_string(response, 'err-code')
+                feedback = self.id + ' ' + self.json(response)
+                exceptions = self.exceptions
+                if code in exceptions:
+                    raise exceptions[code](feedback)
+                raise ExchangeError(feedback)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
@@ -953,12 +947,14 @@ class huobipro (Exchange):
         if limit is None or limit > 100:
             limit = 100
         await self.load_markets()
-        request = {}
         currency = self.currency(code)
-        request['currency'] = currency['id']
-        request['type'] = 'deposit'
-        request['from'] = 0  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
-        request['size'] = limit  # Maximum transfers that can be fetched is 100
+        request = {
+            'currency': currency['id'],
+            'type': 'deposit',
+            'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
+        }
+        if limit is not None:
+            request['size'] = limit  # max 100
         response = await self.privateGetQueryDepositWithdraw(self.extend(request, params))
         # return response
         return self.parseTransactions(response['data'], currency, since, limit)
@@ -969,12 +965,14 @@ class huobipro (Exchange):
         if limit is None or limit > 100:
             limit = 100
         await self.load_markets()
-        request = {}
         currency = self.currency(code)
-        request['currency'] = currency['id']
-        request['type'] = 'withdraw'  # Huobi uses withdraw for withdrawals
-        request['from'] = 0  # From 'id' ... if you want to get results after a particular Transaction id, pass the id in params.from
-        request['size'] = limit  # Maximum transfers that can be fetched is 100
+        request = {
+            'currency': currency['id'],
+            'type': 'withdraw',
+            'from': 0,  # From 'id' ... if you want to get results after a particular transaction id, pass the id in params.from
+        }
+        if limit is not None:
+            request['size'] = limit  # max 100
         response = await self.privateGetQueryDepositWithdraw(self.extend(request, params))
         # return response
         return self.parseTransactions(response['data'], currency, since, limit)

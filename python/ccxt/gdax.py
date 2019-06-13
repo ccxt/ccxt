@@ -250,41 +250,39 @@ class gdax (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetAccounts(params)
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
+        response = self.privateGetAccounts(params)
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.common_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'available'),
                 'used': self.safe_float(balance, 'hold'),
                 'total': self.safe_float(balance, 'balance'),
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetProductsIdBook(self.extend({
+        request = {
             'id': self.market_id(symbol),
             'level': 2,  # 1 best bidask, 2 aggregated, 3 full
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        response = self.publicGetProductsIdBook(self.extend(request, params))
+        return self.parse_order_book(response)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = self.extend({
+        request = {
             'id': market['id'],
-        }, params)
-        ticker = self.publicGetProductsIdTicker(request)
+        }
+        ticker = self.publicGetProductsIdTicker(self.extend(request, params))
         timestamp = self.parse8601(self.safe_value(ticker, 'time'))
-        bid = None
-        ask = None
-        if 'bid' in ticker:
-            bid = self.safe_float(ticker, 'bid')
-        if 'ask' in ticker:
-            ask = self.safe_float(ticker, 'ask')
+        bid = self.safe_float(ticker, 'bid')
+        ask = self.safe_float(ticker, 'ask')
         last = self.safe_float(ticker, 'price')
         return {
             'symbol': symbol,
@@ -325,9 +323,7 @@ class gdax (Exchange):
             if 'liquidity' in trade:
                 takerOrMaker = 'taker' if (trade['liquidity'] == 'T') else 'maker'
                 feeRate = market[takerOrMaker]
-        feeCost = self.safe_float(trade, 'fill_fees')
-        if feeCost is None:
-            feeCost = self.safe_float(trade, 'fee')
+        feeCost = self.safe_float_2(trade, 'fill_fees', 'fee')
         fee = {
             'cost': feeCost,
             'currency': feeCurrency,
@@ -375,9 +371,10 @@ class gdax (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetProductsIdTrades(self.extend({
+        request = {
             'id': market['id'],  # fixes issue  #2
-        }, params))
+        }
+        response = self.publicGetProductsIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -426,13 +423,12 @@ class gdax (Exchange):
         timestamp = self.parse8601(order['created_at'])
         symbol = None
         if market is None:
-            if order['product_id'] in self.markets_by_id:
-                market = self.markets_by_id[order['product_id']]
+            marketId = self.safe_string(order, 'product_id')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         status = self.parse_order_status(self.safe_string(order, 'status'))
         price = self.safe_float(order, 'price')
-        amount = self.safe_float(order, 'size')
-        if amount is None:
-            amount = self.safe_float(order, 'funds')
+        amount = self.safe_float_2(order, 'size', 'funds')
         if amount is None:
             amount = self.safe_float(order, 'specified_funds')
         filled = self.safe_float(order, 'filled_size')
@@ -446,18 +442,21 @@ class gdax (Exchange):
             'currency': None,
             'rate': None,
         }
-        if market:
+        if market is not None:
             symbol = market['symbol']
+        id = self.safe_string(order, 'id')
+        type = self.safe_string(order, 'type')
+        side = self.safe_string(order, 'side')
         return {
-            'id': order['id'],
+            'id': id,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -468,9 +467,10 @@ class gdax (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateGetOrdersId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        response = self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
@@ -551,9 +551,8 @@ class gdax (Exchange):
             'cost': float(self.currency_to_precision(currency, rate * cost)),
         }
 
-    def get_payment_methods(self):
-        response = self.privateGetPaymentMethods()
-        return response
+    def fetch_payment_methods(self, params={}):
+        return self.privateGetPaymentMethods(params)
 
     def deposit(self, code, amount, address, params={}):
         self.load_markets()
