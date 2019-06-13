@@ -372,16 +372,13 @@ module.exports = class latoken extends Exchange {
             'symbol': market['symbol'],
         };
         let response = await this.publicGetMarketDataTrades (this.extend (resp, params));
-        let pairId = response.pairId;
-        let sym = response.symbol;
-        let tradeCount = response.tradeCount;
         let result = [];
         for (let i = 0; i < response.trades.length; i++) {
             let resp = response.trades[i];
             result.push ({
-                'pairId': pairId,
-                'symbol': sym,
-                'tradeCount': tradeCount,
+                'pairId': response.pairId,
+                'symbol': response.symbol,
+                'tradeCount': response.tradeCount,
                 'side': resp.side,
                 'price': resp.price,
                 'amount': resp.amount,
@@ -394,31 +391,13 @@ module.exports = class latoken extends Exchange {
 
     async fetchMyTrades (symbol = undefined, params = {}, limit = 10) {
         await this.loadMarkets ();
+        let market = undefined;
         let request = {
             'symbol': symbol,
-            'limit': 1000000000,
         };
         let response = await this.privateGetOrderTrades (this.extend (request, params));
-        let pairId = response.pairId;
-        let sym = response.symbol;
-        let tradeCount = response.tradeCount;
-        let result = [];
-        for (let i = 0; i < response.trades.length; i++) {
-            let resp = response.trades[i];
-            result.push ({
-                'pairId': pairId,
-                'symbol': sym,
-                'tradeCount': tradeCount,
-                'id': resp.id,
-                'orderId': resp.orderId,
-                'commision': resp.commision,
-                'side': resp.side,
-                'price': resp.price,
-                'amount': resp.amount,
-                'timestamp': resp.time,
-            });
-        }
-        let trades = this.parseTrades (result);
+        const rawTrades = this.safeValue (response, 'trades', []);
+        const trades = this.parseTrades (rawTrades, market);
         return trades;
     }
 
@@ -462,20 +441,12 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-    async fetchActiveOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
         return this.fetchOrdersByStatus (symbol, 'active', since, limit, params);
     }
 
-    async fetchCancelledOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
         return this.fetchOrdersByStatus (symbol, 'cancelled', since, limit, params);
-    }
-
-    async fetchFilledOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
-        return this.fetchOrdersByStatus (symbol, 'filled', since, limit, params);
-    }
-
-    async fetchPartiallyFilledOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
-        return this.fetchOrdersByStatus (symbol, 'partiallyFilled', since, limit, params);
     }
 
     async fetchOrdersByStatus (symbol, status, since = undefined, limit = 100, params = {}) {
@@ -520,7 +491,7 @@ module.exports = class latoken extends Exchange {
         return ({
             'orderId': response['orderId'],
             'cliOrdId': response['cliOrdId'],
-            'pairId': this.safeFloat (response, 'pairId'),
+            'pairId': this.safeValue (response, 'pairId'),
             'symbol': response['symbol'],
             'side': response['side'],
             'orderType': response['orderType'],
