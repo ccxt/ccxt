@@ -707,8 +707,11 @@ class okcoinusd extends Exchange {
         $method = $market['future'] ? 'publicGetFutureKline' : 'publicGetKline';
         $request = $this->create_request ($market, array (
             'type' => $this->timeframes[$timeframe],
-            'since' => $since === null ? $this->milliseconds () - 86400000 : $since,  // default last 24h
+            // 'since' => $since === null ? $this->milliseconds () - 86400000 : $since,  // default last 24h
         ));
+        if ($since !== null) {
+            $request['since'] = $this->milliseconds () - 86400000; // default last 24h
+        }
         if ($limit !== null) {
             if ($this->options['fetchOHLCVWarning']) {
                 throw new ExchangeError($this->id . ' fetchOHLCV counts "$limit" candles from current time backwards, therefore the "$limit" argument for ' . $this->id . ' is disabled. Set ' . $this->id . '.options["fetchOHLCVWarning"] = false to suppress this warning message.');

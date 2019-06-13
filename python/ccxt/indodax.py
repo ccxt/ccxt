@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -122,7 +115,7 @@ class indodax (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetInfo()
+        response = self.privatePostGetInfo(params)
         balance = response['return']
         result = {'info': balance}
         codes = list(self.currencies.keys())
@@ -139,17 +132,19 @@ class indodax (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetPairDepth(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
+        }
+        orderbook = self.publicGetPairDepth(self.extend(request, params))
         return self.parse_order_book(orderbook, None, 'buy', 'sell')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetPairTicker(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = self.publicGetPairTicker(self.extend(request, params))
         ticker = response['ticker']
         timestamp = self.safe_float(ticker, 'server_time') * 1000
         baseVolume = 'vol_' + market['baseId'].lower()
@@ -195,9 +190,10 @@ class indodax (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetPairTrades(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = self.publicGetPairTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_order(self, order, market=None):
@@ -238,11 +234,12 @@ class indodax (Exchange):
         average = None
         if filled:
             average = cost / filled
-        timestamp = int(order['submit_time'])
+        timestamp = self.safe_integer(order, 'submit_time')
         fee = None
-        result = {
+        id = self.safe_string(order, 'order_id')
+        return {
             'info': order,
-            'id': order['order_id'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -258,17 +255,17 @@ class indodax (Exchange):
             'status': status,
             'fee': fee,
         }
-        return result
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOrder requires a symbol')
         self.load_markets()
         market = self.market(symbol)
-        response = self.privatePostGetOrder(self.extend({
+        request = {
             'pair': market['id'],
             'order_id': id,
-        }, params))
+        }
+        response = self.privatePostGetOrder(self.extend(request, params))
         orders = response['return']
         order = self.parse_order(self.extend({'id': id}, orders['order']), market)
         return self.extend({'info': response}, order)
@@ -320,18 +317,18 @@ class indodax (Exchange):
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
         market = self.market(symbol)
-        order = {
+        request = {
             'pair': market['id'],
             'type': side,
             'price': price,
         }
         currency = market['baseId']
         if side == 'buy':
-            order[market['quoteId']] = amount * price
+            request[market['quoteId']] = amount * price
         else:
-            order[market['baseId']] = amount
-        order[currency] = amount
-        result = self.privatePostTrade(self.extend(order, params))
+            request[market['baseId']] = amount
+        request[currency] = amount
+        result = self.privatePostTrade(self.extend(request, params))
         return {
             'info': result,
             'id': str(result['return']['order_id']),
@@ -345,11 +342,12 @@ class indodax (Exchange):
             raise ExchangeError(self.id + ' cancelOrder requires an extra "side" param')
         self.load_markets()
         market = self.market(symbol)
-        return self.privatePostCancelOrder(self.extend({
+        request = {
             'order_id': id,
             'pair': market['id'],
-            'type': params['side'],
-        }, params))
+            'type': side,
+        }
+        return self.privatePostCancelOrder(self.extend(request, params))
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -412,7 +410,7 @@ class indodax (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
+        if response is None:
             return
         # {success: 0, error: "invalid order."}
         # or
@@ -428,7 +426,8 @@ class indodax (Exchange):
             else:
                 return
         message = response['error']
-        feedback = self.id + ' ' + self.json(response)
+        feedback = self.id + ' ' + body
+        # todo: rewrite self for unified self.exceptions(exact/broad)
         if message == 'Insufficient balance.':
             raise InsufficientFunds(feedback)
         elif message == 'invalid order.':

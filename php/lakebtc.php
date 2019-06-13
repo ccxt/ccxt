@@ -60,12 +60,12 @@ class lakebtc extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetTicker ();
+        $response = $this->publicGetTicker ($params);
         $result = array();
-        $keys = is_array($markets) ? array_keys($markets) : array();
-        for ($k = 0; $k < count ($keys); $k++) {
-            $id = $keys[$k];
-            $market = $markets[$id];
+        $keys = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $id = $keys[$i];
+            $market = $response[$id];
             $baseId = mb_substr ($id, 0, 3);
             $quoteId = mb_substr ($id, 3, 6);
             $base = strtoupper($baseId);
@@ -86,8 +86,8 @@ class lakebtc extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetAccountInfo ();
-        $balances = $response['balance'];
+        $response = $this->privatePostGetAccountInfo ($params);
+        $balances = $this->safe_value($response, 'balance', array());
         $result = array( 'info' => $response );
         $ids = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -97,7 +97,7 @@ class lakebtc extends Exchange {
                 $currency = $this->currencies_by_id[$id];
                 $code = $currency['code'];
             }
-            $balance = floatval ($balances[$id]);
+            $balance = $this->safe_float($balances, $id);
             $account = array (
                 'free' => $balance,
                 'used' => 0.0,
@@ -110,17 +110,19 @@ class lakebtc extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetBcorderbook (array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-        ), $params));
-        return $this->parse_order_book($orderbook);
+        );
+        $response = $this->publicGetBcorderbook (array_merge ($request, $params));
+        return $this->parse_order_book($response);
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -148,12 +150,12 @@ class lakebtc extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGetTicker ($params);
-        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $response = $this->publicGetTicker ($params);
+        $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $symbol = $ids[$i];
-            $ticker = $tickers[$symbol];
+            $ticker = $response[$symbol];
             $market = null;
             if (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$symbol];
@@ -172,7 +174,7 @@ class lakebtc extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $trade['date'] * 1000;
+        $timestamp = $this->safe_integer($trade, 'date') * 1000;
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -190,16 +192,18 @@ class lakebtc extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetBctrades (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetBctrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        if ($type === 'market')
+        if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
+        }
         $method = 'privatePost' . $this->capitalize ($side) . 'Order';
         $market = $this->market ($symbol);
         $order = array (
@@ -208,15 +212,16 @@ class lakebtc extends Exchange {
         $response = $this->$method (array_merge ($order, $params));
         return array (
             'info' => $response,
-            'id' => (string) $response['id'],
+            'id' => $this->safe_string($response, 'id'),
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelOrder (array (
+        $request = array (
             'params' => array ( $id ),
-        ));
+        );
+        return $this->privatePostCancelOrder (array_merge ($request, $params));
     }
 
     public function nonce () {
@@ -227,8 +232,9 @@ class lakebtc extends Exchange {
         $url = $this->urls['api'] . '/' . $this->version;
         if ($api === 'public') {
             $url .= '/' . $path;
-            if ($params)
+            if ($params) {
                 $url .= '?' . $this->urlencode ($params);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
@@ -263,8 +269,9 @@ class lakebtc extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('error', $response))
+        if (is_array($response) && array_key_exists('error', $response)) {
             throw new ExchangeError($this->id . ' ' . $this->json ($response));
+        }
         return $response;
     }
 }

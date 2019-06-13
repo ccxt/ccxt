@@ -687,8 +687,10 @@ class okcoinusd (Exchange):
         method = 'publicGetFutureKline' if market['future'] else 'publicGetKline'
         request = self.create_request(market, {
             'type': self.timeframes[timeframe],
-            'since': since is self.milliseconds() - 86400000 if None else since,  # default last 24h
+            # 'since': since is self.milliseconds() - 86400000 if None else since,  # default last 24h
         })
+        if since is not None:
+            request['since'] = self.milliseconds() - 86400000  # default last 24h
         if limit is not None:
             if self.options['fetchOHLCVWarning']:
                 raise ExchangeError(self.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + self.id + ' is disabled. Set ' + self.id + '.options["fetchOHLCVWarning"] = False to suppress self warning message.')

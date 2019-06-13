@@ -61,12 +61,12 @@ class lakebtc (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetTicker()
+        response = await self.publicGetTicker(params)
         result = []
-        keys = list(markets.keys())
-        for k in range(0, len(keys)):
-            id = keys[k]
-            market = markets[id]
+        keys = list(response.keys())
+        for i in range(0, len(keys)):
+            id = keys[i]
+            market = response[id]
             baseId = id[0:3]
             quoteId = id[3:6]
             base = baseId.upper()
@@ -85,8 +85,8 @@ class lakebtc (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostGetAccountInfo()
-        balances = response['balance']
+        response = await self.privatePostGetAccountInfo(params)
+        balances = self.safe_value(response, 'balance', {})
         result = {'info': response}
         ids = list(balances.keys())
         for i in range(0, len(ids)):
@@ -95,7 +95,7 @@ class lakebtc (Exchange):
             if id in self.currencies_by_id:
                 currency = self.currencies_by_id[id]
                 code = currency['code']
-            balance = float(balances[id])
+            balance = self.safe_float(balances, id)
             account = {
                 'free': balance,
                 'used': 0.0,
@@ -106,10 +106,11 @@ class lakebtc (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetBcorderbook(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        response = await self.publicGetBcorderbook(self.extend(request, params))
+        return self.parse_order_book(response)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -142,12 +143,12 @@ class lakebtc (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        tickers = await self.publicGetTicker(params)
-        ids = list(tickers.keys())
+        response = await self.publicGetTicker(params)
+        ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             symbol = ids[i]
-            ticker = tickers[symbol]
+            ticker = response[symbol]
             market = None
             if symbol in self.markets_by_id:
                 market = self.markets_by_id[symbol]
@@ -162,7 +163,7 @@ class lakebtc (Exchange):
         return self.parse_ticker(tickers[market['id']], market)
 
     def parse_trade(self, trade, market):
-        timestamp = trade['date'] * 1000
+        timestamp = self.safe_integer(trade, 'date') * 1000
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -179,9 +180,10 @@ class lakebtc (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetBctrades(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = await self.publicGetBctrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -196,14 +198,15 @@ class lakebtc (Exchange):
         response = await getattr(self, method)(self.extend(order, params))
         return {
             'info': response,
-            'id': str(response['id']),
+            'id': self.safe_string(response, 'id'),
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostCancelOrder({
+        request = {
             'params': [id],
-        })
+        }
+        return await self.privatePostCancelOrder(self.extend(request, params))
 
     def nonce(self):
         return self.microseconds()
