@@ -65,7 +65,6 @@
     "lbank":         { "skip": true },
     "livecoin":      { "skip": true },
     "luno":          { "skip": true },
-    "mandala":       { "skip": true },
     "nova":          { "skip": true },
     "okcoincny":     { "skip": true },
     "okcoinusd":     { "skip": true },
