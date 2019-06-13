@@ -620,7 +620,7 @@ module.exports = class latoken extends Exchange {
             if (path === 'account/balances' && (typeof (params) === 'string')) {
                 url += '/' + params;
                 let param = {
-                    'timestamp': Date.now (),
+                    'timestamp': this.nonce (),
                 };
                 let query1 = '?' + this.urlencode (param);
                 let dataToSign = '/api/v1/' + path + '/' + params;
