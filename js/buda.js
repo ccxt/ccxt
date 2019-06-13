@@ -296,7 +296,7 @@ module.exports = class buda extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetMarketsMarketTicker (this.extend (request, params));
-        const ticker = this.safeString (response, 'ticker');
+        const ticker = this.safeValue (response, 'ticker');
         return this.parseTicker (ticker, market);
     }
 
