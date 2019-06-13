@@ -151,6 +151,7 @@ from ccxt.getbtc import getbtc                              # noqa: F401
 from ccxt.hadax import hadax                                # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
+from ccxt.hollaex import hollaex                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
 from ccxt.huobiru import huobiru                            # noqa: F401
 from ccxt.ice3x import ice3x                                # noqa: F401
@@ -290,6 +291,7 @@ exchanges = [
     'hadax',
     'hitbtc',
     'hitbtc2',
+    'hollaex',
     'huobipro',
     'huobiru',
     'ice3x',

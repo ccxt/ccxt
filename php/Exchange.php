@@ -167,6 +167,7 @@ class Exchange {
         'hadax',
         'hitbtc',
         'hitbtc2',
+        'hollaex',
         'huobipro',
         'huobiru',
         'ice3x',
