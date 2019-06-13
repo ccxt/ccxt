@@ -79,8 +79,8 @@ module.exports = class hollaex extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let response = await this.publicGetConstant ();
+    async fetchMarkets (params = {}) {
+        let response = await this.publicGetConstant (this.extend (params));
         let markets = this.safeValue (response, 'pairs');
         let keys = Object.keys (markets);
         let result = [];
@@ -300,7 +300,7 @@ module.exports = class hollaex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async fetchOrders (symbol = undefined, params = {}) {
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         await this.loadMarkets ();
