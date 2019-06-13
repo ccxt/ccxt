@@ -706,8 +706,11 @@ module.exports = class okcoinusd extends Exchange {
         const method = market['future'] ? 'publicGetFutureKline' : 'publicGetKline';
         const request = this.createRequest (market, {
             'type': this.timeframes[timeframe],
-            'since': since === undefined ? this.milliseconds () - 86400000 : since,  // default last 24h
+            // 'since': since === undefined ? this.milliseconds () - 86400000 : since,  // default last 24h
         });
+        if (since !== undefined) {
+            request['since'] = this.milliseconds () - 86400000; // default last 24h
+        }
         if (limit !== undefined) {
             if (this.options['fetchOHLCVWarning']) {
                 throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["fetchOHLCVWarning"] = false to suppress this warning message.');
