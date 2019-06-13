@@ -567,18 +567,20 @@ class coinexchange extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetGetcurrencies ($params);
-        $currencies = $response['result'];
+        $currencies = $this->safe_value($response, 'result');
         $precision = $this->precision['amount'];
         $result = array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $id = $currency['CurrencyID'];
-            $code = $this->common_currency_code($currency['TickerCode']);
-            $active = $currency['WalletStatus'] === 'online';
+            $id = $this->safe_string($currency, 'CurrencyID');
+            $code = $this->common_currency_code($this->safe_string($currency, 'TickerCode'));
+            $walletStatus = $this->safe_string($currency, 'WalletStatus');
+            $active = $walletStatus === 'online';
+            $name = $this->safe_string($currency, 'Name');
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
-                'name' => $currency['Name'],
+                'name' => $name,
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => array (
@@ -606,7 +608,7 @@ class coinexchange extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetGetmarkets ();
+        $response = $this->publicGetGetmarkets ($params);
         $markets = $response['result'];
         $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
@@ -636,14 +638,16 @@ class coinexchange extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $symbol = null;
         if ($market === null) {
-            $marketId = $ticker['MarketID'];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))
+            $marketId = $this->safe_string($ticker, 'MarketID');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
-            else
+            } else {
                 $symbol = $marketId;
+            }
         }
-        if ($market)
+        if ($market) {
             $symbol = $market['symbol'];
+        }
         $timestamp = $this->milliseconds ();
         $last = $this->safe_float($ticker, 'LastPrice');
         return array (
@@ -673,9 +677,10 @@ class coinexchange extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetGetmarketsummary (array_merge (array (
+        $request = array (
             'market_id' => $market['id'],
-        ), $params));
+        );
+        $ticker = $this->publicGetGetmarketsummary (array_merge ($request, $params));
         return $this->parse_ticker($ticker['result'], $market);
     }
 
@@ -694,17 +699,19 @@ class coinexchange extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetGetorderbook (array_merge (array (
+        $request = array (
             'market_id' => $this->market_id($symbol),
-        ), $params));
+        );
+        $orderbook = $this->publicGetGetorderbook (array_merge ($request, $params));
         return $this->parse_order_book($orderbook['result'], null, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $path;
         if ($api === 'public') {
-            if ($params)
+            if ($params) {
                 $url .= '?' . $this->urlencode ($params);
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

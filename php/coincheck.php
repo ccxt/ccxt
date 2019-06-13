@@ -111,25 +111,25 @@ class coincheck extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $balances = $this->privateGetAccountsBalance ();
+        $this->load_markets();
+        $balances = $this->privateGetAccountsBalance ($params);
         $result = array( 'info' => $balances );
-        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
-            $lowercase = strtolower($currency);
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currencyId = $this->currency ($code);
             $account = $this->account ();
-            if (is_array($balances) && array_key_exists($lowercase, $balances))
-                $account['free'] = floatval ($balances[$lowercase]);
-            $reserved = $lowercase . '_reserved';
-            if (is_array($balances) && array_key_exists($reserved, $balances))
-                $account['used'] = floatval ($balances[$reserved]);
+            $reserved = $currencyId . '_reserved';
+            $account['free'] = $this->safe_float($balances, $currencyId);
+            $account['used'] = $this->safe_float($balances, $reserved);
             $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         // Only BTC/JPY is meaningful
         $market = null;
         if ($symbol !== null) {
@@ -210,15 +210,19 @@ class coincheck extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        if ($symbol !== 'BTC/JPY')
+        if ($symbol !== 'BTC/JPY') {
             throw new NotSupported($this->id . ' fetchOrderBook () supports BTC/JPY only');
-        $orderbook = $this->publicGetOrderBooks ($params);
-        return $this->parse_order_book($orderbook);
+        }
+        $this->load_markets();
+        $response = $this->publicGetOrderBooks ($params);
+        return $this->parse_order_book($response);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        if ($symbol !== 'BTC/JPY')
+        if ($symbol !== 'BTC/JPY') {
             throw new NotSupported($this->id . ' fetchTicker () supports BTC/JPY only');
+        }
+        $this->load_markets();
         $ticker = $this->publicGetTicker ($params);
         $timestamp = $ticker['timestamp'] * 1000;
         $last = $this->safe_float($ticker, 'last');
@@ -325,6 +329,7 @@ class coincheck extends Exchange {
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->privateGetExchangeOrdersTransactions (array_merge (array(), $params));
         $transactions = $this->safe_value($response, 'transactions', array());
@@ -335,6 +340,7 @@ class coincheck extends Exchange {
         if ($symbol !== 'BTC/JPY') {
             throw new NotSupported($this->id . ' fetchTrades () supports BTC/JPY only');
         }
+        $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'pair' => $market['id'],
@@ -348,43 +354,50 @@ class coincheck extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $order = array (
+        $this->load_markets();
+        $request = array (
             'pair' => $this->market_id($symbol),
         );
         if ($type === 'market') {
             $order_type = $type . '_' . $side;
-            $order['order_type'] = $order_type;
+            $request['order_type'] = $order_type;
             $prefix = ($side === 'buy') ? ($order_type . '_') : '';
-            $order[$prefix . 'amount'] = $amount;
+            $request[$prefix . 'amount'] = $amount;
         } else {
-            $order['order_type'] = $side;
-            $order['rate'] = $price;
-            $order['amount'] = $amount;
+            $request['order_type'] = $side;
+            $request['rate'] = $price;
+            $request['amount'] = $amount;
         }
-        $response = $this->privatePostExchangeOrders (array_merge ($order, $params));
+        $response = $this->privatePostExchangeOrders (array_merge ($request, $params));
+        $id = $this->safe_string($response, 'id');
         return array (
             'info' => $response,
-            'id' => (string) $response['id'],
+            'id' => $id,
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privateDeleteExchangeOrdersId (array( 'id' => $id ));
+        $request = array (
+            'id' => $id,
+        );
+        return $this->privateDeleteExchangeOrdersId (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $queryString = '';
             if ($method === 'GET') {
-                if ($query)
+                if ($query) {
                     $url .= '?' . $this->urlencode ($this->keysort ($query));
+                }
             } else {
                 if ($query) {
                     $body = $this->urlencode ($this->keysort ($query));
@@ -404,11 +417,14 @@ class coincheck extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api === 'public')
+        if ($api === 'public') {
             return $response;
-        if (is_array($response) && array_key_exists('success', $response))
-            if ($response['success'])
+        }
+        if (is_array($response) && array_key_exists('success', $response)) {
+            if ($response['success']) {
                 return $response;
+            }
+        }
         throw new ExchangeError($this->id . ' ' . $this->json ($response));
     }
 }
