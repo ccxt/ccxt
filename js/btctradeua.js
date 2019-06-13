@@ -99,7 +99,7 @@ module.exports = class btctradeua extends Exchange {
                 let balance = parseFloat (account['balance']);
                 result[currency] = {
                     'free': balance,
-                    'used': 0.0,
+                    'used': undefined,
                     'total': balance,
                 };
             }

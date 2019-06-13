@@ -279,7 +279,7 @@ module.exports = class liquid extends Exchange {
             let total = parseFloat (balance['balance']);
             let account = {
                 'free': total,
-                'used': 0.0,
+                'used': undefined,
                 'total': total,
             };
             result[code] = account;

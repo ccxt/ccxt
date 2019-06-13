@@ -283,7 +283,7 @@ module.exports = class ice3x extends Exchange {
                 const code = currency['code'];
                 result[code] = {
                     'free': 0.0,
-                    'used': 0.0,
+                    'used': undefined,
                     'total': this.safeFloat (balance, 'balance'),
                 };
             }

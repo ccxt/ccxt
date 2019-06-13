@@ -235,7 +235,7 @@ module.exports = class coinnest extends Exchange {
             if (!(code in result)) {
                 result[code] = {
                     'free': 0.0,
-                    'used': 0.0,
+                    'used': undefined,
                     'total': 0.0,
                 };
             }

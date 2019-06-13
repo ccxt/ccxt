@@ -60,13 +60,13 @@ module.exports = class fybse extends Exchange {
         const fiat = this.safeFloat (response, lowercase);
         const crypto = {
             'free': btc,
-            'used': 0.0,
+            'used': undefined,
             'total': btc,
         };
         const result = { 'BTC': crypto };
         result[quote] = {
             'free': fiat,
-            'used': 0.0,
+            'used': undefined,
             'total': fiat,
         };
         result['info'] = response;

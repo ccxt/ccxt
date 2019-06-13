@@ -174,7 +174,7 @@ module.exports = class zaif extends Exchange {
             let uppercase = currency.toUpperCase ();
             let account = {
                 'free': balance,
-                'used': 0.0,
+                'used': undefined,
                 'total': balance,
             };
             if ('deposit' in balances) {

@@ -255,7 +255,7 @@ module.exports = class bitmex extends Exchange {
             const code = this.commonCurrencyCode (currencyId);
             const account = {
                 'free': balance['availableMargin'],
-                'used': 0.0,
+                'used': undefined,
                 'total': balance['marginBalance'],
             };
             if (code === 'BTC') {

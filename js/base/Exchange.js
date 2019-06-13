@@ -848,7 +848,7 @@ module.exports = class Exchange {
     account () {
         return {
             'free': 0.0,
-            'used': 0.0,
+            'used': undefined,
             'total': 0.0,
         }
     }

@@ -215,7 +215,7 @@ module.exports = class gemini extends Exchange {
             const code = this.commonCurrencyCode (currencyId);
             const account = {
                 'free': this.safeFloat (balance, 'available'),
-                'used': 0.0,
+                'used': undefined,
                 'total': this.safeFloat (balance, 'amount'),
             };
             account['used'] = account['total'] - account['free'];

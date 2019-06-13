@@ -75,7 +75,7 @@ module.exports = class coinspot extends Exchange {
                 const code = this.commonCurrencyCode (uppercase);
                 let account = {
                     'free': balances[currencyId],
-                    'used': 0.0,
+                    'used': undefined,
                     'total': balances[currencyId],
                 };
                 result[code] = account;

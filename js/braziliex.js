@@ -405,7 +405,7 @@ module.exports = class braziliex extends Exchange {
             let currency = this.commonCurrencyCode (id);
             let account = {
                 'free': parseFloat (balance['available']),
-                'used': 0.0,
+                'used': undefined,
                 'total': parseFloat (balance['total']),
             };
             account['used'] = account['total'] - account['free'];

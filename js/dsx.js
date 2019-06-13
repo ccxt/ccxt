@@ -297,7 +297,7 @@ module.exports = class dsx extends liqui {
             let code = this.commonCurrencyCode (id);
             let account = {
                 'free': funds[id]['available'],
-                'used': 0.0,
+                'used': undefined,
                 'total': funds[id]['total'],
             };
             account['used'] = account['total'] - account['free'];

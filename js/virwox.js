@@ -113,7 +113,7 @@ module.exports = class virwox extends Exchange {
             let total = balance['balance'];
             let account = {
                 'free': total,
-                'used': 0.0,
+                'used': undefined,
                 'total': total,
             };
             result[currency] = account;
