@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.686'
+const version = '1.18.687'
 
 Exchange.ccxtVersion = version
 
@@ -28742,15 +28742,15 @@ module.exports = class coinegg extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let symbol = market['symbol'];
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'last');
-        let percentage = this.safeFloat (ticker, 'change');
+        const symbol = market['symbol'];
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'last');
+        const percentage = this.safeFloat (ticker, 'change');
         let open = undefined;
         let change = undefined;
         let average = undefined;
         if (percentage !== undefined) {
-            let relativeChange = percentage / 100;
+            const relativeChange = percentage / 100;
             open = last / this.sum (1, relativeChange);
             change = last - open;
             average = this.sum (last, open) / 2;
@@ -28781,38 +28781,50 @@ module.exports = class coinegg extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.publicGetTickerRegionQuote (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'coin': market['baseId'],
             'quote': market['quoteId'],
-        }, params));
-        return this.parseTicker (ticker, market);
+        };
+        const response = await this.publicGetTickerRegionQuote (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let orderbook = await this.publicGetDepthRegionQuote (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'coin': market['baseId'],
             'quote': market['quoteId'],
-        }, params));
-        return this.parseOrderBook (orderbook);
+        };
+        const response = await this.publicGetDepthRegionQuote (this.extend (request, params));
+        return this.parseOrderBook (response);
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['date']) * 1000;
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'amount');
-        let symbol = market['symbol'];
-        let cost = this.costToPrecision (symbol, price * amount);
+        let timestamp = this.safeInteger (trade, 'date');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const symbol = market['symbol'];
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = this.costToPrecision (symbol, price * amount);
+            }
+        }
+        const type = 'limit';
+        const side = this.safeString (trade, 'type');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': this.safeString (trade, 'tid'),
             'order': undefined,
-            'type': 'limit',
-            'side': trade['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -28823,22 +28835,23 @@ module.exports = class coinegg extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let trades = await this.publicGetOrdersRegionQuote (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'coin': market['baseId'],
             'quote': market['quoteId'],
-        }, params));
-        return this.parseTrades (trades, market, since, limit);
+        };
+        const response = await this.publicGetOrdersRegionQuote (this.extend (request, params));
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostBalance (params);
-        let result = {};
-        let balances = this.omit (response['data'], 'uid');
-        let keys = Object.keys (balances);
+        const response = await this.privatePostBalance (params);
+        const result = {};
+        const balances = this.omit (response['data'], 'uid');
+        const keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
-            let key = keys[i];
+            const key = keys[i];
             let [ currencyId, accountType ] = key.split ('_');
             let code = currencyId;
             if (currencyId in this.currencies_by_id) {
@@ -28854,28 +28867,33 @@ module.exports = class coinegg extends Exchange {
             accountType = (accountType === 'lock') ? 'used' : 'free';
             result[code][accountType] = parseFloat (balances[key]);
         }
-        let currencies = Object.keys (result);
+        const currencies = Object.keys (result);
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
+            const currency = currencies[i];
             result[currency]['total'] = this.sum (result[currency]['free'], result[currency]['used']);
         }
         return this.parseBalance (this.extend ({ 'info': response }, result));
     }
 
     parseOrder (order, market = undefined) {
-        let symbol = market['symbol'];
-        let timestamp = this.parse8601 (order['datetime']);
-        let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'amount_original');
-        let remaining = this.safeFloat (order, 'amount_outstanding');
-        let filled = amount - remaining;
+        const symbol = market['symbol'];
+        const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'amount_original');
+        const remaining = this.safeFloat (order, 'amount_outstanding');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = amount - remaining;
+            }
+        }
         let status = this.safeString (order, 'status');
         if (status === 'cancelled') {
             status = 'canceled';
         } else {
             status = remaining ? 'open' : 'closed';
         }
-        let info = this.safeValue (order, 'info', order);
+        const info = this.safeValue (order, 'info', order);
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
@@ -28898,16 +28916,17 @@ module.exports = class coinegg extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostTradeAddRegionQuote (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'coin': market['baseId'],
             'quote': market['quoteId'],
             'type': side,
             'amount': amount,
             'price': price,
-        }, params));
-        let id = response['id'].toString ();
-        let order = this.parseOrder ({
+        };
+        const response = await this.privatePostTradeAddRegionQuote (this.extend (request, params));
+        const id = this.safeString (response, 'id');
+        const order = this.parseOrder ({
             'id': id,
             'datetime': this.ymdhms (this.milliseconds ()),
             'amount_original': amount,
@@ -28922,44 +28941,46 @@ module.exports = class coinegg extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostTradeCancelRegionQuote (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'id': id,
             'coin': market['baseId'],
             'quote': market['quoteId'],
-        }, params));
-        return response;
+        };
+        return await this.privatePostTradeCancelRegionQuote (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privatePostTradeViewRegionQuote (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'id': id,
             'coin': market['baseId'],
             'quote': market['quoteId'],
-        }, params));
+        };
+        const response = await this.privatePostTradeViewRegionQuote (this.extend (request, params));
         return this.parseOrder (response['data'], market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'coin': market['baseId'],
             'quote': market['quoteId'],
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['since'] = since / 1000;
-        let orders = await this.privatePostTradeListRegionQuote (this.extend (request, params));
-        return this.parseOrders (orders['data'], market, since, limit);
+        }
+        const response = await this.privatePostTradeListRegionQuote (this.extend (request, params));
+        return this.parseOrders (response['data'], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let result = await this.fetchOrders (symbol, since, limit, this.extend ({
+        const request = {
             'type': 'open',
-        }, params));
-        return result;
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     nonce () {
@@ -28974,16 +28995,17 @@ module.exports = class coinegg extends Exchange {
         let url = this.urls['api'][apiType] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public' || api === 'web') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
             query = this.urlencode (this.extend ({
                 'key': this.apiKey,
                 'nonce': this.nonce (),
             }, query));
-            let secret = this.hash (this.encode (this.secret));
-            let signature = this.hmac (this.encode (query), this.encode (secret));
+            const secret = this.hash (this.encode (this.secret));
+            const signature = this.hmac (this.encode (query), this.encode (secret));
             query += '&' + 'signature=' + signature;
             if (method === 'GET') {
                 url += '?' + query;
@@ -28998,25 +29020,23 @@ module.exports = class coinegg extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        // checks against error codes
-        if (typeof body !== 'string')
+        if (response === undefined) {
             return;
-        if (body.length === 0)
-            return;
-        if (body[0] !== '{')
-            return;
+        }
         // private endpoints return the following structure:
         // {"result":true,"data":{...}} - success
         // {"result":false,"code":"103"} - failure
         // {"code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000"}}
         let result = this.safeValue (response, 'result');
-        if (result === undefined)
+        if (result === undefined) {
             // public endpoint ← this comment left here by the contributor, in fact a missing result does not necessarily mean a public endpoint...
             // we should just check the code and don't rely on the result at all here...
             return;
-        if (result === true)
+        }
+        if (result === true) {
             // success
             return;
+        }
         const errorCode = this.safeString (response, 'code');
         const errorMessages = this.errorMessages;
         const message = this.safeString (errorMessages, errorCode, 'Unknown Error');
@@ -29155,25 +29175,25 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.webGetResMarket ();
-        let markets = response['data']['market_info'];
-        let result = [];
-        let keys = Object.keys (markets);
+        const response = await this.webGetResMarket (params);
+        const markets = this.safeValue (response['data'], 'market_info');
+        const result = [];
+        const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
-            let key = keys[i];
-            let market = markets[key];
-            let id = market['market'];
-            let quoteId = market['buy_asset_type'];
-            let baseId = market['sell_asset_type'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let precision = {
-                'amount': market['sell_asset_type_places'],
-                'price': market['buy_asset_type_places'],
+            const key = keys[i];
+            const market = markets[key];
+            const id = this.safeString (market, 'market');
+            const quoteId = this.safeString (market, 'buy_asset_type');
+            const baseId = this.safeString (market, 'sell_asset_type');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
+                'amount': this.safeInteger (market, 'sell_asset_type_places'),
+                'price': this.safeInteger (market, 'buy_asset_type_places'),
             };
-            let numMergeLevels = market['merge'].length;
-            let active = (market['status'] === 'pass');
+            const numMergeLevels = market['merge'].length;
+            const active = (market['status'] === 'pass');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -29202,10 +29222,10 @@ module.exports = class coinex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['date'];
-        let symbol = market['symbol'];
+        const timestamp = this.safeInteger (ticker, 'date');
+        const symbol = market['symbol'];
         ticker = ticker['ticker'];
-        let last = this.safeFloat (ticker, 'last');
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -29232,26 +29252,27 @@ module.exports = class coinex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketTicker (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
-        }, params));
+        };
+        const response = await this.publicGetMarketTicker (this.extend (request, params));
         return this.parseTicker (response['data'], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketTickerAll (params);
-        let data = response['data'];
-        let timestamp = data['date'];
-        let tickers = data['ticker'];
-        let ids = Object.keys (tickers);
-        let result = {};
+        const response = await this.publicGetMarketTickerAll (params);
+        const data = this.safeValue (response, 'data');
+        const timestamp = this.safeInteger (data, 'date');
+        const tickers = this.safeValue (data, 'ticker');
+        const ids = Object.keys (tickers);
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = {
+            const id = ids[i];
+            const market = this.markets_by_id[id];
+            const symbol = market['symbol'];
+            const ticker = {
                 'date': timestamp,
                 'ticker': tickers[id],
             };
@@ -29262,14 +29283,15 @@ module.exports = class coinex extends Exchange {
 
     async fetchOrderBook (symbol, limit = 20, params = {}) {
         await this.loadMarkets ();
-        if (limit === undefined)
+        if (limit === undefined) {
             limit = 20; // default
+        }
         const request = {
             'market': this.marketId (symbol),
             'merge': '0.0000000001',
             'limit': limit.toString (),
         };
-        let response = await this.publicGetMarketDepth (this.extend (request, params));
+        const response = await this.publicGetMarketDepth (this.extend (request, params));
         return this.parseOrderBook (response['data']);
     }
 
@@ -29281,11 +29303,11 @@ module.exports = class coinex extends Exchange {
         } else {
             timestamp = timestamp * 1000;
         }
-        let tradeId = this.safeString (trade, 'id');
-        let orderId = this.safeString (trade, 'order_id');
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'amount');
-        let marketId = this.safeString (trade, 'market');
+        const tradeId = this.safeString (trade, 'id');
+        const orderId = this.safeString (trade, 'order_id');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const marketId = this.safeString (trade, 'market');
         market = this.safeValue (this.markets_by_id, marketId, market);
         let symbol = undefined;
         if (market !== undefined) {
@@ -29296,10 +29318,10 @@ module.exports = class coinex extends Exchange {
             cost = parseFloat (this.costToPrecision (symbol, price * amount));
         }
         let fee = undefined;
-        let feeCost = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
-            let feeCurrencyId = this.safeString (trade, 'fee_asset');
-            let feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+            const feeCurrencyId = this.safeString (trade, 'fee_asset');
+            const feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
             let feeCurrencyCode = undefined;
             if (feeCurrency !== undefined) {
                 feeCurrencyCode = feeCurrency['code'];
@@ -29309,8 +29331,8 @@ module.exports = class coinex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        let takerOrMaker = this.safeString (trade, 'role');
-        let side = this.safeString (trade, 'type');
+        const takerOrMaker = this.safeString (trade, 'role');
+        const side = this.safeString (trade, 'type');
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -29330,10 +29352,11 @@ module.exports = class coinex extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketDeals (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
-        }, params));
+        };
+        const response = await this.publicGetMarketDeals (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
@@ -29350,17 +29373,18 @@ module.exports = class coinex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketKline (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
             'type': this.timeframes[timeframe],
-        }, params));
+        };
+        const response = await this.publicGetMarketKline (this.extend (request, params));
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalanceInfo (params);
+        const response = await this.privateGetBalanceInfo (params);
         //
         //     {
         //       "code": 0,
@@ -29381,34 +29405,32 @@ module.exports = class coinex extends Exchange {
         //       "message": "Ok"
         //     }
         //
-        let result = { 'info': response };
-        let balances = response['data'];
-        let currencies = Object.keys (balances);
+        const result = { 'info': response };
+        const balances = this.safeValue (response, 'data');
+        const currencies = Object.keys (balances);
         for (let i = 0; i < currencies.length; i++) {
-            let id = currencies[i];
-            let balance = balances[id];
-            let currency = this.commonCurrencyCode (id);
+            const currencyId = currencies[i];
+            const balance = balances[currencyId];
+            const code = this.commonCurrencyCode (currencyId);
             let account = {
                 'free': parseFloat (balance['available']),
                 'used': parseFloat (balance['frozen']),
                 'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'not_deal': 'open',
             'part_deal': 'open',
             'done': 'closed',
             'cancel': 'canceled',
         };
-        if (status in statuses)
-            return statuses[status];
-        return status;
+        return this.safeFloat (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -29436,17 +29458,20 @@ module.exports = class coinex extends Exchange {
         //         "type": "sell",
         //     }
         //
-        let timestamp = this.safeInteger (order, 'create_time') * 1000;
-        let price = this.safeFloat (order, 'price');
-        let cost = this.safeFloat (order, 'deal_money');
-        let amount = this.safeFloat (order, 'amount');
-        let filled = this.safeFloat (order, 'deal_amount');
+        let timestamp = this.safeInteger (order, 'create_time');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const price = this.safeFloat (order, 'price');
+        const cost = this.safeFloat (order, 'deal_money');
+        const amount = this.safeFloat (order, 'amount');
+        const filled = this.safeFloat (order, 'deal_amount');
         const average = this.safeFloat (order, 'avg_price');
         let symbol = undefined;
-        let marketId = this.safeString (order, 'market');
+        const marketId = this.safeString (order, 'market');
         market = this.safeValue (this.markets_by_id, marketId);
         let feeCurrency = undefined;
-        let feeCurrencyId = this.safeString (order, 'fee_asset');
+        const feeCurrencyId = this.safeString (order, 'fee_asset');
         let currency = this.safeValue (this.currencies_by_id, feeCurrencyId);
         if (currency !== undefined) {
             feeCurrency = currency['code'];
@@ -29457,10 +29482,10 @@ module.exports = class coinex extends Exchange {
                 feeCurrency = market['quote'];
             }
         }
-        let remaining = this.safeFloat (order, 'left');
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let type = this.safeString (order, 'order_type');
-        let side = this.safeString (order, 'type');
+        const remaining = this.safeFloat (order, 'left');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const type = this.safeString (order, 'order_type');
+        const side = this.safeString (order, 'type');
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
@@ -29501,9 +29526,9 @@ module.exports = class coinex extends Exchange {
             }
         }
         await this.loadMarkets ();
-        let method = 'privatePostOrder' + this.capitalize (type);
-        let market = this.market (symbol);
-        let request = {
+        const method = 'privatePostOrder' + this.capitalize (type);
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
             'type': side,
@@ -29512,20 +29537,21 @@ module.exports = class coinex extends Exchange {
             price = parseFloat (price); // this line is deprecated
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let response = await this[method] (this.extend (request, params));
-        let order = this.parseOrder (response['data'], market);
-        let id = order['id'];
+        const response = await this[method] (this.extend (request, params));
+        const order = this.parseOrder (response['data'], market);
+        const id = order['id'];
         this.orders[id] = order;
         return order;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateDeleteOrderPending (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'id': id,
             'market': market['id'],
-        }, params));
+        };
+        const response = await this.privateDeleteOrderPending (this.extend (request, params));
         return this.parseOrder (response['data'], market);
     }
 
@@ -29534,11 +29560,12 @@ module.exports = class coinex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetOrder (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'id': id,
             'market': market['id'],
-        }, params));
+        };
+        const response = await this.privateGetOrder (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -29573,7 +29600,7 @@ module.exports = class coinex extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        let request = {
+        const request = {
             'page': 1,
             'limit': limit,
         };
@@ -29582,8 +29609,8 @@ module.exports = class coinex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let method = 'privateGetOrder' + this.capitalize (status);
-        let response = await this[method] (this.extend (request, params));
+        const method = 'privateGetOrder' + this.capitalize (status);
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrders (response['data']['data'], market, since, limit);
     }
 
@@ -29600,7 +29627,7 @@ module.exports = class coinex extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        let request = {
+        const request = {
             'page': 1,
             'limit': limit,
         };
@@ -29609,7 +29636,7 @@ module.exports = class coinex extends Exchange {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let response = await this.privateGetOrderUserDeals (this.extend (request, params));
+        const response = await this.privateGetOrderUserDeals (this.extend (request, params));
         return this.parseTrades (response['data']['data'], market, since, limit);
     }
 
@@ -29703,8 +29730,8 @@ module.exports = class coinex extends Exchange {
         //         "tx_id": "896371d0e23d64d1cac65a0b7c9e9093d835affb572fec89dd4547277fbdd2f6"
         //     }
         //
-        let id = this.safeString2 (transaction, 'coin_withdraw_id', 'coin_deposit_id');
-        let address = this.safeString (transaction, 'coin_address');
+        const id = this.safeString2 (transaction, 'coin_withdraw_id', 'coin_deposit_id');
+        const address = this.safeString (transaction, 'coin_address');
         let tag = this.safeString (transaction, 'remark'); // set but unused
         if (tag !== undefined) {
             if (tag.length < 1) {
@@ -29718,7 +29745,7 @@ module.exports = class coinex extends Exchange {
             }
         }
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'coin_type');
+        const currencyId = this.safeString (transaction, 'coin_type');
         if (currencyId in this.currencies_by_id) {
             currency = this.currencies_by_id[currencyId];
         } else {
@@ -29731,14 +29758,14 @@ module.exports = class coinex extends Exchange {
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
         }
-        let type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
-        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'), type);
-        let amount = this.safeFloat (transaction, 'amount');
+        const type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'), type);
+        const amount = this.safeFloat (transaction, 'amount');
         let feeCost = this.safeFloat (transaction, 'tx_fee');
         if (type === 'deposit') {
             feeCost = 0;
         }
-        let fee = {
+        const fee = {
             'cost': feeCost,
             'currency': code,
         };
@@ -29763,6 +29790,7 @@ module.exports = class coinex extends Exchange {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a currency code argument');
         }
+        await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'coin_type': currency['id'],
@@ -29822,6 +29850,7 @@ module.exports = class coinex extends Exchange {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits requires a currency code argument');
         }
+        await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'coin_type': currency['id'],
@@ -29869,22 +29898,24 @@ module.exports = class coinex extends Exchange {
         let url = this.urls['api'][api] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else if (api === 'web') {
             url = this.urls['api'][api] + '/' + path;
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            const nonce = this.nonce ();
             query = this.extend ({
                 'access_id': this.apiKey,
                 'tonce': nonce.toString (),
             }, query);
             query = this.keysort (query);
-            let urlencoded = this.urlencode (query);
-            let signature = this.hash (this.encode (urlencoded + '&secret_key=' + this.secret));
+            const urlencoded = this.urlencode (query);
+            const signature = this.hash (this.encode (urlencoded + '&secret_key=' + this.secret));
             headers = {
                 'Authorization': signature.toUpperCase (),
                 'Content-Type': 'application/json',
@@ -29899,11 +29930,11 @@ module.exports = class coinex extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let code = this.safeString (response, 'code');
-        let data = this.safeValue (response, 'data');
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        const code = this.safeString (response, 'code');
+        const data = this.safeValue (response, 'data');
         if (code !== '0' || !data) {
-            let responseCodes = {
+            const responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,
                 '107': InsufficientFunds,
@@ -29912,7 +29943,7 @@ module.exports = class coinex extends Exchange {
                 '602': InvalidOrder,
                 '606': InvalidOrder,
             };
-            let ErrorClass = this.safeValue (responseCodes, code, ExchangeError);
+            const ErrorClass = this.safeValue (responseCodes, code, ExchangeError);
             throw new ErrorClass (response['message']);
         }
         return response;
@@ -30487,19 +30518,21 @@ module.exports = class coinexchange extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetGetcurrencies (params);
-        let currencies = response['result'];
-        let precision = this.precision['amount'];
-        let result = {};
+        const response = await this.publicGetGetcurrencies (params);
+        const currencies = this.safeValue (response, 'result');
+        const precision = this.precision['amount'];
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['CurrencyID'];
-            let code = this.commonCurrencyCode (currency['TickerCode']);
-            let active = currency['WalletStatus'] === 'online';
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'CurrencyID');
+            const code = this.commonCurrencyCode (this.safeString (currency, 'TickerCode'));
+            const walletStatus = this.safeString (currency, 'WalletStatus');
+            const active = walletStatus === 'online';
+            const name = this.safeString (currency, 'Name');
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': currency['Name'],
+                'name': name,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -30527,18 +30560,18 @@ module.exports = class coinexchange extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetGetmarkets ();
-        let markets = response['result'];
-        let result = [];
+        const response = await this.publicGetGetmarkets (params);
+        const markets = response['result'];
+        const result = [];
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let id = market['MarketID'];
-            let baseId = this.safeString (market, 'MarketAssetCode');
-            let quoteId = this.safeString (market, 'BaseCurrencyCode');
+            const market = markets[i];
+            const id = market['MarketID'];
+            const baseId = this.safeString (market, 'MarketAssetCode');
+            const quoteId = this.safeString (market, 'BaseCurrencyCode');
             if (baseId !== undefined && quoteId !== undefined) {
-                let base = this.commonCurrencyCode (baseId);
-                let quote = this.commonCurrencyCode (quoteId);
-                let symbol = base + '/' + quote;
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                const symbol = base + '/' + quote;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -30557,16 +30590,18 @@ module.exports = class coinexchange extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = ticker['MarketID'];
-            if (marketId in this.markets_by_id)
+            const marketId = this.safeString (ticker, 'MarketID');
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-            else
+            } else {
                 symbol = marketId;
+            }
         }
-        if (market)
+        if (market) {
             symbol = market['symbol'];
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'LastPrice');
+        }
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -30593,21 +30628,22 @@ module.exports = class coinexchange extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.publicGetGetmarketsummary (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market_id': market['id'],
-        }, params));
+        };
+        const ticker = await this.publicGetGetmarketsummary (this.extend (request, params));
         return this.parseTicker (ticker['result'], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetGetmarketsummaries (params);
-        let tickers = response['result'];
-        let result = {};
+        const response = await this.publicGetGetmarketsummaries (params);
+        const tickers = response['result'];
+        const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = this.parseTicker (tickers[i]);
-            let symbol = ticker['symbol'];
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
@@ -30615,26 +30651,28 @@ module.exports = class coinexchange extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetGetorderbook (this.extend ({
+        const request = {
             'market_id': this.marketId (symbol),
-        }, params));
+        };
+        const orderbook = await this.publicGetGetorderbook (this.extend (request, params));
         return this.parseOrderBook (orderbook['result'], undefined, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let success = this.safeInteger (response, 'success');
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        const success = this.safeInteger (response, 'success');
         if (success !== 1) {
-            let message = this.safeString (response, 'message', 'Error');
+            const message = this.safeString (response, 'message', 'Error');
             throw new ExchangeError (message);
         }
         return response;
