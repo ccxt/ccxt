@@ -429,12 +429,14 @@ class coss extends Exchange {
         $last = $this->safe_float($ticker, 'Last');
         $change = null;
         $percentage = null;
-        if ($last !== null)
+        if ($last !== null) {
             if ($previous !== null) {
                 $change = $last - $previous;
-                if ($previous > 0)
+                if ($previous > 0) {
                     $percentage = ($change / $previous) * 100;
+                }
             }
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,

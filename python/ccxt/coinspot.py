@@ -30,6 +30,7 @@ class coinspot (Exchange):
                 },
                 'www': 'https://www.coinspot.com.au',
                 'doc': 'https://www.coinspot.com.au/api',
+                'referral': 'https://www.coinspot.com.au/join/FSM11C',
             },
             'api': {
                 'public': {
@@ -55,39 +56,45 @@ class coinspot (Exchange):
                 },
             },
             'markets': {
-                'BTC/AUD': {'id': 'BTC', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD'},
-                'LTC/AUD': {'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD'},
-                'DOGE/AUD': {'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD'},
+                'BTC/AUD': {'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud'},
+                'LTC/AUD': {'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud'},
+                'DOGE/AUD': {'id': 'doge', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', 'baseId': 'doge', 'quoteId': 'aud'},
+            },
+            'commonCurrencies': {
+                'DRK': 'DASH',
             },
         })
 
     def fetch_balance(self, params={}):
-        response = self.privatePostMyBalances()
+        self.load_markets()
+        response = self.privatePostMyBalances(params)
         result = {'info': response}
         if 'balance' in response:
             balances = response['balance']
-            currencies = list(balances.keys())
-            for c in range(0, len(currencies)):
-                currency = currencies[c]
-                uppercase = currency.upper()
+            currencyIds = list(balances.keys())
+            for i in range(0, len(currencyIds)):
+                currencyId = currencyIds[i]
+                uppercase = currencyId.upper()
+                code = self.common_currency_code(uppercase)
                 account = {
-                    'free': balances[currency],
+                    'free': balances[currencyId],
                     'used': 0.0,
-                    'total': balances[currency],
+                    'total': balances[currencyId],
                 }
-                if uppercase == 'DRK':
-                    uppercase = 'DASH'
-                result[uppercase] = account
+                result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        orderbook = self.privatePostOrders(self.extend({
+        request = {
             'cointype': market['id'],
-        }, params))
+        }
+        orderbook = self.privatePostOrders(self.extend(request, params))
         return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         response = self.publicGetLatest(params)
         id = self.market_id(symbol)
         id = id.lower()
@@ -118,20 +125,23 @@ class coinspot (Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        return self.privatePostOrdersHistory(self.extend({
+        self.load_markets()
+        request = {
             'cointype': self.market_id(symbol),
-        }, params))
+        }
+        return self.privatePostOrdersHistory(self.extend(request, params))
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         method = 'privatePostMy' + self.capitalize(side)
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        order = {
+        request = {
             'cointype': self.market_id(symbol),
             'amount': amount,
             'rate': price,
         }
-        return getattr(self, method)(self.extend(order, params))
+        return getattr(self, method)(self.extend(request, params))
 
     def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not fully implemented yet')

@@ -27,6 +27,7 @@ class coinspot extends Exchange {
                 ),
                 'www' => 'https://www.coinspot.com.au',
                 'doc' => 'https://www.coinspot.com.au/api',
+                'referral' => 'https://www.coinspot.com.au/join/FSM11C',
             ),
             'api' => array (
                 'public' => array (
@@ -52,44 +53,50 @@ class coinspot extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/AUD' => array( 'id' => 'BTC', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD' ),
-                'LTC/AUD' => array( 'id' => 'LTC', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD' ),
-                'DOGE/AUD' => array( 'id' => 'DOGE', 'symbol' => 'DOGE/AUD', 'base' => 'DOGE', 'quote' => 'AUD' ),
+                'BTC/AUD' => array( 'id' => 'btc', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'baseId' => 'btc', 'quoteId' => 'aud' ),
+                'LTC/AUD' => array( 'id' => 'ltc', 'symbol' => 'LTC/AUD', 'base' => 'LTC', 'quote' => 'AUD', 'baseId' => 'ltc', 'quoteId' => 'aud' ),
+                'DOGE/AUD' => array( 'id' => 'doge', 'symbol' => 'DOGE/AUD', 'base' => 'DOGE', 'quote' => 'AUD', 'baseId' => 'doge', 'quoteId' => 'aud' ),
+            ),
+            'commonCurrencies' => array (
+                'DRK' => 'DASH',
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->privatePostMyBalances ();
+        $this->load_markets();
+        $response = $this->privatePostMyBalances ($params);
         $result = array( 'info' => $response );
         if (is_array($response) && array_key_exists('balance', $response)) {
             $balances = $response['balance'];
-            $currencies = is_array($balances) ? array_keys($balances) : array();
-            for ($c = 0; $c < count ($currencies); $c++) {
-                $currency = $currencies[$c];
-                $uppercase = strtoupper($currency);
+            $currencyIds = is_array($balances) ? array_keys($balances) : array();
+            for ($i = 0; $i < count ($currencyIds); $i++) {
+                $currencyId = $currencyIds[$i];
+                $uppercase = strtoupper($currencyId);
+                $code = $this->common_currency_code($uppercase);
                 $account = array (
-                    'free' => $balances[$currency],
+                    'free' => $balances[$currencyId],
                     'used' => 0.0,
-                    'total' => $balances[$currency],
+                    'total' => $balances[$currencyId],
                 );
-                if ($uppercase === 'DRK')
-                    $uppercase = 'DASH';
-                $result[$uppercase] = $account;
+                $result[$code] = $account;
             }
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $orderbook = $this->privatePostOrders (array_merge (array (
+        $request = array (
             'cointype' => $market['id'],
-        ), $params));
+        );
+        $orderbook = $this->privatePostOrders (array_merge ($request, $params));
         return $this->parse_order_book($orderbook, null, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $response = $this->publicGetLatest ($params);
         $id = $this->market_id($symbol);
         $id = strtolower($id);
@@ -121,21 +128,25 @@ class coinspot extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        return $this->privatePostOrdersHistory (array_merge (array (
+        $this->load_markets();
+        $request = array (
             'cointype' => $this->market_id($symbol),
-        ), $params));
+        );
+        return $this->privatePostOrdersHistory (array_merge ($request, $params));
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        $this->load_markets();
         $method = 'privatePostMy' . $this->capitalize ($side);
-        if ($type === 'market')
+        if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
-        $order = array (
+        }
+        $request = array (
             'cointype' => $this->market_id($symbol),
             'amount' => $amount,
             'rate' => $price,
         );
-        return $this->$method (array_merge ($order, $params));
+        return $this->$method (array_merge ($request, $params));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -145,8 +156,9 @@ class coinspot extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!$this->apiKey)
+        if (!$this->apiKey) {
             throw new AuthenticationError($this->id . ' requires apiKey for all requests');
+        }
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'private') {
             $this->check_required_credentials();
