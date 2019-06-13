@@ -464,14 +464,14 @@ module.exports = class dx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (Array.isArray (params)) {
-            let arrayLength = params.length;
+            const arrayLength = params.length;
             if (arrayLength === 0) {
                 // In PHP params = array () causes this to fail, because
                 // the API requests an object, not an array, even if it is empty
                 params = { '__associative': true };
             }
         }
-        let parameters = {
+        const parameters = {
             'jsonrpc': '2.0',
             'id': this.milliseconds (),
             'method': path,
@@ -480,8 +480,9 @@ module.exports = class dx extends Exchange {
         let url = this.urls['api'];
         headers = { 'Content-Type': 'application/json-rpc' };
         if (method === 'GET') {
-            if (Object.keys (parameters).length)
+            if (Object.keys (parameters).length) {
                 url += '?' + this.urlencode (parameters);
+            }
         } else {
             body = this.json (parameters);
         }
