@@ -13,7 +13,7 @@ module.exports = class hollaex extends Exchange {
             'id': 'hollaex',
             'name': 'HollaEx',
             'countries': [ 'KR' ],
-            'rateLimit': 667,
+            'rateLimit': 333,
             'version': 'v0',
             'has': {
                 'CORS': false,
@@ -87,7 +87,9 @@ module.exports = class hollaex extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             let id = keys[i];
             let market = markets[id];
-            let [baseId, quoteId] = id.split ('-');
+            let ids = id.split ('-');
+            let baseId = ids[0];
+            let quoteId = ids[1];
             let base = this.commonCurrencyCode (baseId).toUpperCase ();
             let quote = this.commonCurrencyCode (quoteId).toUpperCase ();
             let symbol = base + '/' + quote;
@@ -126,7 +128,7 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol = undefined, params = {}) {
         if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
         await this.loadMarkets ();
@@ -148,7 +150,7 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    async fetchTicker (symbol, params = {}) {
+    async fetchTicker (symbol = undefined, params = {}) {
         if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchTicker requires a symbol argument');
         await this.loadMarkets ();
@@ -160,7 +162,10 @@ module.exports = class hollaex extends Exchange {
     }
 
     parseTicker (response, market = undefined) {
-        let symbol = (market !== undefined) ? market['symbol'] : undefined;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         let info = response;
         let datetime = this.safeString (response, 'timestamp');
         let timestamp = this.parse8601 (datetime);
@@ -205,7 +210,7 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined)
             throw new ArgumentsRequired (this.id + ' fetchTrades requires a symbol argument');
         await this.loadMarkets ();
@@ -217,7 +222,10 @@ module.exports = class hollaex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let symbol = (market !== undefined) ? market['symbol'] : undefined;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         let info = trade;
         let id = undefined;
         let datetime = this.safeString (trade, 'timestamp');
@@ -253,6 +261,9 @@ module.exports = class hollaex extends Exchange {
         let response = await this.privateGetUserBalance (params);
         let result = {
             'info': response,
+            'free': undefined,
+            'used': undefined,
+            'total': undefined,
         };
         let free = {};
         let used = {};
@@ -266,7 +277,7 @@ module.exports = class hollaex extends Exchange {
             }
             free[currency] = response[responseCurr + '_available'];
             total[currency] = response[responseCurr + '_balance'];
-            used[currency] = total[currency] - free[currency];
+            // used[currency] = total[currency] - free[currency];
             result[currency] = {
                 'free': free[currency],
                 'used': used[currency],
@@ -279,7 +290,7 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchOrder (id = undefined, symbol = undefined, params = {}) {
         if (id === undefined)
             throw new ArgumentsRequired (this.id + ' fetchOrder requires an orderId argument');
         if (symbol === undefined)
@@ -312,7 +323,10 @@ module.exports = class hollaex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let symbol = (market !== undefined) ? market['symbol'] : undefined;
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         let id = this.safeString (order, 'id');
         let datetime = this.safeString (order, 'created_at');
         let timestamp = this.parse8601 (datetime);
@@ -323,7 +337,8 @@ module.exports = class hollaex extends Exchange {
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
-        let remaining = amount - filled;
+        // let remaining = amount - filled;
+        let remaining = undefined;
         let cost = filled * price;
         let trades = undefined;
         let fee = undefined;
@@ -364,7 +379,7 @@ module.exports = class hollaex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
+    async cancelOrder (id = undefined, symbol = undefined, params = {}) {
         if (id === undefined)
             throw new ArgumentsRequired (this.id + ' cancelOrder requires an id argument');
         let response = await this.privateDeleteUserOrdersOrderId (this.extend ({
@@ -385,7 +400,7 @@ module.exports = class hollaex extends Exchange {
             request['limit'] = limit;
         }
         let response = await this.privateGetUserTrades (this.extend (request, params));
-        return this.parseTrades (response.data, market, since, limit);
+        return this.parseTrades (response['data'], market, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
