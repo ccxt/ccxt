@@ -280,7 +280,7 @@ class liquid extends Exchange {
             $total = floatval ($balance['balance']);
             $account = array (
                 'free' => $total,
-                'used' => null,
+                'used' => 0.0,
                 'total' => $total,
             );
             $result[$code] = $account;

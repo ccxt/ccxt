@@ -278,7 +278,7 @@ class liquid (Exchange):
             total = float(balance['balance'])
             account = {
                 'free': total,
-                'used': None,
+                'used': 0.0,
                 'total': total,
             }
             result[code] = account

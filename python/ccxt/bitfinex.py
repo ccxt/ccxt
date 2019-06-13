@@ -795,7 +795,7 @@ class bitfinex (Exchange):
         orders = self.parse_orders(response, None, since, limit)
         if symbol is not None:
             orders = self.filter_by(orders, 'symbol', symbol)
-        orders = self.filter_by(orders, 'status', 'closed')
+        orders = self.filter_by_array(orders, 'status', ['closed', 'canceled'])
         return orders
 
     def fetch_order(self, id, symbol=None, params={}):
