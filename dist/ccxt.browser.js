@@ -46381,6 +46381,7 @@ module.exports = class hollaex extends Exchange {
             'countries': [ 'KR' ],
             'rateLimit': 333,
             'version': 'v0',
+            'verbose': true,
             'has': {
                 'CORS': false,
                 'fetchMarkets': true,
