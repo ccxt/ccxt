@@ -52,9 +52,12 @@ module.exports = class coinspot extends Exchange {
                 },
             },
             'markets': {
-                'BTC/AUD': { 'id': 'BTC', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD' },
-                'LTC/AUD': { 'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD' },
-                'DOGE/AUD': { 'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD' },
+                'BTC/AUD': { 'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud' },
+                'LTC/AUD': { 'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud' },
+                'DOGE/AUD': { 'id': 'doge', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', 'baseId': 'doge', 'quoteId': 'aud' },
+            },
+            'commonCurrencies': {
+                'DRK': 'DASH',
             },
         });
     }
@@ -62,21 +65,20 @@ module.exports = class coinspot extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostMyBalances (params);
-        let result = { 'info': response };
+        const result = { 'info': response };
         if ('balance' in response) {
-            let balances = response['balance'];
-            let currencies = Object.keys (balances);
-            for (let c = 0; c < currencies.length; c++) {
-                let currency = currencies[c];
-                let uppercase = currency.toUpperCase ();
+            const balances = response['balance'];
+            const currencyIds = Object.keys (balances);
+            for (let i = 0; i < currencyIds.length; i++) {
+                const currencyId = currencyIds[i];
+                const uppercase = currencyId.toUpperCase ();
+                const code = this.commonCurrencyCode (uppercase);
                 let account = {
-                    'free': balances[currency],
+                    'free': balances[currencyId],
                     'used': 0.0,
-                    'total': balances[currency],
+                    'total': balances[currencyId],
                 };
-                if (uppercase === 'DRK')
-                    uppercase = 'DASH';
-                result[uppercase] = account;
+                result[code] = account;
             }
         }
         return this.parseBalance (result);
@@ -84,21 +86,22 @@ module.exports = class coinspot extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let orderbook = await this.privatePostOrders (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'cointype': market['id'],
-        }, params));
+        };
+        const orderbook = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'rate', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetLatest (params);
+        const response = await this.publicGetLatest (params);
         let id = this.marketId (symbol);
         id = id.toLowerCase ();
-        let ticker = response['prices'][id];
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'last');
+        const ticker = response['prices'][id];
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -125,22 +128,24 @@ module.exports = class coinspot extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        return this.privatePostOrdersHistory (this.extend ({
+        const request = {
             'cointype': this.marketId (symbol),
-        }, params));
+        };
+        return await this.privatePostOrdersHistory (this.extend (request, params));
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let method = 'privatePostMy' + this.capitalize (side);
-        if (type === 'market')
+        const method = 'privatePostMy' + this.capitalize (side);
+        if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let order = {
+        }
+        const request = {
             'cointype': this.marketId (symbol),
             'amount': amount,
             'rate': price,
         };
-        return this[method] (this.extend (order, params));
+        return await this[method] (this.extend (request, params));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -150,12 +155,13 @@ module.exports = class coinspot extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        if (!this.apiKey)
+        if (!this.apiKey) {
             throw new AuthenticationError (this.id + ' requires apiKey for all requests');
-        let url = this.urls['api'][api] + '/' + path;
+        }
+        const url = this.urls['api'][api] + '/' + path;
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            const nonce = this.nonce ();
             body = this.json (this.extend ({ 'nonce': nonce }, params));
             headers = {
                 'Content-Type': 'application/json',
