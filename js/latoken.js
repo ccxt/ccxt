@@ -299,8 +299,6 @@ module.exports = class latoken extends Exchange {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'low': this.safeValue (ticker, 'low'),
-            'high': this.safeValue (ticker, 'high'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
