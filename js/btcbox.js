@@ -153,7 +153,7 @@ module.exports = class btcbox extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const id = this.safeSting (trade, 'tid');
+        const id = this.safeString (trade, 'tid');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
