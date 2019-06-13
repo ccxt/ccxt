@@ -66,7 +66,8 @@ class bl3p extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->privatePostGENMKTMoneyInfo ();
+        $this->load_markets();
+        $response = $this->privatePostGENMKTMoneyInfo ($params);
         $data = $response['data'];
         $balance = $data['wallets'];
         $result = array( 'info' => $data );
@@ -103,18 +104,23 @@ class bl3p extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $market = $this->market ($symbol);
-        $response = $this->publicGetMarketOrderbook (array_merge (array (
+        $request = array (
             'market' => $market['id'],
-        ), $params));
-        $orderbook = $response['data'];
+        );
+        $response = $this->publicGetMarketOrderbook (array_merge ($request, $params));
+        $orderbook = $this->safe_value($response, 'data');
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price_int', 'amount_int');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        $ticker = $this->publicGetMarketTicker (array_merge (array (
+        $request = array (
             'market' => $this->market_id($symbol),
-        ), $params));
-        $timestamp = $ticker['timestamp'] * 1000;
+        );
+        $ticker = $this->publicGetMarketTicker (array_merge ($request, $params));
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -134,15 +140,16 @@ class bl3p extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => floatval ($ticker['volume']['24h']),
+            'baseVolume' => $this->safe_float($ticker['volume'], '24h'),
             'quoteVolume' => null,
             'info' => $ticker,
         );
     }
 
     public function parse_trade ($trade, $market) {
+        $id = $this->safe_string($trade, 'trade_id');
         return array (
-            'id' => (string) $trade['trade_id'],
+            'id' => $id,
             'timestamp' => $trade['date'],
             'datetime' => $this->iso8601 ($trade['date']),
             'symbol' => $market['symbol'],
@@ -171,17 +178,22 @@ class bl3p extends Exchange {
             'fee_currency' => $market['quote'],
             'type' => ($side === 'buy') ? 'bid' : 'ask',
         );
-        if ($type === 'limit')
+        if ($type === 'limit') {
             $order['price_int'] = intval ($price * 100000.0);
+        }
         $response = $this->privatePostMarketMoneyOrderAdd (array_merge ($order, $params));
+        $orderId = $this->safe_string($response['data'], 'order_id');
         return array (
             'info' => $response,
-            'id' => (string) $response['data']['order_id'],
+            'id' => $orderId,
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostMarketMoneyOrderCancel (array( 'order_id' => $id ));
+        $request = array (
+            'order_id' => $id,
+        );
+        return $this->privatePostMarketMoneyOrderCancel (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -189,8 +201,9 @@ class bl3p extends Exchange {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $request;
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();

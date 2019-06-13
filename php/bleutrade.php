@@ -161,12 +161,15 @@ class bleutrade extends bittrex {
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
-            $this->load_markets();
             $market = $this->market ($symbol);
         } else {
             $market = null;
         }
-        $response = $this->accountGetOrders (array_merge (array( 'market' => 'ALL', 'orderstatus' => 'ALL' ), $params));
+        $request = array (
+            'market' => 'ALL',
+            'orderstatus' => 'ALL',
+        );
+        $response = $this->accountGetOrders (array_merge ($request, $params));
         return $this->parse_orders($response['result'], $market, $since, $limit);
     }
 
@@ -192,31 +195,30 @@ class bleutrade extends bittrex {
             'market' => $this->market_id($symbol),
             'type' => 'ALL',
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['depth'] = $limit; // 50
+        }
         $response = $this->publicGetOrderbook (array_merge ($request, $params));
         $orderbook = $this->safe_value($response, 'result');
-        if (!$orderbook)
+        if (!$orderbook) {
             throw new ExchangeError($this->id . ' publicGetOrderbook() returneded no result ' . $this->json ($response));
+        }
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         // Currently we can't set the makerOrTaker field, but if the user knows the order side then it can be
-        // determined (if the side of the $trade is different to the side of the order, then the $trade is maker).
-        // Similarly, the correct 'side' for the $trade is that of the order.
-        // The $trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
+        // determined (if the side of the trade is different to the side of the order, then the trade is maker).
+        // Similarly, the correct 'side' for the trade is that of the order.
+        // The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
         $this->load_markets();
-        $response = $this->accountGetOrderhistory (array( 'orderid' => $id ));
-        $trades = $this->parse_trades($response['result'], null, $since, $limit);
-        $result = array();
-        for ($i = 0; $i < count ($trades); $i++) {
-            $trade = array_merge ($trades[$i], array (
-                'order' => $id,
-            ));
-            $result[] = $trade;
-        }
-        return $result;
+        $request = array (
+            'orderid' => $id,
+        );
+        $response = $this->accountGetOrderhistory (array_merge ($request, $params));
+        return $this->parse_trades($response['result'], null, $since, $limit, array (
+            'order' => $id,
+        ));
     }
 
     public function fetch_transactions_by_type ($type, $code = null, $since = null, $limit = null, $params = array ()) {
@@ -257,8 +259,9 @@ class bleutrade extends bittrex {
         );
         $response = $this->publicGetCandles (array_merge ($request, $params));
         if (is_array($response) && array_key_exists('result', $response)) {
-            if ($response['result'])
+            if ($response['result']) {
                 return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
+            }
         }
     }
 
@@ -272,8 +275,9 @@ class bleutrade extends bittrex {
         }
         $id = $this->safe_string($trade, 'TradeID');
         $symbol = null;
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $cost = null;
         $price = $this->safe_float($trade, 'Price');
         $amount = $this->safe_float($trade, 'Quantity');
@@ -310,40 +314,49 @@ class bleutrade extends bittrex {
         // We parse different fields in a very specific $order->
         // Order might well be closed and then canceled.
         $status = null;
-        if ((is_array($order) && array_key_exists('Opened', $order)) && $order['Opened'])
+        if ((is_array($order) && array_key_exists('Opened', $order)) && $order['Opened']) {
             $status = 'open';
-        if ((is_array($order) && array_key_exists('Closed', $order)) && $order['Closed'])
+        }
+        if ((is_array($order) && array_key_exists('Closed', $order)) && $order['Closed']) {
             $status = 'closed';
-        if ((is_array($order) && array_key_exists('CancelInitiated', $order)) && $order['CancelInitiated'])
+        }
+        if ((is_array($order) && array_key_exists('CancelInitiated', $order)) && $order['CancelInitiated']) {
             $status = 'canceled';
-        if ((is_array($order) && array_key_exists('Status', $order)) && $this->options['parseOrderStatus'])
+        }
+        if ((is_array($order) && array_key_exists('Status', $order)) && $this->options['parseOrderStatus']) {
             $status = $this->parse_order_status($this->safe_string($order, 'Status'));
+        }
         $symbol = null;
-        if (is_array($order) && array_key_exists('Exchange', $order)) {
-            $marketId = $order['Exchange'];
+        $marketId = $this->safe_string($order, 'Exchange');
+        if ($marketId === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
+        } else {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             } else {
                 $symbol = $this->parse_symbol ($marketId);
             }
-        } else {
-            if ($market !== null) {
-                $symbol = $market['symbol'];
-            }
         }
         $timestamp = null;
-        if (is_array($order) && array_key_exists('Opened', $order))
+        if (is_array($order) && array_key_exists('Opened', $order)) {
             $timestamp = $this->parse8601 ($order['Opened'] . '+00:00');
-        if (is_array($order) && array_key_exists('Created', $order))
+        }
+        if (is_array($order) && array_key_exists('Created', $order)) {
             $timestamp = $this->parse8601 ($order['Created'] . '+00:00');
+        }
         $lastTradeTimestamp = null;
-        if ((is_array($order) && array_key_exists('TimeStamp', $order)) && ($order['TimeStamp'] !== null))
+        if ((is_array($order) && array_key_exists('TimeStamp', $order)) && ($order['TimeStamp'] !== null)) {
             $lastTradeTimestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
-        if ((is_array($order) && array_key_exists('Closed', $order)) && ($order['Closed'] !== null))
+        }
+        if ((is_array($order) && array_key_exists('Closed', $order)) && ($order['Closed'] !== null)) {
             $lastTradeTimestamp = $this->parse8601 ($order['Closed'] . '+00:00');
-        if ($timestamp === null)
+        }
+        if ($timestamp === null) {
             $timestamp = $lastTradeTimestamp;
+        }
         $fee = null;
         $commission = null;
         if (is_array($order) && array_key_exists('Commission', $order)) {
@@ -376,12 +389,14 @@ class bleutrade extends bittrex {
             $filled = $amount - $remaining;
         }
         if (!$cost) {
-            if ($price && $filled)
+            if ($price && $filled) {
                 $cost = $price * $filled;
+            }
         }
         if (!$price) {
-            if ($cost && $filled)
+            if ($cost && $filled) {
                 $price = $cost / $filled;
+            }
         }
         $average = $this->safe_float($order, 'PricePerUnit');
         $id = $this->safe_string_2($order, 'OrderUuid', 'OrderId');
@@ -466,11 +481,12 @@ class bleutrade extends bittrex {
             $address = $label;
         }
         $fee = null;
-        if ($feeCost !== null)
+        if ($feeCost !== null) {
             $fee = array (
                 'currency' => $code,
                 'cost' => $feeCost,
             );
+        }
         $status = 'ok';
         if ($txid === 'CANCELED') {
             $txid = null;
