@@ -293,22 +293,26 @@ module.exports = class latoken extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         let symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
-        let priceChangePercent = ((this.safeFloat (ticker, 'open')) / (this.safeFloat (ticker, 'open') + this.safeFloat (ticker, 'priceChange'))) * 100;
+        const open = this.safeFloat (ticker, 'open');
+        const priceChange = this.safeFloat (ticker, 'priceChange');
+        const priceChangePercent = (open / this.sum (open, priceChange)) * 100;
         let timestamp = this.nonce ();
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'low': this.safeFloat (ticker, 'low'),
+            'high': this.safeFloat (ticker, 'high'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeFloat (ticker, 'open'),
+            'open': open,
             'close': this.safeFloat (ticker, 'close'),
             'last': undefined,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'priceChange'),
+            'change': priceChange,
             'percentage': priceChangePercent,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
@@ -543,12 +547,12 @@ module.exports = class latoken extends Exchange {
         return ({
             'orderId': response['orderId'],
             'cliOrdId': response['cliOrdId'],
-            'pairId': parseFloat (response['pairId']),
+            'pairId': this.safeFloat (response, 'pairId'),
             'symbol': response['symbol'],
             'side': response['side'],
             'orderType': response['orderType'],
-            'price': parseFloat (response['price']),
-            'amount': parseFloat (response['amount']),
+            'price': this.safeFloat (response, 'price'),
+            'amount': this.safeFloat (response, 'amount'),
         });
     }
 
