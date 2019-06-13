@@ -1759,7 +1759,7 @@ class Exchange {
         return $this->orders;
     }
 
-    public function purgeCachesOrders($before) {
+    public function purgeCachedOrders($before) {
         return $this->purge_cached_orders($before);
     }
 
