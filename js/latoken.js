@@ -254,10 +254,7 @@ module.exports = class latoken extends Exchange {
     parseBidAsk (bidask) {
         let price = parseFloat (bidask['price']);
         let amount = parseFloat (bidask['amount']);
-        return {
-            'price': price,
-            'amount': amount,
-        };
+        return [ price, amount];
     }
 
     parseBidsAsks (bidasks) {
@@ -270,8 +267,8 @@ module.exports = class latoken extends Exchange {
 
     parseOrderBook (orderbook, timestamp = undefined, asksKey = 'asks', bidsKey = 'bids') {
         return {
-            'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey]) : null,
-            'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey]) : null,
+            'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey]) : undefined,
+            'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey]) : undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
