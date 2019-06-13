@@ -480,8 +480,9 @@ class dx extends Exchange {
         $url = $this->urls['api'];
         $headers = array( 'Content-Type' => 'application/json-rpc' );
         if ($method === 'GET') {
-            if ($parameters)
+            if ($parameters) {
                 $url .= '?' . $this->urlencode ($parameters);
+            }
         } else {
             $body = $this->json ($parameters);
         }

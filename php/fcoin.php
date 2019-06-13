@@ -131,14 +131,14 @@ class fcoin extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetSymbols ();
+        $response = $this->publicGetSymbols ($params);
         $result = array();
-        $markets = $response['data'];
+        $markets = $this->safe_value($response, 'data');
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $id = $market['name'];
-            $baseId = $market['base_currency'];
-            $quoteId = $market['quote_currency'];
+            $id = $this->safe_string($market, 'name');
+            $baseId = $this->safe_string($market, 'base_currency');
+            $quoteId = $this->safe_string($market, 'quote_currency');
             $base = strtoupper($baseId);
             $base = $this->common_currency_code($base);
             $quote = strtoupper($quoteId);
@@ -178,7 +178,7 @@ class fcoin extends Exchange {
         $this->load_markets();
         $response = $this->privateGetAccountsBalance ($params);
         $result = array( 'info' => $response );
-        $balances = $response['data'];
+        $balances = $this->safe_value($response, 'data');
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $balance['currency'];
@@ -225,12 +225,12 @@ class fcoin extends Exchange {
         } else {
             $limit = 'L20';
         }
-        $request = array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
             'level' => $limit, // L20, L150
-        ), $params);
-        $response = $this->marketGetDepthLevelSymbol ($request);
-        $orderbook = $response['data'];
+        );
+        $response = $this->marketGetDepthLevelSymbol (array_merge ($request, $params));
+        $orderbook = $this->safe_value($response, 'data');
         return $this->parse_order_book($orderbook, $orderbook['ts'], 'bids', 'asks', 0, 1);
     }
 
@@ -258,7 +258,7 @@ class fcoin extends Exchange {
             }
         }
         $values = $ticker['ticker'];
-        $last = $values[0];
+        $last = floatval ($values[0]);
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
@@ -266,12 +266,12 @@ class fcoin extends Exchange {
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $values[7],
-            'low' => $values[8],
-            'bid' => $values[2],
-            'bidVolume' => $values[3],
-            'ask' => $values[4],
-            'askVolume' => $values[5],
+            'high' => floatval ($values[7]),
+            'low' => floatval ($values[8]),
+            'bid' => floatval ($values[2]),
+            'bidVolume' => floatval ($values[3]),
+            'ask' => floatval ($values[4]),
+            'askVolume' => floatval ($values[5]),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -280,8 +280,8 @@ class fcoin extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $values[9],
-            'quoteVolume' => $values[10],
+            'baseVolume' => floatval ($values[9]),
+            'quoteVolume' => floatval ($values[10]),
             'info' => $ticker,
         );
     }
@@ -291,7 +291,7 @@ class fcoin extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = intval ($trade['ts']);
+        $timestamp = $this->safe_integer($trade, 'ts');
         $side = strtolower($trade['side']);
         $orderId = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'price');
@@ -352,18 +352,19 @@ class fcoin extends Exchange {
         if ($type === 'limit') {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
-        $result = $this->privatePostOrders (array_merge ($request, $params));
+        $response = $this->privatePostOrders (array_merge ($request, $params));
         return array (
-            'info' => $result,
-            'id' => $result['data'],
+            'info' => $response,
+            'id' => $response['data'],
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrdersOrderIdSubmitCancel (array_merge (array (
+        $request = array (
             'order_id' => $id,
-        ), $params));
+        );
+        $response = $this->privatePostOrdersOrderIdSubmitCancel (array_merge ($request, $params));
         $order = $this->parse_order($response);
         return array_merge ($order, array (
             'id' => $id,
@@ -380,10 +381,7 @@ class fcoin extends Exchange {
             'filled' => 'closed',
             'pending_cancel' => 'canceled',
         );
-        if (is_array($statuses) && array_key_exists($status, $statuses)) {
-            return $statuses[$status];
-        }
-        return $status;
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
@@ -422,7 +420,7 @@ class fcoin extends Exchange {
             $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
         }
         $feeCost = $this->safe_float($order, 'fill_fees');
-        $result = array (
+        return array (
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -444,7 +442,6 @@ class fcoin extends Exchange {
             ),
             'trades' => null,
         );
-        return $result;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -500,12 +497,12 @@ class fcoin extends Exchange {
             throw new ExchangeError($this->id . ' fetchOHLCV requires a $limit argument');
         }
         $market = $this->market ($symbol);
-        $request = array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
             'timeframe' => $this->timeframes[$timeframe],
             'limit' => $limit,
-        ), $params);
-        $response = $this->marketGetCandlesTimeframeSymbol ($request);
+        );
+        $response = $this->marketGetCandlesTimeframeSymbol (array_merge ($request, $params));
         return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
     }
 
@@ -557,20 +554,17 @@ class fcoin extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
+        if ($response === null) {
             return; // fallback to default error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            $status = $this->safe_string($response, 'status');
-            if ($status !== '0') {
-                $feedback = $this->id . ' ' . $body;
-                if (is_array($this->exceptions) && array_key_exists($status, $this->exceptions)) {
-                    $exceptions = $this->exceptions;
-                    throw new $exceptions[$status]($feedback);
-                }
-                throw new ExchangeError($feedback);
+        }
+        $status = $this->safe_string($response, 'status');
+        if ($status !== '0') {
+            $feedback = $this->id . ' ' . $body;
+            if (is_array($this->exceptions) && array_key_exists($status, $this->exceptions)) {
+                $exceptions = $this->exceptions;
+                throw new $exceptions[$status]($feedback);
             }
+            throw new ExchangeError($feedback);
         }
     }
 }
