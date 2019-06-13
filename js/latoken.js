@@ -401,16 +401,6 @@ module.exports = class latoken extends Exchange {
         return trades;
     }
 
-    parseOrderStatus (status) {
-        let statuses = {
-            'active': 'open',
-            'partially_filled': 'open',
-            'filled': 'closed',
-            'canceled': 'canceled',
-        };
-        return (status in statuses) ? statuses[status] : status;
-    }
-
     parseOrder (order) {
         let symbol = order['symbol'];
         let side = order['side'];
@@ -485,19 +475,6 @@ module.exports = class latoken extends Exchange {
         };
         let response = await this.privateGetOrderGetOrder (this.extend (request, params));
         return (this.parseOrder (response));
-    }
-
-    parseNewOrder (response) {
-        return ({
-            'orderId': response['orderId'],
-            'cliOrdId': response['cliOrdId'],
-            'pairId': this.safeValue (response, 'pairId'),
-            'symbol': response['symbol'],
-            'side': response['side'],
-            'orderType': response['orderType'],
-            'price': this.safeFloat (response, 'price'),
-            'amount': this.safeFloat (response, 'amount'),
-        });
     }
 
     async createOrder (symbol, cliOrdId, side, price, amount, orderType, timeAlive, params = {}) {
