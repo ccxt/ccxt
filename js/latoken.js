@@ -251,30 +251,6 @@ module.exports = class latoken extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseBidAsk (bidask) {
-        let price = parseFloat (bidask['price']);
-        let amount = parseFloat (bidask['amount']);
-        return [ price, amount];
-    }
-
-    parseBidsAsks (bidasks) {
-        let res = [];
-        for (let i = 0; i < bidasks.length; i++) {
-            res.push (this.parseBidAsk (bidasks[i]));
-        }
-        return res;
-    }
-
-    parseOrderBook (orderbook, timestamp = undefined, asksKey = 'asks', bidsKey = 'bids') {
-        return {
-            'bids': (bidsKey in orderbook) ? this.parseBidsAsks (orderbook[bidsKey]) : undefined,
-            'asks': (asksKey in orderbook) ? this.parseBidsAsks (orderbook[asksKey]) : undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': undefined,
-        };
-    }
-
     async fetchOrderBook (symbol, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -283,7 +259,7 @@ module.exports = class latoken extends Exchange {
         };
         let timestamp = this.nonce ();
         let response = await this.publicGetMarketDataOrderBook (this.extend (request, params));
-        let orderbook = this.parseOrderBook (response, timestamp);
+        let orderbook = this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'amount');
         orderbook['nonce'] = this.nonce ();
         return orderbook;
     }
