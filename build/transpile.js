@@ -54,6 +54,7 @@ const commonRegexes = [
     [ /\.safeInteger\s/g, '.safe_integer'],
     [ /\.safeString\s/g, '.safe_string'],
     [ /\.safeValue\s/g, '.safe_value'],
+    [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
     [ /\.inArray\s/g, '.in_array'],
     [ /\.toArray\s/g, '.to_array'],
     [ /\.isEmpty\s/g, '.is_empty'],
@@ -368,6 +369,186 @@ const phpRegexes = [
     [ /\<([a-zA-Z0-9_]+?)\>/g, '{$1}' ], // resolve the "arrays vs url params" conflict (both are in {}-brackets)
 ])
 
+const rubyRegexes = [  
+
+    // RUBY
+  
+    [ /Array\.isArray\s*\(([^\)]+)\)/g, '$1.is_a?(Array)' ],
+    [ /([^\(\s]+)\s+instanceof\s+([^\)\s]+)/g, '$1.is_a?($2)' ],
+
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'undefined\'/g, '$1[$2].nil?' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'undefined\'/g, '$1[$2] != nil' ],
+    [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'undefined\'/g, '$1.nil?' ],
+    [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'undefined\'/g, '$1 != nil' ],
+    [ /typeof\s+(.+?)\s+\=\=\=?\s+\'undefined\'/g, '$1.nil?' ],
+    [ /typeof\s+(.+?)\s+\!\=\=?\s+\'undefined\'/g, '$1 != nil' ],
+
+    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+undefined/g, '$1[$2].nil?' ],
+    [ /([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+undefined/g, '$1[$2] != nil' ],
+    [ /([^\s]+)\s+\=\=\=?\s+undefined/g, '$1.nil?' ],
+    [ /([^\s]+)\s+\!\=\=?\s+undefined/g, '$1 != nil' ],
+    [ /(.+?)\s+\=\=\=?\s+undefined/g, '$1.nil?' ],
+    [ /(.+?)\s+\!\=\=?\s+undefined/g, '$1 != nil' ],
+
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\=\=\=?\s+\'string\'/g, '$1[$2].is_a?(String)' ],
+    [ /typeof\s+([^\s\[]+)(?:\s|\[(.+?)\])\s+\!\=\=?\s+\'string\'/g, '!$1[$2].is_a?(String)' ],
+    [ /typeof\s+([^\s]+)\s+\=\=\=?\s+\'string\'/g, '$1.is_a?(String)' ],
+    [ /typeof\s+([^\s]+)\s+\!\=\=?\s+\'string\'/g, '!$1.is_a?(String)' ],
+    [ /undefined/g, 'nil' ],
+    [ /\=\=\=?/g, '==' ],
+    [ /\!\=\=?/g, '!=' ],
+    [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
+    [ /this\.stringToBase64\s/g, 'Base64.encode64' ],
+    [ /this\.base64ToBinary\s/g, 'Base64.decode64' ],
+    [ /\.shift\s*\(\)/g, '.pop(0)' ],
+//    [ /this\.extend/g, 'array_merge' ],
+//    [ /this\.extend\s*\(\s*(.*)\s*,\s*(.*)\)/g, '.shallow_extend($1, $2)'],
+
+// insert common regexes in the middle (critical)
+].concat (commonRegexes) .concat ([
+
+    // RUBY -- class methods
+    // TODO: There has to be a better way to do this.  
+    [ /\.aggregate\s*\(/g, '.class.aggregate('],
+    [ /\.array_concat\s*\(/g, '.class.array_concat('],
+    [ /\.base64urlencode\s*\(/g, '.class.base64urlencode('],
+    [ /\.binary_concat\s*\(/g, '.class.binary_concat('],
+    [ /\.binary_to_string\s*\(/g, '.class.binary_to_string('],
+    [ /\.capitalize\s*\(/g, '.class.capitalize('],
+    [ /\.decode\s*\(/g, '.class.decode('],
+    [ /\.decimal_to_precision\s*\(/g, '.class.decimal_to_precision('],
+    [ /\.deep_extend\s*\(/g, '.class.deep_extend('],
+    [ /\.dmy\s*\(/g, '.class.dmy('],
+    [ /\.encode\s*\(/g, '.class.encode('],
+    [ /\.encode_uri_component\s*\(/g, '.class.encode_uri_component('],
+    [ /\.extend\s*\(/g, '.class.shallow_extend('],
+    [ /\.extract_params\s*\(/g, '.class.extract_params('],
+    [ /\.filterBy\s*\(/g, '.class.filterBy('],
+    [ /\.filter_by\s*\(/g, '.class.filter_by('],
+    [ /\.groupBy\s*\(/g, '.class.groupBy('],
+    [ /\.group_by\s*\(/g, '.class.group_by('],
+    [ /\.hash\s*\(/g, '.class.hash('],
+    [ /\.hmac\s*\(/g, '.class.hmac('],
+    [ /\.implode_params\s*\(/g, '.class.implode_params('],
+    [ /\.in_array\s*\(/g, '.class.in_array('],
+    [ /\.index_by\s*\(/g, '.class.index_by('],
+    [ /\.is_empty\s*\(/g, '.class.is_empty('],
+    [ /\.is_json_encoded_object\s*\(/g, '.class.is_json_encoded_object('],
+    [ /\.iso8601\s*\(/g, '.class.iso8601('],
+    [ /\.json\s*\(/g, '.class.json('],
+    [ /\.jwt\s*\(/g, '.class.jwt('],
+    [ /\.keysort\s*\(/g, '.class.keysort('],
+    [ /\.microseconds\s*\(/g, '.class.microseconds('],
+    [ /\.milliseconds\s*\(/g, '.class.milliseconds('],
+    [ /\.msec\s*\(/g, '.class.msec('],
+    [ /\.omit\s*\(/g, '.class.omit('],
+    [ /\.ordered\s*\(/g, '.class.ordered('],
+    [ /\.parse8601\s*\(/g, '.class.parse8601('],
+    [ /\.parse_date\s*\(/g, '.class.parse_date('],
+    [ /\.pluck\s*\(/g, '.class.pluck('],
+    [ /\.rawencode\s*\(/g, '.class.rawencode('],
+    [ /\.safe_either\s*\(/g, '.class.safe_either('],
+    [ /\.safe_float\s*\(/g, '.class.safe_float('],
+    [ /\.safe_float_2\s*\(/g, '.class.safe_float_2('],
+    [ /\.safe_integer\s*\(/g, '.class.safe_integer('],
+    [ /\.safe_integer_2\s*\(/g, '.class.safe_integer_2('],
+    [ /\.safe_string\s*\(/g, '.class.safe_string('],
+    [ /\.safe_string_2\s*\(/g, '.class.safe_string_2('],
+    [ /\.safe_value\s*\(/g, '.class.safe_value('],
+    [ /\.safe_value_2\s*\(/g, '.class.safe_value_2('],
+    [ /\.sec\s*\(/g, '.class.sec('],
+    [ /\.seconds\s*\(/g, '.class.seconds('],
+    [ /\.sort_by\s*\(/g, '.class.sort_by('],
+    [ /\.sum\s*\(/g, '.class.sum('],
+    [ /\.throttle\s*\(/g, '.class.throttle('],
+    [ /\.to_array\s*\(/g, '.class.to_array('],
+    [ /\.totp\s*\(/g, '.class.totp('],
+    [ /\.truncate\s*\(/g, '.class.truncate('],
+    [ /\.truncate_to_string\s*\(/g, '.class.truncate_to_string('],
+    [ /\.unique\s*\(/g, '.class.unique('],
+    [ /\.unjson\s*\(/g, '.class.unjson('],
+    [ /\.url\s*\(/g, '.class.url('],
+    [ /\.urlencode\s*\(/g, '.class.urlencode('],
+    [ /\.usec\s*\(/g, '.class.usec('],
+    [ /\.uuid\s*\(/g, '.class.uuid('],
+    [ /\.ymd\s*\(/g, '.class.ymd('],
+    [ /\.ymdhms\s*\(/g, '.class.ymdhms('],
+    
+]).concat ([
+  
+    // RUBY
+  
+    // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
+    [ /this\./g, 'self.' ],
+    [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
+    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
+    // TODO: [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
+    [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
+    [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
+    [ /Object\.keys\s*\((.*)\)/g, '$1.keys' ],
+    [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
+    [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "self.class.hash($1, '$2'" ],
+    [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'self.class.hmac($1, $2, $3' ],
+    [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'self.class.hmac($1, $2, $3' ],
+    [ /throw new ([\S]+) \((.*)\)/g, 'raise($1, $2)'],
+    [ /throw ([\S]+)/g, 'raise $1'],
+    [ /try {/g, 'begin'],
+    [ /\}\s+catch \(([\S]+)\) {/g, 'rescue BaseError => $1'],
+    [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
+    [ /\(([^\s]+)\sin\s([^\)]+)\)/g, '($2.include?($1))' ],
+    [ /\} else if/g, 'elsif' ],
+    [ /else if/g, 'elsif' ],
+    [ /if\s+\((.*)\)\s+\{/g, 'if ($1)' ],
+    [ /if\s+\((.*)\)\s*[\n]/g, "if $1\n" ],  
+    [ /\}\s*else\s*\{/g, 'else' ],
+    [ /else\s*[\n]/g, "else\n" ],
+    [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\.length\s*\;[^\)]+\)\s*{/g, 'for $1 in ($2...$3.length)' ],
+    [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(?:\<=|\>=|<|>)\s*(.*)\s*\;[^\)]+\)\s*{/g, 'for $1 in ($2...$3)' ],
+    [ /\.push\s*\(([\s\S]+?)\);/g, '.push($1)' ],
+    [ /^(\s*)(}\s*$)+/gm, '$1end' ],
+    [ /^(\s*)}\s*\/\/(.*)$/gm, '$1end #$2'],
+    [ /;/g, '' ],
+    [ /\.toUpperCase\s*\(\)/g, '.upcase' ],
+    [ /\.toLowerCase\s*\(\)/g, '.downcase' ],
+    [ /\.replace\s*/g, '.gsub'],
+    [ /JSON\.stringify\s*/g, 'JSON.dumps' ],
+    [ /JSON\.parse\s*/g, "JSON.loads" ],
+    [ /\(([^\s]+) in ([^\s]+)\)/g, "$2.include?($1)"], 
+    [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "'$1.to_f" ],
+    [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "$1.to_f" ],
+    [ /parseFloat\s*\(([^\)]+)\)/g, '$1.to_f'],
+    [ /parseInt\s*(\([^\)]+\))/g, '$1.to_i'],
+    [ /self\[([^\)+]+)]\ \(\)/g, 'self.send_wrapper($1)'], //getattr with no arg
+    [ /self\[([^\]+]+)\] \(/g, 'self.send_wrapper($1, ' ], //getattr with args
+    [ /([^\s]+)\.slice \(([^\,\)]+)\,\s?([^\)]+)\)/g, '$1[$2...$3]' ], // slice with two arguments
+    [ /([^\s]+)\.slice \(([^\)\:]+)\)/g, '$1[$2..-1]' ], // slice with one argument
+    [ /Math\.floor\s*\(([^\)]+)\)/g, '$1.floor' ],
+    [ /Math\.abs\s*\(([^\)]+)\)/g, '$1.abs' ],
+    [ /Math\.pow\s*\(([^\)]+),\s*([^\)]+)\)/g, '$1**$2' ],
+    [ /Math\.round\s*\(([^\)]+)\)/g, '$1.round' ],
+    [ /Math\.ceil\s*\(([^\)]+)\)/g, '$1.ceil' ],
+    [ /Math\.log/g, 'Math.log' ],
+    [ /(^|\s)\/\//g, '$1#' ],
+    [ /([^\n\s]) #/g, '$1 #' ],
+    [ /\.indexOf/g, '.index' ],
+    [ /([^\s]+\s*\(\))\.toString\s+\(\)/g, '$1.to_s' ],
+    [ /([^\s]+)\.toString \(\)/g, '$1.to_s' ],
+    [ /([^\s]+)\.join\s*\(\s*([^\)\[\]]+?)\s*\)/g, '$1.join($2)' ],
+    [ /Math\.(max|min)\s*\(([^\)]),\s*([^\)])\)\s/g, '[$2, $3].$1' ],
+    [ / = new /g, ' = ' ], // Ruby does not have a 'new' keyword
+    [ /console\.log\s/g, 'puts' ],
+    [ /([^:+=\/\*\s-\|\&]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+    [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
+    // [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
+    [ /([^\s]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
+    // [ /([^\s]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
+    [ /([^a-z])(elsif|if|or|else|in)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
+    [ /([\S])\: /g, '$1 => ' ],
+    [ /(\s)await(\s)/g, '$1' ],
+    [ /\(\)/g, '' ], // Method calls with no arguments.
+    [ /,(\s*)(\}|\])/gm, '$1$2' ] // comma after last item in hash or array
+])
+
 // ----------------------------------------------------------------------------
 // one-time helpers
 
@@ -478,9 +659,42 @@ function createPHPClass (className, baseClass, body, methods) {
 
 // ----------------------------------------------------------------------------
 
+function createRubyClass (className, baseClass, body, methods) {
+    const classNameCapitalized = className.charAt(0).toUpperCase() + className.slice(1)
+    const baseClassCapitalized = baseClass.charAt(0).toUpperCase() + baseClass.slice(1)
+  
+    const header = [
+        "# frozen_string_literal: true\n",
+        "# PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:",
+        "# https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n",
+        "module Ccxt",
+        '  class ' + classNameCapitalized + ' < ' + baseClassCapitalized
+    ]
+  
+    let bodyAsString = body.join("\n")
+  
+    for (let method of methods) {
+        const regex = new RegExp ('self\\.(' + method + ')\\s*\\(', 'g')
+        bodyAsString = bodyAsString.replace (regex,
+            (match, p1) => ('self.' + unCamelCase (p1) + '('))
+    }
+  
+    const footer = [
+        "",
+        "  end",
+        "end\n"
+    ]
+    
+    const result = header.join ("\n") + bodyAsString + footer.join ('\n')
+    return result
+}
+
+// ----------------------------------------------------------------------------
+
 const python2Folder = './python/ccxt/'
 const python3Folder = './python/ccxt/async_support/'
 const phpFolder     = './php/'
+const rubyFolder    = './ruby/test-build/'
 
 // ----------------------------------------------------------------------------
 
@@ -562,7 +776,32 @@ function transpileJavaScriptToPHP ({ js, variables }) {
 
 // ----------------------------------------------------------------------------
 
-function transpileJavaScriptToPythonAndPHP (args) {
+function transpileJavaScriptToRuby ( {js, className, removeEmptyLines }) {
+
+    // transpile JS → Ruby
+    let rubyBody = regexAll (js, rubyRegexes)
+
+    if (removeEmptyLines)
+        rubyBody = rubyBody.replace (/$\s*$/gm, '')
+
+    // fix the leading spaces from 4 spaces to 2
+    let rubySpaces = (match) => { return "  ".repeat(match.length / 4 + 1 ) } 
+    rubyBody = rubyBody.replace (/^( {4,})/gm, rubySpaces)
+    
+    rubyBody = rubyBody.replace (/\'([абвгдеёжзийклмнопрстуфхцчшщъыьэюя服务端忙碌]+)\'/gm, "u'$1'")
+    
+    // special case for Ruby super
+    // Javascript/Python's super keyword is used to access and call functions 
+    // on an object's parent. Ruby's super keyword calls a method on the 
+    // parent class with the same name as the method that calls super. The
+    // only place it is currently used is super.describe ().
+    rubyBody = rubyBody.replace (/super\.describe/g, 'super')
+    return rubyBody
+}
+
+// ----------------------------------------------------------------------------
+
+function transpileJavaScript (args) {
 
     //-------------------------------------------------------------------------
 
@@ -579,7 +818,12 @@ function transpileJavaScriptToPythonAndPHP (args) {
     // transpile JS → PHP
     let phpBody = transpileJavaScriptToPHP (args)
 
-    return { python3Body, python2Body, phpBody }
+    //-------------------------------------------------------------------------
+
+    // transpile JS → Ruby
+    let rubyBody = transpileJavaScriptToRuby (args)
+  
+    return { python3Body, python2Body, phpBody, rubyBody }
 }
 
 // ----------------------------------------------------------------------------
@@ -598,9 +842,10 @@ function transpileDerivedExchangeClass (contents) {
     let python2 = []
     let python3 = []
     let php = []
+    let ruby = []
 
     let methodNames = []
-
+    
     // run through all methods
     for (let i = 0; i < methods.length; i++) {
         // parse the method signature
@@ -653,12 +898,17 @@ function transpileDerivedExchangeClass (contents) {
                                 .replace (/false/g, 'False')
                                 .replace (/true/g, 'True')
 
+        let rubyArgs = args.join (', ')
+                           .replace (/undefined/g, 'nil')
+                           .replace (/false/g, 'false')
+                           .replace (/true/g, 'true')
+
         // method body without the signature (first line)
         // and without the closing bracket (last line)
         let js = lines.slice (1, -1).join ("\n")
 
         // transpile everything
-        let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+        let { python3Body, python2Body, phpBody, rubyBody } = transpileJavaScript ({ js, className, variables, removeEmptyLines: true })
 
         // compile the final Python code for the method signature
         let pythonString = 'def ' + method + '(self' + (pythonArgs.length ? ', ' + pythonArgs : '') + '):'
@@ -667,7 +917,7 @@ function transpileDerivedExchangeClass (contents) {
         python2.push ('');
         python2.push ('    ' + pythonString);
         python2.push (python2Body);
-
+        
         // compile signature + body for Python 3
         python3.push ('');
         python3.push ('    ' + keyword + pythonString);
@@ -677,8 +927,14 @@ function transpileDerivedExchangeClass (contents) {
         php.push ('');
         php.push ('    public function ' + method + ' (' + phpArgs + ') {');
         php.push (phpBody);
-        php.push ('    }')
+        php.push ('    }');
 
+        // compile signature + body for Ruby
+        let rubyString = 'def ' + method + (rubyArgs.length ? '(' + rubyArgs + ')': '')
+        ruby.push ('');
+        ruby.push ('    ' + rubyString);
+        ruby.push (rubyBody);
+        ruby.push ('    end');
     }
 
     return {
@@ -687,7 +943,7 @@ function transpileDerivedExchangeClass (contents) {
         python2: createPythonClass (className, baseClass, python2, methodNames),
         python3: createPythonClass (className, baseClass, python3, methodNames, true),
         php:     createPHPClass    (className, baseClass, php,     methodNames),
-
+        ruby:    createRubyClass   (className, baseClass, ruby,    methodNames), 
         className,
         baseClass,
     }
@@ -701,18 +957,20 @@ function transpileDerivedExchangeFile (folder, filename) {
 
         let contents = fs.readFileSync (folder + filename, 'utf8')
 
-        let { python2, python3, php, className, baseClass } = transpileDerivedExchangeClass (contents)
+        let { python2, python3, php, ruby, className, baseClass } = transpileDerivedExchangeClass (contents)
 
         const python2Filename = python2Folder + filename.replace ('.js', '.py')
         const python3Filename = python3Folder + filename.replace ('.js', '.py')
         const phpFilename     = phpFolder     + filename.replace ('.js', '.php')
-
+        const rubyFilename    = rubyFolder    + filename.replace ('.js', '.rb')
+      
         log.cyan ('Transpiling from', filename.yellow)
 
-        overwriteFile (python2Filename, python2)
-        overwriteFile (python3Filename, python3)
-        overwriteFile (phpFilename,     php)
-
+        // overwriteFile (python2Filename, python2)
+        // overwriteFile (python3Filename, python3)
+        // overwriteFile (phpFilename,     php)
+        overwriteFile (rubyFilename,    ruby)
+      
         return { className, baseClass }
 
     } catch (e) {
@@ -869,7 +1127,8 @@ function transpileDateTimeTests () {
     const jsFile = './js/test/base/functions/test.datetime.js'
     const pyFile = './python/test/test_exchange_datetime_functions.py'
     const phpFile = './php/test/test_exchange_datetime_functions.php'
-
+    const rubyFile = './ruby/test/test_exchange_datetime_functions.rb'
+  
     log.magenta ('Transpiling from', jsFile.yellow)
 
     let js = fs.readFileSync (jsFile).toString ()
@@ -880,7 +1139,7 @@ function transpileDateTimeTests () {
         [/^\/\*.*\s+/mg, ''],
     ])
 
-    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+    let { python3Body, python2Body, phpBody, rubyBody } = transpileJavaScript ({ js, removeEmptyLines: false })
 
     // phpBody = phpBody.replace (/exchange\./g, 'Exchange::')
 
@@ -906,7 +1165,8 @@ function transpilePrecisionTests () {
     const jsFile = './js/test/base/functions/test.number.js'
     const pyFile = './python/test/test_decimal_to_precision.py'
     const phpFile = './php/test/decimal_to_precision.php'
-
+    const rubyFile = './ruby/test/ignore_this_decimal_to_precision.rb'
+  
     log.magenta ('Transpiling from', jsFile.yellow)
 
     let js = fs.readFileSync (jsFile).toString ()
@@ -918,7 +1178,7 @@ function transpilePrecisionTests () {
         [ /numberToString/g, 'number_to_string' ],
     ])
 
-    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+    let { python3Body, python2Body, phpBody, rubyBody } = transpileJavaScript ({ js, removeEmptyLines: false })
 
     const pythonHeader =
 "\n\
@@ -973,6 +1233,7 @@ function number_to_string ($x) {\n\
 createFolderRecursively (python2Folder)
 createFolderRecursively (python3Folder)
 createFolderRecursively (phpFolder)
+createFolderRecursively (rubyFolder)
 
 const classes = transpileDerivedExchangeFiles ('./js/', filename)
 

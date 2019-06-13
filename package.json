@@ -31,6 +31,7 @@
     "vss": "node build/vss",
     "qa": "npm run check-python-syntax && npm run check-php-syntax",
     "lint": "eslint",
+    "lint-fix": "eslint --fix",
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
     "check-js-syntax": "eslint 'js/*.js'",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
