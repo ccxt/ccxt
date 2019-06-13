@@ -83,16 +83,18 @@ class itbit (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetMarketsSymbolOrderBook(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
+        }
+        orderbook = self.publicGetMarketsSymbolOrderBook(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        ticker = self.publicGetMarketsSymbolTicker(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
+        }
+        ticker = self.publicGetMarketsSymbolTicker(self.extend(request, params))
         serverTimeUTC = self.safe_string(ticker, 'serverTimeUTC')
         if not serverTimeUTC:
             raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
@@ -386,29 +388,32 @@ class itbit (Exchange):
         return self.privateGetWallets(self.extend(request, params))
 
     def fetch_wallet(self, walletId, params={}):
-        wallet = {
+        request = {
             'walletId': walletId,
         }
-        return self.privateGetWalletsWalletId(self.extend(wallet, params))
+        return self.privateGetWalletsWalletId(self.extend(request, params))
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'status': 'open',
-        }, params))
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'status': 'filled',
-        }, params))
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrders requires a walletId parameter')
         walletId = params['walletId']
-        response = self.privateGetWalletsWalletIdOrders(self.extend({
+        request = {
             'walletId': walletId,
-        }, params))
+        }
+        response = self.privateGetWalletsWalletIdOrders(self.extend(request, params))
         orders = self.parse_orders(response, None, since, limit)
         return orders
 
@@ -456,7 +461,7 @@ class itbit (Exchange):
         amount = str(amount)
         price = str(price)
         market = self.market(symbol)
-        order = {
+        request = {
             'side': side,
             'type': type,
             'currency': market['id'].replace(market['quote'], ''),
@@ -465,7 +470,7 @@ class itbit (Exchange):
             'price': price,
             'instrument': market['id'],
         }
-        response = self.privatePostWalletsWalletIdOrders(self.extend(order, params))
+        response = self.privatePostWalletsWalletIdOrders(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],
@@ -475,7 +480,9 @@ class itbit (Exchange):
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
-        request = {'id': id}
+        request = {
+            'id': id,
+        }
         response = self.privateGetWalletsWalletIdOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
@@ -483,9 +490,10 @@ class itbit (Exchange):
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' cancelOrder requires a walletId parameter')
-        return self.privateDeleteWalletsWalletIdOrdersId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        return self.privateDeleteWalletsWalletIdOrdersId(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

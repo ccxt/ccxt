@@ -479,14 +479,16 @@ class kkex (Exchange):
         return self.parse_orders(response['orders'], market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'status': 0,
-        }, params))
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'status': 1,
-        }, params))
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def nonce(self):
         return self.milliseconds()
@@ -499,7 +501,10 @@ class kkex (Exchange):
         else:
             self.check_required_credentials()
             nonce = self.nonce()
-            signature = self.extend({'nonce': nonce, 'api_key': self.apiKey}, params)
+            signature = self.extend({
+                'nonce': nonce,
+                'api_key': self.apiKey,
+            }, params)
             signature = self.urlencode(self.keysort(signature))
             signature += '&secret_key=' + self.secret
             signature = self.hash(self.encode(signature), 'md5')

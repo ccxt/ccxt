@@ -402,8 +402,9 @@ class kkex extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $side = $this->safe_string($order, 'side');
         if ($side === null) {
             $side = $this->safe_string($order, 'type');
@@ -521,15 +522,17 @@ class kkex extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'status' => 0,
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'status' => 1,
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function nonce () {
@@ -544,7 +547,10 @@ class kkex extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $signature = array_merge (array( 'nonce' => $nonce, 'api_key' => $this->apiKey ), $params);
+            $signature = array_merge (array (
+                'nonce' => $nonce,
+                'api_key' => $this->apiKey,
+            ), $params);
             $signature = $this->urlencode ($this->keysort ($signature));
             $signature .= '&secret_key=' . $this->secret;
             $signature = $this->hash ($this->encode ($signature), 'md5');
