@@ -199,13 +199,13 @@ class btcmarkets (Exchange):
         }
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetV2MarketActive()
+        response = await self.publicGetV2MarketActive(params)
         result = []
-        markets = response['markets']
+        markets = self.safe_value(response, 'markets')
         for i in range(0, len(markets)):
             market = markets[i]
-            baseId = market['instrument']
-            quoteId = market['currency']
+            baseId = self.safe_string(market, 'instrument')
+            quoteId = self.safe_string(market, 'currency')
             id = baseId + '/' + quoteId
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
@@ -257,21 +257,22 @@ class btcmarkets (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetAccountBalance()
+        balances = await self.privateGetAccountBalance(params)
         result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.common_currency_code(currencyId)
             multiplier = 100000000
-            total = float(balance['balance'] / multiplier)
-            used = float(balance['pendingFunds'] / multiplier)
+            total = self.safe_float(balance, 'balance') / multiplier
+            used = self.safe_float(balance, 'pendingFunds') / multiplier
             free = total - used
             account = {
                 'free': free,
                 'used': used,
                 'total': total,
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -300,16 +301,21 @@ class btcmarkets (Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetMarketIdOrderbook(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
-        timestamp = orderbook['timestamp'] * 1000
-        return self.parse_order_book(orderbook, timestamp)
+        }
+        response = await self.publicGetMarketIdOrderbook(self.extend(request, params))
+        timestamp = self.safe_integer(response, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
+        return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['timestamp'] * 1000
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'lastPrice')
         return {
@@ -338,33 +344,48 @@ class btcmarkets (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetMarketIdTick(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
-        return self.parse_ticker(ticker, market)
+        }
+        response = await self.publicGetMarketIdTick(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
-    def parse_trade(self, trade, market):
-        timestamp = trade['date'] * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        id = self.safe_string(trade, 'tid')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
         return {
             'info': trade,
-            'id': str(trade['tid']),
+            'id': id,
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': None,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetMarketIdTrades(self.extend({
+        request = {
             # 'since': 59868345231,
             'id': market['id'],
-        }, params))
+        }
+        response = await self.publicGetMarketIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -372,27 +393,31 @@ class btcmarkets (Exchange):
         market = self.market(symbol)
         multiplier = 100000000  # for price and volume
         orderSide = 'Bid' if (side == 'buy') else 'Ask'
-        order = self.ordered({
+        request = self.ordered({
             'currency': market['quote'],
         })
-        order['currency'] = market['quote']
-        order['instrument'] = market['base']
-        order['price'] = int(price * multiplier)
-        order['volume'] = int(amount * multiplier)
-        order['orderSide'] = orderSide
-        order['ordertype'] = self.capitalize(type)
-        order['clientRequestId'] = str(self.nonce())
-        response = await self.privatePostOrderCreate(order)
+        request['currency'] = market['quote']
+        request['instrument'] = market['base']
+        request['price'] = int(price * multiplier)
+        request['volume'] = int(amount * multiplier)
+        request['orderSide'] = orderSide
+        request['ordertype'] = self.capitalize(type)
+        request['clientRequestId'] = str(self.nonce())
+        response = await self.privatePostOrderCreate(self.extend(request, params))
+        id = self.safe_string(response, 'id')
         return {
             'info': response,
-            'id': str(response['id']),
+            'id': id,
         }
 
     async def cancel_orders(self, ids, symbol=None, params={}):
         await self.load_markets()
         for i in range(0, len(ids)):
             ids[i] = int(ids[i])
-        return await self.privatePostOrderCancel({'orderIds': ids})
+        request = {
+            'orderIds': ids,
+        }
+        return await self.privatePostOrderCancel(self.extend(request, params))
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -418,25 +443,46 @@ class btcmarkets (Exchange):
 
     def parse_my_trade(self, trade, market):
         multiplier = 100000000
-        timestamp = trade['creationTime']
-        side = 'buy' if (trade['side'] == 'Bid') else 'sell'
+        timestamp = self.safe_integer(trade, 'creationTime')
+        side = self.safe_float(trade, 'side')
+        side = 'buy' if (side == 'Bid') else 'sell'
         # BTCMarkets always charge in AUD for AUD-related transactions.
-        currency = market['quote'] if (market['quote'] == 'AUD') else market['base']
+        feeCurrencyCode = None
+        symbol = None
+        if market is not None:
+            feeCurrencyCode = market['quote'] if (market['quote'] == 'AUD') else market['base']
+            symbol = market['symbol']
+        id = self.safe_string(trade, 'id')
+        price = self.safe_float(trade, 'price')
+        if price is not None:
+            price /= multiplier
+        amount = self.safe_float(trade, 'volume')
+        if amount is not None:
+            amount /= multiplier
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCost /= multiplier
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        orderId = self.safe_string(trade, 'orderId')
         return {
             'info': trade,
-            'id': str(trade['id']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'order': orderId,
+            'symbol': symbol,
             'type': None,
             'side': side,
-            'price': trade['price'] / multiplier,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': {
-                'currency': currency,
-                'cost': trade['fee'] / multiplier,
+                'currency': feeCurrencyCode,
+                'cost': feeCost,
             },
-            'amount': trade['volume'] / multiplier,
-            'order': self.safe_string(trade, 'orderId'),
         }
 
     def parse_my_trades(self, trades, market=None, since=None, limit=None):
@@ -475,9 +521,10 @@ class btcmarkets (Exchange):
             if filled > 0:
                 average = cost / filled
             lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-        result = {
+        id = self.safe_string(order, 'id')
+        return {
             'info': order,
-            'id': str(order['id']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -494,14 +541,14 @@ class btcmarkets (Exchange):
             'trades': trades,
             'fee': None,
         }
-        return result
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         ids = [int(id)]
-        response = await self.privatePostOrderDetail(self.extend({
+        request = {
             'orderIds': ids,
-        }, params))
+        }
+        response = await self.privatePostOrderDetail(self.extend(request, params))
         numOrders = len(response['orders'])
         if numOrders < 1:
             raise OrderNotFound(self.id + ' No matching order found: ' + id)
@@ -509,18 +556,14 @@ class btcmarkets (Exchange):
         return self.parse_order(order)
 
     def create_paginated_request(self, market, since=None, limit=None):
+        limit = 100 if (limit is None) else limit
+        since = 0 if (since is None) else since
         request = self.ordered({
             'currency': market['quoteId'],
             'instrument': market['baseId'],
+            'limit': limit,
+            'since': since,
         })
-        if limit is not None:
-            request['limit'] = limit
-        else:
-            request['limit'] = 100
-        if since is not None:
-            request['since'] = since
-        else:
-            request['since'] = 0
         return request
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -590,15 +633,14 @@ class btcmarkets (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if len(body) < 2:
+        if response is None:
             return  # fallback to default error handler
-        if body[0] == '{':
-            if 'success' in response:
-                if not response['success']:
-                    error = self.safe_string(response, 'errorCode')
-                    message = self.id + ' ' + self.json(response)
-                    if error in self.exceptions:
-                        ExceptionClass = self.exceptions[error]
-                        raise ExceptionClass(message)
-                    else:
-                        raise ExchangeError(message)
+        if 'success' in response:
+            if not response['success']:
+                error = self.safe_string(response, 'errorCode')
+                message = self.id + ' ' + self.json(response)
+                if error in self.exceptions:
+                    ExceptionClass = self.exceptions[error]
+                    raise ExceptionClass(message)
+                else:
+                    raise ExchangeError(message)
