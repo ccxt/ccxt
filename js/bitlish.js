@@ -208,9 +208,9 @@ module.exports = class bitlish extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tickers = await this.publicGetTickers (params);
+        const response = await this.publicGetTickers (params);
         const marketId = market['id'];
-        return this.parseTicker (tickers[marketId], market);
+        return this.parseTicker (response[marketId], market);
     }
 
     async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
