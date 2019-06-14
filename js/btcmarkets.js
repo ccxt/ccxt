@@ -670,7 +670,7 @@ module.exports = class btcmarkets extends Exchange {
                 body = this.json (params);
                 auth += body;
             } else {
-                let query = this.ksort (this.omit (params, this.extractParams (path)));
+                let query = this.keysort (this.omit (params, this.extractParams (path)));
                 let queryString = '';
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
