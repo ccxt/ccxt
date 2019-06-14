@@ -617,7 +617,7 @@ class btcmarkets (Exchange):
                 body = self.json(params)
                 auth += body
             else:
-                query = self.ksort(self.omit(params, self.extract_params(path)))
+                query = self.keysort(self.omit(params, self.extract_params(path)))
                 queryString = ''
                 if query:
                     queryString = self.urlencode(query)
