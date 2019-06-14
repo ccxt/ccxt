@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.696'
+const version = '1.18.697'
 
 Exchange.ccxtVersion = version
 
@@ -23759,7 +23759,7 @@ module.exports = class btcmarkets extends Exchange {
                 body = this.json (params);
                 auth += body;
             } else {
-                let query = this.ksort (this.omit (params, this.extractParams (path)));
+                let query = this.keysort (this.omit (params, this.extractParams (path)));
                 let queryString = '';
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
