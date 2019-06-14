@@ -187,16 +187,19 @@ class bitstamp (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetTradingPairsInfo()
+        response = self.publicGetTradingPairsInfo(params)
         result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            symbol = market['name']
-            base, quote = symbol.split('/')
+        for i in range(0, len(response)):
+            market = response[i]
+            name = self.safe_string(market, 'name')
+            base, quote = name.split('/')
             baseId = base.lower()
             quoteId = quote.lower()
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
+            symbol = base + '/' + quote
             symbolId = baseId + '_' + quoteId
-            id = market['url_symbol']
+            id = self.safe_string(market, 'url_symbol')
             precision = {
                 'amount': market['base_decimals'],
                 'price': market['counter_decimals'],
@@ -235,18 +238,24 @@ class bitstamp (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderBookPair(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
-        timestamp = int(orderbook['timestamp']) * 1000
-        return self.parse_order_book(orderbook, timestamp)
+        }
+        response = self.publicGetOrderBookPair(self.extend(request, params))
+        timestamp = self.safe_integer(response, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
+        return self.parse_order_book(response, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        ticker = self.publicGetTickerPair(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
-        timestamp = int(ticker['timestamp']) * 1000
+        }
+        ticker = self.publicGetTickerPair(self.extend(request, params))
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None
@@ -452,10 +461,11 @@ class bitstamp (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTransactionsPair(self.extend({
+        request = {
             'pair': market['id'],
             'time': 'hour',
-        }, params))
+        }
+        response = self.publicGetTransactionsPair(self.extend(request, params))
         #
         #     [
         #         {
@@ -478,22 +488,20 @@ class bitstamp (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balance = self.privatePostBalance()
+        balance = self.privatePostBalance(params)
         result = {'info': balance}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            lowercase = currency.lower()
-            total = lowercase + '_balance'
-            free = lowercase + '_available'
-            used = lowercase + '_reserved'
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currency(code)
+            currencyId = currency['id']
+            total = currencyId + '_balance'
+            free = currencyId + '_available'
+            used = currencyId + '_reserved'
             account = self.account()
-            if free in balance:
-                account['free'] = float(balance[free])
-            if used in balance:
-                account['used'] = float(balance[used])
-            if total in balance:
-                account['total'] = float(balance[total])
+            account['free'] = self.safe_float(balance, free)
+            account['used'] = self.safe_float(balance, used)
+            account['total'] = self.safe_float(balance, total)
             result[currency] = account
         return self.parse_balance(result)
 
@@ -518,7 +526,10 @@ class bitstamp (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder({'id': id})
+        request = {
+            'id': id,
+        }
+        return self.privatePostCancelOrder(self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -527,11 +538,13 @@ class bitstamp (Exchange):
             'Finished': 'closed',
             'Canceled': 'canceled',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return self.safe_string(statuses, status, status)
 
     def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {'id': id}
+        request = {
+            'id': id,
+        }
         response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(self.safe_string(response, 'status'))
 
