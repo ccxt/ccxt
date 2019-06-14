@@ -872,7 +872,7 @@ class okcoinusd extends Exchange {
             $symbol = $market['symbol'];
         }
         $createDateField = $this->get_create_date_field ();
-        $timestamp = $this->safeIneteger ($order, $createDateField);
+        $timestamp = $this->safe_integer($order, $createDateField);
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'deal_amount');
         $amount = max ($amount, $filled);

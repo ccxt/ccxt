@@ -871,7 +871,7 @@ module.exports = class okcoinusd extends Exchange {
             symbol = market['symbol'];
         }
         const createDateField = this.getCreateDateField ();
-        const timestamp = this.safeIneteger (order, createDateField);
+        const timestamp = this.safeInteger (order, createDateField);
         let amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'deal_amount');
         amount = Math.max (amount, filled);

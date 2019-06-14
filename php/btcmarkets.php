@@ -90,10 +90,12 @@ class btcmarkets extends Exchange {
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $request = array();
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['limit'] = $limit;
-        if ($since !== null)
+        }
+        if ($since !== null) {
             $request['since'] = $since;
+        }
         $response = $this->privateGetFundtransferHistory (array_merge ($request, $params));
         $transactions = $response['fundTransfers'];
         return $this->parseTransactions ($transactions, null, $since, $limit);
@@ -161,9 +163,9 @@ class btcmarkets extends Exchange {
         $address = $this->safe_string($cryptoPaymentDetail, 'address');
         $txid = $this->safe_string($cryptoPaymentDetail, 'txId');
         $type = null;
-        if ($transferType === 'DEPOSIT')
+        if ($transferType === 'DEPOSIT') {
             $type = 'deposit';
-        else if ($transferType === 'WITHDRAW') {
+        } else if ($transferType === 'WITHDRAW') {
             $type = 'withdrawal';
         } else {
             $type = $transferType;
@@ -198,13 +200,13 @@ class btcmarkets extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetV2MarketActive ();
+        $response = $this->publicGetV2MarketActive ($params);
         $result = array();
-        $markets = $response['markets'];
+        $markets = $this->safe_value($response, 'markets');
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $baseId = $market['instrument'];
-            $quoteId = $market['currency'];
+            $baseId = $this->safe_string($market, 'instrument');
+            $quoteId = $this->safe_string($market, 'currency');
             $id = $baseId . '/' . $quoteId;
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
@@ -260,21 +262,22 @@ class btcmarkets extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetAccountBalance ();
+        $balances = $this->privateGetAccountBalance ($params);
         $result = array( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['currency'];
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->common_currency_code($currencyId);
             $multiplier = 100000000;
-            $total = floatval ($balance['balance'] / $multiplier);
-            $used = floatval ($balance['pendingFunds'] / $multiplier);
+            $total = $this->safe_float($balance, 'balance') / $multiplier;
+            $used = $this->safe_float($balance, 'pendingFunds') / $multiplier;
             $free = $total - $used;
             $account = array (
                 'free' => $free,
                 'used' => $used,
                 'total' => $total,
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -298,8 +301,9 @@ class btcmarkets extends Exchange {
             'id' => $market['id'],
             'timeWindow' => $this->timeframes[$timeframe],
         );
-        if ($since !== null)
+        if ($since !== null) {
             $request['since'] = $since;
+        }
         $response = $this->webGetMarketBTCMarketsIdTickByTime (array_merge ($request, $params));
         return $this->parse_ohlcvs($response['ticks'], $market, $timeframe, $since, $limit);
     }
@@ -307,18 +311,26 @@ class btcmarkets extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $orderbook = $this->publicGetMarketIdOrderbook (array_merge (array (
+        $request = array (
             'id' => $market['id'],
-        ), $params));
-        $timestamp = $orderbook['timestamp'] * 1000;
-        return $this->parse_order_book($orderbook, $timestamp);
+        );
+        $response = $this->publicGetMarketIdOrderbook (array_merge ($request, $params));
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        return $this->parse_order_book($response, $timestamp);
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $ticker['timestamp'] * 1000;
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $symbol = null;
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'lastPrice');
         return array (
             'symbol' => $symbol,
@@ -347,35 +359,54 @@ class btcmarkets extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetMarketIdTick (array_merge (array (
+        $request = array (
             'id' => $market['id'],
-        ), $params));
-        return $this->parse_ticker($ticker, $market);
+        );
+        $response = $this->publicGetMarketIdTick (array_merge ($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $trade['date'] * 1000;
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->safe_integer($trade, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $id = $this->safe_string($trade, 'tid');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = null;
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $amount * $price;
+            }
+        }
         return array (
             'info' => $trade,
-            'id' => (string) $trade['tid'],
+            'id' => $id,
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetMarketIdTrades (array_merge (array (
+        $request = array (
             // 'since' => 59868345231,
             'id' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetMarketIdTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -384,20 +415,21 @@ class btcmarkets extends Exchange {
         $market = $this->market ($symbol);
         $multiplier = 100000000; // for $price and volume
         $orderSide = ($side === 'buy') ? 'Bid' : 'Ask';
-        $order = $this->ordered (array (
+        $request = $this->ordered (array (
             'currency' => $market['quote'],
         ));
-        $order['currency'] = $market['quote'];
-        $order['instrument'] = $market['base'];
-        $order['price'] = intval ($price * $multiplier);
-        $order['volume'] = intval ($amount * $multiplier);
-        $order['orderSide'] = $orderSide;
-        $order['ordertype'] = $this->capitalize ($type);
-        $order['clientRequestId'] = (string) $this->nonce ();
-        $response = $this->privatePostOrderCreate ($order);
+        $request['currency'] = $market['quote'];
+        $request['instrument'] = $market['base'];
+        $request['price'] = intval ($price * $multiplier);
+        $request['volume'] = intval ($amount * $multiplier);
+        $request['orderSide'] = $orderSide;
+        $request['ordertype'] = $this->capitalize ($type);
+        $request['clientRequestId'] = (string) $this->nonce ();
+        $response = $this->privatePostOrderCreate (array_merge ($request, $params));
+        $id = $this->safe_string($response, 'id');
         return array (
             'info' => $response,
-            'id' => (string) $response['id'],
+            'id' => $id,
         );
     }
 
@@ -406,7 +438,10 @@ class btcmarkets extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $ids[$i] = intval ($ids[$i]);
         }
-        return $this->privatePostOrderCancel (array( 'orderIds' => $ids ));
+        $request = array (
+            'orderIds' => $ids,
+        );
+        return $this->privatePostOrderCancel (array_merge ($request, $params));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -436,25 +471,52 @@ class btcmarkets extends Exchange {
 
     public function parse_my_trade ($trade, $market) {
         $multiplier = 100000000;
-        $timestamp = $trade['creationTime'];
-        $side = ($trade['side'] === 'Bid') ? 'buy' : 'sell';
+        $timestamp = $this->safe_integer($trade, 'creationTime');
+        $side = $this->safe_float($trade, 'side');
+        $side = ($side === 'Bid') ? 'buy' : 'sell';
         // BTCMarkets always charge in AUD for AUD-related transactions.
-        $currency = ($market['quote'] === 'AUD') ? $market['quote'] : $market['base'];
+        $feeCurrencyCode = null;
+        $symbol = null;
+        if ($market !== null) {
+            $feeCurrencyCode = ($market['quote'] === 'AUD') ? $market['quote'] : $market['base'];
+            $symbol = $market['symbol'];
+        }
+        $id = $this->safe_string($trade, 'id');
+        $price = $this->safe_float($trade, 'price');
+        if ($price !== null) {
+            $price /= $multiplier;
+        }
+        $amount = $this->safe_float($trade, 'volume');
+        if ($amount !== null) {
+            $amount /= $multiplier;
+        }
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $feeCost /= $multiplier;
+        }
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        $orderId = $this->safe_string($trade, 'orderId');
         return array (
             'info' => $trade,
-            'id' => (string) $trade['id'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'order' => $orderId,
+            'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $trade['price'] / $multiplier,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
             'fee' => array (
-                'currency' => $currency,
-                'cost' => $trade['fee'] / $multiplier,
+                'currency' => $feeCurrencyCode,
+                'cost' => $feeCost,
             ),
-            'amount' => $trade['volume'] / $multiplier,
-            'order' => $this->safe_string($trade, 'orderId'),
         );
     }
 
@@ -501,9 +563,10 @@ class btcmarkets extends Exchange {
             }
             $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
         }
-        $result = array (
+        $id = $this->safe_string($order, 'id');
+        return array (
             'info' => $order,
-            'id' => (string) $order['id'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -520,35 +583,32 @@ class btcmarkets extends Exchange {
             'trades' => $trades,
             'fee' => null,
         );
-        return $result;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $ids = array ( intval ($id) );
-        $response = $this->privatePostOrderDetail (array_merge (array (
+        $request = array (
             'orderIds' => $ids,
-        ), $params));
+        );
+        $response = $this->privatePostOrderDetail (array_merge ($request, $params));
         $numOrders = is_array ($response['orders']) ? count ($response['orders']) : 0;
-        if ($numOrders < 1)
+        if ($numOrders < 1) {
             throw new OrderNotFound($this->id . ' No matching $order found => ' . $id);
+        }
         $order = $response['orders'][0];
         return $this->parse_order($order);
     }
 
     public function create_paginated_request ($market, $since = null, $limit = null) {
+        $limit = ($limit === null) ? 100 : $limit;
+        $since = ($since === null) ? 0 : $since;
         $request = $this->ordered (array (
             'currency' => $market['quoteId'],
             'instrument' => $market['baseId'],
+            'limit' => $limit,
+            'since' => $since,
         ));
-        if ($limit !== null)
-            $request['limit'] = $limit;
-        else
-            $request['limit'] = 100;
-        if ($since !== null)
-            $request['since'] = $since;
-        else
-            $request['since'] = 0;
         return $request;
     }
 
@@ -632,19 +692,18 @@ class btcmarkets extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if (strlen ($body) < 2)
+        if ($response === null) {
             return; // fallback to default $error handler
-        if ($body[0] === '{') {
-            if (is_array($response) && array_key_exists('success', $response)) {
-                if (!$response['success']) {
-                    $error = $this->safe_string($response, 'errorCode');
-                    $message = $this->id . ' ' . $this->json ($response);
-                    if (is_array($this->exceptions) && array_key_exists($error, $this->exceptions)) {
-                        $ExceptionClass = $this->exceptions[$error];
-                        throw new $ExceptionClass($message);
-                    } else {
-                        throw new ExchangeError($message);
-                    }
+        }
+        if (is_array($response) && array_key_exists('success', $response)) {
+            if (!$response['success']) {
+                $error = $this->safe_string($response, 'errorCode');
+                $message = $this->id . ' ' . $this->json ($response);
+                if (is_array($this->exceptions) && array_key_exists($error, $this->exceptions)) {
+                    $ExceptionClass = $this->exceptions[$error];
+                    throw new $ExceptionClass($message);
+                } else {
+                    throw new ExchangeError($message);
                 }
             }
         }
