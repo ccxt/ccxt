@@ -230,8 +230,8 @@ class bitmex extends Exchange {
                 'active' => $active,
                 'precision' => $precision,
                 'limits' => $limits,
-                'taker' => $market['takerFee'],
-                'maker' => $market['makerFee'],
+                'taker' => $this->safe_float($market, 'takerFee'),
+                'maker' => $this->safe_float($market, 'makerFee'),
                 'type' => $type,
                 'spot' => false,
                 'swap' => $swap,
@@ -245,7 +245,9 @@ class bitmex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $request = array( 'currency' => 'all' );
+        $request = array (
+            'currency' => 'all',
+        );
         $response = $this->privateGetUserMargin (array_merge ($request, $params));
         $result = array( 'info' => $response );
         for ($b = 0; $b < count ($response); $b++) {
@@ -274,9 +276,10 @@ class bitmex extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['depth'] = $limit;
-        $orderbook = $this->publicGetOrderBookL2 (array_merge ($request, $params));
+        }
+        $response = $this->publicGetOrderBookL2 (array_merge ($request, $params));
         $result = array (
             'bids' => array(),
             'asks' => array(),
@@ -284,14 +287,14 @@ class bitmex extends Exchange {
             'datetime' => null,
             'nonce' => null,
         );
-        for ($o = 0; $o < count ($orderbook); $o++) {
-            $order = $orderbook[$o];
+        for ($i = 0; $i < count ($response); $i++) {
+            $order = $response[$i];
             $side = ($order['side'] === 'Sell') ? 'asks' : 'bids';
             $amount = $this->safe_float($order, 'size');
             $price = $this->safe_float($order, 'price');
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
-            // the exchange sometimes returns null $price in the $orderbook
+            // the exchange sometimes returns null $price in the orderbook
             if ($price !== null) {
                 $result[$side][] = array ( $price, $amount );
             }
@@ -302,11 +305,16 @@ class bitmex extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        $filter = array( 'filter' => array ( 'orderID' => $id ));
-        $result = $this->fetch_orders($symbol, null, null, array_replace_recursive ($filter, $params));
-        $numResults = is_array ($result) ? count ($result) : 0;
-        if ($numResults === 1)
-            return $result[0];
+        $filter = array (
+            'filter' => array (
+                'orderID' => $id,
+            ),
+        );
+        $response = $this->fetch_orders($symbol, null, null, array_replace_recursive ($filter, $params));
+        $numResults = is_array ($response) ? count ($response) : 0;
+        if ($numResults === 1) {
+            return $response[0];
+        }
         throw new OrderNotFound($this->id . ' => The order ' . $id . ' not found.');
     }
 
@@ -318,23 +326,30 @@ class bitmex extends Exchange {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
-        if ($since !== null)
+        if ($since !== null) {
             $request['startTime'] = $this->iso8601 ($since);
-        if ($limit !== null)
+        }
+        if ($limit !== null) {
             $request['count'] = $limit;
+        }
         $request = array_replace_recursive ($request, $params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode(array("filter" => array ("open" => True))) will return "filter=array('open':+True)"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        if (is_array($request) && array_key_exists('filter', $request))
+        if (is_array($request) && array_key_exists('filter', $request)) {
             $request['filter'] = $this->json ($request['filter']);
+        }
         $response = $this->privateGetOrder ($request);
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $filter_params = array( 'filter' => array ( 'open' => true ));
-        return $this->fetch_orders($symbol, $since, $limit, array_replace_recursive ($filter_params, $params));
+        $request = array (
+            'filter' => array (
+                'open' => true,
+            ),
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_replace_recursive ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -351,10 +366,12 @@ class bitmex extends Exchange {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
-        if ($since !== null)
+        if ($since !== null) {
             $request['startTime'] = $this->iso8601 ($since);
-        if ($limit !== null)
+        }
+        if ($limit !== null) {
             $request['count'] = $limit;
+        }
         $request = array_replace_recursive ($request, $params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode(array("filter" => array ("open" => True))) will return "filter=array('open':+True)"
@@ -830,7 +847,7 @@ class bitmex extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        $timestamp = $this->parse8601 ($ohlcv['timestamp']);
+        $timestamp = $this->parse8601 ($this->safe_string($ohlcv, 'timestamp'));
         return array (
             $timestamp,
             $this->safe_float($ohlcv, 'open'),
@@ -860,8 +877,9 @@ class bitmex extends Exchange {
             // 'reverse' => false, // true == newest first
             // 'endTime' => '',    // ending date $filter for results
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['count'] = $limit; // default 100, max 500
+        }
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
             $ymdhms = $this->ymdhms ($since);
@@ -1024,9 +1042,9 @@ class bitmex extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         } else {
-            $id = $order['symbol'];
-            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$id];
+            $marketId = $this->safe_string($order, 'symbol');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             }
         }
@@ -1050,15 +1068,24 @@ class bitmex extends Exchange {
                 $cost = $price * $filled;
             }
         }
-        $result = array (
+        $id = $this->safe_string($order, 'orderID');
+        $type = $this->safe_string($order, 'ordType');
+        if ($type !== null) {
+            $type = strtolower($type);
+        }
+        $side = $this->safe_string($order, 'side');
+        if ($side !== null) {
+            $side = strtolower($side);
+        }
+        return array (
             'info' => $order,
-            'id' => (string) $order['orderID'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
-            'type' => strtolower($order['ordType']),
-            'side' => strtolower($order['side']),
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -1068,7 +1095,6 @@ class bitmex extends Exchange {
             'status' => $status,
             'fee' => null,
         );
-        return $result;
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1197,29 +1223,29 @@ class bitmex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if ($code === 429)
+        if ($response === null) {
+            return;
+        }
+        if ($code === 429) {
             throw new DDoSProtection($this->id . ' ' . $body);
+        }
         if ($code >= 400) {
-            if ($body) {
-                if ($body[0] === '{') {
-                    $error = $this->safe_value($response, 'error', array());
-                    $message = $this->safe_string($error, 'message');
-                    $feedback = $this->id . ' ' . $body;
-                    $exact = $this->exceptions['exact'];
-                    if (is_array($exact) && array_key_exists($message, $exact)) {
-                        throw new $exact[$message]($feedback);
-                    }
-                    $broad = $this->exceptions['broad'];
-                    $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-                    if ($broadKey !== null) {
-                        throw new $broad[$broadKey]($feedback);
-                    }
-                    if ($code === 400) {
-                        throw new BadRequest($feedback);
-                    }
-                    throw new ExchangeError($feedback); // unknown $message
-                }
+            $error = $this->safe_value($response, 'error', array());
+            $message = $this->safe_string($error, 'message');
+            $feedback = $this->id . ' ' . $body;
+            $exact = $this->exceptions['exact'];
+            if (is_array($exact) && array_key_exists($message, $exact)) {
+                throw new $exact[$message]($feedback);
             }
+            $broad = $this->exceptions['broad'];
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey]($feedback);
+            }
+            if ($code === 400) {
+                throw new BadRequest($feedback);
+            }
+            throw new ExchangeError($feedback); // unknown $message
         }
     }
 
