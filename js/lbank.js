@@ -328,9 +328,12 @@ module.exports = class lbank extends Exchange {
         let ids = Object.keys (this.extend (response['info']['free'], response['info']['freeze']));
         for (let i = 0; i < ids.length; i++) {
             let id = ids[i];
-            let code = id;
-            if (id in this.currencies_by_id)
+            let code = undefined;
+            if (id in this.currencies_by_id) {
                 code = this.currencies_by_id[id]['code'];
+            } else {
+                code = id.toUpperCase ();
+            }
             let free = this.safeFloat (response['info']['free'], id, 0.0);
             let used = this.safeFloat (response['info']['freeze'], id, 0.0);
             let account = {
@@ -503,8 +506,8 @@ module.exports = class lbank extends Exchange {
             }, params));
             let queryString = this.rawencode (query);
             let message = this.hash (this.encode (queryString)).toUpperCase ();
-            let secretArr = ['-----BEGIN RSA PRIVATE KEY-----'];
-            let secretLength = this.secret.length - 0;  // eslint-disable-line
+            let secretArr = ['-----BEGIN PRIVATE KEY-----'];
+            let secretLength = this.secret.length - 0;
             for (let i = 0; i < secretLength; i++) {
                 let start = i * 64;
                 let end = this.sum (start, 64);
@@ -513,7 +516,7 @@ module.exports = class lbank extends Exchange {
                 }
                 secretArr.push (this.secret.slice (start, end));
             }
-            secretArr.push ('-----END RSA PRIVATE KEY-----');
+            secretArr.push ('-----END PRIVATE KEY-----');
             let secret = secretArr.join ("\n"); // eslint-disable-line
             let sign = this.binaryToBase64 (this.rsa (message, secret, 'RS256'));
             query['sign'] = sign;

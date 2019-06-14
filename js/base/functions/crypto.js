@@ -39,7 +39,6 @@ function rsa (request, secret, alg = 'RS256') {
     let key = new NodeRSA (secret, {
         'environment': 'browser',
         'signingScheme': algorithm,
-        'encryptionScheme': 'pkcs1',
     })
     return key.sign (request, 'base64', 'binary')
 }
