@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.699'
+const version = '1.18.700'
 
 Exchange.ccxtVersion = version
 
@@ -48011,6 +48011,8 @@ module.exports = class huobipro extends Exchange {
             };
             const maker = (base === 'OMG') ? 0 : 0.2 / 100;
             const taker = (base === 'OMG') ? 0 : 0.2 / 100;
+            const minAmount = this.safeFloat (market, 'min-order-amt', Math.pow (10, -precision['amount']));
+            const minCost = this.safeFloat (market, 'min-order-value', 0);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -48024,7 +48026,7 @@ module.exports = class huobipro extends Exchange {
                 'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': minAmount,
                         'max': undefined,
                     },
                     'price': {
@@ -48032,7 +48034,7 @@ module.exports = class huobipro extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': 0,
+                        'min': minCost,
                         'max': undefined,
                     },
                 },

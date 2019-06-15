@@ -251,6 +251,8 @@ class huobipro (Exchange):
             }
             maker = 0 if (base == 'OMG') else 0.2 / 100
             taker = 0 if (base == 'OMG') else 0.2 / 100
+            minAmount = self.safe_float(market, 'min-order-amt', math.pow(10, -precision['amount']))
+            minCost = self.safe_float(market, 'min-order-value', 0)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -264,7 +266,7 @@ class huobipro (Exchange):
                 'maker': maker,
                 'limits': {
                     'amount': {
-                        'min': math.pow(10, -precision['amount']),
+                        'min': minAmount,
                         'max': None,
                     },
                     'price': {
@@ -272,7 +274,7 @@ class huobipro (Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': 0,
+                        'min': minCost,
                         'max': None,
                     },
                 },
