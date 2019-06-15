@@ -871,9 +871,10 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostOrderStatus (this.extend ({
+        const request = {
             'order_id': parseInt (id),
-        }, params));
+        };
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -890,33 +891,38 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        if (limit === undefined)
+        if (limit === undefined) {
             limit = 100;
-        let market = this.market (symbol);
-        let v2id = 't' + market['id'];
-        let request = {
+        }
+        const market = this.market (symbol);
+        const v2id = 't' + market['id'];
+        const request = {
             'symbol': v2id,
             'timeframe': this.timeframes[timeframe],
             'sort': 1,
             'limit': limit,
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['start'] = since;
-        let response = await this.v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
+        }
+        const response = await this.v2GetCandlesTradeTimeframeSymbolHist (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     getCurrencyName (code) {
-        if (code in this.options['currencyNames'])
+        if (code in this.options['currencyNames']) {
             return this.options['currencyNames'][code];
+        }
         throw new NotSupported (this.id + ' ' + code + ' not supported for withdrawal');
     }
 
     async createDepositAddress (code, params = {}) {
-        let response = await this.fetchDepositAddress (code, this.extend ({
+        await this.loadMarkets ();
+        const request = {
             'renew': 1,
-        }, params));
-        let address = this.safeString (response, 'address');
+        };
+        const response = await this.fetchDepositAddress (code, this.extend (request, params));
+        const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
             'info': response['info'],
@@ -927,14 +933,15 @@ module.exports = class bitfinex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        let name = this.getCurrencyName (code);
-        let request = {
+        await this.loadMarkets ();
+        const name = this.getCurrencyName (code);
+        const request = {
             'method': name,
             'wallet_name': 'exchange',
             'renew': 0, // a value of 1 will generate a new address
         };
-        let response = await this.privatePostDepositNew (this.extend (request, params));
-        let address = response['address'];
+        const response = await this.privatePostDepositNew (this.extend (request, params));
+        let address = this.safeValue (response, 'address');
         let tag = undefined;
         if ('address_pool' in response) {
             tag = address;
@@ -951,7 +958,7 @@ module.exports = class bitfinex extends Exchange {
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument');
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency `code` argument');
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1051,33 +1058,34 @@ module.exports = class bitfinex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        let statuses = {
+        const statuses = {
             'CANCELED': 'canceled',
             'ZEROCONFIRMED': 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
             'COMPLETED': 'ok',
         };
-        return (status in statuses) ? statuses[status] : status;
+        return this.safeString (statuses, status, status);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
-        let name = this.getCurrencyName (code);
-        let request = {
+        const name = this.getCurrencyName (code);
+        const request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
             'amount': amount.toString (),
             'address': address,
         };
-        if (tag)
+        if (tag !== undefined) {
             request['payment_id'] = tag;
-        let responses = await this.privatePostWithdraw (this.extend (request, params));
-        let response = responses[0];
-        let id = response['withdrawal_id'];
-        let message = response['message'];
-        let errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
+        }
+        const responses = await this.privatePostWithdraw (this.extend (request, params));
+        const response = responses[0];
+        const id = this.safeString (response, 'withdrawal_id');
+        const message = this.safeString (response, 'message');
+        const errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
         if (id === 0) {
             if (errorMessage !== undefined) {
-                let ExceptionClass = this.exceptions['broad'][errorMessage];
+                const ExceptionClass = this.exceptions['broad'][errorMessage];
                 throw new ExceptionClass (this.id + ' ' + message);
             }
             throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
@@ -1130,30 +1138,27 @@ module.exports = class bitfinex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (body.length < 2)
+        if (response === undefined) {
             return;
-        if (code >= 400) {
-            if (body[0] === '{') {
-                const feedback = this.id + ' ' + this.json (response);
-                let message = undefined;
-                if ('message' in response) {
-                    message = response['message'];
-                } else if ('error' in response) {
-                    message = response['error'];
-                } else {
-                    throw new ExchangeError (feedback); // malformed (to our knowledge) response
-                }
-                const exact = this.exceptions['exact'];
-                if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-                const broad = this.exceptions['broad'];
-                const broadKey = this.findBroadlyMatchedKey (broad, message);
-                if (broadKey !== undefined) {
-                    throw new broad[broadKey] (feedback);
-                }
-                throw new ExchangeError (feedback); // unknown message
-            }
         }
+        const feedback = this.id + ' ' + this.json (response);
+        let message = undefined;
+        if ('message' in response) {
+            message = response['message'];
+        } else if ('error' in response) {
+            message = response['error'];
+        } else {
+            throw new ExchangeError (feedback); // malformed (to our knowledge) response
+        }
+        const exact = this.exceptions['exact'];
+        if (message in exact) {
+            throw new exact[message] (feedback);
+        }
+        const broad = this.exceptions['broad'];
+        const broadKey = this.findBroadlyMatchedKey (broad, message);
+        if (broadKey !== undefined) {
+            throw new broad[broadKey] (feedback);
+        }
+        throw new ExchangeError (feedback); // unknown message
     }
 };
