@@ -251,13 +251,17 @@ module.exports = class bithumb extends Exchange {
 
     parseTrade (trade, market = undefined) {
         // a workaround for their bug in date format, hours are not 0-padded
-        let [ transaction_date, transaction_time ] = trade['transaction_date'].split (' ');
+        const parts = trade['transaction_date'].split (' ');
+        const transaction_date = parts[0];
+        let transaction_time = parts[1];
         if (transaction_time.length < 8) {
             transaction_time = '0' + transaction_time;
         }
         let timestamp = this.parse8601 (transaction_date + ' ' + transaction_time);
         timestamp -= 9 * 3600000; // they report UTC + 9 hours (server in Korean timezone)
-        const side = (trade['type'] === 'ask') ? 'sell' : 'buy';
+        const type = undefined;
+        let side = this.safeString (trade, 'type');
+        side = (side === 'ask') ? 'sell' : 'buy';
         const id = this.safeString (trade, 'cont_no');
         let symbol = undefined;
         if (market !== undefined) {
@@ -278,7 +282,7 @@ module.exports = class bithumb extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': undefined,
-            'type': undefined,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
