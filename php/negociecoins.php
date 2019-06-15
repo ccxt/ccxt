@@ -146,16 +146,30 @@ class negociecoins extends Exchange {
         $timestamp = $trade['date'] * 1000;
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
-        $symbol = $market['symbol'];
-        $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $id = $this->safe_string($trade, 'tid');
+        $type = 'limit';
+        $side = $this->safe_string($trade, 'type');
+        if ($side !== null) {
+            $side = strtolower($side);
+        }
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $this->safe_string($trade, 'tid'),
+            'id' => $id,
             'order' => null,
-            'type' => 'limit',
-            'side' => strtolower($trade['type']),
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -208,29 +222,33 @@ class negociecoins extends Exchange {
         return $this->parse_balance($result);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'filled' => 'closed',
+            'cancelled' => 'canceled',
+            'partially filled' => 'open',
+            'pending' => 'open',
+            'rejected' => 'rejected',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market = null) {
         $symbol = null;
         if ($market === null) {
-            $market = $this->safe_value($this->marketsById, $order['pair']);
+            $marketId = $this->safe_string($order, 'pair');
+            $market = $this->safe_value($this->marketsById, $marketId);
             if ($market) {
                 $symbol = $market['symbol'];
             }
         }
-        $timestamp = $this->parse8601 ($order['created']);
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'created'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'quantity');
         $cost = $this->safe_float($order, 'total');
         $remaining = $this->safe_float($order, 'pending_quantity');
         $filled = $this->safe_float($order, 'executed_quantity');
-        $status = $order['status'];
-        // cancelled, $filled, partially $filled, pending, rejected
-        if ($status === 'filled') {
-            $status = 'closed';
-        } else if ($status === 'cancelled') {
-            $status = 'canceled';
-        } else {
-            $status = 'open';
-        }
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $trades = null;
         // if ($order['operations'])
         //     $trades = $this->parse_trades($order['operations']);
@@ -260,12 +278,13 @@ class negociecoins extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privatePostUserOrder (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
             'price' => $this->price_to_precision($symbol, $price),
             'volume' => $this->amount_to_precision($symbol, $amount),
             'type' => $side,
-        ), $params));
+        );
+        $response = $this->privatePostUserOrder (array_merge ($request, $params));
         $order = $this->parse_order($response[0], $market);
         $id = $order['id'];
         $this->orders[$id] = $order;
@@ -275,17 +294,19 @@ class negociecoins extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->markets[$symbol];
-        $response = $this->privateDeleteUserOrderOrderId (array_merge (array (
+        $request = array (
             'orderId' => $id,
-        ), $params));
+        );
+        $response = $this->privateDeleteUserOrderOrderId (array_merge ($request, $params));
         return $this->parse_order($response[0], $market);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $order = $this->privateGetUserOrderOrderId (array_merge (array (
+        $request = array (
             'orderId' => $id,
-        ), $params));
+        );
+        $order = $this->privateGetUserOrderOrderId (array_merge ($request, $params));
         return $this->parse_order($order[0]);
     }
 
@@ -315,15 +336,17 @@ class negociecoins extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'status' => 'pending',
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'status' => 'filled',
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function nonce () {

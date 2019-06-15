@@ -141,7 +141,7 @@ class livecoin extends Exchange {
         $result = array();
         for ($i = 0; $i < count ($response); $i++) {
             $market = $response[$i];
-            $id = $market['symbol'];
+            $id = $this->safe_string($market, 'symbol');
             list($baseId, $quoteId) = explode('/', $id);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
@@ -184,28 +184,31 @@ class livecoin extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetInfoCoinInfo ($params);
-        $currencies = $response['info'];
+        $currencies = $this->safe_value($response, 'info');
         $result = array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $id = $currency['symbol'];
+            $id = $this->safe_string($currency, 'symbol');
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $active = ($currency['walletStatus'] === 'normal');
+            $walletStatus = $this->safe_string($currency, 'walletStatus');
+            $active = ($walletStatus === 'normal');
+            $name = $this->safe_string($currency, 'name');
+            $fee = $this->safe_float($currency, 'withdrawFee');
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
-                'name' => $currency['name'],
+                'name' => $name,
                 'active' => $active,
-                'fee' => $currency['withdrawFee'], // todo => redesign
+                'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $currency['minOrderAmount'],
+                        'min' => $this->safe_float($currency, 'minOrderAmount'),
                         'max' => pow(10, $precision),
                     ),
                     'price' => array (
@@ -213,15 +216,15 @@ class livecoin extends Exchange {
                         'max' => pow(10, $precision),
                     ),
                     'cost' => array (
-                        'min' => $currency['minOrderAmount'],
+                        'min' => $this->safe_float($currency, 'minOrderAmount'),
                         'max' => null,
                     ),
                     'withdraw' => array (
-                        'min' => $currency['minWithdrawAmount'],
+                        'min' => $this->safe_float($currency, 'minWithdrawAmount'),
                         'max' => pow(10, $precision),
                     ),
                     'deposit' => array (
-                        'min' => $currency['minDepositAmount'],
+                        'min' => $this->safe_float($currency, 'minDepositAmount'),
                         'max' => null,
                     ),
                 ),
@@ -273,7 +276,7 @@ class livecoin extends Exchange {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
-            $currencyId = $balance['currency'];
+            $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->common_currency_code($currencyId);
             $account = null;
             if (is_array($result) && array_key_exists($code, $result)) {
@@ -376,9 +379,10 @@ class livecoin extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetExchangeTicker (array_merge (array (
+        $request = array (
             'currencyPair' => $market['id'],
-        ), $params));
+        );
+        $ticker = $this->publicGetExchangeTicker (array_merge ($request, $params));
         return $this->parse_ticker($ticker, $market);
     }
 

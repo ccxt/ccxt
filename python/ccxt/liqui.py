@@ -142,7 +142,7 @@ class liqui (Exchange):
         }
 
     def fetch_markets(self, params={}):
-        response = self.publicGetInfo()
+        response = self.publicGetInfo(params)
         markets = response['pairs']
         keys = list(markets.keys())
         result = []
@@ -194,10 +194,10 @@ class liqui (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetInfo()
-        balances = response['return']
+        response = self.privatePostGetInfo(params)
+        balances = self.safe_value(response, 'return')
         result = {'info': balances}
-        funds = balances['funds']
+        funds = self.safe_value(balances, 'funds')
         currencies = list(funds.keys())
         for c in range(0, len(currencies)):
             currency = currencies[c]
@@ -243,9 +243,10 @@ class liqui (Exchange):
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
-        response = self.publicGetDepthPair(self.extend({
+        request = {
             'pair': ids,
-        }, params))
+        }
+        response = self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())
         for i in range(0, len(ids)):
@@ -310,9 +311,10 @@ class liqui (Exchange):
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
-        tickers = self.publicGetTickerPair(self.extend({
+        request = {
             'pair': ids,
-        }, params))
+        }
+        tickers = self.publicGetTickerPair(self.extend(request, params))
         result = {}
         keys = list(tickers.keys())
         for k in range(0, len(keys)):
@@ -483,16 +485,14 @@ class liqui (Exchange):
             market = self.markets_by_id[order['pair']]
         if market is not None:
             symbol = market['symbol']
-        remaining = None
+        remaining = self.safe_float(order, 'amount')
         amount = None
         price = self.safe_float(order, 'rate')
         filled = None
         cost = None
         if 'start_amount' in order:
             amount = self.safe_float(order, 'start_amount')
-            remaining = self.safe_float(order, 'amount')
         else:
-            remaining = self.safe_float(order, 'amount')
             if id in self.orders:
                 amount = self.orders[id]['amount']
         if amount is not None:
@@ -500,6 +500,8 @@ class liqui (Exchange):
                 filled = amount - remaining
                 cost = price * filled
         fee = None
+        type = 'limit'
+        side = self.safe_string(order, 'type')
         result = {
             'info': order,
             'id': id,
@@ -507,8 +509,8 @@ class liqui (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'type': 'limit',
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,

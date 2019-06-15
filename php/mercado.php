@@ -119,7 +119,10 @@ class mercado extends Exchange {
         );
         $response = $this->publicGetCoinTicker (array_merge ($request, $params));
         $ticker = $this->safe_value($response, 'ticker', array());
-        $timestamp = $this->safe_integer($ticker, 'date') * 1000;
+        $timestamp = $this->safe_integer($ticker, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,

@@ -130,7 +130,7 @@ class liqui extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetInfo ();
+        $response = $this->publicGetInfo ($params);
         $markets = $response['pairs'];
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
@@ -184,10 +184,10 @@ class liqui extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetInfo ();
-        $balances = $response['return'];
+        $response = $this->privatePostGetInfo ($params);
+        $balances = $this->safe_value($response, 'return');
         $result = array( 'info' => $balances );
-        $funds = $balances['funds'];
+        $funds = $this->safe_value($balances, 'funds');
         $currencies = is_array($funds) ? array_keys($funds) : array();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
@@ -241,9 +241,10 @@ class liqui extends Exchange {
             $ids = $this->market_ids($symbols);
             $ids = implode('-', $ids);
         }
-        $response = $this->publicGetDepthPair (array_merge (array (
+        $request = array (
             'pair' => $ids,
-        ), $params));
+        );
+        $response = $this->publicGetDepthPair (array_merge ($request, $params));
         $result = array();
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -315,9 +316,10 @@ class liqui extends Exchange {
             $ids = $this->market_ids($symbols);
             $ids = implode('-', $ids);
         }
-        $tickers = $this->publicGetTickerPair (array_merge (array (
+        $request = array (
             'pair' => $ids,
-        ), $params));
+        );
+        $tickers = $this->publicGetTickerPair (array_merge ($request, $params));
         $result = array();
         $keys = is_array($tickers) ? array_keys($tickers) : array();
         for ($k = 0; $k < count ($keys); $k++) {
@@ -517,16 +519,14 @@ class liqui extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $remaining = null;
+        $remaining = $this->safe_float($order, 'amount');
         $amount = null;
         $price = $this->safe_float($order, 'rate');
         $filled = null;
         $cost = null;
         if (is_array($order) && array_key_exists('start_amount', $order)) {
             $amount = $this->safe_float($order, 'start_amount');
-            $remaining = $this->safe_float($order, 'amount');
         } else {
-            $remaining = $this->safe_float($order, 'amount');
             if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
                 $amount = $this->orders[$id]['amount'];
             }
@@ -538,6 +538,8 @@ class liqui extends Exchange {
             }
         }
         $fee = null;
+        $type = 'limit';
+        $side = $this->safe_string($order, 'type');
         $result = array (
             'info' => $order,
             'id' => $id,
@@ -545,8 +547,8 @@ class liqui extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
-            'type' => 'limit',
-            'side' => $order['type'],
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
             'amount' => $amount,

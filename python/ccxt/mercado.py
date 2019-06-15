@@ -120,7 +120,9 @@ class mercado (Exchange):
         }
         response = self.publicGetCoinTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'ticker', {})
-        timestamp = self.safe_integer(ticker, 'date') * 1000
+        timestamp = self.safe_integer(ticker, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
