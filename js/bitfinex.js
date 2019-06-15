@@ -865,7 +865,7 @@ module.exports = class bitfinex extends Exchange {
         if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
         }
-        orders = this.filterByArray (orders, 'status', [ 'closed', 'canceled' ]);
+        orders = this.filterByArray (orders, 'status', [ 'closed', 'canceled' ], false);
         return orders;
     }
 
