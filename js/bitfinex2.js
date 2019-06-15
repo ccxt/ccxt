@@ -614,7 +614,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'v1') {
             request = api + request;
         } else {
