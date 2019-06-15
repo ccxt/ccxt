@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -511,7 +504,7 @@ class zb (Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         if (cost is not None) and(filled is not None) and(filled > 0):
             average = cost / filled
-        result = {
+        return {
             'info': order,
             'id': order['id'],
             'timestamp': timestamp,
@@ -529,7 +522,6 @@ class zb (Exchange):
             'status': status,
             'fee': None,
         }
-        return result
 
     def parse_order_status(self, status):
         statuses = {
@@ -538,9 +530,7 @@ class zb (Exchange):
             '2': 'closed',
             '3': 'open',  # partial
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def get_create_date_field(self):
         return 'trade_date'
@@ -569,12 +559,10 @@ class zb (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
-            return  # fallback to default error handler
-        if len(body) < 2:
+        if response is None:
             return  # fallback to default error handler
         if body[0] == '{':
-            feedback = self.id + ' ' + self.json(response)
+            feedback = self.id + ' ' + body
             if 'code' in response:
                 code = self.safe_string(response, 'code')
                 if code in self.exceptions:

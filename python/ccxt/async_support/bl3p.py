@@ -66,7 +66,8 @@ class bl3p (Exchange):
         })
 
     async def fetch_balance(self, params={}):
-        response = await self.privatePostGENMKTMoneyInfo()
+        await self.load_markets()
+        response = await self.privatePostGENMKTMoneyInfo(params)
         data = response['data']
         balance = data['wallets']
         result = {'info': data}
@@ -94,17 +95,21 @@ class bl3p (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
-        response = await self.publicGetMarketOrderbook(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
-        orderbook = response['data']
+        }
+        response = await self.publicGetMarketOrderbook(self.extend(request, params))
+        orderbook = self.safe_value(response, 'data')
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price_int', 'amount_int')
 
     async def fetch_ticker(self, symbol, params={}):
-        ticker = await self.publicGetMarketTicker(self.extend({
+        request = {
             'market': self.market_id(symbol),
-        }, params))
-        timestamp = ticker['timestamp'] * 1000
+        }
+        ticker = await self.publicGetMarketTicker(self.extend(request, params))
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -124,14 +129,15 @@ class bl3p (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume']['24h']),
+            'baseVolume': self.safe_float(ticker['volume'], '24h'),
             'quoteVolume': None,
             'info': ticker,
         }
 
     def parse_trade(self, trade, market):
+        id = self.safe_string(trade, 'trade_id')
         return {
-            'id': str(trade['trade_id']),
+            'id': id,
             'timestamp': trade['date'],
             'datetime': self.iso8601(trade['date']),
             'symbol': market['symbol'],
@@ -161,13 +167,17 @@ class bl3p (Exchange):
         if type == 'limit':
             order['price_int'] = int(price * 100000.0)
         response = await self.privatePostMarketMoneyOrderAdd(self.extend(order, params))
+        orderId = self.safe_string(response['data'], 'order_id')
         return {
             'info': response,
-            'id': str(response['data']['order_id']),
+            'id': orderId,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostMarketMoneyOrderCancel({'order_id': id})
+        request = {
+            'order_id': id,
+        }
+        return await self.privatePostMarketMoneyOrderCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)

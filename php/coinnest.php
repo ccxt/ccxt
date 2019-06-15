@@ -135,7 +135,7 @@ class coinnest extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $ticker['time'] * 1000;
+        $timestamp = $this->safe_integer($ticker, 'time') * 1000;
         $symbol = $market['symbol'];
         $last = $this->safe_float($ticker, 'last');
         return array (
@@ -165,23 +165,25 @@ class coinnest extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetPubTicker (array_merge (array (
+        $request = array (
             'coin' => $market['baseId'],
-        ), $params));
-        return $this->parse_ticker($ticker, $market);
+        );
+        $response = $this->publicGetPubTicker (array_merge ($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $orderbook = $this->publicGetPubDepth (array_merge (array (
+        $request = array (
             'coin' => $market['baseId'],
-        ), $params));
-        return $this->parse_order_book($orderbook);
+        );
+        $response = $this->publicGetPubDepth (array_merge ($request, $params));
+        return $this->parse_order_book($response);
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = intval ($trade['date']) * 1000;
+        $timestamp = $this->safe_integer($trade, 'date') * 1000;
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
@@ -205,10 +207,11 @@ class coinnest extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $trades = $this->publicGetPubTrades (array_merge (array (
+        $request = array (
             'coin' => $market['baseId'],
-        ), $params));
-        return $this->parse_trades($trades, $market, $since, $limit);
+        );
+        $response = $this->publicGetPubTrades (array_merge ($request, $params));
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -219,41 +222,48 @@ class coinnest extends Exchange {
         for ($i = 0; $i < count ($balancKeys); $i++) {
             $key = $balancKeys[$i];
             $parts = explode('_', $key);
-            if (strlen ($parts) !== 2)
+            $numParts = is_array ($parts) ? count ($parts) : 0;
+            if ($numParts !== 2) {
                 continue;
+            }
             $type = $parts[1];
-            if ($type !== 'reserved' && $type !== 'balance')
+            if ($type !== 'reserved' && $type !== 'balance') {
                 continue;
-            $currency = strtoupper($parts[0]);
-            $currency = $this->common_currency_code($currency);
-            if (!(is_array($result) && array_key_exists($currency, $result))) {
-                $result[$currency] = array (
+            }
+            $currencyId = $parts[0];
+            $uppercase = strtoupper($currencyId);
+            $code = $this->common_currency_code($uppercase);
+            if (!(is_array($result) && array_key_exists($code, $result))) {
+                $result[$code] = array (
                     'free' => 0.0,
                     'used' => 0.0,
                     'total' => 0.0,
                 );
             }
             $type = ($type === 'reserved' ? 'used' : 'free');
-            $result[$currency][$type] = floatval ($response[$key]);
+            $result[$code][$type] = $this->safe_float($response, $key);
             $otherType = ($type === 'used' ? 'free' : 'used');
-            if (is_array($result[$currency]) && array_key_exists($otherType, $result[$currency]))
-                $result[$currency]['total'] = $this->sum ($result[$currency]['free'], $result[$currency]['used']);
+            if (is_array($result[$code]) && array_key_exists($otherType, $result[$code])) {
+                $result[$code]['total'] = $this->sum ($result[$code]['free'], $result[$code]['used']);
+            }
         }
         return $this->parse_balance($result);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            '1' => 'open',
+            '2' => 'open',
+            '3' => 'canceled',
+            '4' => 'closed',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market) {
         $symbol = $market['symbol'];
-        $timestamp = intval ($order['time']) * 1000;
-        $status = intval ($order['status']);
-        // 1 => newly created, 2 => ready for dealing, 3 => canceled, 4 => completed.
-        if ($status === 4) {
-            $status = 'closed';
-        } else if ($status === 3) {
-            $status = 'canceled';
-        } else {
-            $status = 'open';
-        }
+        $timestamp = $this->safe_integer($order, 'time') * 1000;
+        $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $amount = $this->safe_float($order, 'amount_total');
         $remaining = $this->safe_float($order, 'amount_over');
         $filled = $this->safe_value($order, 'deals');
@@ -285,12 +295,13 @@ class coinnest extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privatePostTradeAdd (array_merge (array (
+        $request = array (
             'coin' => $market['baseId'],
             'type' => $side,
             'number' => $amount,
             'price' => $price,
-        ), $params));
+        );
+        $response = $this->privatePostTradeAdd (array_merge ($request, $params));
         $order = array (
             'id' => $response['id'],
             'time' => $this->seconds (),
@@ -308,21 +319,22 @@ class coinnest extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->privatePostTradeCancel (array_merge (array (
+        $request = array (
             'id' => $id,
             'coin' => $market['baseId'],
-        ), $params));
-        return $response;
+        );
+        return $this->privatePostTradeCancel (array_merge ($request, $params));
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $order = $this->privatePostTradeFetchtrust (array_merge (array (
+        $request = array (
             'id' => $id,
             'coin' => $market['baseId'],
-        ), $params));
-        return $this->parse_order($order, $market);
+        );
+        $response = $this->privatePostTradeFetchtrust (array_merge ($request, $params));
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -331,18 +343,21 @@ class coinnest extends Exchange {
         $request = array (
             'coin' => $market['baseId'],
         );
-        if ($since !== null)
+        if ($since !== null) {
             $request['since'] = intval ($since / 1000);
-        if ($limit !== null)
+        }
+        if ($limit !== null) {
             $request['limit'] = $limit;
+        }
         $response = $this->privatePostTradeTrust (array_merge ($request, $params));
         return $this->parse_orders($response, $market);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'type' => '1',
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -350,8 +365,9 @@ class coinnest extends Exchange {
         $query = null;
         if ($api === 'public') {
             $query = $this->urlencode ($params);
-            if (strlen ($query))
+            if (strlen ($query)) {
                 $url .= '?' . $query;
+            }
         } else {
             $this->check_required_credentials();
             $body = $this->urlencode (array_merge ($params, array (

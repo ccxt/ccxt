@@ -401,8 +401,9 @@ module.exports = class kkex extends Exchange {
 
     parseOrder (order, market = undefined) {
         let symbol = undefined;
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         let side = this.safeString (order, 'side');
         if (side === undefined) {
             side = this.safeString (order, 'type');
@@ -447,8 +448,8 @@ module.exports = class kkex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             'type': side,
         };
@@ -471,8 +472,8 @@ module.exports = class kkex extends Exchange {
             request['amount'] = this.amountToPrecision (symbol, amount);
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        let response = await this.privatePostTrade (this.extend (request, params));
-        let id = this.safeString (response, 'order_id');
+        const response = await this.privatePostTrade (this.extend (request, params));
+        const id = this.safeString (response, 'order_id');
         return {
             'info': response,
             'id': id,
@@ -498,8 +499,8 @@ module.exports = class kkex extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'order_id': id,
             'symbol': market['id'],
         };
@@ -508,27 +509,29 @@ module.exports = class kkex extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['page_length'] = limit; // 20 by default
         }
-        let response = await this.privatePostOrderHistory (this.extend (request, params));
+        const response = await this.privatePostOrderHistory (this.extend (request, params));
         return this.parseOrders (response['orders'], market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({
+        const request = {
             'status': 0,
-        }, params));
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({
+        const request = {
             'status': 1,
-        }, params));
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     nonce () {
@@ -542,8 +545,11 @@ module.exports = class kkex extends Exchange {
             headers = { 'Content-Type': 'application/json' };
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            let signature = this.extend ({ 'nonce': nonce, 'api_key': this.apiKey }, params);
+            const nonce = this.nonce ();
+            let signature = this.extend ({
+                'nonce': nonce,
+                'api_key': this.apiKey,
+            }, params);
             signature = this.urlencode (this.keysort (signature));
             signature += '&secret_key=' + this.secret;
             signature = this.hash (this.encode (signature), 'md5');

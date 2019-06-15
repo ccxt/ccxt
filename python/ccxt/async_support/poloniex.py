@@ -276,27 +276,28 @@ class poloniex (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privatePostReturnCompleteBalances(self.extend({
+        request = {
             'account': 'all',
-        }, params))
-        result = {'info': balances}
-        currencies = list(balances.keys())
+        }
+        response = await self.privatePostReturnCompleteBalances(self.extend(request, params))
+        result = {'info': response}
+        currencies = list(response.keys())
         for c in range(0, len(currencies)):
-            id = currencies[c]
-            balance = balances[id]
-            currency = self.common_currency_code(id)
+            currencyId = currencies[c]
+            balance = response[currencyId]
+            code = self.common_currency_code(currencyId)
             account = {
                 'free': float(balance['available']),
                 'used': float(balance['onOrders']),
                 'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_trading_fees(self, params={}):
         await self.load_markets()
-        fees = await self.privatePostReturnFeeInfo()
+        fees = await self.privatePostReturnFeeInfo(params)
         return {
             'info': fees,
             'maker': self.safe_float(fees, 'makerFee'),
@@ -384,8 +385,8 @@ class poloniex (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        tickers = await self.publicGetReturnTicker(params)
-        ids = list(tickers.keys())
+        response = await self.publicGetReturnTicker(params)
+        ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
@@ -400,17 +401,17 @@ class poloniex (Exchange):
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
                 market = {'symbol': symbol}
-            ticker = tickers[id]
+            ticker = response[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     async def fetch_currencies(self, params={}):
-        currencies = await self.publicGetReturnCurrencies(params)
-        ids = list(currencies.keys())
+        response = await self.publicGetReturnCurrencies(params)
+        ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            currency = currencies[id]
+            currency = response[id]
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
@@ -449,8 +450,8 @@ class poloniex (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.publicGetReturnTicker(params)
-        ticker = tickers[market['id']]
+        response = await self.publicGetReturnTicker(params)
+        ticker = response[market['id']]
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
@@ -750,9 +751,10 @@ class poloniex (Exchange):
         if symbol is not None:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
-        response = await self.privatePostReturnOpenOrders(self.extend({
+        request = {
             'currencyPair': pair,
-        }))
+        }
+        response = await self.privatePostReturnOpenOrders(self.extend(request, params))
         openOrders = []
         if market is not None:
             openOrders = self.parse_open_orders(response, market, openOrders)
@@ -964,17 +966,19 @@ class poloniex (Exchange):
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        trades = await self.privatePostReturnOrderTrades(self.extend({
+        request = {
             'orderNumber': id,
-        }, params))
+        }
+        trades = await self.privatePostReturnOrderTrades(self.extend(request, params))
         return self.parse_trades(trades)
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privatePostGenerateNewAddress({
+        request = {
             'currency': currency['id'],
-        })
+        }
+        response = await self.privatePostGenerateNewAddress(self.extend(request, params))
         address = None
         tag = None
         if response['success'] == 1:
@@ -994,7 +998,7 @@ class poloniex (Exchange):
     async def fetch_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        response = await self.privatePostReturnDepositAddresses()
+        response = await self.privatePostReturnDepositAddresses(params)
         currencyId = currency['id']
         address = self.safe_string(response, currencyId)
         tag = None
@@ -1021,10 +1025,10 @@ class poloniex (Exchange):
         }
         if tag:
             request['paymentId'] = tag
-        result = await self.privatePostWithdraw(self.extend(request, params))
+        response = await self.privatePostWithdraw(self.extend(request, params))
         return {
-            'info': result,
-            'id': result['response'],
+            'info': response,
+            'id': response['response'],
         }
 
     async def fetch_transactions_helper(self, code=None, since=None, limit=None, params={}):

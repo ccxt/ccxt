@@ -205,8 +205,9 @@ module.exports = class zaif extends Exchange {
         let vwap = ticker['vwap'];
         let baseVolume = ticker['volume'];
         let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined)
+        if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
+        }
         let last = ticker['last'];
         return {
             'symbol': symbol,
@@ -239,8 +240,9 @@ module.exports = class zaif extends Exchange {
         id = this.safeString (trade, 'tid', id);
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'amount');
-        if (!market)
+        if (!market) {
             market = this.markets_by_id[trade['currency_pair']];
+        }
         return {
             'id': id.toString (),
             'info': trade,
@@ -272,8 +274,9 @@ module.exports = class zaif extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type === 'market')
+        if (type !== 'limit') {
             throw new ExchangeError (this.id + ' allows limit orders only');
+        }
         let response = await this.privatePostTrade (this.extend ({
             'currency_pair': this.marketId (symbol),
             'action': (side === 'buy') ? 'bid' : 'ask',
@@ -295,8 +298,9 @@ module.exports = class zaif extends Exchange {
     parseOrder (order, market = undefined) {
         let side = (order['action'] === 'bid') ? 'buy' : 'sell';
         let timestamp = parseInt (order['timestamp']) * 1000;
-        if (!market)
+        if (!market) {
             market = this.markets_by_id[order['currency_pair']];
+        }
         let price = order['price'];
         let amount = order['amount'];
         return {

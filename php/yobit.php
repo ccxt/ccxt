@@ -157,14 +157,12 @@ class yobit extends liqui {
             '2' => 'canceled',
             '3' => 'open', // or partially-filled and closed? https://github.com/ccxt/ccxt/issues/1594
         );
-        if (is_array($statuses) && array_key_exists($status, $statuses))
-            return $statuses[$status];
-        return $status;
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetInfo ();
+        $response = $this->privatePostGetInfo ($params);
         $balances = $response['return'];
         $result = array( 'info' => $balances );
         $sides = array( 'free' => 'funds', 'total' => 'funds_incl_orders' );
@@ -185,8 +183,9 @@ class yobit extends liqui {
                         $account = $this->account ();
                     }
                     $account[$key] = $balances[$side][$lowercase];
-                    if (($account['total'] !== null) && ($account['free'] !== null))
+                    if (($account['total'] !== null) && ($account['free'] !== null)) {
                         $account['used'] = $account['total'] - $account['free'];
+                    }
                     $result[$currency] = $account;
                 }
             }
@@ -195,9 +194,10 @@ class yobit extends liqui {
     }
 
     public function create_deposit_address ($code, $params = array ()) {
-        $response = $this->fetch_deposit_address ($code, array_merge (array (
+        $request = array (
             'need_new' => 1,
-        ), $params));
+        );
+        $response = $this->fetch_deposit_address ($code, array_merge ($request, $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array (
@@ -269,11 +269,12 @@ class yobit extends liqui {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privatePostWithdrawCoinsToAddress (array_merge (array (
+        $request = array (
             'coinName' => $currency['id'],
             'amount' => $amount,
             'address' => $address,
-        ), $params));
+        );
+        $response = $this->privatePostWithdrawCoinsToAddress (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => null,

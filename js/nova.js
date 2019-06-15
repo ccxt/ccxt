@@ -74,8 +74,9 @@ module.exports = class nova extends Exchange {
             let [ quote, base ] = id.split ('_');
             let symbol = base + '/' + quote;
             let active = true;
-            if (market['disabled'])
+            if (market['disabled']) {
                 active = false;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -155,39 +156,41 @@ module.exports = class nova extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetbalances ();
-        let balances = response['balances'];
-        let result = { 'info': response };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = balance['currency'];
-            let lockbox = parseFloat (balance['amount_lockbox']);
-            let trades = parseFloat (balance['amount_trades']);
-            let account = {
-                'free': parseFloat (balance['amount']),
+        const response = await this.privatePostGetbalances (params);
+        const balances = this.safeValue (response, 'balances');
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.commonCurrencyCode (currencyId);
+            const lockbox = this.safeFloat (balance, 'amount_lockbox');
+            const trades = this.safeFloat (balance, 'amount_trades');
+            const account = {
+                'free': this.safeFloat (balance, 'amount'),
                 'used': this.sum (lockbox, trades),
-                'total': parseFloat (balance['amount_total']),
+                'total': this.safeFloat (balance, 'amount_total'),
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === 'market')
+        if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
+        }
         await this.loadMarkets ();
         amount = amount.toString ();
         price = price.toString ();
         const market = this.market (symbol);
-        const order = {
+        const request = {
             'tradetype': side.toUpperCase (),
             'tradeamount': amount,
             'tradeprice': price,
             'tradebase': 1,
             'pair': market['id'],
         };
-        const response = await this.privatePostTradePair (this.extend (order, params));
+        const response = await this.privatePostTradePair (this.extend (request, params));
         const tradeItems = this.safeValue (response, 'tradeitems', []);
         const tradeItemsByType = this.indexBy (tradeItems, 'type');
         const created = this.safeValue (tradeItemsByType, 'created', {});
@@ -199,17 +202,19 @@ module.exports = class nova extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        return await this.privatePostCancelorder (this.extend ({
+        const request = {
             'orderid': id,
-        }, params));
+        };
+        return await this.privatePostCancelorder (this.extend (request, params));
     }
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let response = await this.privatePostGetnewdepositaddressCurrency (this.extend ({
-            'currency': currency,
-        }, params));
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostGetnewdepositaddressCurrency (this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         const tag = this.safeString (response, 'tag');
@@ -224,9 +229,10 @@ module.exports = class nova extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let response = await this.privatePostGetdepositaddressCurrency (this.extend ({
-            'currency': currency,
-        }, params));
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostGetdepositaddressCurrency (this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         const tag = this.safeString (response, 'tag');
@@ -240,18 +246,20 @@ module.exports = class nova extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/';
-        if (api === 'private')
+        if (api === 'private') {
             url += api + '/';
+        }
         url += this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            const nonce = this.nonce ().toString ();
             url += '?' + this.urlencode ({ 'nonce': nonce });
-            let signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512', 'base64');
+            const signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512', 'base64');
             body = this.urlencode (this.extend ({
                 'apikey': this.apiKey,
                 'signature': signature,
@@ -264,10 +272,12 @@ module.exports = class nova extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('status' in response)
-            if (response['status'] !== 'success')
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('status' in response) {
+            if (response['status'] !== 'success') {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
+        }
         return response;
     }
 };

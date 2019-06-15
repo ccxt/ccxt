@@ -181,15 +181,16 @@ module.exports = class rightbtc extends Exchange {
     }
 
     divideSafeFloat (x, key, divisor) {
-        let value = this.safeFloat (x, key);
-        if (value !== undefined)
+        const value = this.safeFloat (x, key);
+        if (value !== undefined) {
             return value / divisor;
+        }
         return value;
     }
 
     parseTicker (ticker, market = undefined) {
         let symbol = market['symbol'];
-        let timestamp = ticker['date'];
+        let timestamp = this.safeInteger (ticker, 'date');
         let last = this.divideSafeFloat (ticker, 'last', 1e8);
         let high = this.divideSafeFloat (ticker, 'high', 1e8);
         let low = this.divideSafeFloat (ticker, 'low', 1e8);
@@ -222,11 +223,16 @@ module.exports = class rightbtc extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTickerTradingPair (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'trading_pair': market['id'],
-        }, params));
-        return this.parseTicker (response['result'], market);
+        };
+        const response = await this.publicGetTickerTradingPair (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
+        if (!Object.keys (result).length) {
+            throw new ExchangeError (this.id + ' fetchTicker returned an empty response for symbol ' + symbol);
+        }
+        return this.parseTicker (result, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -297,8 +303,9 @@ module.exports = class rightbtc extends Exchange {
         let price = this.divideSafeFloat (trade, 'price', 1e8);
         let amount = this.safeFloat (trade, 'amount');
         amount = this.safeFloat (trade, 'quantity', amount);
-        if (amount !== undefined)
+        if (amount !== undefined) {
             amount = amount / 1e8;
+        }
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (trade, 'trading_pair');
@@ -443,23 +450,22 @@ module.exports = class rightbtc extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.traderDeleteOrderTradingPairIds (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'trading_pair': market['id'],
             'ids': id,
-        }, params));
+        };
+        const response = await this.traderDeleteOrderTradingPairIds (this.extend (request, params));
         return response;
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'NEW': 'open',
             'TRADE': 'closed', // TRADE means filled or partially filled orders
             'CANCEL': 'canceled',
         };
-        if (status in statuses)
-            return statuses[status];
-        return status;
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -491,33 +497,35 @@ module.exports = class rightbtc extends Exchange {
         //         "filled_quantity": 32013000000
         //     }
         //
-        let id = this.safeString (order, 'id');
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let marketId = this.safeString (order, 'trading_pair');
+        const id = this.safeString (order, 'id');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const marketId = this.safeString (order, 'trading_pair');
         if (market === undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
         let symbol = marketId;
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         let timestamp = this.safeInteger (order, 'created');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         }
-        if ('time' in order)
+        if ('time' in order) {
             timestamp = order['time'];
-        else if ('transactTime' in order)
+        } else if ('transactTime' in order) {
             timestamp = order['transactTime'];
-        let price = this.safeFloat (order, 'limit');
-        price = this.safeFloat (order, 'price', price);
-        if (price !== undefined)
+        }
+        let price = this.safeFloat2 (order, 'limit', 'price');
+        if (price !== undefined) {
             price = price / 1e8;
-        let amount = this.divideSafeFloat (order, 'quantity', 1e8);
+        }
+        const amount = this.divideSafeFloat (order, 'quantity', 1e8);
         let filled = this.divideSafeFloat (order, 'filled_quantity', 1e8);
         let remaining = this.divideSafeFloat (order, 'rest', 1e8);
-        let cost = this.divideSafeFloat (order, 'cost', 1e8);
+        const cost = this.divideSafeFloat (order, 'cost', 1e8);
         // lines 483-494 should be generalized into a base class method
         if (amount !== undefined) {
             if (remaining === undefined) {
@@ -531,24 +539,26 @@ module.exports = class rightbtc extends Exchange {
                 }
             }
         }
-        let type = 'limit';
+        const type = 'limit';
         let side = this.safeString (order, 'side');
-        if (side !== undefined)
+        if (side !== undefined) {
             side = side.toLowerCase ();
-        let feeCost = this.divideSafeFloat (order, 'min_fee', 1e8);
+        }
+        const feeCost = this.divideSafeFloat (order, 'min_fee', 1e8);
         let fee = undefined;
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            if (market !== undefined)
+            if (market !== undefined) {
                 feeCurrency = market['quote'];
+            }
             fee = {
                 'rate': this.safeFloat (order, 'fee'),
                 'cost': feeCost,
                 'currency': feeCurrency,
             };
         }
-        let trades = undefined;
-        let result = {
+        const trades = undefined;
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -566,7 +576,6 @@ module.exports = class rightbtc extends Exchange {
             'fee': fee,
             'trades': trades,
         };
-        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -574,12 +583,12 @@ module.exports = class rightbtc extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'trading_pair': market['id'],
             'ids': id,
         };
-        let response = await this.traderGetOrdersTradingPairIds (this.extend (request, params));
+        const response = await this.traderGetOrdersTradingPairIds (this.extend (request, params));
         //
         // let response = {
         //         "status": {
@@ -599,8 +608,8 @@ module.exports = class rightbtc extends Exchange {
         //         ]
         //     }
         //
-        let orders = this.parseOrders (response['result'], market);
-        let ordersById = this.indexBy (orders, 'id');
+        const orders = this.parseOrders (response['result'], market);
+        const ordersById = this.indexBy (orders, 'id');
         if (!(id in ordersById)) {
             throw new OrderNotFound (this.id + ' fetchOrder could not find order ' + id.toString () + ' in open orders.');
         }
@@ -612,12 +621,12 @@ module.exports = class rightbtc extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'trading_pair': market['id'],
             'cursor': 0,
         };
-        let response = await this.traderGetOrderpageTradingPairCursor (this.extend (request, params));
+        const response = await this.traderGetOrderpageTradingPairCursor (this.extend (request, params));
         //
         // let response = {
         //         "status": {
@@ -652,12 +661,12 @@ module.exports = class rightbtc extends Exchange {
             ids = ids.join ('/');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'trading_pair': market['id'],
             'ids': ids,
         };
-        let response = await this.traderGetHistoryTradingPairIds (this.extend (request, params));
+        const response = await this.traderGetHistoryTradingPairIds (this.extend (request, params));
         //
         // let response = {
         //         "status": {
@@ -688,11 +697,12 @@ module.exports = class rightbtc extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.traderGetHistorysTradingPairPage (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'trading_pair': market['id'],
             'page': 0,
-        }, params));
+        };
+        const response = await this.traderGetHistorysTradingPairPage (this.extend (request, params));
         //
         // let response = {
         //         "status": {
@@ -728,8 +738,9 @@ module.exports = class rightbtc extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + api + '/' + this.implodeParams (path, params);
         if (api === 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
             headers = {
@@ -737,8 +748,9 @@ module.exports = class rightbtc extends Exchange {
                 'signature': this.secret,
             };
             if (method === 'GET') {
-                if (Object.keys (query).length)
+                if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
+                }
             } else {
                 body = this.json (query);
                 headers['Content-Type'] = 'application/json';
@@ -748,26 +760,23 @@ module.exports = class rightbtc extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string')
+        if (response === undefined) {
             return; // fallback to default error handler
-        if (body.length < 2)
-            return; // fallback to default error handler
-        if ((body[0] === '{') || (body[0] === '[')) {
-            let status = this.safeValue (response, 'status');
-            if (status !== undefined) {
-                //
-                //     {"status":{"success":0,"message":"ERR_USERTOKEN_NOT_FOUND"}}
-                //
-                let success = this.safeString (status, 'success');
-                if (success !== '1') {
-                    const message = this.safeString (status, 'message');
-                    const feedback = this.id + ' ' + this.json (response);
-                    const exceptions = this.exceptions;
-                    if (message in exceptions) {
-                        throw new exceptions[message] (feedback);
-                    }
-                    throw new ExchangeError (feedback);
+        }
+        const status = this.safeValue (response, 'status');
+        if (status !== undefined) {
+            //
+            //     {"status":{"success":0,"message":"ERR_USERTOKEN_NOT_FOUND"}}
+            //
+            const success = this.safeString (status, 'success');
+            if (success !== '1') {
+                const message = this.safeString (status, 'message');
+                const feedback = this.id + ' ' + this.json (response);
+                const exceptions = this.exceptions;
+                if (message in exceptions) {
+                    throw new exceptions[message] (feedback);
                 }
+                throw new ExchangeError (feedback);
             }
         }
     }

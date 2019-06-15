@@ -195,15 +195,16 @@ class _1btcxe extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $order = array (
+        $request = array (
             'side' => $side,
             'type' => $type,
             'currency' => $this->market_id($symbol),
             'amount' => $amount,
         );
-        if ($type === 'limit')
-            $order['limit_price'] = $price;
-        $result = $this->privatePostOrdersNew (array_merge ($order, $params));
+        if ($type === 'limit') {
+            $request['limit_price'] = $price;
+        }
+        $result = $this->privatePostOrdersNew (array_merge ($request, $params));
         return array (
             'info' => $result,
             'id' => $result,
@@ -211,7 +212,10 @@ class _1btcxe extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrdersCancel (array( 'id' => $id ));
+        $request = array (
+            'id' => $id,
+        );
+        return $this->privatePostOrdersCancel (array_merge ($request, $params));
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -231,12 +235,14 @@ class _1btcxe extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if ($this->id === 'cryptocapital')
+        if ($this->id === 'cryptocapital') {
             throw new ExchangeError($this->id . ' is an abstract base API for _1btcxe');
+        }
         $url = $this->urls['api'] . '/' . $path;
         if ($api === 'public') {
-            if ($params)
+            if ($params) {
                 $url .= '?' . $this->urlencode ($params);
+            }
         } else {
             $this->check_required_credentials();
             $query = array_merge (array (

@@ -24,14 +24,12 @@ Current feature list:
 Sponsored Promotion
 -------------------
 
-Want this place? Contact us: info@ccxt.trade
-
-`Placehodler <https://ccxt.trade/advertise/>`__
+`Poloniex CCXT-Certified <https://www.poloniex.com/?utm_source=ccxt&utm_medium=image>`__
 
 See Also
 --------
 
--  \ `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__\   `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__  —  enterprise-grade crypto market data API for your fund, smart contract, or app.
+-  \ `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__\   `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__ — enterprise-grade `crypto market cap & pricing data <https://nomics.com>`__ API for your fund, smart contract, or app.
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
@@ -190,7 +188,7 @@ The ccxt library currently supports the following 136 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `coinone <https://coinone.co.kr>`__                                                       | coinone            | `CoinOne <https://coinone.co.kr>`__                                                        | 2     | `API <https://doc.coinone.co.kr>`__                                                             |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `coinspot <https://www.coinspot.com.au>`__                                                | coinspot           | `CoinSpot <https://www.coinspot.com.au>`__                                                 | \*    | `API <https://www.coinspot.com.au/api>`__                                                       |                                                                      |
+| `coinspot <https://www.coinspot.com.au/join/FSM11C>`__                                    | coinspot           | `CoinSpot <https://www.coinspot.com.au/join/FSM11C>`__                                     | \*    | `API <https://www.coinspot.com.au/api>`__                                                       |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `cointiger <https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt>`__           | cointiger          | `CoinTiger <https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt>`__            | 1     | `API <https://github.com/cointiger/api-docs-en/wiki>`__                                         |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -386,14 +384,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.665/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.665/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.707/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.707/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.665/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.707/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

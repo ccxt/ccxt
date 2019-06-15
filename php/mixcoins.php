@@ -45,47 +45,52 @@ class mixcoins extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/USD' => array( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'maker' => 0.0015, 'taker' => 0.0025 ),
-                'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'BCH/BTC' => array( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'LSK/BTC' => array( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'maker' => 0.0015, 'taker' => 0.0025 ),
-                'BCH/USD' => array( 'id' => 'bch_usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'ETH/USD' => array( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'BTC/USD' => array( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'btc', 'quoteId' => 'usd', 'maker' => 0.0015, 'taker' => 0.0025 ),
+                'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'BCH/BTC' => array( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bch', 'quoteId' => 'btc', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'LSK/BTC' => array( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'baseId' => 'lsk', 'quoteId' => 'btc', 'maker' => 0.0015, 'taker' => 0.0025 ),
+                'BCH/USD' => array( 'id' => 'bch_usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'baseId' => 'bch', 'quoteId' => 'usd', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'ETH/USD' => array( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'baseId' => 'eth', 'quoteId' => 'usd', 'maker' => 0.001, 'taker' => 0.0015 ),
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->privatePostInfo ();
-        $balance = $response['result']['wallet'];
+        $this->load_markets();
+        $response = $this->privatePostInfo ($params);
+        $balance = $this->safe_value($response['result'], 'wallet');
         $result = array( 'info' => $balance );
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
-            $lowercase = strtolower($currency);
+            $code = $currencies[$i];
+            $currencyId = $this->currencyid ($code);
             $account = $this->account ();
-            if (is_array($balance) && array_key_exists($lowercase, $balance)) {
-                $account['free'] = floatval ($balance[$lowercase]['avail']);
-                $account['used'] = floatval ($balance[$lowercase]['lock']);
+            if (is_array($balance) && array_key_exists($currencyId, $balance)) {
+                $account['free'] = $this->safe_float($balance[$currencyId], 'avail');
+                $account['used'] = $this->safe_float($balance[$currencyId], 'lock');
                 $account['total'] = $this->sum ($account['free'], $account['used']);
             }
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        $response = $this->publicGetDepth (array_merge (array (
+        $this->load_markets();
+        $request = array (
             'market' => $this->market_id($symbol),
-        ), $params));
+        );
+        $response = $this->publicGetDepth (array_merge ($request, $params));
         return $this->parse_order_book($response['result']);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        $response = $this->publicGetTicker (array_merge (array (
+        $this->load_markets();
+        $request = array (
             'market' => $this->market_id($symbol),
-        ), $params));
-        $ticker = $response['result'];
+        );
+        $response = $this->publicGetTicker (array_merge ($request, $params));
+        $ticker = $this->safe_value($response, 'result');
         $timestamp = $this->milliseconds ();
         $last = $this->safe_float($ticker, 'last');
         return array (
@@ -128,26 +133,29 @@ class mixcoins extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
+        $request = array (
             'market' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $order = array (
+        $this->load_markets();
+        $request = array (
             'market' => $this->market_id($symbol),
             'op' => $side,
             'amount' => $amount,
         );
         if ($type === 'market') {
-            $order['order_type'] = 1;
-            $order['price'] = $price;
+            $request['order_type'] = 1;
+            $request['price'] = $price;
         } else {
-            $order['order_type'] = 0;
+            $request['order_type'] = 0;
         }
-        $response = $this->privatePostTrade (array_merge ($order, $params));
+        $response = $this->privatePostTrade (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => (string) $response['result']['id'],
@@ -155,14 +163,19 @@ class mixcoins extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancel (array( 'id' => $id ));
+        $this->load_markets();
+        $request = array (
+            'id' => $id,
+        );
+        return $this->privatePostCancel (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
-            if ($params)
+            if ($params) {
                 $url .= '?' . $this->urlencode ($params);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
@@ -180,9 +193,11 @@ class mixcoins extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('status', $response))
-            if ($response['status'] === 200)
+        if (is_array($response) && array_key_exists('status', $response)) {
+            if ($response['status'] === 200) {
                 return $response;
+            }
+        }
         throw new ExchangeError($this->id . ' ' . $this->json ($response));
     }
 }

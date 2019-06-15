@@ -67,21 +67,23 @@ module.exports = class foxbit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.privatePostU2 ({
+        await this.loadMarkets ();
+        const request = {
             'BalanceReqID': this.nonce (),
-        });
-        let balances = this.safeValue (response['Responses'], this.options['brokerId']);
-        let result = { 'info': response };
+        };
+        const response = await this.privatePostU2 (this.extend (request, params));
+        const balances = this.safeValue (response['Responses'], this.options['brokerId']);
+        const result = { 'info': response };
         if (balances !== undefined) {
-            let currencyIds = Object.keys (this.currencies_by_id);
+            const currencyIds = Object.keys (this.currencies_by_id);
             for (let i = 0; i < currencyIds.length; i++) {
-                let currencyId = currencyIds[i];
-                let currency = this.currencies_by_id[currencyId];
-                let code = currency['code'];
+                const currencyId = currencyIds[i];
+                const currency = this.currencies_by_id[currencyId];
+                const code = currency['code'];
                 // we only set the balance for the currency if that currency is present in response
                 // otherwise we will lose the info if the currency balance has been funded or traded or not
                 if (currencyId in balances) {
-                    let account = this.account ();
+                    const account = this.account ();
                     account['used'] = parseFloat (balances[currencyId + '_locked']) * 1e-8;
                     account['total'] = parseFloat (balances[currencyId]) * 1e-8;
                     account['free'] = account['total'] - account['used'];
@@ -93,24 +95,28 @@ module.exports = class foxbit extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let orderbook = await this.publicGetCurrencyOrderbook (this.extend ({
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
             'currency': market['quote'],
             'crypto_currency': market['base'],
-        }, params));
-        return this.parseOrderBook (orderbook);
+        };
+        const response = await this.publicGetCurrencyOrderbook (this.extend (request, params));
+        return this.parseOrderBook (response);
     }
 
     async fetchTicker (symbol, params = {}) {
-        let market = this.market (symbol);
-        let ticker = await this.publicGetCurrencyTicker (this.extend ({
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
             'currency': market['quote'],
             'crypto_currency': market['base'],
-        }, params));
-        let timestamp = this.milliseconds ();
-        let lowercaseQuote = market['quote'].toLowerCase ();
-        let quoteVolume = 'vol_' + lowercaseQuote;
-        let last = this.safeFloat (ticker, 'last');
+        };
+        const ticker = await this.publicGetCurrencyTicker (this.extend (request, params));
+        const timestamp = this.milliseconds ();
+        const lowercaseQuote = market['quote'].toLowerCase ();
+        const quoteVolume = 'vol_' + lowercaseQuote;
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -130,13 +136,13 @@ module.exports = class foxbit extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': parseFloat (ticker[quoteVolume]),
+            'quoteVolume': this.safeFloat (ticker, quoteVolume),
             'info': ticker,
         };
     }
 
     parseTrade (trade, market) {
-        let timestamp = trade['date'] * 1000;
+        const timestamp = this.safeInteger (trade, 'date') * 1000;
         return {
             'id': this.safeString (trade, 'tid'),
             'info': trade,
@@ -144,27 +150,31 @@ module.exports = class foxbit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['side'],
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'side': this.safeString (trade, 'side'),
+            'price': this.safeFloat (trade, 'price'),
+            'amount': this.safeFloat (trade, 'amount'),
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        let market = this.market (symbol);
-        let response = await this.publicGetCurrencyTrades (this.extend ({
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
             'currency': market['quote'],
             'crypto_currency': market['base'],
-        }, params));
+        };
+        const response = await this.publicGetCurrencyTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === 'market')
+        await this.loadMarkets ();
+        if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let market = this.market (symbol);
-        let orderSide = (side === 'buy') ? '1' : '2';
-        let order = {
+        }
+        const market = this.market (symbol);
+        const orderSide = (side === 'buy') ? '1' : '2';
+        const request = {
             'ClOrdID': this.nonce (),
             'Symbol': market['id'],
             'Side': orderSide,
@@ -173,9 +183,9 @@ module.exports = class foxbit extends Exchange {
             'OrderQty': amount,
             'BrokerID': market['brokerId'],
         };
-        let response = await this.privatePostD (this.extend (order, params));
-        let indexed = this.indexBy (response['Responses'], 'MsgType');
-        let execution = indexed['8'];
+        const response = await this.privatePostD (this.extend (request, params));
+        const indexed = this.indexBy (response['Responses'], 'MsgType');
+        const execution = indexed['8'];
         return {
             'info': response,
             'id': execution['OrderID'],
@@ -183,6 +193,7 @@ module.exports = class foxbit extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         return await this.privatePostF (this.extend ({
             'ClOrdID': id,
         }, params));
@@ -190,14 +201,15 @@ module.exports = class foxbit extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
-            let request = this.extend ({ 'MsgType': path }, query);
+            const nonce = this.nonce ().toString ();
+            const request = this.extend ({ 'MsgType': path }, query);
             body = this.json (request);
             headers = {
                 'APIKey': this.apiKey,
@@ -210,10 +222,12 @@ module.exports = class foxbit extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('Status' in response)
-            if (response['Status'] !== 200)
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('Status' in response) {
+            if (response['Status'] !== 200) {
                 throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
+        }
         return response;
     }
 };

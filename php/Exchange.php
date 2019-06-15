@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.665';
+$version = '1.18.707';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.665';
+    const VERSION = '1.18.707';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1780,7 +1780,7 @@ class Exchange {
         return $this->orders;
     }
 
-    public function purgeCachesOrders($before) {
+    public function purgeCachedOrders($before) {
         return $this->purge_cached_orders($before);
     }
 

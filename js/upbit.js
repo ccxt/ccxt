@@ -1050,8 +1050,9 @@ module.exports = class upbit extends Exchange {
         const updated = this.parse8601 (this.safeString (transaction, 'done_at'));
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at', updated));
         let type = this.safeString (transaction, 'type');
-        if (type === 'withdraw')
+        if (type === 'withdraw') {
             type = 'withdrawal';
+        }
         let code = undefined;
         let currencyId = this.safeString (transaction, 'currency');
         currency = this.safeValue (this.currencies_by_id, currencyId);
@@ -1475,8 +1476,9 @@ module.exports = class upbit extends Exchange {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -1501,8 +1503,9 @@ module.exports = class upbit extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (response === undefined)
+        if (response === undefined) {
             return; // fallback to default error handler
+        }
         //
         //   { 'error': { 'message': "Missing request parameter error. Check the required parameters!", 'name':  400 } },
         //   { 'error': { 'message': "side is missing, side does not have a valid value", 'name': "validation_error" } },

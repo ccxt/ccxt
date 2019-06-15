@@ -89,20 +89,25 @@ class gemini (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetSymbols()
+        response = self.publicGetSymbols(params)
         result = []
-        for p in range(0, len(markets)):
-            id = markets[p]
+        for i in range(0, len(response)):
+            id = response[i]
             market = id
-            uppercase = market.upper()
-            base = uppercase[0:3]
-            quote = uppercase[3:6]
+            baseId = id[0:3]
+            quoteId = id[3:6]
+            base = baseId.upper()
+            quote = quoteId.upper()
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             })
         return result
@@ -121,12 +126,13 @@ class gemini (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.publicGetPubtickerSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        timestamp = ticker['volume']['timestamp']
-        baseVolume = market['base']
-        quoteVolume = market['quote']
+        }
+        ticker = self.publicGetPubtickerSymbol(self.extend(request, params))
+        timestamp = self.safe_integer(ticker['volume'], 'timestamp')
+        baseVolume = self.safe_float(market, 'base')
+        quoteVolume = self.safe_float(market, 'quote')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -146,16 +152,15 @@ class gemini (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume'][baseVolume]),
-            'quoteVolume': float(ticker['volume'][quoteVolume]),
+            'baseVolume': self.safe_float(ticker['volume'], baseVolume),
+            'quoteVolume': self.safe_float(ticker['volume'], quoteVolume),
             'info': ticker,
         }
 
     def parse_trade(self, trade, market):
-        timestamp = trade['timestampms']
-        order = None
-        if 'order_id' in trade:
-            order = str(trade['order_id'])
+        timestamp = self.safe_integer(trade, 'timestampms')
+        id = self.safe_string(trade, 'tid')
+        orderId = self.safe_string(trade, 'order_id')
         fee = self.safe_float(trade, 'fee_amount')
         if fee is not None:
             currency = self.safe_string(trade, 'fee_currency')
@@ -170,8 +175,8 @@ class gemini (Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         return {
-            'id': str(trade['tid']),
-            'order': order,
+            'id': id,
+            'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -187,29 +192,31 @@ class gemini (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTradesSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.publicGetTradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostBalances()
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
+        response = self.privatePostBalances(params)
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.common_currency_code(currencyId)
             account = {
-                'free': float(balance['available']),
+                'free': self.safe_float(balance, 'available'),
                 'used': 0.0,
-                'total': float(balance['amount']),
+                'total': self.safe_float(balance, 'amount'),
             }
             account['used'] = account['total'] - account['free']
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
-        timestamp = order['timestampms']
+        timestamp = self.safe_integer(order, 'timestampms')
         amount = self.safe_float(order, 'original_amount')
         remaining = self.safe_float(order, 'remaining_amount')
         filled = self.safe_float(order, 'executed_amount')
@@ -239,8 +246,9 @@ class gemini (Exchange):
                 market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
+        id = self.safe_string(order, 'order_id')
         return {
-            'id': order['order_id'],
+            'id': id,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -260,9 +268,10 @@ class gemini (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostOrderStatus(self.extend({
+        request = {
             'order_id': id,
-        }, params))
+        }
+        response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -279,7 +288,7 @@ class gemini (Exchange):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         nonce = self.nonce()
-        order = {
+        request = {
             'client_order_id': str(nonce),
             'symbol': self.market_id(symbol),
             'amount': str(amount),
@@ -287,7 +296,7 @@ class gemini (Exchange):
             'side': side,
             'type': 'exchange limit',  # gemini allows limit orders only
         }
-        response = self.privatePostOrderNew(self.extend(order, params))
+        response = self.privatePostOrderNew(self.extend(request, params))
         return {
             'info': response,
             'id': response['order_id'],
@@ -295,7 +304,10 @@ class gemini (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostOrderCancel({'order_id': id})
+        request = {
+            'order_id': id,
+        }
+        return self.privatePostOrderCancel(self.extend(request, params))
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -316,11 +328,12 @@ class gemini (Exchange):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostWithdrawCurrency(self.extend({
+        request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
-        }, params))
+        }
+        response = self.privatePostWithdrawCurrency(self.extend(request, params))
         return {
             'info': response,
             'id': self.safe_string(response, 'txHash'),
@@ -414,9 +427,10 @@ class gemini (Exchange):
     def create_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostDepositCurrencyNewAddress(self.extend({
+        request = {
             'currency': currency['id'],
-        }, params))
+        }
+        response = self.privatePostDepositCurrencyNewAddress(self.extend(request, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
         return {

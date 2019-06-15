@@ -83,8 +83,8 @@ class ccex (Exchange):
 
     def fetch_markets(self, params={}):
         result = {}
-        response = self.webGetPairs()
-        markets = response['pairs']
+        response = self.webGetPairs(params)
+        markets = self.safe_value(response, 'pairs')
         for i in range(0, len(markets)):
             id = markets[i]
             baseId, quoteId = id.split('-')
@@ -124,19 +124,19 @@ class ccex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetGetbalances()
-        balances = response['result']
+        response = self.privateGetGetbalances(params)
+        balances = self.safe_value(response, 'result')
         result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            code = balance['Currency']
-            currency = self.common_currency_code(code)
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'Currency')
+            code = self.common_currency_code(currencyId)
             account = {
-                'free': balance['Available'],
-                'used': balance['Pending'],
-                'total': balance['Balance'],
+                'free': self.safe_float(balance, 'Available'),
+                'used': self.safe_float(balance, 'Pending'),
+                'total': self.safe_float(balance, 'Balance'),
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -148,7 +148,7 @@ class ccex (Exchange):
         if limit is not None:
             request['depth'] = limit  # 100
         response = self.publicGetOrderbook(self.extend(request, params))
-        orderbook = response['result']
+        orderbook = self.safe_value(response, 'result')
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
     def fetch_order_books(self, symbols=None, params={}):
@@ -178,13 +178,15 @@ class ccex (Exchange):
                 orderbooks[symbol][side] = bidasksByMarketId[marketId]
         result = {}
         keys = list(orderbooks.keys())
-        for k in range(0, len(keys)):
-            key = keys[k]
+        for i in range(0, len(keys)):
+            key = keys[i]
             result[key] = self.parse_order_book(orderbooks[key], None, 'buy', 'sell', 'Rate', 'Quantity')
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['updated'] * 1000
+        timestamp = self.safe_integer(ticker, 'updated')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -214,12 +216,12 @@ class ccex (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.webGetPrices(params)
+        response = self.webGetPrices(params)
         result = {}
-        ids = list(tickers.keys())
+        ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            ticker = tickers[id]
+            ticker = response[id]
             market = None
             symbol = None
             if id in self.markets_by_id:
@@ -237,45 +239,59 @@ class ccex (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.webGetMarket(self.extend({
+        request = {
             'market': market['id'].lower(),
-        }, params))
-        ticker = response['ticker']
+        }
+        response = self.webGetMarket(self.extend(request, params))
+        ticker = self.safe_value(response, 'ticker')
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['TimeStamp'])
+        timestamp = self.parse8601(self.safe_string(trade, 'TimeStamp'))
+        id = self.safe_string(trade, 'id')
+        side = self.safe_string(trade, 'OrderType')
+        if side is not None:
+            side = side.lower()
+        price = self.safe_float(trade, 'Price')
+        amount = self.safe_float(trade, 'Quantity')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
         return {
-            'id': str(trade['Id']),
+            'id': id,
             'info': trade,
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': trade['OrderType'].lower(),
-            'price': trade['Price'],
-            'amount': trade['Quantity'],
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetMarkethistory(self.extend({
+        request = {
             'market': market['id'],
             'type': 'both',
             'depth': 100,
-        }, params))
+        }
+        response = self.publicGetMarkethistory(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         method = 'privateGet' + self.capitalize(side) + type
-        response = getattr(self, method)(self.extend({
+        request = {
             'market': self.market_id(symbol),
             'quantity': amount,
             'rate': price,
-        }, params))
+        }
+        response = getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
             'id': response['result']['uuid'],
@@ -283,7 +299,10 @@ class ccex (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privateGetCancel({'uuid': id})
+        request = {
+            'uuid': id,
+        }
+        return self.privateGetCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]

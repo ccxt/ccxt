@@ -146,12 +146,12 @@ class livecoin (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetExchangeTicker()
+        response = self.publicGetExchangeTicker(params)
         restrictions = self.publicGetExchangeRestrictions()
         restrictionsById = self.index_by(restrictions['restrictions'], 'currencyPair')
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
+        for i in range(0, len(response)):
+            market = response[i]
             id = market['symbol']
             baseId, quoteId = id.split('/')
             base = self.common_currency_code(baseId)
@@ -273,23 +273,24 @@ class livecoin (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetPaymentBalances()
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
+        response = self.privateGetPaymentBalances(params)
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = balance['currency']
+            code = self.common_currency_code(currencyId)
             account = None
-            if currency in result:
-                account = result[currency]
+            if code in result:
+                account = result[code]
             else:
                 account = self.account()
             if balance['type'] == 'total':
-                account['total'] = float(balance['value'])
+                account['total'] = self.safe_float(balance, 'value')
             if balance['type'] == 'available':
-                account['free'] = float(balance['value'])
+                account['free'] = self.safe_float(balance, 'value')
             if balance['type'] == 'trade':
-                account['used'] = float(balance['value'])
-            result[currency] = account
+                account['used'] = self.safe_float(balance, 'value')
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_trading_fees(self, params={}):
@@ -310,9 +311,9 @@ class livecoin (Exchange):
         }
         if limit is not None:
             request['depth'] = limit  # 100
-        orderbook = self.publicGetExchangeOrderBook(self.extend(request, params))
-        timestamp = orderbook['timestamp']
-        return self.parse_order_book(orderbook, timestamp)
+        response = self.publicGetExchangeOrderBook(self.extend(request, params))
+        timestamp = self.safe_integer(response, 'timestamp')
+        return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -641,11 +642,11 @@ class livecoin (Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        currencyPair = market['id']
-        response = self.privatePostExchangeCancellimit(self.extend({
+        request = {
             'orderId': id,
-            'currencyPair': currencyPair,
-        }, params))
+            'currencyPair': market['id'],
+        }
+        response = self.privatePostExchangeCancellimit(self.extend(request, params))
         message = self.safe_string(response, 'message', self.json(response))
         if 'success' in response:
             if not response['success']:

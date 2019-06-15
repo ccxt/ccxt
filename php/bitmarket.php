@@ -100,13 +100,13 @@ class bitmarket extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BCH/PLN' => array( 'id' => 'BCCPLN', 'symbol' => 'BCH/PLN', 'base' => 'BCH', 'quote' => 'PLN' ),
-                'BTG/PLN' => array( 'id' => 'BTGPLN', 'symbol' => 'BTG/PLN', 'base' => 'BTG', 'quote' => 'PLN' ),
-                'BTC/PLN' => array( 'id' => 'BTCPLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
-                'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-                'LTC/PLN' => array( 'id' => 'LTCPLN', 'symbol' => 'LTC/PLN', 'base' => 'LTC', 'quote' => 'PLN' ),
-                'LTC/BTC' => array( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC' ),
-                'LiteMineX/BTC' => array( 'id' => 'LiteMineXBTC', 'symbol' => 'LiteMineX/BTC', 'base' => 'LiteMineX', 'quote' => 'BTC' ),
+                'BCH/PLN' => array( 'id' => 'BCCPLN', 'symbol' => 'BCH/PLN', 'base' => 'BCH', 'quote' => 'PLN', 'baseId' => 'BCC', 'quoteId' => 'PLN' ),
+                'BTG/PLN' => array( 'id' => 'BTGPLN', 'symbol' => 'BTG/PLN', 'base' => 'BTG', 'quote' => 'PLN', 'baseId' => 'BTG', 'quoteId' => 'PLN' ),
+                'BTC/PLN' => array( 'id' => 'BTCPLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN', 'baseId' => 'BTC', 'quoteId' => 'PLN' ),
+                'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR' ),
+                'LTC/PLN' => array( 'id' => 'LTCPLN', 'symbol' => 'LTC/PLN', 'base' => 'LTC', 'quote' => 'PLN', 'baseId' => 'LTC', 'quoteId' => 'PLN' ),
+                'LTC/BTC' => array( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'LTC', 'quoteId' => 'BTC' ),
+                'LiteMineX/BTC' => array( 'id' => 'LiteMineXBTC', 'symbol' => 'LiteMineX/BTC', 'base' => 'LiteMineX', 'quote' => 'BTC', 'baseId' => 'LiteMineX', 'quoteId' => 'BTC' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -181,41 +181,48 @@ class bitmarket extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostInfo ();
-        $data = $response['data'];
-        $balance = $data['balances'];
+        $response = $this->privatePostInfo ($params);
+        $data = $this->safe_value($response, 'data', array());
+        $balances = $this->safe_value($data, 'balances', array());
+        $available = $this->safe_value($balances, 'available', array());
+        $blocked = $this->safe_value($balances, 'blocked', array());
         $result = array( 'info' => $data );
-        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currency ($code);
+            $currencyId = $currency['id'];
             $account = $this->account ();
-            if (is_array($balance['available']) && array_key_exists($currency, $balance['available']))
-                $account['free'] = $balance['available'][$currency];
-            if (is_array($balance['blocked']) && array_key_exists($currency, $balance['blocked']))
-                $account['used'] = $balance['blocked'][$currency];
+            $account['free'] = $this->safe_float($available, $currencyId);
+            $account['used'] = $this->safe_float($blocked, $currencyId);
             $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        $orderbook = $this->publicGetJsonMarketOrderbook (array_merge (array (
+        $this->load_markets();
+        $request = array (
             'market' => $this->market_id($symbol),
-        ), $params));
+        );
+        $orderbook = $this->publicGetJsonMarketOrderbook (array_merge ($request, $params));
         return $this->parse_order_book($orderbook);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        $ticker = $this->publicGetJsonMarketTicker (array_merge (array (
+        $this->load_markets();
+        $request = array (
             'market' => $this->market_id($symbol),
-        ), $params));
+        );
+        $ticker = $this->publicGetJsonMarketTicker (array_merge ($request, $params));
         $timestamp = $this->milliseconds ();
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null)
+        if ($baseVolume !== null && $vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
+        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -243,26 +250,45 @@ class bitmarket extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $side = ($trade['type'] === 'bid') ? 'buy' : 'sell';
-        $timestamp = $trade['date'] * 1000;
+        $timestamp = $this->safe_integer($trade, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        $id = $this->safe_string($trade, 'tid');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
         return array (
-            'id' => (string) $trade['tid'],
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => null,
             'type' => null,
             'side' => $side,
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetJsonMarketTrades (array_merge (array (
+        $request = array (
             'market' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetJsonMarketTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -281,24 +307,28 @@ class bitmarket extends Exchange {
         $this->load_markets();
         $method = 'publicGetGraphsMarket' . $this->timeframes[$timeframe];
         $market = $this->market ($symbol);
-        $response = $this->$method (array_merge (array (
+        $request = array (
             'market' => $market['id'],
-        ), $params));
+        );
+        $response = $this->$method (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $response = $this->privatePostTrade (array_merge (array (
+        $this->load_markets();
+        $request = array (
             'market' => $this->market_id($symbol),
             'type' => $side,
             'amount' => $amount,
             'rate' => $price,
-        ), $params));
+        );
+        $response = $this->privatePostTrade (array_merge ($request, $params));
         $result = array (
             'info' => $response,
         );
-        if (is_array($response['data']) && array_key_exists('id', $response['data']))
+        if (is_array($response['data']) && array_key_exists('id', $response['data'])) {
             $result['id'] = $response['id'];
+        }
         return $result;
     }
 
@@ -307,10 +337,12 @@ class bitmarket extends Exchange {
     }
 
     public function is_fiat ($currency) {
-        if ($currency === 'EUR')
+        if ($currency === 'EUR') {
             return true;
-        if ($currency === 'PLN')
+        }
+        if ($currency === 'PLN') {
             return true;
+        }
         return false;
     }
 
@@ -333,14 +365,16 @@ class bitmarket extends Exchange {
             if (is_array($params) && array_key_exists('account2', $params)) {
                 $request['account2'] = $params['account2']; // bank SWIFT $code (EUR only)
             } else {
-                if ($currency === 'EUR')
+                if ($currency === 'EUR') {
                     throw new ExchangeError($this->id . ' requires account2 parameter to withdraw EUR');
+                }
             }
             if (is_array($params) && array_key_exists('withdrawal_note', $params)) {
                 $request['withdrawal_note'] = $params['withdrawal_note']; // a 10-character user-specified withdrawal note (PLN only)
             } else {
-                if ($currency === 'PLN')
+                if ($currency === 'PLN') {
                     throw new ExchangeError($this->id . ' requires withdrawal_note parameter to withdraw PLN');
+                }
             }
         } else {
             $method = 'privatePostWithdraw';

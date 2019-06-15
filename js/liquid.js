@@ -279,7 +279,7 @@ module.exports = class liquid extends Exchange {
             let total = parseFloat (balance['balance']);
             let account = {
                 'free': total,
-                'used': undefined,
+                'used': 0.0,
                 'total': total,
             };
             result[code] = account;
@@ -296,23 +296,24 @@ module.exports = class liquid extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
+        const timestamp = this.milliseconds ();
         let last = undefined;
         if ('last_traded_price' in ticker) {
             if (ticker['last_traded_price']) {
-                let length = ticker['last_traded_price'].length;
-                if (length > 0)
+                const length = ticker['last_traded_price'].length;
+                if (length > 0) {
                     last = this.safeFloat (ticker, 'last_traded_price');
+                }
             }
         }
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = this.safeString (ticker, 'id');
+            const marketId = this.safeString (ticker, 'id');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             } else {
-                let baseId = this.safeString (ticker, 'base_currency');
-                let quoteId = this.safeString (ticker, 'quoted_currency');
+                const baseId = this.safeString (ticker, 'base_currency');
+                const quoteId = this.safeString (ticker, 'quoted_currency');
                 if (symbol in this.markets) {
                     market = this.markets[symbol];
                 } else {
@@ -320,12 +321,13 @@ module.exports = class liquid extends Exchange {
                 }
             }
         }
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
-        let open = this.safeFloat (ticker, 'last_price_24h');
+        const open = this.safeFloat (ticker, 'last_price_24h');
         if (open !== undefined && last !== undefined) {
             change = last - open;
             average = this.sum (last, open) / 2;
@@ -359,11 +361,11 @@ module.exports = class liquid extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetProducts (params);
-        let result = {};
-        for (let t = 0; t < tickers.length; t++) {
-            let ticker = this.parseTicker (tickers[t]);
-            let symbol = ticker['symbol'];
+        const response = await this.publicGetProducts (params);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const ticker = this.parseTicker (response[i]);
+            const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
@@ -371,11 +373,12 @@ module.exports = class liquid extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.publicGetProductsId (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'id': market['id'],
-        }, params));
-        return this.parseTicker (ticker, market);
+        };
+        const response = await this.publicGetProductsId (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     parseTrade (trade, market) {
@@ -385,27 +388,29 @@ module.exports = class liquid extends Exchange {
         //       taker_side: "sell",
         //       created_at:  1512345678,
         //          my_side: "buy"           }
-        let timestamp = trade['created_at'] * 1000;
-        let orderId = this.safeString (trade, 'order_id');
+        const timestamp = this.safeInteger (trade, 'created_at') * 1000;
+        const orderId = this.safeString (trade, 'order_id');
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
-        let takerSide = this.safeString (trade, 'taker_side');
+        const takerSide = this.safeString (trade, 'taker_side');
         // 'my_side' gets filled for fetchMyTrades only and may differ from 'taker_side'
-        let mySide = this.safeString (trade, 'my_side');
-        let side = (mySide !== undefined) ? mySide : takerSide;
+        const mySide = this.safeString (trade, 'my_side');
+        const side = (mySide !== undefined) ? mySide : takerSide;
         let takerOrMaker = undefined;
-        if (mySide !== undefined)
+        if (mySide !== undefined) {
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
+        }
         let cost = undefined;
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'quantity');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'quantity');
         if (price !== undefined) {
             if (amount !== undefined) {
                 cost = price * amount;
             }
         }
+        const id = this.safeString (trade, 'id');
         return {
             'info': trade,
-            'id': trade['id'].toString (),
+            'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -422,32 +427,34 @@ module.exports = class liquid extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'product_id': market['id'],
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['limit'] = limit;
+        }
         if (since !== undefined) {
             // timestamp should be in seconds, whereas we use milliseconds in since and everywhere
             request['timestamp'] = parseInt (since / 1000);
         }
-        let response = await this.publicGetExecutions (this.extend (request, params));
-        let result = (since !== undefined) ? response : response['models'];
+        const response = await this.publicGetExecutions (this.extend (request, params));
+        const result = (since !== undefined) ? response : response['models'];
         return this.parseTrades (result, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         // the `with_details` param is undocumented - it adds the order_id to the results
-        let request = {
+        const request = {
             'product_id': market['id'],
             'with_details': true,
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['limit'] = limit;
-        let response = await this.privateGetExecutionsMe (this.extend (request, params));
+        }
+        const response = await this.privateGetExecutionsMe (this.extend (request, params));
         return this.parseTrades (response['models'], market, since, limit);
     }
 
@@ -740,7 +747,7 @@ module.exports = class liquid extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         headers = {
             'X-Quoine-API-Version': this.version,
             'Content-Type': 'application/json',
@@ -748,13 +755,14 @@ module.exports = class liquid extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             if (method === 'GET') {
-                if (Object.keys (query).length)
+                if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
+                }
             } else if (Object.keys (query).length) {
                 body = this.json (query);
             }
-            let nonce = this.nonce ();
-            let request = {
+            const nonce = this.nonce ();
+            const request = {
                 'path': url,
                 'nonce': nonce,
                 'token_id': this.apiKey,
@@ -762,16 +770,18 @@ module.exports = class liquid extends Exchange {
             };
             headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
         } else {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         }
         url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (code >= 200 && code < 300)
+        if (code >= 200 && code < 300) {
             return;
+        }
         const exceptions = this.exceptions;
         if (code === 401) {
             // expected non-json response
@@ -809,8 +819,9 @@ module.exports = class liquid extends Exchange {
                 const errorMessages = errors[type];
                 for (let j = 0; j < errorMessages.length; j++) {
                     const message = errorMessages[j];
-                    if (message in exceptions)
+                    if (message in exceptions) {
                         throw new exceptions[message] (feedback);
+                    }
                 }
             }
         } else {

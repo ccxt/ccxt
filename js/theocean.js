@@ -250,13 +250,14 @@ module.exports = class theocean extends Exchange {
             throw new InvalidAddress (this.id + ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         let codes = this.safeValue (this.options, 'fetchBalanceCurrencies');
-        if (codes === undefined)
+        if (codes === undefined) {
             codes = this.safeValue (params, 'codes');
+        }
         if ((codes === undefined) || (!Array.isArray (codes))) {
             throw new ExchangeError (this.id + ' fetchBalance() requires a `codes` parameter (an array of currency codes)');
         }
         await this.loadMarkets ();
-        let result = {};
+        const result = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             result[code] = await this.fetchBalanceByCode (code);
@@ -268,23 +269,23 @@ module.exports = class theocean extends Exchange {
         if (market === undefined) {
             throw new ArgumentsRequired (this.id + ' parseBidAsk requires a market argument');
         }
-        let price = parseFloat (bidask[priceKey]);
-        let amountDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
-        let amount = this.fromWei (bidask[amountKey], 'ether', amountDecimals);
+        const price = parseFloat (bidask[priceKey]);
+        const amountDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
+        const amount = this.fromWei (bidask[amountKey], 'ether', amountDecimals);
         return [ price, amount ];
     }
 
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
-        let result = {
+        const result = {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         };
-        let sides = [ bidsKey, asksKey ];
+        const sides = [ bidsKey, asksKey ];
         for (let i = 0; i < sides.length; i++) {
-            let side = sides[i];
-            let orders = [];
-            let bidasks = this.safeValue (orderbook, side);
+            const side = sides[i];
+            const orders = [];
+            const bidasks = this.safeValue (orderbook, side);
             for (let k = 0; k < bidasks.length; k++) {
                 orders.push (this.parseBidAsk (bidasks[k], priceKey, amountKey, market));
             }
@@ -297,15 +298,15 @@ module.exports = class theocean extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'baseTokenAddress': market['baseId'],
             'quoteTokenAddress': market['quoteId'],
         };
         if (limit !== undefined) {
             request['depth'] = limit;
         }
-        let response = await this.publicGetOrderBook (this.extend (request, params));
+        const response = await this.publicGetOrderBook (this.extend (request, params));
         //
         //     {
         //       "bids": [
@@ -724,7 +725,7 @@ module.exports = class theocean extends Exchange {
     }
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
-        let method = this.options['fetchOrderMethod'];
+        const method = this.options['fetchOrderMethod'];
         return await this[method] (id, symbol, this.extend ({
             'openAmount': 1,
         }, params));
@@ -736,21 +737,23 @@ module.exports = class theocean extends Exchange {
     }
 
     async fetchOrderFromHistory (id, symbol = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, undefined, undefined, this.extend ({
+        const request = {
             'orderHash': id,
-        }, params));
-        let ordersById = this.indexBy (orders, 'id');
-        if (id in ordersById)
+        };
+        const orders = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        const ordersById = this.indexBy (orders, 'id');
+        if (id in ordersById) {
             return ordersById[id];
+        }
         throw new OrderNotFound (this.id + ' could not find order ' + id + ' in order history');
     }
 
     async fetchOrderById (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'orderHash': id,
         };
-        let response = await this.publicGetOrderOrderHash (this.extend (request, params));
+        const response = await this.publicGetOrderOrderHash (this.extend (request, params));
         //  {
         //   baseTokenAddress: '0xb18845c260f680d5b9d84649638813e342e4f8c9',
         //   quoteTokenAddress: '0x6ff6c0ff1d68b964901f986d4c9fa3ac68346570',
@@ -783,11 +786,11 @@ module.exports = class theocean extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        let request = {
+        const request = {
             'orderHash': id,
         };
-        let orders = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
-        let numOrders = orders.length;
+        const orders = await this.fetchOrders (symbol, undefined, undefined, this.extend (request, params));
+        const numOrders = orders.length;
         if (numOrders !== 1) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
@@ -796,7 +799,7 @@ module.exports = class theocean extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -806,7 +809,7 @@ module.exports = class theocean extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privateGetOrderHistory (this.extend (request, params));
+        const response = await this.privateGetOrderHistory (this.extend (request, params));
         //
         //     [
         //       {
@@ -878,10 +881,9 @@ module.exports = class theocean extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string')
+        if (response === undefined) {
             return; // fallback to default error handler
-        if (body.length < 2)
-            return; // fallback to default error handler
+        }
         // code 401 and plain body 'Authentication failed' (with single quotes)
         // this error is sent if you do not submit a proper Content-Type
         if (body === "'Authentication failed'") {
@@ -901,12 +903,14 @@ module.exports = class theocean extends Exchange {
                 //
                 const feedback = this.id + ' ' + this.json (response);
                 const exact = this.exceptions['exact'];
-                if (message in exact)
+                if (message in exact) {
                     throw new exact[message] (feedback);
+                }
                 const broad = this.exceptions['broad'];
                 const broadKey = this.findBroadlyMatchedKey (broad, body);
-                if (broadKey !== undefined)
+                if (broadKey !== undefined) {
                     throw new broad[broadKey] (feedback);
+                }
                 throw new ExchangeError (feedback); // unknown message
             }
         }

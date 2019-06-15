@@ -52,12 +52,13 @@ class fybse extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $balance = $this->privatePostGetaccinfo ();
-        $btc = floatval ($balance['btcBal']);
+        $this->load_markets();
+        $response = $this->privatePostGetaccinfo ($params);
+        $btc = $this->safe_float($response, 'btcBal');
         $symbol = $this->symbols[0];
         $quote = $this->markets[$symbol]['quote'];
         $lowercase = strtolower($quote) . 'Bal';
-        $fiat = floatval ($balance[$lowercase]);
+        $fiat = $this->safe_float($response, $lowercase);
         $crypto = array (
             'free' => $btc,
             'used' => 0.0,
@@ -69,24 +70,22 @@ class fybse extends Exchange {
             'used' => 0.0,
             'total' => $fiat,
         );
-        $result['info'] = $balance;
+        $result['info'] = $response;
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        $orderbook = $this->publicGetOrderbook ($params);
-        return $this->parse_order_book($orderbook);
+        $this->load_markets();
+        $response = $this->publicGetOrderbook ($params);
+        return $this->parse_order_book($response);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $ticker = $this->publicGetTickerdetailed ($params);
         $timestamp = $this->milliseconds ();
-        $last = null;
-        $volume = null;
-        if (is_array($ticker) && array_key_exists('last', $ticker))
-            $last = $this->safe_float($ticker, 'last');
-        if (is_array($ticker) && array_key_exists('vol', $ticker))
-            $volume = $this->safe_float($ticker, 'vol');
+        $last = $this->safe_float($ticker, 'last');
+        $volume = $this->safe_float($ticker, 'vol');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -112,10 +111,11 @@ class fybse extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = intval ($trade['date']) * 1000;
+        $timestamp = $this->safe_integer($trade, 'date') * 1000;
+        $id = $this->safe_string($trade, 'tid');
         return array (
             'info' => $trade,
-            'id' => (string) $trade['tid'],
+            'id' => $id,
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -128,17 +128,20 @@ class fybse extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
         $response = $this->publicGetTrades ($params);
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $response = $this->privatePostPlaceorder (array_merge (array (
+        $this->load_markets();
+        $request = array (
             'qty' => $amount,
             'price' => $price,
             'type' => strtoupper($side[0]),
-        ), $params));
+        );
+        $response = $this->privatePostPlaceorder (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['pending_oid'],
@@ -146,7 +149,11 @@ class fybse extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelpendingorder (array( 'orderNo' => $id ));
+        $this->load_markets();
+        $request = array (
+            'orderNo' => $id,
+        );
+        return $this->privatePostCancelpendingorder (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -168,10 +175,13 @@ class fybse extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api === 'private')
-            if (is_array($response) && array_key_exists('error', $response))
-                if ($response['error'])
+        if ($api === 'private') {
+            if (is_array($response) && array_key_exists('error', $response)) {
+                if ($response['error']) {
                     throw new ExchangeError($this->id . ' ' . $this->json ($response));
+                }
+            }
+        }
         return $response;
     }
 }

@@ -278,7 +278,7 @@ class liquid (Exchange):
             total = float(balance['balance'])
             account = {
                 'free': total,
-                'used': None,
+                'used': 0.0,
                 'total': total,
             }
             result[code] = account
@@ -347,10 +347,10 @@ class liquid (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetProducts(params)
+        response = self.publicGetProducts(params)
         result = {}
-        for t in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[t])
+        for i in range(0, len(response)):
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return result
@@ -358,10 +358,11 @@ class liquid (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.publicGetProductsId(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
-        return self.parse_ticker(ticker, market)
+        }
+        response = self.publicGetProductsId(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):
         # {            id:  12345,
@@ -370,7 +371,7 @@ class liquid (Exchange):
         #       taker_side: "sell",
         #       created_at:  1512345678,
         #          my_side: "buy"           }
-        timestamp = trade['created_at'] * 1000
+        timestamp = self.safe_integer(trade, 'created_at') * 1000
         orderId = self.safe_string(trade, 'order_id')
         # 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         takerSide = self.safe_string(trade, 'taker_side')
@@ -386,9 +387,10 @@ class liquid (Exchange):
         if price is not None:
             if amount is not None:
                 cost = price * amount
+        id = self.safe_string(trade, 'id')
         return {
             'info': trade,
-            'id': str(trade['id']),
+            'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

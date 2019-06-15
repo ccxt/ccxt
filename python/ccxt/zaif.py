@@ -263,7 +263,7 @@ class zaif (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        if type == 'market':
+        if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         response = self.privatePostTrade(self.extend({
             'currency_pair': self.market_id(symbol),

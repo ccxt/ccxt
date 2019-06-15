@@ -151,7 +151,7 @@ class crex24 (Exchange):
         return self.milliseconds()
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetInstruments()
+        response = await self.publicGetInstruments(params)
         #
         #     [{             symbol:   "$PAC-BTC",
         #                baseCurrency:   "$PAC",
@@ -175,9 +175,9 @@ class crex24 (Exchange):
         result = []
         for i in range(0, len(response)):
             market = response[i]
-            id = market['symbol']
-            baseId = market['baseCurrency']
-            quoteId = market['quoteCurrency']
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'baseCurrency')
+            quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
@@ -244,7 +244,7 @@ class crex24 (Exchange):
         result = {}
         for i in range(0, len(response)):
             currency = response[i]
-            id = currency['symbol']
+            id = self.safe_string(currency, 'symbol')
             code = self.common_currency_code(id)
             precision = self.safe_integer(currency, 'withdrawalPrecision')
             address = self.safe_value(currency, 'BaseAddress')
@@ -367,7 +367,7 @@ class crex24 (Exchange):
         #                   bid:  0.0007,
         #             timestamp: "2018-10-31T09:21:25Z"}   ]
         #
-        timestamp = self.parse8601(ticker['timestamp'])
+        timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         symbol = None
         marketId = self.safe_string(ticker, 'instrument')
         market = self.safe_value(self.markets_by_id, marketId, market)
@@ -492,7 +492,7 @@ class crex24 (Exchange):
         #         "feeCurrency": "ETH"
         #     }
         #
-        timestamp = self.parse8601(trade['timestamp'])
+        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'volume')
         cost = None
@@ -626,7 +626,7 @@ class crex24 (Exchange):
                 average = cost / filled
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
-        result = {
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -645,7 +645,6 @@ class crex24 (Exchange):
             'fee': fee,
             'trades': trades,
         }
-        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -867,11 +866,12 @@ class crex24 (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.tradingPostCancelOrdersById(self.extend({
+        request = {
             'ids': [
                 int(id),
             ],
-        }, params))
+        }
+        response = await self.tradingPostCancelOrdersById(self.extend(request, params))
         #
         #     [
         #         465448358,
@@ -981,14 +981,16 @@ class crex24 (Exchange):
         return self.parseTransactions(response, currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend({
+        request = {
             'type': 'deposit',
-        }, params))
+        }
+        return self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend({
+        request = {
             'type': 'withdrawal',
-        }, params))
+        }
+        return self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     def parse_transaction_status(self, status):
         statuses = {

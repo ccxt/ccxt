@@ -21,13 +21,11 @@ Current feature list:
 
 ## Sponsored Promotion
 
-Want this place? Contact us: info@ccxt.trade	
-
-[![Placehodler](https://user-images.githubusercontent.com/1707/48204972-43569e00-e37c-11e8-9cf3-b86e3dc19ee9.png)](https://ccxt.trade/advertise/)
+[![Poloniex CCXT-Certified](https://user-images.githubusercontent.com/1294454/59405577-9893db80-8db3-11e9-8912-c2652680362c.gif)](https://www.poloniex.com/?utm_source=ccxt&utm_medium=image)
 
 ## See Also
 
-- <sub>[![Nomics API](https://user-images.githubusercontent.com/1294454/53875704-2ffbcc80-4016-11e9-828b-337409955609.png)](https://p.nomics.com/cryptocurrency-bitcoin-api)</sub>&nbsp; **[Nomics API](https://p.nomics.com/cryptocurrency-bitcoin-api)** &nbsp;— &nbsp;enterprise-grade crypto market data API for your fund, smart contract, or app.
+- <sub>[![Nomics API](https://user-images.githubusercontent.com/1294454/53875704-2ffbcc80-4016-11e9-828b-337409955609.png)](https://p.nomics.com/cryptocurrency-bitcoin-api)</sub>&nbsp; **[Nomics API](https://p.nomics.com/cryptocurrency-bitcoin-api)**&nbsp;&mdash;&nbsp;enterprise-grade [crypto market cap & pricing data](https://nomics.com) API for your fund, smart contract, or app.
 
 ## Certified Cryptocurrency Exchanges
 
@@ -112,7 +110,7 @@ The ccxt library currently supports the following 136 cryptocurrency exchange ma
 |[![coinmate](https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg)](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)   | coinmate           | [CoinMate](https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0)    | *     | [API](https://coinmate.docs.apiary.io)                                                       |                                                                                                                             | UK, Czech Republic, EU                  |
 |[![coinnest](https://user-images.githubusercontent.com/1294454/38065728-7289ff5c-330d-11e8-9cc1-cf0cbcb606bc.jpg)](https://www.coinnest.co.kr)                                                 | coinnest           | [coinnest](https://www.coinnest.co.kr)                                                  | *     | [API](https://www.coinnest.co.kr/doc/intro.html)                                             |                                                                                                                             | South Korea                             |
 |[![coinone](https://user-images.githubusercontent.com/1294454/38003300-adc12fba-323f-11e8-8525-725f53c4a659.jpg)](https://coinone.co.kr)                                                       | coinone            | [CoinOne](https://coinone.co.kr)                                                        | 2     | [API](https://doc.coinone.co.kr)                                                             |                                                                                                                             | South Korea                             |
-|[![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)](https://www.coinspot.com.au)                                                | coinspot           | [CoinSpot](https://www.coinspot.com.au)                                                 | *     | [API](https://www.coinspot.com.au/api)                                                       |                                                                                                                             | Australia                               |
+|[![coinspot](https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg)](https://www.coinspot.com.au/join/FSM11C)                                    | coinspot           | [CoinSpot](https://www.coinspot.com.au/join/FSM11C)                                     | *     | [API](https://www.coinspot.com.au/api)                                                       |                                                                                                                             | Australia                               |
 |[![cointiger](https://user-images.githubusercontent.com/1294454/39797261-d58df196-5363-11e8-9880-2ec78ec5bd25.jpg)](https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt)           | cointiger          | [CoinTiger](https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt)            | 1     | [API](https://github.com/cointiger/api-docs-en/wiki)                                         |                                                                                                                             | China                                   |
 |[![coolcoin](https://user-images.githubusercontent.com/1294454/36770529-be7b1a04-1c5b-11e8-9600-d11f1996b539.jpg)](https://www.coolcoin.com)                                                   | coolcoin           | [CoolCoin](https://www.coolcoin.com)                                                    | *     | [API](https://www.coolcoin.com/help.api.html)                                                |                                                                                                                             | Hong Kong                               |
 |[![coss](https://user-images.githubusercontent.com/1294454/50328158-22e53c00-0503-11e9-825c-c5cfd79bfa74.jpg)](https://www.coss.io/c/reg?r=OWCMHQVW2Q)                                         | coss               | [COSS](https://www.coss.io/c/reg?r=OWCMHQVW2Q)                                          | 1     | [API](https://api.coss.io/v1/spec)                                                           | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | Singapore, Netherlands                  |
@@ -232,13 +230,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.665/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.18.665/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.707/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.18.707/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.665/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.707/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:

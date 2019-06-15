@@ -165,7 +165,7 @@ class coinbase extends Exchange {
     public function fetch_accounts ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetAccounts ($params);
-        return $response['data'];
+        return $this->safe_value($response, 'data');
     }
 
     public function fetch_my_sells ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -285,7 +285,6 @@ class coinbase extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $timestamp = $this->parse8601 ($this->safe_value($transaction, 'created_at'));
         $updated = $this->parse8601 ($this->safe_value($transaction, 'updated_at'));
-        $orderId = null;
         $type = $this->safe_string($transaction, 'resource');
         $amount = $this->safe_float($amountObject, 'amount');
         $currencyId = $this->safe_string($amountObject, 'currency');
@@ -306,7 +305,6 @@ class coinbase extends Exchange {
             'info' => $transaction,
             'id' => $id,
             'txid' => $id,
-            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'address' => null,
@@ -414,10 +412,10 @@ class coinbase extends Exchange {
         $response = $this->publicGetCurrencies ($params);
         $currencies = $response['data'];
         $result = array();
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = $currencies[$c];
-            $id = $currency['id'];
-            $name = $currency['name'];
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $id = $this->safe_string($currency, 'id');
+            $name = $this->safe_string($currency, 'name');
             $code = $this->common_currency_code($id);
             $minimum = $this->safe_float($currency, 'min_size');
             $result[$code] = array (
@@ -493,8 +491,9 @@ class coinbase extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->privateGetAccounts ();
-        $balances = $response['data'];
+        $this->load_markets();
+        $response = $this->privateGetAccounts ($params);
+        $balances = $this->safe_value($response, 'data');
         $accounts = $this->safe_value($params, 'type', $this->options['accounts']);
         $result = array( 'info' => $response );
         for ($b = 0; $b < count ($balances); $b++) {
@@ -502,14 +501,15 @@ class coinbase extends Exchange {
             if ($this->in_array($balance['type'], $accounts)) {
                 $currencyId = $balance['balance']['currency'];
                 $code = $currencyId;
-                if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))
+                if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                     $code = $this->currencies_by_id[$currencyId]['code'];
+                }
                 $total = $this->safe_float($balance['balance'], 'amount');
                 $free = $total;
                 $used = null;
                 if (is_array($result) && array_key_exists($code, $result)) {
-                    $result[$code]['free'] .= $total;
-                    $result[$code]['total'] .= $total;
+                    $result[$code]['free'] = $this->sum ($result[$code]['free'], $total);
+                    $result[$code]['total'] = $this->sum ($result[$code]['total'], $total);
                 } else {
                     $account = array (
                         'free' => $free,
@@ -527,8 +527,9 @@ class coinbase extends Exchange {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query)
+            if ($query) {
                 $request .= '?' . $this->urlencode ($query);
+            }
         }
         $url = $this->urls['api'] . '/' . $this->version . $request;
         if ($api === 'private') {
@@ -541,8 +542,8 @@ class coinbase extends Exchange {
                     $payload = $body;
                 }
             }
-            $what = $nonce . $method . '/' . $this->version . $request . $payload;
-            $signature = $this->hmac ($this->encode ($what), $this->encode ($this->secret));
+            $auth = $nonce . $method . '/' . $this->version . $request . $payload;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $headers = array (
                 'CB-ACCESS-KEY' => $this->apiKey,
                 'CB-ACCESS-SIGN' => $signature,
@@ -554,54 +555,52 @@ class coinbase extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
+        if ($response === null) {
             return; // fallback to default error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            $feedback = $this->id . ' ' . $body;
-            //
-            //    array("error" => "invalid_request", "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.")
-            //
-            // or
-            //
-            //    {
-            //      "$errors" => array (
-            //        {
-            //          "id" => "not_found",
-            //          "message" => "Not found"
-            //        }
-            //      )
-            //    }
-            //
-            $exceptions = $this->exceptions;
-            $errorCode = $this->safe_string($response, 'error');
-            if ($errorCode !== null) {
-                if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-                    throw new $exceptions[$errorCode]($feedback);
-                } else {
-                    throw new ExchangeError($feedback);
-                }
+        }
+        $feedback = $this->id . ' ' . $body;
+        //
+        //    array("error" => "invalid_request", "error_description" => "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed.")
+        //
+        // or
+        //
+        //    {
+        //      "$errors" => array (
+        //        {
+        //          "id" => "not_found",
+        //          "message" => "Not found"
+        //        }
+        //      )
+        //    }
+        //
+        $exceptions = $this->exceptions;
+        $errorCode = $this->safe_string($response, 'error');
+        if ($errorCode !== null) {
+            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
+                throw new $exceptions[$errorCode]($feedback);
+            } else {
+                throw new ExchangeError($feedback);
             }
-            $errors = $this->safe_value($response, 'errors');
-            if ($errors !== null) {
-                if (gettype ($errors) === 'array' && count (array_filter (array_keys ($errors), 'is_string')) == 0) {
-                    $numErrors = is_array ($errors) ? count ($errors) : 0;
-                    if ($numErrors > 0) {
-                        $errorCode = $this->safe_string($errors[0], 'id');
-                        if ($errorCode !== null) {
-                            if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
-                                throw new $exceptions[$errorCode]($feedback);
-                            } else {
-                                throw new ExchangeError($feedback);
-                            }
+        }
+        $errors = $this->safe_value($response, 'errors');
+        if ($errors !== null) {
+            if (gettype ($errors) === 'array' && count (array_filter (array_keys ($errors), 'is_string')) == 0) {
+                $numErrors = is_array ($errors) ? count ($errors) : 0;
+                if ($numErrors > 0) {
+                    $errorCode = $this->safe_string($errors[0], 'id');
+                    if ($errorCode !== null) {
+                        if (is_array($exceptions) && array_key_exists($errorCode, $exceptions)) {
+                            throw new $exceptions[$errorCode]($feedback);
+                        } else {
+                            throw new ExchangeError($feedback);
                         }
                     }
                 }
             }
-            $data = $this->safe_value($response, 'data');
-            if ($data === null)
-                throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json ($response));
+        }
+        $data = $this->safe_value($response, 'data');
+        if ($data === null) {
+            throw new ExchangeError($this->id . ' failed due to a malformed $response ' . $this->json ($response));
         }
     }
 }

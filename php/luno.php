@@ -85,21 +85,23 @@ class luno extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetTickers ();
+        $response = $this->publicGetTickers ($params);
         $result = array();
-        for ($p = 0; $p < count ($markets['tickers']); $p++) {
-            $market = $markets['tickers'][$p];
+        for ($i = 0; $i < count ($response['tickers']); $i++) {
+            $market = $response['tickers'][$i];
             $id = $market['pair'];
-            $base = mb_substr ($id, 0, 3);
-            $quote = mb_substr ($id, 3, 6);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseId = mb_substr ($id, 0, 3);
+            $quoteId = mb_substr ($id, 3, 6);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $market,
             );
         }
@@ -108,22 +110,23 @@ class luno extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetBalance ();
-        $wallets = $response['balance'];
+        $response = $this->privateGetBalance ($params);
+        $wallets = $this->safe_value($response, 'balance', array());
         $result = array( 'info' => $response );
-        for ($b = 0; $b < count ($wallets); $b++) {
-            $wallet = $wallets[$b];
-            $currency = $this->common_currency_code($wallet['asset']);
-            $reserved = floatval ($wallet['reserved']);
-            $unconfirmed = floatval ($wallet['unconfirmed']);
-            $balance = floatval ($wallet['balance']);
+        for ($i = 0; $i < count ($wallets); $i++) {
+            $wallet = $wallets[$i];
+            $currencyId = $this->safe_string($wallet, 'asset');
+            $code = $this->common_currency_code($currencyId);
+            $reserved = $this->safe_float($wallet, 'reserved');
+            $unconfirmed = $this->safe_float($wallet, 'unconfirmed');
+            $balance = $this->safe_float($wallet, 'balance');
             $account = array (
                 'free' => 0.0,
                 'used' => $this->sum ($reserved, $unconfirmed),
                 'total' => $this->sum ($balance, $unconfirmed),
             );
             $account['free'] = $account['total'] - $account['used'];
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -133,23 +136,28 @@ class luno extends Exchange {
         $method = 'publicGetOrderbook';
         if ($limit !== null) {
             if ($limit <= 100) {
-                $method .= 'Top'; // get just the top of the $orderbook when $limit is low
+                $method .= 'Top'; // get just the top of the orderbook when $limit is low
             }
         }
-        $orderbook = $this->$method (array_merge (array (
+        $request = array (
             'pair' => $this->market_id($symbol),
-        ), $params));
-        $timestamp = $orderbook['timestamp'];
-        return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'volume');
+        );
+        $response = $this->$method (array_merge ($request, $params));
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        return $this->parse_order_book($response, $timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $order['creation_timestamp'];
+        $timestamp = $this->safe_integer($order, 'creation_timestamp');
         $status = ($order['state'] === 'PENDING') ? 'open' : 'closed';
         $side = ($order['type'] === 'ASK') ? 'sell' : 'buy';
-        if ($market === null)
+        if ($market === null) {
             $market = $this->find_market($order['pair']);
-        $symbol = $market['symbol'];
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $price = $this->safe_float($order, 'limit_price');
         $amount = $this->safe_float($order, 'limit_volume');
         $quoteFee = $this->safe_float($order, 'fee_counter');
@@ -170,8 +178,9 @@ class luno extends Exchange {
             $fee['side'] = 'base';
             $fee['cost'] = $baseFee;
         }
+        $id = $this->safe_string($order, 'order_id');
         return array (
-            'id' => $order['order_id'],
+            'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
@@ -192,9 +201,10 @@ class luno extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrdersId (array_merge (array (
+        $request = array (
             'id' => $id,
-        ), $params));
+        );
+        $response = $this->privateGetOrdersId (array_merge ($request, $params));
         return $this->parse_order($response);
     }
 
@@ -227,10 +237,11 @@ class luno extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $ticker['timestamp'];
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
         $symbol = null;
-        if ($market)
+        if ($market) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last_trade');
         return array (
             'symbol' => $symbol,
@@ -275,20 +286,21 @@ class luno extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetTicker (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-        ), $params));
-        return $this->parse_ticker($ticker, $market);
+        );
+        $response = $this->publicGetTicker (array_merge ($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade ($trade, $market) {
         // For public $trade data (is_buy === True) indicates 'buy' $side but for private $trade data
         // is_buy indicates maker or taker. The value of "type" (ASK/BID) indicate sell/buy $side->
         // Private $trade data includes ID field which public $trade data does not.
-        $order = $this->safe_string($trade, 'order_id');
+        $orderId = $this->safe_string($trade, 'order_id');
         $takerOrMaker = null;
         $side = null;
-        if ($order !== null) {
+        if ($orderId !== null) {
             $side = ($trade['type'] === 'ASK') ? 'sell' : 'buy';
             if ($side === 'sell' && $trade['is_buy']) {
                 $takerOrMaker = 'maker';
@@ -315,13 +327,14 @@ class luno extends Exchange {
                 $feeCost = $feeCounter;
             }
         }
+        $timestamp = $this->safe_integer($trade, 'timestamp');
         return array (
             'info' => $trade,
             'id' => null,
-            'timestamp' => $trade['timestamp'],
-            'datetime' => $this->iso8601 ($trade['timestamp']),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
-            'order' => $order,
+            'order' => $orderId,
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
@@ -342,25 +355,29 @@ class luno extends Exchange {
         $request = array (
             'pair' => $market['id'],
         );
-        if ($since !== null)
+        if ($since !== null) {
             $request['since'] = $since;
+        }
         $response = $this->publicGetTrades (array_merge ($request, $params));
         $trades = $this->safe_value($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
+        if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'pair' => $market['id'],
         );
-        if ($since !== null)
+        if ($since !== null) {
             $request['since'] = $since;
-        if ($limit !== null)
+        }
+        if ($limit !== null) {
             $request['limit'] = $limit;
+        }
         $response = $this->privateGetListtrades (array_merge ($request, $params));
         $trades = $this->safe_value($response, 'trades', array());
         return $this->parse_trades($trades, $market, $since, $limit);
@@ -379,24 +396,24 @@ class luno extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $method = 'privatePost';
-        $order = array( 'pair' => $this->market_id($symbol) );
+        $request = array (
+            'pair' => $this->market_id($symbol),
+        );
         if ($type === 'market') {
             $method .= 'Marketorder';
-            $order['type'] = strtoupper($side);
-            if ($side === 'buy')
-                $order['counter_volume'] = $amount;
-            else
-                $order['base_volume'] = $amount;
+            $request['type'] = strtoupper($side);
+            if ($side === 'buy') {
+                $request['counter_volume'] = $amount;
+            } else {
+                $request['base_volume'] = $amount;
+            }
         } else {
             $method .= 'Postorder';
-            $order['volume'] = $amount;
-            $order['price'] = $price;
-            if ($side === 'buy')
-                $order['type'] = 'BID';
-            else
-                $order['type'] = 'ASK';
+            $request['volume'] = $amount;
+            $request['price'] = $price;
+            $request['type'] = ($side === 'buy') ? 'BID' : 'ASK';
         }
-        $response = $this->$method (array_merge ($order, $params));
+        $response = $this->$method (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['order_id'],
@@ -405,14 +422,18 @@ class luno extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostStoporder (array( 'order_id' => $id ));
+        $request = array (
+            'order_id' => $id,
+        );
+        return $this->privatePostStoporder (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($query)
+        if ($query) {
             $url .= '?' . $this->urlencode ($query);
+        }
         if ($api === 'private') {
             $this->check_required_credentials();
             $auth = $this->encode ($this->apiKey . ':' . $this->secret);
@@ -424,8 +445,9 @@ class luno extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('error', $response))
+        if (is_array($response) && array_key_exists('error', $response)) {
             throw new ExchangeError($this->id . ' ' . $this->json ($response));
+        }
         return $response;
     }
 }

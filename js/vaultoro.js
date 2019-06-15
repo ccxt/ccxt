@@ -82,19 +82,18 @@ module.exports = class vaultoro extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalance ();
-        let balances = response['data'];
-        let result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currencyId = balance['currency_code'].toUpperCase ();
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id[currencyId])
-                code = this.currencies_by_id[currencyId]['code'];
-            let free = balance['cash'];
-            let used = balance['reserved'];
-            let total = this.sum (free, used);
-            let account = {
+        const response = await this.privateGetBalance (params);
+        const balances = this.safeValue (response, 'data');
+        const result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = balance['currency_code'];
+            const uppercaseId = currencyId.toUpperCase ();
+            const code = this.commonCurrencyCode (uppercaseId);
+            const free = this.safeFloat (balance, 'cash');
+            const used = this.safeFloat (balance, 'reserved');
+            const total = this.sum (free, used);
+            const account = {
                 'free': free,
                 'used': used,
                 'total': total,
@@ -106,8 +105,8 @@ module.exports = class vaultoro extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (params);
-        let orderbook = {
+        const response = await this.publicGetOrderbook (params);
+        const orderbook = {
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
         };
@@ -149,7 +148,7 @@ module.exports = class vaultoro extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = this.parse8601 (trade['Time']);
+        const timestamp = this.parse8601 (this.safeString (trade, 'Time'));
         return {
             'id': undefined,
             'info': trade,
@@ -166,21 +165,22 @@ module.exports = class vaultoro extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTransactionsDay (params);
+        const market = this.market (symbol);
+        const response = await this.publicGetTransactionsDay (params);
         return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'privatePost' + this.capitalize (side) + 'SymbolType';
-        let response = await this[method] (this.extend ({
+        const market = this.market (symbol);
+        const method = 'privatePost' + this.capitalize (side) + 'SymbolType';
+        const request = {
             'symbol': market['quoteId'].toLowerCase (),
             'type': type,
             'gld': amount,
             'price': price || 1,
-        }, params));
+        };
+        const response = await this[method] (this.extend (request, params));
         return {
             'info': response,
             'id': response['data']['Order_ID'],
@@ -189,9 +189,10 @@ module.exports = class vaultoro extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelId (this.extend ({
+        const request = {
             'id': id,
-        }, params));
+        };
+        return await this.privatePostCancelId (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

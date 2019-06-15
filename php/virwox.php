@@ -222,24 +222,26 @@ class virwox extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $order = array (
+        $request = array (
             'instrument' => $market['symbol'],
             'orderType' => strtoupper($side),
             'amount' => $amount,
         );
-        if ($type === 'limit')
-            $order['price'] = $price;
-        $response = $this->privatePostPlaceOrder (array_merge ($order, $params));
+        if ($type === 'limit') {
+            $request['price'] = $price;
+        }
+        $response = $this->privatePostPlaceOrder (array_merge ($request, $params));
         return array (
             'info' => $response,
-            'id' => (string) $response['result']['orderID'],
+            'id' => $this->safe_string($response['result'], 'orderID'),
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelOrder (array_merge (array (
+        $request = array (
             'orderID' => $id,
-        ), $params));
+        );
+        return $this->privatePostCancelOrder (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

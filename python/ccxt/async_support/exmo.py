@@ -545,19 +545,23 @@ class exmo (Exchange):
 
     async def fetch_markets(self, params={}):
         fees = await self.fetch_trading_fees()
-        markets = await self.publicGetPairSettings()
-        keys = list(markets.keys())
+        response = await self.publicGetPairSettings(params)
+        keys = list(response.keys())
         result = []
-        for p in range(0, len(keys)):
-            id = keys[p]
-            market = markets[id]
+        for i in range(0, len(keys)):
+            id = keys[i]
+            market = response[id]
             symbol = id.replace('_', '/')
-            base, quote = symbol.split('/')
+            baseId, quoteId = symbol.split('/')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,
                 'taker': fees['taker'],
                 'maker': fees['maker'],
@@ -592,9 +596,9 @@ class exmo (Exchange):
             currency = currencies[i]
             account = self.account()
             if currency in response['balances']:
-                account['free'] = float(response['balances'][currency])
+                account['free'] = self.safe_float(response['balances'], currency)
             if currency in response['reserved']:
-                account['used'] = float(response['reserved'][currency])
+                account['used'] = self.safe_float(response['reserved'], currency)
             account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
@@ -602,13 +606,13 @@ class exmo (Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = self.extend({
+        request = {
             'pair': market['id'],
-        }, params)
+        }
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetOrderBook(request)
-        result = response[market['id']]
+        response = await self.publicGetOrderBook(self.extend(request, params))
+        result = self.safe_value(response, market['id'])
         return self.parse_order_book(result, None, 'bid', 'ask')
 
     async def fetch_order_books(self, symbols=None, params={}):
@@ -623,9 +627,10 @@ class exmo (Exchange):
         else:
             ids = self.market_ids(symbols)
             ids = ','.join(ids)
-        response = await self.publicGetOrderBook(self.extend({
+        request = {
             'pair': ids,
-        }, params))
+        }
+        response = await self.publicGetOrderBook(self.extend(request, params))
         result = {}
         ids = list(response.keys())
         for i in range(0, len(ids)):
@@ -635,9 +640,9 @@ class exmo (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['updated'] * 1000
+        timestamp = self.safe_integer(ticker, 'updated') * 1000
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last_trade')
         return {
@@ -683,7 +688,7 @@ class exmo (Exchange):
         return self.parse_ticker(response[market['id']], market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['date'] * 1000
+        timestamp = self.safe_integer(trade, 'date') * 1000
         fee = None
         symbol = None
         id = self.safe_string(trade, 'trade_id')
@@ -727,9 +732,10 @@ class exmo (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTrades(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response[market['id']], market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -1085,10 +1091,10 @@ class exmo (Exchange):
         }
         if tag is not None:
             request['invoice'] = tag
-        result = await self.privatePostWithdrawCrypt(self.extend(request, params))
+        response = await self.privatePostWithdrawCrypt(self.extend(request, params))
         return {
-            'info': result,
-            'id': result['task_id'],
+            'info': response,
+            'id': response['task_id'],
         }
 
     def parse_transaction_status(self, status):
@@ -1237,29 +1243,28 @@ class exmo (Exchange):
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
         if response is None:
             return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            if 'result' in response:
-                #
-                #     {"result":false,"error":"Error 50052: Insufficient funds"}
-                #
-                success = self.safe_value(response, 'result', False)
-                if isinstance(success, basestring):
-                    if (success == 'true') or (success == '1'):
-                        success = True
-                    else:
-                        success = False
-                if not success:
-                    code = None
-                    message = self.safe_string(response, 'error')
-                    errorParts = message.split(':')
-                    numParts = len(errorParts)
-                    if numParts > 1:
-                        errorSubParts = errorParts[0].split(' ')
-                        numSubParts = len(errorSubParts)
-                        code = errorSubParts[1] if (numSubParts > 1) else errorSubParts[0]
-                    feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    else:
-                        raise ExchangeError(feedback)
+        if 'result' in response:
+            #
+            #     {"result":false,"error":"Error 50052: Insufficient funds"}
+            #
+            success = self.safe_value(response, 'result', False)
+            if isinstance(success, basestring):
+                if (success == 'true') or (success == '1'):
+                    success = True
+                else:
+                    success = False
+            if not success:
+                code = None
+                message = self.safe_string(response, 'error')
+                errorParts = message.split(':')
+                numParts = len(errorParts)
+                if numParts > 1:
+                    errorSubParts = errorParts[0].split(' ')
+                    numSubParts = len(errorSubParts)
+                    code = errorSubParts[1] if (numSubParts > 1) else errorSubParts[0]
+                feedback = self.id + ' ' + self.json(response)
+                exceptions = self.exceptions
+                if code in exceptions:
+                    raise exceptions[code](feedback)
+                else:
+                    raise ExchangeError(feedback)
