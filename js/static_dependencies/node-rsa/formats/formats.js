@@ -2,7 +2,7 @@ var _ = require('../utils')._;
 
 module.exports = {
     pkcs1: require('./pkcs1'),
-    pkcs1: require('./pkcs8'),
+    pkcs8: require('./pkcs8'),
     components: require('./components'),
 
     detectAndImport: function (key, data, format) {
