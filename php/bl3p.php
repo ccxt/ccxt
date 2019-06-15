@@ -59,8 +59,8 @@ class bl3p extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
-                'LTC/EUR' => array( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
+                'LTC/EUR' => array( 'id' => 'LTCEUR', 'symbol' => 'LTC/EUR', 'base' => 'LTC', 'quote' => 'EUR', 'baseId' => 'LTC', 'quoteId' => 'EUR', 'maker' => 0.0025, 'taker' => 0.0025 ),
             ),
         ));
     }
@@ -68,29 +68,26 @@ class bl3p extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGENMKTMoneyInfo ($params);
-        $data = $response['data'];
-        $balance = $data['wallets'];
+        $data = $this->safe_value($response, 'data', array());
+        $wallets = $this->safe_value($data, 'wallets');
         $result = array( 'info' => $data );
-        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currency ($code);
+            $currencyId = $currency['id'];
+            $wallet = $this->safe_value($wallets, $currencyId, array());
+            $available = $this->safe_value($wallet, 'available', array());
+            $balance = $this->safe_value($wallet, 'balance', array());
             $account = $this->account ();
-            if (is_array($balance) && array_key_exists($currency, $balance)) {
-                if (is_array($balance[$currency]) && array_key_exists('available', $balance[$currency])) {
-                    $account['free'] = floatval ($balance[$currency]['available']['value']);
-                }
-            }
-            if (is_array($balance) && array_key_exists($currency, $balance)) {
-                if (is_array($balance[$currency]) && array_key_exists('balance', $balance[$currency])) {
-                    $account['total'] = floatval ($balance[$currency]['balance']['value']);
-                }
-            }
+            $account['free'] = $this->safe_float($available, 'value');
+            $account['total'] = $this->safe_float($balance, 'value');
             if ($account['total']) {
                 if ($account['free']) {
                     $account['used'] = $account['total'] - $account['free'];
                 }
             }
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

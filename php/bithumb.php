@@ -252,13 +252,17 @@ class bithumb extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         // a workaround for their bug in date format, hours are not 0-padded
-        list($transaction_date, $transaction_time) = explode(' ', $trade['transaction_date']);
+        $parts = explode(' ', $trade['transaction_date']);
+        $transaction_date = $parts[0];
+        $transaction_time = $parts[1];
         if (strlen ($transaction_time) < 8) {
             $transaction_time = '0' . $transaction_time;
         }
         $timestamp = $this->parse8601 ($transaction_date . ' ' . $transaction_time);
         $timestamp -= 9 * 3600000; // they report UTC . 9 hours (is_array(Korean timezone) && array_key_exists(server, Korean timezone))
-        $side = ($trade['type'] === 'ask') ? 'sell' : 'buy';
+        $type = null;
+        $side = $this->safe_string($trade, 'type');
+        $side = ($side === 'ask') ? 'sell' : 'buy';
         $id = $this->safe_string($trade, 'cont_no');
         $symbol = null;
         if ($market !== null) {
@@ -279,7 +283,7 @@ class bithumb extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'order' => null,
-            'type' => null,
+            'type' => $type,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,

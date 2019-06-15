@@ -123,24 +123,24 @@ class independentreserve (Exchange):
             'secondaryCurrencyCode': market['quoteId'],
         }
         response = await self.publicGetGetOrderBook(self.extend(request, params))
-        timestamp = self.parse8601(response['CreatedTimestampUtc'])
+        timestamp = self.parse8601(self.safe_string(response, 'CreatedTimestampUtc'))
         return self.parse_order_book(response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.parse8601(ticker['CreatedTimestampUtc'])
+        timestamp = self.parse8601(self.safe_string(ticker, 'CreatedTimestampUtc'))
         symbol = None
         if market:
             symbol = market['symbol']
-        last = ticker['LastPrice']
+        last = self.safe_float(ticker, 'LastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': ticker['DayHighestPrice'],
-            'low': ticker['DayLowestPrice'],
-            'bid': ticker['CurrentHighestBidPrice'],
+            'high': self.safe_float(ticker, 'DayHighestPrice'),
+            'low': self.safe_float(ticker, 'DayLowestPrice'),
+            'bid': self.safe_float(ticker, 'CurrentHighestBidPrice'),
             'bidVolume': None,
-            'ask': ticker['CurrentLowestOfferPrice'],
+            'ask': self.safe_float(ticker, 'CurrentLowestOfferPrice'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -149,8 +149,8 @@ class independentreserve (Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': ticker['DayAvgPrice'],
-            'baseVolume': ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'average': self.safe_float(ticker, 'DayAvgPrice'),
+            'baseVolume': self.safe_float(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': None,
             'info': ticker,
         }

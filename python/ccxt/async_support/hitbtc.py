@@ -507,13 +507,14 @@ class hitbtc (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetSymbols()
+        response = await self.publicGetSymbols(params)
+        markets = self.safe_value(response, 'symbols')
         result = []
-        for p in range(0, len(markets['symbols'])):
-            market = markets['symbols'][p]
-            id = market['symbol']
-            baseId = market['commodity']
-            quoteId = market['currency']
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'commodity')
+            quoteId = self.safe_string(market, 'currency')
             lot = self.safe_float(market, 'lot')
             step = self.safe_float(market, 'step')
             base = self.common_currency_code(baseId)

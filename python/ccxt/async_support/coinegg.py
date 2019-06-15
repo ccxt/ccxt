@@ -319,8 +319,8 @@ class coinegg (Exchange):
                     'used': None,
                     'total': None,
                 }
-            accountType = 'used' if (accountType == 'lock') else 'free'
-            result[code][accountType] = float(balances[key])
+            type = 'used' if (accountType == 'lock') else 'free'
+            result[code][type] = self.safe_float(balances, key)
         currencies = list(result.keys())
         for i in range(0, len(currencies)):
             currency = currencies[i]

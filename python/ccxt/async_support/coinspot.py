@@ -69,19 +69,19 @@ class coinspot (Exchange):
         await self.load_markets()
         response = await self.privatePostMyBalances(params)
         result = {'info': response}
-        if 'balance' in response:
-            balances = response['balance']
-            currencyIds = list(balances.keys())
-            for i in range(0, len(currencyIds)):
-                currencyId = currencyIds[i]
-                uppercase = currencyId.upper()
-                code = self.common_currency_code(uppercase)
-                account = {
-                    'free': balances[currencyId],
-                    'used': 0.0,
-                    'total': balances[currencyId],
-                }
-                result[code] = account
+        balances = self.safe_value(response, 'balance', {})
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            uppercase = currencyId.upper()
+            code = self.common_currency_code(uppercase)
+            total = self.safe_float(balances, currencyId)
+            account = {
+                'free': total,
+                'used': 0.0,
+                'total': total,
+            }
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

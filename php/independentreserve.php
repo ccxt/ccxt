@@ -130,26 +130,26 @@ class independentreserve extends Exchange {
             'secondaryCurrencyCode' => $market['quoteId'],
         );
         $response = $this->publicGetGetOrderBook (array_merge ($request, $params));
-        $timestamp = $this->parse8601 ($response['CreatedTimestampUtc']);
+        $timestamp = $this->parse8601 ($this->safe_string($response, 'CreatedTimestampUtc'));
         return $this->parse_order_book($response, $timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->parse8601 ($ticker['CreatedTimestampUtc']);
+        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'CreatedTimestampUtc'));
         $symbol = null;
         if ($market) {
             $symbol = $market['symbol'];
         }
-        $last = $ticker['LastPrice'];
+        $last = $this->safe_float($ticker, 'LastPrice');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $ticker['DayHighestPrice'],
-            'low' => $ticker['DayLowestPrice'],
-            'bid' => $ticker['CurrentHighestBidPrice'],
+            'high' => $this->safe_float($ticker, 'DayHighestPrice'),
+            'low' => $this->safe_float($ticker, 'DayLowestPrice'),
+            'bid' => $this->safe_float($ticker, 'CurrentHighestBidPrice'),
             'bidVolume' => null,
-            'ask' => $ticker['CurrentLowestOfferPrice'],
+            'ask' => $this->safe_float($ticker, 'CurrentLowestOfferPrice'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -158,8 +158,8 @@ class independentreserve extends Exchange {
             'previousClose' => null,
             'change' => null,
             'percentage' => null,
-            'average' => $ticker['DayAvgPrice'],
-            'baseVolume' => $ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'average' => $this->safe_float($ticker, 'DayAvgPrice'),
+            'baseVolume' => $this->safe_float($ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume' => null,
             'info' => $ticker,
         );

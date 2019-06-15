@@ -504,13 +504,14 @@ class hitbtc extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetSymbols ();
+        $response = $this->publicGetSymbols ($params);
+        $markets = $this->safe_value($response, 'symbols');
         $result = array();
-        for ($p = 0; $p < count ($markets['symbols']); $p++) {
-            $market = $markets['symbols'][$p];
-            $id = $market['symbol'];
-            $baseId = $market['commodity'];
-            $quoteId = $market['currency'];
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'symbol');
+            $baseId = $this->safe_string($market, 'commodity');
+            $quoteId = $this->safe_string($market, 'currency');
             $lot = $this->safe_float($market, 'lot');
             $step = $this->safe_float($market, 'step');
             $base = $this->common_currency_code($baseId);

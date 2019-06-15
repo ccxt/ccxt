@@ -251,22 +251,23 @@ class bitbay (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostInfo(params)
-        if 'balances' in response:
-            balance = response['balances']
-            result = {'info': balance}
-            codes = list(self.currencies.keys())
-            for i in range(0, len(codes)):
-                code = codes[i]
-                currency = self.currencies[code]
-                id = currency['id']
-                account = self.account()
-                if id in balance:
-                    account['free'] = float(balance[id]['available'])
-                    account['used'] = float(balance[id]['locked'])
-                    account['total'] = self.sum(account['free'], account['used'])
-                result[code] = account
-            return self.parse_balance(result)
-        raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
+        balances = self.safe_value(response, 'balances')
+        if balances is None:
+            raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
+        balance = response['balances']
+        result = {'info': balance}
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currencies[code]
+            currencyId = currency['id']
+            account = self.account()
+            balance = self.safe_value(balances, currencyId, {})
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'locked')
+            account['total'] = self.sum(account['free'], account['used'])
+            result[code] = account
+        return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()

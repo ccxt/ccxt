@@ -224,7 +224,10 @@ class coincheck extends Exchange {
         }
         $this->load_markets();
         $ticker = $this->publicGetTicker ($params);
-        $timestamp = $ticker['timestamp'] * 1000;
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,

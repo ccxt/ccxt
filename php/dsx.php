@@ -208,7 +208,7 @@ class dsx extends liqui {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetInfo ();
+        $response = $this->publicGetInfo ($params);
         $markets = $response['pairs'];
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
@@ -289,17 +289,18 @@ class dsx extends liqui {
         //       }
         //     }
         //
-        $balances = $response['return'];
-        $result = array( 'info' => $balances );
-        $funds = $balances['funds'];
-        $ids = is_array($funds) ? array_keys($funds) : array();
-        for ($c = 0; $c < count ($ids); $c++) {
-            $id = $ids[$c];
-            $code = $this->common_currency_code($id);
+        $balances = $this->safe_value($response, 'return');
+        $result = array( 'info' => $response );
+        $funds = $this->safe_value($balances, 'funds');
+        $currencyIds = is_array($funds) ? array_keys($funds) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->common_currency_code($currencyId);
+            $balance = $this->safe_value($funds, $currencyId, array());
             $account = array (
-                'free' => $funds[$id]['available'],
+                'free' => $this->safe_float($balance, 'available'),
                 'used' => 0.0,
-                'total' => $funds[$id]['total'],
+                'total' => $this->safe_float($balance, 'total'),
             );
             $account['used'] = $account['total'] - $account['free'];
             $result[$code] = $account;

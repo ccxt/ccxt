@@ -240,12 +240,16 @@ class bithumb (Exchange):
 
     def parse_trade(self, trade, market=None):
         # a workaround for their bug in date format, hours are not 0-padded
-        transaction_date, transaction_time = trade['transaction_date'].split(' ')
+        parts = trade['transaction_date'].split(' ')
+        transaction_date = parts[0]
+        transaction_time = parts[1]
         if len(transaction_time) < 8:
             transaction_time = '0' + transaction_time
         timestamp = self.parse8601(transaction_date + ' ' + transaction_time)
         timestamp -= 9 * 3600000  # they report UTC + 9 hours(server in list(Korean timezone.keys()))
-        side = 'sell' if (trade['type'] == 'ask') else 'buy'
+        type = None
+        side = self.safe_string(trade, 'type')
+        side = 'sell' if (side == 'ask') else 'buy'
         id = self.safe_string(trade, 'cont_no')
         symbol = None
         if market is not None:
@@ -263,7 +267,7 @@ class bithumb (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'order': None,
-            'type': None,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,

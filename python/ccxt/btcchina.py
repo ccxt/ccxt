@@ -326,14 +326,14 @@ class btcchina (Exchange):
             }
             p = ','.join(p)
             body = self.json(request)
-            query = (
-                'tonce=' + nonce +
-                '&accesskey=' + self.apiKey +
-                '&requestmethod=' + method.lower() +
-                '&id=' + nonce +
-                '&method=' + path +
-                '&params=' + p
-            )
+            query = '&'.join([
+                'tonce=' + nonce,
+                'accesskey=' + self.apiKey,
+                'requestmethod=' + method.lower(),
+                'id=' + nonce,
+                'method=' + path,
+                'params=' + p,
+            ])
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
             auth = self.encode(self.apiKey + ':' + signature)
             headers = {

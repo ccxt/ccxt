@@ -251,25 +251,25 @@ class bitbay extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostInfo ($params);
-        if (is_array($response) && array_key_exists('balances', $response)) {
-            $balance = $response['balances'];
-            $result = array( 'info' => $balance );
-            $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-            for ($i = 0; $i < count ($codes); $i++) {
-                $code = $codes[$i];
-                $currency = $this->currencies[$code];
-                $id = $currency['id'];
-                $account = $this->account ();
-                if (is_array($balance) && array_key_exists($id, $balance)) {
-                    $account['free'] = floatval ($balance[$id]['available']);
-                    $account['used'] = floatval ($balance[$id]['locked']);
-                    $account['total'] = $this->sum ($account['free'], $account['used']);
-                }
-                $result[$code] = $account;
-            }
-            return $this->parse_balance($result);
+        $balances = $this->safe_value($response, 'balances');
+        if ($balances === null) {
+            throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json ($response));
         }
-        throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json ($response));
+        $balance = $response['balances'];
+        $result = array( 'info' => $balance );
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currencies[$code];
+            $currencyId = $currency['id'];
+            $account = $this->account ();
+            $balance = $this->safe_value($balances, $currencyId, array());
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['used'] = $this->safe_float($balance, 'locked');
+            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $result[$code] = $account;
+        }
+        return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {

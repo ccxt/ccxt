@@ -205,9 +205,10 @@ class kkex extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->markets[$symbol];
-        $response = $this->publicGetTicker (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTicker (array_merge ($request, $params));
         $ticker = array_merge ($response['ticker'], $this->omit ($response, 'ticker'));
         return $this->parse_ticker($ticker, $market);
     }
@@ -233,7 +234,7 @@ class kkex extends Exchange {
         //                              open => "0.003189"  } }           ),
         //        $result =>    true                                          }
         //
-        $tickers = $response['tickers'];
+        $tickers = $this->safe_value($response, 'tickers');
         $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ids = is_array($tickers[$i]) ? array_keys($tickers[$i]) : array();
@@ -297,27 +298,30 @@ class kkex extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privatePostUserinfo ();
-        $result = array( 'info' => $balances['info'] );
-        $funds = $balances['info']['funds'];
+        $response = $this->privatePostUserinfo ($params);
+        $balances = $this->safe_value($response, 'info');
+        $result = array( 'info' => $response );
+        $funds = $this->safe_value($balances, 'funds');
+        $free = $this->safe_value($funds, 'free', array());
+        $freezed = $this->safe_value($funds, 'freezed', array());
         $assets = is_array($funds['free']) ? array_keys($funds['free']) : array();
         for ($i = 0; $i < count ($assets); $i++) {
-            $currency = $assets[$i];
-            $uppercase = strtoupper($currency);
-            $uppercase = $this->common_currency_code($uppercase);
+            $currencyId = $assets[$i];
+            $code = $this->common_currency_code(strtoupper($currencyId));
             $account = $this->account ();
-            $account['free'] = floatval ($funds['free'][$currency]);
-            $account['used'] = floatval ($funds['freezed'][$currency]);
+            $account['free'] = $this->safe_float($free, $currencyId);
+            $account['used'] = $this->safe_float($freezed, $currencyId);
             $account['total'] = $account['free'] . $account['used'];
-            $result[$uppercase] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

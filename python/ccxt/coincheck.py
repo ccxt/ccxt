@@ -210,7 +210,9 @@ class coincheck (Exchange):
             raise NotSupported(self.id + ' fetchTicker() supports BTC/JPY only')
         self.load_markets()
         ticker = self.publicGetTicker(params)
-        timestamp = ticker['timestamp'] * 1000
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,

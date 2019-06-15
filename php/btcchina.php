@@ -359,14 +359,12 @@ class btcchina extends Exchange {
             );
             $p = implode(',', $p);
             $body = $this->json ($request);
-            $query = (
-                'tonce=' . $nonce +
-                '&accesskey=' . $this->apiKey +
-                '&requestmethod=' . strtolower($method) +
-                '&id=' . $nonce +
-                '&$method=' . $path +
-                '&$params=' . $p
-            );
+            $query = implode('&', array('tonce=' . $nonce,
+                'accesskey=' . $this->apiKey,
+                'requestmethod=' . strtolower($method),
+                'id=' . $nonce,
+                'method=' . $path,
+                'params=' . $p,));
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha1');
             $auth = $this->encode ($this->apiKey . ':' . $signature);
             $headers = array (

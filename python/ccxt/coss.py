@@ -685,9 +685,10 @@ class coss (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.tradePostOrderDetails(self.extend({
+        request = {
             'order_id': id,
-        }, params))
+        }
+        response = self.tradePostOrderDetails(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):

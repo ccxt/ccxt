@@ -727,9 +727,10 @@ class coss extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->tradePostOrderDetails (array_merge (array (
+        $request = array (
             'order_id' => $id,
-        ), $params));
+        );
+        $response = $this->tradePostOrderDetails (array_merge ($request, $params));
         return $this->parse_order($response);
     }
 

@@ -327,8 +327,8 @@ class coinegg extends Exchange {
                     'total' => null,
                 );
             }
-            $accountType = ($accountType === 'lock') ? 'used' : 'free';
-            $result[$code][$accountType] = floatval ($balances[$key]);
+            $type = ($accountType === 'lock') ? 'used' : 'free';
+            $result[$code][$type] = $this->safe_float($balances, $key);
         }
         $currencies = is_array($result) ? array_keys($result) : array();
         for ($i = 0; $i < count ($currencies); $i++) {

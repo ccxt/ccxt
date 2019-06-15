@@ -60,31 +60,32 @@ class bl3p (Exchange):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-                'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
+                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
+                'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'LTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
             },
         })
 
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGENMKTMoneyInfo(params)
-        data = response['data']
-        balance = data['wallets']
+        data = self.safe_value(response, 'data', {})
+        wallets = self.safe_value(data, 'wallets')
         result = {'info': data}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currency(code)
+            currencyId = currency['id']
+            wallet = self.safe_value(wallets, currencyId, {})
+            available = self.safe_value(wallet, 'available', {})
+            balance = self.safe_value(wallet, 'balance', {})
             account = self.account()
-            if currency in balance:
-                if 'available' in balance[currency]:
-                    account['free'] = float(balance[currency]['available']['value'])
-            if currency in balance:
-                if 'balance' in balance[currency]:
-                    account['total'] = float(balance[currency]['balance']['value'])
+            account['free'] = self.safe_float(available, 'value')
+            account['total'] = self.safe_float(balance, 'value')
             if account['total']:
                 if account['free']:
                     account['used'] = account['total'] - account['free']
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=0):
