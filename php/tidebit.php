@@ -122,9 +122,10 @@ class tidebit extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privateGetDepositAddress (array_merge (array (
+        $request = array (
             'currency' => $currency['id'],
-        ), $params));
+        );
+        $response = $this->privateGetDepositAddress (array_merge ($request, $params));
         if (is_array($response) && array_key_exists('success', $response)) {
             if ($response['success']) {
                 $address = $this->safe_string($response, 'address');
@@ -140,12 +141,12 @@ class tidebit extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetMarkets ();
+        $response = $this->publicGetMarkets ($params);
         $result = array();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['id'];
-            $symbol = $market['name'];
+        for ($i = 0; $i < count ($response); $i++) {
+            $market = $response[$i];
+            $id = $this->safe_string($market, 'id');
+            $symbol = $this->safe_string($market, 'name');
             list($baseId, $quoteId) = explode('/', $symbol);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
@@ -164,7 +165,7 @@ class tidebit extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetMembersMe ();
+        $response = $this->privateGetMembersMe ($params);
         $balances = $response['accounts'];
         $result = array( 'info' => $balances );
         for ($b = 0; $b < count ($balances); $b++) {
@@ -173,10 +174,12 @@ class tidebit extends Exchange {
             $code = strtoupper($currencyId);
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($code);
             }
             $account = array (
-                'free' => floatval ($balance['balance']),
-                'used' => floatval ($balance['locked']),
+                'free' => $this->safe_float($balance, 'balance'),
+                'used' => $this->safe_float($balance, 'locked'),
                 'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
@@ -195,9 +198,12 @@ class tidebit extends Exchange {
             $request['limit'] = $limit; // default = 300
         }
         $request['market'] = $market['id'];
-        $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        $timestamp = $orderbook['timestamp'] * 1000;
-        return $this->parse_order_book($orderbook, $timestamp);
+        $response = $this->publicGetDepth (array_merge ($request, $params));
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        return $this->parse_order_book($response, $timestamp);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -262,24 +268,33 @@ class tidebit extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTickersMarket (array_merge (array (
+        $request = array (
             'market' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTickersMarket (array_merge ($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($trade['created_at']);
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
+        $id = $this->safe_string($trade, 'id');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'volume');
+        $cost = $this->safe_float($trade, 'funds');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
-            'id' => (string) $trade['id'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'volume'),
-            'cost' => $this->safe_float($trade, 'funds'),
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
             'info' => $trade,
         );
     }
@@ -287,9 +302,10 @@ class tidebit extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
+        $request = array (
             'market' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -324,6 +340,15 @@ class tidebit extends Exchange {
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'done' => 'closed',
+            'wait' => 'open',
+            'cancel' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market = null) {
         $symbol = null;
         if ($market !== null) {
@@ -332,29 +357,35 @@ class tidebit extends Exchange {
             $marketId = $order['market'];
             $symbol = $this->markets_by_id[$marketId]['symbol'];
         }
-        $timestamp = $this->parse8601 ($order['created_at']);
-        $state = $order['state'];
-        $status = null;
-        if ($state === 'done') {
-            $status = 'closed';
-        } else if ($state === 'wait') {
-            $status = 'open';
-        } else if ($state === 'cancel') {
-            $status = 'canceled';
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
+        $status = $this->parse_order_status($this->safe_string($order, 'state'));
+        $id = $this->safe_string($order, 'id');
+        $type = $this->safe_string($order, 'ord_type');
+        $side = $this->safe_string($order, 'side');
+        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_float($order, 'volume');
+        $filled = $this->safe_float($order, 'executed_volume');
+        $remaining = $this->safe_float($order, 'remaining_volume');
+        $cost = null;
+        if ($price !== null) {
+            if ($filled !== null) {
+                $cost = $price * $filled;
+            }
         }
         return array (
-            'id' => (string) $order['id'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $order['ord_type'],
-            'side' => $order['side'],
-            'price' => $this->safe_float($order, 'price'),
-            'amount' => $this->safe_float($order, 'volume'),
-            'filled' => $this->safe_float($order, 'executed_volume'),
-            'remaining' => $this->safe_float($order, 'remaining_volume'),
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'cost' => $cost,
             'trades' => null,
             'fee' => null,
             'info' => $order,
@@ -379,9 +410,12 @@ class tidebit extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $result = $this->privatePostOrderDelete (array( 'id' => $id ));
+        $request = array (
+            'id' => $id,
+        );
+        $result = $this->privatePostOrderDelete (array_merge ($request, $params));
         $order = $this->parse_order($result);
-        $status = $order['status'];
+        $status = $this->safe_string($order, 'status');
         if ($status === 'closed' || $status === 'canceled') {
             throw new OrderNotFound($this->id . ' ' . $this->json ($order));
         }
@@ -394,7 +428,7 @@ class tidebit extends Exchange {
         $currency = $this->currency ($code);
         $id = $this->safe_string($params, 'id');
         if ($id === null) {
-            throw new ExchangeError($this->id . ' withdraw() requires an extra $id param (withdraw account $id according to withdraws/bind_account_list endpoint');
+            throw new ExchangeError($this->id . ' withdraw() requires an extra `$id` param (withdraw account $id according to withdraws/bind_account_list endpoint');
         }
         $request = array (
             'id' => $id,

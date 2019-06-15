@@ -108,7 +108,7 @@ class theocean (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetTokenPairs()
+        markets = await self.publicGetTokenPairs(params)
         #
         #     [
         #       "baseToken": {
@@ -134,14 +134,12 @@ class theocean (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            baseToken = market['baseToken']
-            quoteToken = market['quoteToken']
-            baseId = baseToken['address']
-            quoteId = quoteToken['address']
-            base = baseToken['symbol']
-            quote = quoteToken['symbol']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            baseToken = self.safe_string(market, 'baseToken')
+            quoteToken = self.safe_string(market, 'quoteToken')
+            baseId = self.safe_string(baseToken, 'address')
+            quoteId = self.safe_string(quoteToken, 'address')
+            base = self.common_currency_code(self.safe_string(baseToken, 'symbol'))
+            quote = self.common_currency_code(self.safe_string(quoteToken, 'symbol'))
             symbol = base + '/' + quote
             id = baseId + '/' + quoteId
             baseDecimals = self.safe_integer(baseToken, 'decimals')
@@ -782,14 +780,16 @@ class theocean (Exchange):
         return self.parse_orders(response, None, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'openAmount': 1,  # returns open orders with remaining openAmount >= 1
-        }, params))
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'openAmount': 0,  # returns closed orders with remaining openAmount == 0
-        }, params))
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

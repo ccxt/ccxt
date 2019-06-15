@@ -62,14 +62,14 @@ class vaultoro extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $result = array();
-        $markets = $this->publicGetMarkets ();
-        $market = $markets['data'];
-        $baseId = $market['MarketCurrency'];
-        $quoteId = $market['BaseCurrency'];
+        $response = $this->publicGetMarkets ($params);
+        $market = $this->safe_value($response, 'data');
+        $baseId = $this->safe_string($market, 'MarketCurrency');
+        $quoteId = $this->safe_string($market, 'BaseCurrency');
         $base = $this->common_currency_code($baseId);
         $quote = $this->common_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        $id = $market['MarketName'];
+        $id = $this->safe_string($market, 'MarketName');
         $result[] = array (
             'id' => $id,
             'symbol' => $symbol,
@@ -122,7 +122,7 @@ class vaultoro extends Exchange {
         $bid = $quote['bids'][$bidsLength - 1];
         $ask = $quote['asks'][0];
         $response = $this->publicGetMarkets ($params);
-        $ticker = $response['data'];
+        $ticker = $this->safe_value($response, 'data');
         $timestamp = $this->milliseconds ();
         $last = $this->safe_float($ticker, 'LastPrice');
         return array (

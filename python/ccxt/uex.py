@@ -179,7 +179,7 @@ class uex (Exchange):
         }
 
     def fetch_markets(self, params={}):
-        response = self.publicGetCommonSymbols()
+        response = self.publicGetCommonSymbols(params)
         #
         #     {code:   "0",
         #        msg:   "suc",
@@ -206,10 +206,8 @@ class uex (Exchange):
             id = market['symbol']
             baseId = market['base_coin']
             quoteId = market['count_coin']
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.common_currency_code(baseId.upper())
+            quote = self.common_currency_code(quoteId.upper())
             symbol = base + '/' + quote
             precision = {
                 'amount': market['amount_precision'],

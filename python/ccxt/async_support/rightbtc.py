@@ -144,7 +144,7 @@ class rightbtc (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetTradingPairs()
+        response = await self.publicGetTradingPairs(params)
         # zh = await self.publicGetGetAssetsTradingPairsZh()
         markets = self.extend(response['status']['message'])
         marketIds = list(markets.keys())
@@ -152,14 +152,14 @@ class rightbtc (Exchange):
         for i in range(0, len(marketIds)):
             id = marketIds[i]
             market = markets[id]
-            baseId = market['bid_asset_symbol']
-            quoteId = market['ask_asset_symbol']
+            baseId = self.safe_string(market, 'bid_asset_symbol')
+            quoteId = self.safe_string(market, 'ask_asset_symbol')
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': int(market['bid_asset_decimals']),
-                'price': int(market['ask_asset_decimals']),
+                'amount': self.safe_integer(market, 'bid_asset_decimals'),
+                'price': self.safe_integer(market, 'ask_asset_decimals'),
             }
             result.append({
                 'id': id,
@@ -333,9 +333,10 @@ class rightbtc (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTradesTradingPair(self.extend({
+        request = {
             'trading_pair': market['id'],
-        }, params))
+        }
+        response = await self.publicGetTradesTradingPair(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
@@ -351,10 +352,11 @@ class rightbtc (Exchange):
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetCandlestickTimeSymbolTradingPair(self.extend({
+        request = {
             'trading_pair': market['id'],
             'timeSymbol': self.timeframes[timeframe],
-        }, params))
+        }
+        response = await self.publicGetCandlestickTimeSymbolTradingPair(self.extend(request, params))
         return self.parse_ohlcvs(response['result'], market, timeframe, since, limit)
 
     async def fetch_balance(self, params={}):

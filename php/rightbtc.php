@@ -138,7 +138,7 @@ class rightbtc extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetTradingPairs ();
+        $response = $this->publicGetTradingPairs ($params);
         // $zh = $this->publicGetGetAssetsTradingPairsZh ();
         $markets = array_merge ($response['status']['message']);
         $marketIds = is_array($markets) ? array_keys($markets) : array();
@@ -146,14 +146,14 @@ class rightbtc extends Exchange {
         for ($i = 0; $i < count ($marketIds); $i++) {
             $id = $marketIds[$i];
             $market = $markets[$id];
-            $baseId = $market['bid_asset_symbol'];
-            $quoteId = $market['ask_asset_symbol'];
+            $baseId = $this->safe_string($market, 'bid_asset_symbol');
+            $quoteId = $this->safe_string($market, 'ask_asset_symbol');
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => intval ($market['bid_asset_decimals']),
-                'price' => intval ($market['ask_asset_decimals']),
+                'amount' => $this->safe_integer($market, 'bid_asset_decimals'),
+                'price' => $this->safe_integer($market, 'ask_asset_decimals'),
             );
             $result[] = array (
                 'id' => $id,
@@ -348,9 +348,10 @@ class rightbtc extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTradesTradingPair (array_merge (array (
+        $request = array (
             'trading_pair' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTradesTradingPair (array_merge ($request, $params));
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
@@ -368,10 +369,11 @@ class rightbtc extends Exchange {
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetCandlestickTimeSymbolTradingPair (array_merge (array (
+        $request = array (
             'trading_pair' => $market['id'],
             'timeSymbol' => $this->timeframes[$timeframe],
-        ), $params));
+        );
+        $response = $this->publicGetCandlestickTimeSymbolTradingPair (array_merge ($request, $params));
         return $this->parse_ohlcvs($response['result'], $market, $timeframe, $since, $limit);
     }
 
