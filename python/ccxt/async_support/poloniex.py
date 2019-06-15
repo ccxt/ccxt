@@ -249,8 +249,8 @@ class poloniex (Exchange):
         markets = await self.publicGetReturnTicker()
         keys = list(markets.keys())
         result = []
-        for p in range(0, len(keys)):
-            id = keys[p]
+        for i in range(0, len(keys)):
+            id = keys[i]
             market = markets[id]
             quoteId, baseId = id.split('_')
             base = self.common_currency_code(baseId)
@@ -261,6 +261,8 @@ class poloniex (Exchange):
                     'min': self.safe_value(self.options['limits']['cost']['min'], quote),
                 },
             })
+            isFrozen = self.safe_string(market, 'isFrozen')
+            active = (isFrozen != '1')
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -268,7 +270,7 @@ class poloniex (Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'active': market['isFrozen'] != '1',
+                'active': active,
                 'limits': limits,
                 'info': market,
             }))
@@ -282,13 +284,13 @@ class poloniex (Exchange):
         response = await self.privatePostReturnCompleteBalances(self.extend(request, params))
         result = {'info': response}
         currencies = list(response.keys())
-        for c in range(0, len(currencies)):
-            currencyId = currencies[c]
+        for i in range(0, len(currencies)):
+            currencyId = currencies[i]
             balance = response[currencyId]
             code = self.common_currency_code(currencyId)
             account = {
-                'free': float(balance['available']),
-                'used': float(balance['onOrders']),
+                'free': self.safe_float(balance, 'available'),
+                'used': self.safe_float(balance, 'onOrders'),
                 'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
@@ -714,9 +716,10 @@ class poloniex (Exchange):
         side = self.safe_string(order, 'side', type)
         if type == side:
             type = None
+        id = self.safe_string(order, 'orderNumber')
         return {
             'info': order,
-            'id': order['orderNumber'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
