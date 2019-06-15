@@ -366,7 +366,7 @@ module.exports = class dx extends Exchange {
         const id = this.safeString (order, 'externalOrderId');
         return {
             'info': order,
-            'id': order['externalOrderId'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
