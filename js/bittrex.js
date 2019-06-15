@@ -600,7 +600,8 @@ module.exports = class bittrex extends Exchange {
             request['market'] = market['id'];
         }
         const response = await this.marketGetOpenorders (this.extend (request, params));
-        const orders = this.parseOrders (response['result'], market, since, limit);
+        const result = this.safeValue (response, 'result', []);
+        const orders = this.parseOrders (result, market, since, limit);
         return this.filterBySymbol (orders, symbol);
     }
 
