@@ -110,14 +110,17 @@ module.exports = class paymium extends Exchange {
             'id': this.marketId (symbol),
         };
         const ticker = await this.publicGetDataIdTicker (this.extend (request, params));
-        let timestamp = ticker['at'] * 1000;
-        let vwap = this.safeFloat (ticker, 'vwap');
-        let baseVolume = this.safeFloat (ticker, 'volume');
+        let timestamp = this.safeInteger (ticker, 'at');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const vwap = this.safeFloat (ticker, 'vwap');
+        const baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = undefined;
         if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
         }
-        let last = this.safeFloat (ticker, 'price');
+        const last = this.safeFloat (ticker, 'price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -143,19 +146,37 @@ module.exports = class paymium extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['created_at_int']) * 1000;
-        const volume = 'traded_' + market['base'].toLowerCase ();
+        let timestamp = this.safeInteger (trade, 'created_at_int');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const id = this.safeString (trade, 'uuid');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const side = this.safeString (trade, 'side');
+        const price = this.safeFloat (trade, 'price');
+        const amountField = 'traded_' + market['base'].toLowerCase ();
+        const amount = this.safeFloat (trade, amountField);
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'info': trade,
-            'id': trade['uuid'],
+            'id': id,
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
-            'side': trade['side'],
-            'price': trade['price'],
-            'amount': trade[volume],
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         };
     }
 

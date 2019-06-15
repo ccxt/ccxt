@@ -708,13 +708,13 @@ module.exports = class okex3 extends Exchange {
         const market = this.market (symbol);
         let method = market['type'] + 'GetInstrumentsInstrumentId';
         method += (market['type'] === 'swap') ? 'Depth' : 'Book';
-        let request = {
+        const request = {
             'instrument_id': market['id'],
         };
         if (limit !== undefined) {
             request['size'] = limit; // max 200
         }
-        let response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {      asks: [ ["0.02685268", "0.242571", "1"],
         //                    ["0.02685493", "0.164085", "1"],
@@ -770,8 +770,8 @@ module.exports = class okex3 extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let last = this.safeFloat (ticker, 'last');
-        let open = this.safeFloat (ticker, 'open_24h');
+        const last = this.safeFloat (ticker, 'last');
+        const open = this.safeFloat (ticker, 'open_24h');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -837,7 +837,7 @@ module.exports = class okex3 extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         const defaultType = this.safeString2 (this.options, 'fetchTickers', 'defaultType');
-        let type = this.safeString (params, 'type', defaultType);
+        const type = this.safeString (params, 'type', defaultType);
         return await this.fetchTickersByType (type, symbols, this.omit (params, 'type'));
     }
 
@@ -925,7 +925,7 @@ module.exports = class okex3 extends Exchange {
         const feeCost = this.safeFloat (trade, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
-            let feeCurrency = undefined;
+            const feeCurrency = undefined;
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1019,8 +1019,8 @@ module.exports = class okex3 extends Exchange {
         //     ]
         //
         if (Array.isArray (ohlcv)) {
-            let numElements = ohlcv.length;
-            let volumeIndex = (numElements > 6) ? 6 : 5;
+            const numElements = ohlcv.length;
+            const volumeIndex = (numElements > 6) ? 6 : 5;
             let timestamp = ohlcv[0];
             if (typeof timestamp === 'string') {
                 timestamp = this.parse8601 (timestamp);
@@ -1049,7 +1049,7 @@ module.exports = class okex3 extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         const method = market['type'] + 'GetInstrumentsInstrumentIdCandles';
         const request = {
             'instrument_id': market['id'],
@@ -1753,7 +1753,7 @@ module.exports = class okex3 extends Exchange {
             }
         }
         let amount = this.safeFloat (order, 'size');
-        let filled = this.safeFloat2 (order, 'filled_size', 'filled_qty');
+        const filled = this.safeFloat2 (order, 'filled_size', 'filled_qty');
         let remaining = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
@@ -1780,7 +1780,7 @@ module.exports = class okex3 extends Exchange {
         const feeCost = this.safeFloat (order, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
-            let feeCurrency = undefined;
+            const feeCurrency = undefined;
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -2040,7 +2040,7 @@ module.exports = class okex3 extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
-        let currencyId = this.safeString (depositAddress, 'currency');
+        const currencyId = this.safeString (depositAddress, 'currency');
         let code = undefined;
         if (currencyId !== undefined) {
             code = this.commonCurrencyCode (currencyId.toUpperCase ());
@@ -2671,7 +2671,7 @@ module.exports = class okex3 extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/api' + '/' + api + '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + request;
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         const type = this.getPathAuthenticationType (path);
         if (type === 'public') {
             if (Object.keys (query).length) {
