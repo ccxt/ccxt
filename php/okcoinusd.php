@@ -526,7 +526,10 @@ class okcoinusd extends Exchange {
         $request = array();
         $response = $this->publicGetTickers (array_merge ($request, $params));
         $tickers = $response['tickers'];
-        $timestamp = intval ($response['date']) * 1000;
+        $timestamp = $this->safe_integer($response, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
@@ -541,7 +544,7 @@ class okcoinusd extends Exchange {
         $this->load_markets();
         $request = array();
         $response = $this->webGetSpotMarketsTickers (array_merge ($request, $params));
-        $tickers = $response['data'];
+        $tickers = $this->safe_value($response, 'data');
         $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i]);

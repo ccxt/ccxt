@@ -525,7 +525,9 @@ class okcoinusd (Exchange):
         request = {}
         response = self.publicGetTickers(self.extend(request, params))
         tickers = response['tickers']
-        timestamp = int(response['date']) * 1000
+        timestamp = self.safe_integer(response, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
@@ -538,7 +540,7 @@ class okcoinusd (Exchange):
         self.load_markets()
         request = {}
         response = self.webGetSpotMarketsTickers(self.extend(request, params))
-        tickers = response['data']
+        tickers = self.safe_value(response, 'data')
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
