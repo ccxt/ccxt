@@ -178,9 +178,9 @@ module.exports = class tidex extends Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
+        const market = this.markets[symbol];
         let key = 'quote';
-        let rate = market[takerOrMaker];
+        const rate = market[takerOrMaker];
         let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
         if (side === 'sell') {
             cost *= price;
@@ -297,7 +297,7 @@ module.exports = class tidex extends Exchange {
             ids = this.ids.join ('-');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
-                let numIds = this.ids.length;
+                const numIds = this.ids.length;
                 throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
             }
         } else {
@@ -417,7 +417,7 @@ module.exports = class tidex extends Exchange {
         const id = this.safeString2 (trade, 'trade_id', 'tid');
         const orderId = this.safeString (trade, 'order_id');
         if ('pair' in trade) {
-            let marketId = this.safeString (trade, 'pair');
+            const marketId = this.safeString (trade, 'pair');
             market = this.safeValue (this.markets_by_id, marketId, market);
         }
         let symbol = undefined;
@@ -432,7 +432,7 @@ module.exports = class tidex extends Exchange {
         if (feeCost !== undefined) {
             let feeCurrencyId = this.safeString (trade, 'commissionCurrency');
             feeCurrencyId = feeCurrencyId.toUpperCase ();
-            let feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+            const feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
             let feeCurrencyCode = undefined;
             if (feeCurrency !== undefined) {
                 feeCurrencyCode = feeCurrency['code'];
