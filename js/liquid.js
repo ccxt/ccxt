@@ -105,7 +105,7 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     [
         //         {
@@ -125,15 +125,15 @@ module.exports = class liquid extends Exchange {
         //         },
         //     ]
         //
-        let result = {};
+        const result = {};
         for (let i = 0; i < response.length; i++) {
-            let currency = response[i];
-            let id = this.safeString (currency, 'currency');
-            let code = this.commonCurrencyCode (id);
-            let active = currency['depositable'] && currency['withdrawable'];
-            let amountPrecision = this.safeInteger (currency, 'display_precision');
-            let pricePrecision = this.safeInteger (currency, 'quoting_precision');
-            let precision = Math.max (amountPrecision, pricePrecision);
+            const currency = response[i];
+            const id = this.safeString (currency, 'currency');
+            const code = this.commonCurrencyCode (id);
+            const active = currency['depositable'] && currency['withdrawable'];
+            const amountPrecision = this.safeInteger (currency, 'display_precision');
+            const pricePrecision = this.safeInteger (currency, 'quoting_precision');
+            const precision = Math.max (amountPrecision, pricePrecision);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -166,7 +166,7 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetProducts ();
+        const markets = await this.publicGetProducts ();
         //
         //     [
         //         {
@@ -197,23 +197,23 @@ module.exports = class liquid extends Exchange {
         //         },
         //     ]
         //
-        let currencies = await this.fetchCurrencies ();
-        let currenciesByCode = this.indexBy (currencies, 'code');
-        let result = [];
+        const currencies = await this.fetchCurrencies ();
+        const currenciesByCode = this.indexBy (currencies, 'code');
+        const result = [];
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let id = market['id'].toString ();
-            let baseId = market['base_currency'];
-            let quoteId = market['quoted_currency'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let maker = this.safeFloat (market, 'maker_fee');
-            let taker = this.safeFloat (market, 'taker_fee');
-            let active = !market['disabled'];
-            let baseCurrency = this.safeValue (currenciesByCode, base);
-            let quoteCurrency = this.safeValue (currenciesByCode, quote);
-            let precision = {
+            const market = markets[i];
+            const id = market['id'].toString ();
+            const baseId = market['base_currency'];
+            const quoteId = market['quoted_currency'];
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const maker = this.safeFloat (market, 'maker_fee');
+            const taker = this.safeFloat (market, 'taker_fee');
+            const active = !market['disabled'];
+            const baseCurrency = this.safeValue (currenciesByCode, base);
+            const quoteCurrency = this.safeValue (currenciesByCode, quote);
+            const precision = {
                 'amount': 8,
                 'price': 8,
             };
@@ -233,7 +233,7 @@ module.exports = class liquid extends Exchange {
                     minCost = minPrice * minAmount;
                 }
             }
-            let limits = {
+            const limits = {
                 'amount': {
                     'min': minAmount,
                     'max': undefined,
@@ -267,17 +267,14 @@ module.exports = class liquid extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetAccountsBalance (params);
-        let result = { 'info': balances };
+        const balances = await this.privateGetAccountsBalance (params);
+        const result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currencyId = balance['currency'];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            }
-            let total = parseFloat (balance['balance']);
-            let account = {
+            const balance = balances[b];
+            const currencyId = balance['currency'];
+            const code = this.commonCurrencyCode (currencyId);
+            const total = this.safeFloat (balance, 'balance');
+            const account = {
                 'free': total,
                 'used': 0.0,
                 'total': total,
@@ -289,10 +286,11 @@ module.exports = class liquid extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetProductsIdPriceLevels (this.extend ({
+        const request = {
             'id': this.marketId (symbol),
-        }, params));
-        return this.parseOrderBook (orderbook, undefined, 'buy_price_levels', 'sell_price_levels');
+        };
+        const response = await this.publicGetProductsIdPriceLevels (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'buy_price_levels', 'sell_price_levels');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -598,7 +596,7 @@ module.exports = class liquid extends Exchange {
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
         }
-        let marketId = this.safeString (order, 'product_id');
+        const marketId = this.safeString (order, 'product_id');
         market = this.safeValue (this.markets_by_id, marketId);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const amount = this.safeFloat (order, 'quantity');
@@ -610,7 +608,7 @@ module.exports = class liquid extends Exchange {
             symbol = market['symbol'];
             feeCurrency = market['quote'];
         }
-        let type = order['order_type'];
+        const type = this.safeString (order, 'order_type');
         let tradeCost = 0;
         let tradeFilled = 0;
         let average = this.safeFloat (order, 'average_price');
@@ -622,7 +620,7 @@ module.exports = class liquid extends Exchange {
         for (let i = 0; i < numTrades; i++) {
             // php copies values upon assignment, but not references them
             // todo rewrite this (shortly)
-            let trade = trades[i];
+            const trade = trades[i];
             trade['order'] = orderId;
             trade['type'] = type;
             tradeFilled = this.sum (tradeFilled, trade['amount']);

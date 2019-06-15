@@ -65,23 +65,25 @@ module.exports = class nova extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetMarkets ();
-        let markets = response['markets'];
-        let result = [];
+        const response = await this.publicGetMarkets (params);
+        const markets = response['markets'];
+        const result = [];
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let id = market['marketname'];
-            let [ quote, base ] = id.split ('_');
-            let symbol = base + '/' + quote;
-            let active = true;
-            if (market['disabled']) {
-                active = false;
-            }
+            const market = markets[i];
+            const id = this.safeString (market, 'marketname');
+            const [ quoteId, baseId ] = id.split ('_');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const disabled = this.safeValue (market, 'disabled', false);
+            const active = !disabled;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'info': market,
             });
@@ -91,20 +93,22 @@ module.exports = class nova extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetMarketOpenordersPairBoth (this.extend ({
+        const request = {
             'pair': this.marketId (symbol),
-        }, params));
-        return this.parseOrderBook (orderbook, undefined, 'buyorders', 'sellorders', 'price', 'amount');
+        };
+        const response = await this.publicGetMarketOpenordersPairBoth (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'buyorders', 'sellorders', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketInfoPair (this.extend ({
+        const request = {
             'pair': this.marketId (symbol),
-        }, params));
-        let ticker = response['markets'][0];
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'last_price');
+        };
+        const response = await this.publicGetMarketInfoPair (this.extend (request, params));
+        const ticker = response['markets'][0];
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'last_price');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -129,28 +133,50 @@ module.exports = class nova extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
-        let timestamp = trade['unix_t_datestamp'] * 1000;
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.safeInteger (trade, 'unix_t_datestamp');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const type = undefined;
+        let side = this.safeString (trade, 'tradetype');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': undefined,
             'order': undefined,
-            'type': undefined,
-            'side': trade['tradetype'].toLowerCase (),
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketOrderhistoryPair (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
-        }, params));
+        };
+        const response = await this.publicGetMarketOrderhistoryPair (this.extend (request, params));
         return this.parseTrades (response['items'], market, since, limit);
     }
 

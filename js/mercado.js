@@ -118,7 +118,10 @@ module.exports = class mercado extends Exchange {
         };
         const response = await this.publicGetCoinTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'ticker', {});
-        const timestamp = this.safeInteger (ticker, 'date') * 1000;
+        let timestamp = this.safeInteger (ticker, 'date');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -145,7 +148,7 @@ module.exports = class mercado extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = trade['date'] * 1000;
+        const timestamp = trade['date'] * 1000;
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -188,8 +191,8 @@ module.exports = class mercado extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const code = currencies[i];
             const currencyId = this.currencyId (code);
-            let lowercase = currencyId.toLowerCase ();
-            let account = this.account ();
+            const lowercase = currencyId.toLowerCase ();
+            const account = this.account ();
             if (lowercase in balances) {
                 account['free'] = parseFloat (balances[lowercase]['available']);
                 account['total'] = parseFloat (balances[lowercase]['total']);
@@ -311,7 +314,7 @@ module.exports = class mercado extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = this.safeString (order, 'coin_pair');
+            const marketId = this.safeString (order, 'coin_pair');
             market = this.safeValue (this.markets_by_id, marketId);
         }
         if (market !== undefined) {
@@ -376,7 +379,7 @@ module.exports = class mercado extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
+        const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
             'quantity': amount.toFixed (10),

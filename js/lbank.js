@@ -109,7 +109,7 @@ module.exports = class lbank extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetAccuracy (params);
-        let result = [];
+        const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = market['symbol'];
