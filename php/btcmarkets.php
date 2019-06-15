@@ -671,7 +671,7 @@ class btcmarkets extends Exchange {
                 $body = $this->json ($params);
                 $auth .= $body;
             } else {
-                $query = $this->ksort ($this->omit ($params, $this->extract_params($path)));
+                $query = $this->keysort ($this->omit ($params, $this->extract_params($path)));
                 $queryString = '';
                 if ($query) {
                     $queryString = $this->urlencode ($query);
