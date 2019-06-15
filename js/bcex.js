@@ -511,7 +511,7 @@ module.exports = class bcex extends Exchange {
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let side = this.safeString (order, 'flag');
         if (side === 'sale') {
             side = 'sell';
@@ -547,7 +547,7 @@ module.exports = class bcex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let type = undefined;
+        const type = undefined;
         let side = this.safeString (order, 'type');
         if (side === 'sale') {
             side = 'sell';
@@ -559,8 +559,8 @@ module.exports = class bcex extends Exchange {
         const filled = amount - remaining;
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const cost = filled * price;
-        let fee = undefined;
-        let result = {
+        const fee = undefined;
+        const result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -695,9 +695,9 @@ module.exports = class bcex extends Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
-        let rate = market[side];
-        let cost = parseFloat (this.costToPrecision (symbol, amount * price));
+        const market = this.markets[symbol];
+        const rate = market[side];
+        const cost = parseFloat (this.costToPrecision (symbol, amount * price));
         return {
             'type': takerOrMaker,
             'currency': market['quote'],

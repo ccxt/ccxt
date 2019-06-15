@@ -930,7 +930,7 @@ module.exports = class anxpro extends Exchange {
             trades.push (parsedTrade);
             filled = this.sum (filled, parsedTrade['amount']);
         }
-        let price = this.safeFloat (order, 'limitPriceInSettlementCurrency');
+        const price = this.safeFloat (order, 'limitPriceInSettlementCurrency');
         const executedAverageRate = this.safeFloat (order, 'executedAverageRate');
         const remaining = type === 'market' ? 0 : this.safeFloat (order, 'tradedCurrencyAmountOutstanding');
         let amount = this.safeFloat (order, 'tradedCurrencyAmount');

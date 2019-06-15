@@ -86,13 +86,13 @@ module.exports = class ice3x extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencyList (params);
-        let currencies = response['response']['entities'];
-        let precision = this.precision['amount'];
-        let result = {};
+        const response = await this.publicGetCurrencyList (params);
+        const currencies = response['response']['entities'];
+        const precision = this.precision['amount'];
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = this.safeString (currency, 'currency_id');
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'currency_id');
             let code = this.safeString (currency, 'iso');
             code = code.toUpperCase ();
             code = this.commonCurrencyCode (code);

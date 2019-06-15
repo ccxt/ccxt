@@ -250,25 +250,25 @@ module.exports = class bitbay extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostInfo (params);
-        if ('balances' in response) {
-            let balance = response['balances'];
-            let result = { 'info': balance };
-            let codes = Object.keys (this.currencies);
-            for (let i = 0; i < codes.length; i++) {
-                let code = codes[i];
-                let currency = this.currencies[code];
-                let id = currency['id'];
-                let account = this.account ();
-                if (id in balance) {
-                    account['free'] = parseFloat (balance[id]['available']);
-                    account['used'] = parseFloat (balance[id]['locked']);
-                    account['total'] = this.sum (account['free'], account['used']);
-                }
-                result[code] = account;
-            }
-            return this.parseBalance (result);
+        const balances = this.safeValue (response, 'balances');
+        if (balances === undefined) {
+            throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
         }
-        throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
+        const balance = response['balances'];
+        const result = { 'info': balance };
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currencies[code];
+            const currencyId = currency['id'];
+            const account = this.account ();
+            const balance = this.safeValue (balances, currencyId, {});
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'locked');
+            account['total'] = this.sum (account['free'], account['used']);
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

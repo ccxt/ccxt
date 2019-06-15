@@ -241,8 +241,8 @@ module.exports = class bibox extends Exchange {
         if (market === undefined) {
             let marketId = this.safeString (trade, 'pair');
             if (marketId === undefined) {
-                let baseId = this.safeString (trade, 'coin_symbol');
-                let quoteId = this.safeString (trade, 'currency_symbol');
+                const baseId = this.safeString (trade, 'coin_symbol');
+                const quoteId = this.safeString (trade, 'currency_symbol');
                 if ((baseId !== undefined) && (quoteId !== undefined)) {
                     marketId = baseId + '_' + quoteId;
                 }
@@ -264,7 +264,7 @@ module.exports = class bibox extends Exchange {
                 feeCurrency = this.commonCurrencyCode (feeCurrency);
             }
         }
-        let feeRate = undefined; // todo: deduce from market if market is defined
+        const feeRate = undefined; // todo: deduce from market if market is defined
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -637,8 +637,8 @@ module.exports = class bibox extends Exchange {
         let symbol = undefined;
         if (market === undefined) {
             let marketId = undefined;
-            let baseId = this.safeString (order, 'coin_symbol');
-            let quoteId = this.safeString (order, 'currency_symbol');
+            const baseId = this.safeString (order, 'coin_symbol');
+            const quoteId = this.safeString (order, 'currency_symbol');
             if ((baseId !== undefined) && (quoteId !== undefined)) {
                 marketId = baseId + '_' + quoteId;
             }
@@ -649,12 +649,12 @@ module.exports = class bibox extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let type = (order['order_type'] === 1) ? 'market' : 'limit';
-        let timestamp = order['createdAt'];
-        let price = this.safeFloat (order, 'price');
-        let average = this.safeFloat (order, 'deal_price');
-        let filled = this.safeFloat (order, 'deal_amount');
-        let amount = this.safeFloat (order, 'amount');
+        const type = (order['order_type'] === 1) ? 'market' : 'limit';
+        const timestamp = order['createdAt'];
+        const price = this.safeFloat (order, 'price');
+        const average = this.safeFloat (order, 'deal_price');
+        const filled = this.safeFloat (order, 'deal_amount');
+        const amount = this.safeFloat (order, 'amount');
         let cost = this.safeFloat2 (order, 'deal_money', 'money');
         let remaining = undefined;
         if (filled !== undefined) {
@@ -665,7 +665,7 @@ module.exports = class bibox extends Exchange {
                 cost = price * filled;
             }
         }
-        let side = (order['order_side'] === 1) ? 'buy' : 'sell';
+        const side = (order['order_side'] === 1) ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const id = this.safeString (order, 'id');
         const feeCost = this.safeFloat (order, 'fee');

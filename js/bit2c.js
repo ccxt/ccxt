@@ -300,7 +300,7 @@ module.exports = class bit2c extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let method = 'privateGetOrderOrderhistory';
+        const method = 'privateGetOrderOrderhistory';
         const request = {};
         if (limit !== undefined) {
             request['take'] = limit;

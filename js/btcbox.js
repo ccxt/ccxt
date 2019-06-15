@@ -273,7 +273,7 @@ module.exports = class btcbox extends Exchange {
                 status = 'closed';
             }
         }
-        let trades = undefined; // todo: this.parseTrades (order['trades']);
+        const trades = undefined; // todo: this.parseTrades (order['trades']);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

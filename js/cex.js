@@ -284,7 +284,7 @@ module.exports = class cex extends Exchange {
             const quoteAmount = this.safeFloat (item, 'a:' + quoteId + ':cds');
             const fee = this.safeFloat (item, 'f:' + quoteId + ':cds');
             const amount = this.safeFloat (item, 'amount');
-            let price = this.safeFloat (item, 'price');
+            const price = this.safeFloat (item, 'price');
             const remaining = this.safeFloat (item, 'remains');
             const filled = amount - remaining;
             let orderAmount = undefined;
@@ -632,7 +632,7 @@ module.exports = class cex extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const remaining = this.safeFloat2 (order, 'pending', 'remains');
-        let filled = amount - remaining;
+        const filled = amount - remaining;
         let fee = undefined;
         let cost = undefined;
         if (market !== undefined) {
@@ -848,7 +848,7 @@ module.exports = class cex extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let method = 'privatePostArchivedOrdersPair';
+        const method = 'privatePostArchivedOrdersPair';
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
         }

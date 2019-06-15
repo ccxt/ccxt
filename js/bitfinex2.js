@@ -210,7 +210,7 @@ module.exports = class bitfinex2 extends bitfinex {
 
     async fetchMarkets (params = {}) {
         const response = await this.v1GetSymbolsDetails (params);
-        let result = [];
+        const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             let id = this.safeString (market, 'pair');
@@ -368,7 +368,7 @@ module.exports = class bitfinex2 extends bitfinex {
         await this.loadMarkets ();
         const request = {};
         if (symbols !== undefined) {
-            let ids = this.marketIds (symbols);
+            const ids = this.marketIds (symbols);
             request['symbols'] = ids.join (',');
         } else {
             request['symbols'] = 'ALL';
@@ -570,7 +570,7 @@ module.exports = class bitfinex2 extends bitfinex {
         // https://github.com/ccxt/ccxt/issues/4971
         await this.loadMarkets ();
         let market = undefined;
-        let request = {
+        const request = {
             'end': this.milliseconds (),
         };
         if (since !== undefined) {

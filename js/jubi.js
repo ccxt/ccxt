@@ -28,21 +28,23 @@ module.exports = class jubi extends btcbox {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetAllticker ();
-        let keys = Object.keys (markets);
-        let result = [];
-        for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
-            let base = id.toUpperCase ();
-            let quote = 'CNY'; // todo
-            let symbol = base + '/' + quote;
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+        const markets = await this.publicGetAllticker (params);
+        const keys = Object.keys (markets);
+        const result = [];
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const baseId = id;
+            const quoteId = 'cny';
+            const base = this.commonCurrencyCode (baseId.toUpperCase ());
+            const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': id,
             });
         }

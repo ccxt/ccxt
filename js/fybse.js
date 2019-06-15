@@ -53,7 +53,7 @@ module.exports = class fybse extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetaccinfo (params);
-        let btc = this.safeFloat (response, 'btcBal');
+        const btc = this.safeFloat (response, 'btcBal');
         const symbol = this.symbols[0];
         const quote = this.markets[symbol]['quote'];
         const lowercase = quote.toLowerCase () + 'Bal';

@@ -91,7 +91,7 @@ module.exports = class bitstamp1 extends Exchange {
         }
         await this.loadMarkets ();
         const ticker = await this.publicGetTicker (params);
-        let timestamp = parseInt (ticker['timestamp']) * 1000;
+        const timestamp = parseInt (ticker['timestamp']) * 1000;
         const vwap = this.safeFloat (ticker, 'vwap');
         const baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = undefined;

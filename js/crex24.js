@@ -641,8 +641,8 @@ module.exports = class crex24 extends Exchange {
             }
         }
         const side = this.safeString (order, 'side');
-        let fee = undefined;
-        let trades = undefined;
+        const fee = undefined;
+        const trades = undefined;
         let average = undefined;
         if (cost !== undefined) {
             if (filled) {

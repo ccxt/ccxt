@@ -66,20 +66,19 @@ module.exports = class coinspot extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostMyBalances (params);
         const result = { 'info': response };
-        if ('balance' in response) {
-            const balances = response['balance'];
-            const currencyIds = Object.keys (balances);
-            for (let i = 0; i < currencyIds.length; i++) {
-                const currencyId = currencyIds[i];
-                const uppercase = currencyId.toUpperCase ();
-                const code = this.commonCurrencyCode (uppercase);
-                let account = {
-                    'free': balances[currencyId],
-                    'used': 0.0,
-                    'total': balances[currencyId],
-                };
-                result[code] = account;
-            }
+        const balances = this.safeValue (response, 'balance', {});
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const uppercase = currencyId.toUpperCase ();
+            const code = this.commonCurrencyCode (uppercase);
+            const total = this.safeFloat (balances, currencyId);
+            const account = {
+                'free': total,
+                'used': 0.0,
+                'total': total,
+            };
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

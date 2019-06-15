@@ -346,7 +346,7 @@ module.exports = class bitz extends Exchange {
         //                    usd: "287.10",
         //                    krw: "318655.82"   }
         //
-        let timestamp = undefined;
+        const timestamp = undefined;
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (ticker, 'symbol');
@@ -638,7 +638,7 @@ module.exports = class bitz extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let duration = this.parseTimeframe (timeframe) * 1000;
+        const duration = this.parseTimeframe (timeframe) * 1000;
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -753,7 +753,7 @@ module.exports = class bitz extends Exchange {
                 cost = filled * price;
             }
         }
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
@@ -1053,7 +1053,7 @@ module.exports = class bitz extends Exchange {
         if (response === undefined) {
             return; // fallback to default error handler
         }
-        let status = this.safeString (response, 'status');
+        const status = this.safeString (response, 'status');
         if (status !== undefined) {
             const feedback = this.id + ' ' + body;
             const exceptions = this.exceptions;

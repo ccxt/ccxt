@@ -407,8 +407,8 @@ module.exports = class exmo extends Exchange {
                 throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
             }
             const fee = parseFloat (parts[0].replace ('%', '')) * 0.01;
-            let taker = fee;
-            let maker = fee;
+            const taker = fee;
+            const maker = fee;
             return {
                 // 'info': response,
                 'maker': maker,
@@ -488,12 +488,12 @@ module.exports = class exmo extends Exchange {
         const ids = Object.keys (fees['withdraw']);
         const limitsByMarketId = this.indexBy (fees['info']['data']['limits'], 'pair');
         const marketIds = Object.keys (limitsByMarketId);
-        let minAmounts = {};
-        let minPrices = {};
-        let minCosts = {};
-        let maxAmounts = {};
-        let maxPrices = {};
-        let maxCosts = {};
+        const minAmounts = {};
+        const minPrices = {};
+        const minCosts = {};
+        const maxAmounts = {};
+        const maxPrices = {};
+        const maxCosts = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const limit = limitsByMarketId[marketId];
@@ -717,7 +717,7 @@ module.exports = class exmo extends Exchange {
         const amount = this.safeFloat (trade, 'quantity');
         const cost = this.safeFloat (trade, 'amount');
         const side = this.safeString (trade, 'type');
-        let type = undefined;
+        const type = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
             if (market['taker'] !== market['maker']) {
@@ -1022,13 +1022,13 @@ module.exports = class exmo extends Exchange {
         }
         let amount = this.safeFloat (order, 'quantity');
         if (amount === undefined) {
-            let amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
+            const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
             amount = this.safeFloat (order, amountField);
         }
         let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'amount');
         let filled = 0.0;
-        let trades = [];
+        const trades = [];
         const transactions = this.safeValue (order, 'trades', []);
         let feeCost = undefined;
         let lastTradeTimestamp = undefined;
@@ -1144,8 +1144,8 @@ module.exports = class exmo extends Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
-        let rate = market[takerOrMaker];
+        const market = this.markets[symbol];
+        const rate = market[takerOrMaker];
         let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
         let key = 'quote';
         if (side === 'sell') {
@@ -1227,7 +1227,7 @@ module.exports = class exmo extends Exchange {
         let address = this.safeString (transaction, 'account');
         if (address !== undefined) {
             const parts = address.split (':');
-            let numParts = parts.length;
+            const numParts = parts.length;
             if (numParts === 2) {
                 address = parts[1].replace (' ', '');
             }
@@ -1235,7 +1235,7 @@ module.exports = class exmo extends Exchange {
         let fee = undefined;
         // fixed funding fees only (for now)
         if (!this.fees['funding']['percentage']) {
-            let key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
+            const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeFloat (this.options['fundingFees'][key], code);
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');
@@ -1327,7 +1327,7 @@ module.exports = class exmo extends Exchange {
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            const nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -1362,10 +1362,10 @@ module.exports = class exmo extends Exchange {
                 let code = undefined;
                 const message = this.safeString (response, 'error');
                 const errorParts = message.split (':');
-                let numParts = errorParts.length;
+                const numParts = errorParts.length;
                 if (numParts > 1) {
                     const errorSubParts = errorParts[0].split (' ');
-                    let numSubParts = errorSubParts.length;
+                    const numSubParts = errorSubParts.length;
                     code = (numSubParts > 1) ? errorSubParts[1] : errorSubParts[0];
                 }
                 const feedback = this.id + ' ' + this.json (response);

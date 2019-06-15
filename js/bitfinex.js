@@ -515,8 +515,8 @@ module.exports = class bitfinex extends Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
-        let rate = market[takerOrMaker];
+        const market = this.markets[symbol];
+        const rate = market[takerOrMaker];
         let cost = amount * rate;
         let key = 'quote';
         if (side === 'sell') {
@@ -655,9 +655,9 @@ module.exports = class bitfinex extends Exchange {
         if (side !== undefined) {
             side = side.toLowerCase ();
         }
-        let orderId = this.safeString (trade, 'order_id');
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'amount');
+        const orderId = this.safeString (trade, 'order_id');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -1017,7 +1017,7 @@ module.exports = class bitfinex extends Exchange {
         }
         let code = undefined;
         if (currency === undefined) {
-            let currencyId = this.safeString (transaction, 'currency');
+            const currencyId = this.safeString (transaction, 'currency');
             if (currencyId in this.currencies_by_id) {
                 currency = this.currencies_by_id[currencyId];
             } else {
@@ -1031,7 +1031,7 @@ module.exports = class bitfinex extends Exchange {
         if (type !== undefined) {
             type = type.toLowerCase ();
         }
-        let status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         let feeCost = this.safeFloat (transaction, 'fee');
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
@@ -1111,23 +1111,23 @@ module.exports = class bitfinex extends Exchange {
         let url = this.urls['api'][api] + request;
         if ((api === 'public') || (path.indexOf ('/hist') >= 0)) {
             if (Object.keys (query).length) {
-                let suffix = '?' + this.urlencode (query);
+                const suffix = '?' + this.urlencode (query);
                 url += suffix;
                 request += suffix;
             }
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            const nonce = this.nonce ();
             query = this.extend ({
                 'nonce': nonce.toString (),
                 'request': request,
             }, query);
             body = this.json (query);
             query = this.encode (body);
-            let payload = this.stringToBase64 (query);
-            let secret = this.encode (this.secret);
-            let signature = this.hmac (payload, secret, 'sha384');
+            const payload = this.stringToBase64 (query);
+            const secret = this.encode (this.secret);
+            const signature = this.hmac (payload, secret, 'sha384');
             headers = {
                 'X-BFX-APIKEY': this.apiKey,
                 'X-BFX-PAYLOAD': this.decode (payload),

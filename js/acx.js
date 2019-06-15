@@ -109,7 +109,7 @@ module.exports = class acx extends Exchange {
             let baseId = this.safeString (market, 'base_unit');
             let quoteId = this.safeString (market, 'quote_unit');
             if ((baseId === undefined) || (quoteId === undefined)) {
-                let ids = symbol.split ('/');
+                const ids = symbol.split ('/');
                 baseId = ids[0].toLowerCase ();
                 quoteId = ids[1].toLowerCase ();
             }

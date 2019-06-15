@@ -323,7 +323,7 @@ module.exports = class crypton extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
-        let market = undefined;
+        const market = undefined;
         if (symbol !== undefined) {
             request['market'] = this.marketId (symbol);
         }

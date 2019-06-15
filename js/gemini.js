@@ -87,7 +87,7 @@ module.exports = class gemini extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicGetSymbols (params);
-        let result = [];
+        const result = [];
         for (let i = 0; i < response.length; i++) {
             const id = response[i];
             const market = id;
@@ -252,7 +252,7 @@ module.exports = class gemini extends Exchange {
         } else {
             type = order['type'];
         }
-        let fee = undefined;
+        const fee = undefined;
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (order, 'symbol');
@@ -389,7 +389,7 @@ module.exports = class gemini extends Exchange {
         const timestamp = this.safeInteger (transaction, 'timestampms');
         let code = undefined;
         if (currency === undefined) {
-            let currencyId = this.safeString (transaction, 'currency');
+            const currencyId = this.safeString (transaction, 'currency');
             if (currencyId in this.currencies_by_id) {
                 currency = this.currencies_by_id[currencyId];
             }

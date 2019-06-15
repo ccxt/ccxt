@@ -361,7 +361,7 @@ module.exports = class coinex extends Exchange {
             const currencyId = currencies[i];
             const balance = balances[currencyId];
             const code = this.commonCurrencyCode (currencyId);
-            let account = {
+            const account = {
                 'free': parseFloat (balance['available']),
                 'used': parseFloat (balance['frozen']),
                 'total': 0.0,
@@ -421,7 +421,7 @@ module.exports = class coinex extends Exchange {
         market = this.safeValue (this.markets_by_id, marketId);
         let feeCurrency = undefined;
         const feeCurrencyId = this.safeString (order, 'fee_asset');
-        let currency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+        const currency = this.safeValue (this.currencies_by_id, feeCurrencyId);
         if (currency !== undefined) {
             feeCurrency = currency['code'];
         }

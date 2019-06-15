@@ -558,7 +558,7 @@ module.exports = class cobinhood extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         side = (side === 'sell') ? 'ask' : 'bid';
         const request = {
             'trading_pair_id': market['id'],
@@ -594,7 +594,7 @@ module.exports = class cobinhood extends Exchange {
         const request = {
             'order_id': id,
         };
-        let response = await this.privateDeleteTradingOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteTradingOrdersOrderId (this.extend (request, params));
         return this.parseOrder (this.extend (response, {
             'id': id,
         }));

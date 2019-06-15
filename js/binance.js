@@ -208,7 +208,7 @@ module.exports = class binance extends Exchange {
         const markets = this.safeValue (response, 'symbols');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
+            const market = markets[i];
             const id = this.safeString (market, 'symbol');
             // "123456" is a "test symbol/market"
             if (id === '123456') {
@@ -254,7 +254,7 @@ module.exports = class binance extends Exchange {
                 },
             };
             if ('PRICE_FILTER' in filters) {
-                let filter = filters['PRICE_FILTER'];
+                const filter = filters['PRICE_FILTER'];
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -287,9 +287,9 @@ module.exports = class binance extends Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
+        const market = this.markets[symbol];
         let key = 'quote';
-        let rate = market[takerOrMaker];
+        const rate = market[takerOrMaker];
         let cost = amount * rate;
         let precision = market['precision']['price'];
         if (side === 'sell') {
@@ -511,7 +511,7 @@ module.exports = class binance extends Exchange {
         }
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = this.safeString (trade, 'symbol');
+            const marketId = this.safeString (trade, 'symbol');
             market = this.safeValue (this.markets_by_id, marketId);
         }
         if (market !== undefined) {
@@ -660,7 +660,7 @@ module.exports = class binance extends Exchange {
         const fills = this.safeValue (order, 'fills');
         if (fills !== undefined) {
             trades = this.parseTrades (fills, market);
-            let numTrades = trades.length;
+            const numTrades = trades.length;
             if (numTrades > 0) {
                 cost = trades[0]['cost'];
                 fee = {
@@ -974,9 +974,9 @@ module.exports = class binance extends Exchange {
                 price = cost / amount;
             }
         }
-        let id = undefined;
-        let type = undefined;
-        let takerOrMaker = undefined;
+        const id = undefined;
+        const type = undefined;
+        const takerOrMaker = undefined;
         return {
             'id': id,
             'timestamp': timestamp,
@@ -1121,7 +1121,7 @@ module.exports = class binance extends Exchange {
         }
         let timestamp = undefined;
         const insertTime = this.safeInteger (transaction, 'insertTime');
-        let applyTime = this.safeInteger (transaction, 'applyTime');
+        const applyTime = this.safeInteger (transaction, 'applyTime');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
             if ((insertTime !== undefined) && (applyTime === undefined)) {

@@ -504,8 +504,8 @@ module.exports = class coinbase extends Exchange {
                     code = this.currencies_by_id[currencyId]['code'];
                 }
                 const total = this.safeFloat (balance['balance'], 'amount');
-                let free = total;
-                let used = undefined;
+                const free = total;
+                const used = undefined;
                 if (code in result) {
                     result[code]['free'] = this.sum (result[code]['free'], total);
                     result[code]['total'] = this.sum (result[code]['total'], total);

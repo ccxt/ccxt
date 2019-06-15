@@ -452,7 +452,7 @@ module.exports = class bitso extends Exchange {
         let address = this.safeString (response['payload'], 'account_identifier');
         let tag = undefined;
         if (code === 'XRP') {
-            let parts = address.split ('?dt=');
+            const parts = address.split ('?dt=');
             address = parts[0];
             tag = parts[1];
         }
@@ -500,7 +500,7 @@ module.exports = class bitso extends Exchange {
                 endpoint += '?' + this.urlencode (query);
             }
         }
-        let url = this.urls['api'] + endpoint;
+        const url = this.urls['api'] + endpoint;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();

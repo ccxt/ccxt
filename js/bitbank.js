@@ -128,7 +128,7 @@ module.exports = class bitbank extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (ticker, 'timestamp');
-        let last = this.safeFloat (ticker, 'last');
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -564,7 +564,7 @@ module.exports = class bitbank extends Exchange {
             const errorClasses = this.exceptions;
             const code = this.safeString (data, 'code');
             const message = this.safeString (errorMessages, code, 'Error');
-            let ErrorClass = this.safeValue (errorClasses, code);
+            const ErrorClass = this.safeValue (errorClasses, code);
             if (ErrorClass !== undefined) {
                 throw new ErrorClass (message);
             } else {

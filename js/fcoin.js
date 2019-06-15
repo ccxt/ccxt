@@ -244,7 +244,7 @@ module.exports = class fcoin extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = undefined;
+        const timestamp = undefined;
         let symbol = undefined;
         if (market === undefined) {
             const tickerType = this.safeString (ticker, 'type');
@@ -342,7 +342,7 @@ module.exports = class fcoin extends Exchange {
         }
         await this.loadMarkets ();
         const orderType = type;
-        let request = {
+        const request = {
             'symbol': this.marketId (symbol),
             'amount': this.amountToPrecision (symbol, amount),
             'side': side,
@@ -501,7 +501,7 @@ module.exports = class fcoin extends Exchange {
             'timeframe': this.timeframes[timeframe],
             'limit': limit,
         };
-        let response = await this.marketGetCandlesTimeframeSymbol (this.extend (request, params));
+        const response = await this.marketGetCandlesTimeframeSymbol (this.extend (request, params));
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 

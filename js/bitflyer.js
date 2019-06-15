@@ -327,7 +327,7 @@ module.exports = class bitflyer extends Exchange {
         }
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = this.safeString (order, 'product_code');
+            const marketId = this.safeString (order, 'product_code');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
