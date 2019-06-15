@@ -359,6 +359,12 @@ class Exchange(object):
         if self.session:
             self.session.close()
 
+    def __repr__(self):
+        return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
+
+    def __str__(self):
+        return self.name
+
     def describe(self):
         return {}
 
