@@ -187,9 +187,9 @@ module.exports = class coinmarketcap extends Exchange {
         let volume = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
-            let priceKey = 'price_' + market['quoteId'];
+            const priceKey = 'price_' + market['quoteId'];
             last = this.safeFloat (ticker, priceKey);
-            let volumeKey = '24h_volume_' + market['quoteId'];
+            const volumeKey = '24h_volume_' + market['quoteId'];
             volume = this.safeFloat (ticker, volumeKey);
         }
         return {

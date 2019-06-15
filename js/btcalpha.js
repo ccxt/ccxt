@@ -380,7 +380,7 @@ module.exports = class btcalpha extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (symbol !== undefined) {
-            let market = this.market (symbol);
+            const market = this.market (symbol);
             request['pair'] = market['id'];
         }
         if (limit !== undefined) {

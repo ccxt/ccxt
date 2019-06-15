@@ -112,10 +112,10 @@ class lbank (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetAccuracy()
+        response = self.publicGetAccuracy(params)
         result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
+        for i in range(0, len(response)):
+            market = response[i]
             id = market['symbol']
             parts = id.split('_')
             baseId = None
@@ -221,19 +221,21 @@ class lbank (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTicker(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.publicGetTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetTicker(self.extend({
+        request = {
             'symbol': 'all',
-        }, params))
+        }
+        response = self.publicGetTicker(self.extend(request, params))
         result = {}
-        for i in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[i])
+        for i in range(0, len(response)):
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return result
@@ -243,29 +245,39 @@ class lbank (Exchange):
         size = 60
         if limit is not None:
             size = min(limit, size)
-        response = self.publicGetDepth(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
             'size': size,
-        }, params))
+        }
+        response = self.publicGetDepth(self.extend(request, params))
         return self.parse_order_book(response)
 
     def parse_trade(self, trade, market=None):
-        symbol = market['symbol']
-        timestamp = int(trade['date_ms'])
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.safe_integer(trade, 'date_ms')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        cost = self.cost_to_precision(symbol, price * amount)
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = self.cost_to_precision(symbol, price * amount)
+                cost = float(cost)
+        id = self.safe_string(trade, 'tid')
+        type = None
+        side = self.safe_string(trade, 'type')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'tid'),
+            'id': id,
             'order': None,
-            'type': None,
-            'side': trade['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
-            'cost': float(cost),
+            'cost': cost,
             'fee': None,
             'info': self.safe_value(trade, 'info', trade),
         }
@@ -298,9 +310,9 @@ class lbank (Exchange):
         self.load_markets()
         market = self.market(symbol)
         if since is None:
-            raise ExchangeError(self.id + ' fetchOHLCV requires a since argument')
+            raise ExchangeError(self.id + ' fetchOHLCV requires a `since` argument')
         if limit is None:
-            raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument')
+            raise ExchangeError(self.id + ' fetchOHLCV requires a `limit` argument')
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],
@@ -317,9 +329,7 @@ class lbank (Exchange):
         ids = list(self.extend(response['info']['free'], response['info']['freeze']).keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            code = id
-            if id in self.currencies_by_id:
-                code = self.currencies_by_id[id]['code']
+            code = self.common_currency_code(id)
             free = self.safe_float(response['info']['free'], id, 0.0)
             used = self.safe_float(response['info']['freeze'], id, 0.0)
             account = {
@@ -359,20 +369,27 @@ class lbank (Exchange):
         if av_price is not None:
             cost = filled * av_price
         status = self.parse_order_status(self.safe_string(order, 'status'))
+        id = self.safe_string(order, 'order_id')
+        type = self.safe_string(order, 'order_type')
+        side = self.safe_string(order, 'type')
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = amount - filled
         return {
-            'id': self.safe_string(order, 'order_id'),
+            'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': self.safe_string(order, 'order_type'),
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
             'filled': filled,
-            'remaining': amount - filled,
+            'remaining': remaining,
             'trades': None,
             'fee': None,
             'info': self.safe_value(order, 'info', order),
@@ -405,22 +422,25 @@ class lbank (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.privatePostCancelOrder(self.extend({
+        request = {
             'symbol': market['id'],
             'order_id': id,
-        }, params))
+        }
+        response = self.privatePostCancelOrder(self.extend(request, params))
         return response
 
     def fetch_order(self, id, symbol=None, params={}):
         # Id can be a list of ids delimited by a comma
         self.load_markets()
         market = self.market(symbol)
-        response = self.privatePostOrdersInfo(self.extend({
+        request = {
             'symbol': market['id'],
             'order_id': id,
-        }, params))
+        }
+        response = self.privatePostOrdersInfo(self.extend(request, params))
         orders = self.parse_orders(response['orders'], market)
-        if len(orders) == 1:
+        numOrders = len(orders)
+        if numOrders == 1:
             return orders[0]
         else:
             return orders
@@ -430,18 +450,20 @@ class lbank (Exchange):
         if limit is None:
             limit = 100
         market = self.market(symbol)
-        response = self.privatePostOrdersInfoHistory(self.extend({
+        request = {
             'symbol': market['id'],
             'current_page': 1,
             'page_length': limit,
-        }, params))
+        }
+        response = self.privatePostOrdersInfoHistory(self.extend(request, params))
         return self.parse_orders(response['orders'], None, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
         closed = self.filter_by(orders, 'status', 'closed')
-        cancelled = self.filter_by(orders, 'status', 'cancelled')  # cancelled orders may be partially filled
-        return closed + cancelled
+        canceled = self.filter_by(orders, 'status', 'cancelled')  # cancelled orders may be partially filled
+        allOrders = self.array_concat(closed, canceled)
+        return self.filter_by_symbol_since_limit(allOrders, symbol, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         # mark and fee are optional params, mark is a note and must be less than 255 characters

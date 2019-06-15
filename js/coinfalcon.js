@@ -174,9 +174,9 @@ module.exports = class coinfalcon extends Exchange {
 
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'size');
-        let symbol = market['symbol'];
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'size');
+        const symbol = market['symbol'];
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {

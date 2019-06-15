@@ -205,28 +205,30 @@ module.exports = class binance extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        let markets = response['symbols'];
-        let result = [];
+        const markets = this.safeValue (response, 'symbols');
+        const result = [];
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let id = market['symbol'];
+            const market = markets[i];
+            const id = this.safeString (market, 'symbol');
             // "123456" is a "test symbol/market"
-            if (id === '123456')
+            if (id === '123456') {
                 continue;
-            let baseId = market['baseAsset'];
-            let quoteId = market['quoteAsset'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let filters = this.indexBy (market['filters'], 'filterType');
-            let precision = {
+            }
+            const baseId = market['baseAsset'];
+            const quoteId = market['quoteAsset'];
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const filters = this.indexBy (market['filters'], 'filterType');
+            const precision = {
                 'base': market['baseAssetPrecision'],
                 'quote': market['quotePrecision'],
                 'amount': market['baseAssetPrecision'],
                 'price': market['quotePrecision'],
             };
-            let active = (market['status'] === 'TRADING');
-            let entry = {
+            const status = this.safeString (market, 'status');
+            const active = (status === 'TRADING');
+            const entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -252,7 +254,7 @@ module.exports = class binance extends Exchange {
                 },
             };
             if ('PRICE_FILTER' in filters) {
-                let filter = filters['PRICE_FILTER'];
+                const filter = filters['PRICE_FILTER'];
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -268,15 +270,16 @@ module.exports = class binance extends Exchange {
                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
             }
             if ('LOT_SIZE' in filters) {
-                let filter = filters['LOT_SIZE'];
-                entry['precision']['amount'] = this.precisionFromString (filter['stepSize']);
+                const filter = this.safeValue (filters, 'LOT_SIZE', {});
+                const stepSize = this.safeString (filter, 'stepSize');
+                entry['precision']['amount'] = this.precisionFromString (stepSize);
                 entry['limits']['amount'] = {
                     'min': this.safeFloat (filter, 'minQty'),
                     'max': this.safeFloat (filter, 'maxQty'),
                 };
             }
             if ('MIN_NOTIONAL' in filters) {
-                entry['limits']['cost']['min'] = parseFloat (filters['MIN_NOTIONAL']['minNotional']);
+                entry['limits']['cost']['min'] = this.safeFloat (filters['MIN_NOTIONAL'], 'minNotional');
             }
             result.push (entry);
         }
@@ -284,9 +287,9 @@ module.exports = class binance extends Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
+        const market = this.markets[symbol];
         let key = 'quote';
-        let rate = market[takerOrMaker];
+        const rate = market[takerOrMaker];
         let cost = amount * rate;
         let precision = market['precision']['price'];
         if (side === 'sell') {
@@ -306,36 +309,40 @@ module.exports = class binance extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetAccount (params);
-        let result = { 'info': response };
-        let balances = response['balances'];
+        const response = await this.privateGetAccount (params);
+        const result = { 'info': response };
+        const balances = response['balances'];
         for (let i = 0; i < balances.length; i++) {
-            let balance = balances[i];
-            let currency = balance['asset'];
-            if (currency in this.currencies_by_id)
-                currency = this.currencies_by_id[currency]['code'];
-            let account = {
+            const balance = balances[i];
+            const currencyId = balance['asset'];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+            const account = {
                 'free': parseFloat (balance['free']),
                 'used': parseFloat (balance['locked']),
                 'total': 0.0,
             };
             account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default = maximum = 100
         }
-        let response = await this.publicGetDepth (this.extend (request, params));
-        let orderbook = this.parseOrderBook (response);
+        const response = await this.publicGetDepth (this.extend (request, params));
+        const orderbook = this.parseOrderBook (response);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
     }
@@ -504,7 +511,7 @@ module.exports = class binance extends Exchange {
         }
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = this.safeString (trade, 'symbol');
+            const marketId = this.safeString (trade, 'symbol');
             market = this.safeValue (this.markets_by_id, marketId);
         }
         if (market !== undefined) {
@@ -653,7 +660,7 @@ module.exports = class binance extends Exchange {
         const fills = this.safeValue (order, 'fills');
         if (fills !== undefined) {
             trades = this.parseTrades (fills, market);
-            let numTrades = trades.length;
+            const numTrades = trades.length;
             if (numTrades > 0) {
                 cost = trades[0]['cost'];
                 fee = {
@@ -926,13 +933,11 @@ module.exports = class binance extends Exchange {
         //           operateTime: "2018-10-07 17:56:07",
         //      transferedAmount: "0.00628141",
         //             fromAsset: "ADA"                  },
-        let order = this.safeString (trade, 'tranId');
-        let time = this.safeString (trade, 'operateTime');
-        let timestamp = this.parse8601 (time);
-        let datetime = this.iso8601 (timestamp);
-        let tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
-        let earnedCurrency = this.currency ('BNB')['code'];
-        let applicantSymbol = earnedCurrency + '/' + tradedCurrency;
+        const orderId = this.safeString (trade, 'tranId');
+        const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
+        const tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
+        const earnedCurrency = this.currency ('BNB')['code'];
+        const applicantSymbol = earnedCurrency + '/' + tradedCurrency;
         let tradedCurrencyIsQuote = false;
         if (applicantSymbol in this.markets) {
             tradedCurrencyIsQuote = true;
@@ -944,7 +949,7 @@ module.exports = class binance extends Exchange {
         // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
         // is much more illustrative and therefore preferable.
         //
-        let fee = {
+        const fee = {
             'currency': earnedCurrency,
             'cost': this.safeFloat (trade, 'serviceChargeAmount'),
         };
@@ -963,16 +968,21 @@ module.exports = class binance extends Exchange {
             cost = this.sum (this.safeFloat (trade, 'transferedAmount'), fee['cost']);
             side = 'sell';
         }
-        let price = cost / amount;
-        let id = undefined;
-        let type = undefined;
-        let takerOrMaker = undefined;
+        let price = undefined;
+        if (cost !== undefined) {
+            if (amount) {
+                price = cost / amount;
+            }
+        }
+        const id = undefined;
+        const type = undefined;
+        const takerOrMaker = undefined;
         return {
             'id': id,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': order,
+            'order': orderId,
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -1111,7 +1121,7 @@ module.exports = class binance extends Exchange {
         }
         let timestamp = undefined;
         const insertTime = this.safeInteger (transaction, 'insertTime');
-        let applyTime = this.safeInteger (transaction, 'applyTime');
+        const applyTime = this.safeInteger (transaction, 'applyTime');
         let type = this.safeString (transaction, 'type');
         if (type === undefined) {
             if ((insertTime !== undefined) && (applyTime === undefined)) {
@@ -1246,7 +1256,7 @@ module.exports = class binance extends Exchange {
                 'timestamp': this.nonce (),
                 'recvWindow': this.options['recvWindow'],
             }, params));
-            let signature = this.hmac (this.encode (query), this.encode (this.secret));
+            const signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
@@ -1262,34 +1272,39 @@ module.exports = class binance extends Exchange {
             // therefore they don't accept URL query arguments
             // https://github.com/ccxt/ccxt/issues/5224
             if (!userDataStream) {
-                if (Object.keys (params).length)
+                if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
+                }
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if ((code === 418) || (code === 429))
+        if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
+        }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block cointains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if (code >= 400) {
-            if (body.indexOf ('Price * QTY is zero or less') >= 0)
+            if (body.indexOf ('Price * QTY is zero or less') >= 0) {
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
-            if (body.indexOf ('LOT_SIZE') >= 0)
+            }
+            if (body.indexOf ('LOT_SIZE') >= 0) {
                 throw new InvalidOrder (this.id + ' order amount should be evenly divisible by lot size ' + body);
-            if (body.indexOf ('PRICE_FILTER') >= 0)
+            }
+            if (body.indexOf ('PRICE_FILTER') >= 0) {
                 throw new InvalidOrder (this.id + ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use this.priceToPrecision (symbol, amount) ' + body);
+            }
         }
         if (body.length > 0) {
             if (body[0] === '{') {
                 // check success value for wapi endpoints
                 // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-                let success = this.safeValue (response, 'success', true);
+                const success = this.safeValue (response, 'success', true);
                 if (!success) {
-                    let message = this.safeString (response, 'msg');
+                    const message = this.safeString (response, 'msg');
                     let parsedMessage = undefined;
                     if (message !== undefined) {
                         try {
@@ -1310,7 +1325,7 @@ module.exports = class binance extends Exchange {
                     throw new ExceptionClass (this.id + ' ' + message);
                 }
                 // checks against error codes
-                let error = this.safeString (response, 'code');
+                const error = this.safeString (response, 'code');
                 if (error !== undefined) {
                     if (error in exceptions) {
                         // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}

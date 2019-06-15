@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.695'
+__version__ = '1.18.713'
 
 # -----------------------------------------------------------------------------
 
@@ -358,6 +358,12 @@ class Exchange(object):
     def __del__(self):
         if self.session:
             self.session.close()
+
+    def __repr__(self):
+        return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
+
+    def __str__(self):
+        return self.name
 
     def describe(self):
         return {}

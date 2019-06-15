@@ -36,6 +36,7 @@ module.exports = class independentreserve extends Exchange {
                         'GetValidTransactionTypes',
                         'GetMarketSummary',
                         'GetOrderBook',
+                        'GetAllOrders',
                         'GetTradeHistorySummary',
                         'GetRecentTrades',
                         'GetFxRates',
@@ -58,6 +59,7 @@ module.exports = class independentreserve extends Exchange {
                         'WithdrawDigitalCurrency',
                         'RequestFiatWithdrawal',
                         'GetTrades',
+                        'GetBrokerageFees',
                     ],
                 },
             },
@@ -109,7 +111,7 @@ module.exports = class independentreserve extends Exchange {
             const currencyId = this.safeString (balance, 'CurrencyCode');
             const uppercase = currencyId.toUpperCase ();
             const code = this.commonCurrencyCode (uppercase);
-            let account = this.account ();
+            const account = this.account ();
             account['free'] = balance['AvailableBalance'];
             account['total'] = balance['TotalBalance'];
             account['used'] = account['total'] - account['free'];
@@ -126,26 +128,26 @@ module.exports = class independentreserve extends Exchange {
             'secondaryCurrencyCode': market['quoteId'],
         };
         const response = await this.publicGetGetOrderBook (this.extend (request, params));
-        const timestamp = this.parse8601 (response['CreatedTimestampUtc']);
+        const timestamp = this.parse8601 (this.safeString (response, 'CreatedTimestampUtc'));
         return this.parseOrderBook (response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume');
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.parse8601 (ticker['CreatedTimestampUtc']);
+        const timestamp = this.parse8601 (this.safeString (ticker, 'CreatedTimestampUtc'));
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
         }
-        const last = ticker['LastPrice'];
+        const last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': ticker['DayHighestPrice'],
-            'low': ticker['DayLowestPrice'],
-            'bid': ticker['CurrentHighestBidPrice'],
+            'high': this.safeFloat (ticker, 'DayHighestPrice'),
+            'low': this.safeFloat (ticker, 'DayLowestPrice'),
+            'bid': this.safeFloat (ticker, 'CurrentHighestBidPrice'),
             'bidVolume': undefined,
-            'ask': ticker['CurrentLowestOfferPrice'],
+            'ask': this.safeFloat (ticker, 'CurrentLowestOfferPrice'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
@@ -154,8 +156,8 @@ module.exports = class independentreserve extends Exchange {
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
-            'average': ticker['DayAvgPrice'],
-            'baseVolume': ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'average': this.safeFloat (ticker, 'DayAvgPrice'),
+            'baseVolume': this.safeFloat (ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -287,7 +289,7 @@ module.exports = class independentreserve extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['TradeTimestampUtc']);
+        const timestamp = this.parse8601 (trade['TradeTimestampUtc']);
         const id = this.safeString (trade, 'TradeGuid');
         const orderId = this.safeString (trade, 'OrderGuid');
         const price = this.safeFloat2 (trade, 'Price', 'SecondaryCurrencyTradePrice');

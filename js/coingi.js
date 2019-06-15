@@ -106,7 +106,7 @@ module.exports = class coingi extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             const symbol = base + '/' + quote;
-            let precision = {
+            const precision = {
                 'amount': 8,
                 'price': 8,
             };
@@ -141,7 +141,7 @@ module.exports = class coingi extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let lowercaseCurrencies = [];
+        const lowercaseCurrencies = [];
         const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];

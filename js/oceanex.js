@@ -366,8 +366,8 @@ module.exports = class oceanex extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -428,7 +428,7 @@ module.exports = class oceanex extends Exchange {
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
-        let timestamp = this.safeInteger (response, 'data');
+        const timestamp = this.safeInteger (response, 'data');
         return timestamp * 1000;
     }
 
@@ -558,8 +558,8 @@ module.exports = class oceanex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.parseOrderStatus (this.safeValue (order, 'state'));
-        let marketId = this.safeValue2 (order, 'market', 'market_id');
+        const status = this.parseOrderStatus (this.safeValue (order, 'state'));
+        const marketId = this.safeValue2 (order, 'market', 'market_id');
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
@@ -647,11 +647,11 @@ module.exports = class oceanex extends Exchange {
         if (api === 'public') {
             if (path === 'tickers_multi' || path === 'order_book/multi') {
                 let request = '?';
-                let markets = this.safeValue (params, 'markets');
+                const markets = this.safeValue (params, 'markets');
                 for (let i = 0; i < markets.length; i++) {
                     request += 'markets[]=' + markets[i] + '&';
                 }
-                let limit = this.safeValue (params, 'limit');
+                const limit = this.safeValue (params, 'limit');
                 if (limit !== undefined) {
                     request += 'limit=' + limit;
                 }

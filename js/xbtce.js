@@ -159,7 +159,7 @@ module.exports = class xbtce extends Exchange {
         };
         const response = await this.privateGetLevel2Filter (this.extend (request, params));
         const orderbook = response[0];
-        let timestamp = this.safeInteger (orderbook, 'Timestamp');
+        const timestamp = this.safeInteger (orderbook, 'Timestamp');
         return this.parseOrderBook (orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
@@ -329,7 +329,7 @@ module.exports = class xbtce extends Exchange {
             url += '/' + api;
         }
         url += '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -337,7 +337,7 @@ module.exports = class xbtce extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             headers = { 'Accept-Encoding': 'gzip, deflate' };
-            let nonce = this.nonce ().toString ();
+            const nonce = this.nonce ().toString ();
             if (method === 'POST') {
                 if (Object.keys (query).length) {
                     headers['Content-Type'] = 'application/json';
@@ -350,8 +350,8 @@ module.exports = class xbtce extends Exchange {
             if (body) {
                 auth += body;
             }
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
-            let credentials = this.uid + ':' + this.apiKey + ':' + nonce + ':' + this.decode (signature);
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            const credentials = this.uid + ':' + this.apiKey + ':' + nonce + ':' + this.decode (signature);
             headers['Authorization'] = 'HMAC ' + credentials;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

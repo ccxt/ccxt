@@ -209,7 +209,7 @@ module.exports = class indodax extends Exchange {
         }
         let symbol = undefined;
         let cost = undefined;
-        let price = this.safeFloat (order, 'price');
+        const price = this.safeFloat (order, 'price');
         let amount = undefined;
         let remaining = undefined;
         let filled = undefined;
@@ -226,7 +226,7 @@ module.exports = class indodax extends Exchange {
             cost = this.safeFloat (order, 'order_' + quoteId);
             if (cost) {
                 amount = cost / price;
-                let remainingCost = this.safeFloat (order, 'remain_' + quoteId);
+                const remainingCost = this.safeFloat (order, 'remain_' + quoteId);
                 if (remainingCost !== undefined) {
                     remaining = remainingCost / price;
                     filled = amount - remaining;

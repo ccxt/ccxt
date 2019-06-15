@@ -59,15 +59,15 @@ module.exports = class vaultoro extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let result = [];
-        let markets = await this.publicGetMarkets ();
-        let market = markets['data'];
-        let baseId = market['MarketCurrency'];
-        let quoteId = market['BaseCurrency'];
-        let base = this.commonCurrencyCode (baseId);
-        let quote = this.commonCurrencyCode (quoteId);
-        let symbol = base + '/' + quote;
-        let id = market['MarketName'];
+        const result = [];
+        const response = await this.publicGetMarkets (params);
+        const market = this.safeValue (response, 'data');
+        const baseId = this.safeString (market, 'MarketCurrency');
+        const quoteId = this.safeString (market, 'BaseCurrency');
+        const base = this.commonCurrencyCode (baseId);
+        const quote = this.commonCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        const id = this.safeString (market, 'MarketName');
         result.push ({
             'id': id,
             'symbol': symbol,
@@ -115,14 +115,14 @@ module.exports = class vaultoro extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let quote = await this.publicGetBidandask (params);
-        let bidsLength = quote['bids'].length;
-        let bid = quote['bids'][bidsLength - 1];
-        let ask = quote['asks'][0];
-        let response = await this.publicGetMarkets (params);
-        let ticker = response['data'];
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'LastPrice');
+        const quote = await this.publicGetBidandask (params);
+        const bidsLength = quote['bids'].length;
+        const bid = quote['bids'][bidsLength - 1];
+        const ask = quote['asks'][0];
+        const response = await this.publicGetMarkets (params);
+        const ticker = this.safeValue (response, 'data');
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -201,9 +201,9 @@ module.exports = class vaultoro extends Exchange {
             url += path;
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            const nonce = this.nonce ();
             url += this.version + '/' + this.implodeParams (path, params);
-            let query = this.extend ({
+            const query = this.extend ({
                 'nonce': nonce,
                 'apikey': this.apiKey,
             }, this.omit (params, this.extractParams (path)));

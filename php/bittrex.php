@@ -600,7 +600,8 @@ class bittrex extends Exchange {
             $request['market'] = $market['id'];
         }
         $response = $this->marketGetOpenorders (array_merge ($request, $params));
-        $orders = $this->parse_orders($response['result'], $market, $since, $limit);
+        $result = $this->safe_value($response, 'result', array());
+        $orders = $this->parse_orders($result, $market, $since, $limit);
         return $this->filter_by_symbol($orders, $symbol);
     }
 

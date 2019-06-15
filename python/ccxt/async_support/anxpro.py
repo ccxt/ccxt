@@ -1076,8 +1076,8 @@ class anxpro (Exchange):
             'currency': currency['id'],
         }
         response = await self.privatePostMoneyCurrencyAddress(self.extend(request, params))
-        result = response['data']
-        address = self.safe_string(result, 'addr')
+        data = self.safe_value(response, 'data', {})
+        address = self.safe_string(data, 'addr')
         self.check_address(address)
         return {
             'currency': code,

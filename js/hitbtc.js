@@ -503,18 +503,19 @@ module.exports = class hitbtc extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetSymbols ();
-        let result = [];
-        for (let p = 0; p < markets['symbols'].length; p++) {
-            let market = markets['symbols'][p];
-            let id = market['symbol'];
-            let baseId = market['commodity'];
-            let quoteId = market['currency'];
-            let lot = this.safeFloat (market, 'lot');
-            let step = this.safeFloat (market, 'step');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
+        const response = await this.publicGetSymbols (params);
+        const markets = this.safeValue (response, 'symbols');
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'commodity');
+            const quoteId = this.safeString (market, 'currency');
+            const lot = this.safeFloat (market, 'lot');
+            const step = this.safeFloat (market, 'step');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
             result.push ({
                 'info': market,
                 'id': id,
@@ -555,18 +556,18 @@ module.exports = class hitbtc extends Exchange {
         await this.loadMarkets ();
         let method = this.safeString (params, 'type', 'trading');
         method += 'GetBalance';
-        let query = this.omit (params, 'type');
-        let response = await this[method] (query);
-        let balances = response['balance'];
-        let result = { 'info': balances };
+        const query = this.omit (params, 'type');
+        const response = await this[method] (query);
+        const balances = response['balance'];
+        const result = { 'info': balances };
         for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let code = balance['currency_code'];
-            let currency = this.commonCurrencyCode (code);
+            const balance = balances[b];
+            const code = balance['currency_code'];
+            const currency = this.commonCurrencyCode (code);
             let free = this.safeFloat (balance, 'cash', 0.0);
             free = this.safeFloat (balance, 'balance', free);
-            let used = this.safeFloat (balance, 'reserved', 0.0);
-            let account = {
+            const used = this.safeFloat (balance, 'reserved', 0.0);
+            const account = {
                 'free': free,
                 'used': used,
                 'total': this.sum (free, used),
@@ -578,7 +579,7 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetSymbolOrderbook (this.extend ({
+        const orderbook = await this.publicGetSymbolOrderbook (this.extend ({
             'symbol': this.marketId (symbol),
         }, params));
         return this.parseOrderBook (orderbook);
@@ -617,14 +618,14 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTicker (params);
-        let ids = Object.keys (tickers);
-        let result = {};
+        const tickers = await this.publicGetTicker (params);
+        const ids = Object.keys (tickers);
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = tickers[id];
+            const id = ids[i];
+            const market = this.markets_by_id[id];
+            const symbol = market['symbol'];
+            const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;

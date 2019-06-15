@@ -394,7 +394,7 @@ module.exports = class itbit extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.commonCurrencyCode (currencyId);
-            let account = {
+            const account = {
                 'free': this.safeFloat (balance, 'availableBalance'),
                 'used': undefined,
                 'total': this.safeFloat (balance, 'totalBalance'),

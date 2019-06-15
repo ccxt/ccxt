@@ -314,7 +314,7 @@ module.exports = class coinegg extends Exchange {
         const keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            let [ currencyId, accountType ] = key.split ('_');
+            const [ currencyId, accountType ] = key.split ('_');
             let code = currencyId;
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
@@ -326,8 +326,8 @@ module.exports = class coinegg extends Exchange {
                     'total': undefined,
                 };
             }
-            accountType = (accountType === 'lock') ? 'used' : 'free';
-            result[code][accountType] = parseFloat (balances[key]);
+            const type = (accountType === 'lock') ? 'used' : 'free';
+            result[code][type] = this.safeFloat (balances, key);
         }
         const currencies = Object.keys (result);
         for (let i = 0; i < currencies.length; i++) {

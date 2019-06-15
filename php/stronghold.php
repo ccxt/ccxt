@@ -195,8 +195,8 @@ class stronghold extends Exchange {
         for ($i = 0; $i < count ($data); $i++) {
             $entry = $data[$i];
             $marketId = $entry['id'];
-            $baseId = $entry['baseAssetId'];
-            $quoteId = $entry['counterAssetId'];
+            $baseId = $this->safe_string($entry, 'baseAssetId');
+            $quoteId = $this->safe_string($entry, 'counterAssetId');
             $baseAssetId = explode('/', $baseId)[0];
             $quoteAssetId = explode('/', $quoteId)[0];
             $base = $this->common_currency_code($baseAssetId);

@@ -231,7 +231,7 @@ module.exports = class gateio extends Exchange {
             const currency = this.currencies[code];
             const currencyId = currency['id'];
             const uppercaseId = currencyId.toUpperCase ();
-            let account = this.account ();
+            const account = this.account ();
             account['free'] = this.safeFloat (available, uppercaseId);
             account['used'] = this.safeFloat (locked, uppercaseId);
             account['total'] = this.sum (account['free'], account['used']);
@@ -583,7 +583,7 @@ module.exports = class gateio extends Exchange {
             throw new InvalidAddress (this.id + ' queryDepositAddress ' + address);
         }
         if (code === 'XRP') {
-            let parts = address.split (' ');
+            const parts = address.split (' ');
             address = parts[0];
             tag = parts[1];
         }

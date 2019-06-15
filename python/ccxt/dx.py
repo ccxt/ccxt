@@ -327,7 +327,7 @@ class dx (Exchange):
         orderStatusMap = {
             '1': 'open',
         }
-        innerOrder = self.safe_value_2(order, 'order', None)
+        innerOrder = self.safe_value(order, 'order', None)
         if innerOrder is not None:
             # fetchClosedOrders returns orders in an extra object
             order = innerOrder
@@ -342,16 +342,21 @@ class dx (Exchange):
         orderStatus = self.safe_string(order, 'status', None)
         if orderStatus in orderStatusMap:
             status = orderStatusMap[orderStatus]
-        symbol = self.markets_by_id[order['instrumentId']]['symbol']
+        marketId = self.safe_string(order, 'instrumentId')
+        symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
         orderType = 'limit'
         if order['orderType'] == self.options['orderTypes']['market']:
             orderType = 'market'
         timestamp = order['time'] * 1000
         quantity = self.object_to_number(order['quantity'])
         filledQuantity = self.object_to_number(order['filledQuantity'])
-        result = {
+        id = self.safe_string(order, 'externalOrderId')
+        return {
             'info': order,
-            'id': order['externalOrderId'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -366,7 +371,6 @@ class dx (Exchange):
             'status': status,
             'fee': None,
         }
-        return result
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         price = self.object_to_number(bidask[priceKey])

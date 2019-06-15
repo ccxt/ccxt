@@ -760,8 +760,8 @@ module.exports = class hitbtc2 extends hitbtc {
         }
         const baseVolume = this.safeFloat (ticker, 'volume');
         const quoteVolume = this.safeFloat (ticker, 'volumeQuote');
-        let open = this.safeFloat (ticker, 'open');
-        let last = this.safeFloat (ticker, 'last');
+        const open = this.safeFloat (ticker, 'open');
+        const last = this.safeFloat (ticker, 'last');
         let change = undefined;
         let percentage = undefined;
         let average = undefined;
@@ -1012,7 +1012,7 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };

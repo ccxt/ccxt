@@ -581,7 +581,8 @@ class bittrex (Exchange):
             market = self.market(symbol)
             request['market'] = market['id']
         response = await self.marketGetOpenorders(self.extend(request, params))
-        orders = self.parse_orders(response['result'], market, since, limit)
+        result = self.safe_value(response, 'result', [])
+        orders = self.parse_orders(result, market, since, limit)
         return self.filter_by_symbol(orders, symbol)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
