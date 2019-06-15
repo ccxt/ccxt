@@ -66,22 +66,25 @@ class nova (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetMarkets()
+        response = await self.publicGetMarkets(params)
         markets = response['markets']
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = market['marketname']
-            quote, base = id.split('_')
+            id = self.safe_string(market, 'marketname')
+            quoteId, baseId = id.split('_')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
-            active = True
-            if market['disabled']:
-                active = False
+            disabled = self.safe_value(market, 'disabled', False)
+            active = not disabled
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'info': market,
             })
@@ -89,16 +92,18 @@ class nova (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetMarketOpenordersPairBoth(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'price', 'amount')
+        }
+        response = await self.publicGetMarketOpenordersPairBoth(self.extend(request, params))
+        return self.parse_order_book(response, None, 'buyorders', 'sellorders', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        response = await self.publicGetMarketInfoPair(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
+        }
+        response = await self.publicGetMarketInfoPair(self.extend(request, params))
         ticker = response['markets'][0]
         timestamp = self.milliseconds()
         last = self.safe_float(ticker, 'last_price')
@@ -125,27 +130,44 @@ class nova (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = trade['unix_t_datestamp'] * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_integer(trade, 'unix_t_datestamp')
+        if timestamp is not None:
+            timestamp *= 1000
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        type = None
+        side = self.safe_string(trade, 'tradetype')
+        if side is not None:
+            side = side.lower()
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'id': None,
             'order': None,
-            'type': None,
-            'side': trade['tradetype'].lower(),
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetMarketOrderhistoryPair(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = await self.publicGetMarketOrderhistoryPair(self.extend(request, params))
         return self.parse_trades(response['items'], market, since, limit)
 
     async def fetch_balance(self, params={}):

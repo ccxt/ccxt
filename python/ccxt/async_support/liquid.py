@@ -272,10 +272,8 @@ class liquid (Exchange):
         for b in range(0, len(balances)):
             balance = balances[b]
             currencyId = balance['currency']
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            total = float(balance['balance'])
+            code = self.common_currency_code(currencyId)
+            total = self.safe_float(balance, 'balance')
             account = {
                 'free': total,
                 'used': 0.0,
@@ -286,10 +284,11 @@ class liquid (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetProductsIdPriceLevels(self.extend({
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook, None, 'buy_price_levels', 'sell_price_levels')
+        }
+        response = await self.publicGetProductsIdPriceLevels(self.extend(request, params))
+        return self.parse_order_book(response, None, 'buy_price_levels', 'sell_price_levels')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -574,7 +573,7 @@ class liquid (Exchange):
         if market is not None:
             symbol = market['symbol']
             feeCurrency = market['quote']
-        type = order['order_type']
+        type = self.safe_string(order, 'order_type')
         tradeCost = 0
         tradeFilled = 0
         average = self.safe_float(order, 'average_price')

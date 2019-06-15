@@ -155,15 +155,16 @@ class lykke (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetWallets()
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currency = balance['AssetId']
-            total = balance['Balance']
-            used = balance['Reserved']
+        response = self.privateGetWallets(params)
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'AssetId')
+            code = self.common_currency_code(currencyId)
+            total = self.safe_float(balance, 'Balance')
+            used = self.safe_float(balance, 'Reserved')
             free = total - used
-            result[currency] = {
+            result[code] = {
                 'free': free,
                 'used': used,
                 'total': total,
@@ -215,15 +216,15 @@ class lykke (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = market['Id']
-            name = market['Name']
+            id = self.safe_string(market, 'Id')
+            name = self.safe_string(market, 'Name')
             baseId, quoteId = name.split('/')
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': market['Accuracy'],
-                'price': market['InvertedAccuracy'],
+                'amount': self.safe_integer(market, 'Accuracy'),
+                'price': self.safe_integer(market, 'InvertedAccuracy'),
             }
             result.append({
                 'id': id,
@@ -255,16 +256,16 @@ class lykke (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        close = float(ticker['lastPrice'])
+        close = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['bid']),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -275,16 +276,17 @@ class lykke (Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['volume24H']),
+            'quoteVolume': self.safe_float(ticker, 'volume24H'),
             'info': ticker,
         }
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.mobileGetMarketMarket(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        ticker = self.mobileGetMarketMarket(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
     def parse_order_status(self, status):
@@ -338,28 +340,31 @@ class lykke (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateGetOrdersId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        response = self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        response = self.privateGetOrders()
+        response = self.privateGetOrders(params)
         return self.parse_orders(response, None, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        response = self.privateGetOrders(self.extend({
+        request = {
             'status': 'InOrderBook',
-        }, params))
+        }
+        response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, None, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        response = self.privateGetOrders(self.extend({
+        request = {
             'status': 'Matched',
-        }, params))
+        }
+        response = self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, None, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
