@@ -332,7 +332,7 @@ module.exports = class dx extends Exchange {
         let orderStatusMap = {
             '1': 'open',
         };
-        let innerOrder = this.safeValue2 (order, 'order', undefined);
+        let innerOrder = this.safeValue (order, 'order', undefined);
         if (innerOrder !== undefined) {
             // fetchClosedOrders returns orders in an extra object
             order = innerOrder;
@@ -350,7 +350,12 @@ module.exports = class dx extends Exchange {
         if (orderStatus in orderStatusMap) {
             status = orderStatusMap[orderStatus];
         }
-        let symbol = this.markets_by_id[order['instrumentId']]['symbol'];
+        const marketId = this.safeString (order, 'instrumentId');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
         let orderType = 'limit';
         if (order['orderType'] === this.options['orderTypes']['market']) {
             orderType = 'market';
@@ -358,7 +363,8 @@ module.exports = class dx extends Exchange {
         let timestamp = order['time'] * 1000;
         let quantity = this.objectToNumber (order['quantity']);
         let filledQuantity = this.objectToNumber (order['filledQuantity']);
-        let result = {
+        const id = this.safeString (order, 'externalOrderId');
+        return {
             'info': order,
             'id': order['externalOrderId'],
             'timestamp': timestamp,
@@ -375,7 +381,6 @@ module.exports = class dx extends Exchange {
             'status': status,
             'fee': undefined,
         };
-        return result;
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
