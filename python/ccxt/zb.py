@@ -175,7 +175,7 @@ class zb (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetMarkets()
+        markets = self.publicGetMarkets(params)
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -221,7 +221,7 @@ class zb (Exchange):
         response = self.privateGetGetAccountInfo(params)
         # todo: use self somehow
         # permissions = response['result']['base']
-        balances = response['result']['coins']
+        balances = self.safe_value(response['result'], 'coins')
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -235,15 +235,16 @@ class zb (Exchange):
             #           available: "0.00000000",
             #                 key: "btc"         }
             account = self.account()
-            currency = balance['key']
-            if currency in self.currencies_by_id:
-                currency = self.currencies_by_id[currency]['code']
+            currencyId = self.safe_string(balance, 'key')
+            code = None
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
             else:
-                currency = self.common_currency_code(balance['enName'])
-            account['free'] = float(balance['available'])
-            account['used'] = float(balance['freez'])
+                code = self.common_currency_code(self.safe_string(balance, 'enName'))
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'freez')
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def get_market_field_name(self):
@@ -252,15 +253,16 @@ class zb (Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privateGetGetUserAddress({
+        request = {
             'currency': currency['id'],
-        })
+        }
+        response = self.privateGetGetUserAddress(self.extend(request, params))
         address = response['message']['datas']['key']
         tag = None
         if address.find('_') >= 0:
-            arr = address.split('_')
-            address = arr[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
-            tag = arr[1]
+            parts = address.split('_')
+            address = parts[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
+            tag = parts[1]
         return {
             'currency': code,
             'address': address,
@@ -274,8 +276,8 @@ class zb (Exchange):
         marketFieldName = self.get_market_field_name()
         request = {}
         request[marketFieldName] = market['id']
-        orderbook = self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(orderbook)
+        response = self.publicGetDepth(self.extend(request, params))
+        return self.parse_order_book(response)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -348,18 +350,32 @@ class zb (Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['date'] * 1000
-        side = 'buy' if (trade['trade_type'] == 'bid') else 'sell'
+        timestamp = self.safe_integer(trade, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
+        side = self.safe_string(trade, 'trade_type')
+        side = 'buy' if (side == 'bid') else 'sell'
+        id = self.safe_string(trade, 'tid')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
-            'id': str(trade['tid']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -375,13 +391,13 @@ class zb (Exchange):
         if type != 'limit':
             raise InvalidOrder(self.id + ' allows limit orders only')
         self.load_markets()
-        order = {
+        request = {
             'price': self.price_to_precision(symbol, price),
             'amount': self.amount_to_precision(symbol, amount),
             'tradeType': '1' if (side == 'buy') else '0',
             'currency': self.market_id(symbol),
         }
-        response = self.privateGetOrder(self.extend(order, params))
+        response = self.privateGetOrder(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],
@@ -389,23 +405,21 @@ class zb (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        order = {
+        request = {
             'id': str(id),
             'currency': self.market_id(symbol),
         }
-        order = self.extend(order, params)
-        return self.privateGetCancelOrder(order)
+        return self.privateGetCancelOrder(self.extend(request, params))
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
-        order = {
+        request = {
             'id': str(id),
             'currency': self.market_id(symbol),
         }
-        order = self.extend(order, params)
-        response = self.privateGetGetOrder(order)
+        response = self.privateGetGetOrder(self.extend(request, params))
         #
         #     {
         #         'total_amount': 0.01,
@@ -483,30 +497,36 @@ class zb (Exchange):
         #         'currency': 'eth_usdt'
         #     }
         #
-        side = 'buy' if (order['type'] == 1) else 'sell'
+        side = self.safe_integer(order, 'type')
+        side = 'buy' if (side == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
         timestamp = None
         createDateField = self.get_create_date_field()
         if createDateField in order:
             timestamp = order[createDateField]
         symbol = None
-        if 'currency' in order:
+        marketId = self.safe_string(order, 'currency')
+        if marketId in self.markets_by_id:
             # get symbol from currency
-            market = self.marketsById[order['currency']]
-        if market:
+            market = self.marketsById[marketId]
+        if market is not None:
             symbol = market['symbol']
-        price = order['price']
-        filled = order['trade_amount']
-        amount = order['total_amount']
-        remaining = amount - filled
+        price = self.safe_float(order, 'price')
+        filled = self.safe_float(order, 'trade_amount')
+        amount = self.safe_float(order, 'total_amount')
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = amount - filled
         cost = self.safe_float(order, 'trade_money')
         average = None
         status = self.parse_order_status(self.safe_string(order, 'status'))
         if (cost is not None) and(filled is not None) and(filled > 0):
             average = cost / filled
+        id = self.safe_string(order, 'id')
         return {
             'info': order,
-            'id': order['id'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
