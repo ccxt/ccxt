@@ -128,7 +128,7 @@ class therock (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetFunds()
+        response = self.publicGetFunds(params)
         #
         #     {funds: [{                     id:   "BTCEUR",
         #                              description:   "Trade Bitcoin with Euro",

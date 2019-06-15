@@ -82,47 +82,55 @@ class virwox (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetGetInstruments()
-        keys = list(markets['result'].keys())
+        response = self.publicGetGetInstruments(params)
+        markets = self.safe_value(response, 'result')
+        keys = list(markets.keys())
         result = []
-        for p in range(0, len(keys)):
-            market = markets['result'][keys[p]]
-            id = market['instrumentID']
-            symbol = market['symbol']
-            base = market['longCurrency']
-            quote = market['shortCurrency']
+        for i in range(0, len(keys)):
+            key = keys[i]
+            market = self.safe_value(markets, key, {})
+            id = self.safe_string(market, 'instrumentID')
+            baseId = self.safe_string(market, 'longCurrency')
+            quoteId = self.safe_string(market, 'shortCurrency')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             })
         return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetBalances()
-        balances = response['result']['accountList']
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
-            total = balance['balance']
+        response = self.privatePostGetBalances(params)
+        balances = self.safe_value(response['result'], 'accountList')
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.common_currency_code(currencyId)
+            total = self.safe_float(balance, 'balance')
             account = {
                 'free': total,
                 'used': 0.0,
                 'total': total,
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_market_price(self, symbol, params={}):
         self.load_markets()
-        response = self.publicPostGetBestPrices(self.extend({
+        request = {
             'symbols': [symbol],
-        }, params))
-        result = response['result']
+        }
+        response = self.publicPostGetBestPrices(self.extend(request, params))
+        result = self.safe_value(response, 'result')
         return {
             'bid': self.safe_float(result[0], 'bestBuyPrice'),
             'ask': self.safe_float(result[0], 'bestSellPrice'),
@@ -144,17 +152,18 @@ class virwox (Exchange):
         self.load_markets()
         end = self.milliseconds()
         start = end - 86400000
-        response = self.publicGetGetTradedPriceVolume(self.extend({
+        request = {
             'instrument': symbol,
             'endDate': self.ymdhms(end),
             'startDate': self.ymdhms(start),
             'HLOC': 1,
-        }, params))
-        tickers = response['result']['priceVolumeList']
+        }
+        response = self.publicGetGetTradedPriceVolume(self.extend(request, params))
+        tickers = self.safe_value(response['result'], 'priceVolumeList')
         keys = list(tickers.keys())
         length = len(keys)
         lastKey = keys[length - 1]
-        ticker = tickers[lastKey]
+        ticker = self.safe_value(tickers, lastKey)
         timestamp = self.milliseconds()
         close = self.safe_float(ticker, 'close')
         return {
@@ -181,18 +190,27 @@ class virwox (Exchange):
         }
 
     def parse_trade(self, trade, symbol=None):
-        sec = self.safe_integer(trade, 'time')
-        timestamp = sec * 1000
+        timestamp = self.safe_integer(trade, 'time')
+        if timestamp is not None:
+            timestamp *= 1000
+        id = self.safe_string(trade, 'tid')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'vol')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
-            'id': trade['tid'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': None,
             'symbol': symbol,
             'type': None,
             'side': None,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'vol'),
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': None,
             'info': trade,
         }

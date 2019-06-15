@@ -124,7 +124,7 @@ class therock extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetFunds ();
+        $response = $this->publicGetFunds ($params);
         //
         //     { funds => array ( array (                      $id =>   "BTCEUR",
         //                              description =>   "Trade Bitcoin with Euro",

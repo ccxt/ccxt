@@ -97,7 +97,7 @@ class theocean extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetTokenPairs ();
+        $markets = $this->publicGetTokenPairs ($params);
         //
         //     array (
         //       "$baseToken" => array (
@@ -123,14 +123,12 @@ class theocean extends Exchange {
         $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $baseToken = $market['baseToken'];
-            $quoteToken = $market['quoteToken'];
-            $baseId = $baseToken['address'];
-            $quoteId = $quoteToken['address'];
-            $base = $baseToken['symbol'];
-            $quote = $quoteToken['symbol'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseToken = $this->safe_string($market, 'baseToken');
+            $quoteToken = $this->safe_string($market, 'quoteToken');
+            $baseId = $this->safe_string($baseToken, 'address');
+            $quoteId = $this->safe_string($quoteToken, 'address');
+            $base = $this->common_currency_code($this->safe_string($baseToken, 'symbol'));
+            $quote = $this->common_currency_code($this->safe_string($quoteToken, 'symbol'));
             $symbol = $base . '/' . $quote;
             $id = $baseId . '/' . $quoteId;
             $baseDecimals = $this->safe_integer($baseToken, 'decimals');
@@ -843,15 +841,17 @@ class theocean extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'openAmount' => 1, // returns open orders with remaining openAmount >= 1
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'openAmount' => 0, // returns closed orders with remaining openAmount === 0
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

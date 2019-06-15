@@ -60,14 +60,14 @@ class vaultoro (Exchange):
 
     def fetch_markets(self, params={}):
         result = []
-        markets = self.publicGetMarkets()
-        market = markets['data']
-        baseId = market['MarketCurrency']
-        quoteId = market['BaseCurrency']
+        response = self.publicGetMarkets(params)
+        market = self.safe_value(response, 'data')
+        baseId = self.safe_string(market, 'MarketCurrency')
+        quoteId = self.safe_string(market, 'BaseCurrency')
         base = self.common_currency_code(baseId)
         quote = self.common_currency_code(quoteId)
         symbol = base + '/' + quote
-        id = market['MarketName']
+        id = self.safe_string(market, 'MarketName')
         result.append({
             'id': id,
             'symbol': symbol,
@@ -116,7 +116,7 @@ class vaultoro (Exchange):
         bid = quote['bids'][bidsLength - 1]
         ask = quote['asks'][0]
         response = self.publicGetMarkets(params)
-        ticker = response['data']
+        ticker = self.safe_value(response, 'data')
         timestamp = self.milliseconds()
         last = self.safe_float(ticker, 'LastPrice')
         return {
