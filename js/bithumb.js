@@ -223,7 +223,7 @@ module.exports = class bithumb extends Exchange {
         const ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const symbol = id;
+            let symbol = id;
             let market = undefined;
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
@@ -380,8 +380,9 @@ module.exports = class bithumb extends Exchange {
         let url = this.urls['api'][api] + endpoint;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
             body = this.urlencode (this.extend ({
@@ -413,8 +414,9 @@ module.exports = class bithumb extends Exchange {
             const status = this.safeString (response, 'status');
             const message = this.safeString (response, 'message');
             if (status !== undefined) {
-                if (status === '0000')
+                if (status === '0000') {
                     return; // no error
+                }
                 const feedback = this.id + ' ' + this.json (response);
                 const exceptions = this.exceptions;
                 if (status in exceptions) {
