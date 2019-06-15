@@ -853,10 +853,11 @@ class anxpro extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        if (is_array($order) && array_key_exists('orderId', $order))
+        if (is_array($order) && array_key_exists('orderId', $order)) {
             return $this->parse_order_v3 ($order, $market);
-        else
+        } else {
             return $this->parse_order_v2 ($order, $market);
+        }
     }
 
     public function parse_order_status ($status) {
@@ -923,8 +924,9 @@ class anxpro extends Exchange {
         for ($i = 0; $i < count ($order['trades']); $i++) {
             $trade = $order['trades'][$i];
             $tradeTimestamp = $this->safe_integer($trade, 'timestamp');
-            if (!$lastTradeTimestamp || $lastTradeTimestamp < $tradeTimestamp)
+            if (!$lastTradeTimestamp || $lastTradeTimestamp < $tradeTimestamp) {
                 $lastTradeTimestamp = $tradeTimestamp;
+            }
             $parsedTrade = array_merge ($this->parse_trade($trade), array( 'side' => $side, 'type' => $type ));
             $trades[] = $parsedTrade;
             $filled = $this->sum ($filled, $parsedTrade['amount']);
@@ -1112,8 +1114,8 @@ class anxpro extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privatePostMoneyCurrencyAddress (array_merge ($request, $params));
-        $result = $response['data'];
-        $address = $this->safe_string($result, 'addr');
+        $data = $this->safe_value($response, 'data', array());
+        $address = $this->safe_string($data, 'addr');
         $this->check_address($address);
         return array (
             'currency' => $code,
@@ -1131,8 +1133,9 @@ class anxpro extends Exchange {
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $request;
         if ($api === 'public' || $api === 'v3public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
