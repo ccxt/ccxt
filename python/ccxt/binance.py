@@ -213,11 +213,11 @@ class binance (Exchange):
         response = self.publicGetExchangeInfo(params)
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        markets = response['symbols']
+        markets = self.safe_value(response, 'symbols')
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = market['symbol']
+            id = self.safe_string(market, 'symbol')
             # "123456" is a "test symbol/market"
             if id == '123456':
                 continue
@@ -233,7 +233,8 @@ class binance (Exchange):
                 'amount': market['baseAssetPrecision'],
                 'price': market['quotePrecision'],
             }
-            active = (market['status'] == 'TRADING')
+            status = self.safe_string(market, 'status')
+            active = (status == 'TRADING')
             entry = {
                 'id': id,
                 'symbol': symbol,
@@ -274,14 +275,15 @@ class binance (Exchange):
                     entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
             if 'LOT_SIZE' in filters:
-                filter = filters['LOT_SIZE']
-                entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
+                filter = self.safe_value(filters, 'LOT_SIZE', {})
+                stepSize = self.safe_string(filter, 'stepSize')
+                entry['precision']['amount'] = self.precision_from_string(stepSize)
                 entry['limits']['amount'] = {
                     'min': self.safe_float(filter, 'minQty'),
                     'max': self.safe_float(filter, 'maxQty'),
                 }
             if 'MIN_NOTIONAL' in filters:
-                entry['limits']['cost']['min'] = float(filters['MIN_NOTIONAL']['minNotional'])
+                entry['limits']['cost']['min'] = self.safe_float(filters['MIN_NOTIONAL'], 'minNotional')
             result.append(entry)
         return result
 
@@ -311,16 +313,19 @@ class binance (Exchange):
         balances = response['balances']
         for i in range(0, len(balances)):
             balance = balances[i]
-            currency = balance['asset']
-            if currency in self.currencies_by_id:
-                currency = self.currencies_by_id[currency]['code']
+            currencyId = balance['asset']
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             account = {
                 'free': float(balance['free']),
                 'used': float(balance['locked']),
                 'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -854,10 +859,8 @@ class binance (Exchange):
         #           operateTime: "2018-10-07 17:56:07",
         #      transferedAmount: "0.00628141",
         #             fromAsset: "ADA"                  },
-        order = self.safe_string(trade, 'tranId')
-        time = self.safe_string(trade, 'operateTime')
-        timestamp = self.parse8601(time)
-        datetime = self.iso8601(timestamp)
+        orderId = self.safe_string(trade, 'tranId')
+        timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
         tradedCurrency = self.safeCurrencyCode(trade, 'fromAsset')
         earnedCurrency = self.currency('BNB')['code']
         applicantSymbol = earnedCurrency + '/' + tradedCurrency
@@ -889,16 +892,19 @@ class binance (Exchange):
             amount = self.safe_float(trade, 'amount')
             cost = self.sum(self.safe_float(trade, 'transferedAmount'), fee['cost'])
             side = 'sell'
-        price = cost / amount
+        price = None
+        if cost is not None:
+            if amount:
+                price = cost / amount
         id = None
         type = None
         takerOrMaker = None
         return {
             'id': id,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': order,
+            'order': orderId,
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,

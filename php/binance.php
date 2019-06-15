@@ -205,14 +205,15 @@ class binance extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference ();
         }
-        $markets = $response['symbols'];
+        $markets = $this->safe_value($response, 'symbols');
         $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $id = $market['symbol'];
+            $id = $this->safe_string($market, 'symbol');
             // "123456" is a "test symbol/market"
-            if ($id === '123456')
+            if ($id === '123456') {
                 continue;
+            }
             $baseId = $market['baseAsset'];
             $quoteId = $market['quoteAsset'];
             $base = $this->common_currency_code($baseId);
@@ -225,7 +226,8 @@ class binance extends Exchange {
                 'amount' => $market['baseAssetPrecision'],
                 'price' => $market['quotePrecision'],
             );
-            $active = ($market['status'] === 'TRADING');
+            $status = $this->safe_string($market, 'status');
+            $active = ($status === 'TRADING');
             $entry = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -268,15 +270,16 @@ class binance extends Exchange {
                 $entry['precision']['price'] = $this->precision_from_string($filter['tickSize']);
             }
             if (is_array($filters) && array_key_exists('LOT_SIZE', $filters)) {
-                $filter = $filters['LOT_SIZE'];
-                $entry['precision']['amount'] = $this->precision_from_string($filter['stepSize']);
+                $filter = $this->safe_value($filters, 'LOT_SIZE', array());
+                $stepSize = $this->safe_string($filter, 'stepSize');
+                $entry['precision']['amount'] = $this->precision_from_string($stepSize);
                 $entry['limits']['amount'] = array (
                     'min' => $this->safe_float($filter, 'minQty'),
                     'max' => $this->safe_float($filter, 'maxQty'),
                 );
             }
             if (is_array($filters) && array_key_exists('MIN_NOTIONAL', $filters)) {
-                $entry['limits']['cost']['min'] = floatval ($filters['MIN_NOTIONAL']['minNotional']);
+                $entry['limits']['cost']['min'] = $this->safe_float($filters['MIN_NOTIONAL'], 'minNotional');
             }
             $result[] = $entry;
         }
@@ -311,16 +314,20 @@ class binance extends Exchange {
         $balances = $response['balances'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currency = $balance['asset'];
-            if (is_array($this->currencies_by_id) && array_key_exists($currency, $this->currencies_by_id))
-                $currency = $this->currencies_by_id[$currency]['code'];
+            $currencyId = $balance['asset'];
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
             $account = array (
                 'free' => floatval ($balance['free']),
                 'used' => floatval ($balance['locked']),
                 'total' => 0.0,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -926,10 +933,8 @@ class binance extends Exchange {
         //           operateTime => "2018-10-07 17:56:07",
         //      transferedAmount => "0.00628141",
         //             fromAsset => "ADA"                  ),
-        $order = $this->safe_string($trade, 'tranId');
-        $time = $this->safe_string($trade, 'operateTime');
-        $timestamp = $this->parse8601 ($time);
-        $datetime = $this->iso8601 ($timestamp);
+        $orderId = $this->safe_string($trade, 'tranId');
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'operateTime'));
         $tradedCurrency = $this->safeCurrencyCode ($trade, 'fromAsset');
         $earnedCurrency = $this->currency ('BNB')['code'];
         $applicantSymbol = $earnedCurrency . '/' . $tradedCurrency;
@@ -963,16 +968,21 @@ class binance extends Exchange {
             $cost = $this->sum ($this->safe_float($trade, 'transferedAmount'), $fee['cost']);
             $side = 'sell';
         }
-        $price = $cost / $amount;
+        $price = null;
+        if ($cost !== null) {
+            if ($amount) {
+                $price = $cost / $amount;
+            }
+        }
         $id = null;
         $type = null;
         $takerOrMaker = null;
         return array (
             'id' => $id,
             'timestamp' => $timestamp,
-            'datetime' => $datetime,
+            'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'order' => $order,
+            'order' => $orderId,
             'type' => $type,
             'takerOrMaker' => $takerOrMaker,
             'side' => $side,
@@ -1262,26 +1272,31 @@ class binance extends Exchange {
             // therefore they don't accept URL $query arguments
             // https://github.com/ccxt/ccxt/issues/5224
             if (!$userDataStream) {
-                if ($params)
+                if ($params) {
                     $url .= '?' . $this->urlencode ($params);
+                }
             }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if (($code === 418) || ($code === 429))
+        if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
+        }
         // $error $response in a form => array( "$code" => -1013, "msg" => "Invalid quantity." )
         // following block cointains legacy checks against $message patterns in "msg" property
         // will switch "$code" checks eventually, when we know all of them
         if ($code >= 400) {
-            if (mb_strpos($body, 'Price * QTY is zero or less') !== false)
+            if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {
                 throw new InvalidOrder($this->id . ' order cost = amount * price is zero or less ' . $body);
-            if (mb_strpos($body, 'LOT_SIZE') !== false)
+            }
+            if (mb_strpos($body, 'LOT_SIZE') !== false) {
                 throw new InvalidOrder($this->id . ' order amount should be evenly divisible by lot size ' . $body);
-            if (mb_strpos($body, 'PRICE_FILTER') !== false)
+            }
+            if (mb_strpos($body, 'PRICE_FILTER') !== false) {
                 throw new InvalidOrder($this->id . ' order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid float value in general, use $this->price_to_precision(symbol, amount) ' . $body);
+            }
         }
         if (strlen ($body) > 0) {
             if ($body[0] === '{') {
