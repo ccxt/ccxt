@@ -349,18 +349,18 @@ module.exports = class latoken extends Exchange {
         let fee = undefined;
         return {
             'info': info,
-            'timestamp': trade.timestamp,
-            'datetime': this.iso8601 (trade.timestamp),
-            'symbol': trade.symbol,
-            'pairId': trade.pairId,
-            'id': trade.id,
-            'order': trade.orderId,
+            'timestamp': trade['timestamp'],
+            'datetime': this.iso8601 (trade['timestamp']),
+            'symbol': trade['symbol'],
+            'pairId': trade['pairId'],
+            'id': trade['id'],
+            'order': trade['orderId'],
             'type': type,
-            'side': trade.side,
-            'price': trade.price,
-            'amount': trade.amount,
-            'cost': trade.price * trade.amount,
-            'commision': trade.commision,
+            'side': trade['side'],
+            'price': trade['price'],
+            'amount': trade['amount'],
+            'cost': trade['price'] * trade['amount'],
+            'commision': trade['commision'],
             'fee': fee,
         };
     }
@@ -376,13 +376,13 @@ module.exports = class latoken extends Exchange {
         for (let i = 0; i < response.trades.length; i++) {
             let resp = response.trades[i];
             result.push ({
-                'pairId': response.pairId,
-                'symbol': response.symbol,
-                'tradeCount': response.tradeCount,
-                'side': resp.side,
-                'price': resp.price,
-                'amount': resp.amount,
-                'timestamp': resp.timestamp,
+                'pairId': response['pairId'],
+                'symbol': response['symbol'],
+                'tradeCount': response['tradeCount'],
+                'side': resp['side'],
+                'price': resp['price'],
+                'amount': resp['amount'],
+                'timestamp': resp['timestamp'],
             });
         }
         let trades = this.parseTrades (result);
@@ -513,8 +513,8 @@ module.exports = class latoken extends Exchange {
         for (let i = 0; i < response.cancelledOrders.length; i++) {
             let resp = response.cancelledOrders[i];
             result.push ({
-                'pairId': response.pairId,
-                'symbol': response.symbol,
+                'pairId': response['pairId'],
+                'symbol': response['symbol'],
                 'cancelledOrder': resp,
             });
         }
