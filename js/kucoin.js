@@ -139,6 +139,7 @@ module.exports = class kucoin extends Exchange {
                 '500': ExchangeError,
                 '503': ExchangeNotAvailable,
                 '200004': InsufficientFunds,
+                '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
                 '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
                 '400001': AuthenticationError,
@@ -151,6 +152,7 @@ module.exports = class kucoin extends Exchange {
                 '400008': NotSupported,
                 '400100': ArgumentsRequired,
                 '411100': AccountSuspended,
+                '415000': BadRequest, // {"code":"415000","msg":"Unsupported Media Type"}
                 '500000': ExchangeError,
             },
             'fees': {
