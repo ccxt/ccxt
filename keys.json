@@ -34,6 +34,7 @@
     "coinegg":       { "skip": true },
     "coinex":        { "skip": true },
     "coinfalcon":    { "skip": true },
+    "coinfloor":     { "skip": true },
     "coingi":        { "skip": true },
     "coinmate":      { "skip": true },
     "coinmarketcap": { "skip": true },
