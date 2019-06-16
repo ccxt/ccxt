@@ -7,6 +7,7 @@ from ccxt.liqui import liqui
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidNonce
 
 
 class yobit (liqui):
@@ -147,6 +148,7 @@ class yobit (liqui):
                     'Total transaction amount': ExchangeError,  # {"success": 0, "error": "Total transaction amount is less than minimal total: 0.00010000"}
                     'Insufficient funds': InsufficientFunds,
                     'invalid key': AuthenticationError,
+                    'invalid nonce': InvalidNonce,  # {"success":0,"error":"invalid nonce(has already been used)"}'
                 },
             },
         })
