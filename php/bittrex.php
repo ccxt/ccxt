@@ -290,8 +290,10 @@ class bittrex extends Exchange {
             );
             // bittrex uses boolean values, bleutrade uses strings
             $active = $this->safe_value($market, 'IsActive', false);
-            if (($active !== 'false') || $active) {
+            if (($active !== 'false') && $active) {
                 $active = true;
+            } else {
+                $active = false;
             }
             $result[] = array (
                 'id' => $id,

@@ -305,8 +305,10 @@ class bittrex (Exchange):
             }
             # bittrex uses boolean values, bleutrade uses strings
             active = self.safe_value(market, 'IsActive', False)
-            if (active != 'false') or active:
+            if (active != 'false') and active:
                 active = True
+            else:
+                active = False
             result.append({
                 'id': id,
                 'symbol': symbol,
