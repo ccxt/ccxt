@@ -213,7 +213,7 @@ module.exports = class latoken extends Exchange {
 
     calculateFee (symbol, side, amount, price, takerOrMaker = 'taker') {
         const market = this.markets[symbol];
-        const key = 'quote';
+        let key = 'quote';
         const rate = market[takerOrMaker];
         let cost = amount * rate;
         let precision = market['precision']['price'];
