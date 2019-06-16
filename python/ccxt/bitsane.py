@@ -32,6 +32,7 @@ class bitsane (Exchange):
                 'www': 'https://bitsane.com',
                 'doc': 'https://bitsane.com/help/api',
                 'fees': 'https://bitsane.com/help/fees',
+                'referral': 'https://bitsane.com?ref=CGOvuPA2LR3GcdOUOKjc',
             },
             'api': {
                 'public': {

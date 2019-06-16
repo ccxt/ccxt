@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.717'
+const version = '1.18.718'
 
 Exchange.ccxtVersion = version
 
@@ -16079,6 +16079,7 @@ module.exports = class bitsane extends Exchange {
                 'www': 'https://bitsane.com',
                 'doc': 'https://bitsane.com/help/api',
                 'fees': 'https://bitsane.com/help/fees',
+                'referral': 'https://bitsane.com?ref=CGOvuPA2LR3GcdOUOKjc',
             },
             'api': {
                 'public': {
