@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const liqui = require ('./liqui.js');
-const { ExchangeError, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, AuthenticationError, InvalidNonce } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -144,6 +144,7 @@ module.exports = class yobit extends liqui {
                     'Total transaction amount': ExchangeError, // { "success": 0, "error": "Total transaction amount is less than minimal total: 0.00010000"}
                     'Insufficient funds': InsufficientFunds,
                     'invalid key': AuthenticationError,
+                    'invalid nonce': InvalidNonce, // {"success":0,"error":"invalid nonce (has already been used)"}'
                 },
             },
         });
