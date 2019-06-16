@@ -33,7 +33,7 @@ $exchange = new $exchange_class(array(
 // the difference between unified currency codes and exchange-specific
 // currency ids is explained here: https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
 
-$code = 'BTC'; // a unified currency code, , edit this line
+$code = 'BTC'; // a unified currency code, edit this line
 
 $from = 'main'; // or 'trade', edit this line
 $to = 'trade'; // or 'main', edit this line
@@ -41,7 +41,7 @@ $to = 'trade'; // or 'main', edit this line
 $amount = '0.123'; // edit this line
 
 // ----------------------------------------------------------------------------
-// load "from" accounts
+// load "from" and "to" accounts
 
 function get_account_id ($exchange, $type, $code) {
 
