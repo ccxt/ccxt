@@ -62,7 +62,7 @@ function jwt (request, secret, alg = 'HS256') {
     if (algoType === 'HS') {
         signature = urlencodeBase64 (hmac (token, secret, algorithm, 'base64'))
     } else if (algoType === 'RS') {
-        signature = urlencodeBase64 (signRSA (token, secret, alg))
+        signature = urlencodeBase64 (rsa (token, secret, alg))
     }
     return [ token, signature ].join ('.')
 }
