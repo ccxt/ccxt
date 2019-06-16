@@ -100,7 +100,7 @@ $to_account_id = get_account_id ($exchange, $to, $code); // receiver
 
 echo "Transferring '" . $amount . "' '" . $code . "' from '" . $from . "' account '" . $from_account_id . "' to '" . $to . "' account '" . $to_account_id . "'\n";
 
-// set the argument for the implicit method
+// set the arguments for the implicit method
 $params = array(
 
     // set a unique identifier for this transfer
