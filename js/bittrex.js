@@ -290,8 +290,10 @@ module.exports = class bittrex extends Exchange {
             };
             // bittrex uses boolean values, bleutrade uses strings
             let active = this.safeValue (market, 'IsActive', false);
-            if ((active !== 'false') || active) {
+            if ((active !== 'false') && active) {
                 active = true;
+            } else {
+                active = false;
             }
             result.push ({
                 'id': id,
