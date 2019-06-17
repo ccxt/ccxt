@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.722'
+const version = '1.18.723'
 
 Exchange.ccxtVersion = version
 
@@ -65607,6 +65607,7 @@ module.exports = class okex3 extends Exchange {
                 'liquidation_price',
                 'product_id',
                 'risk_rate',
+                'margin_ratio',
             ]);
             const keys = Object.keys (omittedBalance);
             const accounts = {};

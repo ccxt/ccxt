@@ -1191,6 +1191,7 @@ class okex3 (Exchange):
                 'liquidation_price',
                 'product_id',
                 'risk_rate',
+                'margin_ratio',
             ])
             keys = list(omittedBalance.keys())
             accounts = {}
