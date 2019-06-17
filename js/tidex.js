@@ -564,10 +564,16 @@ module.exports = class tidex extends Exchange {
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timestamp = parseInt (order['timestamp_created']) * 1000;
+        let timestamp = this.safeInteger (order, 'timestamp_created');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         let symbol = undefined;
         if (market === undefined) {
-            market = this.markets_by_id[order['pair']];
+            const marketId = this.safeString (order, 'pair');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
         }
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -686,7 +692,7 @@ module.exports = class tidex extends Exchange {
         if ('fetchOrdersRequiresSymbol' in this.options) {
             if (this.options['fetchOrdersRequiresSymbol']) {
                 if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+                    throw new ArgumentsRequired (this.id + ' fetchOrders requires a `symbol` argument');
                 }
             }
         }

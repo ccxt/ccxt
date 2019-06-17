@@ -266,7 +266,10 @@ module.exports = class liqui extends Exchange {
         //        sell: 0.03377798,
         //     updated: 1537522009          }
         //
-        const timestamp = ticker['updated'] * 1000;
+        let timestamp = this.safeInteger (ticker, 'updated');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -497,19 +500,22 @@ module.exports = class liqui extends Exchange {
             '2': 'canceled',
             '3': 'canceled', // or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
         };
-        if (status in statuses) {
-            return statuses[status];
-        }
-        return status;
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
-        const id = order['id'].toString ();
+        const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const timestamp = parseInt (order['timestamp_created']) * 1000;
+        let timestamp = this.safeInteger (order, 'timestamp_created');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         let symbol = undefined;
         if (market === undefined) {
-            market = this.markets_by_id[order['pair']];
+            const marketId = this.safeString (order, 'pair');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
         }
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -642,7 +648,7 @@ module.exports = class liqui extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privatePostActiveOrders (this.extend (request, params));
-        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
+        // can only return 'open' orders (i.e. no way to fetch 'closed' orders)
         let openOrders = [];
         if ('return' in response) {
             openOrders = this.parseOrders (response['return'], market);
