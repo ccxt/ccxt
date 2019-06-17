@@ -543,16 +543,16 @@ module.exports = class latoken extends Exchange {
                 'x-lat-timestamp': this.nonce (),
                 'x-lat-timeframe': this.options['timeframe'],
             };
-            if ((path === 'exchangeInfo/pairs') && (typeof (params['currency']) === 'string')) {
+            if ((path === 'exchangeInfo/pairs') && (params['currency'])) {
                 url += '/' + params['currency'];
             }
-            if ((path === 'exchangeInfo/currencies') && (typeof (params['symbol']) === 'string')) {
+            if ((path === 'exchangeInfo/currencies') && (params['symbol'])) {
                 url += '/' + params['symbol'];
             }
             url += '?' + this.urlencode (params);
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            if (path === 'account/balances' && (typeof (params['currency']) === 'string')) {
+            if (path === 'account/balances' && (params['currency'])) {
                 url += '/' + params['currency'];
                 const param = {
                     'timestamp': this.nonce (),
