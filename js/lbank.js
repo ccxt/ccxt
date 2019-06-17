@@ -105,7 +105,7 @@ module.exports = class lbank extends Exchange {
                 'VET_ERC20': 'VEN',
             },
             'options': {
-                'cacheSecretAsPem',
+                'cacheSecretAsPem': true,
             },
         });
     }
