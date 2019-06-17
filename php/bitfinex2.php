@@ -216,8 +216,8 @@ class bitfinex2 extends bitfinex {
             $market = $response[$i];
             $id = $this->safe_string($market, 'pair');
             $id = strtoupper($id);
-            $baseId = mb_substr ($id, 0, 3);
-            $quoteId = mb_substr ($id, 3, 6);
+            $baseId = mb_substr($id, 0, 3 - 0);
+            $quoteId = mb_substr($id, 3, 6 - 3);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -275,7 +275,7 @@ class bitfinex2 extends bitfinex {
                 if (is_array($this->currencies_by_id) && array_key_exists($currency, $this->currencies_by_id)) {
                     $code = $this->currencies_by_id[$currency]['code'];
                 } else if ($currency[0] === 't') {
-                    $currency = mb_substr ($currency, 1);
+                    $currency = mb_substr($currency, 1);
                     $code = strtoupper($currency);
                     $code = $this->common_currency_code($code);
                 } else {

@@ -424,7 +424,7 @@ class bibox extends Exchange {
             $id = $keys[$i];
             $code = strtoupper($id);
             if (mb_strpos($code, 'TOTAL_') !== false) {
-                $code = mb_substr ($code, 6);
+                $code = mb_substr($code, 6);
             }
             if (is_array($this->currencies_by_id) && array_key_exists($code, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$code]['code'];

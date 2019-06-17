@@ -71,7 +71,7 @@ class kuna extends acx {
             for ($j = 0; $j < count ($quotes); $j++) {
                 $quoteId = $quotes[$j];
                 $index = mb_strpos($id, $quoteId);
-                $slice = mb_substr ($id, $index);
+                $slice = mb_substr($id, $index);
                 if (($index > 0) && ($slice === $quoteId)) {
                     $baseId = str_replace($quoteId, '', $id);
                     $base = strtoupper($baseId);

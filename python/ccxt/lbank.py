@@ -109,6 +109,9 @@ class lbank (Exchange):
             'commonCurrencies': {
                 'VET_ERC20': 'VEN',
             },
+            'options': {
+                'cacheSecretAsPem': True,
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -484,6 +487,18 @@ class lbank (Exchange):
             'info': response,
         }
 
+    def convert_secret_to_pem(self, secret):
+        lineLength = 64
+        secretLength = len(secret) - 0
+        numLines = int(secretLength / lineLength)
+        numLines = self.sum(numLines, 1)
+        pem = "-----BEGIN PRIVATE KEY-----\n"  # eslint-disable-line
+        for i in range(0, numLines):
+            start = i * lineLength
+            end = self.sum(start, lineLength)
+            pem += self.secret[start:end] + "\n"  # eslint-disable-line
+        return pem + '-----END PRIVATE KEY-----'
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -497,8 +512,19 @@ class lbank (Exchange):
             query = self.keysort(self.extend({
                 'api_key': self.apiKey,
             }, params))
-            queryString = self.rawencode(query) + '&secret_key=' + self.secret
-            query['sign'] = self.hash(self.encode(queryString)).upper()
+            queryString = self.rawencode(query)
+            message = self.hash(self.encode(queryString)).upper()
+            cacheSecretAsPem = self.safe_value(self.options, 'cacheSecretAsPem', True)
+            pem = None
+            if cacheSecretAsPem:
+                pem = self.safe_value(self.options, 'pem')
+                if pem is None:
+                    pem = self.convert_secret_to_pem(self.secret)
+                    self.options['pem'] = pem
+            else:
+                pem = self.convert_secret_to_pem(self.secret)
+            sign = self.binaryToBase64(self.rsa(message, pem, 'RS256'))
+            query['sign'] = sign
             body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

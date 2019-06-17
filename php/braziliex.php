@@ -475,7 +475,7 @@ class braziliex extends Exchange {
             throw new InvalidOrder($this->id . ' ' . $this->json ($response));
         }
         $parts = explode(' / ', $response['message']);
-        $parts = mb_substr ($parts, 1);
+        $parts = mb_substr($parts, 1);
         $feeParts = explode(' ', $parts[5]);
         $order = $this->parse_order(array (
             'timestamp' => $this->milliseconds (),

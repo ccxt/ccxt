@@ -223,8 +223,8 @@ class acx extends Exchange {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
-                $base = mb_substr ($id, 0, 3);
-                $quote = mb_substr ($id, 3, 6);
+                $base = mb_substr($id, 0, 3 - 0);
+                $quote = mb_substr($id, 3, 6 - 3);
                 $base = strtoupper($base);
                 $quote = strtoupper($quote);
                 $base = $this->common_currency_code($base);
