@@ -27,35 +27,42 @@ const hmac = (request, secret, hash = 'sha256', digest = 'hex') => {
 
 /*  .............................................   */
 
+function rsa (request, secret, alg = 'RS256') {
+    const algos = {
+        'RS256': 'pkcs1-sha256',
+        'RS512': 'pkcs1-sha512',
+    }
+    if (!(alg in algos)) {
+        throw new ExchangeError (alg + ' is not a supported rsa signing algorithm.')
+    }
+    const algorithm = algos[alg]
+    let key = new NodeRSA (secret, {
+        'environment': 'browser',
+        'signingScheme': algorithm,
+    })
+    return key.sign (request, 'base64', 'binary')
+}
+
+
 /**
  * @return {string}
  */
-const jwt = function JSON_web_token (request, secret, alg = 'HS256') {
+function jwt (request, secret, alg = 'HS256') {
     const algos = {
-            'HS256': 'sha256',
-            'HS384': 'sha384',
-            'HS512': 'sha512',
-            'RS256': 'pkcs1-sha256',
-            'RS512': 'pkcs1-sha512',
-        };
+        'HS256': 'sha256',
+        'HS384': 'sha384',
+        'HS512': 'sha512',
+    };
     const encodedHeader = urlencodeBase64 (stringToBase64 (JSON.stringify ({ 'alg': alg, 'typ': 'JWT' })))
     const encodedData = urlencodeBase64 (stringToBase64 (JSON.stringify (request)))
     const token = [ encodedHeader, encodedData ].join ('.')
-    if (!(alg in algos)) {
-        throw new ExchangeError (alg + ' is not a supported jwt algorithm.')
-    }
     const algoType = alg.slice (0, 2);
     const algorithm = algos[alg]
     let signature = undefined
     if (algoType === 'HS') {
-        signature = urlencodeBase64 (utf16ToBase64 (hmac (token, secret, algorithm, 'utf16')))
+        signature = urlencodeBase64 (hmac (token, secret, algorithm, 'base64'))
     } else if (algoType === 'RS') {
-        let key = new NodeRSA (secret, {
-            'environment': 'browser',
-            'signingScheme': algorithm,
-            'encryptionScheme': 'pkcs1',
-        })
-        signature = urlencodeBase64 (key.sign (token, 'base64', 'binary'))
+        signature = urlencodeBase64 (rsa (token, secret, alg))
     }
     return [ token, signature ].join ('.')
 }
@@ -104,6 +111,7 @@ module.exports = {
     hmac,
     jwt,
     totp,
+    rsa,
 }
 
 /*  ------------------------------------------------------------------------ */

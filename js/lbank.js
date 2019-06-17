@@ -104,6 +104,9 @@ module.exports = class lbank extends Exchange {
             'commonCurrencies': {
                 'VET_ERC20': 'VEN',
             },
+            'options': {
+                'cacheSecretAsPem': true,
+            },
         });
     }
 
@@ -522,6 +525,20 @@ module.exports = class lbank extends Exchange {
         };
     }
 
+    convertSecretToPem (secret) {
+        const lineLength = 64;
+        const secretLength = secret.length - 0;
+        let numLines = parseInt (secretLength / lineLength);
+        numLines = this.sum (numLines, 1);
+        let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
+        for (let i = 0; i < numLines; i++) {
+            const start = i * lineLength;
+            const end = this.sum (start, lineLength);
+            pem += this.secret.slice (start, end) + "\n"; // eslint-disable-line
+        }
+        return pem + '-----END PRIVATE KEY-----';
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
@@ -536,8 +553,21 @@ module.exports = class lbank extends Exchange {
             const query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
-            const queryString = this.rawencode (query) + '&secret_key=' + this.secret;
-            query['sign'] = this.hash (this.encode (queryString)).toUpperCase ();
+            const queryString = this.rawencode (query);
+            const message = this.hash (this.encode (queryString)).toUpperCase ();
+            const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
+            let pem = undefined;
+            if (cacheSecretAsPem) {
+                pem = this.safeValue (this.options, 'pem');
+                if (pem === undefined) {
+                    pem = this.convertSecretToPem (this.secret);
+                    this.options['pem'] = pem;
+                }
+            } else {
+                pem = this.convertSecretToPem (this.secret);
+            }
+            const sign = this.binaryToBase64 (this.rsa (message, pem, 'RS256'));
+            query['sign'] = sign;
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         }
