@@ -1204,55 +1204,56 @@ class bittrex (Exchange):
         #
         #     {success: False, message: "message"}
         #
-        success = self.safe_value(response, 'success')
-        if success is None:
-            raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
-        if isinstance(success, basestring):
-            # bleutrade uses string instead of boolean
-            success = True if (success == 'true') else False
-        if not success:
-            message = self.safe_string(response, 'message')
-            feedback = self.id + ' ' + self.json(response)
-            exceptions = self.exceptions
-            if message == 'APIKEY_INVALID':
-                if self.options['hasAlreadyAuthenticatedSuccessfully']:
-                    raise DDoSProtection(feedback)
-                else:
-                    raise AuthenticationError(feedback)
-            # https://github.com/ccxt/ccxt/issues/4932
-            # the following two lines are now redundant, see line 171 in describe()
-            #
-            #     if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
-            #         raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
-            #
-            if message == 'INVALID_ORDER':
-                # Bittrex will return an ambiguous INVALID_ORDER message
-                # upon canceling already-canceled and closed orders
-                # therefore self special case for cancelOrder
-                # url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
-                cancel = 'cancel'
-                indexOfCancel = url.find(cancel)
-                if indexOfCancel >= 0:
-                    parts = url.split('&')
-                    orderId = None
-                    for i in range(0, len(parts)):
-                        part = parts[i]
-                        keyValue = part.split('=')
-                        if keyValue[0] == 'uuid':
-                            orderId = keyValue[1]
-                            break
-                    if orderId is not None:
-                        raise OrderNotFound(self.id + ' cancelOrder ' + orderId + ' ' + self.json(response))
+        if body[0] == '{':
+            success = self.safe_value(response, 'success')
+            if success is None:
+                raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
+            if isinstance(success, basestring):
+                # bleutrade uses string instead of boolean
+                success = True if (success == 'true') else False
+            if not success:
+                message = self.safe_string(response, 'message')
+                feedback = self.id + ' ' + self.json(response)
+                exceptions = self.exceptions
+                if message == 'APIKEY_INVALID':
+                    if self.options['hasAlreadyAuthenticatedSuccessfully']:
+                        raise DDoSProtection(feedback)
                     else:
-                        raise OrderNotFound(self.id + ' cancelOrder ' + self.json(response))
-            if message in exceptions:
-                raise exceptions[message](feedback)
-            if message is not None:
-                if message.find('throttled. Try again') >= 0:
-                    raise DDoSProtection(feedback)
-                if message.find('problem') >= 0:
-                    raise ExchangeNotAvailable(feedback)  # 'There was a problem processing your request.  If self problem persists, please contact...')
-            raise ExchangeError(feedback)
+                        raise AuthenticationError(feedback)
+                # https://github.com/ccxt/ccxt/issues/4932
+                # the following two lines are now redundant, see line 171 in describe()
+                #
+                #     if message == 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT':
+                #         raise InvalidOrder(self.id + ' order cost should be over 50k satoshi ' + self.json(response))
+                #
+                if message == 'INVALID_ORDER':
+                    # Bittrex will return an ambiguous INVALID_ORDER message
+                    # upon canceling already-canceled and closed orders
+                    # therefore self special case for cancelOrder
+                    # url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    cancel = 'cancel'
+                    indexOfCancel = url.find(cancel)
+                    if indexOfCancel >= 0:
+                        parts = url.split('&')
+                        orderId = None
+                        for i in range(0, len(parts)):
+                            part = parts[i]
+                            keyValue = part.split('=')
+                            if keyValue[0] == 'uuid':
+                                orderId = keyValue[1]
+                                break
+                        if orderId is not None:
+                            raise OrderNotFound(self.id + ' cancelOrder ' + orderId + ' ' + self.json(response))
+                        else:
+                            raise OrderNotFound(self.id + ' cancelOrder ' + self.json(response))
+                if message in exceptions:
+                    raise exceptions[message](feedback)
+                if message is not None:
+                    if message.find('throttled. Try again') >= 0:
+                        raise DDoSProtection(feedback)
+                    if message.find('problem') >= 0:
+                        raise ExchangeNotAvailable(feedback)  # 'There was a problem processing your request.  If self problem persists, please contact...')
+                raise ExchangeError(feedback)
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

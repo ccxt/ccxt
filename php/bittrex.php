@@ -1309,68 +1309,70 @@ class bittrex extends Exchange {
         //
         //     array( $success => false, $message => "$message" )
         //
-        $success = $this->safe_value($response, 'success');
-        if ($success === null) {
-            throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json ($response));
-        }
-        if (gettype ($success) === 'string') {
-            // bleutrade uses string instead of boolean
-            $success = ($success === 'true') ? true : false;
-        }
-        if (!$success) {
-            $message = $this->safe_string($response, 'message');
-            $feedback = $this->id . ' ' . $this->json ($response);
-            $exceptions = $this->exceptions;
-            if ($message === 'APIKEY_INVALID') {
-                if ($this->options['hasAlreadyAuthenticatedSuccessfully']) {
-                    throw new DDoSProtection($feedback);
-                } else {
-                    throw new AuthenticationError($feedback);
-                }
+        if ($body[0] === '{') {
+            $success = $this->safe_value($response, 'success');
+            if ($success === null) {
+                throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json ($response));
             }
-            // https://github.com/ccxt/ccxt/issues/4932
-            // the following two lines are now redundant, see line 171 in describe()
-            //
-            //     if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
-            //         throw new InvalidOrder($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
-            //
-            if ($message === 'INVALID_ORDER') {
-                // Bittrex will return an ambiguous INVALID_ORDER $message
-                // upon canceling already-canceled and closed orders
-                // therefore this special case for cancelOrder
-                // $url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
-                $cancel = 'cancel';
-                $indexOfCancel = mb_strpos($url, $cancel);
-                if ($indexOfCancel >= 0) {
-                    $parts = explode('&', $url);
-                    $orderId = null;
-                    for ($i = 0; $i < count ($parts); $i++) {
-                        $part = $parts[$i];
-                        $keyValue = explode('=', $part);
-                        if ($keyValue[0] === 'uuid') {
-                            $orderId = $keyValue[1];
-                            break;
+            if (gettype ($success) === 'string') {
+                // bleutrade uses string instead of boolean
+                $success = ($success === 'true') ? true : false;
+            }
+            if (!$success) {
+                $message = $this->safe_string($response, 'message');
+                $feedback = $this->id . ' ' . $this->json ($response);
+                $exceptions = $this->exceptions;
+                if ($message === 'APIKEY_INVALID') {
+                    if ($this->options['hasAlreadyAuthenticatedSuccessfully']) {
+                        throw new DDoSProtection($feedback);
+                    } else {
+                        throw new AuthenticationError($feedback);
+                    }
+                }
+                // https://github.com/ccxt/ccxt/issues/4932
+                // the following two lines are now redundant, see line 171 in describe()
+                //
+                //     if ($message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                //         throw new InvalidOrder($this->id . ' order cost should be over 50k satoshi ' . $this->json ($response));
+                //
+                if ($message === 'INVALID_ORDER') {
+                    // Bittrex will return an ambiguous INVALID_ORDER $message
+                    // upon canceling already-canceled and closed orders
+                    // therefore this special case for cancelOrder
+                    // $url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    $cancel = 'cancel';
+                    $indexOfCancel = mb_strpos($url, $cancel);
+                    if ($indexOfCancel >= 0) {
+                        $parts = explode('&', $url);
+                        $orderId = null;
+                        for ($i = 0; $i < count ($parts); $i++) {
+                            $part = $parts[$i];
+                            $keyValue = explode('=', $part);
+                            if ($keyValue[0] === 'uuid') {
+                                $orderId = $keyValue[1];
+                                break;
+                            }
+                        }
+                        if ($orderId !== null) {
+                            throw new OrderNotFound($this->id . ' cancelOrder ' . $orderId . ' ' . $this->json ($response));
+                        } else {
+                            throw new OrderNotFound($this->id . ' cancelOrder ' . $this->json ($response));
                         }
                     }
-                    if ($orderId !== null) {
-                        throw new OrderNotFound($this->id . ' cancelOrder ' . $orderId . ' ' . $this->json ($response));
-                    } else {
-                        throw new OrderNotFound($this->id . ' cancelOrder ' . $this->json ($response));
+                }
+                if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
+                    throw new $exceptions[$message]($feedback);
+                }
+                if ($message !== null) {
+                    if (mb_strpos($message, 'throttled. Try again') !== false) {
+                        throw new DDoSProtection($feedback);
+                    }
+                    if (mb_strpos($message, 'problem') !== false) {
+                        throw new ExchangeNotAvailable($feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
                     }
                 }
+                throw new ExchangeError($feedback);
             }
-            if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                throw new $exceptions[$message]($feedback);
-            }
-            if ($message !== null) {
-                if (mb_strpos($message, 'throttled. Try again') !== false) {
-                    throw new DDoSProtection($feedback);
-                }
-                if (mb_strpos($message, 'problem') !== false) {
-                    throw new ExchangeNotAvailable($feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
-                }
-            }
-            throw new ExchangeError($feedback);
         }
     }
 
