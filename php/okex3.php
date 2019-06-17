@@ -2041,6 +2041,7 @@ class okex3 extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string_2($depositAddress, 'tag', 'payment_id');
+        $tag = $this->safe_string($depositAddress, 'memo', $tag);
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $code = null;
         if ($currencyId !== null) {
