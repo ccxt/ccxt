@@ -166,8 +166,11 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
-        const markets = await this.publicGetExchangeInfoPairs (params);
+    async fetchMarkets (currency = undefined, params = {}) {
+        const request = {
+            'currency': currency,
+        };
+        const markets = await this.publicGetExchangeInfoPairs (this.extend (request, params));
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -232,9 +235,12 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-    async fetchBalance (params = {}) {
+    async fetchBalance (currency = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccountBalances (params);
+        const request = {
+            'currency': currency,
+        };
+        const response = await this.privateGetAccountBalances (this.extend (request, params));
         const result = {
             'info': response,
         };
@@ -303,9 +309,12 @@ module.exports = class latoken extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    async fetchCurrencies (params = {}) {
-        if (Object.keys (params).length) {
-            const currencies = await this.publicGetExchangeInfoCurrencies (params);
+    async fetchCurrencies (symbol = undefined, params = {}) {
+        const request = {
+            'symbol': symbol,
+        };
+        if (symbol !== undefined) {
+            const currencies = await this.publicGetExchangeInfoCurrencies (this.extend (request, params));
             const id = currencies['currencyId'];
             const symbol = currencies['symbol'];
             const name = currencies['name'];
@@ -534,19 +543,22 @@ module.exports = class latoken extends Exchange {
                 'x-lat-timestamp': this.nonce (),
                 'x-lat-timeframe': this.options['timeframe'],
             };
-            if ((path === 'exchangeInfo/pairs' || 'exchangeInfo/currencies') && (typeof (params) === 'string')) {
-                url += '/' + params;
+            if ((path === 'exchangeInfo/pairs') && (typeof (params['currency']) === 'string')) {
+                url += '/' + params['currency'];
+            }
+            if ((path === 'exchangeInfo/currencies') && (typeof (params['symbol']) === 'string')) {
+                url += '/' + params['symbol'];
             }
             url += '?' + this.urlencode (params);
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            if (path === 'account/balances' && (typeof (params) === 'string')) {
-                url += '/' + params;
+            if (path === 'account/balances' && (typeof (params['currency']) === 'string')) {
+                url += '/' + params['currency'];
                 const param = {
                     'timestamp': this.nonce (),
                 };
                 const query1 = '?' + this.urlencode (param);
-                const dataToSign = '/api/v1/' + path + '/' + params;
+                const dataToSign = '/api/v1/' + path + '/' + params['currency'];
                 const signature = this.hmac (this.encode (dataToSign + query1), this.encode (this.secret), 'sha256');
                 url += query1;
                 headers = {
