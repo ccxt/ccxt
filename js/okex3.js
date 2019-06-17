@@ -2039,7 +2039,8 @@ module.exports = class okex3 extends Exchange {
         //     }
         //
         const address = this.safeString (depositAddress, 'address');
-        const tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
+        let tag = this.safeString2 (depositAddress, 'tag', 'payment_id');
+        tag = this.safeString (depositAddress, 'memo', tag);
         const currencyId = this.safeString (depositAddress, 'currency');
         let code = undefined;
         if (currencyId !== undefined) {
