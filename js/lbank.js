@@ -525,9 +525,9 @@ module.exports = class lbank extends Exchange {
     }
 
     convertSecretToPem (secret) {
-        // convert single-line secret string to PKCS#8 PEM separated with newlines
         const lineLength = 64;
-        let numLines = parseInt (secret.length / lineLength);
+        const secretLength = secret.length - 0;
+        let numLines = parseInt (secretLength / lineLength);
         numLines = this.sum (numLines, 1);
         let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (let i = 0; i < numLines; i++) {
