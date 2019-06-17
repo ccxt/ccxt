@@ -583,7 +583,7 @@ module.exports = class latoken extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response) {
         if (!response) {
-            return;
+            return
         }
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
