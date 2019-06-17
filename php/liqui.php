@@ -271,7 +271,10 @@ class liqui extends Exchange {
         //        sell => 0.03377798,
         //     updated => 1537522009          }
         //
-        $timestamp = $ticker['updated'] * 1000;
+        $timestamp = $this->safe_integer($ticker, 'updated');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -502,19 +505,22 @@ class liqui extends Exchange {
             '2' => 'canceled',
             '3' => 'canceled', // or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
         );
-        if (is_array($statuses) && array_key_exists($status, $statuses)) {
-            return $statuses[$status];
-        }
-        return $status;
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
-        $id = (string) $order['id'];
+        $id = $this->safe_string($order, 'id');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $timestamp = intval ($order['timestamp_created']) * 1000;
+        $timestamp = $this->safe_integer($order, 'timestamp_created');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $symbol = null;
         if ($market === null) {
-            $market = $this->markets_by_id[$order['pair']];
+            $marketId = $this->safe_string($order, 'pair');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -647,7 +653,7 @@ class liqui extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
-        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
+        // can only return 'open' orders (i.e. no way to fetch 'closed' orders)
         $openOrders = array();
         if (is_array($response) && array_key_exists('return', $response)) {
             $openOrders = $this->parse_orders($response['return'], $market);

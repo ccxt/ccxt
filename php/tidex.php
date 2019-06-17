@@ -569,10 +569,16 @@ class tidex extends Exchange {
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'id');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $timestamp = intval ($order['timestamp_created']) * 1000;
+        $timestamp = $this->safe_integer($order, 'timestamp_created');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $symbol = null;
         if ($market === null) {
-            $market = $this->markets_by_id[$order['pair']];
+            $marketId = $this->safe_string($order, 'pair');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -691,7 +697,7 @@ class tidex extends Exchange {
         if (is_array($this->options) && array_key_exists('fetchOrdersRequiresSymbol', $this->options)) {
             if ($this->options['fetchOrdersRequiresSymbol']) {
                 if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+                    throw new ArgumentsRequired($this->id . ' fetchOrders requires a `$symbol` argument');
                 }
             }
         }

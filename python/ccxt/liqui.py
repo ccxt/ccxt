@@ -270,7 +270,9 @@ class liqui (Exchange):
         #        sell: 0.03377798,
         #     updated: 1537522009          }
         #
-        timestamp = ticker['updated'] * 1000
+        timestamp = self.safe_integer(ticker, 'updated')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -472,17 +474,19 @@ class liqui (Exchange):
             '2': 'canceled',
             '3': 'canceled',  # or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        id = str(order['id'])
+        id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        timestamp = int(order['timestamp_created']) * 1000
+        timestamp = self.safe_integer(order, 'timestamp_created')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = None
         if market is None:
-            market = self.markets_by_id[order['pair']]
+            marketId = self.safe_string(order, 'pair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
         remaining = self.safe_float(order, 'amount')
@@ -592,7 +596,7 @@ class liqui (Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
-        # liqui etc can only return 'open' orders(i.e. no way to fetch 'closed' orders)
+        # can only return 'open' orders(i.e. no way to fetch 'closed' orders)
         openOrders = []
         if 'return' in response:
             openOrders = self.parse_orders(response['return'], market)

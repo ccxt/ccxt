@@ -537,10 +537,14 @@ class tidex (Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        timestamp = int(order['timestamp_created']) * 1000
+        timestamp = self.safe_integer(order, 'timestamp_created')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = None
         if market is None:
-            market = self.markets_by_id[order['pair']]
+            marketId = self.safe_string(order, 'pair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
         remaining = None
@@ -640,7 +644,7 @@ class tidex (Exchange):
         if 'fetchOrdersRequiresSymbol' in self.options:
             if self.options['fetchOrdersRequiresSymbol']:
                 if symbol is None:
-                    raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+                    raise ArgumentsRequired(self.id + ' fetchOrders requires a `symbol` argument')
         self.load_markets()
         request = {}
         market = None
