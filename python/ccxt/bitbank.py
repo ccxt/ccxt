@@ -89,9 +89,8 @@ class bitbank (Exchange):
             },
             'fees': {
                 'trading': {
-                    # only temporarily
-                    'maker': 0.0,
-                    'taker': 0.0,
+                    'maker': -0.05 / 100,
+                    'taker': 0.15 / 100,
                 },
                 'funding': {
                     'withdraw': {
