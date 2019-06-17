@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.719'
+const version = '1.18.720'
 
 Exchange.ccxtVersion = version
 
@@ -55643,16 +55643,17 @@ module.exports = class lbank extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostUserInfo (params);
         const result = { 'info': response };
-        const ids = Object.keys (this.extend (response['info']['free'], response['info']['freeze']));
+        const info = this.safeValue (response, 'info', {});
+        const free = this.safeValue (info, 'free', {});
+        const freeze = this.safeValue (info, 'freeze', {});
+        const ids = Object.keys (this.extend (free, freeze));
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const code = this.commonCurrencyCode (id);
-            const free = this.safeFloat (response['info']['free'], id, 0.0);
-            const used = this.safeFloat (response['info']['freeze'], id, 0.0);
+            const code = this.commonCurrencyCode (id.toUpperCase ());
             const account = {
-                'free': free,
-                'used': used,
-                'total': 0.0,
+                'free': this.safeFloat (free, id, 0.0),
+                'used': this.safeFloat (freeze, id, 0.0),
+                'total': undefined,
             };
             account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;

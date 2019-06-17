@@ -347,16 +347,17 @@ class lbank extends Exchange {
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
         $result = array( 'info' => $response );
-        $ids = is_array(array_merge ($response['info']['free'], $response['info']['freeze'])) ? array_keys(array_merge ($response['info']['free'], $response['info']['freeze'])) : array();
+        $info = $this->safe_value($response, 'info', array());
+        $free = $this->safe_value($info, 'free', array());
+        $freeze = $this->safe_value($info, 'freeze', array());
+        $ids = is_array(array_merge ($free, $freeze)) ? array_keys(array_merge ($free, $freeze)) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $code = $this->common_currency_code($id);
-            $free = $this->safe_float($response['info']['free'], $id, 0.0);
-            $used = $this->safe_float($response['info']['freeze'], $id, 0.0);
+            $code = $this->common_currency_code(strtoupper($id));
             $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => 0.0,
+                'free' => $this->safe_float($free, $id, 0.0),
+                'used' => $this->safe_float($freeze, $id, 0.0),
+                'total' => null,
             );
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$code] = $account;

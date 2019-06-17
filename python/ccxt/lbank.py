@@ -326,16 +326,17 @@ class lbank (Exchange):
         self.load_markets()
         response = self.privatePostUserInfo(params)
         result = {'info': response}
-        ids = list(self.extend(response['info']['free'], response['info']['freeze']).keys())
+        info = self.safe_value(response, 'info', {})
+        free = self.safe_value(info, 'free', {})
+        freeze = self.safe_value(info, 'freeze', {})
+        ids = list(self.extend(free, freeze).keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            code = self.common_currency_code(id)
-            free = self.safe_float(response['info']['free'], id, 0.0)
-            used = self.safe_float(response['info']['freeze'], id, 0.0)
+            code = self.common_currency_code(id.upper())
             account = {
-                'free': free,
-                'used': used,
-                'total': 0.0,
+                'free': self.safe_float(free, id, 0.0),
+                'used': self.safe_float(freeze, id, 0.0),
+                'total': None,
             }
             account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
