@@ -104,6 +104,9 @@ module.exports = class lbank extends Exchange {
             'commonCurrencies': {
                 'VET_ERC20': 'VEN',
             },
+            'options': {
+                'cacheSecretAsPem',
+            },
         });
     }
 
@@ -521,6 +524,20 @@ module.exports = class lbank extends Exchange {
         };
     }
 
+    convertSecretToPem (secret) {
+        // convert single-line secret string to PKCS#8 PEM separated with newlines
+        const lineLength = 64;
+        let numLines = parseInt (secret.length / lineLength);
+        numLines = this.sum (numLines, 1);
+        let pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
+        for (let i = 0; i < numLines; i++) {
+            const start = i * lineLength;
+            const end = this.sum (start, lineLength);
+            pem += this.secret.slice (start, end) + "\n"; // eslint-disable-line
+        }
+        return pem + '-----END PRIVATE KEY-----';
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
@@ -537,19 +554,18 @@ module.exports = class lbank extends Exchange {
             }, params));
             const queryString = this.rawencode (query);
             const message = this.hash (this.encode (queryString)).toUpperCase ();
-            const secretArr = ['-----BEGIN PRIVATE KEY-----'];
-            const secretLength = this.secret.length - 0;
-            for (let i = 0; i < secretLength; i++) {
-                const start = i * 64;
-                const end = this.sum (start, 64);
-                if (start > secretLength) {
-                    break;
+            const cacheSecretAsPem = this.safeValue (this.options, 'cacheSecretAsPem', true);
+            let pem = undefined;
+            if (cacheSecretAsPem) {
+                pem = this.safeValue (this.options, 'pem');
+                if (pem === undefined) {
+                    pem = this.convertSecretToPem (this.secret);
+                    this.options['pem'] = pem;
                 }
-                secretArr.push (this.secret.slice (start, end));
+            } else {
+                pem = this.convertSecretToPem (this.secret);
             }
-            secretArr.push ('-----END PRIVATE KEY-----');
-            const secret = secretArr.join ("\n"); // eslint-disable-line
-            const sign = this.binaryToBase64 (this.rsa (message, secret, 'RS256'));
+            const sign = this.binaryToBase64 (this.rsa (message, pem, 'RS256'));
             query['sign'] = sign;
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
