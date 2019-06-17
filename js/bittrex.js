@@ -1309,68 +1309,70 @@ module.exports = class bittrex extends Exchange {
         //
         //     { success: false, message: "message" }
         //
-        let success = this.safeValue (response, 'success');
-        if (success === undefined) {
-            throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
-        }
-        if (typeof success === 'string') {
-            // bleutrade uses string instead of boolean
-            success = (success === 'true') ? true : false;
-        }
-        if (!success) {
-            const message = this.safeString (response, 'message');
-            const feedback = this.id + ' ' + this.json (response);
-            const exceptions = this.exceptions;
-            if (message === 'APIKEY_INVALID') {
-                if (this.options['hasAlreadyAuthenticatedSuccessfully']) {
-                    throw new DDoSProtection (feedback);
-                } else {
-                    throw new AuthenticationError (feedback);
-                }
+        if (body[0] === '{') {
+            let success = this.safeValue (response, 'success');
+            if (success === undefined) {
+                throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
             }
-            // https://github.com/ccxt/ccxt/issues/4932
-            // the following two lines are now redundant, see line 171 in describe()
-            //
-            //     if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
-            //         throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
-            //
-            if (message === 'INVALID_ORDER') {
-                // Bittrex will return an ambiguous INVALID_ORDER message
-                // upon canceling already-canceled and closed orders
-                // therefore this special case for cancelOrder
-                // let url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
-                const cancel = 'cancel';
-                const indexOfCancel = url.indexOf (cancel);
-                if (indexOfCancel >= 0) {
-                    const parts = url.split ('&');
-                    let orderId = undefined;
-                    for (let i = 0; i < parts.length; i++) {
-                        const part = parts[i];
-                        const keyValue = part.split ('=');
-                        if (keyValue[0] === 'uuid') {
-                            orderId = keyValue[1];
-                            break;
+            if (typeof success === 'string') {
+                // bleutrade uses string instead of boolean
+                success = (success === 'true') ? true : false;
+            }
+            if (!success) {
+                const message = this.safeString (response, 'message');
+                const feedback = this.id + ' ' + this.json (response);
+                const exceptions = this.exceptions;
+                if (message === 'APIKEY_INVALID') {
+                    if (this.options['hasAlreadyAuthenticatedSuccessfully']) {
+                        throw new DDoSProtection (feedback);
+                    } else {
+                        throw new AuthenticationError (feedback);
+                    }
+                }
+                // https://github.com/ccxt/ccxt/issues/4932
+                // the following two lines are now redundant, see line 171 in describe()
+                //
+                //     if (message === 'DUST_TRADE_DISALLOWED_MIN_VALUE_50K_SAT')
+                //         throw new InvalidOrder (this.id + ' order cost should be over 50k satoshi ' + this.json (response));
+                //
+                if (message === 'INVALID_ORDER') {
+                    // Bittrex will return an ambiguous INVALID_ORDER message
+                    // upon canceling already-canceled and closed orders
+                    // therefore this special case for cancelOrder
+                    // let url = 'https://bittrex.com/api/v1.1/market/cancel?apikey=API_KEY&uuid=ORDER_UUID'
+                    const cancel = 'cancel';
+                    const indexOfCancel = url.indexOf (cancel);
+                    if (indexOfCancel >= 0) {
+                        const parts = url.split ('&');
+                        let orderId = undefined;
+                        for (let i = 0; i < parts.length; i++) {
+                            const part = parts[i];
+                            const keyValue = part.split ('=');
+                            if (keyValue[0] === 'uuid') {
+                                orderId = keyValue[1];
+                                break;
+                            }
+                        }
+                        if (orderId !== undefined) {
+                            throw new OrderNotFound (this.id + ' cancelOrder ' + orderId + ' ' + this.json (response));
+                        } else {
+                            throw new OrderNotFound (this.id + ' cancelOrder ' + this.json (response));
                         }
                     }
-                    if (orderId !== undefined) {
-                        throw new OrderNotFound (this.id + ' cancelOrder ' + orderId + ' ' + this.json (response));
-                    } else {
-                        throw new OrderNotFound (this.id + ' cancelOrder ' + this.json (response));
+                }
+                if (message in exceptions) {
+                    throw new exceptions[message] (feedback);
+                }
+                if (message !== undefined) {
+                    if (message.indexOf ('throttled. Try again') >= 0) {
+                        throw new DDoSProtection (feedback);
+                    }
+                    if (message.indexOf ('problem') >= 0) {
+                        throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
                     }
                 }
+                throw new ExchangeError (feedback);
             }
-            if (message in exceptions) {
-                throw new exceptions[message] (feedback);
-            }
-            if (message !== undefined) {
-                if (message.indexOf ('throttled. Try again') >= 0) {
-                    throw new DDoSProtection (feedback);
-                }
-                if (message.indexOf ('problem') >= 0) {
-                    throw new ExchangeNotAvailable (feedback); // 'There was a problem processing your request.  If this problem persists, please contact...')
-                }
-            }
-            throw new ExchangeError (feedback);
         }
     }
 
