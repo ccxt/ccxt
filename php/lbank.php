@@ -105,6 +105,9 @@ class lbank extends Exchange {
             'commonCurrencies' => array (
                 'VET_ERC20' => 'VEN',
             ),
+            'options' => array (
+                'cacheSecretAsPem' => true,
+            ),
         ));
     }
 
@@ -523,6 +526,20 @@ class lbank extends Exchange {
         );
     }
 
+    public function convert_secret_to_pem ($secret) {
+        $lineLength = 64;
+        $secretLength = strlen ($secret) - 0;
+        $numLines = intval ($secretLength / $lineLength);
+        $numLines = $this->sum ($numLines, 1);
+        $pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
+        for ($i = 0; $i < $numLines; $i++) {
+            $start = $i * $lineLength;
+            $end = $this->sum ($start, $lineLength);
+            $pem .= mb_substr($this->secret, $start, $end - $start) . "\n"; // eslint-disable-line
+        }
+        return $pem . '-----END PRIVATE KEY-----';
+    }
+
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
@@ -537,8 +554,21 @@ class lbank extends Exchange {
             $query = $this->keysort (array_merge (array (
                 'api_key' => $this->apiKey,
             ), $params));
-            $queryString = $this->rawencode ($query) . '&secret_key=' . $this->secret;
-            $query['sign'] = strtoupper($this->hash ($this->encode ($queryString)));
+            $queryString = $this->rawencode ($query);
+            $message = strtoupper($this->hash ($this->encode ($queryString)));
+            $cacheSecretAsPem = $this->safe_value($this->options, 'cacheSecretAsPem', true);
+            $pem = null;
+            if ($cacheSecretAsPem) {
+                $pem = $this->safe_value($this->options, 'pem');
+                if ($pem === null) {
+                    $pem = $this->convert_secret_to_pem ($this->secret);
+                    $this->options['pem'] = $pem;
+                }
+            } else {
+                $pem = $this->convert_secret_to_pem ($this->secret);
+            }
+            $sign = $this->binaryToBase64 ($this->rsa ($message, $pem, 'RS256'));
+            $query['sign'] = $sign;
             $body = $this->urlencode ($query);
             $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
         }

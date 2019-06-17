@@ -273,12 +273,12 @@ class kraken extends Exchange {
             $quote = $quoteId;
             if (strlen ($base) > 3) {
                 if (($base[0] === 'X') || ($base[0] === 'Z')) {
-                    $base = mb_substr ($base, 1);
+                    $base = mb_substr($base, 1);
                 }
             }
             if (strlen ($quote) > 3) {
                 if (($quote[0] === 'X') || ($quote[0] === 'Z')) {
-                    $quote = mb_substr ($quote, 1);
+                    $quote = mb_substr($quote, 1);
                 }
             }
             $base = $this->common_currency_code($base);
@@ -813,9 +813,9 @@ class kraken extends Exchange {
             } else {
                 // X-ISO4217-A3 standard currency codes
                 if ($code[0] === 'X') {
-                    $code = mb_substr ($code, 1);
+                    $code = mb_substr($code, 1);
                 } else if ($code[0] === 'Z') {
-                    $code = mb_substr ($code, 1);
+                    $code = mb_substr($code, 1);
                 }
                 $code = $this->common_currency_code($code);
             }
@@ -905,18 +905,18 @@ class kraken extends Exchange {
             $quoteIdStart = 4;
             $quoteIdEnd = 7;
         }
-        $baseId = mb_substr ($id, $baseIdStart, $baseIdEnd);
-        $quoteId = mb_substr ($id, $quoteIdStart, $quoteIdEnd);
+        $baseId = mb_substr($id, $baseIdStart, $baseIdEnd - $baseIdStart);
+        $quoteId = mb_substr($id, $quoteIdStart, $quoteIdEnd - $quoteIdStart);
         $base = $baseId;
         $quote = $quoteId;
         if (strlen ($base) > 3) {
             if (($base[0] === 'X') || ($base[0] === 'Z')) {
-                $base = mb_substr ($base, 1);
+                $base = mb_substr($base, 1);
             }
         }
         if (strlen ($quote) > 3) {
             if (($quote[0] === 'X') || ($quote[0] === 'Z')) {
-                $quote = mb_substr ($quote, 1);
+                $quote = mb_substr($quote, 1);
             }
         }
         $base = $this->common_currency_code($base);

@@ -66,8 +66,8 @@ class lakebtc extends Exchange {
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
             $market = $response[$id];
-            $baseId = mb_substr ($id, 0, 3);
-            $quoteId = mb_substr ($id, 3, 6);
+            $baseId = mb_substr($id, 0, 3 - 0);
+            $quoteId = mb_substr($id, 3, 6 - 3);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
             $symbol = $base . '/' . $quote;

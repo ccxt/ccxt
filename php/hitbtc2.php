@@ -1035,7 +1035,7 @@ class hitbtc2 extends hitbtc {
         $uuid = $this->uuid ();
         $parts = explode('-', $uuid);
         $clientOrderId = implode('', $parts);
-        $clientOrderId = mb_substr ($clientOrderId, 0, 32);
+        $clientOrderId = mb_substr($clientOrderId, 0, 32 - 0);
         $amount = floatval ($amount);
         $request = array (
             'clientOrderId' => $clientOrderId,
@@ -1065,7 +1065,7 @@ class hitbtc2 extends hitbtc {
         $uuid = $this->uuid ();
         $parts = explode('-', $uuid);
         $requestClientId = implode('', $parts);
-        $requestClientId = mb_substr ($requestClientId, 0, 32);
+        $requestClientId = mb_substr($requestClientId, 0, 32 - 0);
         $request = array (
             'clientOrderId' => $id,
             'requestClientId' => $requestClientId,

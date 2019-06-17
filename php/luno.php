@@ -90,8 +90,8 @@ class luno extends Exchange {
         for ($i = 0; $i < count ($response['tickers']); $i++) {
             $market = $response['tickers'][$i];
             $id = $market['pair'];
-            $baseId = mb_substr ($id, 0, 3);
-            $quoteId = mb_substr ($id, 3, 6);
+            $baseId = mb_substr($id, 0, 3 - 0);
+            $quoteId = mb_substr($id, 3, 6 - 3);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;

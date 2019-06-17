@@ -111,8 +111,8 @@ class bitflyer extends Exchange {
             $quote = null;
             $numCurrencies = is_array ($currencies) ? count ($currencies) : 0;
             if ($numCurrencies === 1) {
-                $baseId = mb_substr ($id, 0, 3);
-                $quoteId = mb_substr ($id, 3, 6);
+                $baseId = mb_substr($id, 0, 3 - 0);
+                $quoteId = mb_substr($id, 3, 6 - 3);
             } else if ($numCurrencies === 2) {
                 $baseId = $currencies[0];
                 $quoteId = $currencies[1];

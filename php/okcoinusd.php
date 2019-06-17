@@ -459,7 +459,7 @@ class okcoinusd extends Exchange {
                     $active = $market['online'] !== 0;
                 } else {
                     $contractId = $this->safe_string($contract, 'id');
-                    $symbol = $base . '-' . $quote . '-' . mb_substr ($contractId, 2, 8);
+                    $symbol = $base . '-' . $quote . '-' . mb_substr($contractId, 2, 8 - 2);
                     $contractType = $this->safe_string($this->options['contractTypes'], $type);
                     $type = 'future';
                     $spot = false;

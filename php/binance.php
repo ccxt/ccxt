@@ -1214,7 +1214,7 @@ class binance extends Exchange {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $name = mb_substr ($address, 0, 20);
+        $name = mb_substr($address, 0, 20 - 0);
         $request = array (
             'asset' => $currency['id'],
             'address' => $address,

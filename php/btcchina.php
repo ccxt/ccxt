@@ -99,8 +99,8 @@ class btcchina extends Exchange {
             $market = $markets[$key];
             $parts = explode('_', $key);
             $id = $parts[1];
-            $baseId = mb_substr ($id, 0, 3);
-            $quoteId = mb_substr ($id, 3, 6);
+            $baseId = mb_substr($id, 0, 3 - 0);
+            $quoteId = mb_substr($id, 3, 6 - 3);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
             $base = $this->common_currency_code($base);
