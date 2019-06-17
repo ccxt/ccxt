@@ -959,6 +959,7 @@ class Exchange(object):
     def base64urlencode(s):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
+    @staticmethod
     def binary_to_base64(s):
         return Exchange.decode(base64.standard_b64encode(s))
 
