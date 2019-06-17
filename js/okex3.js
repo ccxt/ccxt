@@ -1211,6 +1211,7 @@ module.exports = class okex3 extends Exchange {
                 'liquidation_price',
                 'product_id',
                 'risk_rate',
+                'margin_ratio',
             ]);
             const keys = Object.keys (omittedBalance);
             const accounts = {};
