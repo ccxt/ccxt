@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.726'
+const version = '1.18.727'
 
 Exchange.ccxtVersion = version
 
@@ -12644,6 +12644,13 @@ module.exports = class bitflyer extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let side = this.safeString (trade, 'side');
+        if (side !== undefined) {
+            if (side.length < 1) {
+                side = undefined;
+            } else {
+                side = side.toLowerCase ();
+            }
+        }
         let order = undefined;
         if (side !== undefined) {
             side = trade['side'].toLowerCase ();
@@ -17634,14 +17641,11 @@ module.exports = class bitstamp extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const currencyId = currency['id'];
-            const total = currencyId + '_balance';
-            const free = currencyId + '_available';
-            const used = currencyId + '_reserved';
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, free);
-            account['used'] = this.safeFloat (balance, used);
-            account['total'] = this.safeFloat (balance, total);
-            result[currency] = account;
+            account['free'] = this.safeFloat (balance, currencyId + '_available');
+            account['used'] = this.safeFloat (balance, currencyId + '_reserved');
+            account['total'] = this.safeFloat (balance, currencyId + '_balance');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

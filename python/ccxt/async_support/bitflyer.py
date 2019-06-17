@@ -212,6 +212,11 @@ class bitflyer (Exchange):
 
     def parse_trade(self, trade, market=None):
         side = self.safe_string(trade, 'side')
+        if side is not None:
+            if len(side) < 1:
+                side = None
+            else:
+                side = side.lower()
         order = None
         if side is not None:
             side = trade['side'].lower()
