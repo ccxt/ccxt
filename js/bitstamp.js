@@ -524,7 +524,7 @@ module.exports = class bitstamp extends Exchange {
             account['free'] = this.safeFloat (balance, free);
             account['used'] = this.safeFloat (balance, used);
             account['total'] = this.safeFloat (balance, total);
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
