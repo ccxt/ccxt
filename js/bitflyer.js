@@ -218,6 +218,9 @@ module.exports = class bitflyer extends Exchange {
 
     parseTrade (trade, market = undefined) {
         let side = this.safeString (trade, 'side');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
         let order = undefined;
         if (side !== undefined) {
             side = trade['side'].toLowerCase ();
