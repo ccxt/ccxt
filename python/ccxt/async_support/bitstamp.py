@@ -495,14 +495,11 @@ class bitstamp (Exchange):
             code = codes[i]
             currency = self.currency(code)
             currencyId = currency['id']
-            total = currencyId + '_balance'
-            free = currencyId + '_available'
-            used = currencyId + '_reserved'
             account = self.account()
-            account['free'] = self.safe_float(balance, free)
-            account['used'] = self.safe_float(balance, used)
-            account['total'] = self.safe_float(balance, total)
-            result[currency] = account
+            account['free'] = self.safe_float(balance, currencyId + '_available')
+            account['used'] = self.safe_float(balance, currencyId + '_reserved')
+            account['total'] = self.safe_float(balance, currencyId + '_balance')
+            result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

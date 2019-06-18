@@ -219,6 +219,13 @@ class bitflyer extends Exchange {
 
     public function parse_trade ($trade, $market = null) {
         $side = $this->safe_string($trade, 'side');
+        if ($side !== null) {
+            if (strlen ($side) < 1) {
+                $side = null;
+            } else {
+                $side = strtolower($side);
+            }
+        }
         $order = null;
         if ($side !== null) {
             $side = strtolower($trade['side']);
