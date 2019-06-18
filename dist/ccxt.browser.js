@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.727'
+const version = '1.18.728'
 
 Exchange.ccxtVersion = version
 
@@ -36727,9 +36727,12 @@ module.exports = class crex24 extends Exchange {
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const tickSize = this.safeValue (market, 'tickSize');
+            const minPrice = this.safeValue (market, 'minPrice');
+            const minAmount = this.safeFloat (market, 'minVolume');
             const precision = {
-                'amount': this.precisionFromString (this.truncate_to_string (market['tickSize'], 8)),
-                'price': this.precisionFromString (this.truncate_to_string (market['minPrice'], 8)),
+                'amount': this.precisionFromString (this.numberToString (minAmount)),
+                'price': this.precisionFromString (this.numberToString (tickSize)),
             };
             const active = (market['state'] === 'active');
             result.push ({
@@ -36744,11 +36747,11 @@ module.exports = class crex24 extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'minVolume'),
+                        'min': minAmount,
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': minPrice,
                         'max': undefined,
                     },
                     'cost': {

@@ -181,9 +181,12 @@ class crex24 (Exchange):
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
+            tickSize = self.safe_value(market, 'tickSize')
+            minPrice = self.safe_value(market, 'minPrice')
+            minAmount = self.safe_float(market, 'minVolume')
             precision = {
-                'amount': self.precision_from_string(self.truncate_to_string(market['tickSize'], 8)),
-                'price': self.precision_from_string(self.truncate_to_string(market['minPrice'], 8)),
+                'amount': self.precision_from_string(self.number_to_string(minAmount)),
+                'price': self.precision_from_string(self.number_to_string(tickSize)),
             }
             active = (market['state'] == 'active')
             result.append({
@@ -198,11 +201,11 @@ class crex24 (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minVolume'),
+                        'min': minAmount,
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': minPrice,
                         'max': None,
                     },
                     'cost': {
