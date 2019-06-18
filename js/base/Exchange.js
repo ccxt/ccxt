@@ -1294,6 +1294,34 @@ module.exports = class Exchange {
         }
     }
 
+    calculateBalanceChange (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        let market = this.markets[symbol];
+        let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker, params);
+        let quote = market['quote'];
+        let base = market['base'];
+        let cost = price * amount;
+        let amount2 = amount;
+        if (fee.currency === quote) {
+            if (side === 'buy') {
+                cost = - parseFloat (this.costToPrecision (symbol, cost + fee.cost));
+            } else {
+                cost = parseFloat (this.costToPrecision (symbol, cost - fee.cost));
+                amount2 = -amount;
+            }
+        } else {
+            if (side === 'buy') {
+                amount2 = this.amountToPrecision (symbol, amount - fee.cost);
+                cost = -cost;
+            } else {
+                amount2 = -this.amountToPrecision (symbol, amount + fee.cost);
+            }
+        }
+        let result = {};
+        result[base] = amount2;
+        result[quote] = cost;
+        return result;
+    }
+
     mdy (timestamp, infix = '-') {
         infix = infix || ''
         let date = new Date (timestamp)
