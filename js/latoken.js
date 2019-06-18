@@ -302,11 +302,42 @@ module.exports = class latoken extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const response = await this.publicGetMarketDataTicker (this.extend ({
-            'symbol': market['symbol'],
-        }, params));
-        return this.parseTicker (response, market);
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            const request = {
+                'symbol': market['symbol'],
+            };
+            const ticker = await this.publicGetMarketDataTicker (this.extend (request, params));
+            const symb = this.findSymbol (this.safeString (ticker, 'symbol'), market);
+            const open = this.safeFloat (ticker, 'open');
+            const priceChange = this.safeFloat (ticker, 'priceChange');
+            const priceChangePercent = (open / this.sum (open, priceChange)) * 100;
+            const timestamp = this.nonce ();
+            return {
+                'symbol': symb,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'low': this.safeFloat (ticker, 'low'),
+                'high': this.safeFloat (ticker, 'high'),
+                'bid': undefined,
+                'bidVolume': undefined,
+                'ask': undefined,
+                'askVolume': undefined,
+                'vwap': undefined,
+                'open': open,
+                'close': this.safeFloat (ticker, 'close'),
+                'last': undefined,
+                'previousClose': undefined,
+                'change': priceChange,
+                'percentage': priceChangePercent,
+                'average': undefined,
+                'baseVolume': this.safeFloat (ticker, 'volume'),
+                'quoteVolume': undefined,
+                'info': ticker,
+            };
+        }
+        const response = await this.publicGetMarketDataTicker ();
+        return this.parseTicker (response);
     }
 
     async fetchCurrencies (symbol = undefined, params = {}) {
@@ -545,6 +576,9 @@ module.exports = class latoken extends Exchange {
                 url += '/' + params['currency'];
             }
             if ((path === 'exchangeInfo/currencies') && (typeof (params['symbol']) === 'string')) {
+                url += '/' + params['symbol'];
+            }
+            if ((path === 'marketData/ticker') && (typeof (params['symbol']) === 'string')) {
                 url += '/' + params['symbol'];
             }
             url += '?' + this.urlencode (params);
