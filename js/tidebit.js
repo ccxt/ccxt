@@ -170,18 +170,15 @@ module.exports = class tidebit extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            let code = currencyId.toUpperCase ();
+            let code = currencyId;
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
             } else {
-                code = this.commonCurrencyCode (code);
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
             }
-            const defaults = this.safeValue (this.options, 'account', {});
-            const account = this.extend (defaults, {
-                'free': this.safeFloat (balance, 'balance'),
-                'used': this.safeFloat (balance, 'locked'),
-            });
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
