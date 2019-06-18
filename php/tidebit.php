@@ -166,23 +166,20 @@ class tidebit extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetMembersMe ($params);
-        $balances = $response['accounts'];
+        $balances = $this->safe_value($response, 'accounts');
         $result = array( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currencyId = $balance['currency'];
-            $code = strtoupper($currencyId);
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $currencyId;
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
             } else {
-                $code = $this->common_currency_code($code);
+                $code = $this->common_currency_code(strtoupper($currencyId));
             }
-            $account = array (
-                'free' => $this->safe_float($balance, 'balance'),
-                'used' => $this->safe_float($balance, 'locked'),
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'locked');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -207,8 +204,11 @@ class tidebit extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $ticker['at'] * 1000;
-        $ticker = $ticker['ticker'];
+        $timestamp = $this->safe_integer($ticker, 'at');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        $ticker = $this->safe_value($ticker, 'ticker', array());
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -251,10 +251,10 @@ class tidebit extends Exchange {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
-                $base = mb_substr($id, 0, 3 - 0);
-                $quote = mb_substr($id, 3, 6 - 3);
-                $base = strtoupper($base);
-                $quote = strtoupper($quote);
+                $baseId = mb_substr($id, 0, 3 - 0);
+                $quoteId = mb_substr($id, 3, 6 - 3);
+                $base = strtoupper($baseId);
+                $quote = strtoupper($quoteId);
                 $base = $this->common_currency_code($base);
                 $quote = $this->common_currency_code($quote);
                 $symbol = $base . '/' . $quote;

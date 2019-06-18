@@ -162,22 +162,19 @@ class tidebit (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetMembersMe(params)
-        balances = response['accounts']
+        balances = self.safe_value(response, 'accounts')
         result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currencyId = balance['currency']
-            code = currencyId.upper()
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
             else:
-                code = self.common_currency_code(code)
-            account = {
-                'free': self.safe_float(balance, 'balance'),
-                'used': self.safe_float(balance, 'locked'),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+                code = self.common_currency_code(currencyId.upper())
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
@@ -197,8 +194,10 @@ class tidebit (Exchange):
         return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['at'] * 1000
-        ticker = ticker['ticker']
+        timestamp = self.safe_integer(ticker, 'at')
+        if timestamp is not None:
+            timestamp *= 1000
+        ticker = self.safe_value(ticker, 'ticker', {})
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -239,10 +238,10 @@ class tidebit (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             else:
-                base = id[0:3]
-                quote = id[3:6]
-                base = base.upper()
-                quote = quote.upper()
+                baseId = id[0:3]
+                quoteId = id[3:6]
+                base = baseId.upper()
+                quote = quoteId.upper()
                 base = self.common_currency_code(base)
                 quote = self.common_currency_code(quote)
                 symbol = base + '/' + quote
