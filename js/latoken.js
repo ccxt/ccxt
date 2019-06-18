@@ -540,8 +540,6 @@ module.exports = class latoken extends Exchange {
         if (api === 'public') {
             headers = {
                 'Content-type': 'application/json',
-                'x-lat-timestamp': this.nonce (),
-                'x-lat-timeframe': this.options['timeframe'],
             };
             if ((path === 'exchangeInfo/pairs') && (typeof (params['currency']) === 'string')) {
                 url += '/' + params['currency'];
