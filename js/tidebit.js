@@ -165,22 +165,22 @@ module.exports = class tidebit extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetMembersMe (params);
-        const balances = response['accounts'];
+        const balances = this.safeValue (response, 'accounts');
         const result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            const balance = balances[b];
-            const currencyId = balance['currency'];
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
             let code = currencyId.toUpperCase ();
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
             } else {
                 code = this.commonCurrencyCode (code);
             }
-            const account = {
+            const defaults = this.safeValue (this.options, 'account', {});
+            const account = this.extend (defaults, {
                 'free': this.safeFloat (balance, 'balance'),
                 'used': this.safeFloat (balance, 'locked'),
-                'total': 0.0,
-            };
+            });
             account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
@@ -206,8 +206,11 @@ module.exports = class tidebit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = ticker['at'] * 1000;
-        ticker = ticker['ticker'];
+        let timestamp = this.safeInteger (ticker, 'at');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        ticker = this.safeValue (ticker, 'ticker', {});
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -250,10 +253,10 @@ module.exports = class tidebit extends Exchange {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                let base = id.slice (0, 3);
-                let quote = id.slice (3, 6);
-                base = base.toUpperCase ();
-                quote = quote.toUpperCase ();
+                const baseId = id.slice (0, 3);
+                const quoteId = id.slice (3, 6);
+                let base = baseId.toUpperCase ();
+                let quote = quoteId.toUpperCase ();
                 base = this.commonCurrencyCode (base);
                 quote = this.commonCurrencyCode (quote);
                 symbol = base + '/' + quote;
