@@ -438,7 +438,6 @@ module.exports = class bibox extends Exchange {
             } else {
                 account['free'] = this.safeFloat (balance, 'balance');
                 account['used'] = this.safeFloat (balance, 'freeze');
-                account['total'] = this.sum (account['free'], account['used']);
             }
             result[code] = account;
         }

@@ -196,7 +196,6 @@ module.exports = class mercado extends Exchange {
             if (lowercase in balances) {
                 account['free'] = parseFloat (balances[lowercase]['available']);
                 account['total'] = parseFloat (balances[lowercase]['total']);
-                account['used'] = account['total'] - account['free'];
             }
             result[code] = account;
         }

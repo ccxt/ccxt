@@ -118,9 +118,8 @@ module.exports = class indodax extends Exchange {
             const currency = this.currencies[code];
             const lowercase = currency['id'];
             const account = this.account ();
-            account['free'] = this.safeFloat (balance['balance'], lowercase, 0.0);
-            account['used'] = this.safeFloat (balance['balance_hold'], lowercase, 0.0);
-            account['total'] = this.sum (account['free'], account['used']);
+            account['free'] = this.safeFloat (balance['balance'], lowercase);
+            account['used'] = this.safeFloat (balance['balance_hold'], lowercase);
             result[code] = account;
         }
         return this.parseBalance (result);

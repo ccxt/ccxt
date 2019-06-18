@@ -104,13 +104,8 @@ module.exports = class southxchange extends Exchange {
             const free = this.safeFloat (balance, 'Available');
             const deposited = this.safeFloat (balance, 'Deposited');
             const unconfirmed = this.safeFloat (balance, 'Unconfirmed');
-            const total = this.sum (deposited, unconfirmed);
-            const used = total - free;
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = free;
             result[code] = account;
         }
         return this.parseBalance (result);

@@ -96,12 +96,8 @@ module.exports = class lakebtc extends Exchange {
                 const currency = this.currencies_by_id[id];
                 code = currency['code'];
             }
-            const balance = this.safeFloat (balances, id);
-            const account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            };
+            const account = this.account ();
+            account['free'] = this.safeFloat (balances, id);
             result[code] = account;
         }
         return this.parseBalance (result);

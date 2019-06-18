@@ -118,11 +118,8 @@ module.exports = class virwox extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.commonCurrencyCode (currencyId);
             const total = this.safeFloat (balance, 'balance');
-            const account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);

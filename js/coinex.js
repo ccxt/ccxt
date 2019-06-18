@@ -361,12 +361,9 @@ module.exports = class coinex extends Exchange {
             const currencyId = currencies[i];
             const balance = balances[currencyId];
             const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['frozen']),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'frozen');
             result[code] = account;
         }
         return this.parseBalance (result);

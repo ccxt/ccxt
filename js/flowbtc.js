@@ -122,12 +122,9 @@ module.exports = class flowbtc extends Exchange {
             const balance = balances[i];
             const currencyId = balance['name'];
             const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeFloat (balance, 'balance'),
-                'used': this.safeFloat (balance, 'hold'),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['total'] = this.safeFloat (balance, 'hold');
             result[code] = account;
         }
         return this.parseBalance (result);

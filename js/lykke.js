@@ -166,14 +166,10 @@ module.exports = class lykke extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'AssetId');
             const code = this.commonCurrencyCode (currencyId);
-            const total = this.safeFloat (balance, 'Balance');
-            const used = this.safeFloat (balance, 'Reserved');
-            const free = total - used;
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'Balance');
+            account['used'] = this.safeFloat (balance, 'Reserved');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

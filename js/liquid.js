@@ -273,12 +273,8 @@ module.exports = class liquid extends Exchange {
             const balance = balances[b];
             const currencyId = balance['currency'];
             const code = this.commonCurrencyCode (currencyId);
-            const total = this.safeFloat (balance, 'balance');
-            const account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'balance');
             result[code] = account;
         }
         return this.parseBalance (result);

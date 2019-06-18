@@ -281,11 +281,9 @@ module.exports = class ice3x extends Exchange {
             if (id in this.currencies_by_id) {
                 const currency = this.currencies_by_id[id];
                 const code = currency['code'];
-                result[code] = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': this.safeFloat (balance, 'balance'),
-                };
+                const account = this.account ();
+                account['total'] = this.safeFloat (balance, 'balance');
+                result[code] = account;
             }
         }
         return this.parseBalance (result);

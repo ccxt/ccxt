@@ -496,7 +496,6 @@ module.exports = class cointiger extends huobipro {
             const account = this.account ();
             account['used'] = this.safeFloat (balance, 'lock');
             account['free'] = this.safeFloat (balance, 'normal');
-            account['total'] = this.sum (account['used'], account['free']);
             result[code] = account;
         }
         return this.parseBalance (result);

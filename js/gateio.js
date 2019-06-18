@@ -234,7 +234,6 @@ module.exports = class gateio extends Exchange {
             const account = this.account ();
             account['free'] = this.safeFloat (available, uppercaseId);
             account['used'] = this.safeFloat (locked, uppercaseId);
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);

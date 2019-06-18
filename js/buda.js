@@ -441,11 +441,9 @@ module.exports = class buda extends Exchange {
             const code = this.commonCurrencyCode (currencyId);
             const total = parseFloat (balance['amount'][0]);
             const free = parseFloat (balance['available_amount'][0]);
-            const account = {
-                'free': free,
-                'used': total - free,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = free;
+            account['total'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);

@@ -143,7 +143,6 @@ module.exports = class bit2c extends Exchange {
             if (uppercase in balance) {
                 account['free'] = this.safeFloat (balance, 'AVAILABLE_' + uppercase);
                 account['total'] = this.safeFloat (balance, uppercase);
-                account['used'] = account['total'] - account['free'];
             }
             result[code] = account;
         }

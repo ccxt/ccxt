@@ -175,17 +175,12 @@ module.exports = class zaif extends Exchange {
         const currencies = Object.keys (balances['funds']);
         for (let i = 0; i < currencies.length; i++) {
             const currencyId = currencies[i];
-            const balance = this.safeValue (balances['funds'], currencyId);
             const code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            const account = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            };
+            const account = this.account ();
+            account['free'] = this.safeValue (balances['funds'], currencyId);
             if ('deposit' in balances) {
                 if (currencyId in balances['deposit']) {
                     account['total'] = this.safeFloat (balances['deposit'], currencyId);
-                    account['used'] = account['total'] - account['free'];
                 }
             }
             result[code] = account;

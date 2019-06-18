@@ -307,14 +307,10 @@ module.exports = class crex24 extends Exchange {
             } else {
                 code = this.commonCurrencyCode (code);
             }
-            const free = this.safeFloat (balance, 'available');
-            const used = this.safeFloat (balance, 'reserved');
-            const total = this.sum (free, used);
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'reserved');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

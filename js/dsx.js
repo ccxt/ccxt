@@ -296,12 +296,9 @@ module.exports = class dsx extends liqui {
             const currencyId = currencyIds[i];
             const code = this.commonCurrencyCode (currencyId);
             const balance = this.safeValue (funds, currencyId, {});
-            const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': 0.0,
-                'total': this.safeFloat (balance, 'total'),
-            };
-            account['used'] = account['total'] - account['free'];
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeFloat (balance, 'total');
             result[code] = account;
         }
         return this.parseBalance (result);

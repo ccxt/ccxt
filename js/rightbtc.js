@@ -409,7 +409,6 @@ module.exports = class rightbtc extends Exchange {
             }
             const free = this.divideSafeFloat (balance, 'balance', 1e8);
             const used = this.divideSafeFloat (balance, 'frozen', 1e8);
-            const total = this.sum (free, used);
             //
             // https://github.com/ccxt/ccxt/issues/3873
             //

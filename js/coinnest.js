@@ -233,11 +233,7 @@ module.exports = class coinnest extends Exchange {
             const uppercase = currencyId.toUpperCase ();
             const code = this.commonCurrencyCode (uppercase);
             if (!(code in result)) {
-                result[code] = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': 0.0,
-                };
+                result[code] = this.account ();
             }
             type = (type === 'reserved' ? 'used' : 'free');
             result[code][type] = this.safeFloat (response, key);

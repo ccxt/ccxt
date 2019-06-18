@@ -101,7 +101,7 @@ module.exports = class btctradeua extends Exchange {
             result[code] = {
                 'free': balance,
                 'used': 0.0,
-                'total': balance,
+                'total': 0.0,
             };
         }
         return this.parseBalance (result);

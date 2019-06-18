@@ -748,9 +748,8 @@ module.exports = class okcoinusd extends Exchange {
                 code = this.commonCurrencyCode (code);
             }
             const account = this.account ();
-            account['free'] = this.safeFloat (balances['free'], id, 0.0);
-            account['used'] = this.safeFloat (balances[usedField], id, 0.0);
-            account['total'] = this.sum (account['free'], account['used']);
+            account['free'] = this.safeFloat (balances['free'], id);
+            account['used'] = this.safeFloat (balances[usedField], id);
             result[code] = account;
         }
         return this.parseBalance (result);

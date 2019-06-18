@@ -321,10 +321,10 @@ module.exports = class bitforex extends Exchange {
             const currencyId = current['currency'];
             const code = this.commonCurrencyCode (currencyId.toUpperCase ());
             const account = this.account ();
-            result[code] = account;
             result[code]['used'] = this.safeFloat (current, 'frozen');
             result[code]['free'] = this.safeFloat (current, 'active');
             result[code]['total'] = this.safeFloat (current, 'fix');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

@@ -426,10 +426,8 @@ module.exports = class upbit extends Exchange {
             const balance = indexed[id];
             const free = this.safeFloat (balance, 'balance');
             const used = this.safeFloat (balance, 'locked');
-            const total = this.sum (free, used);
             account['free'] = free;
             account['used'] = used;
-            account['total'] = total;
             result[currency] = account;
         }
         return this.parseBalance (result);

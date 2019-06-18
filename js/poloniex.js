@@ -287,7 +287,6 @@ module.exports = class poloniex extends Exchange {
                 'used': this.safeFloat (balance, 'onOrders'),
                 'total': 0.0,
             };
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);

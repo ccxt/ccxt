@@ -134,7 +134,6 @@ module.exports = class btcchina extends Exchange {
             if (currencyId in balances['frozen']) {
                 account['used'] = parseFloat (balances['frozen'][currencyId]['amount']);
             }
-            account['free'] = account['total'] - account['used'];
             result[code] = account;
         }
         return this.parseBalance (result);

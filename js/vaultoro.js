@@ -92,12 +92,9 @@ module.exports = class vaultoro extends Exchange {
             const code = this.commonCurrencyCode (uppercaseId);
             const free = this.safeFloat (balance, 'cash');
             const used = this.safeFloat (balance, 'reserved');
-            const total = this.sum (free, used);
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = free;
+            account['used'] = used;
             result[code] = account;
         }
         return this.parseBalance (result);

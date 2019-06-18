@@ -114,7 +114,6 @@ module.exports = class independentreserve extends Exchange {
             const account = this.account ();
             account['free'] = balance['AvailableBalance'];
             account['total'] = balance['TotalBalance'];
-            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);

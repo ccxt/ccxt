@@ -265,7 +265,6 @@ module.exports = class bitbay extends Exchange {
             const balance = this.safeValue (balances, currencyId, {});
             account['free'] = this.safeFloat (balance, 'available');
             account['used'] = this.safeFloat (balance, 'locked');
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);

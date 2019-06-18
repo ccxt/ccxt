@@ -139,12 +139,9 @@ module.exports = class coinone extends Exchange {
             }
             const free = this.safeFloat (balance, 'avail');
             const total = this.safeFloat (balance, 'balance');
-            const used = total - free;
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = free;
+            account['total'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);

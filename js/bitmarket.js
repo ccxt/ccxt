@@ -194,7 +194,6 @@ module.exports = class bitmarket extends Exchange {
             const account = this.account ();
             account['free'] = this.safeFloat (available, currencyId);
             account['used'] = this.safeFloat (blocked, currencyId);
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);

@@ -319,7 +319,6 @@ module.exports = class kkex extends Exchange {
             const account = this.account ();
             account['free'] = this.safeFloat (free, currencyId);
             account['used'] = this.safeFloat (freezed, currencyId);
-            account['total'] = account['free'] + account['used'];
             result[code] = account;
         }
         return this.parseBalance (result);

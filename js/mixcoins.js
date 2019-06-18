@@ -67,7 +67,6 @@ module.exports = class mixcoins extends Exchange {
             if (currencyId in balance) {
                 account['free'] = this.safeFloat (balance[currencyId], 'avail');
                 account['used'] = this.safeFloat (balance[currencyId], 'lock');
-                account['total'] = this.sum (account['free'], account['used']);
             }
             result[code] = account;
         }

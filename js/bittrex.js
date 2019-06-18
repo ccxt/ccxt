@@ -332,16 +332,9 @@ module.exports = class bittrex extends Exchange {
             const currency = this.commonCurrencyCode (id);
             const account = this.account ();
             const balance = indexed[id];
-            const free = this.safeFloat (balance, 'Available', 0);
-            const total = this.safeFloat (balance, 'Balance', 0);
-            let used = undefined;
-            if (total !== undefined) {
-                if (free !== undefined) {
-                    used = total - free;
-                }
-            }
+            const free = this.safeFloat (balance, 'Available');
+            const total = this.safeFloat (balance, 'Balance');
             account['free'] = free;
-            account['used'] = used;
             account['total'] = total;
             result[currency] = account;
         }

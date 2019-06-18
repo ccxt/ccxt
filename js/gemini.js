@@ -218,7 +218,6 @@ module.exports = class gemini extends Exchange {
                 'used': 0.0,
                 'total': this.safeFloat (balance, 'amount'),
             };
-            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);

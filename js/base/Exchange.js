@@ -847,9 +847,9 @@ module.exports = class Exchange {
 
     account () {
         return {
-            'free': 0.0,
-            'used': 0.0,
-            'total': 0.0,
+            'free': undefined,
+            'used': undefined,
+            'total': undefined,
         }
     }
 
@@ -1016,21 +1016,19 @@ module.exports = class Exchange {
 
         currencies.forEach ((currency) => {
 
-            if (balance[currency].free !== undefined && balance[currency].used === undefined) {
-                // exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
+            if (balance[currency].total === undefined) {
+                balance[currency].total = this.sum (balance[currency].free, balance[currency].used)
+            }
 
-                if (this.dontGetUsedBalanceFromStaleCache && ('open_orders' in balance['info'])) {
-                    // liqui exchange reports number of open orders with balance response
-                    // use it to validate the cache
-                    const exchangeOrdersCount = balance['info']['open_orders'];
-                    const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] === 'open')).length;
-                    if (cachedOrdersCount === exchangeOrdersCount) {
-                        balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
-                        balance[currency].total = (balance[currency].used || 0) + (balance[currency].free || 0)
-                    }
-                } else {
-                    balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
-                    balance[currency].total = (balance[currency].used || 0) + (balance[currency].free || 0)
+            if (balance[currency].free === undefined) {
+                if (balance[currency].total !== undefined && balance[currency].used !== undefined) {
+                    balance[currency].free = balance[currency].total - balance[currency].used
+                }
+            }
+
+            if (balance[currency].used === undefined) {
+                if (balance[currency].total !== undefined && balance[currency].free !== undefined) {
+                    balance[currency].used = balance[currency].total - balance[currency].free
                 }
             }
 

@@ -621,8 +621,8 @@ module.exports = class stronghold extends Exchange {
             const asset = entry['assetId'].split ('/')[0];
             const code = this.commonCurrencyCode (asset);
             const account = {};
-            account['total'] = this.safeFloat (entry, 'amount', 0.0);
-            account['free'] = this.safeFloat (entry, 'availableForTrade', 0.0);
+            account['total'] = this.safeFloat (entry, 'amount');
+            account['free'] = this.safeFloat (entry, 'availableForTrade');
             account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
