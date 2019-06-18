@@ -820,7 +820,7 @@ module.exports = class kraken extends Exchange {
                 code = this.commonCurrencyCode (code);
             }
             const account = this.account ();
-            acccount['free'] = this.safeFloat (balances, currencyId);
+            account['free'] = this.safeFloat (balances, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);

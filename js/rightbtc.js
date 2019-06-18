@@ -407,8 +407,6 @@ module.exports = class rightbtc extends Exchange {
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
             }
-            const free = this.divideSafeFloat (balance, 'balance', 1e8);
-            const used = this.divideSafeFloat (balance, 'frozen', 1e8);
             //
             // https://github.com/ccxt/ccxt/issues/3873
             //
@@ -418,11 +416,9 @@ module.exports = class rightbtc extends Exchange {
             //         }
             //     }
             //
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = this.divideSafeFloat (balance, 'balance', 1e8);
+            account['used'] = this.divideSafeFloat (balance, 'frozen', 1e8);
             result[code] = account;
         }
         return this.parseBalance (result);

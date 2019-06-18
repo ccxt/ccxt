@@ -213,7 +213,7 @@ module.exports = class therock extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.commonCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'trading_balance');;
+            account['free'] = this.safeFloat (balance, 'trading_balance');
             account['total'] = this.safeFloat (balance, 'balance');
             result[code] = account;
         }
