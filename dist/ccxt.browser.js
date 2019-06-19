@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.747'
+const version = '1.18.748'
 
 Exchange.ccxtVersion = version
 
@@ -69161,21 +69161,15 @@ module.exports = class rightbtc extends Exchange {
         const balances = response['result'];
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = balance['asset'];
-            let code = this.commonCurrencyCode (currencyId);
+            const currencyId = this.safeString (balance, 'asset');
+            let code = currencyId;
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
             }
-            //
-            // https://github.com/ccxt/ccxt/issues/3873
-            //
-            //     if (total !== undefined) {
-            //         if (used !== undefined) {
-            //             free = total - used;
-            //         }
-            //     }
-            //
             const account = this.account ();
+            // https://github.com/ccxt/ccxt/issues/3873
             account['free'] = this.divideSafeFloat (balance, 'balance', 1e8);
             account['used'] = this.divideSafeFloat (balance, 'frozen', 1e8);
             result[code] = account;
@@ -69639,19 +69633,18 @@ module.exports = class southxchange extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currencyId = balance['Currency'];
-            const uppercaseId = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercaseId);
-            const free = this.safeFloat (balance, 'Available');
+            const currencyId = this.safeString (balance, 'Currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const deposited = this.safeFloat (balance, 'Deposited');
             const unconfirmed = this.safeFloat (balance, 'Unconfirmed');
-            const total = this.sum (deposited, unconfirmed);
-            const used = total - free;
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'Available');
+            account['total'] = this.sum (deposited, unconfirmed);
             result[code] = account;
         }
         return this.parseBalance (result);

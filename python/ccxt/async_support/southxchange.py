@@ -96,19 +96,17 @@ class southxchange (Exchange):
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
-            currencyId = balance['Currency']
-            uppercaseId = currencyId.upper()
-            code = self.common_currency_code(uppercaseId)
-            free = self.safe_float(balance, 'Available')
+            currencyId = self.safe_string(balance, 'Currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             deposited = self.safe_float(balance, 'Deposited')
             unconfirmed = self.safe_float(balance, 'Unconfirmed')
-            total = self.sum(deposited, unconfirmed)
-            used = total - free
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'Available')
+            account['total'] = self.sum(deposited, unconfirmed)
             result[code] = account
         return self.parse_balance(result)
 

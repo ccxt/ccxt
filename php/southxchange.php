@@ -99,19 +99,18 @@ class southxchange extends Exchange {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
-            $currencyId = $balance['Currency'];
-            $uppercaseId = strtoupper($currencyId);
-            $code = $this->common_currency_code($uppercaseId);
-            $free = $this->safe_float($balance, 'Available');
+            $currencyId = $this->safe_string($balance, 'Currency');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
             $deposited = $this->safe_float($balance, 'Deposited');
             $unconfirmed = $this->safe_float($balance, 'Unconfirmed');
-            $total = $this->sum ($deposited, $unconfirmed);
-            $used = $total - $free;
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'Available');
+            $account['total'] = $this->sum ($deposited, $unconfirmed);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

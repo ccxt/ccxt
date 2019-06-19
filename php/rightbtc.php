@@ -406,21 +406,15 @@ class rightbtc extends Exchange {
         $balances = $response['result'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $balance['asset'];
-            $code = $this->common_currency_code($currencyId);
+            $currencyId = $this->safe_string($balance, 'asset');
+            $code = $currencyId;
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
             }
-            //
-            // https://github.com/ccxt/ccxt/issues/3873
-            //
-            //     if (total !== null) {
-            //         if (used !== null) {
-            //             free = total - used;
-            //         }
-            //     }
-            //
             $account = $this->account ();
+            // https://github.com/ccxt/ccxt/issues/3873
             $account['free'] = $this->divide_safe_float ($balance, 'balance', 1e8);
             $account['used'] = $this->divide_safe_float ($balance, 'frozen', 1e8);
             $result[$code] = $account;

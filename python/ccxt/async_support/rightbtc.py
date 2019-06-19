@@ -388,20 +388,14 @@ class rightbtc (Exchange):
         balances = response['result']
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['asset']
-            code = self.common_currency_code(currencyId)
+            currencyId = self.safe_string(balance, 'asset')
+            code = currencyId
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
-            #
-            # https://github.com/ccxt/ccxt/issues/3873
-            #
-            #     if total is not None:
-            #         if used is not None:
-            #             free = total - used
-            #         }
-            #     }
-            #
+            else:
+                code = self.common_currency_code(currencyId)
             account = self.account()
+            # https://github.com/ccxt/ccxt/issues/3873
             account['free'] = self.divide_safe_float(balance, 'balance', 1e8)
             account['used'] = self.divide_safe_float(balance, 'frozen', 1e8)
             result[code] = account
