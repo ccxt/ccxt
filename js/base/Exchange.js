@@ -1026,12 +1026,12 @@ module.exports = class Exchange {
                     balance[currency].total = this.sum (balance[currency].free, balance[currency].used)
                 }
             }
-            else if (balance[currency].free === undefined) {
+            if (balance[currency].free === undefined) {
                 if (balance[currency].total !== undefined && balance[currency].used !== undefined) {
                     balance[currency].free = this.sum (balance[currency].total, -balance[currency].used)
                 }
             }
-            else if (balance[currency].used === undefined) {
+            if (balance[currency].used === undefined) {
                 if (balance[currency].total !== undefined && balance[currency].free !== undefined) {
                     balance[currency].used = this.sum (balance[currency].total, -balance[currency].free)
                 }

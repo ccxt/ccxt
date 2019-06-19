@@ -1528,12 +1528,12 @@ class Exchange {
                     $currencies[$currency]['total'] = static::sum($currencies[$currency]['free'], $currencies[$currency]['used']);
                 }
             }
-            else if (isset($currencies[$currency]['used'])) {
+            if (isset($currencies[$currency]['used'])) {
                 if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['free'])) {
                     $currencies[$currency]['used'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['free']);
                 }
             }
-            else if (isset($currencies[$currency]['free'])) {
+            if (isset($currencies[$currency]['free'])) {
                 if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['used'])) {
                     $currencies[$currency]['free'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['used']);
                 }
