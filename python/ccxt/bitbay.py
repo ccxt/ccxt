@@ -26,6 +26,7 @@ class bitbay (Exchange):
                 'fetchMyTrades': True,
             },
             'urls': {
+                'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766132-978a7bd8-5ece-11e7-9540-bc96d1e9bbb8.jpg',
                 'www': 'https://bitbay.net',
                 'api': {
