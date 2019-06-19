@@ -197,7 +197,7 @@ module.exports = class virwox extends Exchange {
         };
     }
 
-    parseTrade (trade, symbol = undefined) {
+    parseTrade (trade, market = undefined) {
         let timestamp = this.safeInteger (trade, 'time');
         if (timestamp !== undefined) {
             timestamp *= 1000;
@@ -210,6 +210,10 @@ module.exports = class virwox extends Exchange {
             if (amount !== undefined) {
                 cost = price * amount;
             }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
         }
         return {
             'id': id,
@@ -230,13 +234,14 @@ module.exports = class virwox extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetGetRawTradeData (this.extend ({
-            'instrument': symbol,
+        const request = {
+            'instrument': market['id'],
             'timespan': 3600,
-        }, params));
+        };
+        const response = await this.publicGetGetRawTradeData (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'data', []);
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
