@@ -311,24 +311,23 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-    await this.loadMarkets ();
-    if (symbol === undefined) {
-        throw new ArgumentsRequired (this.symbol + ' fetchTicker requires a symbol argument');
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.symbol + ' fetchTicker requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['symbol'],
+        };
+        const ticker = await this.publicGetMarketDataTicker (this.extend (request, params));
+        return this.parseTicker (ticker);
     }
-        const market = this.market (symbol);    
-    const request = {
-        'symbol': market['symbol'],
-    };
-    const ticker = await this.publicGetMarketDataTicker (this.extend (request, params));
-    return this.parseTicker (ticker);
-}
 
     async fetchTickers (params = {}) {
         await this.loadMarkets ();
         const response = await this.publicGetMarketDataTicker (params);
         return this.parseTicker (response);
     }
-       
 
     async fetchCurrencies (symbol = undefined, params = {}) {
         const request = {
@@ -569,8 +568,8 @@ module.exports = class latoken extends Exchange {
             } else if ((path === 'marketData/ticker') && (typeof (params['symbol']) === 'string')) {
                 url += '/' + params['symbol'];
             } else {
-            url += '?' + this.urlencode (params);
-        }
+                url += '?' + this.urlencode (params);
+            }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             if (path === 'account/balances' && (typeof (params['currency']) === 'string')) {
