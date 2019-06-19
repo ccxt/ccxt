@@ -176,6 +176,13 @@ class bitmarket extends Exchange {
                     ),
                 ),
             ),
+            'exceptions' => array (
+                'exact' => array (
+                    '501' => '\\ccxt\\AuthenticationError', // array("error":501,"errorMsg":"Invalid API key","time":1560869976)
+                ),
+                'broad' => array (
+                ),
+            ),
         ));
     }
 
@@ -405,5 +412,29 @@ class bitmarket extends Exchange {
             );
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+        if ($response === null) {
+            return; // fallback to default error handler
+        }
+        //
+        //     array("error":501,"errorMsg":"Invalid API key","time":1560869976)
+        //
+        $code = $this->safe_string($response, 'error');
+        $message = $this->safe_string($response, 'errorMsg');
+        $feedback = $this->id . ' ' . $this->json ($response);
+        $exact = $this->exceptions['exact'];
+        if (is_array($exact) && array_key_exists($code, $exact)) {
+            throw new $exact[$code]($feedback);
+        } else if (is_array($exact) && array_key_exists($message, $exact)) {
+            throw new $exact[$message]($feedback);
+        }
+        $broad = $this->exceptions['broad'];
+        $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+        if ($broadKey !== null) {
+            throw new $broad[$broadKey]($feedback);
+        }
+        // throw new ExchangeError($feedback); // unknown message
     }
 }

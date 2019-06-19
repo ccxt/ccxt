@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 
 
 class bitmarket (Exchange):
@@ -175,6 +176,13 @@ class bitmarket (Exchange):
                         'EUR': 2,  # SEPA. Transfer INT(SHA): 5 EUR
                         'PLN': 0,
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    '501': AuthenticationError,  # {"error":501,"errorMsg":"Invalid API key","time":1560869976}
+                },
+                'broad': {
                 },
             },
         })
@@ -378,3 +386,23 @@ class bitmarket (Exchange):
                 'API-Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if response is None:
+            return  # fallback to default error handler
+        #
+        #     {"error":501,"errorMsg":"Invalid API key","time":1560869976}
+        #
+        code = self.safe_string(response, 'error')
+        message = self.safe_string(response, 'errorMsg')
+        feedback = self.id + ' ' + self.json(response)
+        exact = self.exceptions['exact']
+        if code in exact:
+            raise exact[code](feedback)
+        elif message in exact:
+            raise exact[message](feedback)
+        broad = self.exceptions['broad']
+        broadKey = self.findBroadlyMatchedKey(broad, message)
+        if broadKey is not None:
+            raise broad[broadKey](feedback)
+        # raise ExchangeError(feedback)  # unknown message
