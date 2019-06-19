@@ -183,7 +183,6 @@ module.exports = class zaif extends Exchange {
             } else {
                 code = this.commonCurrencyCode (currencyId.toUpperCase ());
             }
-            const code = this.commonCurrencyCode (currencyId.toUpperCase ());
             const account = {
                 'free': balance,
                 'used': 0.0,
