@@ -243,6 +243,7 @@ module.exports = class ice3x extends Exchange {
                 'currency': market['quote'],
             };
         }
+        const side = this.safeString (trade, 'type');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -250,7 +251,7 @@ module.exports = class ice3x extends Exchange {
             'id': this.safeString (trade, 'trade_id'),
             'order': undefined,
             'type': 'limit',
-            'side': trade['type'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,

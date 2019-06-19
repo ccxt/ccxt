@@ -275,8 +275,7 @@ module.exports = class lbank extends Exchange {
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
-                cost = this.costToPrecision (symbol, price * amount);
-                cost = parseFloat (cost);
+                cost = parseFloat (this.costToPrecision (symbol, price * amount));
             }
         }
         const id = this.safeString (trade, 'tid');

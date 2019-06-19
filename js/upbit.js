@@ -649,7 +649,7 @@ module.exports = class upbit extends Exchange {
         //                    ask_bid: "ASK",
         //              sequential_id:  15428949259430000 }
         //
-        // fetchOrder
+        // fetchOrder trades
         //
         //         {
         //             "market": "KRW-BTC",
