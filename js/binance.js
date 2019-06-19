@@ -380,7 +380,7 @@ module.exports = class binance extends Exchange {
         const status = this.safeValue (systemStatus, 'status');
         if (status !== undefined) {
             this.status = this.extend (this.status, {
-                'status': status === 0 ? 'ok': 'maintenance',
+                'status': status === 0 ? 'ok' : 'maintenance',
                 'updated': this.milliseconds (),
             });
         }
