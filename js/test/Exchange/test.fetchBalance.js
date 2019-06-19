@@ -40,9 +40,19 @@ module.exports = async (exchange, symbol) => {
 
     if ('info' in balance) {
 
+        for (let currency of Object.keys (balance['total'])) {
+            let total = balance['total'][currency]
+            let free = balance['free'][currency]
+            let used = balance['used'][currency]
+            if (total !== undefined && free !== undefined && used !== undefined) {
+                assert (total === free + used, 'free and used do not sum to total ' + exchange.id)
+            }
+        }
+
         let result = currencies
             .filter (currency => (currency in balance) &&
                 (balance[currency]['total'] !== undefined))
+
 
         if (result.length > 0) {
             result = result.map (currency => currency + ': ' + balance[currency]['total'])
