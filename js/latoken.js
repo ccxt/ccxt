@@ -557,14 +557,12 @@ module.exports = class latoken extends Exchange {
         if (api === 'public') {
             headers = {
                 'Content-type': 'application/json',
-                'x-lat-timestamp': this.nonce (),
-                'x-lat-timeframe': this.options['timeframe'],
             };
-            if (path === 'exchangeInfo/pairs' && Object.keys (params).length) {
+            if (path === 'exchangeInfo/pairs' && params['currency']) {
                 url += '/' + params['currency'];
-            } else if (path === 'exchangeInfo/currencies' && Object.keys (params).length) {
+            } else if (path === 'exchangeInfo/currencies' && params['symbol']) {
                 url += '/' + params['symbol'];
-            } else if (path === 'marketData/ticker' && Object.keys (params).length) {
+            } else if (path === 'marketData/ticker' && params['symbol']) {
                 url += '/' + params['symbol'];
             } else {
                 url += '?' + this.urlencode (params);
