@@ -377,11 +377,14 @@ module.exports = class binance extends Exchange {
 
     async fetchStatus (params = {}) {
         const systemStatus = await this.wapiGetSystemStatus ();
-        const status = systemStatus.status === 0 ? 'ok' : 'maintenance';
-        return this.status = this.extend (this.status, {
-            'status': status,
-            'updated': this.milliseconds (),
-        });
+        const status = this.safeValue (systemStatus, 'status');
+        if (status !== undefined) {
+            return this.status = this.extend (this.status, {
+                'status': status === 0 ? 'ok': 'maintenance',
+                'updated': this.milliseconds (),
+            });
+        }
+        return this.status;
     }
 
     async fetchTicker (symbol, params = {}) {
