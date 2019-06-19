@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.735'
+const version = '1.18.736'
 
 Exchange.ccxtVersion = version
 
@@ -84229,6 +84229,7 @@ module.exports = class tidebit extends Exchange {
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'balance');
             account['used'] = this.safeFloat (balance, 'locked');
+            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);
