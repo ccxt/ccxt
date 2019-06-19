@@ -250,11 +250,15 @@ module.exports = class bitmex extends Exchange {
         };
         const response = await this.privateGetUserMargin (this.extend (request, params));
         const result = { 'info': response };
-        for (let b = 0; b < response.length; b++) {
-            const balance = response[b];
-            let currencyId = this.safeString (balance, 'currency');
-            currencyId = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (currencyId);
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'availableMargin');
             account['total'] = this.safeFloat (balance, 'marginBalance');
