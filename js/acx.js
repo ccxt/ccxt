@@ -146,12 +146,9 @@ module.exports = class acx extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             let code = currencyId.toUpperCase ();
             code = this.commonCurrencyCode (code);
-            const account = {
-                'free': this.safeFloat (balance, 'balance'),
-                'used': this.safeFloat (balance, 'locked'),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);

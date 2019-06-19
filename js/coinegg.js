@@ -320,11 +320,7 @@ module.exports = class coinegg extends Exchange {
                 code = this.currencies_by_id[currencyId]['code'];
             }
             if (!(code in result)) {
-                result[code] = {
-                    'free': undefined,
-                    'used': undefined,
-                    'total': undefined,
-                };
+                result[code] = this.account ();
             }
             const type = (accountType === 'lock') ? 'used' : 'free';
             result[code][type] = this.safeFloat (balances, key);

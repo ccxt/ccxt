@@ -54,7 +54,7 @@ module.exports = class bibox extends Exchange {
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
-                'referral': 'https://www.bibox.com/signPage?id=11468678&lang=en',
+                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
             },
             'api': {
                 'public': {
@@ -438,7 +438,6 @@ module.exports = class bibox extends Exchange {
             } else {
                 account['free'] = this.safeFloat (balance, 'balance');
                 account['used'] = this.safeFloat (balance, 'freeze');
-                account['total'] = this.sum (account['free'], account['used']);
             }
             result[code] = account;
         }
@@ -622,8 +621,7 @@ module.exports = class bibox extends Exchange {
         const request = {
             'cmd': 'orderpending/order',
             'body': this.extend ({
-                'id': id.toString (),
-                'account_type': 0, // 0 = spot account
+                'id': id,
             }, params),
         };
         const response = await this.privatePostOrderpending (request);

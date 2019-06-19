@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.738';
+$version = '1.18.728';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.738';
+    const VERSION = '1.18.728';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1517,6 +1517,22 @@ class Exchange {
 
     public function parse_balance($balance) {
         $currencies = array_keys($this->omit($balance, 'info'));
+        foreach ($currencies as $currency) {
+            if ($currencies[$currency]['total'] === null) {
+                $currencies[$currency]['total'] = static::sum($currencies[$currency]['free'], $currencies[$currency]['used']);
+            }
+            if ($currencies[$currency]['free'] === null) {
+                if ($currencies[$currency]['total'] !== null && $currencies[$currency]['used'] !== null) {
+                    $currencies[$currency]['free'] = $currencies[$currency]['total'] - $currencies[$currency]['used'];
+                }
+            }
+            if ($currencies[$currency]['used'] === null) {
+                if ($currencies[$currency]['total'] !== null && $currencies[$currency]['free'] !== null) {
+                    $currencies[$currency]['used'] = $currencies[$currency]['total'] - $currencies[$currency]['free'];
+                }
+            }
+        }
+
         $accounts = array('free', 'used', 'total');
         foreach ($accounts as $account) {
             $balance[$account] = array();
@@ -2079,9 +2095,9 @@ class Exchange {
 
     public static function account() {
         return array(
-            'free' => 0.0,
-            'used' => 0.0,
-            'total' => 0.0,
+            'free' => null,
+            'used' => null,
+            'total' => null,
         );
     }
 

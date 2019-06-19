@@ -121,7 +121,6 @@ module.exports = class coincheck extends Exchange {
             const reserved = currencyId + '_reserved';
             account['free'] = this.safeFloat (balances, currencyId);
             account['used'] = this.safeFloat (balances, reserved);
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);

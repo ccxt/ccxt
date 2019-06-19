@@ -297,7 +297,6 @@ module.exports = class bitlish extends Exchange {
             const balance = this.safeValue (response, currencyId, {});
             account['free'] = this.safeFloat (balance, 'funds');
             account['used'] = this.safeFloat (balance, 'holded');
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);

@@ -626,7 +626,6 @@ module.exports = class huobipro extends Exchange {
             if (balance['type'] === 'frozen') {
                 account['used'] = this.safeFloat (balance, 'balance');
             }
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);

@@ -356,12 +356,9 @@ module.exports = class lbank extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const code = this.commonCurrencyCode (id.toUpperCase ());
-            const account = {
-                'free': this.safeFloat (free, id, 0.0),
-                'used': this.safeFloat (freeze, id, 0.0),
-                'total': undefined,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (free, id);
+            account['used'] = this.safeFloat (freeze, id);
             result[code] = account;
         }
         return this.parseBalance (result);

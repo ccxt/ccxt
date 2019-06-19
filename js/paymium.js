@@ -90,7 +90,6 @@ module.exports = class paymium extends Exchange {
             if (locked in response) {
                 account['used'] = response[locked];
             }
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);
