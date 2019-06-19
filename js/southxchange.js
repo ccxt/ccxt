@@ -98,19 +98,18 @@ module.exports = class southxchange extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currencyId = balance['Currency'];
-            const uppercaseId = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercaseId);
-            const free = this.safeFloat (balance, 'Available');
+            const currencyId = this.safeString (balance, 'Currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const deposited = this.safeFloat (balance, 'Deposited');
             const unconfirmed = this.safeFloat (balance, 'Unconfirmed');
-            const total = this.sum (deposited, unconfirmed);
-            const used = total - free;
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'Available');
+            account['total'] = this.sum (deposited, unconfirmed);
             result[code] = account;
         }
         return this.parseBalance (result);
