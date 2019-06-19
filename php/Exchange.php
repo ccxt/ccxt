@@ -1523,17 +1523,17 @@ class Exchange {
         $balance['total'] = array();
 
         foreach ($currencies as $currency) {
-            if ($currencies[$currency]['total'] === null) {
+            if (isset($currencies[$currency]['total'])) {
                 if (isset($currencies[$currency]['free']) && isset($currencies[$currency]['used'])) {
                     $currencies[$currency]['total'] = static::sum($currencies[$currency]['free'], $currencies[$currency]['used']);
                 }
             }
-            else if ($currencies[$currency]['used'] === null) {
+            else if (isset($currencies[$currency]['used'])) {
                 if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['free'])) {
                     $currencies[$currency]['used'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['free']);
                 }
             }
-            else if ($currencies[$currency]['free'] === null) {
+            else if (isset($currencies[$currency]['free'])) {
                 if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['used'])) {
                     $currencies[$currency]['free'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['used']);
                 }
