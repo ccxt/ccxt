@@ -250,24 +250,28 @@ module.exports = class tidex extends Exchange {
         const response = await this.privatePostGetInfo (params);
         const balances = this.safeValue (response, 'return');
         const result = { 'info': balances };
-        const funds = balances['funds'];
-        const currencies = Object.keys (funds);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            let uppercase = currency.toUpperCase ();
-            uppercase = this.commonCurrencyCode (uppercase);
+        const funds = this.safeValue (balances, 'funds', {});
+        const currencyIds = Object.keys (funds);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             let total = undefined;
             let used = undefined;
             if (balances['open_orders'] === 0) {
-                total = funds[currency];
+                total = funds[currencyId];
                 used = 0.0;
             }
             const account = {
-                'free': funds[currency],
+                'free': funds[currencyId],
                 'used': used,
                 'total': total,
             };
-            result[uppercase] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
