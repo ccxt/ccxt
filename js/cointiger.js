@@ -487,11 +487,12 @@ module.exports = class cointiger extends huobipro {
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const id = balance['coin'];
-            let code = id.toUpperCase ();
-            code = this.commonCurrencyCode (code);
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
+            const currencyId = this.safeString (balance, 'coin');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = currencyId.toUpperCase ();
             }
             const account = this.account ();
             account['used'] = this.safeFloat (balance, 'lock');
