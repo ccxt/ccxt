@@ -64,13 +64,13 @@ class mixcoins extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $code = $currencies[$i];
             $currencyId = $this->currencyid ($code);
-            $account = $this->account ();
             if (is_array($balance) && array_key_exists($currencyId, $balance)) {
+                $account = $this->account ();
                 $account['free'] = $this->safe_float($balance[$currencyId], 'avail');
                 $account['used'] = $this->safe_float($balance[$currencyId], 'lock');
                 $account['total'] = $this->sum ($account['free'], $account['used']);
+                $result[$code] = $account;
             }
-            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

@@ -188,12 +188,12 @@ class mercado (Exchange):
             code = currencies[i]
             currencyId = self.currencyId(code)
             lowercase = currencyId.lower()
-            account = self.account()
             if lowercase in balances:
+                account = self.account()
                 account['free'] = float(balances[lowercase]['available'])
                 account['total'] = float(balances[lowercase]['total'])
                 account['used'] = account['total'] - account['free']
-            result[code] = account
+                result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

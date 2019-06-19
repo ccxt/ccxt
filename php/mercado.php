@@ -193,13 +193,13 @@ class mercado extends Exchange {
             $code = $currencies[$i];
             $currencyId = $this->currencyId ($code);
             $lowercase = strtolower($currencyId);
-            $account = $this->account ();
             if (is_array($balances) && array_key_exists($lowercase, $balances)) {
+                $account = $this->account ();
                 $account['free'] = floatval ($balances[$lowercase]['available']);
                 $account['total'] = floatval ($balances[$lowercase]['total']);
                 $account['used'] = $account['total'] - $account['free'];
+                $result[$code] = $account;
             }
-            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

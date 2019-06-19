@@ -64,12 +64,12 @@ class mixcoins (Exchange):
         for i in range(0, len(currencies)):
             code = currencies[i]
             currencyId = self.currencyid(code)
-            account = self.account()
             if currencyId in balance:
+                account = self.account()
                 account['free'] = self.safe_float(balance[currencyId], 'avail')
                 account['used'] = self.safe_float(balance[currencyId], 'lock')
                 account['total'] = self.sum(account['free'], account['used'])
-            result[code] = account
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

@@ -114,16 +114,16 @@ class btcturk extends Exchange {
         for ($i = 0; $i < count ($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currencies[$code];
-            $account = $this->account ();
             $free = $currency['id'] . '_available';
             $total = $currency['id'] . '_balance';
             $used = $currency['id'] . '_reserved';
             if (is_array($response) && array_key_exists($free, $response)) {
+                $account = $this->account ();
                 $account['free'] = $this->safe_float($response, $free);
                 $account['total'] = $this->safe_float($response, $total);
                 $account['used'] = $this->safe_float($response, $used);
+                $result[$code] = $account;
             }
-            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

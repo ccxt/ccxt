@@ -114,15 +114,15 @@ class btcturk (Exchange):
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currencies[code]
-            account = self.account()
             free = currency['id'] + '_available'
             total = currency['id'] + '_balance'
             used = currency['id'] + '_reserved'
             if free in response:
+                account = self.account()
                 account['free'] = self.safe_float(response, free)
                 account['total'] = self.safe_float(response, total)
                 account['used'] = self.safe_float(response, used)
-            result[code] = account
+                result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):

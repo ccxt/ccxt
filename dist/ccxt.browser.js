@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.737'
+const version = '1.18.738'
 
 Exchange.ccxtVersion = version
 
@@ -24896,16 +24896,16 @@ module.exports = class btcturk extends Exchange {
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const currency = this.currencies[code];
-            const account = this.account ();
             const free = currency['id'] + '_available';
             const total = currency['id'] + '_balance';
             const used = currency['id'] + '_reserved';
             if (free in response) {
+                const account = this.account ();
                 account['free'] = this.safeFloat (response, free);
                 account['total'] = this.safeFloat (response, total);
                 account['used'] = this.safeFloat (response, used);
+                result[code] = account;
             }
-            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -61315,13 +61315,13 @@ module.exports = class mercado extends Exchange {
             const code = currencies[i];
             const currencyId = this.currencyId (code);
             const lowercase = currencyId.toLowerCase ();
-            const account = this.account ();
             if (lowercase in balances) {
+                const account = this.account ();
                 account['free'] = parseFloat (balances[lowercase]['available']);
                 account['total'] = parseFloat (balances[lowercase]['total']);
                 account['used'] = account['total'] - account['free'];
+                result[code] = account;
             }
-            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -61687,13 +61687,13 @@ module.exports = class mixcoins extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const code = currencies[i];
             const currencyId = this.currencyid (code);
-            const account = this.account ();
             if (currencyId in balance) {
+                const account = this.account ();
                 account['free'] = this.safeFloat (balance[currencyId], 'avail');
                 account['used'] = this.safeFloat (balance[currencyId], 'lock');
                 account['total'] = this.sum (account['free'], account['used']);
+                result[code] = account;
             }
-            result[code] = account;
         }
         return this.parseBalance (result);
     }
