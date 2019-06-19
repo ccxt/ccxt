@@ -86,14 +86,15 @@ class vaultoro (Exchange):
         result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['currency_code']
-            uppercaseId = currencyId.upper()
-            code = self.common_currency_code(uppercaseId)
-            free = self.safe_float(balance, 'cash')
-            used = self.safe_float(balance, 'reserved')
+            currencyId = self.safe_string(balance, 'currency_code')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             account = self.account()
-            account['free'] = free
-            account['used'] = used
+            account['free'] = self.safe_float(balance, 'cash')
+            account['used'] = self.safe_float(balance, 'reserved')
             result[code] = account
         return self.parse_balance(result)
 

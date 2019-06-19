@@ -207,25 +207,20 @@ class therock extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetBalances ($params);
-        $balances = $this->safe_value($response, 'balances');
+        $balances = $this->safe_value($response, 'balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
-            $free = $this->safe_float($balance, 'trading_balance');
-            $total = $this->safe_float($balance, 'balance');
-            $used = null;
-            if ($total !== null) {
-                if ($free !== null) {
-                    $used = $total - $free;
-                }
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
             }
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'trading_balance');
+            $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

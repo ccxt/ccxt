@@ -246,7 +246,7 @@ class uex extends Exchange {
         //
         //     { $code =>   "0",
         //        msg =>   "suc",
-        //       data => array ( total_asset =>   "0.00000000",
+        //       $data => array ( total_asset =>   "0.00000000",
         //                 coin_list => [ array (      normal => "0.00000000",
         //                                btcValuatin => "0.00000000",
         //                                     locked => "0.00000000",
@@ -264,11 +264,12 @@ class uex extends Exchange {
         //                                     locked => "0.00000000",
         //                                       coin => "ren"         )])}
         //
-        $balances = $response['data']['coin_list'];
-        $result = array( 'info' => $balances );
+        $data = $this->safe_value($response, 'data', array());
+        $balances = $this->safe_value($data, 'coin_list', array());
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $balance['coin'];
+            $currencyId = $this->safe_string($balance, 'coin');
             $code = strtoupper($currencyId);
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
@@ -276,12 +277,8 @@ class uex extends Exchange {
                 $code = $this->common_currency_code($code);
             }
             $account = $this->account ();
-            $free = floatval ($balance['normal']);
-            $used = floatval ($balance['locked']);
-            $total = $this->sum ($free, $used);
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $account['total'] = $total;
+            $account['free'] = $this->safe_float($balance, 'normal');
+            $account['used'] = $this->safe_float($balance, 'locked');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

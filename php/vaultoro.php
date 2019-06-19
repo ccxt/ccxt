@@ -89,14 +89,16 @@ class vaultoro extends Exchange {
         $result = array( 'info' => $balances );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $balance['currency_code'];
-            $uppercaseId = strtoupper($currencyId);
-            $code = $this->common_currency_code($uppercaseId);
-            $free = $this->safe_float($balance, 'cash');
-            $used = $this->safe_float($balance, 'reserved');
+            $currencyId = $this->safe_string($balance, 'currency_code');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
             $account = $this->account ();
-            $account['free'] = $free;
-            $account['used'] = $used;
+            $account['free'] = $this->safe_float($balance, 'cash');
+            $account['used'] = $this->safe_float($balance, 'reserved');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

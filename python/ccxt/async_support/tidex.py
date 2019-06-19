@@ -263,23 +263,26 @@ class tidex (Exchange):
         response = await self.privatePostGetInfo(params)
         balances = self.safe_value(response, 'return')
         result = {'info': balances}
-        funds = balances['funds']
-        currencies = list(funds.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            uppercase = currency.upper()
-            uppercase = self.common_currency_code(uppercase)
+        funds = self.safe_value(balances, 'funds', {})
+        currencyIds = list(funds.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             total = None
             used = None
             if balances['open_orders'] == 0:
-                total = funds[currency]
+                total = funds[currencyId]
                 used = 0.0
             account = {
-                'free': funds[currency],
+                'free': funds[currencyId],
                 'used': used,
                 'total': total,
             }
-            result[uppercase] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

@@ -140,12 +140,15 @@ class xbtce (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'Currency')
-            uppercase = currencyId.upper()
-            code = self.common_currency_code(uppercase)
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             account = {
-                'free': balance['FreeAmount'],
-                'used': balance['LockedAmount'],
-                'total': balance['Amount'],
+                'free': self.safe_float(balance, 'FreeAmount'),
+                'used': self.safe_float(balance, 'LockedAmount'),
+                'total': self.safe_float(balance, 'Amount'),
             }
             result[code] = account
         return self.parse_balance(result)

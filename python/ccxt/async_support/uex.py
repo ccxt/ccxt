@@ -267,23 +267,20 @@ class uex (Exchange):
         #                                     locked: "0.00000000",
         #                                       coin: "ren"         }]}}
         #
-        balances = response['data']['coin_list']
-        result = {'info': balances}
+        data = self.safe_value(response, 'data', {})
+        balances = self.safe_value(data, 'coin_list', [])
+        result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['coin']
+            currencyId = self.safe_string(balance, 'coin')
             code = currencyId.upper()
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
             else:
                 code = self.common_currency_code(code)
             account = self.account()
-            free = float(balance['normal'])
-            used = float(balance['locked'])
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
+            account['free'] = self.safe_float(balance, 'normal')
+            account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 

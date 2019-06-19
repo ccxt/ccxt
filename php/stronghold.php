@@ -615,16 +615,24 @@ class stronghold extends Exchange {
             throw new ArgumentsRequired($this->id . " fetchBalance requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
         $response = $this->privateGetVenuesVenueIdAccountsAccountId ($request);
-        $balances = $response['result']['balances'];
-        $result = array();
+        $balances = $this->safe_value($response['result'], 'balances');
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
-            $entry = $balances[$i];
-            $asset = explode('/', $entry['assetId'])[0];
-            $code = $this->common_currency_code($asset);
-            $account = array();
-            $account['total'] = $this->safe_float($entry, 'amount', 0.0);
-            $account['free'] = $this->safe_float($entry, 'availableForTrade', 0.0);
-            $result[$code] = $account;
+            $balance = $balances[$i];
+            $assetId = $this->safe_string($balance, 'assetId');
+            if ($assetId !== null) {
+                $currencyId = explode('/', $assetId)[0];
+                $code = $currencyId;
+                if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                    $code = $this->currencies_by_id[$currencyId]['code'];
+                } else {
+                    $code = $this->common_currency_code($currencyId);
+                }
+                $account = array();
+                $account['total'] = $this->safe_float($balance, 'amount');
+                $account['free'] = $this->safe_float($balance, 'availableForTrade');
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }

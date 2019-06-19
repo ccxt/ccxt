@@ -208,23 +208,19 @@ class therock (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetBalances(params)
-        balances = self.safe_value(response, 'balances')
+        balances = self.safe_value(response, 'balances', [])
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
-            free = self.safe_float(balance, 'trading_balance')
-            total = self.safe_float(balance, 'balance')
-            used = None
-            if total is not None:
-                if free is not None:
-                    used = total - free
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'trading_balance')
+            account['total'] = self.safe_float(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 

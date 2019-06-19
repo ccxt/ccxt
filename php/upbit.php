@@ -406,30 +406,31 @@ class upbit extends Exchange {
         $this->load_markets();
         $response = $this->privateGetAccounts ($params);
         //
-        //     array ( array (          $currency => "BTC",
+        //     array ( array (          currency => "BTC",
         //                   $balance => "0.005",
         //                    locked => "0.0",
         //         avg_krw_buy_price => "7446000",
         //                  modified =>  false     ),
-        //       {          $currency => "ETH",
+        //       {          currency => "ETH",
         //                   $balance => "0.1",
         //                    locked => "0.0",
         //         avg_krw_buy_price => "250000",
         //                  modified =>  false    }   )
         //
         $result = array( 'info' => $response );
-        $indexed = $this->index_by($response, 'currency');
-        $ids = is_array($indexed) ? array_keys($indexed) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $currency = $this->common_currency_code($id);
+        for ($i = 0; $i < count ($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
             $account = $this->account ();
-            $balance = $indexed[$id];
-            $free = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'locked');
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $result[$currency] = $account;
+            $account['free'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'locked');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

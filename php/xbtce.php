@@ -140,12 +140,16 @@ class xbtce extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
-            $uppercase = strtoupper($currencyId);
-            $code = $this->common_currency_code($uppercase);
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
             $account = array (
-                'free' => $balance['FreeAmount'],
-                'used' => $balance['LockedAmount'],
-                'total' => $balance['Amount'],
+                'free' => $this->safe_float($balance, 'FreeAmount'),
+                'used' => $this->safe_float($balance, 'LockedAmount'),
+                'total' => $this->safe_float($balance, 'Amount'),
             );
             $result[$code] = $account;
         }
