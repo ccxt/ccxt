@@ -402,21 +402,15 @@ module.exports = class rightbtc extends Exchange {
         const balances = response['result'];
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = balance['asset'];
-            let code = this.commonCurrencyCode (currencyId);
+            const currencyId = this.safeString (balance, 'asset');
+            let code = currencyId;
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
             }
-            //
-            // https://github.com/ccxt/ccxt/issues/3873
-            //
-            //     if (total !== undefined) {
-            //         if (used !== undefined) {
-            //             free = total - used;
-            //         }
-            //     }
-            //
             const account = this.account ();
+            // https://github.com/ccxt/ccxt/issues/3873
             account['free'] = this.divideSafeFloat (balance, 'balance', 1e8);
             account['used'] = this.divideSafeFloat (balance, 'frozen', 1e8);
             result[code] = account;
