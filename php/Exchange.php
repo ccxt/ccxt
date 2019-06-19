@@ -1519,13 +1519,19 @@ class Exchange {
         $currencies = array_keys($this->omit($balance, 'info'));
         foreach ($currencies as $currency) {
             if ($currencies[$currency]['total'] === 0.0) {
-                $currencies[$currency]['total'] = static::sum($currencies[$currency]['free'], $currencies[$currency]['used']);
+                if ($currencies[$currency]['free'] !== null && $currencies[$currency]['used'] !== null) {
+                    $currencies[$currency]['total'] = static::sum($currencies[$currency]['free'], $currencies[$currency]['used']);
+                }
             }
             if ($currencies[$currency]['used'] === 0.0) {
-                $currencies[$currency]['used'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['free']);
+                if ($currencies[$currency]['total'] !== null && $currencies[$currency]['free'] !== null) {
+                    $currencies[$currency]['used'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['free']);
+                }
             }
             if ($currencies[$currency]['free'] === 0.0) {
-                $currencies[$currency]['free'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['used']);
+                if ($currencies[$currency]['total'] !== null && $currencies[$currency]['used'] !== null) {
+                    $currencies[$currency]['free'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['used']);
+                }
             }
         }
 
