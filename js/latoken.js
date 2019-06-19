@@ -327,20 +327,20 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchCurrencies (symbol = undefined, params = {}) {
-        const request = {
-            'symbol': symbol,
-        };
         if (symbol !== undefined) {
+            const request = {
+                'symbol': symbol,
+            };
             const currencies = await this.publicGetExchangeInfoCurrencies (this.extend (request, params));
             const id = currencies['currencyId'];
-            const symbol = currencies['symbol'];
+            const symb = currencies['symbol'];
             const name = currencies['name'];
             const precision = currencies['precission'];
             const type = currencies['type'];
             const fee = currencies['fee'];
             return {
                 'id': id,
-                'symbol': symbol,
+                'symbol': symb,
                 'name': name,
                 'precision': precision,
                 'type': type,
