@@ -275,19 +275,18 @@ module.exports = class ice3x extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostBalanceList (params);
         const result = { 'info': response };
-        const balances = this.safeValue (response['response'], 'entities');
+        const balances = this.safeValue (response['response'], 'entities', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const id = balance['currency_id'];
-            if (id in this.currencies_by_id) {
-                const currency = this.currencies_by_id[id];
-                const code = currency['code'];
-                result[code] = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': this.safeFloat (balance, 'balance'),
-                };
+            // currency ids are numeric strings
+            const currencyId = this.safeString (balance, 'currency_id');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
             }
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'balance');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
