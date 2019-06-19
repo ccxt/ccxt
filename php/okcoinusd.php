@@ -749,9 +749,8 @@ class okcoinusd extends Exchange {
                 $code = $this->common_currency_code($code);
             }
             $account = $this->account ();
-            $account['free'] = $this->safe_float($balances['free'], $id, 0.0);
-            $account['used'] = $this->safe_float($balances[$usedField], $id, 0.0);
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account['free'] = $this->safe_float($balances['free'], $id);
+            $account['used'] = $this->safe_float($balances[$usedField], $id);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

@@ -607,7 +607,6 @@ class exmo extends Exchange {
             if (is_array($response['reserved']) && array_key_exists($currency, $response['reserved'])) {
                 $account['used'] = $this->safe_float($response['reserved'], $currency);
             }
-            $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);

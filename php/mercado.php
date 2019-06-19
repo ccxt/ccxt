@@ -197,7 +197,6 @@ class mercado extends Exchange {
                 $account = $this->account ();
                 $account['free'] = floatval ($balances[$lowercase]['available']);
                 $account['total'] = floatval ($balances[$lowercase]['total']);
-                $account['used'] = $account['total'] - $account['free'];
                 $result[$code] = $account;
             }
         }

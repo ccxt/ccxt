@@ -311,14 +311,10 @@ class crex24 extends Exchange {
             } else {
                 $code = $this->common_currency_code($code);
             }
-            $free = $this->safe_float($balance, 'available');
-            $used = $this->safe_float($balance, 'reserved');
-            $total = $this->sum ($free, $used);
-            $result[$code] = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['used'] = $this->safe_float($balance, 'reserved');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

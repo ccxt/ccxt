@@ -86,7 +86,6 @@ class foxbit (Exchange):
                     account = self.account()
                     account['used'] = float(balances[currencyId + '_locked']) * 1e-8
                     account['total'] = float(balances[currencyId]) * 1e-8
-                    account['free'] = account['total'] - account['used']
                     result[code] = account
         return self.parse_balance(result)
 

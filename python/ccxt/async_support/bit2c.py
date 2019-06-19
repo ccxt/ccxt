@@ -153,7 +153,6 @@ class bit2c (Exchange):
             if uppercase in balance:
                 account['free'] = self.safe_float(balance, 'AVAILABLE_' + uppercase)
                 account['total'] = self.safe_float(balance, uppercase)
-                account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
 

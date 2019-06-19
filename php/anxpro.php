@@ -719,19 +719,21 @@ class anxpro extends Exchange {
         $this->load_markets();
         $response = $this->privatePostMoneyInfo ($params);
         $balance = $this->safe_value($response, 'data', array());
-        $wallets = $balance['Wallets'];
-        $currencies = is_array($wallets) ? array_keys($wallets) : array();
+        $wallets = $this->safe_value($balance, 'Wallets', array());
+        $currencyIds = is_array($wallets) ? array_keys($wallets) : array();
         $result = array( 'info' => $balance );
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $currencyId = $currencies[$c];
-            $code = $this->common_currency_code($currencyId);
-            $account = $this->account ();
-            if (is_array($wallets) && array_key_exists($currencyId, $wallets)) {
-                $wallet = $wallets[$currencyId];
-                $account['free'] = $this->safe_float($wallet['Available_Balance'], 'value');
-                $account['total'] = $this->safe_float($wallet['Balance'], 'value');
-                $account['used'] = $account['total'] - $account['free'];
+        for ($c = 0; $c < count ($currencyIds); $c++) {
+            $currencyId = $currencyIds[$c];
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
             }
+            $account = $this->account ();
+            $wallet = $this->safe_value($wallets, $currencyId);
+            $account['free'] = $this->safe_float($wallet['Available_Balance'], 'value');
+            $account['total'] = $this->safe_float($wallet['Balance'], 'value');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

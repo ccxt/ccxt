@@ -420,13 +420,9 @@ class buda (Exchange):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'id')
             code = self.common_currency_code(currencyId)
-            total = float(balance['amount'][0])
-            free = float(balance['available_amount'][0])
-            account = {
-                'free': free,
-                'used': total - free,
-                'total': total,
-            }
+            account = self.account()
+            account['free'] = float(balance['available_amount'][0])
+            account['total'] = float(balance['amount'][0])
             result[code] = account
         return self.parse_balance(result)
 

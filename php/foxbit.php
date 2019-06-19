@@ -87,7 +87,6 @@ class foxbit extends Exchange {
                     $account = $this->account ();
                     $account['used'] = floatval ($balances[$currencyId . '_locked']) * 1e-8;
                     $account['total'] = floatval ($balances[$currencyId]) * 1e-8;
-                    $account['free'] = $account['total'] - $account['used'];
                     $result[$code] = $account;
                 }
             }

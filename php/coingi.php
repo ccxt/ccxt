@@ -158,12 +158,9 @@ class coingi extends Exchange {
             $currencyId = $this->safe_string($balance['currency'], 'name');
             $code = strtoupper($currencyId);
             $code = $this->common_currency_code($code);
-            $account = array (
-                'free' => $balance['available'],
-                'used' => $balance['blocked'] . $balance['inOrders'] . $balance['withdrawing'],
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account = $this->account ();
+            $account['free'] = $balance['available'];
+            $account['used'] = $balance['blocked'] . $balance['inOrders'] . $balance['withdrawing'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

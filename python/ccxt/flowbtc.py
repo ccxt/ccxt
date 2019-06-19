@@ -120,12 +120,9 @@ class flowbtc (Exchange):
             balance = balances[i]
             currencyId = balance['name']
             code = self.common_currency_code(currencyId)
-            account = {
-                'free': self.safe_float(balance, 'balance'),
-                'used': self.safe_float(balance, 'hold'),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'balance')
+            account['total'] = self.safe_float(balance, 'hold')
             result[code] = account
         return self.parse_balance(result)
 

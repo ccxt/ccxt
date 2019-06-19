@@ -58,19 +58,22 @@ class mixcoins extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostInfo ($params);
-        $balance = $this->safe_value($response['result'], 'wallet');
-        $result = array( 'info' => $balance );
-        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $code = $currencies[$i];
-            $currencyId = $this->currencyid ($code);
-            if (is_array($balance) && array_key_exists($currencyId, $balance)) {
-                $account = $this->account ();
-                $account['free'] = $this->safe_float($balance[$currencyId], 'avail');
-                $account['used'] = $this->safe_float($balance[$currencyId], 'lock');
-                $account['total'] = $this->sum ($account['free'], $account['used']);
-                $result[$code] = $account;
+        $balances = $this->safe_value($response['result'], 'wallet');
+        $result = array( 'info' => $response );
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
             }
+            $balance = $this->safe_value($balances, $currencyId, array());
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'avail');
+            $account['used'] = $this->safe_float($balance, 'lock');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

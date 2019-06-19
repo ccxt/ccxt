@@ -231,13 +231,9 @@ class yobit (Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.common_currency_code(currencyId.upper())
-            account = {
-                'free': self.safe_float(free, currencyId),
-                'used': None,
-                'total': self.safe_float(total, currencyId),
-            }
-            if account['total'] is not None and account['free'] is not None:
-                account['used'] = account['total'] - account['free']
+            account = self.account()
+            account['free'] = self.safe_float(free, currencyId)
+            account['total'] = self.safe_float(total, currencyId)
             result[code] = account
         return self.parse_balance(result)
 

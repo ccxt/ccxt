@@ -421,7 +421,6 @@ class bibox (Exchange):
             else:
                 account['free'] = self.safe_float(balance, 'balance')
                 account['used'] = self.safe_float(balance, 'freeze')
-                account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
         return self.parse_balance(result)
 

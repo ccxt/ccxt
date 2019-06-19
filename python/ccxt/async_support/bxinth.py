@@ -112,12 +112,9 @@ class bxinth (Exchange):
             currencyId = currencyIds[i]
             code = self.common_currency_code(currencyId)
             balance = self.safe_value(balances, currencyId, {})
-            account = {
-                'free': self.safe_float(balance, 'available'),
-                'used': 0.0,
-                'total': self.safe_float(balance, 'total'),
-            }
-            account['used'] = account['total'] - account['free']
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 

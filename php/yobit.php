@@ -216,14 +216,9 @@ class yobit extends Exchange {
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->common_currency_code(strtoupper($currencyId));
-            $account = array (
-                'free' => $this->safe_float($free, $currencyId),
-                'used' => null,
-                'total' => $this->safe_float($total, $currencyId),
-            );
-            if ($account['total'] !== null && $account['free'] !== null) {
-                $account['used'] = $account['total'] - $account['free'];
-            }
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($free, $currencyId);
+            $account['total'] = $this->safe_float($total, $currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

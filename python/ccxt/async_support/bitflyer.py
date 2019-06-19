@@ -159,16 +159,18 @@ class bitflyer (Exchange):
         #     ]
         #
         result = {'info': response}
-        balances = {}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency_code')
-            code = self.common_currency_code(currencyId)
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             account = self.account()
             account['total'] = self.safe_float(balance, 'amount')
             account['free'] = self.safe_float(balance, 'available')
-            account['used'] = account['total'] - account['free']
-            balances[code] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

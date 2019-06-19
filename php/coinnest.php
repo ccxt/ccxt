@@ -234,11 +234,7 @@ class coinnest extends Exchange {
             $uppercase = strtoupper($currencyId);
             $code = $this->common_currency_code($uppercase);
             if (!(is_array($result) && array_key_exists($code, $result))) {
-                $result[$code] = array (
-                    'free' => 0.0,
-                    'used' => 0.0,
-                    'total' => 0.0,
-                );
+                $result[$code] = $this->account ();
             }
             $type = ($type === 'reserved' ? 'used' : 'free');
             $result[$code][$type] = $this->safe_float($response, $key);

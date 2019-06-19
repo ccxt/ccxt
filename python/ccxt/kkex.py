@@ -295,14 +295,13 @@ class kkex (Exchange):
         funds = self.safe_value(balances, 'funds')
         free = self.safe_value(funds, 'free', {})
         freezed = self.safe_value(funds, 'freezed', {})
-        assets = list(funds['free'].keys())
-        for i in range(0, len(assets)):
-            currencyId = assets[i]
+        currencyIds = list(free.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
             code = self.common_currency_code(currencyId.upper())
             account = self.account()
             account['free'] = self.safe_float(free, currencyId)
             account['used'] = self.safe_float(freezed, currencyId)
-            account['total'] = account['free'] + account['used']
             result[code] = account
         return self.parse_balance(result)
 

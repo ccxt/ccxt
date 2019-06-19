@@ -444,11 +444,11 @@ class cobinhood (Exchange):
             code = currencyId
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
-            account = {
-                'used': float(balance['on_order']),
-                'total': float(balance['total']),
-            }
-            account['free'] = float(account['total'] - account['used'])
+            else:
+                code = self.common_currency_code(currencyId)
+            account = self.account()
+            account['used'] = self.safe_float(balance, 'on_order')
+            account['total'] = self.safe_float(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 

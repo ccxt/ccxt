@@ -193,17 +193,18 @@ class bitmarket extends Exchange {
         $balances = $this->safe_value($data, 'balances', array());
         $available = $this->safe_value($balances, 'available', array());
         $blocked = $this->safe_value($balances, 'blocked', array());
-        $result = array( 'info' => $data );
+        $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($codes); $i++) {
             $code = $codes[$i];
-            $currency = $this->currency ($code);
-            $currencyId = $currency['id'];
-            $account = $this->account ();
-            $account['free'] = $this->safe_float($available, $currencyId);
-            $account['used'] = $this->safe_float($blocked, $currencyId);
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$code] = $account;
+            $currencyId = $this->currencyId ($code);
+            $free = $this->safe_float($available, $currencyId);
+            if ($free !== null) {
+                $account = $this->account ();
+                $account['free'] = $this->safe_float($available, $currencyId);
+                $account['used'] = $this->safe_float($blocked, $currencyId);
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }

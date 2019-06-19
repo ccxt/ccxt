@@ -440,13 +440,9 @@ class buda extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'id');
             $code = $this->common_currency_code($currencyId);
-            $total = floatval ($balance['amount'][0]);
-            $free = floatval ($balance['available_amount'][0]);
-            $account = array (
-                'free' => $free,
-                'used' => $total - $free,
-                'total' => $total,
-            );
+            $account = $this->account ();
+            $account['free'] = floatval ($balance['available_amount'][0]);
+            $account['total'] = floatval ($balance['amount'][0]);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

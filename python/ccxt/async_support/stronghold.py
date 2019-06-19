@@ -591,7 +591,6 @@ class stronghold (Exchange):
             account = {}
             account['total'] = self.safe_float(entry, 'amount', 0.0)
             account['free'] = self.safe_float(entry, 'availableForTrade', 0.0)
-            account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
 

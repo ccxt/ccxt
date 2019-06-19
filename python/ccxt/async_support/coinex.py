@@ -344,17 +344,18 @@ class coinex (Exchange):
         #
         result = {'info': response}
         balances = self.safe_value(response, 'data')
-        currencies = list(balances.keys())
-        for i in range(0, len(currencies)):
-            currencyId = currencies[i]
-            balance = balances[currencyId]
-            code = self.common_currency_code(currencyId)
-            account = {
-                'free': float(balance['available']),
-                'used': float(balance['frozen']),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
+            balance = self.safe_value(balances, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'frozen')
             result[code] = account
         return self.parse_balance(result)
 

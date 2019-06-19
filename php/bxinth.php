@@ -115,12 +115,9 @@ class bxinth extends Exchange {
             $currencyId = $currencyIds[$i];
             $code = $this->common_currency_code($currencyId);
             $balance = $this->safe_value($balances, $currencyId, array());
-            $account = array (
-                'free' => $this->safe_float($balance, 'available'),
-                'used' => 0.0,
-                'total' => $this->safe_float($balance, 'total'),
-            );
-            $account['used'] = $account['total'] - $account['free'];
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['total'] = $this->safe_float($balance, 'total');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

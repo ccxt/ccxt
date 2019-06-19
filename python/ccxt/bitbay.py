@@ -255,19 +255,16 @@ class bitbay (Exchange):
         balances = self.safe_value(response, 'balances')
         if balances is None:
             raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
-        balance = response['balances']
-        result = {'info': balance}
+        result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
-            currency = self.currencies[code]
-            currencyId = currency['id']
+            currencyId = self.currencyId(code)
             balance = self.safe_value(balances, currencyId)
             if balance is not None:
                 account = self.account()
                 account['free'] = self.safe_float(balance, 'available')
                 account['used'] = self.safe_float(balance, 'locked')
-                account['total'] = self.sum(account['free'], account['used'])
                 result[code] = account
         return self.parse_balance(result)
 

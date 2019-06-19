@@ -556,7 +556,6 @@ class bitfinex (Exchange):
                     account = self.account()
                     account['free'] = self.safe_float(balance, 'available')
                     account['total'] = self.safe_float(balance, 'amount')
-                    account['used'] = account['total'] - account['free']
                     result[code] = account
         return self.parse_balance(result)
 

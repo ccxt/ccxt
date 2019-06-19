@@ -256,19 +256,16 @@ class bitbay extends Exchange {
         if ($balances === null) {
             throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json ($response));
         }
-        $balance = $response['balances'];
-        $result = array( 'info' => $balance );
+        $result = array( 'info' => $response );
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($codes); $i++) {
             $code = $codes[$i];
-            $currency = $this->currencies[$code];
-            $currencyId = $currency['id'];
+            $currencyId = $this->currencyId ($code);
             $balance = $this->safe_value($balances, $currencyId);
             if ($balance !== null) {
                 $account = $this->account ();
                 $account['free'] = $this->safe_float($balance, 'available');
                 $account['used'] = $this->safe_float($balance, 'locked');
-                $account['total'] = $this->sum ($account['free'], $account['used']);
                 $result[$code] = $account;
             }
         }

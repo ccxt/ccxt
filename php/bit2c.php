@@ -145,7 +145,6 @@ class bit2c extends Exchange {
             if (is_array($balance) && array_key_exists($uppercase, $balance)) {
                 $account['free'] = $this->safe_float($balance, 'AVAILABLE_' . $uppercase);
                 $account['total'] = $this->safe_float($balance, $uppercase);
-                $account['used'] = $account['total'] - $account['free'];
             }
             $result[$code] = $account;
         }

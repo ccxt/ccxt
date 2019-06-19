@@ -624,7 +624,6 @@ class stronghold extends Exchange {
             $account = array();
             $account['total'] = $this->safe_float($entry, 'amount', 0.0);
             $account['free'] = $this->safe_float($entry, 'availableForTrade', 0.0);
-            $account['used'] = $account['total'] - $account['free'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

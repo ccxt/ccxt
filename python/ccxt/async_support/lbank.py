@@ -336,12 +336,9 @@ class lbank (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             code = self.common_currency_code(id.upper())
-            account = {
-                'free': self.safe_float(free, id, 0.0),
-                'used': self.safe_float(freeze, id, 0.0),
-                'total': None,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+            account = self.account()
+            account['free'] = self.safe_float(free, id)
+            account['used'] = self.safe_float(freeze, id)
             result[code] = account
         return self.parse_balance(result)
 

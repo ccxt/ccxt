@@ -206,12 +206,9 @@ class gemini (Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.common_currency_code(currencyId)
-            account = {
-                'free': self.safe_float(balance, 'available'),
-                'used': 0.0,
-                'total': self.safe_float(balance, 'amount'),
-            }
-            account['used'] = account['total'] - account['free']
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'amount')
             result[code] = account
         return self.parse_balance(result)
 

@@ -310,7 +310,7 @@ class binance (Exchange):
         self.load_markets()
         response = self.privateGetAccount(params)
         result = {'info': response}
-        balances = response['balances']
+        balances = self.safe_value(response, 'balances', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = balance['asset']
@@ -319,12 +319,9 @@ class binance (Exchange):
                 code = self.currencies_by_id[currencyId]['code']
             else:
                 code = self.common_currency_code(currencyId)
-            account = {
-                'free': float(balance['free']),
-                'used': float(balance['locked']),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'free')
+            account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 

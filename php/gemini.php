@@ -214,12 +214,9 @@ class gemini extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->common_currency_code($currencyId);
-            $account = array (
-                'free' => $this->safe_float($balance, 'available'),
-                'used' => 0.0,
-                'total' => $this->safe_float($balance, 'amount'),
-            );
-            $account['used'] = $account['total'] - $account['free'];
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['total'] = $this->safe_float($balance, 'amount');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

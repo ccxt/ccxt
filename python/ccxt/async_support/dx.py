@@ -404,20 +404,18 @@ class dx (Exchange):
         response = await self.privatePostBalanceGet(params)
         result = {'info': response}
         balances = self.safe_value(response['result'], 'balance')
-        ids = list(balances.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            balance = balances[id]
-            code = None
-            if id in self.currencies_by_id:
-                code = self.currencies_by_id[id]['code']
-            account = {
-                'free': self.safe_float(balance, 'available'),
-                'used': self.safe_float(balance, 'frozen'),
-                'total': self.safe_float(balance, 'total'),
-            }
-            account['total'] = self.sum(account['free'], account['used'])
-            result[code] = account
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            balance = self.safe_value(balances, currencyId, {})
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+                account = {
+                    'free': self.safe_float(balance, 'available'),
+                    'used': self.safe_float(balance, 'frozen'),
+                    'total': self.safe_float(balance, 'total'),
+                }
+                result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

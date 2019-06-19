@@ -120,12 +120,9 @@ class luno extends Exchange {
             $reserved = $this->safe_float($wallet, 'reserved');
             $unconfirmed = $this->safe_float($wallet, 'unconfirmed');
             $balance = $this->safe_float($wallet, 'balance');
-            $account = array (
-                'free' => 0.0,
-                'used' => $this->sum ($reserved, $unconfirmed),
-                'total' => $this->sum ($balance, $unconfirmed),
-            );
-            $account['free'] = $account['total'] - $account['used'];
+            $account = $this->account ();
+            $account['used'] = $this->sum ($reserved, $unconfirmed);
+            $account['total'] = $this->sum ($balance, $unconfirmed);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

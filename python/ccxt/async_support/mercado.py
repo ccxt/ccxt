@@ -192,7 +192,6 @@ class mercado (Exchange):
                 account = self.account()
                 account['free'] = float(balances[lowercase]['available'])
                 account['total'] = float(balances[lowercase]['total'])
-                account['used'] = account['total'] - account['free']
                 result[code] = account
         return self.parse_balance(result)
 

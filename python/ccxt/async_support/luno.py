@@ -119,12 +119,9 @@ class luno (Exchange):
             reserved = self.safe_float(wallet, 'reserved')
             unconfirmed = self.safe_float(wallet, 'unconfirmed')
             balance = self.safe_float(wallet, 'balance')
-            account = {
-                'free': 0.0,
-                'used': self.sum(reserved, unconfirmed),
-                'total': self.sum(balance, unconfirmed),
-            }
-            account['free'] = account['total'] - account['used']
+            account = self.account()
+            account['used'] = self.sum(reserved, unconfirmed)
+            account['total'] = self.sum(balance, unconfirmed)
             result[code] = account
         return self.parse_balance(result)
 

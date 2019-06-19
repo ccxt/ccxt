@@ -566,14 +566,9 @@ class hitbtc (Exchange):
             balance = balances[b]
             code = balance['currency_code']
             currency = self.common_currency_code(code)
-            free = self.safe_float(balance, 'cash', 0.0)
-            free = self.safe_float(balance, 'balance', free)
-            used = self.safe_float(balance, 'reserved', 0.0)
-            account = {
-                'free': free,
-                'used': used,
-                'total': self.sum(free, used),
-            }
+            account = self.account()
+            account['free'] = self.safe_float_2(balance, 'cash', 'balance', 0.0)
+            account['used'] = self.safe_float(balance, 'reserved', 0.0)
             result[currency] = account
         return self.parse_balance(result)
 

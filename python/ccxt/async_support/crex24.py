@@ -316,14 +316,10 @@ class crex24 (Exchange):
                 code = self.currencies_by_id[currencyId]['code']
             else:
                 code = self.common_currency_code(code)
-            free = self.safe_float(balance, 'available')
-            used = self.safe_float(balance, 'reserved')
-            total = self.sum(free, used)
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'reserved')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
