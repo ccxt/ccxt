@@ -169,7 +169,6 @@ module.exports = class bitflyer extends Exchange {
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'amount');
             account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = account['total'] - account['free'];
             balances[code] = account;
         }
         return this.parseBalance (result);

@@ -564,12 +564,9 @@ module.exports = class hitbtc extends Exchange {
             const balance = balances[b];
             const code = balance['currency_code'];
             const currency = this.commonCurrencyCode (code);
-            let free = this.safeFloat (balance, 'cash', 0.0);
-            free = this.safeFloat (balance, 'balance', free);
-            const used = this.safeFloat (balance, 'reserved', 0.0);
             const account = this.account ();
-            account['free'] = free;
-            account['used'] = used;
+            account['free'] = this.safeFloat2 (balance, 'cash', 'balance', 0.0);
+            account['used'] = this.safeFloat (balance, 'reserved', 0.0);
             result[currency] = account;
         }
         return this.parseBalance (result);

@@ -431,7 +431,6 @@ module.exports = class dx extends Exchange {
                 'used': this.safeFloat (balance, 'frozen'),
                 'total': this.safeFloat (balance, 'total'),
             };
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);

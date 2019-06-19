@@ -729,7 +729,6 @@ module.exports = class anxpro extends Exchange {
                 const wallet = wallets[currencyId];
                 account['free'] = this.safeFloat (wallet['Available_Balance'], 'value');
                 account['total'] = this.safeFloat (wallet['Balance'], 'value');
-                account['used'] = account['total'] - account['free'];
             }
             result[code] = account;
         }

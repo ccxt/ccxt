@@ -255,16 +255,13 @@ module.exports = class bitmex extends Exchange {
             let currencyId = this.safeString (balance, 'currency');
             currencyId = currencyId.toUpperCase ();
             const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': balance['availableMargin'],
-                'used': 0.0,
-                'total': balance['marginBalance'],
-            };
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'availableMargin');
+            account['total'] = this.safeFloat (balance, 'marginBalance');
             if (code === 'BTC') {
                 account['free'] = account['free'] * 0.00000001;
                 account['total'] = account['total'] * 0.00000001;
             }
-            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);

@@ -282,11 +282,9 @@ module.exports = class poloniex extends Exchange {
             const currencyId = currencies[i];
             const balance = response[currencyId];
             const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': this.safeFloat (balance, 'onOrders'),
-                'total': 0.0,
-            };
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] =  this.safeFloat (balance, 'onOrders');
             result[code] = account;
         }
         return this.parseBalance (result);

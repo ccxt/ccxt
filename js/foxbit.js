@@ -86,7 +86,6 @@ module.exports = class foxbit extends Exchange {
                     const account = this.account ();
                     account['used'] = parseFloat (balances[currencyId + '_locked']) * 1e-8;
                     account['total'] = parseFloat (balances[currencyId]) * 1e-8;
-                    account['free'] = account['total'] - account['used'];
                     result[code] = account;
                 }
             }

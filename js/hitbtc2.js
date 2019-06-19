@@ -700,12 +700,9 @@ module.exports = class hitbtc2 extends hitbtc {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['reserved']),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'reserved');
             result[code] = account;
         }
         return this.parseBalance (result);
