@@ -26,6 +26,7 @@ module.exports = class bit2c extends Exchange {
                 'doc': [
                     'https://www.bit2c.co.il/home/api',
                     'https://github.com/OferE/bit2c',
+                    'referral': 'https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf',
                 ],
             },
             'api': {
