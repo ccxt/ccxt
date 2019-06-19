@@ -47,7 +47,7 @@ module.exports = class latoken extends Exchange {
                 'fetchPartiallyFilledOrders': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
-                'fetchTickers': true,
+                'fetchTickers': false,
                 'fetchTrades': true,
                 'fetchTransactions': false,
                 'fetchDeposits': false,
@@ -166,11 +166,8 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-    async fetchMarkets (currency = undefined, params = {}) {
-        const request = {
-            'currency': currency,
-        };
-        const markets = await this.publicGetExchangeInfoPairs (this.extend (request, params));
+    async fetchMarkets (params = {}) {
+        const markets = await this.publicGetExchangeInfoPairs (params);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -235,25 +232,12 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-    async fetchBalance (currency = undefined, params = {}) {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'currency': currency,
-        };
-        const response = await this.privateGetAccountBalances (this.extend (request, params));
+        const response = await this.privateGetAccountBalances (params);
         const result = {
             'info': response,
         };
-        if (currency !== undefined) {
-            const currency = response['symbol'];
-            const account = {
-                'free': parseFloat (response['available']),
-                'used': parseFloat (response['frozen']),
-                'total': parseFloat (response['amount']),
-            };
-            result[currency] = account;
-            return this.parseBalance (result);
-        }
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currency = balance['symbol'];
@@ -313,25 +297,15 @@ module.exports = class latoken extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const response = await this.publicGetMarketDataTicker (this.extend ({
             'symbol': market['symbol'],
-        };
-        const ticker = await this.publicGetMarketDataTicker (this.extend (request, params));
-        return this.parseTicker (ticker);
+        }, params));
+        return this.parseTicker (response, market);
     }
 
-    async fetchTickers (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.publicGetMarketDataTicker (params);
-        return this.parseTicker (response);
-    }
-
-    async fetchCurrencies (symbol = undefined, params = {}) {
-        const request = {
-            'symbol': symbol,
-        };
-        if (symbol !== undefined) {
-            const currencies = await this.publicGetExchangeInfoCurrencies (this.extend (request, params));
+    async fetchCurrencies (params = {}) {
+        if (Object.keys (params).length) {
+            const currencies = await this.publicGetExchangeInfoCurrencies (params);
             const id = currencies['currencyId'];
             const symbol = currencies['symbol'];
             const name = currencies['name'];
@@ -557,26 +531,22 @@ module.exports = class latoken extends Exchange {
         if (api === 'public') {
             headers = {
                 'Content-type': 'application/json',
+                'x-lat-timestamp': this.nonce (),
+                'x-lat-timeframe': this.options['timeframe'],
             };
-            if ((path === 'exchangeInfo/pairs') && (typeof (params['currency']) === 'string')) {
-                url += '/' + params['currency'];
-            }
-            if ((path === 'exchangeInfo/currencies') && (typeof (params['symbol']) === 'string')) {
-                url += '/' + params['symbol'];
-            }
-            if ((path === 'marketData/ticker') && (typeof (params['symbol']) === 'string')) {
-                url += '/' + params['symbol'];
+            if ((path === 'exchangeInfo/pairs' || 'exchangeInfo/currencies' || 'marketData/ticker') && (typeof (params) === 'string')) {
+                url += '/' + params;
             }
             url += '?' + this.urlencode (params);
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            if (path === 'account/balances' && (typeof (params['currency']) === 'string')) {
-                url += '/' + params['currency'];
+            if (path === 'account/balances' && (typeof (params) === 'string')) {
+                url += '/' + params;
                 const param = {
                     'timestamp': this.nonce (),
                 };
                 const query1 = '?' + this.urlencode (param);
-                const dataToSign = '/api/v1/' + path + '/' + params['currency'];
+                const dataToSign = '/api/v1/' + path + '/' + params;
                 const signature = this.hmac (this.encode (dataToSign + query1), this.encode (this.secret), 'sha256');
                 url += query1;
                 headers = {
