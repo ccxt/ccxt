@@ -1517,6 +1517,11 @@ class Exchange {
 
     public function parse_balance($balance) {
         $currencies = array_keys($this->omit($balance, 'info'));
+
+        $balance['free'] = array();
+        $balance['used'] = array();
+        $balance['total'] = array();
+
         foreach ($currencies as $currency) {
             if ($currencies[$currency]['total'] === 0.0) {
                 if ($currencies[$currency]['free'] !== null && $currencies[$currency]['used'] !== null) {

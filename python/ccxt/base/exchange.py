@@ -1281,6 +1281,11 @@ class Exchange(object):
 
     def parse_balance(self, balance):
         currencies = self.omit(balance, 'info').keys()
+
+        balance['free'] = {}
+        balance['used'] = {}
+        balance['total'] = {}
+
         for currency in currencies:
             if balance[currency].get('total') == 0:
                 if balance[currency].get('free') is not None and balance[currency].get('used') is not None:

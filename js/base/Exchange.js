@@ -1014,6 +1014,10 @@ module.exports = class Exchange {
 
         const currencies = Object.keys (this.omit (balance, 'info'));
 
+        balance['free'] = {}
+        balance['used'] = {}
+        balance['total'] = {}
+
         currencies.forEach ((currency) => {
 
             if (balance[currency].total === 0) {
