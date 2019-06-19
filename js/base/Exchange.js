@@ -1017,15 +1017,21 @@ module.exports = class Exchange {
         currencies.forEach ((currency) => {
 
             if (balance[currency].total === 0) {
-                balance[currency].total = this.sum (balance[currency].free, balance[currency].used)
+                if (balance[currency].free !== undefined && balance[currency].used !== undefined) {
+                    balance[currency].total = this.sum (balance[currency].free, balance[currency].used)
+                }
             }
 
             if (balance[currency].free === 0) {
-                balance[currency].free = this.sum (balance[currency].total, -balance[currency].used)
+                if (balance[currency].total !== undefined && balance[currency].used !== undefined) {
+                    balance[currency].free = this.sum (balance[currency].total, -balance[currency].used)
+                }
             }
 
             if (balance[currency].used === 0) {
-                balance[currency].used = this.sum (balance[currency].total, -balance[currency].free)
+                if (balance[currency].total !== undefined && balance[currency].free !== undefined) {
+                    balance[currency].used = this.sum (balance[currency].total, -balance[currency].free)
+                }
             }
 
             [ 'free', 'used', 'total' ].forEach ((account) => {

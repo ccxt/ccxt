@@ -38,8 +38,11 @@ module.exports = async (exchange, symbol) => {
 
     // log.yellow (balance)
 
-    if ('info' in balance) {
+    assert (typeof balance['total'] === 'object');
+    assert (typeof balance['free'] === 'object');
+    assert (typeof balance['used'] === 'object');
 
+    if ('info' in balance) {
         for (let currency of Object.keys (balance['total'])) {
             let total = balance['total'][currency]
             let free = balance['free'][currency]
