@@ -558,7 +558,7 @@ module.exports = class latoken extends Exchange {
             if (path === 'exchangeInfo/pairs' && Object.keys (params).length) {
                 url += '/' + params['currency'];
             } else if (path === 'exchangeInfo/currencies' && Object.keys (params).length) {
-                url += '/' + params['symbol'];
+                url += '/' + params;
             } else if (path === 'marketData/ticker' && Object.keys (params).length) {
                 url += '/' + params['symbol'];
             } else {
