@@ -281,6 +281,35 @@ A more detailed documentation on using proxies with the sync python version of t
 - [Proxies](http://docs.python-requests.org/en/master/user/advanced/#proxies)
 - [SOCKS](http://docs.python-requests.org/en/master/user/advanced/#socks)
 
+#### Python aiohttp SOCKS proxy
+
+```
+pip install aiohttp_socks
+```
+
+```Python
+import ccxt.async_support as ccxt
+import aiohttp
+import aiohttp_socks
+
+async def test():
+
+    connector = aiohttp_socks.SocksConnector.from_url('socks5://user:password@127.0.0.1:1080')
+    session = aiohttp.ClientSession(connector=connector)
+
+    exchange = ccxt.binance({
+        'session': session,
+        'enableRateLimit': True,
+        # ...
+    })
+
+    # ...
+
+    await session.close()  # don't forget to close the session
+
+    # ...
+```
+
 ## CORS (Access-Control-Allow-Origin)
 
 If you need a CORS proxy, use the `proxy` property (a string literal) containing base URL of http(s) proxy. It is for use with web browsers and from blocked locations.
