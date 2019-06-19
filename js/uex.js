@@ -263,11 +263,12 @@ module.exports = class uex extends Exchange {
         //                                     locked: "0.00000000",
         //                                       coin: "ren"         }]}}
         //
-        const balances = response['data']['coin_list'];
-        const result = { 'info': balances };
+        const data = this.safeValue (response, 'data', {});
+        const balances = this.safeValue (data, 'coin_list', []);
+        const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = balance['coin'];
+            const currencyId = this.safeString (balance, 'coin');
             let code = currencyId.toUpperCase ();
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
@@ -275,12 +276,8 @@ module.exports = class uex extends Exchange {
                 code = this.commonCurrencyCode (code);
             }
             const account = this.account ();
-            const free = parseFloat (balance['normal']);
-            const used = parseFloat (balance['locked']);
-            const total = this.sum (free, used);
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = total;
+            account['free'] = this.safeFloat (balance, 'normal');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
