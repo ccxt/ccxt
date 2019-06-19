@@ -87,14 +87,16 @@ module.exports = class vaultoro extends Exchange {
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = balance['currency_code'];
-            const uppercaseId = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercaseId);
-            const free = this.safeFloat (balance, 'cash');
-            const used = this.safeFloat (balance, 'reserved');
+            const currencyId = this.safeString (balance, 'currency_code');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const account = this.account ();
-            account['free'] = free;
-            account['used'] = used;
+            account['free'] = this.safeFloat (balance, 'cash');
+            account['used'] = this.safeFloat (balance, 'reserved');
             result[code] = account;
         }
         return this.parseBalance (result);
