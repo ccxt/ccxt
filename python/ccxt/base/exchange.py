@@ -260,6 +260,7 @@ class Exchange(object):
         'fetchStatus': 'emulated',
         'fetchTicker': True,
         'fetchTickers': False,
+        'fetchTime': False,
         'fetchTrades': True,
         'fetchTradingFee': False,
         'fetchTradingFees': False,
@@ -1326,6 +1327,11 @@ class Exchange(object):
         return self.build_ohlcv(trades, timeframe, since, limit)
 
     def fetchStatus(self, params={}):
+        if this.has['fetchTime']:
+            time = self.fetchTime(params)
+            self.status = self.extend(self.status, {
+                'updated': time,
+            })
         return self.status
 
     def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
