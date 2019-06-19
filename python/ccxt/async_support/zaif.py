@@ -171,13 +171,18 @@ class zaif (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetInfo(params)
-        balances = response['return']
-        result = {'info': balances}
-        currencies = list(balances['funds'].keys())
-        for i in range(0, len(currencies)):
-            currencyId = currencies[i]
-            balance = self.safe_value(balances['funds'], currencyId)
-            code = self.common_currency_code(currencyId.upper())
+        balances = self.safe_value(response, 'return', {})
+        result = {'info': response}
+        funds = self.safe_value(balances, 'funds', {})
+        currencyIds = list(funds.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            balance = self.safe_value(funds, currencyId)
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             account = {
                 'free': balance,
                 'used': 0.0,
