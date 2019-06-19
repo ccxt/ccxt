@@ -17,7 +17,9 @@ module.exports = async (exchange, symbol) => {
 
         // log ('fetching my trades...')
 
-        let trades = await exchange.fetchMyTrades (symbol, 0)
+        const since = exchange.milliseconds () - 60 * 60 * 1000
+
+        let trades = await exchange.fetchMyTrades (symbol, since)
 
         assert (trades instanceof Array)
 
