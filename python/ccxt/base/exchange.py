@@ -1043,9 +1043,9 @@ class Exchange(object):
 
     def account(self):
         return {
-            'free': None,
-            'used': None,
-            'total': None,
+            'free': 0,
+            'used': 0,
+            'total': 0,
         }
 
     def common_currency_code(self, currency):
@@ -1282,16 +1282,14 @@ class Exchange(object):
     def parse_balance(self, balance):
         currencies = self.omit(balance, 'info').keys()
         for currency in currencies:
-            if balance[currency].get('total') is None:
+            if balance[currency].get('total') == 0:
                 balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
 
-            if balance[currency].get('free') is None:
-                if balance[currency].get('total') is not None and balance[currency].get('used') is not None:
-                    balance[currency]['free'] = balance[currency]['total'] - balance[currency]['used']
+            if balance[currency].get('free') == 0:
+                balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
 
-            if balance[currency].get('used') is None:
-                if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
-                    balance[currency]['used'] = balance[currency]['total'] - balance[currency]['free']
+            if balance[currency].get('used') == 0:
+                balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
 
         for account in ['free', 'used', 'total']:
             balance[account] = {}

@@ -1518,18 +1518,14 @@ class Exchange {
     public function parse_balance($balance) {
         $currencies = array_keys($this->omit($balance, 'info'));
         foreach ($currencies as $currency) {
-            if ($currencies[$currency]['total'] === null) {
+            if ($currencies[$currency]['total'] === 0.0) {
                 $currencies[$currency]['total'] = static::sum($currencies[$currency]['free'], $currencies[$currency]['used']);
             }
-            if ($currencies[$currency]['free'] === null) {
-                if ($currencies[$currency]['total'] !== null && $currencies[$currency]['used'] !== null) {
-                    $currencies[$currency]['free'] = $currencies[$currency]['total'] - $currencies[$currency]['used'];
-                }
+            if ($currencies[$currency]['used'] === 0.0) {
+                $currencies[$currency]['used'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['free']);
             }
-            if ($currencies[$currency]['used'] === null) {
-                if ($currencies[$currency]['total'] !== null && $currencies[$currency]['free'] !== null) {
-                    $currencies[$currency]['used'] = $currencies[$currency]['total'] - $currencies[$currency]['free'];
-                }
+            if ($currencies[$currency]['free'] === 0.0) {
+                $currencies[$currency]['free'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['used']);
             }
         }
 
@@ -2095,9 +2091,9 @@ class Exchange {
 
     public static function account() {
         return array(
-            'free' => null,
-            'used' => null,
-            'total' => null,
+            'free' => 0.0,
+            'used' => 0.0,
+            'total' => 0.0,
         );
     }
 
