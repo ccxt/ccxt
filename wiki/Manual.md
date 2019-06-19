@@ -21,8 +21,8 @@ The structure of the library can be outlined as follows:
     |       fetchTickers           .            fetchOrders       |
     |       fetchOrderBook         .        fetchOpenOrders       |
     |       fetchOHLCV             .      fetchClosedOrders       |
-    |       fetchTrades            .          fetchMyTrades       |
-    |                              .                deposit       |
+    |       fetchStatus            .          fetchMyTrades       |
+    |       fetchTrades            .                deposit       |
     |                              .               withdraw       |
     │                              .                              |
     +=============================================================+
@@ -362,6 +362,7 @@ Here's an overview of base exchange properties with values added for example:
         'fetchOrder': false,
         'fetchOrderBook': true,
         'fetchOrders': false,
+        'fetchStatus': 'emulated',
         'fetchTicker': true,
         'fetchTickers': false,
         'fetchBidsAsks': false,
@@ -482,6 +483,7 @@ See this section on [Overriding exchange properties](https://github.com/ccxt/ccx
         'fetchOrder': false,
         'fetchOrderBook': true,
         'fetchOrders': false,
+        'fetchStatus': 'emulated',
         'fetchTicker': true,
         'fetchTickers': false,
         'fetchBidsAsks': false,
@@ -1137,6 +1139,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 - `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
 - `fetchOrderBook (symbol[, limit = undefined[, params = {}]])`: Fetch L2/L3 order book for a particular market trading symbol.
+- `fetchStatus ([, params = {}])`: Returns information regarding the exchange status from either the instance or the api if available such as `status`, `updated`, `eta`, `url`.
 - `fetchL2OrderBook (symbol[, limit = undefined[, params]])`: Level 2 (price-aggregated) order book for a particular symbol.
 - `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
@@ -3067,6 +3070,29 @@ Because this is still a work in progress, some or all of methods and info descri
     'currency': 'BTC', // the unified fee currency code
     'rate': percentage, // the fee rate, 0.05% = 0.0005, 1% = 0.01, ...
     'cost': feePaid, // the fee cost (amount * fee rate)
+}
+```
+
+### Exchange Status
+
+The exchange status describes the latest known information regarding the exchange api. This information is either hardcoded into the class or fetched directly from the api.
+The `fetchStatus` method can be used to get this information. 
+The fetchStatus method functions using either of the following methods:
+- Hardcoded into the exchange class, e.g. if the api has changed or shutdown
+- Updated using the exchange ping or fetchTime endpoint to see if its alive
+- Updated using the dedicated exchange api status endpoint.
+
+```Javascript
+fetchStatus(params = {})
+ ```  
+
+### Exchange Status Structure
+```Javascript
+{
+    'status': 'ok' // possible values of 'ok', 'shutdown', 'error', 'maintenance'
+    'updated': undefined // Last Updated time if updated via the endpoints
+    'eta': undefined, // When the maintenance or error is expected to be fixed
+    'url': undefined, // Link to CCXT Github Issue referencing the cause of the status
 }
 ```
 
