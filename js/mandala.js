@@ -479,14 +479,20 @@ module.exports = class mandala extends Exchange {
         //         ],
         //     }
         //
-        const data = this.safeValue (response, 'Data');
+        const data = this.safeValue (response, 'Data', []);
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
-            const code = this.commonCurrencyCode (this.safeString (balance, 'currency'));
+            const currencyId = this.safeString (balance, 'currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'balance', 0.0);
-            account['used'] = this.safeFloat (balance, 'balanceInTrade', 0.0);
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'balanceInTrade');
             result[code] = account;
         }
         return this.parseBalance (result);
