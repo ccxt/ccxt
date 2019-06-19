@@ -28,7 +28,7 @@ module.exports = class allcoin extends okcoinusd {
                 'referral': 'https://www.allcoin.com',
             },
             'status': {
-                'status': 'shutdown',
+                'status': 'error',
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
