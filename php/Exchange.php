@@ -882,6 +882,7 @@ class Exchange {
             'fetchStatus' => 'emulated',
             'fetchTicker' => true,
             'fetchTickers' => false,
+            'fetchTime' => false,
             'fetchTrades' => true,
             'fetchTradingFee' => false,
             'fetchTradingFees' => false,
@@ -1899,6 +1900,13 @@ class Exchange {
     }
 
     public function fetchStatus($params = array()) {
+        if ($this->has['fetchTime']) {
+            $time = $this->fetch_time($params);
+            $this->status = array_merge($this->status, array(
+                'updated' => $time,
+            ));
+            return $this->status;
+        }
         return $this->status;
     }
 
