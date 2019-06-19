@@ -180,13 +180,10 @@ module.exports = class bitstamp1 extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const currencyId = currency['id'];
-            const total = currencyId + '_balance';
-            const free = currencyId + '_available';
-            const used = currencyId + '_reserved';
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, free, 0.0);
-            account['used'] = this.safeFloat (balance, used, 0.0);
-            account['total'] = this.safeFloat (balance, total, 0.0);
+            account['free'] = this.safeFloat (balance, currencyId + '_available', 0.0);
+            account['used'] = this.safeFloat (balance, currencyId + '_reserved', 0.0);
+            account['total'] = this.safeFloat (balance, currencyId + '_balance', 0.0);
             result[currency] = account;
         }
         return this.parseBalance (result);
