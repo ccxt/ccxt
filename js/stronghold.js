@@ -614,16 +614,24 @@ module.exports = class stronghold extends Exchange {
             throw new ArgumentsRequired (this.id + " fetchBalance requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.");
         }
         const response = await this.privateGetVenuesVenueIdAccountsAccountId (request);
-        const balances = response['result']['balances'];
-        const result = {};
+        const balances = this.safeValue (response['result'], 'balances');
+        const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
-            const asset = entry['assetId'].split ('/')[0];
-            const code = this.commonCurrencyCode (asset);
-            const account = {};
-            account['total'] = this.safeFloat (entry, 'amount', 0.0);
-            account['free'] = this.safeFloat (entry, 'availableForTrade', 0.0);
-            result[code] = account;
+            const balance = balances[i];
+            const assetId = this.safeString (balance, 'assetId');
+            if (assetId !== undefined) {
+                const currencyId = assetId.split ('/')[0];
+                let code = currencyId;
+                if (currencyId in this.currencies_by_id) {
+                    code = this.currencies_by_id[currencyId]['code'];
+                } else {
+                    code = this.commonCurrencyCode (currencyId);
+                }
+                const account = {};
+                account['total'] = this.safeFloat (balance, 'amount');
+                account['free'] = this.safeFloat (balance, 'availableForTrade');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
