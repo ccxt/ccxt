@@ -607,13 +607,17 @@ module.exports = class huobipro extends Exchange {
             'id': this.accounts[0]['id'],
         };
         const response = await this[method] (this.extend (request, params));
-        const balances = this.safeValue (response['data'], 'list');
+        const balances = this.safeValue (response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            const uppercase = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercase);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             let account = undefined;
             if (code in result) {
                 account = result[code];
