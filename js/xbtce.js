@@ -139,12 +139,16 @@ module.exports = class xbtce extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'Currency');
-            const uppercase = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercase);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const account = {
-                'free': balance['FreeAmount'],
-                'used': balance['LockedAmount'],
-                'total': balance['Amount'],
+                'free': this.safeFloat (balance, 'FreeAmount'),
+                'used': this.safeFloat (balance, 'LockedAmount'),
+                'total': this.safeFloat (balance, 'Amount'),
             };
             result[code] = account;
         }
