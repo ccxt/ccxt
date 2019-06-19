@@ -47,7 +47,7 @@ module.exports = class latoken extends Exchange {
                 'fetchPartiallyFilledOrders': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
-                'fetchTickers': true,
+                'fetchTickers': false,
                 'fetchTrades': true,
                 'fetchTransactions': false,
                 'fetchDeposits': false,
@@ -166,11 +166,8 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-    async fetchMarkets (currency = undefined, params = {}) {
-        const request = {
-            'currency': currency,
-        };
-        const markets = await this.publicGetExchangeInfoPairs (this.extend (request, params));
+    async fetchMarkets (params = {}) {
+        const markets = await this.publicGetExchangeInfoPairs (params);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -313,14 +310,14 @@ module.exports = class latoken extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.symbol + ' fetchTicker requires a symbol argument');
+            throw new ArgumentsRequired (this.symbol + 'fetchTicker requires a symbol argument');
         }
         const market = this.market (symbol);
         const request = {
             'symbol': market['symbol'],
         };
-        const ticker = await this.publicGetMarketDataTicker (this.extend (request, params));
-        return this.parseTicker (ticker);
+        const response = await this.publicGetMarketDataTicker (this.extend (request, params));
+        return this.parseTicker (response, market);
     }
 
     async fetchTickers (params = {}) {
@@ -329,12 +326,9 @@ module.exports = class latoken extends Exchange {
         return this.parseTicker (response);
     }
 
-    async fetchCurrencies (symbol = undefined, params = {}) {
-        const request = {
-            'symbol': symbol,
-        };
-        if (symbol !== undefined) {
-            const currencies = await this.publicGetExchangeInfoCurrencies (this.extend (request, params));
+    async fetchCurrencies (params = {}) {
+        if (Object.keys (params).length) {
+            const currencies = await this.publicGetExchangeInfoCurrencies (params);
             const id = currencies['currencyId'];
             const symbol = currencies['symbol'];
             const name = currencies['name'];
@@ -560,25 +554,27 @@ module.exports = class latoken extends Exchange {
         if (api === 'public') {
             headers = {
                 'Content-type': 'application/json',
+                'x-lat-timestamp': this.nonce (),
+                'x-lat-timeframe': this.options['timeframe'],
             };
-            if ((path === 'exchangeInfo/pairs') && (typeof (params['currency']) === 'string')) {
+            if (path === 'exchangeInfo/pairs' && Object.keys (params).length) {
                 url += '/' + params['currency'];
-            } else if ((path === 'exchangeInfo/currencies') && (typeof (params['symbol']) === 'string')) {
+            } else if ('exchangeInfo/currencies' && Object.keys (params).length) {
                 url += '/' + params['symbol'];
-            } else if ((path === 'marketData/ticker') && (typeof (params['symbol']) === 'string')) {
+            } else if ('marketData/ticker' && Object.keys (params).length) {
                 url += '/' + params['symbol'];
             } else {
                 url += '?' + this.urlencode (params);
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            if (path === 'account/balances' && (typeof (params['currency']) === 'string')) {
-                url += '/' + params['currency'];
+            if (path === 'account/balances' && params['currency']) {
+                url += '/' + params;
                 const param = {
                     'timestamp': this.nonce (),
                 };
                 const query1 = '?' + this.urlencode (param);
-                const dataToSign = '/api/v1/' + path + '/' + params['currency'];
+                const dataToSign = '/api/v1/' + path + '/' + params;
                 const signature = this.hmac (this.encode (dataToSign + query1), this.encode (this.secret), 'sha256');
                 url += query1;
                 headers = {
