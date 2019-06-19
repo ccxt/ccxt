@@ -192,13 +192,13 @@ module.exports = class mercado extends Exchange {
             const code = currencies[i];
             const currencyId = this.currencyId (code);
             const lowercase = currencyId.toLowerCase ();
-            const account = this.account ();
             if (lowercase in balances) {
+                const account = this.account ();
                 account['free'] = parseFloat (balances[lowercase]['available']);
                 account['total'] = parseFloat (balances[lowercase]['total']);
                 account['used'] = account['total'] - account['free'];
+                result[code] = account;
             }
-            result[code] = account;
         }
         return this.parseBalance (result);
     }

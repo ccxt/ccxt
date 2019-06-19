@@ -63,13 +63,13 @@ module.exports = class mixcoins extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const code = currencies[i];
             const currencyId = this.currencyid (code);
-            const account = this.account ();
             if (currencyId in balance) {
+                const account = this.account ();
                 account['free'] = this.safeFloat (balance[currencyId], 'avail');
                 account['used'] = this.safeFloat (balance[currencyId], 'lock');
                 account['total'] = this.sum (account['free'], account['used']);
+                result[code] = account;
             }
-            result[code] = account;
         }
         return this.parseBalance (result);
     }
