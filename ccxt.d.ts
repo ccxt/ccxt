@@ -460,7 +460,7 @@ declare module 'ccxt' {
     export class theocean extends Exchange {}
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
-    export class tidex extends liqui {}
+    export class tidex extends Exchange {}
     export class uex extends Exchange {}
     export class upbit extends Exchange {}
     export class urdubit extends foxbit {}
@@ -468,7 +468,7 @@ declare module 'ccxt' {
     export class vbtc extends foxbit {}
     export class virwox extends Exchange {}
     export class xbtce extends Exchange {}
-    export class yobit extends liqui {}
+    export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
 

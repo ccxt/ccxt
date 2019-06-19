@@ -155,9 +155,9 @@ module.exports = class uex extends Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
+        const market = this.markets[symbol];
         let key = 'quote';
-        let rate = market[takerOrMaker];
+        const rate = market[takerOrMaker];
         let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
         if (side === 'sell') {
             cost *= price;
@@ -173,7 +173,7 @@ module.exports = class uex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetCommonSymbols ();
+        const response = await this.publicGetCommonSymbols (params);
         //
         //     { code:   "0",
         //        msg:   "suc",
@@ -193,25 +193,23 @@ module.exports = class uex extends Exchange {
         //                        base_coin: "eth",
         //                  price_precision:  6        }]}
         //
-        let result = [];
-        let markets = response['data'];
+        const result = [];
+        const markets = response['data'];
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let id = market['symbol'];
-            let baseId = market['base_coin'];
-            let quoteId = market['count_coin'];
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let symbol = base + '/' + quote;
-            let precision = {
+            const market = markets[i];
+            const id = market['symbol'];
+            const baseId = market['base_coin'];
+            const quoteId = market['count_coin'];
+            const base = this.commonCurrencyCode (baseId.toUpperCase ());
+            const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            const symbol = base + '/' + quote;
+            const precision = {
                 'amount': market['amount_precision'],
                 'price': market['price_precision'],
             };
-            let active = true;
-            let defaultLimits = this.safeValue (this.options['limits'], symbol, {});
-            let limits = this.deepExtend ({
+            const active = true;
+            const defaultLimits = this.safeValue (this.options['limits'], symbol, {});
+            const limits = this.deepExtend ({
                 'amount': {
                     'min': undefined,
                     'max': undefined,
@@ -243,7 +241,7 @@ module.exports = class uex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetUserAccount (params);
+        const response = await this.privateGetUserAccount (params);
         //
         //     { code:   "0",
         //        msg:   "suc",
@@ -265,21 +263,21 @@ module.exports = class uex extends Exchange {
         //                                     locked: "0.00000000",
         //                                       coin: "ren"         }]}}
         //
-        let balances = response['data']['coin_list'];
-        let result = { 'info': balances };
+        const balances = response['data']['coin_list'];
+        const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
-            let balance = balances[i];
-            let currencyId = balance['coin'];
+            const balance = balances[i];
+            const currencyId = balance['coin'];
             let code = currencyId.toUpperCase ();
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
             } else {
                 code = this.commonCurrencyCode (code);
             }
-            let account = this.account ();
-            let free = parseFloat (balance['normal']);
-            let used = parseFloat (balance['locked']);
-            let total = this.sum (free, used);
+            const account = this.account ();
+            const free = parseFloat (balance['normal']);
+            const used = parseFloat (balance['locked']);
+            const total = this.sum (free, used);
             account['free'] = free;
             account['used'] = used;
             account['total'] = total;
@@ -290,7 +288,7 @@ module.exports = class uex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketDept (this.extend ({
+        const response = await this.publicGetMarketDept (this.extend ({
             'symbol': this.marketId (symbol),
             'type': 'step0', // step1, step2 from most detailed to least detailed
         }, params));
@@ -307,7 +305,7 @@ module.exports = class uex extends Exchange {
         //                               ["0.00010000", 0.79]   ],
         //                       time:    1533412622463            } } }
         //
-        let timestamp = this.safeInteger (response['data']['tick'], 'time');
+        const timestamp = this.safeInteger (response['data']['tick'], 'time');
         return this.parseOrderBook (response['data']['tick'], timestamp);
     }
 
@@ -325,7 +323,7 @@ module.exports = class uex extends Exchange {
         //                 sell: "0.05824200",
         //                 time:  1533413083184 } }
         //
-        let timestamp = this.safeInteger (ticker, 'time');
+        const timestamp = this.safeInteger (ticker, 'time');
         let symbol = undefined;
         if (market === undefined) {
             let marketId = this.safeString (ticker, 'symbol');
@@ -337,9 +335,9 @@ module.exports = class uex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let last = this.safeFloat (ticker, 'last');
-        let change = this.safeFloat (ticker, 'change');
-        let percentage = change * 100;
+        const last = this.safeFloat (ticker, 'last');
+        const change = this.safeFloat (ticker, 'change');
+        const percentage = change * 100;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -366,8 +364,8 @@ module.exports = class uex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetTicker (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.publicGetGetTicker (this.extend ({
             'symbol': market['id'],
         }, params));
         //
@@ -413,7 +411,7 @@ module.exports = class uex extends Exchange {
         //
         let timestamp = this.safeInteger2 (trade, 'create_time', 'ctime');
         if (timestamp === undefined) {
-            let timestring = this.safeString (trade, 'created_at');
+            const timestring = this.safeString (trade, 'created_at');
             if (timestring !== undefined) {
                 timestamp = this.parse8601 ('2018-' + timestring + ':00Z');
             }
@@ -422,13 +420,13 @@ module.exports = class uex extends Exchange {
         if (side !== undefined) {
             side = side.toLowerCase ();
         }
-        let id = this.safeString (trade, 'id');
+        const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat2 (trade, 'volume', 'amount');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat2 (trade, 'volume', 'amount');
         let cost = this.safeFloat (trade, 'deal_price');
         if (cost === undefined) {
             if (amount !== undefined) {
@@ -438,11 +436,11 @@ module.exports = class uex extends Exchange {
             }
         }
         let fee = undefined;
-        let feeCost = this.safeFloat2 (trade, 'fee', 'deal_fee');
+        const feeCost = this.safeFloat2 (trade, 'fee', 'deal_fee');
         if (feeCost !== undefined) {
             let feeCurrency = this.safeString (trade, 'feeCoin');
             if (feeCurrency !== undefined) {
-                let currencyId = feeCurrency.toLowerCase ();
+                const currencyId = feeCurrency.toLowerCase ();
                 if (currencyId in this.currencies_by_id) {
                     feeCurrency = this.currencies_by_id[currencyId]['code'];
                 }
@@ -452,8 +450,8 @@ module.exports = class uex extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        let orderIdField = (side === 'sell') ? 'ask_id' : 'bid_id';
-        let orderId = this.safeString (trade, orderIdField);
+        const orderIdField = (side === 'sell') ? 'ask_id' : 'bid_id';
+        const orderId = this.safeString (trade, orderIdField);
         return {
             'id': id,
             'info': trade,
@@ -472,8 +470,8 @@ module.exports = class uex extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetTrades (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.publicGetGetTrades (this.extend ({
             'symbol': market['id'],
         }, params));
         //
@@ -511,12 +509,12 @@ module.exports = class uex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             'period': this.timeframes[timeframe], // in minutes
         };
-        let response = await this.publicGetGetRecords (this.extend (request, params));
+        const response = await this.publicGetGetRecords (this.extend (request, params));
         //
         //     { code: '0',
         //        msg: 'suc',
@@ -542,11 +540,11 @@ module.exports = class uex extends Exchange {
             }
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let orderType = (type === 'limit') ? '1' : '2';
-        let orderSide = side.toUpperCase ();
-        let amountToPrecision = this.amountToPrecision (symbol, amount);
-        let request = {
+        const market = this.market (symbol);
+        const orderType = (type === 'limit') ? '1' : '2';
+        const orderSide = side.toUpperCase ();
+        const amountToPrecision = this.amountToPrecision (symbol, amount);
+        const request = {
             'side': orderSide,
             'type': orderType,
             'symbol': market['id'],
@@ -570,13 +568,13 @@ module.exports = class uex extends Exchange {
             priceToPrecision = this.priceToPrecision (symbol, price);
             request['price'] = priceToPrecision;
         }
-        let response = await this.privatePostCreateOrder (this.extend (request, params));
+        const response = await this.privatePostCreateOrder (this.extend (request, params));
         //
         //     { code: '0',
         //        msg: 'suc',
         //       data: { 'order_id' : 34343 } }
         //
-        let result = this.parseOrder (response['data'], market);
+        const result = this.parseOrder (response['data'], market);
         return this.extend (result, {
             'info': response,
             'symbol': symbol,
@@ -590,13 +588,13 @@ module.exports = class uex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'order_id': id,
             'symbol': market['id'],
         };
-        let response = await this.privatePostCancelOrder (this.extend (request, params));
-        let order = this.safeValue (response, 'data', {});
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        const order = this.safeValue (response, 'data', {});
         return this.extend (this.parseOrder (order), {
             'id': id,
             'symbol': symbol,
@@ -605,7 +603,7 @@ module.exports = class uex extends Exchange {
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             '0': 'open', // INIT(0,"primary order，untraded and not enter the market")
             '1': 'open', // NEW_(1,"new order，untraded and enter the market ")
             '2': 'closed', // FILLED(2,"complete deal")
@@ -691,14 +689,15 @@ module.exports = class uex extends Exchange {
         //                             status:    2                                 } }
         //
         let side = this.safeString (order, 'side');
-        if (side !== undefined)
+        if (side !== undefined) {
             side = side.toLowerCase ();
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        }
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (market === undefined) {
-            let baseId = this.safeString (order, 'baseCoin');
-            let quoteId = this.safeString (order, 'countCoin');
-            let marketId = baseId + quoteId;
+            const baseId = this.safeString (order, 'baseCoin');
+            const quoteId = this.safeString (order, 'countCoin');
+            const marketId = baseId + quoteId;
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             } else {
@@ -716,34 +715,34 @@ module.exports = class uex extends Exchange {
         }
         let timestamp = this.safeInteger (order, 'created_at');
         if (timestamp === undefined) {
-            let timestring = this.safeString (order, 'created_at');
+            const timestring = this.safeString (order, 'created_at');
             if (timestring !== undefined) {
                 timestamp = this.parse8601 ('2018-' + timestring + ':00Z');
             }
         }
         let lastTradeTimestamp = undefined;
         let fee = undefined;
-        let average = this.safeFloat (order, 'avg_price');
+        const average = this.safeFloat (order, 'avg_price');
         let price = this.safeFloat (order, 'price');
         if (price === 0) {
             price = average;
         }
-        let amount = this.safeFloat (order, 'volume');
-        let filled = this.safeFloat (order, 'deal_volume');
-        let remaining = this.safeFloat (order, 'remain_volume');
-        let cost = this.safeFloat (order, 'total_price');
-        let id = this.safeString2 (order, 'id', 'order_id');
+        const amount = this.safeFloat (order, 'volume');
+        const filled = this.safeFloat (order, 'deal_volume');
+        const remaining = this.safeFloat (order, 'remain_volume');
+        const cost = this.safeFloat (order, 'total_price');
+        const id = this.safeString2 (order, 'id', 'order_id');
         let trades = undefined;
-        let tradeList = this.safeValue (order, 'tradeList', []);
-        let feeCurrencies = {};
+        const tradeList = this.safeValue (order, 'tradeList', []);
+        const feeCurrencies = {};
         let feeCost = undefined;
         for (let i = 0; i < tradeList.length; i++) {
-            let trade = this.parseTrade (tradeList[i], market);
+            const trade = this.parseTrade (tradeList[i], market);
             if (feeCost === undefined) {
                 feeCost = 0;
             }
             feeCost = feeCost + trade['fee']['cost'];
-            let tradeFeeCurrency = trade['fee']['currency'];
+            const tradeFeeCurrency = trade['fee']['currency'];
             feeCurrencies[tradeFeeCurrency] = trade['fee']['cost'];
             if (trades === undefined) {
                 trades = [];
@@ -755,8 +754,8 @@ module.exports = class uex extends Exchange {
         }
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            let keys = Object.keys (feeCurrencies);
-            let numCurrencies = keys.length;
+            const keys = Object.keys (feeCurrencies);
+            const numCurrencies = keys.length;
             if (numCurrencies === 1) {
                 feeCurrency = keys[0];
             }
@@ -765,7 +764,7 @@ module.exports = class uex extends Exchange {
                 'currency': feeCurrency,
             };
         }
-        let result = {
+        const result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -792,8 +791,8 @@ module.exports = class uex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrdersWithMethod() requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             // pageSize optional page size
             // page optional page number
             'symbol': market['id'],
@@ -801,7 +800,7 @@ module.exports = class uex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     { code:   "0",
         //        msg:   "suc",
@@ -833,7 +832,7 @@ module.exports = class uex extends Exchange {
         //                                     status:    2                                 } ] } }
         //
         // privateGetNewOrder returns resultList, privateGetAllOrder returns orderList
-        let orders = this.safeValue2 (response['data'], 'orderList', 'resultList', []);
+        const orders = this.safeValue2 (response['data'], 'orderList', 'resultList', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -847,12 +846,12 @@ module.exports = class uex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'order_id': id,
             'symbol': market['id'],
         };
-        let response = await this.privateGetOrderInfo (this.extend (request, params));
+        const response = await this.privateGetOrderInfo (this.extend (request, params));
         //
         //     { code:   "0",
         //        msg:   "suc",
@@ -898,8 +897,8 @@ module.exports = class uex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             // pageSize optional page size
             // page optional page number
             'symbol': market['id'],
@@ -907,7 +906,7 @@ module.exports = class uex extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        let response = await this.privateGetAllTrade (this.extend (request, params));
+        const response = await this.privateGetAllTrade (this.extend (request, params));
         //
         //     { code:   "0",
         //        msg:   "suc",
@@ -924,18 +923,18 @@ module.exports = class uex extends Exchange {
         //                                   bid_id:  3669539,
         //                                   ask_id:  3669583        } ] } }
         //
-        let trades = this.safeValue (response['data'], 'resultList', []);
+        const trades = this.safeValue (response['data'], 'resultList', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'coin': currency['id'],
         };
         // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Query-deposit-address-of-assigned-token
-        let response = await this.privateGetDepositAddressList (this.extend (request, params));
+        const response = await this.privateGetDepositAddressList (this.extend (request, params));
         //
         //     {
         //         "code": "0",
@@ -950,21 +949,21 @@ module.exports = class uex extends Exchange {
         //         },
         //     }
         //
-        let data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data');
         if (data === undefined) {
             throw new InvalidAddress (this.id + ' privateGetDepositAddressList() returned no data');
         }
-        let addressList = this.safeValue (data, 'addressList');
+        const addressList = this.safeValue (data, 'addressList');
         if (addressList === undefined) {
             throw new InvalidAddress (this.id + ' privateGetDepositAddressList() returned no address list');
         }
-        let numAddresses = addressList.length;
+        const numAddresses = addressList.length;
         if (numAddresses < 1) {
             throw new InvalidAddress (this.id + ' privatePostDepositAddresses() returned no addresses');
         }
-        let firstAddress = addressList[0];
-        let address = this.safeString (firstAddress, 'address');
-        let tag = this.safeString (firstAddress, 'tag');
+        const firstAddress = addressList[0];
+        const address = this.safeString (firstAddress, 'address');
+        const tag = this.safeString (firstAddress, 'tag');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1076,10 +1075,10 @@ module.exports = class uex extends Exchange {
         //
         const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'txid');
-        let timestamp = this.safeInteger (transaction, 'createdAt');
-        let updated = this.safeInteger (transaction, 'updateAt');
+        const timestamp = this.safeInteger (transaction, 'createdAt');
+        const updated = this.safeInteger (transaction, 'updateAt');
         let code = undefined;
-        let currencyId = this.safeString2 (transaction, 'symbol', 'coin');
+        const currencyId = this.safeString2 (transaction, 'symbol', 'coin');
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
             code = currency['code'];
@@ -1135,8 +1134,8 @@ module.exports = class uex extends Exchange {
             throw new ArgumentsRequired (this.id + 'requires a "fee" extra parameter in its last argument');
         }
         this.checkAddress (address);
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'coin': currency['id'],
             'address': address, // only supports existing addresses in your withdraw address list
             'amount': amount,
@@ -1146,8 +1145,8 @@ module.exports = class uex extends Exchange {
             request['tag'] = tag;
         }
         // https://github.com/UEX-OpenAPI/API_Docs_en/wiki/Withdraw
-        let response = await this.privatePostCreateWithdraw (this.extend (request, params));
-        let id = undefined;
+        const response = await this.privatePostCreateWithdraw (this.extend (request, params));
+        const id = undefined;
         return {
             'info': response,
             'id': id,
@@ -1157,23 +1156,24 @@ module.exports = class uex extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else {
             this.checkRequiredCredentials ();
-            let timestamp = this.seconds ().toString ();
+            const timestamp = this.seconds ().toString ();
             let auth = '';
-            let query = this.keysort (this.extend (params, {
+            const query = this.keysort (this.extend (params, {
                 'api_key': this.apiKey,
                 'time': timestamp,
             }));
-            let keys = Object.keys (query);
+            const keys = Object.keys (query);
             for (let i = 0; i < keys.length; i++) {
-                let key = keys[i];
+                const key = keys[i];
                 auth += key;
                 auth += query[key].toString ();
             }
-            let signature = this.hash (this.encode (auth + this.secret));
+            const signature = this.hash (this.encode (auth + this.secret));
             if (Object.keys (query).length) {
                 if (method === 'GET') {
                     url += '?' + this.urlencode (query) + '&sign=' + signature;
@@ -1189,24 +1189,21 @@ module.exports = class uex extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (typeof body !== 'string')
+        if (response === undefined) {
             return; // fallback to default error handler
-        if (body.length < 2)
-            return; // fallback to default error handler
-        if ((body[0] === '{') || (body[0] === '[')) {
-            //
-            // {"code":"0","msg":"suc","data":{}}
-            //
-            const code = this.safeString (response, 'code');
-            // const message = this.safeString (response, 'msg');
-            const feedback = this.id + ' ' + this.json (response);
-            const exceptions = this.exceptions;
-            if (code !== '0') {
-                if (code in exceptions) {
-                    throw new exceptions[code] (feedback);
-                } else {
-                    throw new ExchangeError (feedback);
-                }
+        }
+        //
+        // {"code":"0","msg":"suc","data":{}}
+        //
+        const code = this.safeString (response, 'code');
+        // const message = this.safeString (response, 'msg');
+        const feedback = this.id + ' ' + this.json (response);
+        const exceptions = this.exceptions;
+        if (code !== '0') {
+            if (code in exceptions) {
+                throw new exceptions[code] (feedback);
+            } else {
+                throw new ExchangeError (feedback);
             }
         }
     }

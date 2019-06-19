@@ -135,16 +135,16 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let marketsResponse = await this.publicGetGetinstruments ();
-        let markets = marketsResponse['result'];
-        let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let id = market['instrumentName'];
-            let base = market['baseCurrency'];
-            let quote = market['currency'];
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+        const response = await this.publicGetGetinstruments (params);
+        const markets = this.safeValue (response, 'result');
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'instrumentName');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'currency');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
             result.push ({
                 'id': id,
                 'symbol': id,
@@ -174,36 +174,36 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let account = await this.privateGetAccount ();
-        let result = {
+        const response = await this.privateGetAccount (params);
+        const result = {
             'BTC': {
-                'free': account['result']['availableFunds'],
-                'used': account['result']['maintenanceMargin'],
-                'total': account['result']['equity'],
+                'free': this.safeFloat (response['result'], 'availableFunds'),
+                'used': this.safeFloat (response['result'], 'maintenanceMargin'),
+                'total': this.safeFloat (response['result'], 'equity'),
             },
         };
         return this.parseBalance (result);
     }
 
     async fetchDepositAddress (currency, params = {}) {
-        let account = await this.privateGetAccount ();
+        const response = await this.privateGetAccount (params);
+        const address = this.safeString (response, 'depositAddress');
         return {
-            'currency': 'BTC',
-            'address': account['depositAddress'],
+            'currency': this.commonCurrencyCode ('BTC'),
+            'address': address,
             'tag': undefined,
-            'info': account,
+            'info': response,
         };
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'created');
-        let iso8601 = (timestamp === undefined) ? undefined : this.iso8601 (timestamp);
-        let symbol = this.findSymbol (this.safeString (ticker, 'instrumentName'), market);
-        let last = this.safeFloat (ticker, 'last');
+        const timestamp = this.safeInteger (ticker, 'created');
+        const symbol = this.findSymbol (this.safeString (ticker, 'instrumentName'), market);
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bidPrice'),
@@ -226,10 +226,11 @@ module.exports = class deribit extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetsummary (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'instrument': market['id'],
-        }, params));
+        };
+        const response = await this.publicGetGetsummary (this.extend (request, params));
         return this.parseTicker (response['result'], market);
     }
 
@@ -274,8 +275,9 @@ module.exports = class deribit extends Exchange {
         const id = this.safeString (trade, 'tradeId');
         const orderId = this.safeString (trade, 'orderId');
         let symbol = undefined;
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         const timestamp = this.safeInteger (trade, 'timeStamp');
         const side = this.safeString2 (trade, 'side', 'direction');
         const price = this.safeFloat (trade, 'price');
@@ -354,10 +356,13 @@ module.exports = class deribit extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetorderbook ({ 'instrument': market['id'] });
-        let timestamp = parseInt (response['usOut'] / 1000);
-        let orderbook = this.parseOrderBook (response['result'], timestamp, 'bids', 'asks', 'price', 'quantity');
+        const market = this.market (symbol);
+        const request = {
+            'instrument': market['id'],
+        };
+        const response = await this.publicGetGetorderbook (this.extend (request, params));
+        const timestamp = this.safeInteger (response, 'usOut') / 1000;
+        const orderbook = this.parseOrderBook (response['result'], timestamp, 'bids', 'asks', 'price', 'quantity');
         return this.extend (orderbook, {
             'nonce': this.safeInteger (response, 'tstamp'),
         });
@@ -369,10 +374,7 @@ module.exports = class deribit extends Exchange {
             'cancelled': 'canceled',
             'filled': 'closed',
         };
-        if (status in statuses) {
-            return statuses[status];
-        }
-        return status;
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
@@ -400,14 +402,14 @@ module.exports = class deribit extends Exchange {
         //         "trades": [],                // not documented, injected from the outside of the parseOrder method into the order
         //     }
         //
-        let timestamp = this.safeInteger (order, 'created');
-        let lastUpdate = this.safeInteger (order, 'lastUpdate');
+        const timestamp = this.safeInteger (order, 'created');
+        const lastUpdate = this.safeInteger (order, 'lastUpdate');
         let lastTradeTimestamp = this.safeInteger2 (order, 'tstamp', 'modified');
-        let id = this.safeString (order, 'orderId');
-        let price = this.safeFloat (order, 'price');
-        let average = this.safeFloat (order, 'avgPrice');
-        let amount = this.safeFloat (order, 'quantity');
-        let filled = this.safeFloat (order, 'filledQuantity');
+        const id = this.safeString (order, 'orderId');
+        const price = this.safeFloat (order, 'price');
+        const average = this.safeFloat (order, 'avgPrice');
+        const amount = this.safeFloat (order, 'quantity');
+        const filled = this.safeFloat (order, 'filledQuantity');
         if (lastTradeTimestamp === undefined) {
             if (filled !== undefined) {
                 if (filled > 0) {
@@ -425,7 +427,7 @@ module.exports = class deribit extends Exchange {
                 cost = price * filled;
             }
         }
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side = this.safeString (order, 'direction');
         if (side !== undefined) {
             side = side.toLowerCase ();
@@ -434,12 +436,12 @@ module.exports = class deribit extends Exchange {
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
         }
-        let fee = {
+        const fee = {
             'cost': feeCost,
             'currency': 'BTC',
         };
-        let type = this.safeString (order, 'type');
-        let marketId = this.safeString (order, 'instrument');
+        const type = this.safeString (order, 'type');
+        const marketId = this.safeString (order, 'instrument');
         let symbol = undefined;
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
@@ -468,7 +470,10 @@ module.exports = class deribit extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetOrderstate ({ 'orderId': id });
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privateGetOrderstate (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         if (result === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() ' + this.json (response));
@@ -498,20 +503,25 @@ module.exports = class deribit extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'orderId': id,
         };
-        if (amount !== undefined)
+        if (amount !== undefined) {
             request['quantity'] = amount;
-        if (price !== undefined)
+        }
+        if (price !== undefined) {
             request['price'] = price;
-        let response = await this.privatePostEdit (this.extend (request, params));
+        }
+        const response = await this.privatePostEdit (this.extend (request, params));
         return this.parseOrder (response['result']['order']);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostCancel (this.extend ({ 'orderId': id }, params));
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privatePostCancel (this.extend (request, params));
         return this.parseOrder (response['result']['order']);
     }
 
@@ -591,7 +601,7 @@ module.exports = class deribit extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let query = '/' + 'api/' + this.version + '/' + api + '/' + path;
+        const query = '/' + 'api/' + this.version + '/' + api + '/' + path;
         let url = this.urls['api'] + query;
         if (api === 'public') {
             if (Object.keys (params).length) {
@@ -599,14 +609,14 @@ module.exports = class deribit extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            const nonce = this.nonce ().toString ();
             let auth = '_=' + nonce + '&_ackey=' + this.apiKey + '&_acsec=' + this.secret + '&_action=' + query;
             if (Object.keys (params).length) {
                 params = this.keysort (params);
                 auth += '&' + this.urlencode (params);
             }
-            let hash = this.hash (this.encode (auth), 'sha256', 'base64');
-            let signature = this.apiKey + '.' + nonce + '.' + this.decode (hash);
+            const hash = this.hash (this.encode (auth), 'sha256', 'base64');
+            const signature = this.apiKey + '.' + nonce + '.' + this.decode (hash);
             headers = {
                 'x-deribit-sig': signature,
             };

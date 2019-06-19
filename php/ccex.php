@@ -83,8 +83,8 @@ class ccex extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $result = array();
-        $response = $this->webGetPairs ();
-        $markets = $response['pairs'];
+        $response = $this->webGetPairs ($params);
+        $markets = $this->safe_value($response, 'pairs');
         for ($i = 0; $i < count ($markets); $i++) {
             $id = $markets[$i];
             list($baseId, $quoteId) = explode('-', $id);
@@ -126,19 +126,19 @@ class ccex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetGetbalances ();
-        $balances = $response['result'];
+        $response = $this->privateGetGetbalances ($params);
+        $balances = $this->safe_value($response, 'result');
         $result = array( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $code = $balance['Currency'];
-            $currency = $this->common_currency_code($code);
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'Currency');
+            $code = $this->common_currency_code($currencyId);
             $account = array (
-                'free' => $balance['Available'],
-                'used' => $balance['Pending'],
-                'total' => $balance['Balance'],
+                'free' => $this->safe_float($balance, 'Available'),
+                'used' => $this->safe_float($balance, 'Pending'),
+                'total' => $this->safe_float($balance, 'Balance'),
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -149,10 +149,11 @@ class ccex extends Exchange {
             'market' => $this->market_id($symbol),
             'type' => 'both',
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['depth'] = $limit; // 100
+        }
         $response = $this->publicGetOrderbook (array_merge ($request, $params));
-        $orderbook = $response['result'];
+        $orderbook = $this->safe_value($response, 'result');
         return $this->parse_order_book($orderbook, null, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
@@ -180,25 +181,30 @@ class ccex extends Exchange {
                         $symbol = $market['symbol'];
                     }
                 }
-                if (!(is_array($orderbooks) && array_key_exists($symbol, $orderbooks)))
+                if (!(is_array($orderbooks) && array_key_exists($symbol, $orderbooks))) {
                     $orderbooks[$symbol] = array();
+                }
                 $orderbooks[$symbol][$side] = $bidasksByMarketId[$marketId];
             }
         }
         $result = array();
         $keys = is_array($orderbooks) ? array_keys($orderbooks) : array();
-        for ($k = 0; $k < count ($keys); $k++) {
-            $key = $keys[$k];
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
             $result[$key] = $this->parse_order_book($orderbooks[$key], null, 'buy', 'sell', 'Rate', 'Quantity');
         }
         return $result;
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $ticker['updated'] * 1000;
+        $timestamp = $this->safe_integer($ticker, 'updated');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $symbol = null;
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'lastprice');
         return array (
             'symbol' => $symbol,
@@ -226,12 +232,12 @@ class ccex extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->webGetPrices ($params);
+        $response = $this->webGetPrices ($params);
         $result = array();
-        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $ticker = $tickers[$id];
+            $ticker = $response[$id];
             $market = null;
             $symbol = null;
             if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
@@ -252,48 +258,65 @@ class ccex extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->webGetMarket (array_merge (array (
+        $request = array (
             'market' => strtolower($market['id']),
-        ), $params));
-        $ticker = $response['ticker'];
+        );
+        $response = $this->webGetMarket (array_merge ($request, $params));
+        $ticker = $this->safe_value($response, 'ticker');
         return $this->parse_ticker($ticker, $market);
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->parse8601 ($trade['TimeStamp']);
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'TimeStamp'));
+        $id = $this->safe_string($trade, 'id');
+        $side = $this->safe_string($trade, 'OrderType');
+        if ($side !== null) {
+            $side = strtolower($side);
+        }
+        $price = $this->safe_float($trade, 'Price');
+        $amount = $this->safe_float($trade, 'Quantity');
+        $cost = null;
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $amount * $price;
+            }
+        }
         return array (
-            'id' => (string) $trade['Id'],
+            'id' => $id,
             'info' => $trade,
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => strtolower($trade['OrderType']),
-            'price' => $trade['Price'],
-            'amount' => $trade['Quantity'],
+            'side' => $side,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetMarkethistory (array_merge (array (
+        $request = array (
             'market' => $market['id'],
             'type' => 'both',
             'depth' => 100,
-        ), $params));
+        );
+        $response = $this->publicGetMarkethistory (array_merge ($request, $params));
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $method = 'privateGet' . $this->capitalize ($side) . $type;
-        $response = $this->$method (array_merge (array (
+        $request = array (
             'market' => $this->market_id($symbol),
             'quantity' => $amount,
             'rate' => $price,
-        ), $params));
+        );
+        $response = $this->$method (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['result']['uuid'],
@@ -302,7 +325,10 @@ class ccex extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privateGetCancel (array( 'uuid' => $id ));
+        $request = array (
+            'uuid' => $id,
+        );
+        return $this->privateGetCancel (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -329,11 +355,14 @@ class ccex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api === 'web')
+        if ($api === 'web') {
             return $response;
-        if (is_array($response) && array_key_exists('success', $response))
-            if ($response['success'])
+        }
+        if (is_array($response) && array_key_exists('success', $response)) {
+            if ($response['success']) {
                 return $response;
+            }
+        }
         throw new ExchangeError($this->id . ' ' . $this->json ($response));
     }
 }

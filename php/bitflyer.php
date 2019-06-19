@@ -21,7 +21,7 @@ class bitflyer extends Exchange {
                 'withdraw' => true,
                 'fetchMyTrades' => true,
                 'fetchOrders' => true,
-                'fetchOrder' => true,
+                'fetchOrder' => 'emulated',
                 'fetchOpenOrders' => 'emulated',
                 'fetchClosedOrders' => 'emulated',
             ),
@@ -87,15 +87,15 @@ class bitflyer extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $jp_markets = $this->publicGetGetmarkets ();
-        $us_markets = $this->publicGetGetmarketsUsa ();
-        $eu_markets = $this->publicGetGetmarketsEu ();
+        $jp_markets = $this->publicGetGetmarkets ($params);
+        $us_markets = $this->publicGetGetmarketsUsa ($params);
+        $eu_markets = $this->publicGetGetmarketsEu ($params);
         $markets = $this->array_concat($jp_markets, $us_markets);
         $markets = $this->array_concat($markets, $eu_markets);
         $result = array();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['product_code'];
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'product_code');
             $spot = true;
             $future = false;
             $type = 'spot';
@@ -111,8 +111,8 @@ class bitflyer extends Exchange {
             $quote = null;
             $numCurrencies = is_array ($currencies) ? count ($currencies) : 0;
             if ($numCurrencies === 1) {
-                $baseId = mb_substr ($id, 0, 3);
-                $quoteId = mb_substr ($id, 3, 6);
+                $baseId = mb_substr($id, 0, 3 - 0);
+                $quoteId = mb_substr($id, 3, 6 - 3);
             } else if ($numCurrencies === 2) {
                 $baseId = $currencies[0];
                 $quoteId = $currencies[1];
@@ -141,42 +141,57 @@ class bitflyer extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetGetbalance ();
-        $balances = array();
-        for ($b = 0; $b < count ($response); $b++) {
-            $account = $response[$b];
-            $currency = $account['currency_code'];
-            $balances[$currency] = $account;
-        }
+        $response = $this->privateGetGetbalance ($params);
+        //
+        //     array (
+        //         array (
+        //             "currency_code" => "JPY",
+        //             "amount" => 1024078,
+        //             "available" => 508000
+        //         ),
+        //         array (
+        //             "currency_code" => "BTC",
+        //             "amount" => 10.24,
+        //             "available" => 4.12
+        //         ),
+        //         {
+        //             "currency_code" => "ETH",
+        //             "amount" => 20.48,
+        //             "available" => 16.38
+        //         }
+        //     )
+        //
         $result = array( 'info' => $response );
-        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
+        $balances = array();
+        for ($i = 0; $i < count ($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'currency_code');
+            $code = $this->common_currency_code($currencyId);
             $account = $this->account ();
-            if (is_array($balances) && array_key_exists($currency, $balances)) {
-                $account['total'] = $balances[$currency]['amount'];
-                $account['free'] = $balances[$currency]['available'];
-                $account['used'] = $account['total'] - $account['free'];
-            }
-            $result[$currency] = $account;
+            $account['total'] = $this->safe_float($balance, 'amount');
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['used'] = $account['total'] - $account['free'];
+            $balances[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetGetboard (array_merge (array (
+        $request = array (
             'product_code' => $this->market_id($symbol),
-        ), $params));
+        );
+        $orderbook = $this->publicGetGetboard (array_merge ($request, $params));
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'size');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $ticker = $this->publicGetGetticker (array_merge (array (
+        $request = array (
             'product_code' => $this->market_id($symbol),
-        ), $params));
-        $timestamp = $this->parse8601 ($ticker['timestamp']);
+        );
+        $ticker = $this->publicGetGetticker (array_merge ($request, $params));
+        $timestamp = $this->parse8601 ($this->safe_string($ticker, 'timestamp'));
         $last = $this->safe_float($ticker, 'ltp');
         return array (
             'symbol' => $symbol,
@@ -203,68 +218,92 @@ class bitflyer extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $side = null;
-        $order = null;
-        if (is_array($trade) && array_key_exists('side', $trade))
-            if ($trade['side']) {
-                $side = strtolower($trade['side']);
-                $id = $side . '_child_order_acceptance_id';
-                if (is_array($trade) && array_key_exists($id, $trade))
-                    $order = $trade[$id];
+        $side = $this->safe_string($trade, 'side');
+        if ($side !== null) {
+            if (strlen ($side) < 1) {
+                $side = null;
+            } else {
+                $side = strtolower($side);
             }
-        if ($order === null)
+        }
+        $order = null;
+        if ($side !== null) {
+            $side = strtolower($trade['side']);
+            $id = $side . '_child_order_acceptance_id';
+            if (is_array($trade) && array_key_exists($id, $trade)) {
+                $order = $trade[$id];
+            }
+        }
+        if ($order === null) {
             $order = $this->safe_string($trade, 'child_order_acceptance_id');
-        $timestamp = $this->parse8601 ($trade['exec_date']);
+        }
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'exec_date'));
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
+        $cost = null;
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        $id = $this->safe_string($trade, 'id');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
-            'id' => (string) $trade['id'],
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => $order,
             'type' => null,
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetGetexecutions (array_merge (array (
+        $request = array (
             'product_code' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetGetexecutions (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $order = array (
+        $request = array (
             'product_code' => $this->market_id($symbol),
             'child_order_type' => strtoupper($type),
             'side' => strtoupper($side),
             'price' => $price,
             'size' => $amount,
         );
-        $result = $this->privatePostSendchildorder (array_merge ($order, $params));
+        $result = $this->privatePostSendchildorder (array_merge ($request, $params));
         // array( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
+        $id = $this->safe_string($result, 'child_order_acceptance_id');
         return array (
             'info' => $result,
-            'id' => $result['child_order_acceptance_id'],
+            'id' => $id,
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        if ($symbol === null)
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a `$symbol` argument');
+        }
         $this->load_markets();
-        return $this->privatePostCancelchildorder (array_merge (array (
+        $request = array (
             'product_code' => $this->market_id($symbol),
             'child_order_acceptance_id' => $id,
-        ), $params));
+        );
+        return $this->privatePostCancelchildorder (array_merge ($request, $params));
     }
 
     public function parse_order_status ($status) {
@@ -275,31 +314,35 @@ class bitflyer extends Exchange {
             'EXPIRED' => 'canceled',
             'REJECTED' => 'canceled',
         );
-        if (is_array($statuses) && array_key_exists($status, $statuses))
-            return $statuses[$status];
-        return $status;
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse8601 ($order['child_order_date']);
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'child_order_date'));
         $amount = $this->safe_float($order, 'size');
         $remaining = $this->safe_float($order, 'outstanding_size');
         $filled = $this->safe_float($order, 'executed_size');
         $price = $this->safe_float($order, 'price');
         $cost = $price * $filled;
         $status = $this->parse_order_status($this->safe_string($order, 'child_order_state'));
-        $type = strtolower($order['child_order_type']);
-        $side = strtolower($order['side']);
+        $type = $this->safe_string($order, 'child_order_type');
+        if ($type !== null) {
+            $type = strtolower($type);
+        }
+        $side = $this->safe_string($order, 'side');
+        if ($side !== null) {
+            $side = strtolower($side);
+        }
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'product_code');
-            if ($marketId !== null) {
-                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))
-                    $market = $this->markets_by_id[$marketId];
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
             }
         }
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $fee = null;
         $feeCost = $this->safe_float($order, 'total_commission');
         if ($feeCost !== null) {
@@ -309,8 +352,9 @@ class bitflyer extends Exchange {
                 'rate' => null,
             );
         }
+        $id = $this->safe_string($order, 'child_order_acceptance_id');
         return array (
-            'id' => $order['child_order_acceptance_id'],
+            'id' => $id,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -329,8 +373,9 @@ class bitflyer extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = 100, $params = array ()) {
-        if ($symbol === null)
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a `$symbol` argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -339,8 +384,9 @@ class bitflyer extends Exchange {
         );
         $response = $this->privateGetGetchildorders (array_merge ($request, $params));
         $orders = $this->parse_orders($response, $market, $since, $limit);
-        if ($symbol !== null)
+        if ($symbol !== null) {
             $orders = $this->filter_by($orders, 'symbol', $symbol);
+        }
         return $orders;
     }
 
@@ -359,25 +405,29 @@ class bitflyer extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        if ($symbol === null)
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a `$symbol` argument');
+        }
         $orders = $this->fetch_orders($symbol);
         $ordersById = $this->index_by($orders, 'id');
-        if (is_array($ordersById) && array_key_exists($id, $ordersById))
+        if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
             return $ordersById[$id];
+        }
         throw new OrderNotFound($this->id . ' No order found with $id ' . $id);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a `$symbol` argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
             'product_code' => $market['id'],
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['count'] = $limit;
+        }
         $response = $this->privateGetGetexecutions (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -385,28 +435,33 @@ class bitflyer extends Exchange {
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
-        if ($code !== 'JPY' && $code !== 'USD' && $code !== 'EUR')
+        if ($code !== 'JPY' && $code !== 'USD' && $code !== 'EUR') {
             throw new ExchangeError($this->id . ' allows withdrawing JPY, USD, EUR only, ' . $code . ' is not supported');
+        }
         $currency = $this->currency ($code);
-        $response = $this->privatePostWithdraw (array_merge (array (
+        $request = array (
             'currency_code' => $currency['id'],
             'amount' => $amount,
             // 'bank_account_id' => 1234,
-        ), $params));
+        );
+        $response = $this->privatePostWithdraw (array_merge ($request, $params));
+        $id = $this->safe_string($response, 'message_id');
         return array (
             'info' => $response,
-            'id' => $response['message_id'],
+            'id' => $id,
         );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $request = '/' . $this->version . '/';
-        if ($api === 'private')
+        if ($api === 'private') {
             $request .= 'me/';
+        }
         $request .= $path;
         if ($method === 'GET') {
-            if ($params)
+            if ($params) {
                 $request .= '?' . $this->urlencode ($params);
+            }
         }
         $url = $this->urls['api'] . $request;
         if ($api === 'private') {

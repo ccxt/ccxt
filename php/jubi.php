@@ -30,21 +30,23 @@ class jubi extends btcbox {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetAllticker ();
+        $markets = $this->publicGetAllticker ($params);
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
-        for ($p = 0; $p < count ($keys); $p++) {
-            $id = $keys[$p];
-            $base = strtoupper($id);
-            $quote = 'CNY'; // todo
+        for ($i = 0; $i < count ($keys); $i++) {
+            $id = $keys[$i];
+            $baseId = $id;
+            $quoteId = 'cny';
+            $base = $this->common_currency_code(strtoupper($baseId));
+            $quote = $this->common_currency_code(strtoupper($quoteId));
             $symbol = $base . '/' . $quote;
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $id,
             );
         }

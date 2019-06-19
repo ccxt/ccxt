@@ -549,19 +549,23 @@ class exmo extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $fees = $this->fetch_trading_fees();
-        $markets = $this->publicGetPairSettings ();
-        $keys = is_array($markets) ? array_keys($markets) : array();
+        $response = $this->publicGetPairSettings ($params);
+        $keys = is_array($response) ? array_keys($response) : array();
         $result = array();
-        for ($p = 0; $p < count ($keys); $p++) {
-            $id = $keys[$p];
-            $market = $markets[$id];
+        for ($i = 0; $i < count ($keys); $i++) {
+            $id = $keys[$i];
+            $market = $response[$id];
             $symbol = str_replace('_', '/', $id);
-            list($base, $quote) = explode('/', $symbol);
+            list($baseId, $quoteId) = explode('/', $symbol);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => true,
                 'taker' => $fees['taker'],
                 'maker' => $fees['maker'],
@@ -597,10 +601,12 @@ class exmo extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $account = $this->account ();
-            if (is_array($response['balances']) && array_key_exists($currency, $response['balances']))
-                $account['free'] = floatval ($response['balances'][$currency]);
-            if (is_array($response['reserved']) && array_key_exists($currency, $response['reserved']))
-                $account['used'] = floatval ($response['reserved'][$currency]);
+            if (is_array($response['balances']) && array_key_exists($currency, $response['balances'])) {
+                $account['free'] = $this->safe_float($response['balances'], $currency);
+            }
+            if (is_array($response['reserved']) && array_key_exists($currency, $response['reserved'])) {
+                $account['used'] = $this->safe_float($response['reserved'], $currency);
+            }
             $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$currency] = $account;
         }
@@ -610,13 +616,14 @@ class exmo extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-        ), $params);
-        if ($limit !== null)
+        );
+        if ($limit !== null) {
             $request['limit'] = $limit;
-        $response = $this->publicGetOrderBook ($request);
-        $result = $response[$market['id']];
+        }
+        $response = $this->publicGetOrderBook (array_merge ($request, $params));
+        $result = $this->safe_value($response, $market['id']);
         return $this->parse_order_book($result, null, 'bid', 'ask');
     }
 
@@ -634,9 +641,10 @@ class exmo extends Exchange {
             $ids = $this->market_ids($symbols);
             $ids = implode(',', $ids);
         }
-        $response = $this->publicGetOrderBook (array_merge (array (
+        $request = array (
             'pair' => $ids,
-        ), $params));
+        );
+        $response = $this->publicGetOrderBook (array_merge ($request, $params));
         $result = array();
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -648,10 +656,11 @@ class exmo extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $ticker['updated'] * 1000;
+        $timestamp = $this->safe_integer($ticker, 'updated') * 1000;
         $symbol = null;
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last_trade');
         return array (
             'symbol' => $symbol,
@@ -700,7 +709,7 @@ class exmo extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $trade['date'] * 1000;
+        $timestamp = $this->safe_integer($trade, 'date') * 1000;
         $fee = null;
         $symbol = null;
         $id = $this->safe_string($trade, 'trade_id');
@@ -748,9 +757,10 @@ class exmo extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response[$market['id']], $market, $since, $limit);
     }
 
@@ -770,8 +780,9 @@ class exmo extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privatePostUserTrades (array_merge ($request, $params));
-        if ($market !== null)
+        if ($market !== null) {
             $response = $response[$market['id']];
+        }
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -860,8 +871,9 @@ class exmo extends Exchange {
             ));
         } catch (Exception $e) {
             if ($e instanceof OrderNotFound) {
-                if (is_array($this->orders) && array_key_exists($id, $this->orders))
+                if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
                     return $this->orders[$id];
+                }
             }
         }
         throw new OrderNotFound($this->id . ' fetchOrder $order $id ' . (string) $id . ' not found in cache.');
@@ -898,8 +910,9 @@ class exmo extends Exchange {
             if (!(is_array($openOrdersIndexedById) && array_key_exists($id, $openOrdersIndexedById))) {
                 // cached $order is not in open orders array
                 // if we fetched orders by $symbol and it doesn't match the cached $order -> won't update the cached $order
-                if ($symbol !== null && $symbol !== $order['symbol'])
+                if ($symbol !== null && $symbol !== $order['symbol']) {
                     continue;
+                }
                 // $order is cached but not present in the list of open orders -> mark the cached $order as closed
                 if ($order['status'] === 'open') {
                     $order = array_merge ($order, array (
@@ -909,8 +922,9 @@ class exmo extends Exchange {
                         'remaining' => 0.0,
                     ));
                     if ($order['cost'] === null) {
-                        if ($order['filled'] !== null)
+                        if ($order['filled'] !== null) {
                             $order['cost'] = $order['filled'] * $order['price'];
+                        }
                     }
                     $this->orders[$id] = $order;
                 }
@@ -927,8 +941,9 @@ class exmo extends Exchange {
         for ($i = 0; $i < count ($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = null;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
+            }
             $parsedOrders = $this->parse_orders($response[$marketId], $market);
             $orders = $this->array_concat($orders, $parsedOrders);
         }
@@ -996,13 +1011,15 @@ class exmo extends Exchange {
             if (is_array($order) && array_key_exists('pair', $order)) {
                 $marketId = $order['pair'];
             } else if ((is_array($order) && array_key_exists('in_currency', $order)) && (is_array($order) && array_key_exists('out_currency', $order))) {
-                if ($side === 'buy')
+                if ($side === 'buy') {
                     $marketId = $order['in_currency'] . '_' . $order['out_currency'];
-                else
+                } else {
                     $marketId = $order['out_currency'] . '_' . $order['in_currency'];
+                }
             }
-            if (($marketId !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)))
+            if (($marketId !== null) && (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))) {
                 $market = $this->markets_by_id[$marketId];
+            }
         }
         $amount = $this->safe_float($order, 'quantity');
         if ($amount === null) {
@@ -1056,8 +1073,9 @@ class exmo extends Exchange {
             $feeCurrency = $market['quote'];
         }
         if ($cost === null) {
-            if ($price !== null)
+            if ($price !== null) {
                 $cost = $price * $filled;
+            }
         } else {
             if ($filled > 0) {
                 if ($average === null) {
@@ -1120,8 +1138,9 @@ class exmo extends Exchange {
         $tradesBySymbol = $this->index_by($trades, 'pair');
         $symbols = is_array($tradesBySymbol) ? array_keys($tradesBySymbol) : array();
         $numSymbols = is_array ($symbols) ? count ($symbols) : 0;
-        if ($numSymbols === 1)
+        if ($numSymbols === 1) {
             return $this->markets[$symbols[0]];
+        }
         return null;
     }
 
@@ -1154,10 +1173,10 @@ class exmo extends Exchange {
         if ($tag !== null) {
             $request['invoice'] = $tag;
         }
-        $result = $this->privatePostWithdrawCrypt (array_merge ($request, $params));
+        $response = $this->privatePostWithdrawCrypt (array_merge ($request, $params));
         return array (
-            'info' => $result,
-            'id' => $result['task_id'],
+            'info' => $response,
+            'id' => $response['task_id'],
         );
     }
 
@@ -1304,8 +1323,9 @@ class exmo extends Exchange {
         }
         $url .= $path;
         if (($api === 'public') || ($api === 'web')) {
-            if ($params)
+            if ($params) {
                 $url .= '?' . $this->urlencode ($params);
+            }
         } else if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
@@ -1324,37 +1344,37 @@ class exmo extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if ($response === null)
+        if ($response === null) {
             return; // fallback to default error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            if (is_array($response) && array_key_exists('result', $response)) {
-                //
-                //     array("result":false,"error":"Error 50052 => Insufficient funds")
-                //
-                $success = $this->safe_value($response, 'result', false);
-                if (gettype ($success) === 'string') {
-                    if (($success === 'true') || ($success === '1'))
-                        $success = true;
-                    else
-                        $success = false;
+        }
+        if (is_array($response) && array_key_exists('result', $response)) {
+            //
+            //     array("result":false,"error":"Error 50052 => Insufficient funds")
+            //
+            $success = $this->safe_value($response, 'result', false);
+            if (gettype ($success) === 'string') {
+                if (($success === 'true') || ($success === '1')) {
+                    $success = true;
+                } else {
+                    $success = false;
                 }
-                if (!$success) {
-                    $code = null;
-                    $message = $this->safe_string($response, 'error');
-                    $errorParts = explode(':', $message);
-                    $numParts = is_array ($errorParts) ? count ($errorParts) : 0;
-                    if ($numParts > 1) {
-                        $errorSubParts = explode(' ', $errorParts[0]);
-                        $numSubParts = is_array ($errorSubParts) ? count ($errorSubParts) : 0;
-                        $code = ($numSubParts > 1) ? $errorSubParts[1] : $errorSubParts[0];
-                    }
-                    $feedback = $this->id . ' ' . $this->json ($response);
-                    $exceptions = $this->exceptions;
-                    if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                        throw new $exceptions[$code]($feedback);
-                    } else {
-                        throw new ExchangeError($feedback);
-                    }
+            }
+            if (!$success) {
+                $code = null;
+                $message = $this->safe_string($response, 'error');
+                $errorParts = explode(':', $message);
+                $numParts = is_array ($errorParts) ? count ($errorParts) : 0;
+                if ($numParts > 1) {
+                    $errorSubParts = explode(' ', $errorParts[0]);
+                    $numSubParts = is_array ($errorSubParts) ? count ($errorSubParts) : 0;
+                    $code = ($numSubParts > 1) ? $errorSubParts[1] : $errorSubParts[0];
+                }
+                $feedback = $this->id . ' ' . $this->json ($response);
+                $exceptions = $this->exceptions;
+                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
+                    throw new $exceptions[$code]($feedback);
+                } else {
+                    throw new ExchangeError($feedback);
                 }
             }
         }

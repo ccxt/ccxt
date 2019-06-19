@@ -71,15 +71,15 @@ class crypton extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetMarkets ();
+        $response = $this->publicGetMarkets ($params);
         $markets = $response['result'];
         $result = array();
         $keys = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
             $market = $markets[$id];
-            $baseId = $market['base'];
-            $quoteId = $market['quote'];
+            $baseId = $this->safe_string($market, 'base');
+            $quoteId = $this->safe_string($market, 'quote');
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -127,12 +127,9 @@ class crypton extends Exchange {
             $currency = $this->common_currency_code($id);
             $account = $this->account ();
             $balance = $balances[$id];
-            $total = floatval ($balance['total']);
-            $free = floatval ($balance['free']);
-            $used = floatval ($balance['locked']);
-            $account['total'] = $total;
-            $account['free'] = $free;
-            $account['used'] = $used;
+            $account['total'] = $this->safe_float($balance, 'total');
+            $account['free'] = $this->safe_float($balance, 'free');
+            $account['used'] = $this->safe_float($balance, 'locked');
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);
@@ -140,16 +137,18 @@ class crypton extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetMarketsIdOrderbook (array_merge (array (
+        $request = array (
             'id' => $this->market_id($symbol),
-        ), $params));
-        return $this->parse_order_book($orderbook);
+        );
+        $response = $this->publicGetMarketsIdOrderbook (array_merge ($request, $params));
+        return $this->parse_order_book($response);
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $symbol = null;
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last');
         $relativeChange = $this->safe_float($ticker, 'change24h', 0.0);
         return array (
@@ -179,7 +178,7 @@ class crypton extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
-        $tickers = $response['result'];
+        $tickers = $this->safe_value($response, 'result');
         $keys = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
         for ($i = 0; $i < count ($keys); $i++) {
@@ -199,34 +198,39 @@ class crypton extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($trade['time']);
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'time'));
         $symbol = null;
-        if (is_array($trade) && array_key_exists('market', $trade)) {
-            $marketId = $trade['market'];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $symbol = $this->parse_symbol ($marketId);
+        $marketId = $this->safe_string($trade, 'market');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        } else {
+            $symbol = $this->parse_symbol ($marketId);
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
             }
         }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
+        $feeCost = $this->safe_float($trade, 'fee');
         $fee = null;
-        if (is_array($trade) && array_key_exists('fee', $trade)) {
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
+            $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
             $fee = array (
-                'cost' => $this->safe_float($trade, 'fee'),
-                'currency' => $this->common_currency_code($trade['feeCurrency']),
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
             );
         }
+        $id = $this->safe_string($trade, 'id');
+        $side = $this->safe_string($trade, 'side');
         return array (
-            'id' => (string) $trade['id'],
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => null,
-            'side' => $trade['side'],
+            'side' => $side,
             'price' => $this->safe_float($trade, 'price'),
             'amount' => $this->safe_float($trade, 'size'),
             'order' => $this->safe_string($trade, 'orderId'),
@@ -240,8 +244,9 @@ class crypton extends Exchange {
         $request = array (
             'id' => $market['id'],
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['limit'] = $limit;
+        }
         $response = $this->publicGetMarketsIdTrades (array_merge ($request, $params));
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
@@ -250,32 +255,36 @@ class crypton extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array();
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['limit'] = $limit;
+        }
         $response = $this->privateGetFills (array_merge ($request, $params));
         $trades = $this->parse_trades($response['result'], $market, $since, $limit);
         return $this->filter_by_symbol($trades, $symbol);
     }
 
     public function parse_order ($order, $market = null) {
-        $id = (string) $order['id'];
-        $status = $order['status'];
-        $side = $order['side'];
-        $type = $order['type'];
+        $id = $this->safe_string($order, 'id');
+        $status = $this->safe_string($order, 'status');
+        $side = $this->safe_string($order, 'side');
+        $type = $this->safe_string($order, 'type');
         $symbol = null;
-        $marketId = $order['market'];
+        $marketId = $this->safe_string($order, 'market');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
         } else {
             $symbol = $this->parse_symbol ($marketId);
         }
-        $timestamp = $this->parse8601 ($order['createdAt']);
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'createdAt'));
+        $feeCost = $this->safe_float($order, 'fee');
         $fee = null;
-        if (is_array($order) && array_key_exists('fee', $order)) {
+        if ($feeCost !== null) {
+            $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
+            $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
             $fee = array (
-                'cost' => floatval ($order['fee']),
-                'currency' => $this->common_currency_code($order['feeCurrency']),
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
             );
         }
         $price = $this->safe_float($order, 'price');
@@ -283,7 +292,7 @@ class crypton extends Exchange {
         $filled = $this->safe_float($order, 'filledSize');
         $remaining = $amount - $filled;
         $cost = $filled * $price;
-        $result = array (
+        return array (
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -301,7 +310,6 @@ class crypton extends Exchange {
             'status' => $status,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
@@ -326,14 +334,14 @@ class crypton extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $order = array (
+        $request = array (
             'market' => $this->market_id($symbol),
             'side' => $side,
             'type' => $type,
             'size' => $this->amount_to_precision($symbol, $amount),
             'price' => $this->price_to_precision($symbol, $price),
         );
-        $response = $this->privatePostOrders (array_merge ($order, $params));
+        $response = $this->privatePostOrders (array_merge ($request, $params));
         return $this->parse_order($response['result']);
     }
 
@@ -356,10 +364,11 @@ class crypton extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privateGetDepositAddressCurrency (array_merge (array (
+        $request = array (
             'currency' => $currency['id'],
-        ), $params));
-        $result = $response['result'];
+        );
+        $response = $this->privateGetDepositAddressCurrency (array_merge ($request, $params));
+        $result = $this->safe_value($response, 'result');
         $address = $this->safe_string($result, 'address');
         $tag = $this->safe_string($result, 'tag');
         $this->check_address($address);
@@ -375,8 +384,9 @@ class crypton extends Exchange {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query)
+            if ($query) {
                 $request .= '?' . $this->urlencode ($query);
+            }
         }
         $url = $this->urls['api'] . $request;
         if ($api === 'private') {
@@ -389,8 +399,8 @@ class crypton extends Exchange {
                     $payload = $body;
                 }
             }
-            $what = $timestamp . $method . $request . $payload;
-            $signature = $this->hmac ($this->encode ($what), $this->encode ($this->secret), 'sha256');
+            $auth = $timestamp . $method . $request . $payload;
+            $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256');
             $headers = array (
                 'CRYPTON-APIKEY' => $this->apiKey,
                 'CRYPTON-SIGNATURE' => $signature,
@@ -402,11 +412,12 @@ class crypton extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if ($body[0] === '{') {
-            $success = $this->safe_value($response, 'success');
-            if (!$success) {
-                throw new ExchangeError($this->id . ' ' . $body);
-            }
+        if ($response === null) {
+            return;
+        }
+        $success = $this->safe_value($response, 'success');
+        if (!$success) {
+            throw new ExchangeError($this->id . ' ' . $body);
         }
     }
 }

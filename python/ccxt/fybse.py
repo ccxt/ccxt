@@ -52,12 +52,13 @@ class fybse (Exchange):
         })
 
     def fetch_balance(self, params={}):
-        balance = self.privatePostGetaccinfo()
-        btc = float(balance['btcBal'])
+        self.load_markets()
+        response = self.privatePostGetaccinfo(params)
+        btc = self.safe_float(response, 'btcBal')
         symbol = self.symbols[0]
         quote = self.markets[symbol]['quote']
         lowercase = quote.lower() + 'Bal'
-        fiat = float(balance[lowercase])
+        fiat = self.safe_float(response, lowercase)
         crypto = {
             'free': btc,
             'used': 0.0,
@@ -69,22 +70,20 @@ class fybse (Exchange):
             'used': 0.0,
             'total': fiat,
         }
-        result['info'] = balance
+        result['info'] = response
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbook = self.publicGetOrderbook(params)
-        return self.parse_order_book(orderbook)
+        self.load_markets()
+        response = self.publicGetOrderbook(params)
+        return self.parse_order_book(response)
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         ticker = self.publicGetTickerdetailed(params)
         timestamp = self.milliseconds()
-        last = None
-        volume = None
-        if 'last' in ticker:
-            last = self.safe_float(ticker, 'last')
-        if 'vol' in ticker:
-            volume = self.safe_float(ticker, 'vol')
+        last = self.safe_float(ticker, 'last')
+        volume = self.safe_float(ticker, 'vol')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -109,10 +108,11 @@ class fybse (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = int(trade['date']) * 1000
+        timestamp = self.safe_integer(trade, 'date') * 1000
+        id = self.safe_string(trade, 'tid')
         return {
             'info': trade,
-            'id': str(trade['tid']),
+            'id': id,
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -124,23 +124,30 @@ class fybse (Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
         response = self.publicGetTrades(params)
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        response = self.privatePostPlaceorder(self.extend({
+        self.load_markets()
+        request = {
             'qty': amount,
             'price': price,
             'type': side[0].upper(),
-        }, params))
+        }
+        response = self.privatePostPlaceorder(self.extend(request, params))
         return {
             'info': response,
             'id': response['pending_oid'],
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelpendingorder({'orderNo': id})
+        self.load_markets()
+        request = {
+            'orderNo': id,
+        }
+        return self.privatePostCancelpendingorder(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path

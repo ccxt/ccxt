@@ -9,7 +9,7 @@ const { ExchangeError } = require ('./base/errors');
 
 module.exports = class btctradeim extends coinegg {
     describe () {
-        let result = this.deepExtend (super.describe (), {
+        const result = this.deepExtend (super.describe (), {
             'id': 'btctradeim',
             'name': 'BtcTrade.im',
             'countries': [ 'HK' ],
@@ -52,15 +52,15 @@ module.exports = class btctradeim extends coinegg {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+        const response = await this.fetch2 (path, api, method, params, headers, body);
         if (api === 'web') {
             return response;
         }
-        let data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data');
         if (data) {
-            let code = this.safeString (response, 'code');
+            const code = this.safeString (response, 'code');
             if (code !== '0') {
-                let message = this.safeString (response, 'msg', 'Error');
+                const message = this.safeString (response, 'msg', 'Error');
                 throw new ExchangeError (message);
             }
             return data;

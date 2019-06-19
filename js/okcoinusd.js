@@ -405,7 +405,7 @@ module.exports = class okcoinusd extends Exchange {
         }
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            let id = this.safeString (market, 'symbol');
+            const id = this.safeString (market, 'symbol');
             let symbol = undefined;
             let base = undefined;
             let quote = undefined;
@@ -503,9 +503,9 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
+        const market = this.markets[symbol];
         let key = 'quote';
-        let rate = market[takerOrMaker];
+        const rate = market[takerOrMaker];
         let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
         if (side === 'sell') {
             cost *= price;
@@ -522,15 +522,18 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchTickersFromApi (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        let response = await this.publicGetTickers (this.extend (request, params));
-        let tickers = response['tickers'];
-        let timestamp = parseInt (response['date']) * 1000;
-        let result = {};
+        const request = {};
+        const response = await this.publicGetTickers (this.extend (request, params));
+        const tickers = response['tickers'];
+        let timestamp = this.safeInteger (response, 'date');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const result = {};
         for (let i = 0; i < tickers.length; i++) {
             let ticker = tickers[i];
             ticker = this.parseTicker (this.extend (tickers[i], { 'timestamp': timestamp }));
-            let symbol = ticker['symbol'];
+            const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
@@ -538,33 +541,33 @@ module.exports = class okcoinusd extends Exchange {
 
     async fetchTickersFromWeb (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        let response = await this.webGetSpotMarketsTickers (this.extend (request, params));
-        let tickers = response['data'];
-        let result = {};
+        const request = {};
+        const response = await this.webGetSpotMarketsTickers (this.extend (request, params));
+        const tickers = this.safeValue (response, 'data');
+        const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = this.parseTicker (tickers[i]);
-            let symbol = ticker['symbol'];
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        let method = this.options['fetchTickersMethod'];
-        let response = await this[method] (symbols, params);
-        return response;
+        const method = this.options['fetchTickersMethod'];
+        return await this[method] (symbols, params);
     }
 
     async fetchOrderBook (symbol = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = market['future'] ? 'publicGetFutureDepth' : 'publicGetDepth';
-        let request = this.createRequest (market, params);
-        if (limit !== undefined)
+        const market = this.market (symbol);
+        const method = market['future'] ? 'publicGetFutureDepth' : 'publicGetDepth';
+        const request = this.createRequest (market, params);
+        if (limit !== undefined) {
             request['size'] = limit;
-        let orderbook = await this[method] (request);
-        return this.parseOrderBook (orderbook);
+        }
+        const response = await this[method] (request);
+        return this.parseOrderBook (response);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -590,15 +593,15 @@ module.exports = class okcoinusd extends Exchange {
         //                 symbol:   "zec_okb",
         //                 volume:   "1049.092535"   }
         //
-        let timestamp = this.safeInteger2 (ticker, 'timestamp', 'createdDate');
+        const timestamp = this.safeInteger2 (ticker, 'timestamp', 'createdDate');
         let symbol = undefined;
         if (market === undefined) {
             if ('symbol' in ticker) {
-                let marketId = ticker['symbol'];
+                const marketId = ticker['symbol'];
                 if (marketId in this.markets_by_id) {
                     market = this.markets_by_id[marketId];
                 } else {
-                    let [ baseId, quoteId ] = ticker['symbol'].split ('_');
+                    const [ baseId, quoteId ] = ticker['symbol'].split ('_');
                     let base = baseId.toUpperCase ();
                     let quote = quoteId.toUpperCase ();
                     base = this.commonCurrencyCode (base);
@@ -610,10 +613,10 @@ module.exports = class okcoinusd extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let last = this.safeFloat (ticker, 'last');
-        let open = this.safeFloat (ticker, 'open');
-        let change = this.safeFloat (ticker, 'change');
-        let percentage = this.safeFloat (ticker, 'changePercentage');
+        const last = this.safeFloat (ticker, 'last');
+        const open = this.safeFloat (ticker, 'open');
+        const change = this.safeFloat (ticker, 'change');
+        const percentage = this.safeFloat (ticker, 'changePercentage');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -706,40 +709,45 @@ module.exports = class okcoinusd extends Exchange {
         const method = market['future'] ? 'publicGetFutureKline' : 'publicGetKline';
         const request = this.createRequest (market, {
             'type': this.timeframes[timeframe],
-            'since': since === undefined ? this.milliseconds () - 86400000 : since,  // default last 24h
+            // 'since': since === undefined ? this.milliseconds () - 86400000 : since,  // default last 24h
         });
+        if (since !== undefined) {
+            request['since'] = this.milliseconds () - 86400000; // default last 24h
+        }
         if (limit !== undefined) {
             if (this.options['fetchOHLCVWarning']) {
                 throw new ExchangeError (this.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + this.id + ' is disabled. Set ' + this.id + '.options["fetchOHLCVWarning"] = false to suppress this warning message.');
             }
             request['size'] = parseInt (limit); // max is 1440 candles
         }
-        let response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserinfo (params);
-        let balances = response['info']['funds'];
-        let result = { 'info': response };
+        const response = await this.privatePostUserinfo (params);
+        const info = this.safeValue (response, 'info', {});
+        const balances = this.safeValue (info, 'funds', {});
+        const result = { 'info': response };
         let ids = Object.keys (balances['free']);
         let usedField = 'freezed';
         // wtf, okex?
         // https://github.com/okcoin-okex/API-docs-OKEx.com/commit/01cf9dd57b1f984a8737ef76a037d4d3795d2ac7
-        if (!(usedField in balances))
+        if (!(usedField in balances)) {
             usedField = 'holds';
-        let usedKeys = Object.keys (balances[usedField]);
+        }
+        const usedKeys = Object.keys (balances[usedField]);
         ids = this.arrayConcat (ids, usedKeys);
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
+            const id = ids[i];
             let code = id.toUpperCase ();
             if (id in this.currencies_by_id) {
                 code = this.currencies_by_id[id]['code'];
             } else {
                 code = this.commonCurrencyCode (code);
             }
-            let account = this.account ();
+            const account = this.account ();
             account['free'] = this.safeFloat (balances['free'], id, 0.0);
             account['used'] = this.safeFloat (balances[usedField], id, 0.0);
             account['total'] = this.sum (account['free'], account['used']);
@@ -750,12 +758,12 @@ module.exports = class okcoinusd extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = market['future'] ? 'privatePostFutureTrade' : 'privatePostTrade';
+        const market = this.market (symbol);
+        const method = market['future'] ? 'privatePostFutureTrade' : 'privatePostTrade';
         const orderSide = (type === 'market') ? (side + '_market') : side;
         const isMarketBuy = ((market['spot']) && (type === 'market') && (side === 'buy') && (!this.options['marketBuyPrice']));
         const orderPrice = isMarketBuy ? this.safeFloat (params, 'cost') : price;
-        let request = this.createRequest (market, {
+        const request = this.createRequest (market, {
             'type': orderSide,
             'amount': amount,
             'price': orderPrice,
@@ -773,11 +781,11 @@ module.exports = class okcoinusd extends Exchange {
             }
         }
         params = this.omit (params, 'cost');
-        let response = await this[method] (this.extend (request, params));
-        let timestamp = this.milliseconds ();
+        const response = await this[method] (this.extend (request, params));
+        const timestamp = this.milliseconds ();
         return {
             'info': response,
-            'id': response['order_id'].toString (),
+            'id': this.safeString (response, 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -796,20 +804,21 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = market['future'] ? 'privatePostFutureCancel' : 'privatePostCancelOrder';
-        let request = this.createRequest (market, {
+        const market = this.market (symbol);
+        const method = market['future'] ? 'privatePostFutureCancel' : 'privatePostCancelOrder';
+        const request = this.createRequest (market, {
             'order_id': id,
         });
-        let response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         return response;
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             '-1': 'canceled',
             '0': 'open',
             '1': 'open',
@@ -821,14 +830,15 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     parseOrderSide (side) {
-        if (side === 1)
+        if (side === 1) {
             return 'buy'; // open long position
-        if (side === 2)
+        } else if (side === 2) {
             return 'sell'; // open short position
-        if (side === 3)
+        } else if (side === 3) {
             return 'sell'; // liquidate long position
-        if (side === 4)
+        } else if (side === 4) {
             return 'buy'; // liquidate short position
+        }
         return side;
     }
 
@@ -847,26 +857,26 @@ module.exports = class okcoinusd extends Exchange {
                 type = 'market';
             } else {
                 side = this.parseOrderSide (order['type']);
-                if (('contract_name' in order) || ('lever_rate' in order))
+                if (('contract_name' in order) || ('lever_rate' in order)) {
                     type = 'margin';
+                }
             }
         }
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = this.safeString (order, 'symbol');
+            const marketId = this.safeString (order, 'symbol');
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
             }
         }
-        if (market)
+        if (market) {
             symbol = market['symbol'];
-        let timestamp = undefined;
-        let createDateField = this.getCreateDateField ();
-        if (createDateField in order)
-            timestamp = order[createDateField];
+        }
+        const createDateField = this.getCreateDateField ();
+        const timestamp = this.safeInteger (order, createDateField);
         let amount = this.safeFloat (order, 'amount');
-        let filled = this.safeFloat (order, 'deal_amount');
+        const filled = this.safeFloat (order, 'deal_amount');
         amount = Math.max (amount, filled);
         let remaining = Math.max (0, amount - filled);
         if (type === 'market') {
@@ -875,17 +885,17 @@ module.exports = class okcoinusd extends Exchange {
         let average = this.safeFloat (order, 'avg_price');
         // https://github.com/ccxt/ccxt/issues/2452
         average = this.safeFloat (order, 'price_avg', average);
-        let cost = average * filled;
-        let result = {
+        const cost = average * filled;
+        return {
             'info': order,
-            'id': order['order_id'].toString (),
+            'id': this.safeString (order, 'order_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': order['price'],
+            'price': this.safeFloat (order, 'price'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -894,7 +904,6 @@ module.exports = class okcoinusd extends Exchange {
             'status': status,
             'fee': undefined,
         };
-        return result;
     }
 
     getCreateDateField () {
@@ -945,9 +954,9 @@ module.exports = class okcoinusd extends Exchange {
                 throw new ExchangeError (this.id + ' fetchOrders() requires order_id param for futures market ' + symbol + ' (a string of one or more order ids, comma-separated)');
             }
         } else {
-            let status = ('type' in params) ? params['type'] : params['status'];
+            const status = ('type' in params) ? params['type'] : params['status'];
             if (typeof status === 'undefined') {
-                let name = order_id_in_params ? 'type' : 'status';
+                const name = order_id_in_params ? 'type' : 'status';
                 throw new ExchangeError (this.id + ' fetchOrders() requires ' + name + ' param for spot market ' + symbol + ' (0 - for unfilled orders, 1 - for filled/canceled orders)');
             }
             if (order_id_in_params) {
@@ -972,17 +981,17 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const open = 0; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, since, limit, this.extend ({
-            'status': open,
-        }, params));
+        const request = {
+            'status': 0, // 0 for unfilled orders, 1 for filled orders
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const closed = 1; // 0 for unfilled orders, 1 for filled orders
-        return await this.fetchOrders (symbol, since, limit, this.extend ({
-            'status': closed,
-        }, params));
+        const request = {
+            'status': 1, // 0 for unfilled orders, 1 for filled orders
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -1031,24 +1040,27 @@ module.exports = class okcoinusd extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/';
-        if (api !== 'web')
+        if (api !== 'web') {
             url += this.version + '/';
+        }
         url += path;
-        if (api !== 'web')
+        if (api !== 'web') {
             url += this.extension;
+        }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let query = this.keysort (this.extend ({
+            const query = this.keysort (this.extend ({
                 'api_key': this.apiKey,
             }, params));
             // secret key must be at the end of query
-            let queryString = this.rawencode (query) + '&secret_key=' + this.secret;
+            const queryString = this.rawencode (query) + '&secret_key=' + this.secret;
             query['sign'] = this.hash (this.encode (queryString)).toUpperCase ();
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
         } else {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         }
         url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
@@ -1067,22 +1079,23 @@ module.exports = class okcoinusd extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (body.length < 2)
+        if (response === undefined) {
             return; // fallback to default error handler
-        if (body[0] === '{') {
-            if ('error_code' in response) {
-                let error = this.safeString (response, 'error_code');
-                let message = this.id + ' ' + this.json (response);
-                if (error in this.exceptions) {
-                    let ExceptionClass = this.exceptions[error];
-                    throw new ExceptionClass (message);
-                } else {
-                    throw new ExchangeError (message);
-                }
+        }
+        if ('error_code' in response) {
+            const error = this.safeString (response, 'error_code');
+            const message = this.id + ' ' + this.json (response);
+            if (error in this.exceptions) {
+                const ExceptionClass = this.exceptions[error];
+                throw new ExceptionClass (message);
+            } else {
+                throw new ExchangeError (message);
             }
-            if ('result' in response)
-                if (!response['result'])
-                    throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
+        if ('result' in response) {
+            if (!response['result']) {
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
         }
     }
 };

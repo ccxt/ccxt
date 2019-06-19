@@ -162,11 +162,14 @@ class bleutrade (bittrex):
         await self.load_markets()
         market = None
         if symbol is not None:
-            await self.load_markets()
             market = self.market(symbol)
         else:
             market = None
-        response = await self.accountGetOrders(self.extend({'market': 'ALL', 'orderstatus': 'ALL'}, params))
+        request = {
+            'market': 'ALL',
+            'orderstatus': 'ALL',
+        }
+        response = await self.accountGetOrders(self.extend(request, params))
         return self.parse_orders(response['result'], market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -202,15 +205,13 @@ class bleutrade (bittrex):
         # Similarly, the correct 'side' for the trade is that of the order.
         # The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
         await self.load_markets()
-        response = await self.accountGetOrderhistory({'orderid': id})
-        trades = self.parse_trades(response['result'], None, since, limit)
-        result = []
-        for i in range(0, len(trades)):
-            trade = self.extend(trades[i], {
-                'order': id,
-            })
-            result.append(trade)
-        return result
+        request = {
+            'orderid': id,
+        }
+        response = await self.accountGetOrderhistory(self.extend(request, params))
+        return self.parse_trades(response['result'], None, since, limit, {
+            'order': id,
+        })
 
     async def fetch_transactions_by_type(self, type, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -300,16 +301,16 @@ class bleutrade (bittrex):
         if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
             status = self.parse_order_status(self.safe_string(order, 'Status'))
         symbol = None
-        if 'Exchange' in order:
-            marketId = order['Exchange']
+        marketId = self.safe_string(order, 'Exchange')
+        if marketId is None:
+            if market is not None:
+                symbol = market['symbol']
+        else:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 symbol = self.parse_symbol(marketId)
-        else:
-            if market is not None:
-                symbol = market['symbol']
         timestamp = None
         if 'Opened' in order:
             timestamp = self.parse8601(order['Opened'] + '+00:00')

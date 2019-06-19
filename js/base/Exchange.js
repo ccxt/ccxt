@@ -245,7 +245,7 @@ module.exports = class Exchange {
         this.proxy = ''
         this.origin = '*' // CORS origin
 
-        this.iso8601       = iso8601
+        this.iso8601      = iso8601
         this.parse8601    = parse8601
         this.parseDate    = parseDate
         this.microseconds = microseconds

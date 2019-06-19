@@ -35,7 +35,7 @@ class bcex extends Exchange {
                 'www' => 'https://www.bcex.top',
                 'doc' => 'https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface',
                 'fees' => 'https://bcex.udesk.cn/hc/articles/57085',
-                'referral' => 'https://www.bcex.top/user/reg/type/2/pid/758978',
+                'referral' => 'https://www.bcex.top/register?invite_code=758978&lang=en',
             ),
             'api' => array (
                 'public' => array (
@@ -287,7 +287,7 @@ class bcex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetApiMarketGetPriceList ();
+        $response = $this->publicGetApiMarketGetPriceList ($params);
         $result = array();
         $keys = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count ($keys); $i++) {
@@ -295,8 +295,8 @@ class bcex extends Exchange {
             $currentMarkets = $response[$currentMarketId];
             for ($j = 0; $j < count ($currentMarkets); $j++) {
                 $market = $currentMarkets[$j];
-                $baseId = $market['coin_from'];
-                $quoteId = $market['coin_to'];
+                $baseId = $this->safe_string($market, 'coin_from');
+                $quoteId = $this->safe_string($market, 'coin_to');
                 $base = strtoupper($baseId);
                 $quote = strtoupper($quoteId);
                 $base = $this->common_currency_code($base);
@@ -360,8 +360,9 @@ class bcex extends Exchange {
             }
         }
         $side = $this->safe_string($trade, 'side');
-        if ($side === 'sale')
+        if ($side === 'sale') {
             $side = 'sell';
+        }
         return array (
             'info' => $trade,
             'id' => $id,
@@ -394,7 +395,7 @@ class bcex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostApiUserUserBalance ($params);
-        $data = $response['data'];
+        $data = $this->safe_value($response, 'data');
         $keys = is_array($data) ? array_keys($data) : array();
         $result = array( );
         for ($i = 0; $i < count ($keys); $i++) {
@@ -410,8 +411,7 @@ class bcex extends Exchange {
                 $code = $this->common_currency_code($code);
             }
             if (!(is_array($result) && array_key_exists($code, $result))) {
-                $account = $this->account ();
-                $result[$code] = $account;
+                $result[$code] = $this->account ();
             }
             if ($lockOrOver === 'lock') {
                 $result[$code]['used'] = floatval ($amount);
@@ -469,9 +469,12 @@ class bcex extends Exchange {
             'symbol' => $marketId,
         );
         $response = $this->publicPostApiOrderDepth (array_merge ($request, $params));
-        $data = $response['data'];
-        $orderbook = $this->parse_order_book($data, $data['date'] * 1000);
-        return $orderbook;
+        $data = $this->safe_value($response, 'data');
+        $timestamp = $this->safe_integer($data, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        return $this->parse_order_book($data, $timestamp);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -491,29 +494,31 @@ class bcex extends Exchange {
             '2' => 'closed',
             '3' => 'canceled',
         );
-        if (is_array($statuses) && array_key_exists($status, $statuses)) {
-            return $statuses[$status];
-        }
-        return $status;
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
-        if ($symbol === null)
-            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder requires a `$symbol` argument');
+        }
         $this->load_markets();
         $request = array (
             'symbol' => $this->market_id($symbol),
             'trust_id' => $id,
         );
         $response = $this->privatePostApiOrderOrderInfo (array_merge ($request, $params));
-        $order = $response['data'];
-        $timestamp = $this->safe_integer($order, 'created') * 1000;
+        $order = $this->safe_value($response, 'data');
+        $timestamp = $this->safe_integer($order, 'created');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'flag');
-        if ($side === 'sale')
+        if ($side === 'sale') {
             $side = 'sell';
+        }
         // Can't use parseOrder because the data format is different btw endpoint for fetchOrder and fetchOrders
-        $result = array (
+        return array (
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -531,17 +536,23 @@ class bcex extends Exchange {
             'status' => $status,
             'fee' => null,
         );
-        return $result;
     }
 
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'id');
-        $timestamp = $this->safe_integer($order, 'datetime') * 1000;
-        $symbol = $market['symbol'];
+        $timestamp = $this->safe_integer($order, 'datetime');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $type = null;
         $side = $this->safe_string($order, 'type');
-        if ($side === 'sale')
+        if ($side === 'sale') {
             $side = 'sell';
+        }
         $price = $this->safe_float($order, 'price');
         $average = $this->safe_float($order, 'avg_price');
         $amount = $this->safe_float($order, 'amount');
@@ -603,23 +614,25 @@ class bcex extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $order = array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
             'type' => $side,
             'price' => $this->price_to_precision($symbol, $price),
             'number' => $this->amount_to_precision($symbol, $amount),
         );
-        $response = $this->privatePostApiOrderCoinTrust (array_merge ($order, $params));
-        $data = $response['data'];
+        $response = $this->privatePostApiOrderCoinTrust (array_merge ($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        $id = $this->safe_string($data, 'order_id');
         return array (
             'info' => $response,
-            'id' => $this->safe_string($data, 'order_id'),
+            'id' => $id,
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        if ($symbol === null)
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder requires a `$symbol` argument');
+        }
         $this->load_markets();
         $request = array();
         if ($symbol !== null) {
@@ -628,8 +641,7 @@ class bcex extends Exchange {
         if ($id !== null) {
             $request['order_id'] = $id;
         }
-        $response = $this->privatePostApiOrderCancel (array_merge ($request, $params));
-        return $response;
+        return $this->privatePostApiOrderCancel (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -656,31 +668,28 @@ class bcex extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
+        if ($response === null) {
             return; // fallback to default error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            $code = $this->safe_value($response, 'code');
-            if ($code !== null) {
-                if ($code !== 0) {
-                    //
-                    // array( $code => 1, msg => "该币不存在,非法操作" ) - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
-                    // array( $code => 1, msg => '公钥不合法' ) - wrong public key
-                    // array( $code => 1, msg => '价格输入有误，请检查你的数值精度' ) - 'The price input is incorrect, please check your numerical accuracy'
-                    // array( $code => 1, msg => '单笔最小交易数量不能小于0.00100000,请您重新挂单') -
-                    //                  'The minimum number of single transactions cannot be less than 0.00100000. Please re-post the order'
-                    //
-                    $message = $this->safe_string($response, 'msg');
-                    $feedback = $this->id . ' msg => ' . $message . ' ' . $body;
-                    $exceptions = $this->exceptions;
-                    if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
-                        throw new $exceptions[$message]($feedback);
-                    } else if (mb_strpos($message, '请您重新挂单') !== false) {  // minimum limit
-                        throw new InvalidOrder($feedback);
-                    } else {
-                        throw new ExchangeError($feedback);
-                    }
+        }
+        $errorCode = $this->safe_value($response, 'code');
+        if ($errorCode !== null) {
+            if ($errorCode !== 0) {
+                //
+                // array( $code => 1, msg => "该币不存在,非法操作" ) - returned when a required symbol parameter is missing in the request (also, maybe on other types of errors as well)
+                // array( $code => 1, msg => '公钥不合法' ) - wrong public key
+                // array( $code => 1, msg => '价格输入有误，请检查你的数值精度' ) - 'The price input is incorrect, please check your numerical accuracy'
+                // array( $code => 1, msg => '单笔最小交易数量不能小于0.00100000,请您重新挂单') -
+                //                  'The minimum number of single transactions cannot be less than 0.00100000. Please re-post the order'
+                //
+                $message = $this->safe_string($response, 'msg');
+                $feedback = $this->id . ' ' . $message;
+                $exceptions = $this->exceptions;
+                if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
+                    throw new $exceptions[$message]($feedback);
+                } else if (mb_strpos($message, '请您重新挂单') !== false) {  // minimum limit
+                    throw new InvalidOrder($feedback);
+                } else {
+                    throw new ExchangeError($feedback);
                 }
             }
         }

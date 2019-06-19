@@ -68,9 +68,11 @@ class foxbit extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->privatePostU2 (array (
+        $this->load_markets();
+        $request = array (
             'BalanceReqID' => $this->nonce (),
-        ));
+        );
+        $response = $this->privatePostU2 (array_merge ($request, $params));
         $balances = $this->safe_value($response['Responses'], $this->options['brokerId']);
         $result = array( 'info' => $response );
         if ($balances !== null) {
@@ -94,20 +96,24 @@ class foxbit extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $orderbook = $this->publicGetCurrencyOrderbook (array_merge (array (
+        $request = array (
             'currency' => $market['quote'],
             'crypto_currency' => $market['base'],
-        ), $params));
-        return $this->parse_order_book($orderbook);
+        );
+        $response = $this->publicGetCurrencyOrderbook (array_merge ($request, $params));
+        return $this->parse_order_book($response);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetCurrencyTicker (array_merge (array (
+        $request = array (
             'currency' => $market['quote'],
             'crypto_currency' => $market['base'],
-        ), $params));
+        );
+        $ticker = $this->publicGetCurrencyTicker (array_merge ($request, $params));
         $timestamp = $this->milliseconds ();
         $lowercaseQuote = strtolower($market['quote']);
         $quoteVolume = 'vol_' . $lowercaseQuote;
@@ -131,13 +137,13 @@ class foxbit extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => $this->safe_float($ticker, 'vol'),
-            'quoteVolume' => floatval ($ticker[$quoteVolume]),
+            'quoteVolume' => $this->safe_float($ticker, $quoteVolume),
             'info' => $ticker,
         );
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $trade['date'] * 1000;
+        $timestamp = $this->safe_integer($trade, 'date') * 1000;
         return array (
             'id' => $this->safe_string($trade, 'tid'),
             'info' => $trade,
@@ -145,27 +151,31 @@ class foxbit extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $market['symbol'],
             'type' => null,
-            'side' => $trade['side'],
-            'price' => $trade['price'],
-            'amount' => $trade['amount'],
+            'side' => $this->safe_string($trade, 'side'),
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'amount'),
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetCurrencyTrades (array_merge (array (
+        $request = array (
             'currency' => $market['quote'],
             'crypto_currency' => $market['base'],
-        ), $params));
+        );
+        $response = $this->publicGetCurrencyTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type === 'market')
+        $this->load_markets();
+        if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
+        }
         $market = $this->market ($symbol);
         $orderSide = ($side === 'buy') ? '1' : '2';
-        $order = array (
+        $request = array (
             'ClOrdID' => $this->nonce (),
             'Symbol' => $market['id'],
             'Side' => $orderSide,
@@ -174,7 +184,7 @@ class foxbit extends Exchange {
             'OrderQty' => $amount,
             'BrokerID' => $market['brokerId'],
         );
-        $response = $this->privatePostD (array_merge ($order, $params));
+        $response = $this->privatePostD (array_merge ($request, $params));
         $indexed = $this->index_by($response['Responses'], 'MsgType');
         $execution = $indexed['8'];
         return array (
@@ -184,6 +194,7 @@ class foxbit extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         return $this->privatePostF (array_merge (array (
             'ClOrdID' => $id,
         ), $params));
@@ -193,8 +204,9 @@ class foxbit extends Exchange {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
@@ -212,9 +224,11 @@ class foxbit extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('Status', $response))
-            if ($response['Status'] !== 200)
+        if (is_array($response) && array_key_exists('Status', $response)) {
+            if ($response['Status'] !== 200) {
                 throw new ExchangeError($this->id . ' ' . $this->json ($response));
+            }
+        }
         return $response;
     }
 }

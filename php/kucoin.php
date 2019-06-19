@@ -140,6 +140,7 @@ class kucoin extends Exchange {
                 '500' => '\\ccxt\\ExchangeError',
                 '503' => '\\ccxt\\ExchangeNotAvailable',
                 '200004' => '\\ccxt\\InsufficientFunds',
+                '230003' => '\\ccxt\\InsufficientFunds', // array("code":"230003","msg":"Balance insufficient!")
                 '260100' => '\\ccxt\\InsufficientFunds', // array("code":"260100","msg":"account.noBalance")
                 '300000' => '\\ccxt\\InvalidOrder',
                 '400001' => '\\ccxt\\AuthenticationError',
@@ -152,6 +153,7 @@ class kucoin extends Exchange {
                 '400008' => '\\ccxt\\NotSupported',
                 '400100' => '\\ccxt\\ArgumentsRequired',
                 '411100' => '\\ccxt\\AccountSuspended',
+                '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
                 '500000' => '\\ccxt\\ExchangeError',
             ),
             'fees' => array (

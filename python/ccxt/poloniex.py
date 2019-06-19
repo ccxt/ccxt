@@ -249,8 +249,8 @@ class poloniex (Exchange):
         markets = self.publicGetReturnTicker()
         keys = list(markets.keys())
         result = []
-        for p in range(0, len(keys)):
-            id = keys[p]
+        for i in range(0, len(keys)):
+            id = keys[i]
             market = markets[id]
             quoteId, baseId = id.split('_')
             base = self.common_currency_code(baseId)
@@ -261,6 +261,8 @@ class poloniex (Exchange):
                     'min': self.safe_value(self.options['limits']['cost']['min'], quote),
                 },
             })
+            isFrozen = self.safe_string(market, 'isFrozen')
+            active = (isFrozen != '1')
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
@@ -268,7 +270,7 @@ class poloniex (Exchange):
                 'quoteId': quoteId,
                 'base': base,
                 'quote': quote,
-                'active': market['isFrozen'] != '1',
+                'active': active,
                 'limits': limits,
                 'info': market,
             }))
@@ -276,27 +278,28 @@ class poloniex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostReturnCompleteBalances(self.extend({
+        request = {
             'account': 'all',
-        }, params))
-        result = {'info': balances}
-        currencies = list(balances.keys())
-        for c in range(0, len(currencies)):
-            id = currencies[c]
-            balance = balances[id]
-            currency = self.common_currency_code(id)
+        }
+        response = self.privatePostReturnCompleteBalances(self.extend(request, params))
+        result = {'info': response}
+        currencies = list(response.keys())
+        for i in range(0, len(currencies)):
+            currencyId = currencies[i]
+            balance = response[currencyId]
+            code = self.common_currency_code(currencyId)
             account = {
-                'free': float(balance['available']),
-                'used': float(balance['onOrders']),
+                'free': self.safe_float(balance, 'available'),
+                'used': self.safe_float(balance, 'onOrders'),
                 'total': 0.0,
             }
             account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_trading_fees(self, params={}):
         self.load_markets()
-        fees = self.privatePostReturnFeeInfo()
+        fees = self.privatePostReturnFeeInfo(params)
         return {
             'info': fees,
             'maker': self.safe_float(fees, 'makerFee'),
@@ -384,8 +387,8 @@ class poloniex (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGetReturnTicker(params)
-        ids = list(tickers.keys())
+        response = self.publicGetReturnTicker(params)
+        ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
@@ -400,17 +403,17 @@ class poloniex (Exchange):
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
                 market = {'symbol': symbol}
-            ticker = tickers[id]
+            ticker = response[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     def fetch_currencies(self, params={}):
-        currencies = self.publicGetReturnCurrencies(params)
-        ids = list(currencies.keys())
+        response = self.publicGetReturnCurrencies(params)
+        ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            currency = currencies[id]
+            currency = response[id]
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
@@ -449,8 +452,8 @@ class poloniex (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        tickers = self.publicGetReturnTicker(params)
-        ticker = tickers[market['id']]
+        response = self.publicGetReturnTicker(params)
+        ticker = response[market['id']]
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
@@ -713,9 +716,10 @@ class poloniex (Exchange):
         side = self.safe_string(order, 'side', type)
         if type == side:
             type = None
+        id = self.safe_string(order, 'orderNumber')
         return {
             'info': order,
-            'id': order['orderNumber'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -750,9 +754,10 @@ class poloniex (Exchange):
         if symbol is not None:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
-        response = self.privatePostReturnOpenOrders(self.extend({
+        request = {
             'currencyPair': pair,
-        }))
+        }
+        response = self.privatePostReturnOpenOrders(self.extend(request, params))
         openOrders = []
         if market is not None:
             openOrders = self.parse_open_orders(response, market, openOrders)
@@ -964,17 +969,19 @@ class poloniex (Exchange):
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        trades = self.privatePostReturnOrderTrades(self.extend({
+        request = {
             'orderNumber': id,
-        }, params))
+        }
+        trades = self.privatePostReturnOrderTrades(self.extend(request, params))
         return self.parse_trades(trades)
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostGenerateNewAddress({
+        request = {
             'currency': currency['id'],
-        })
+        }
+        response = self.privatePostGenerateNewAddress(self.extend(request, params))
         address = None
         tag = None
         if response['success'] == 1:
@@ -994,7 +1001,7 @@ class poloniex (Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostReturnDepositAddresses()
+        response = self.privatePostReturnDepositAddresses(params)
         currencyId = currency['id']
         address = self.safe_string(response, currencyId)
         tag = None
@@ -1021,10 +1028,10 @@ class poloniex (Exchange):
         }
         if tag:
             request['paymentId'] = tag
-        result = self.privatePostWithdraw(self.extend(request, params))
+        response = self.privatePostWithdraw(self.extend(request, params))
         return {
-            'info': result,
-            'id': result['response'],
+            'info': response,
+            'id': response['response'],
         }
 
     def fetch_transactions_helper(self, code=None, since=None, limit=None, params={}):

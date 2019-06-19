@@ -197,8 +197,8 @@ class stronghold (Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = entry['id']
-            baseId = entry['baseAssetId']
-            quoteId = entry['counterAssetId']
+            baseId = self.safe_string(entry, 'baseAssetId')
+            quoteId = self.safe_string(entry, 'counterAssetId')
             baseAssetId = baseId.split('/')[0]
             quoteAssetId = quoteId.split('/')[0]
             base = self.common_currency_code(baseAssetId)

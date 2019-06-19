@@ -28,21 +28,23 @@ class jubi (btcbox):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetAllticker()
+        markets = self.publicGetAllticker(params)
         keys = list(markets.keys())
         result = []
-        for p in range(0, len(keys)):
-            id = keys[p]
-            base = id.upper()
-            quote = 'CNY'  # todo
+        for i in range(0, len(keys)):
+            id = keys[i]
+            baseId = id
+            quoteId = 'cny'
+            base = self.common_currency_code(baseId.upper())
+            quote = self.common_currency_code(quoteId.upper())
             symbol = base + '/' + quote
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': id,
             })
         return result

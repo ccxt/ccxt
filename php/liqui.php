@@ -130,7 +130,7 @@ class liqui extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetInfo ();
+        $response = $this->publicGetInfo ($params);
         $markets = $response['pairs'];
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
@@ -184,10 +184,10 @@ class liqui extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetInfo ();
-        $balances = $response['return'];
+        $response = $this->privatePostGetInfo ($params);
+        $balances = $this->safe_value($response, 'return');
         $result = array( 'info' => $balances );
-        $funds = $balances['funds'];
+        $funds = $this->safe_value($balances, 'funds');
         $currencies = is_array($funds) ? array_keys($funds) : array();
         for ($c = 0; $c < count ($currencies); $c++) {
             $currency = $currencies[$c];
@@ -241,9 +241,10 @@ class liqui extends Exchange {
             $ids = $this->market_ids($symbols);
             $ids = implode('-', $ids);
         }
-        $response = $this->publicGetDepthPair (array_merge (array (
+        $request = array (
             'pair' => $ids,
-        ), $params));
+        );
+        $response = $this->publicGetDepthPair (array_merge ($request, $params));
         $result = array();
         $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -270,7 +271,10 @@ class liqui extends Exchange {
         //        sell => 0.03377798,
         //     updated => 1537522009          }
         //
-        $timestamp = $ticker['updated'] * 1000;
+        $timestamp = $this->safe_integer($ticker, 'updated');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -315,9 +319,10 @@ class liqui extends Exchange {
             $ids = $this->market_ids($symbols);
             $ids = implode('-', $ids);
         }
-        $tickers = $this->publicGetTickerPair (array_merge (array (
+        $request = array (
             'pair' => $ids,
-        ), $params));
+        );
+        $tickers = $this->publicGetTickerPair (array_merge ($request, $params));
         $result = array();
         $keys = is_array($tickers) ? array_keys($tickers) : array();
         for ($k = 0; $k < count ($keys); $k++) {
@@ -500,35 +505,37 @@ class liqui extends Exchange {
             '2' => 'canceled',
             '3' => 'canceled', // or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
         );
-        if (is_array($statuses) && array_key_exists($status, $statuses)) {
-            return $statuses[$status];
-        }
-        return $status;
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
-        $id = (string) $order['id'];
+        $id = $this->safe_string($order, 'id');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $timestamp = intval ($order['timestamp_created']) * 1000;
+        $timestamp = $this->safe_integer($order, 'timestamp_created');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $symbol = null;
         if ($market === null) {
-            $market = $this->markets_by_id[$order['pair']];
+            $marketId = $this->safe_string($order, 'pair');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
         }
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $remaining = null;
+        $remaining = $this->safe_float($order, 'amount');
         $amount = null;
         $price = $this->safe_float($order, 'rate');
         $filled = null;
         $cost = null;
         if (is_array($order) && array_key_exists('start_amount', $order)) {
             $amount = $this->safe_float($order, 'start_amount');
-            $remaining = $this->safe_float($order, 'amount');
         } else {
-            $remaining = $this->safe_float($order, 'amount');
-            if (is_array($this->orders) && array_key_exists($id, $this->orders))
+            if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
                 $amount = $this->orders[$id]['amount'];
+            }
         }
         if ($amount !== null) {
             if ($remaining !== null) {
@@ -537,6 +544,8 @@ class liqui extends Exchange {
             }
         }
         $fee = null;
+        $type = 'limit';
+        $side = $this->safe_string($order, 'type');
         $result = array (
             'info' => $order,
             'id' => $id,
@@ -544,8 +553,8 @@ class liqui extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
-            'type' => 'limit',
-            'side' => $order['type'],
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
             'amount' => $amount,
@@ -605,8 +614,9 @@ class liqui extends Exchange {
             if (!(is_array($openOrdersIndexedById) && array_key_exists($cachedOrderId, $openOrdersIndexedById))) {
                 // cached order is not in open orders array
                 // if we fetched orders by $symbol and it doesn't match the cached order -> won't update the cached order
-                if ($symbol !== null && $symbol !== $cachedOrder['symbol'])
+                if ($symbol !== null && $symbol !== $cachedOrder['symbol']) {
                     continue;
+                }
                 // cached order is absent from the list of open orders -> mark the cached order as closed
                 if ($cachedOrder['status'] === 'open') {
                     $cachedOrder = array_merge ($cachedOrder, array (
@@ -628,10 +638,13 @@ class liqui extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if (is_array($this->options) && array_key_exists('fetchOrdersRequiresSymbol', $this->options))
-            if ($this->options['fetchOrdersRequiresSymbol'])
-                if ($symbol === null)
+        if (is_array($this->options) && array_key_exists('fetchOrdersRequiresSymbol', $this->options)) {
+            if ($this->options['fetchOrdersRequiresSymbol']) {
+                if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
+                }
+            }
+        }
         $this->load_markets();
         $request = array();
         $market = null;
@@ -640,10 +653,11 @@ class liqui extends Exchange {
             $request['pair'] = $market['id'];
         }
         $response = $this->privatePostActiveOrders (array_merge ($request, $params));
-        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
+        // can only return 'open' orders (i.e. no way to fetch 'closed' orders)
         $openOrders = array();
-        if (is_array($response) && array_key_exists('return', $response))
+        if (is_array($response) && array_key_exists('return', $response)) {
             $openOrders = $this->parse_orders($response['return'], $market);
+        }
         $allOrders = $this->update_cached_orders ($openOrders, $symbol);
         $result = $this->filter_by_symbol($allOrders, $symbol);
         return $this->filter_by_since_limit($result, $since, $limit);
@@ -765,8 +779,9 @@ class liqui extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (!$this->is_json_encoded_object($body))
+        if ($response === null) {
             return; // fallback to default error handler
+        }
         if (is_array($response) && array_key_exists('success', $response)) {
             //
             // 1 - Liqui only returns the integer 'success' key from their private API
@@ -796,10 +811,11 @@ class liqui extends Exchange {
             //
             $success = $this->safe_value($response, 'success', false);
             if (gettype ($success) === 'string') {
-                if (($success === 'true') || ($success === '1'))
+                if (($success === 'true') || ($success === '1')) {
                     $success = true;
-                else
+                } else {
                     $success = false;
+                }
             }
             if (!$success) {
                 $code = $this->safe_string($response, 'code');

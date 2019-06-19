@@ -1191,6 +1191,7 @@ class okex3 (Exchange):
                 'liquidation_price',
                 'product_id',
                 'risk_rate',
+                'margin_ratio',
             ])
             keys = list(omittedBalance.keys())
             accounts = {}
@@ -1960,6 +1961,7 @@ class okex3 (Exchange):
         #
         address = self.safe_string(depositAddress, 'address')
         tag = self.safe_string_2(depositAddress, 'tag', 'payment_id')
+        tag = self.safe_string(depositAddress, 'memo', tag)
         currencyId = self.safe_string(depositAddress, 'currency')
         code = None
         if currencyId is not None:

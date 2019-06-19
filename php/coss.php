@@ -429,12 +429,14 @@ class coss extends Exchange {
         $last = $this->safe_float($ticker, 'Last');
         $change = null;
         $percentage = null;
-        if ($last !== null)
+        if ($last !== null) {
             if ($previous !== null) {
                 $change = $last - $previous;
-                if ($previous > 0)
+                if ($previous > 0) {
                     $percentage = ($change / $previous) * 100;
+                }
             }
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -725,9 +727,10 @@ class coss extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->tradePostOrderDetails (array_merge (array (
+        $request = array (
             'order_id' => $id,
-        ), $params));
+        );
+        $response = $this->tradePostOrderDetails (array_merge ($request, $params));
         return $this->parse_order($response);
     }
 

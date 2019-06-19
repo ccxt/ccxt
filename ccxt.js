@@ -26,8 +26,6 @@ SOFTWARE.
 
 */
 
-"use strict";
-
 //-----------------------------------------------------------------------------
 
 const Exchange  = require ('./js/base/Exchange')
@@ -37,7 +35,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.671'
+const version = '1.18.736'
 
 Exchange.ccxtVersion = version
 

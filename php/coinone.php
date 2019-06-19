@@ -122,7 +122,8 @@ class coinone extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->privatePostAccountBalance ();
+        $this->load_markets();
+        $response = $this->privatePostAccountBalance ($params);
         $result = array( 'info' => $response );
         $balances = $this->omit ($response, array (
             'errorCode',
@@ -134,10 +135,11 @@ class coinone extends Exchange {
             $id = $ids[$i];
             $balance = $balances[$id];
             $code = strtoupper($id);
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id))
+            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$id]['code'];
-            $free = floatval ($balance['avail']);
-            $total = floatval ($balance['balance']);
+            }
+            $free = $this->safe_float($balance, 'avail');
+            $total = $this->safe_float($balance, 'balance');
             $used = $total - $free;
             $account = array (
                 'free' => $free,
@@ -150,23 +152,25 @@ class coinone extends Exchange {
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetOrderbook (array_merge (array (
+        $request = array (
             'currency' => $market['id'],
             'format' => 'json',
-        ), $params));
+        );
+        $response = $this->publicGetOrderbook (array_merge ($request, $params));
         return $this->parse_order_book($response, null, 'bid', 'ask', 'price', 'qty');
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetTicker (array_merge (array (
+        $request = array (
             'currency' => 'all',
             'format' => 'json',
-        ), $params));
+        );
+        $response = $this->publicGetTicker (array_merge ($request, $params));
         $result = array();
-        $tickers = $response;
-        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $symbol = $id;
@@ -174,7 +178,7 @@ class coinone extends Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
-                $ticker = $tickers[$id];
+                $ticker = $response[$id];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
             }
         }
@@ -182,11 +186,13 @@ class coinone extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTicker (array_merge (array (
+        $request = array (
             'currency' => $market['id'],
             'format' => 'json',
-        ), $params));
+        );
+        $response = $this->publicGetTicker (array_merge ($request, $params));
         return $this->parse_ticker($response, $market);
     }
 
@@ -195,8 +201,9 @@ class coinone extends Exchange {
         $last = $this->safe_float($ticker, 'last');
         $previousClose = $this->safe_float($ticker, 'yesterday_last');
         $change = null;
-        if ($last !== null && $previousClose !== null)
+        if ($last !== null && $previousClose !== null) {
             $change = $previousClose - $last;
+        }
         $symbol = ($market !== null) ? $market['symbol'] : null;
         return array (
             'symbol' => $symbol,
@@ -223,7 +230,7 @@ class coinone extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = intval ($trade['timestamp']) * 1000;
+        $timestamp = $this->safe_integer($trade, 'timestamp') * 1000;
         $symbol = ($market !== null) ? $market['symbol'] : null;
         $is_ask = $this->safe_string($trade, 'is_ask');
         $side = null;
@@ -248,18 +255,22 @@ class coinone extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
+        $request = array (
             'currency' => $market['id'],
             'period' => 'hour',
             'format' => 'json',
-        ), $params));
+        );
+        $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response['completeOrders'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type !== 'limit')
+        $this->load_markets();
+        if ($type !== 'limit') {
             throw new ExchangeError($this->id . ' allows limit orders only');
+        }
         $this->load_markets();
         $request = array (
             'price' => $price,
@@ -310,10 +321,11 @@ class coinone extends Exchange {
             $market = $this->market ($symbol);
         }
         try {
-            $response = $this->privatePostOrderOrderInfo (array_merge (array (
+            $request = array (
                 'order_id' => $id,
                 'currency' => $market['id'],
-            ), $params));
+            );
+            $response = $this->privatePostOrderOrderInfo (array_merge ($request, $params));
             $result = $this->parse_order($response);
             $this->orders[$id] = $result;
         } catch (Exception $e) {
@@ -337,9 +349,7 @@ class coinone extends Exchange {
             'partially_filled' => 'open',
             'filled' => 'closed',
         );
-        if (is_array($statuses) && array_key_exists($status, $statuses))
-            return $statuses[$status];
-        return $status;
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
@@ -348,7 +358,7 @@ class coinone extends Exchange {
         if ($id !== null) {
             $id = strtoupper($id);
         }
-        $timestamp = intval ($info['timestamp']) * 1000;
+        $timestamp = $this->safe_integer($info, 'timestamp') * 1000;
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $cost = null;
         $side = $this->safe_string($info, 'type');
@@ -378,12 +388,14 @@ class coinone extends Exchange {
         $symbol = null;
         if ($market === null) {
             $marketId = strtolower($currency);
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id))
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
+            }
         }
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        $result = array (
+        }
+        return array (
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
@@ -400,10 +412,10 @@ class coinone extends Exchange {
             'status' => $status,
             'fee' => $fee,
         );
-        return $result;
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $order = $this->safe_value($this->orders, $id);
         $amount = null;
         $price = null;
@@ -476,25 +488,26 @@ class coinone extends Exchange {
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            if (is_array($response) && array_key_exists('result', $response)) {
-                $result = $response['result'];
-                if ($result !== 'success') {
-                    //
-                    //    array(  "errorCode" => "405",  "status" => "maintenance",  "$result" => "error")
-                    //
-                    $code = $this->safe_string($response, 'errorCode');
-                    $feedback = $this->id . ' ' . $this->json ($response);
-                    $exceptions = $this->exceptions;
-                    if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                        throw new $exceptions[$code]($feedback);
-                    } else {
-                        throw new ExchangeError($feedback);
-                    }
+        if ($response === null) {
+            return;
+        }
+        if (is_array($response) && array_key_exists('result', $response)) {
+            $result = $response['result'];
+            if ($result !== 'success') {
+                //
+                //    array(  "errorCode" => "405",  "status" => "maintenance",  "$result" => "error")
+                //
+                $code = $this->safe_string($response, 'errorCode');
+                $feedback = $this->id . ' ' . $this->json ($response);
+                $exceptions = $this->exceptions;
+                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
+                    throw new $exceptions[$code]($feedback);
+                } else {
+                    throw new ExchangeError($feedback);
                 }
-            } else {
-                throw new ExchangeError($this->id . ' ' . $body);
             }
+        } else {
+            throw new ExchangeError($this->id . ' ' . $body);
         }
     }
 }

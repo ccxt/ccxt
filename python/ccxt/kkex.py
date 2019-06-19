@@ -198,9 +198,10 @@ class kkex (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.markets[symbol]
-        response = self.publicGetTicker(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.publicGetTicker(self.extend(request, params))
         ticker = self.extend(response['ticker'], self.omit(response, 'ticker'))
         return self.parse_ticker(ticker, market)
 
@@ -225,7 +226,7 @@ class kkex (Exchange):
         #                              open: "0.003189"  }}           ],
         #        result:    True                                          }
         #
-        tickers = response['tickers']
+        tickers = self.safe_value(response, 'tickers')
         result = {}
         for i in range(0, len(tickers)):
             ids = list(tickers[i].keys())
@@ -280,26 +281,29 @@ class kkex (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privatePostUserinfo()
-        result = {'info': balances['info']}
-        funds = balances['info']['funds']
+        response = self.privatePostUserinfo(params)
+        balances = self.safe_value(response, 'info')
+        result = {'info': response}
+        funds = self.safe_value(balances, 'funds')
+        free = self.safe_value(funds, 'free', {})
+        freezed = self.safe_value(funds, 'freezed', {})
         assets = list(funds['free'].keys())
         for i in range(0, len(assets)):
-            currency = assets[i]
-            uppercase = currency.upper()
-            uppercase = self.common_currency_code(uppercase)
+            currencyId = assets[i]
+            code = self.common_currency_code(currencyId.upper())
             account = self.account()
-            account['free'] = float(funds['free'][currency])
-            account['used'] = float(funds['freezed'][currency])
+            account['free'] = self.safe_float(free, currencyId)
+            account['used'] = self.safe_float(freezed, currencyId)
             account['total'] = account['free'] + account['used']
-            result[uppercase] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -479,14 +483,16 @@ class kkex (Exchange):
         return self.parse_orders(response['orders'], market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'status': 0,
-        }, params))
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'status': 1,
-        }, params))
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def nonce(self):
         return self.milliseconds()
@@ -499,7 +505,10 @@ class kkex (Exchange):
         else:
             self.check_required_credentials()
             nonce = self.nonce()
-            signature = self.extend({'nonce': nonce, 'api_key': self.apiKey}, params)
+            signature = self.extend({
+                'nonce': nonce,
+                'api_key': self.apiKey,
+            }, params)
             signature = self.urlencode(self.keysort(signature))
             signature += '&secret_key=' + self.secret
             signature = self.hash(self.encode(signature), 'md5')

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.671'
+__version__ = '1.18.736'
 
 # -----------------------------------------------------------------------------
 
@@ -367,6 +367,12 @@ class Exchange(object):
     def __del__(self):
         if self.session:
             self.session.close()
+
+    def __repr__(self):
+        return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
+
+    def __str__(self):
+        return self.name
 
     def describe(self):
         return {}
@@ -963,16 +969,16 @@ class Exchange(object):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
     @staticmethod
+    def binary_to_base64(s):
+        return Exchange.decode(base64.standard_b64encode(s))
+
+    @staticmethod
     def jwt(request, secret, alg='HS256'):
         algos = {
-            "RS256": hashes.SHA256(),
-            "RS384": hashes.SHA384(),
-            "RS512": hashes.SHA512(),
             'HS256': hashlib.sha256,
             'HS384': hashlib.sha384,
             'HS512': hashlib.sha512,
         }
-        algorithm = algos[alg]
         header = Exchange.encode(Exchange.json({
             'alg': alg,
             'typ': 'JWT',
@@ -981,12 +987,22 @@ class Exchange(object):
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
         if alg[:2] == 'RS':
-            priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
-            signature = priv_key.sign(Exchange.encode(token), padding.PKCS1v15(), algorithm)
+            signature = Exchange.rsa(token, secret, alg)
         else:
-            signature = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
-        signature = Exchange.base64urlencode(signature)
-        return token + '.' + signature
+            algorithm = algos[alg]
+            signature = Exchange.hmac(token, secret, algorithm, 'binary')
+        return token + '.' + Exchange.base64urlencode(signature)
+
+    @staticmethod
+    def rsa(request, secret, alg='RS256'):
+        algorithms = {
+            "RS256": hashes.SHA256(),
+            "RS384": hashes.SHA384(),
+            "RS512": hashes.SHA512(),
+        }
+        algorithm = algorithms[alg]
+        priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
+        return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
     def unjson(input):
