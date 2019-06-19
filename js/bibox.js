@@ -622,7 +622,8 @@ module.exports = class bibox extends Exchange {
         const request = {
             'cmd': 'orderpending/order',
             'body': this.extend ({
-                'id': id,
+                'id': id.toString (),
+                'account_type': 0, // 0 = spot account
             }, params),
         };
         const response = await this.privatePostOrderpending (request);
