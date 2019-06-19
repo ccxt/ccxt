@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.745'
+const version = '1.18.746'
 
 Exchange.ccxtVersion = version
 
@@ -90772,7 +90772,6 @@ module.exports = class zb extends Exchange {
             }
             account['free'] = this.safeFloat (balance, 'available');
             account['used'] = this.safeFloat (balance, 'freez');
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);

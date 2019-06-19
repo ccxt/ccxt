@@ -243,7 +243,6 @@ class zb (Exchange):
                 code = self.common_currency_code(self.safe_string(balance, 'enName'))
             account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'freez')
-            account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
         return self.parse_balance(result)
 
