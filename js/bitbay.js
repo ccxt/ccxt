@@ -392,8 +392,8 @@ module.exports = class bitbay extends Exchange {
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         const side = this.safeString (trade, 'type');
-        const price = this.safeString (trade, 'price');
-        const amount = this.safeString (trade, 'amount');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
