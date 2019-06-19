@@ -255,18 +255,18 @@ module.exports = class bitbay extends Exchange {
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
         }
-        const balance = response['balances'];
-        const result = { 'info': balance };
+        const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currency = this.currencies[code];
-            const currencyId = currency['id'];
-            const account = this.account ();
-            const balance = this.safeValue (balances, currencyId, {});
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'locked');
-            result[code] = account;
+            const currencyId = this.currencyId (code);
+            const balance = this.safeValue (balances, currencyId);
+            if (balance !== undefined) {
+                const account = this.account ();
+                account['free'] = this.safeFloat (balance, 'available');
+                account['used'] = this.safeFloat (balance, 'locked');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
