@@ -90,7 +90,7 @@ The ccxt library currently supports the following 136 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | bitbank            | `bitbank <https://bitbank.cc/>`__                                                          | 1     | `API <https://docs.bitbank.cc/>`__                                                              |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| bitbay             | `BitBay <https://bitbay.net>`__                                                            | \*    | `API <https://bitbay.net/public-api>`__                                                         |                                                                      |
+| bitbay             | `BitBay <https://auth.bitbay.net/ref/jHlbB4mIkdS1>`__                                      | \*    | `API <https://bitbay.net/public-api>`__                                                         |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | bitfinex           | `Bitfinex <https://www.bitfinex.com>`__                                                    | 1     | `API <https://docs.bitfinex.com/v1/docs>`__                                                     | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -384,14 +384,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.738/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.738/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.739/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.739/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.738/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.739/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
