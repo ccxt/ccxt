@@ -1517,6 +1517,29 @@ class Exchange {
 
     public function parse_balance($balance) {
         $currencies = array_keys($this->omit($balance, 'info'));
+
+        $balance['free'] = array();
+        $balance['used'] = array();
+        $balance['total'] = array();
+
+        foreach ($currencies as $currency) {
+            if ($currencies[$currency]['total'] === 0.0) {
+                if (isset($currencies[$currency]['free']) && isset($currencies[$currency]['used'])) {
+                    $currencies[$currency]['total'] = static::sum($currencies[$currency]['free'], $currencies[$currency]['used']);
+                }
+            }
+            if ($currencies[$currency]['used'] === 0.0) {
+                if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['free'])) {
+                    $currencies[$currency]['used'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['free']);
+                }
+            }
+            if ($currencies[$currency]['free'] === 0.0) {
+                if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['used'])) {
+                    $currencies[$currency]['free'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['used']);
+                }
+            }
+        }
+
         $accounts = array('free', 'used', 'total');
         foreach ($accounts as $account) {
             $balance[$account] = array();

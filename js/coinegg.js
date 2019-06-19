@@ -309,8 +309,9 @@ module.exports = class coinegg extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
-        const result = {};
-        const balances = this.omit (response['data'], 'uid');
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data', {});
+        const balances = this.omit (data, 'uid');
         const keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -318,23 +319,16 @@ module.exports = class coinegg extends Exchange {
             let code = currencyId;
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
             }
             if (!(code in result)) {
-                result[code] = {
-                    'free': undefined,
-                    'used': undefined,
-                    'total': undefined,
-                };
+                result[code] = this.account ();
             }
             const type = (accountType === 'lock') ? 'used' : 'free';
             result[code][type] = this.safeFloat (balances, key);
         }
-        const currencies = Object.keys (result);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            result[currency]['total'] = this.sum (result[currency]['free'], result[currency]['used']);
-        }
-        return this.parseBalance (this.extend ({ 'info': response }, result));
+        return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {

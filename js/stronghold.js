@@ -623,7 +623,6 @@ module.exports = class stronghold extends Exchange {
             const account = {};
             account['total'] = this.safeFloat (entry, 'amount', 0.0);
             account['free'] = this.safeFloat (entry, 'availableForTrade', 0.0);
-            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);

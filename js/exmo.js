@@ -606,7 +606,6 @@ module.exports = class exmo extends Exchange {
             if (currency in response['reserved']) {
                 account['used'] = this.safeFloat (response['reserved'], currency);
             }
-            account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
         return this.parseBalance (result);

@@ -161,16 +161,19 @@ module.exports = class bitflyer extends Exchange {
         //     ]
         //
         const result = { 'info': response };
-        const balances = {};
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency_code');
-            const code = this.commonCurrencyCode (currencyId);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'amount');
             account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = account['total'] - account['free'];
-            balances[code] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

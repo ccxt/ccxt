@@ -418,21 +418,19 @@ module.exports = class dx extends Exchange {
         const response = await this.privatePostBalanceGet (params);
         const result = { 'info': response };
         const balances = this.safeValue (response['result'], 'balance');
-        const ids = Object.keys (balances);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const balance = balances[id];
-            let code = undefined;
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const balance = this.safeValue (balances, currencyId, {});
+            if (currencyId in this.currencies_by_id) {
+                const code = this.currencies_by_id[currencyId]['code'];
+                const account = {
+                    'free': this.safeFloat (balance, 'available'),
+                    'used': this.safeFloat (balance, 'frozen'),
+                    'total': this.safeFloat (balance, 'total'),
+                };
+                result[code] = account;
             }
-            const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': this.safeFloat (balance, 'frozen'),
-                'total': this.safeFloat (balance, 'total'),
-            };
-            account['total'] = this.sum (account['free'], account['used']);
-            result[code] = account;
         }
         return this.parseBalance (result);
     }

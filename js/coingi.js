@@ -157,12 +157,9 @@ module.exports = class coingi extends Exchange {
             const currencyId = this.safeString (balance['currency'], 'name');
             let code = currencyId.toUpperCase ();
             code = this.commonCurrencyCode (code);
-            const account = {
-                'free': balance['available'],
-                'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = balance['available'];
+            account['used'] = balance['blocked'] + balance['inOrders'] + balance['withdrawing'];
             result[code] = account;
         }
         return this.parseBalance (result);

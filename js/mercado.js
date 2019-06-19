@@ -196,7 +196,6 @@ module.exports = class mercado extends Exchange {
                 const account = this.account ();
                 account['free'] = parseFloat (balances[lowercase]['available']);
                 account['total'] = parseFloat (balances[lowercase]['total']);
-                account['used'] = account['total'] - account['free'];
                 result[code] = account;
             }
         }

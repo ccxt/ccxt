@@ -312,14 +312,13 @@ module.exports = class kkex extends Exchange {
         const funds = this.safeValue (balances, 'funds');
         const free = this.safeValue (funds, 'free', {});
         const freezed = this.safeValue (funds, 'freezed', {});
-        const assets = Object.keys (funds['free']);
-        for (let i = 0; i < assets.length; i++) {
-            const currencyId = assets[i];
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
             const code = this.commonCurrencyCode (currencyId.toUpperCase ());
             const account = this.account ();
             account['free'] = this.safeFloat (free, currencyId);
             account['used'] = this.safeFloat (freezed, currencyId);
-            account['total'] = account['free'] + account['used'];
             result[code] = account;
         }
         return this.parseBalance (result);

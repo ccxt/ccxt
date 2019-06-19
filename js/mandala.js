@@ -485,12 +485,8 @@ module.exports = class mandala extends Exchange {
             const balance = data[i];
             const code = this.commonCurrencyCode (this.safeString (balance, 'currency'));
             const account = this.account ();
-            const free = this.safeFloat (balance, 'balance', 0);
-            const used = this.safeFloat (balance, 'balanceInTrade', 0);
-            const total = this.sum (free, used);
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = total;
+            account['free'] = this.safeFloat (balance, 'balance', 0.0);
+            account['used'] = this.safeFloat (balance, 'balanceInTrade', 0.0);
             result[code] = account;
         }
         return this.parseBalance (result);

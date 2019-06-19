@@ -112,9 +112,8 @@ module.exports = class independentreserve extends Exchange {
             const uppercase = currencyId.toUpperCase ();
             const code = this.commonCurrencyCode (uppercase);
             const account = this.account ();
-            account['free'] = balance['AvailableBalance'];
-            account['total'] = balance['TotalBalance'];
-            account['used'] = account['total'] - account['free'];
+            account['free'] = this.safeFloat (balance, 'AvailableBalance');
+            account['total'] = this.safeFloat (balance, 'TotalBalance');
             result[code] = account;
         }
         return this.parseBalance (result);

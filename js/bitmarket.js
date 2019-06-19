@@ -192,17 +192,18 @@ module.exports = class bitmarket extends Exchange {
         const balances = this.safeValue (data, 'balances', {});
         const available = this.safeValue (balances, 'available', {});
         const blocked = this.safeValue (balances, 'blocked', {});
-        const result = { 'info': data };
+        const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currency = this.currency (code);
-            const currencyId = currency['id'];
-            const account = this.account ();
-            account['free'] = this.safeFloat (available, currencyId);
-            account['used'] = this.safeFloat (blocked, currencyId);
-            account['total'] = this.sum (account['free'], account['used']);
-            result[code] = account;
+            const currencyId = this.currencyId (code);
+            const free = this.safeFloat (available, currencyId);
+            if (free !== undefined) {
+                const account = this.account ();
+                account['free'] = this.safeFloat (available, currencyId);
+                account['used'] = this.safeFloat (blocked, currencyId);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }

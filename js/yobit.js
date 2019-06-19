@@ -215,14 +215,9 @@ module.exports = class yobit extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            const account = {
-                'free': this.safeFloat (free, currencyId),
-                'used': undefined,
-                'total': this.safeFloat (total, currencyId),
-            };
-            if (account['total'] !== undefined && account['free'] !== undefined) {
-                account['used'] = account['total'] - account['free'];
-            }
+            const account = this.account ();
+            account['free'] = this.safeFloat (free, currencyId);
+            account['total'] = this.safeFloat (total, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);

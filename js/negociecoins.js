@@ -215,7 +215,6 @@ module.exports = class negociecoins extends Exchange {
                 'used': this.sum (openOrders, withdraw),
                 'total': this.safeFloat (balance, 'available'),
             };
-            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);

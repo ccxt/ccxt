@@ -718,19 +718,21 @@ module.exports = class anxpro extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostMoneyInfo (params);
         const balance = this.safeValue (response, 'data', {});
-        const wallets = balance['Wallets'];
-        const currencies = Object.keys (wallets);
+        const wallets = this.safeValue (balance, 'Wallets', {});
+        const currencyIds = Object.keys (wallets);
         const result = { 'info': balance };
-        for (let c = 0; c < currencies.length; c++) {
-            const currencyId = currencies[c];
-            const code = this.commonCurrencyCode (currencyId);
-            const account = this.account ();
-            if (currencyId in wallets) {
-                const wallet = wallets[currencyId];
-                account['free'] = this.safeFloat (wallet['Available_Balance'], 'value');
-                account['total'] = this.safeFloat (wallet['Balance'], 'value');
-                account['used'] = account['total'] - account['free'];
+        for (let c = 0; c < currencyIds.length; c++) {
+            const currencyId = currencyIds[c];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
             }
+            const account = this.account ();
+            const wallet = this.safeValue (wallets, currencyId);
+            account['free'] = this.safeFloat (wallet['Available_Balance'], 'value');
+            account['total'] = this.safeFloat (wallet['Balance'], 'value');
             result[code] = account;
         }
         return this.parseBalance (result);

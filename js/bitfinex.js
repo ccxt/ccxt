@@ -553,7 +553,6 @@ module.exports = class bitfinex extends Exchange {
                     const account = this.account ();
                     account['free'] = this.safeFloat (balance, 'available');
                     account['total'] = this.safeFloat (balance, 'amount');
-                    account['used'] = account['total'] - account['free'];
                     result[code] = account;
                 }
             }

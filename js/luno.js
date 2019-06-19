@@ -119,12 +119,9 @@ module.exports = class luno extends Exchange {
             const reserved = this.safeFloat (wallet, 'reserved');
             const unconfirmed = this.safeFloat (wallet, 'unconfirmed');
             const balance = this.safeFloat (wallet, 'balance');
-            const account = {
-                'free': 0.0,
-                'used': this.sum (reserved, unconfirmed),
-                'total': this.sum (balance, unconfirmed),
-            };
-            account['free'] = account['total'] - account['used'];
+            const account = this.account ();
+            account['used'] = this.sum (reserved, unconfirmed);
+            account['total'] = this.sum (balance, unconfirmed);
             result[code] = account;
         }
         return this.parseBalance (result);
