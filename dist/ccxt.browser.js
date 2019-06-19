@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.736'
+const version = '1.18.737'
 
 Exchange.ccxtVersion = version
 
@@ -10277,12 +10277,14 @@ module.exports = class bitbay extends Exchange {
             const code = codes[i];
             const currency = this.currencies[code];
             const currencyId = currency['id'];
-            const account = this.account ();
-            const balance = this.safeValue (balances, currencyId, {});
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'locked');
-            account['total'] = this.sum (account['free'], account['used']);
-            result[code] = account;
+            const balance = this.safeValue (balances, currencyId);
+            if (balance !== undefined) {
+                const account = this.account ();
+                account['free'] = this.safeFloat (balance, 'available');
+                account['used'] = this.safeFloat (balance, 'locked');
+                account['total'] = this.sum (account['free'], account['used']);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -18462,13 +18464,10 @@ module.exports = class bitstamp1 extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const currencyId = currency['id'];
-            const total = currencyId + '_balance';
-            const free = currencyId + '_available';
-            const used = currencyId + '_reserved';
             const account = this.account ();
-            account['free'] = this.safeFloat (balance, free, 0.0);
-            account['used'] = this.safeFloat (balance, used, 0.0);
-            account['total'] = this.safeFloat (balance, total, 0.0);
+            account['free'] = this.safeFloat (balance, currencyId + '_available', 0.0);
+            account['used'] = this.safeFloat (balance, currencyId + '_reserved', 0.0);
+            account['total'] = this.safeFloat (balance, currencyId + '_balance', 0.0);
             result[currency] = account;
         }
         return this.parseBalance (result);
@@ -22892,13 +22891,15 @@ module.exports = class btcbox extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const currencyId = currency['id'];
-            const account = this.account ();
             const free = currencyId + '_balance';
-            const used = currencyId + '_lock';
-            account['free'] = this.safeFloat (response, free);
-            account['used'] = this.safeFloat (response, used);
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+            if (free in response) {
+                const account = this.account ();
+                const used = currencyId + '_lock';
+                account['free'] = this.safeFloat (response, free);
+                account['used'] = this.safeFloat (response, used);
+                account['total'] = this.sum (account['free'], account['used']);
+                result[currency] = account;
+            }
         }
         return this.parseBalance (result);
     }

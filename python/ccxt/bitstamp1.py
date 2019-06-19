@@ -168,13 +168,10 @@ class bitstamp1 (Exchange):
             code = codes[i]
             currency = self.currency(code)
             currencyId = currency['id']
-            total = currencyId + '_balance'
-            free = currencyId + '_available'
-            used = currencyId + '_reserved'
             account = self.account()
-            account['free'] = self.safe_float(balance, free, 0.0)
-            account['used'] = self.safe_float(balance, used, 0.0)
-            account['total'] = self.safe_float(balance, total, 0.0)
+            account['free'] = self.safe_float(balance, currencyId + '_available', 0.0)
+            account['used'] = self.safe_float(balance, currencyId + '_reserved', 0.0)
+            account['total'] = self.safe_float(balance, currencyId + '_balance', 0.0)
             result[currency] = account
         return self.parse_balance(result)
 

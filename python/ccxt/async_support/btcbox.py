@@ -85,13 +85,14 @@ class btcbox (Exchange):
             code = codes[i]
             currency = self.currency(code)
             currencyId = currency['id']
-            account = self.account()
             free = currencyId + '_balance'
-            used = currencyId + '_lock'
-            account['free'] = self.safe_float(response, free)
-            account['used'] = self.safe_float(response, used)
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            if free in response:
+                account = self.account()
+                used = currencyId + '_lock'
+                account['free'] = self.safe_float(response, free)
+                account['used'] = self.safe_float(response, used)
+                account['total'] = self.sum(account['free'], account['used'])
+                result[currency] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

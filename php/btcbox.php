@@ -79,13 +79,15 @@ class btcbox extends Exchange {
             $code = $codes[$i];
             $currency = $this->currency ($code);
             $currencyId = $currency['id'];
-            $account = $this->account ();
             $free = $currencyId . '_balance';
-            $used = $currencyId . '_lock';
-            $account['free'] = $this->safe_float($response, $free);
-            $account['used'] = $this->safe_float($response, $used);
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            if (is_array($response) && array_key_exists($free, $response)) {
+                $account = $this->account ();
+                $used = $currencyId . '_lock';
+                $account['free'] = $this->safe_float($response, $free);
+                $account['used'] = $this->safe_float($response, $used);
+                $account['total'] = $this->sum ($account['free'], $account['used']);
+                $result[$currency] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
