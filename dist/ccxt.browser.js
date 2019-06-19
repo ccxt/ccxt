@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.748'
+const version = '1.18.749'
 
 Exchange.ccxtVersion = version
 
@@ -62358,7 +62358,12 @@ module.exports = class nova extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            const code = this.commonCurrencyCode (currencyId);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
             const lockbox = this.safeFloat (balance, 'amount_lockbox');
             const trades = this.safeFloat (balance, 'amount_trades');
             const account = {
@@ -62944,20 +62949,21 @@ module.exports = class oceanex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetMembersMe (params);
-        const balances = this.safeValue (this.safeValue (response, 'data'), 'accounts');
-        const result = { 'info': balances };
+        const data = this.safeValue (response, 'data');
+        const balances = this.safeValue (data, 'accounts');
+        const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeValue (balance, 'currency');
-            const uppercaseId = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercaseId);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const account = this.account ();
-            const free = this.safeFloat (balance, 'balance');
-            const used = this.safeFloat (balance, 'locked');
-            const total = this.sum (free, used);
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = total;
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -64799,6 +64805,7 @@ module.exports = class okex3 extends Exchange {
                     '35031': InvalidOrder, // { "code": 35031, "message": "Cancel order size too large" }
                     '35032': ExchangeError, // { "code": 35032, "message": "Invalid user status" }
                     '35039': ExchangeError, // { "code": 35039, "message": "Open order quantity exceeds limit" }
+                    '35040': InvalidOrder, // {"error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1"}
                     '35044': ExchangeError, // { "code": 35044, "message": "Invalid order status" }
                     '35046': InsufficientFunds, // { "code": 35046, "message": "Negative account balance" }
                     '35047': InsufficientFunds, // { "code": 35047, "message": "Insufficient account balance" }
@@ -65534,19 +65541,16 @@ module.exports = class okex3 extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
-            const code = this.commonCurrencyCode (currencyId);
-            const account = this.account ();
-            const total = this.safeFloat (balance, 'balance');
-            const used = this.safeFloat (balance, 'hold');
-            let free = this.safeFloat (balance, 'available');
-            if (free === undefined) {
-                if ((total !== undefined) && (used !== undefined)) {
-                    free = total - used;
-                }
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
             }
-            account['total'] = total;
-            account['used'] = used;
-            account['free'] = free;
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'hold');
+            account['free'] = this.safeFloat (balance, 'available');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -65612,19 +65616,16 @@ module.exports = class okex3 extends Exchange {
                 if (key.indexOf (':') >= 0) {
                     const parts = key.split (':');
                     const currencyId = parts[1];
-                    const code = this.commonCurrencyCode (currencyId);
-                    const account = this.account ();
-                    const total = this.safeFloat (marketBalance, 'balance');
-                    const used = this.safeFloat (marketBalance, 'hold');
-                    let free = this.safeFloat (marketBalance, 'available');
-                    if (free === undefined) {
-                        if ((total !== undefined) && (used !== undefined)) {
-                            free = total - used;
-                        }
+                    let code = currencyId;
+                    if (currencyId in this.currencies_by_id) {
+                        code = this.currencies_by_id[currencyId]['code'];
+                    } else {
+                        code = this.commonCurrencyCode (currencyId);
                     }
-                    account['total'] = total;
-                    account['used'] = used;
-                    account['free'] = free;
+                    const account = this.account ();
+                    account['total'] = this.safeFloat (marketBalance, 'balance');
+                    account['used'] = this.safeFloat (marketBalance, 'hold');
+                    account['free'] = this.safeFloat (marketBalance, 'available');
                     accounts[code] = account;
                 } else {
                     throw new NotSupported (this.id + ' margin balance response format has changed!');
@@ -65679,15 +65680,8 @@ module.exports = class okex3 extends Exchange {
             const balance = this.safeValue (info, lowercaseId, {});
             const account = this.account ();
             // it may be incorrect to use total, free and used for swap accounts
-            const total = this.safeFloat (balance, 'equity');
-            const free = this.safeFloat (balance, 'total_avail_balance');
-            let used = undefined;
-            if ((total !== undefined) && (free !== undefined)) {
-                used = Math.max (0, total - free);
-            }
-            account['total'] = total;
-            account['used'] = used;
-            account['free'] = free;
+            account['total'] = this.safeFloat (balance, 'equity');
+            account['free'] = this.safeFloat (balance, 'total_avail_balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -65715,25 +65709,19 @@ module.exports = class okex3 extends Exchange {
         //
         // their root field name is "info", so our info will contain their info
         const result = { 'info': response };
-        const info = this.safeValue (response, 'info', {});
-        const lowercaseIds = Object.keys (info);
-        for (let i = 0; i < lowercaseIds.length; i++) {
-            const lowercaseId = lowercaseIds[i];
-            const id = lowercaseId.toUpperCase ();
-            const code = this.commonCurrencyCode (id);
-            const balance = this.safeValue (info, lowercaseId, {});
+        const info = this.safeValue (response, 'info', []);
+        for (let i = 0; i < info.length; i++) {
+            const balance = info[i];
+            const marketId = this.safeString (balance, 'instrument_id');
+            let symbol = marketId;
+            if (marketId in this.markets_by_id) {
+                symbol = this.markets_by_id[marketId]['symbol'];
+            }
             const account = this.account ();
             // it may be incorrect to use total, free and used for swap accounts
-            const total = this.safeFloat (balance, 'equity');
-            const free = this.safeFloat (balance, 'total_avail_balance');
-            let used = undefined;
-            if ((total !== undefined) && (free !== undefined)) {
-                used = Math.max (0, total - free);
-            }
-            account['total'] = total;
-            account['used'] = used;
-            account['free'] = free;
-            result[code] = account;
+            account['total'] = this.safeFloat (balance, 'equity');
+            account['free'] = this.safeFloat (balance, 'total_avail_balance');
+            result[symbol] = account;
         }
         return this.parseBalance (result);
     }
@@ -69158,7 +69146,7 @@ module.exports = class rightbtc extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const balances = response['result'];
+        const balances = this.safeValue (response, 'result', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset');

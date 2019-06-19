@@ -178,7 +178,11 @@ class nova (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             lockbox = self.safe_float(balance, 'amount_lockbox')
             trades = self.safe_float(balance, 'amount_trades')
             account = {
