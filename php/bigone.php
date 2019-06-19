@@ -19,7 +19,7 @@ class bigone extends Exchange {
                 'cancelAllOrders' => true,
                 'createMarketOrder' => false,
                 'fetchDepositAddress' => true,
-                'fetchMyTrades' => true,
+                'fetchMyTrades' => false,
                 'fetchOHLCV' => false,
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,

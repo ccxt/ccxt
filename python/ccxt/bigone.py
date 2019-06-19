@@ -24,7 +24,7 @@ class bigone (Exchange):
                 'cancelAllOrders': True,
                 'createMarketOrder': False,
                 'fetchDepositAddress': True,
-                'fetchMyTrades': True,
+                'fetchMyTrades': False,
                 'fetchOHLCV': False,
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
