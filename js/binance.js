@@ -311,7 +311,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetAccount (params);
         const result = { 'info': response };
-        const balances = response['balances'];
+        const balances = this.safeValue (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = balance['asset'];
