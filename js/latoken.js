@@ -327,20 +327,20 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchCurrencies (symbol = undefined, params = {}) {
+        const request = {
+            'symbol': symbol,
+        };
         if (symbol !== undefined) {
-            const request = {
-                'symbol': symbol,
-            };
             const currencies = await this.publicGetExchangeInfoCurrencies (this.extend (request, params));
             const id = currencies['currencyId'];
-            const symb = currencies['symbol'];
+            const symbol = currencies['symbol'];
             const name = currencies['name'];
             const precision = currencies['precission'];
             const type = currencies['type'];
             const fee = currencies['fee'];
             return {
                 'id': id,
-                'symbol': symb,
+                'symbol': symbol,
                 'name': name,
                 'precision': precision,
                 'type': type,
@@ -557,6 +557,8 @@ module.exports = class latoken extends Exchange {
         if (api === 'public') {
             headers = {
                 'Content-type': 'application/json',
+                'x-lat-timestamp': this.nonce (),
+                'x-lat-timeframe': this.options['timeframe'],
             };
             if (path === 'exchangeInfo/pairs' && Object.keys (params).length) {
                 url += '/' + params['currency'];
