@@ -185,17 +185,25 @@ module.exports = class mercado extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetAccountInfo (params);
-        const balances = this.safeValue (response['response_data'], 'balance');
+        const data = this.safeValue (response, 'response_data', {});
+        const balances = this.safeValue (data, 'balance', {});
         const result = { 'info': response };
-        const currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            const code = currencies[i];
-            const currencyId = this.currencyId (code);
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
+            // const currencyId = this.currencyId (code);
             const lowercase = currencyId.toLowerCase ();
             if (lowercase in balances) {
+                const balance = this.safeValue (balances, lowercase, {});
                 const account = this.account ();
-                account['free'] = parseFloat (balances[lowercase]['available']);
-                account['total'] = parseFloat (balances[lowercase]['total']);
+                account['free'] = parseFloat (balance, 'available');
+                account['total'] = this.safeFloat (balance, 'total');
                 result[code] = account;
             }
         }
