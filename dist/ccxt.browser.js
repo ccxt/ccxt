@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.733'
+const version = '1.18.734'
 
 Exchange.ccxtVersion = version
 
@@ -6590,7 +6590,8 @@ module.exports = class bibox extends Exchange {
         const request = {
             'cmd': 'orderpending/order',
             'body': this.extend ({
-                'id': id,
+                'id': id.toString (),
+                'account_type': 0, // 0 = spot account
             }, params),
         };
         const response = await this.privatePostOrderpending (request);

@@ -623,7 +623,8 @@ class bibox extends Exchange {
         $request = array (
             'cmd' => 'orderpending/order',
             'body' => array_merge (array (
-                'id' => $id,
+                'id' => (string) $id,
+                'account_type' => 0, // 0 = spot account
             ), $params),
         );
         $response = $this->privatePostOrderpending ($request);

@@ -587,7 +587,8 @@ class bibox (Exchange):
         request = {
             'cmd': 'orderpending/order',
             'body': self.extend({
-                'id': id,
+                'id': str(id),
+                'account_type': 0,  # 0 = spot account
             }, params),
         }
         response = await self.privatePostOrderpending(request)
