@@ -267,12 +267,24 @@ module.exports = class liquid extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const balances = await this.privateGetAccountsBalance (params);
-        const result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            const balance = balances[b];
-            const currencyId = balance['currency'];
-            const code = this.commonCurrencyCode (currencyId);
+        const response = await this.privateGetAccountsBalance (params);
+        //
+        //     [
+        //         {"currency":"USD","balance":"0.0"},
+        //         {"currency":"BTC","balance":"0.0"},
+        //         {"currency":"ETH","balance":"0.1651354"}
+        //     ]
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const total = this.safeFloat (balance, 'balance');
             const account = {
                 'free': total,
