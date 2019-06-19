@@ -399,7 +399,7 @@ module.exports = class rightbtc extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const balances = response['result'];
+        const balances = this.safeValue (response, 'result', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset');
