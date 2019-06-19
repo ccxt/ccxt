@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.729'
+const version = '1.18.732'
 
 Exchange.ccxtVersion = version
 
@@ -5262,7 +5262,7 @@ module.exports = class bcex extends Exchange {
                 'www': 'https://www.bcex.top',
                 'doc': 'https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface',
                 'fees': 'https://bcex.udesk.cn/hc/articles/57085',
-                'referral': 'https://www.bcex.top/user/reg/type/2/pid/758978',
+                'referral': 'https://www.bcex.top/register?invite_code=758978&lang=en',
             },
             'api': {
                 'public': {
@@ -5959,6 +5959,7 @@ module.exports = class bequant extends hitbtc2 {
                 'fees': [
                     'https://bequant.io/fees-and-limits',
                 ],
+                'referral': 'https://bequant.io',
             },
         });
     }
@@ -6021,7 +6022,7 @@ module.exports = class bibox extends Exchange {
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
-                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
+                'referral': 'https://www.bibox.com/signPage?id=11468678&lang=en',
             },
             'api': {
                 'public': {

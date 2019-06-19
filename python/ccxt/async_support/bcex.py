@@ -40,7 +40,7 @@ class bcex (Exchange):
                 'www': 'https://www.bcex.top',
                 'doc': 'https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface',
                 'fees': 'https://bcex.udesk.cn/hc/articles/57085',
-                'referral': 'https://www.bcex.top/user/reg/type/2/pid/758978',
+                'referral': 'https://www.bcex.top/register?invite_code=758978&lang=en',
             },
             'api': {
                 'public': {

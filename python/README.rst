@@ -74,11 +74,11 @@ The ccxt library currently supports the following 136 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | anybits            | `Anybits <https://bitsane.com?ref=CGOvuPA2LR3GcdOUOKjc>`__                                 | \*    | `API <https://anybits.com/help/api>`__                                                          |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| bcex               | `BCEX <https://www.bcex.top/user/reg/type/2/pid/758978>`__                                 | 1     | `API <https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface>`__                    |                                                                      |
+| bcex               | `BCEX <https://www.bcex.top/register?invite_code=758978&lang=en>`__                        | 1     | `API <https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface>`__                    |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| bequant            | `Bequant <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                     | 2     | `API <https://api.bequant.io/>`__                                                               |                                                                      |
+| bequant            | `Bequant <https://bequant.io>`__                                                           | 2     | `API <https://api.bequant.io/>`__                                                               |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| bibox              | `Bibox <https://www.bibox.com/signPage?id=11114745&lang=en>`__                             | 1     | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                |                                                                      |
+| bibox              | `Bibox <https://www.bibox.com/signPage?id=11468678&lang=en>`__                             | 1     | `API <https://github.com/Biboxcom/api_reference/wiki/home_en>`__                                |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | bigone             | `BigONE <https://b1.run/users/new?code=D3LLBVFT>`__                                        | 2     | `API <https://open.big.one/docs/api.html>`__                                                    |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -384,14 +384,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.729/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.729/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.732/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.732/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.729/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.732/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
