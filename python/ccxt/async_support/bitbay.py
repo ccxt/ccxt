@@ -261,12 +261,13 @@ class bitbay (Exchange):
             code = codes[i]
             currency = self.currencies[code]
             currencyId = currency['id']
-            account = self.account()
-            balance = self.safe_value(balances, currencyId, {})
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'locked')
-            account['total'] = self.sum(account['free'], account['used'])
-            result[code] = account
+            balance = self.safe_value(balances, currencyId)
+            if balance is not None:
+                account = self.account()
+                account['free'] = self.safe_float(balance, 'available')
+                account['used'] = self.safe_float(balance, 'locked')
+                account['total'] = self.sum(account['free'], account['used'])
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
