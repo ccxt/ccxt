@@ -234,18 +234,15 @@ class gateio (Exchange):
         self.load_markets()
         response = self.privatePostBalances(params)
         result = {'info': response}
-        codes = list(self.currencies.keys())
         available = self.safe_value(response, 'available', {})
         locked = self.safe_value(response, 'locked', {})
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currencies[code]
-            currencyId = currency['id']
-            uppercaseId = currencyId.upper()
+        currencyIds = list(available.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.common_currency_code(currencyId.upper())
             account = self.account()
-            account['free'] = self.safe_float(available, uppercaseId)
-            account['used'] = self.safe_float(locked, uppercaseId)
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = self.safe_float(available, currencyId)
+            account['used'] = self.safe_float(locked, currencyId)
             result[code] = account
         return self.parse_balance(result)
 

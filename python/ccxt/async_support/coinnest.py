@@ -226,11 +226,7 @@ class coinnest (Exchange):
             uppercase = currencyId.upper()
             code = self.common_currency_code(uppercase)
             if not(code in list(result.keys())):
-                result[code] = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': 0.0,
-                }
+                result[code] = self.account()
             type = (type == 'used' if 'reserved' else 'free')
             result[code][type] = self.safe_float(response, key)
             otherType = (type == 'free' if 'used' else 'used')

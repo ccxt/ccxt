@@ -253,20 +253,20 @@ class bitmex (Exchange):
         }
         response = self.privateGetUserMargin(self.extend(request, params))
         result = {'info': response}
-        for b in range(0, len(response)):
-            balance = response[b]
+        for i in range(0, len(response)):
+            balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            currencyId = currencyId.upper()
-            code = self.common_currency_code(currencyId)
-            account = {
-                'free': balance['availableMargin'],
-                'used': 0.0,
-                'total': balance['marginBalance'],
-            }
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'availableMargin')
+            account['total'] = self.safe_float(balance, 'marginBalance')
             if code == 'BTC':
                 account['free'] = account['free'] * 0.00000001
                 account['total'] = account['total'] * 0.00000001
-            account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
 

@@ -81,15 +81,13 @@ class paymium (Exchange):
         for i in range(0, len(currencies)):
             code = currencies[i]
             currencyId = self.currencyId(code)
-            account = self.account()
-            balance = 'balance_' + currencyId
-            locked = 'locked_' + currencyId
-            if balance in response:
-                account['free'] = response[balance]
-            if locked in response:
-                account['used'] = response[locked]
-            account['total'] = self.sum(account['free'], account['used'])
-            result[code] = account
+            free = 'balance_' + currencyId
+            if free in response:
+                account = self.account()
+                used = 'locked_' + currencyId
+                account['free'] = self.safe_float(response, free)
+                account['used'] = self.safe_float(response, used)
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

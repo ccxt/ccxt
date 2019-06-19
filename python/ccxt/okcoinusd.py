@@ -722,9 +722,8 @@ class okcoinusd (Exchange):
             else:
                 code = self.common_currency_code(code)
             account = self.account()
-            account['free'] = self.safe_float(balances['free'], id, 0.0)
-            account['used'] = self.safe_float(balances[usedField], id, 0.0)
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = self.safe_float(balances['free'], id)
+            account['used'] = self.safe_float(balances[usedField], id)
             result[code] = account
         return self.parse_balance(result)
 

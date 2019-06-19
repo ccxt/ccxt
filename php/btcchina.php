@@ -136,7 +136,6 @@ class btcchina extends Exchange {
             if (is_array($balances['frozen']) && array_key_exists($currencyId, $balances['frozen'])) {
                 $account['used'] = floatval ($balances['frozen'][$currencyId]['amount']);
             }
-            $account['free'] = $account['total'] - $account['used'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

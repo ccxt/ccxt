@@ -396,12 +396,9 @@ class cex extends Exchange {
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($balances, $currencyId, array());
-            $account = array (
-                'free' => $this->safe_float($balance, 'available', 0.0),
-                'used' => $this->safe_float($balance, 'orders', 0.0),
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['used'] = $this->safe_float($balance, 'orders');
             $code = $this->common_currency_code($currencyId);
             $result[$code] = $account;
         }

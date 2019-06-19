@@ -283,17 +283,18 @@ class poloniex (Exchange):
         }
         response = self.privatePostReturnCompleteBalances(self.extend(request, params))
         result = {'info': response}
-        currencies = list(response.keys())
-        for i in range(0, len(currencies)):
-            currencyId = currencies[i]
-            balance = response[currencyId]
-            code = self.common_currency_code(currencyId)
-            account = {
-                'free': self.safe_float(balance, 'available'),
-                'used': self.safe_float(balance, 'onOrders'),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+        currencyIds = list(response.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            balance = self.safe_value(response, currencyId, {})
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'onOrders')
             result[code] = account
         return self.parse_balance(result)
 

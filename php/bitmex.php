@@ -250,21 +250,22 @@ class bitmex extends Exchange {
         );
         $response = $this->privateGetUserMargin (array_merge ($request, $params));
         $result = array( 'info' => $response );
-        for ($b = 0; $b < count ($response); $b++) {
-            $balance = $response[$b];
+        for ($i = 0; $i < count ($response); $i++) {
+            $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $currencyId = strtoupper($currencyId);
-            $code = $this->common_currency_code($currencyId);
-            $account = array (
-                'free' => $balance['availableMargin'],
-                'used' => 0.0,
-                'total' => $balance['marginBalance'],
-            );
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'availableMargin');
+            $account['total'] = $this->safe_float($balance, 'marginBalance');
             if ($code === 'BTC') {
                 $account['free'] = $account['free'] * 0.00000001;
                 $account['total'] = $account['total'] * 0.00000001;
             }
-            $account['used'] = $account['total'] - $account['free'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

@@ -599,7 +599,6 @@ class exmo (Exchange):
                 account['free'] = self.safe_float(response['balances'], currency)
             if currency in response['reserved']:
                 account['used'] = self.safe_float(response['reserved'], currency)
-            account['total'] = self.sum(account['free'], account['used'])
             result[currency] = account
         return self.parse_balance(result)
 

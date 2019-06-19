@@ -117,13 +117,14 @@ class coincheck extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($codes); $i++) {
             $code = $codes[$i];
-            $currencyId = $this->currency ($code);
-            $account = $this->account ();
-            $reserved = $currencyId . '_reserved';
-            $account['free'] = $this->safe_float($balances, $currencyId);
-            $account['used'] = $this->safe_float($balances, $reserved);
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$code] = $account;
+            $currencyId = $this->currencyId ($code);
+            if (is_array($balances) && array_key_exists($currencyId, $balances)) {
+                $account = $this->account ();
+                $reserved = $currencyId . '_reserved';
+                $account['free'] = $this->safe_float($balances, $currencyId);
+                $account['used'] = $this->safe_float($balances, $reserved);
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }

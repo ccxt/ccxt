@@ -273,13 +273,15 @@ class bitlish (Exchange):
         currencyIds = list(response.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId.upper()
-            code = self.common_currency_code(code)
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             account = self.account()
             balance = self.safe_value(response, currencyId, {})
             account['free'] = self.safe_float(balance, 'funds')
             account['used'] = self.safe_float(balance, 'holded')
-            account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
         return self.parse_balance(result)
 

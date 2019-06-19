@@ -216,7 +216,6 @@ class negociecoins extends Exchange {
                 'used' => $this->sum ($openOrders, $withdraw),
                 'total' => $this->safe_float($balance, 'available'),
             );
-            $account['used'] = $account['total'] - $account['free'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

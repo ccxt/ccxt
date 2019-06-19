@@ -439,7 +439,6 @@ class bibox extends Exchange {
             } else {
                 $account['free'] = $this->safe_float($balance, 'balance');
                 $account['used'] = $this->safe_float($balance, 'freeze');
-                $account['total'] = $this->sum ($account['free'], $account['used']);
             }
             $result[$code] = $account;
         }

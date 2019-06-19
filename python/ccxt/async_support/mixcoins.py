@@ -58,18 +58,21 @@ class mixcoins (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostInfo(params)
-        balance = self.safe_value(response['result'], 'wallet')
-        result = {'info': balance}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            code = currencies[i]
-            currencyId = self.currencyid(code)
-            if currencyId in balance:
-                account = self.account()
-                account['free'] = self.safe_float(balance[currencyId], 'avail')
-                account['used'] = self.safe_float(balance[currencyId], 'lock')
-                account['total'] = self.sum(account['free'], account['used'])
-                result[code] = account
+        balances = self.safe_value(response['result'], 'wallet')
+        result = {'info': response}
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
+            balance = self.safe_value(balances, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'avail')
+            account['used'] = self.safe_float(balance, 'lock')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

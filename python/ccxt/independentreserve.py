@@ -109,9 +109,8 @@ class independentreserve (Exchange):
             uppercase = currencyId.upper()
             code = self.common_currency_code(uppercase)
             account = self.account()
-            account['free'] = balance['AvailableBalance']
-            account['total'] = balance['TotalBalance']
-            account['used'] = account['total'] - account['free']
+            account['free'] = self.safe_float(balance, 'AvailableBalance')
+            account['total'] = self.safe_float(balance, 'TotalBalance')
             result[code] = account
         return self.parse_balance(result)
 

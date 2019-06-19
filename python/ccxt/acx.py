@@ -142,14 +142,14 @@ class acx (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId.upper()
-            code = self.common_currency_code(code)
-            account = {
-                'free': self.safe_float(balance, 'balance'),
-                'used': self.safe_float(balance, 'locked'),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 

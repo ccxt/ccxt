@@ -418,21 +418,19 @@ class dx extends Exchange {
         $response = $this->privatePostBalanceGet ($params);
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response['result'], 'balance');
-        $ids = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $balance = $balances[$id];
-            $code = null;
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$id]['code'];
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $balance = $this->safe_value($balances, $currencyId, array());
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+                $account = array (
+                    'free' => $this->safe_float($balance, 'available'),
+                    'used' => $this->safe_float($balance, 'frozen'),
+                    'total' => $this->safe_float($balance, 'total'),
+                );
+                $result[$code] = $account;
             }
-            $account = array (
-                'free' => $this->safe_float($balance, 'available'),
-                'used' => $this->safe_float($balance, 'frozen'),
-                'total' => $this->safe_float($balance, 'total'),
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

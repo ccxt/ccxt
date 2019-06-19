@@ -311,7 +311,7 @@ class binance extends Exchange {
         $this->load_markets();
         $response = $this->privateGetAccount ($params);
         $result = array( 'info' => $response );
-        $balances = $response['balances'];
+        $balances = $this->safe_value($response, 'balances', array());
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $balance['asset'];
@@ -321,12 +321,9 @@ class binance extends Exchange {
             } else {
                 $code = $this->common_currency_code($currencyId);
             }
-            $account = array (
-                'free' => floatval ($balance['free']),
-                'used' => floatval ($balance['locked']),
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'free');
+            $account['used'] = $this->safe_float($balance, 'locked');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

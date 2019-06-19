@@ -427,10 +427,8 @@ class upbit extends Exchange {
             $balance = $indexed[$id];
             $free = $this->safe_float($balance, 'balance');
             $used = $this->safe_float($balance, 'locked');
-            $total = $this->sum ($free, $used);
             $account['free'] = $free;
             $account['used'] = $used;
-            $account['total'] = $total;
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);

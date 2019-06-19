@@ -627,7 +627,6 @@ class huobipro extends Exchange {
             if ($balance['type'] === 'frozen') {
                 $account['used'] = $this->safe_float($balance, 'balance');
             }
-            $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

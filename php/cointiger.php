@@ -488,16 +488,16 @@ class cointiger extends huobipro {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $id = $balance['coin'];
-            $code = strtoupper($id);
-            $code = $this->common_currency_code($code);
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$id]['code'];
+            $currencyId = $this->safe_string($balance, 'coin');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = strtoupper($currencyId);
             }
             $account = $this->account ();
             $account['used'] = $this->safe_float($balance, 'lock');
             $account['free'] = $this->safe_float($balance, 'normal');
-            $account['total'] = $this->sum ($account['used'], $account['free']);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

@@ -481,12 +481,8 @@ class mandala (Exchange):
             balance = data[i]
             code = self.common_currency_code(self.safe_string(balance, 'currency'))
             account = self.account()
-            free = self.safe_float(balance, 'balance', 0)
-            used = self.safe_float(balance, 'balanceInTrade', 0)
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
+            account['free'] = self.safe_float(balance, 'balance', 0.0)
+            account['used'] = self.safe_float(balance, 'balanceInTrade', 0.0)
             result[code] = account
         return self.parse_balance(result)
 

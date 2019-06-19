@@ -357,12 +357,9 @@ class lbank extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $code = $this->common_currency_code(strtoupper($id));
-            $account = array (
-                'free' => $this->safe_float($free, $id, 0.0),
-                'used' => $this->safe_float($freeze, $id, 0.0),
-                'total' => null,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($free, $id);
+            $account['used'] = $this->safe_float($freeze, $id);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

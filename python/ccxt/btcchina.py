@@ -132,7 +132,6 @@ class btcchina (Exchange):
                 account['total'] = float(balances['balance'][currencyId]['amount'])
             if currencyId in balances['frozen']:
                 account['used'] = float(balances['frozen'][currencyId]['amount'])
-            account['free'] = account['total'] - account['used']
             result[code] = account
         return self.parse_balance(result)
 

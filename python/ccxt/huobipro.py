@@ -584,7 +584,6 @@ class huobipro (Exchange):
                 account['free'] = self.safe_float(balance, 'balance')
             if balance['type'] == 'frozen':
                 account['used'] = self.safe_float(balance, 'balance')
-            account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
         return self.parse_balance(result)
 

@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.740'
+const version = '1.18.741'
 
 Exchange.ccxtVersion = version
 
@@ -297,9 +297,8 @@ module.exports = class _1btcxe extends Exchange {
             const currency = this.currency (code);
             const currencyId = currency['id'];
             const account = this.account ();
-            account['free'] = this.safeFloat (balance['available'], currencyId, 0.0);
-            account['used'] = this.safeFloat (balance['on_hold'], currencyId, 0.0);
-            account['total'] = this.sum (account['free'], account['used']);
+            account['free'] = this.safeFloat (balance['available'], currencyId);
+            account['used'] = this.safeFloat (balance['on_hold'], currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -643,14 +642,15 @@ module.exports = class acx extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            let code = currencyId.toUpperCase ();
-            code = this.commonCurrencyCode (code);
-            const account = {
-                'free': this.safeFloat (balance, 'balance'),
-                'used': this.safeFloat (balance, 'locked'),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -1828,19 +1828,21 @@ module.exports = class anxpro extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostMoneyInfo (params);
         const balance = this.safeValue (response, 'data', {});
-        const wallets = balance['Wallets'];
-        const currencies = Object.keys (wallets);
+        const wallets = this.safeValue (balance, 'Wallets', {});
+        const currencyIds = Object.keys (wallets);
         const result = { 'info': balance };
-        for (let c = 0; c < currencies.length; c++) {
-            const currencyId = currencies[c];
-            const code = this.commonCurrencyCode (currencyId);
-            const account = this.account ();
-            if (currencyId in wallets) {
-                const wallet = wallets[currencyId];
-                account['free'] = this.safeFloat (wallet['Available_Balance'], 'value');
-                account['total'] = this.safeFloat (wallet['Balance'], 'value');
-                account['used'] = account['total'] - account['free'];
+        for (let c = 0; c < currencyIds.length; c++) {
+            const currencyId = currencyIds[c];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
             }
+            const account = this.account ();
+            const wallet = this.safeValue (wallets, currencyId);
+            account['free'] = this.safeFloat (wallet['Available_Balance'], 'value');
+            account['total'] = this.safeFloat (wallet['Balance'], 'value');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -3213,9 +3215,9 @@ module.exports = class Exchange {
 
     account () {
         return {
-            'free': 0.0,
-            'used': 0.0,
-            'total': 0.0,
+            'free': 0,
+            'used': 0,
+            'total': 0,
         }
     }
 
@@ -3380,23 +3382,27 @@ module.exports = class Exchange {
 
         const currencies = Object.keys (this.omit (balance, 'info'));
 
+        balance['free'] = {}
+        balance['used'] = {}
+        balance['total'] = {}
+
         currencies.forEach ((currency) => {
 
-            if (balance[currency].free !== undefined && balance[currency].used === undefined) {
-                // exchange reports only 'free' balance -> try to derive 'used' funds from open orders cache
+            if (balance[currency].total === 0) {
+                if (balance[currency].free !== undefined && balance[currency].used !== undefined) {
+                    balance[currency].total = this.sum (balance[currency].free, balance[currency].used)
+                }
+            }
 
-                if (this.dontGetUsedBalanceFromStaleCache && ('open_orders' in balance['info'])) {
-                    // liqui exchange reports number of open orders with balance response
-                    // use it to validate the cache
-                    const exchangeOrdersCount = balance['info']['open_orders'];
-                    const cachedOrdersCount = Object.values (this.orders).filter (order => (order['status'] === 'open')).length;
-                    if (cachedOrdersCount === exchangeOrdersCount) {
-                        balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
-                        balance[currency].total = (balance[currency].used || 0) + (balance[currency].free || 0)
-                    }
-                } else {
-                    balance[currency].used = this.getCurrencyUsedOnOpenOrders (currency)
-                    balance[currency].total = (balance[currency].used || 0) + (balance[currency].free || 0)
+            if (balance[currency].free === 0) {
+                if (balance[currency].total !== undefined && balance[currency].used !== undefined) {
+                    balance[currency].free = this.sum (balance[currency].total, -balance[currency].used)
+                }
+            }
+
+            if (balance[currency].used === 0) {
+                if (balance[currency].total !== undefined && balance[currency].free !== undefined) {
+                    balance[currency].used = this.sum (balance[currency].total, -balance[currency].free)
                 }
             }
 
@@ -6406,7 +6412,6 @@ module.exports = class bibox extends Exchange {
             } else {
                 account['free'] = this.safeFloat (balance, 'balance');
                 account['used'] = this.safeFloat (balance, 'freeze');
-                account['total'] = this.sum (account['free'], account['used']);
             }
             result[code] = account;
         }
@@ -7912,7 +7917,7 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetAccount (params);
         const result = { 'info': response };
-        const balances = response['balances'];
+        const balances = this.safeValue (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = balance['asset'];
@@ -7922,12 +7927,9 @@ module.exports = class binance extends Exchange {
             } else {
                 code = this.commonCurrencyCode (currencyId);
             }
-            const account = {
-                'free': parseFloat (balance['free']),
-                'used': parseFloat (balance['locked']),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'free');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -9158,7 +9160,6 @@ module.exports = class bit2c extends Exchange {
             if (uppercase in balance) {
                 account['free'] = this.safeFloat (balance, 'AVAILABLE_' + uppercase);
                 account['total'] = this.safeFloat (balance, uppercase);
-                account['used'] = account['total'] - account['free'];
             }
             result[code] = account;
         }
@@ -10271,19 +10272,16 @@ module.exports = class bitbay extends Exchange {
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
         }
-        const balance = response['balances'];
-        const result = { 'info': balance };
+        const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currency = this.currencies[code];
-            const currencyId = currency['id'];
+            const currencyId = this.currencyId (code);
             const balance = this.safeValue (balances, currencyId);
             if (balance !== undefined) {
                 const account = this.account ();
                 account['free'] = this.safeFloat (balance, 'available');
                 account['used'] = this.safeFloat (balance, 'locked');
-                account['total'] = this.sum (account['free'], account['used']);
                 result[code] = account;
             }
         }
@@ -11153,7 +11151,6 @@ module.exports = class bitfinex extends Exchange {
                     const account = this.account ();
                     account['free'] = this.safeFloat (balance, 'available');
                     account['total'] = this.safeFloat (balance, 'amount');
-                    account['used'] = account['total'] - account['free'];
                     result[code] = account;
                 }
             }
@@ -12593,16 +12590,19 @@ module.exports = class bitflyer extends Exchange {
         //     ]
         //
         const result = { 'info': response };
-        const balances = {};
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency_code');
-            const code = this.commonCurrencyCode (currencyId);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'amount');
             account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = account['total'] - account['free'];
-            balances[code] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -14280,13 +14280,16 @@ module.exports = class bitlish extends Exchange {
         const currencyIds = Object.keys (response);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            let code = currencyId.toUpperCase ();
-            code = this.commonCurrencyCode (code);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const account = this.account ();
             const balance = this.safeValue (response, currencyId, {});
             account['free'] = this.safeFloat (balance, 'funds');
             account['used'] = this.safeFloat (balance, 'holded');
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -14562,17 +14565,18 @@ module.exports = class bitmarket extends Exchange {
         const balances = this.safeValue (data, 'balances', {});
         const available = this.safeValue (balances, 'available', {});
         const blocked = this.safeValue (balances, 'blocked', {});
-        const result = { 'info': data };
+        const result = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currency = this.currency (code);
-            const currencyId = currency['id'];
-            const account = this.account ();
-            account['free'] = this.safeFloat (available, currencyId);
-            account['used'] = this.safeFloat (blocked, currencyId);
-            account['total'] = this.sum (account['free'], account['used']);
-            result[code] = account;
+            const currencyId = this.currencyId (code);
+            const free = this.safeFloat (available, currencyId);
+            if (free !== undefined) {
+                const account = this.account ();
+                account['free'] = this.safeFloat (available, currencyId);
+                account['used'] = this.safeFloat (blocked, currencyId);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -15061,21 +15065,22 @@ module.exports = class bitmex extends Exchange {
         };
         const response = await this.privateGetUserMargin (this.extend (request, params));
         const result = { 'info': response };
-        for (let b = 0; b < response.length; b++) {
-            const balance = response[b];
-            let currencyId = this.safeString (balance, 'currency');
-            currencyId = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': balance['availableMargin'],
-                'used': 0.0,
-                'total': balance['marginBalance'],
-            };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'availableMargin');
+            account['total'] = this.safeFloat (balance, 'marginBalance');
             if (code === 'BTC') {
                 account['free'] = account['free'] * 0.00000001;
                 account['total'] = account['total'] * 0.00000001;
             }
-            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -22182,12 +22187,9 @@ module.exports = class braziliex extends Exchange {
             const currencyId = currencyIds[i];
             const balance = balances[currencyId];
             const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': 0.0,
-                'total': this.safeFloat (balance, 'total'),
-            };
-            account['used'] = account['total'] - account['free'];
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeFloat (balance, 'total');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -22898,8 +22900,7 @@ module.exports = class btcbox extends Exchange {
                 const used = currencyId + '_lock';
                 account['free'] = this.safeFloat (response, free);
                 account['used'] = this.safeFloat (response, used);
-                account['total'] = this.sum (account['free'], account['used']);
-                result[currency] = account;
+                result[code] = account;
             }
         }
         return this.parseBalance (result);
@@ -23348,7 +23349,6 @@ module.exports = class btcchina extends Exchange {
             if (currencyId in balances['frozen']) {
                 account['used'] = parseFloat (balances['frozen'][currencyId]['amount']);
             }
-            account['free'] = account['total'] - account['used'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -25548,13 +25548,9 @@ module.exports = class buda extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'id');
             const code = this.commonCurrencyCode (currencyId);
-            const total = parseFloat (balance['amount'][0]);
-            const free = parseFloat (balance['available_amount'][0]);
-            const account = {
-                'free': free,
-                'used': total - free,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = parseFloat (balance['available_amount'][0]);
+            account['total'] = parseFloat (balance['amount'][0]);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -26024,12 +26020,9 @@ module.exports = class bxinth extends Exchange {
             const currencyId = currencyIds[i];
             const code = this.commonCurrencyCode (currencyId);
             const balance = this.safeValue (balances, currencyId, {});
-            const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': 0.0,
-                'total': this.safeFloat (balance, 'total'),
-            };
-            account['used'] = account['total'] - account['free'];
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeFloat (balance, 'total');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -27027,12 +27020,9 @@ module.exports = class cex extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const balance = this.safeValue (balances, currencyId, {});
-            const account = {
-                'free': this.safeFloat (balance, 'available', 0.0),
-                'used': this.safeFloat (balance, 'orders', 0.0),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'orders');
             const code = this.commonCurrencyCode (currencyId);
             result[code] = account;
         }
@@ -28131,12 +28121,12 @@ module.exports = class cobinhood extends Exchange {
             let code = currencyId;
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
             }
-            const account = {
-                'used': parseFloat (balance['on_order']),
-                'total': parseFloat (balance['total']),
-            };
-            account['free'] = parseFloat (account['total'] - account['used']);
+            const account = this.account ();
+            account['used'] = this.safeFloat (balance, 'on_order');
+            account['total'] = this.safeFloat (balance, 'total');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -29330,13 +29320,14 @@ module.exports = class coincheck extends Exchange {
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currencyId = this.currency (code);
-            const account = this.account ();
-            const reserved = currencyId + '_reserved';
-            account['free'] = this.safeFloat (balances, currencyId);
-            account['used'] = this.safeFloat (balances, reserved);
-            account['total'] = this.sum (account['free'], account['used']);
-            result[code] = account;
+            const currencyId = this.currencyId (code);
+            if (currencyId in balances) {
+                const account = this.account ();
+                const reserved = currencyId + '_reserved';
+                account['free'] = this.safeFloat (balances, currencyId);
+                account['used'] = this.safeFloat (balances, reserved);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -29957,8 +29948,9 @@ module.exports = class coinegg extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
-        const result = {};
-        const balances = this.omit (response['data'], 'uid');
+        const result = { 'info': response };
+        const data = this.safeValue (response, 'data', {});
+        const balances = this.omit (data, 'uid');
         const keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -29966,23 +29958,16 @@ module.exports = class coinegg extends Exchange {
             let code = currencyId;
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
             }
             if (!(code in result)) {
-                result[code] = {
-                    'free': undefined,
-                    'used': undefined,
-                    'total': undefined,
-                };
+                result[code] = this.account ();
             }
             const type = (accountType === 'lock') ? 'used' : 'free';
             result[code][type] = this.safeFloat (balances, key);
         }
-        const currencies = Object.keys (result);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            result[currency]['total'] = this.sum (result[currency]['free'], result[currency]['used']);
-        }
-        return this.parseBalance (this.extend ({ 'info': response }, result));
+        return this.parseBalance (result);
     }
 
     parseOrder (order, market = undefined) {
@@ -30517,17 +30502,19 @@ module.exports = class coinex extends Exchange {
         //
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data');
-        const currencies = Object.keys (balances);
-        for (let i = 0; i < currencies.length; i++) {
-            const currencyId = currencies[i];
-            const balance = balances[currencyId];
-            const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['frozen']),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+            const balance = this.safeValue (balances, currencyId, {});
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'frozen');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -32678,12 +32665,9 @@ module.exports = class coingi extends Exchange {
             const currencyId = this.safeString (balance['currency'], 'name');
             let code = currencyId.toUpperCase ();
             code = this.commonCurrencyCode (code);
-            const account = {
-                'free': balance['available'],
-                'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = balance['available'];
+            account['used'] = balance['blocked'] + balance['inOrders'] + balance['withdrawing'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -33321,13 +33305,13 @@ module.exports = class coinmate extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostBalances (params);
         const balances = this.safeValue (response, 'data');
-        const result = { 'info': balances };
-        const currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            const code = currencies[i];
-            const currencyId = this.currencyId (code);
+        const result = { 'info': response };
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.commonCurrencyCode (currencyId);
+            const balance = this.safeValue (balances, currencyId);
             const account = this.account ();
-            const balance = this.safeValue (balances, currencyId, {});
             account['free'] = this.safeFloat (balance, 'available');
             account['used'] = this.safeFloat (balance, 'reserved');
             account['total'] = this.safeFloat (balance, 'balance');
@@ -33733,11 +33717,7 @@ module.exports = class coinnest extends Exchange {
             const uppercase = currencyId.toUpperCase ();
             const code = this.commonCurrencyCode (uppercase);
             if (!(code in result)) {
-                result[code] = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': 0.0,
-                };
+                result[code] = this.account ();
             }
             type = (type === 'reserved' ? 'used' : 'free');
             result[code][type] = this.safeFloat (response, key);
@@ -35077,16 +35057,16 @@ module.exports = class cointiger extends huobipro {
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const id = balance['coin'];
-            let code = id.toUpperCase ();
-            code = this.commonCurrencyCode (code);
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
+            const currencyId = this.safeString (balance, 'coin');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = currencyId.toUpperCase ();
             }
             const account = this.account ();
             account['used'] = this.safeFloat (balance, 'lock');
             account['free'] = this.safeFloat (balance, 'normal');
-            account['total'] = this.sum (account['used'], account['free']);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -36903,14 +36883,10 @@ module.exports = class crex24 extends Exchange {
             } else {
                 code = this.commonCurrencyCode (code);
             }
-            const free = this.safeFloat (balance, 'available');
-            const used = this.safeFloat (balance, 'reserved');
-            const total = this.sum (free, used);
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'reserved');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -39195,12 +39171,9 @@ module.exports = class dsx extends liqui {
             const currencyId = currencyIds[i];
             const code = this.commonCurrencyCode (currencyId);
             const balance = this.safeValue (funds, currencyId, {});
-            const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': 0.0,
-                'total': this.safeFloat (balance, 'total'),
-            };
-            account['used'] = account['total'] - account['free'];
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeFloat (balance, 'total');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -40177,21 +40150,19 @@ module.exports = class dx extends Exchange {
         const response = await this.privatePostBalanceGet (params);
         const result = { 'info': response };
         const balances = this.safeValue (response['result'], 'balance');
-        const ids = Object.keys (balances);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const balance = balances[id];
-            let code = undefined;
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const balance = this.safeValue (balances, currencyId, {});
+            if (currencyId in this.currencies_by_id) {
+                const code = this.currencies_by_id[currencyId]['code'];
+                const account = {
+                    'free': this.safeFloat (balance, 'available'),
+                    'used': this.safeFloat (balance, 'frozen'),
+                    'total': this.safeFloat (balance, 'total'),
+                };
+                result[code] = account;
             }
-            const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': this.safeFloat (balance, 'frozen'),
-                'total': this.safeFloat (balance, 'total'),
-            };
-            account['total'] = this.sum (account['free'], account['used']);
-            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -40964,7 +40935,6 @@ module.exports = class exmo extends Exchange {
             if (currency in response['reserved']) {
                 account['used'] = this.safeFloat (response['reserved'], currency);
             }
-            account['total'] = this.sum (account['free'], account['used']);
             result[currency] = account;
         }
         return this.parseBalance (result);
@@ -42889,12 +42859,9 @@ module.exports = class flowbtc extends Exchange {
             const balance = balances[i];
             const currencyId = balance['name'];
             const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeFloat (balance, 'balance'),
-                'used': this.safeFloat (balance, 'hold'),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['total'] = this.safeFloat (balance, 'hold');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -43132,7 +43099,6 @@ module.exports = class foxbit extends Exchange {
                     const account = this.account ();
                     account['used'] = parseFloat (balances[currencyId + '_locked']) * 1e-8;
                     account['total'] = parseFloat (balances[currencyId]) * 1e-8;
-                    account['free'] = account['total'] - account['used'];
                     result[code] = account;
                 }
             }
@@ -43723,18 +43689,15 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostBalances (params);
         const result = { 'info': response };
-        const codes = Object.keys (this.currencies);
         const available = this.safeValue (response, 'available', {});
         const locked = this.safeValue (response, 'locked', {});
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currency = this.currencies[code];
-            const currencyId = currency['id'];
-            const uppercaseId = currencyId.toUpperCase ();
+        const currencyIds = Object.keys (available);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.commonCurrencyCode (currencyId.toUpperCase ());
             const account = this.account ();
-            account['free'] = this.safeFloat (available, uppercaseId);
-            account['used'] = this.safeFloat (locked, uppercaseId);
-            account['total'] = this.sum (account['free'], account['used']);
+            account['free'] = this.safeFloat (available, currencyId);
+            account['used'] = this.safeFloat (locked, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -45394,12 +45357,9 @@ module.exports = class gemini extends Exchange {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': 0.0,
-                'total': this.safeFloat (balance, 'amount'),
-            };
-            account['used'] = account['total'] - account['free'];
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeFloat (balance, 'amount');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -46365,14 +46325,9 @@ module.exports = class hitbtc extends Exchange {
             const balance = balances[b];
             const code = balance['currency_code'];
             const currency = this.commonCurrencyCode (code);
-            let free = this.safeFloat (balance, 'cash', 0.0);
-            free = this.safeFloat (balance, 'balance', free);
-            const used = this.safeFloat (balance, 'reserved', 0.0);
-            const account = {
-                'free': free,
-                'used': used,
-                'total': this.sum (free, used),
-            };
+            const account = this.account ();
+            account['free'] = this.safeFloat2 (balance, 'cash', 'balance', 0.0);
+            account['used'] = this.safeFloat (balance, 'reserved', 0.0);
             result[currency] = account;
         }
         return this.parseBalance (result);
@@ -47500,12 +47455,9 @@ module.exports = class hitbtc2 extends hitbtc {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['reserved']),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'reserved');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -48889,7 +48841,6 @@ module.exports = class huobipro extends Exchange {
             if (balance['type'] === 'frozen') {
                 account['used'] = this.safeFloat (balance, 'balance');
             }
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -50053,9 +50004,8 @@ module.exports = class independentreserve extends Exchange {
             const uppercase = currencyId.toUpperCase ();
             const code = this.commonCurrencyCode (uppercase);
             const account = this.account ();
-            account['free'] = balance['AvailableBalance'];
-            account['total'] = balance['TotalBalance'];
-            account['used'] = account['total'] - account['free'];
+            account['free'] = this.safeFloat (balance, 'AvailableBalance');
+            account['total'] = this.safeFloat (balance, 'TotalBalance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -50455,17 +50405,22 @@ module.exports = class indodax extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
-        const balance = response['return'];
-        const result = { 'info': balance };
-        const codes = Object.keys (this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currency = this.currencies[code];
-            const lowercase = currency['id'];
+        const balances = this.safeValue (response, 'return', {});
+        const free = this.safeValue (balances, 'balance', {});
+        const used = this.safeValue (balances, 'balance_hold', {});
+        const result = { 'info': response };
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            let code = currencyId;
+            if (code in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const account = this.account ();
-            account['free'] = this.safeFloat (balance['balance'], lowercase, 0.0);
-            account['used'] = this.safeFloat (balance['balance_hold'], lowercase, 0.0);
-            account['total'] = this.sum (account['free'], account['used']);
+            account['free'] = this.safeFloat (free, currencyId);
+            account['used'] = this.safeFloat (used, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -51776,14 +51731,13 @@ module.exports = class kkex extends Exchange {
         const funds = this.safeValue (balances, 'funds');
         const free = this.safeValue (funds, 'free', {});
         const freezed = this.safeValue (funds, 'freezed', {});
-        const assets = Object.keys (funds['free']);
-        for (let i = 0; i < assets.length; i++) {
-            const currencyId = assets[i];
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
             const code = this.commonCurrencyCode (currencyId.toUpperCase ());
             const account = this.account ();
             account['free'] = this.safeFloat (free, currencyId);
             account['used'] = this.safeFloat (freezed, currencyId);
-            account['total'] = account['free'] + account['used'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -55706,12 +55660,9 @@ module.exports = class lbank extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const code = this.commonCurrencyCode (id.toUpperCase ());
-            const account = {
-                'free': this.safeFloat (free, id, 0.0),
-                'used': this.safeFloat (freeze, id, 0.0),
-                'total': undefined,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+            const account = this.account ();
+            account['free'] = this.safeFloat (free, id);
+            account['used'] = this.safeFloat (freeze, id);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -58692,12 +58643,9 @@ module.exports = class luno extends Exchange {
             const reserved = this.safeFloat (wallet, 'reserved');
             const unconfirmed = this.safeFloat (wallet, 'unconfirmed');
             const balance = this.safeFloat (wallet, 'balance');
-            const account = {
-                'free': 0.0,
-                'used': this.sum (reserved, unconfirmed),
-                'total': this.sum (balance, unconfirmed),
-            };
-            account['free'] = account['total'] - account['used'];
+            const account = this.account ();
+            account['used'] = this.sum (reserved, unconfirmed);
+            account['total'] = this.sum (balance, unconfirmed);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -59972,12 +59920,8 @@ module.exports = class mandala extends Exchange {
             const balance = data[i];
             const code = this.commonCurrencyCode (this.safeString (balance, 'currency'));
             const account = this.account ();
-            const free = this.safeFloat (balance, 'balance', 0);
-            const used = this.safeFloat (balance, 'balanceInTrade', 0);
-            const total = this.sum (free, used);
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = total;
+            account['free'] = this.safeFloat (balance, 'balance', 0.0);
+            account['used'] = this.safeFloat (balance, 'balanceInTrade', 0.0);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -61320,7 +61264,6 @@ module.exports = class mercado extends Exchange {
                 const account = this.account ();
                 account['free'] = parseFloat (balances[lowercase]['available']);
                 account['total'] = parseFloat (balances[lowercase]['total']);
-                account['used'] = account['total'] - account['free'];
                 result[code] = account;
             }
         }
@@ -61682,19 +61625,22 @@ module.exports = class mixcoins extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostInfo (params);
-        const balance = this.safeValue (response['result'], 'wallet');
-        const result = { 'info': balance };
-        const currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            const code = currencies[i];
-            const currencyId = this.currencyid (code);
-            if (currencyId in balance) {
-                const account = this.account ();
-                account['free'] = this.safeFloat (balance[currencyId], 'avail');
-                account['used'] = this.safeFloat (balance[currencyId], 'lock');
-                account['total'] = this.sum (account['free'], account['used']);
-                result[code] = account;
+        const balances = this.safeValue (response['result'], 'wallet');
+        const result = { 'info': response };
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
             }
+            const balance = this.safeValue (balances, currencyId, {});
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'avail');
+            account['used'] = this.safeFloat (balance, 'lock');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -62044,7 +61990,6 @@ module.exports = class negociecoins extends Exchange {
                 'used': this.sum (openOrders, withdraw),
                 'total': this.safeFloat (balance, 'available'),
             };
-            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -64025,9 +63970,8 @@ module.exports = class okcoinusd extends Exchange {
                 code = this.commonCurrencyCode (code);
             }
             const account = this.account ();
-            account['free'] = this.safeFloat (balances['free'], id, 0.0);
-            account['used'] = this.safeFloat (balances[usedField], id, 0.0);
-            account['total'] = this.sum (account['free'], account['used']);
+            account['free'] = this.safeFloat (balances['free'], id);
+            account['used'] = this.safeFloat (balances[usedField], id);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -67272,17 +67216,14 @@ module.exports = class paymium extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const code = currencies[i];
             const currencyId = this.currencyId (code);
-            const account = this.account ();
-            const balance = 'balance_' + currencyId;
-            const locked = 'locked_' + currencyId;
-            if (balance in response) {
-                account['free'] = response[balance];
+            const free = 'balance_' + currencyId;
+            if (free in response) {
+                const account = this.account ();
+                const used = 'locked_' + currencyId;
+                account['free'] = this.safeFloat (response, free);
+                account['used'] = this.safeFloat (response, used);
+                result[code] = account;
             }
-            if (locked in response) {
-                account['used'] = response[locked];
-            }
-            account['total'] = this.sum (account['free'], account['used']);
-            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -67722,17 +67663,19 @@ module.exports = class poloniex extends Exchange {
         };
         const response = await this.privatePostReturnCompleteBalances (this.extend (request, params));
         const result = { 'info': response };
-        const currencies = Object.keys (response);
-        for (let i = 0; i < currencies.length; i++) {
-            const currencyId = currencies[i];
-            const balance = response[currencyId];
-            const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': this.safeFloat (balance, 'onOrders'),
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
+        const currencyIds = Object.keys (response);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const balance = this.safeValue (response, currencyId, {});
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'onOrders');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -69222,9 +69165,6 @@ module.exports = class rightbtc extends Exchange {
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
             }
-            const free = this.divideSafeFloat (balance, 'balance', 1e8);
-            const used = this.divideSafeFloat (balance, 'frozen', 1e8);
-            const total = this.sum (free, used);
             //
             // https://github.com/ccxt/ccxt/issues/3873
             //
@@ -69234,11 +69174,9 @@ module.exports = class rightbtc extends Exchange {
             //         }
             //     }
             //
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = this.divideSafeFloat (balance, 'balance', 1e8);
+            account['used'] = this.divideSafeFloat (balance, 'frozen', 1e8);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -81709,7 +81647,6 @@ module.exports = class stronghold extends Exchange {
             const account = {};
             account['total'] = this.safeFloat (entry, 'amount', 0.0);
             account['free'] = this.safeFloat (entry, 'availableForTrade', 0.0);
-            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -84231,7 +84168,6 @@ module.exports = class tidebit extends Exchange {
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'balance');
             account['used'] = this.safeFloat (balance, 'locked');
-            account['total'] = this.sum (account['free'], account['used']);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -87064,10 +87000,8 @@ module.exports = class upbit extends Exchange {
             const balance = indexed[id];
             const free = this.safeFloat (balance, 'balance');
             const used = this.safeFloat (balance, 'locked');
-            const total = this.sum (free, used);
             account['free'] = free;
             account['used'] = used;
-            account['total'] = total;
             result[currency] = account;
         }
         return this.parseBalance (result);
@@ -88310,12 +88244,9 @@ module.exports = class vaultoro extends Exchange {
             const code = this.commonCurrencyCode (uppercaseId);
             const free = this.safeFloat (balance, 'cash');
             const used = this.safeFloat (balance, 'reserved');
-            const total = this.sum (free, used);
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['free'] = free;
+            account['used'] = used;
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -89363,14 +89294,9 @@ module.exports = class yobit extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            const account = {
-                'free': this.safeFloat (free, currencyId),
-                'used': undefined,
-                'total': this.safeFloat (total, currencyId),
-            };
-            if (account['total'] !== undefined && account['free'] !== undefined) {
-                account['used'] = account['total'] - account['free'];
-            }
+            const account = this.account ();
+            account['free'] = this.safeFloat (free, currencyId);
+            account['total'] = this.safeFloat (total, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);

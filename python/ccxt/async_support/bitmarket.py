@@ -194,17 +194,17 @@ class bitmarket (Exchange):
         balances = self.safe_value(data, 'balances', {})
         available = self.safe_value(balances, 'available', {})
         blocked = self.safe_value(balances, 'blocked', {})
-        result = {'info': data}
+        result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
-            currency = self.currency(code)
-            currencyId = currency['id']
-            account = self.account()
-            account['free'] = self.safe_float(available, currencyId)
-            account['used'] = self.safe_float(blocked, currencyId)
-            account['total'] = self.sum(account['free'], account['used'])
-            result[code] = account
+            currencyId = self.currencyId(code)
+            free = self.safe_float(available, currencyId)
+            if free is not None:
+                account = self.account()
+                account['free'] = self.safe_float(available, currencyId)
+                account['used'] = self.safe_float(blocked, currencyId)
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

@@ -565,14 +565,9 @@ class hitbtc extends Exchange {
             $balance = $balances[$b];
             $code = $balance['currency_code'];
             $currency = $this->common_currency_code($code);
-            $free = $this->safe_float($balance, 'cash', 0.0);
-            $free = $this->safe_float($balance, 'balance', $free);
-            $used = $this->safe_float($balance, 'reserved', 0.0);
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $this->sum ($free, $used),
-            );
+            $account = $this->account ();
+            $account['free'] = $this->safe_float_2($balance, 'cash', 'balance', 0.0);
+            $account['used'] = $this->safe_float($balance, 'reserved', 0.0);
             $result[$currency] = $account;
         }
         return $this->parse_balance($result);

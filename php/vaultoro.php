@@ -94,12 +94,9 @@ class vaultoro extends Exchange {
             $code = $this->common_currency_code($uppercaseId);
             $free = $this->safe_float($balance, 'cash');
             $used = $this->safe_float($balance, 'reserved');
-            $total = $this->sum ($free, $used);
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $account = $this->account ();
+            $account['free'] = $free;
+            $account['used'] = $used;
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

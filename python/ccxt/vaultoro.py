@@ -91,12 +91,9 @@ class vaultoro (Exchange):
             code = self.common_currency_code(uppercaseId)
             free = self.safe_float(balance, 'cash')
             used = self.safe_float(balance, 'reserved')
-            total = self.sum(free, used)
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            account = self.account()
+            account['free'] = free
+            account['used'] = used
             result[code] = account
         return self.parse_balance(result)
 

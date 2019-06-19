@@ -207,7 +207,6 @@ class negociecoins (Exchange):
                 'used': self.sum(openOrders, withdraw),
                 'total': self.safe_float(balance, 'available'),
             }
-            account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
 

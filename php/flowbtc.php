@@ -123,12 +123,9 @@ class flowbtc extends Exchange {
             $balance = $balances[$i];
             $currencyId = $balance['name'];
             $code = $this->common_currency_code($currencyId);
-            $account = array (
-                'free' => $this->safe_float($balance, 'balance'),
-                'used' => $this->safe_float($balance, 'hold'),
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'balance');
+            $account['total'] = $this->safe_float($balance, 'hold');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

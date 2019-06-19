@@ -313,14 +313,13 @@ class kkex extends Exchange {
         $funds = $this->safe_value($balances, 'funds');
         $free = $this->safe_value($funds, 'free', array());
         $freezed = $this->safe_value($funds, 'freezed', array());
-        $assets = is_array($funds['free']) ? array_keys($funds['free']) : array();
-        for ($i = 0; $i < count ($assets); $i++) {
-            $currencyId = $assets[$i];
+        $currencyIds = is_array($free) ? array_keys($free) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
             $code = $this->common_currency_code(strtoupper($currencyId));
             $account = $this->account ();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['used'] = $this->safe_float($freezed, $currencyId);
-            $account['total'] = $account['free'] . $account['used'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

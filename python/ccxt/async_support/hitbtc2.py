@@ -700,12 +700,9 @@ class hitbtc2 (hitbtc):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.common_currency_code(currencyId)
-            account = {
-                'free': float(balance['available']),
-                'used': float(balance['reserved']),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'reserved')
             result[code] = account
         return self.parse_balance(result)
 

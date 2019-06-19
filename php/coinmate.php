@@ -138,13 +138,13 @@ class coinmate extends Exchange {
         $this->load_markets();
         $response = $this->privatePostBalances ($params);
         $balances = $this->safe_value($response, 'data');
-        $result = array( 'info' => $balances );
-        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $code = $currencies[$i];
-            $currencyId = $this->currencyId ($code);
+        $result = array( 'info' => $response );
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->common_currency_code($currencyId);
+            $balance = $this->safe_value($balances, $currencyId);
             $account = $this->account ();
-            $balance = $this->safe_value($balances, $currencyId, array());
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'reserved');
             $account['total'] = $this->safe_float($balance, 'balance');

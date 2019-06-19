@@ -460,12 +460,12 @@ class cobinhood extends Exchange {
             $code = $currencyId;
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
             }
-            $account = array (
-                'used' => floatval ($balance['on_order']),
-                'total' => floatval ($balance['total']),
-            );
-            $account['free'] = floatval ($account['total'] - $account['used']);
+            $account = $this->account ();
+            $account['used'] = $this->safe_float($balance, 'on_order');
+            $account['total'] = $this->safe_float($balance, 'total');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

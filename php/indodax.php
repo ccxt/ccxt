@@ -111,17 +111,22 @@ class indodax extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostGetInfo ($params);
-        $balance = $response['return'];
-        $result = array( 'info' => $balance );
-        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($codes); $i++) {
-            $code = $codes[$i];
-            $currency = $this->currencies[$code];
-            $lowercase = $currency['id'];
+        $balances = $this->safe_value($response, 'return', array());
+        $free = $this->safe_value($balances, 'balance', array());
+        $used = $this->safe_value($balances, 'balance_hold', array());
+        $result = array( 'info' => $response );
+        $currencyIds = is_array($free) ? array_keys($free) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($code, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
             $account = $this->account ();
-            $account['free'] = $this->safe_float($balance['balance'], $lowercase, 0.0);
-            $account['used'] = $this->safe_float($balance['balance_hold'], $lowercase, 0.0);
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account['free'] = $this->safe_float($free, $currencyId);
+            $account['used'] = $this->safe_float($used, $currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

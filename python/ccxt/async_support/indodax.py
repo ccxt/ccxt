@@ -116,17 +116,21 @@ class indodax (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostGetInfo(params)
-        balance = response['return']
-        result = {'info': balance}
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currencies[code]
-            lowercase = currency['id']
+        balances = self.safe_value(response, 'return', {})
+        free = self.safe_value(balances, 'balance', {})
+        used = self.safe_value(balances, 'balance_hold', {})
+        result = {'info': response}
+        currencyIds = list(free.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = currencyId
+            if code in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             account = self.account()
-            account['free'] = self.safe_float(balance['balance'], lowercase, 0.0)
-            account['used'] = self.safe_float(balance['balance_hold'], lowercase, 0.0)
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = self.safe_float(free, currencyId)
+            account['used'] = self.safe_float(used, currencyId)
             result[code] = account
         return self.parse_balance(result)
 

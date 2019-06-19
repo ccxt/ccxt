@@ -486,12 +486,8 @@ class mandala extends Exchange {
             $balance = $data[$i];
             $code = $this->common_currency_code($this->safe_string($balance, 'currency'));
             $account = $this->account ();
-            $free = $this->safe_float($balance, 'balance', 0);
-            $used = $this->safe_float($balance, 'balanceInTrade', 0);
-            $total = $this->sum ($free, $used);
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $account['total'] = $total;
+            $account['free'] = $this->safe_float($balance, 'balance', 0.0);
+            $account['used'] = $this->safe_float($balance, 'balanceInTrade', 0.0);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

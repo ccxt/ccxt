@@ -304,8 +304,9 @@ class coinegg (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostBalance(params)
-        result = {}
-        balances = self.omit(response['data'], 'uid')
+        result = {'info': response}
+        data = self.safe_value(response, 'data', {})
+        balances = self.omit(data, 'uid')
         keys = list(balances.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -313,19 +314,13 @@ class coinegg (Exchange):
             code = currencyId
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             if not(code in list(result.keys())):
-                result[code] = {
-                    'free': None,
-                    'used': None,
-                    'total': None,
-                }
+                result[code] = self.account()
             type = 'used' if (accountType == 'lock') else 'free'
             result[code][type] = self.safe_float(balances, key)
-        currencies = list(result.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            result[currency]['total'] = self.sum(result[currency]['free'], result[currency]['used'])
-        return self.parse_balance(self.extend({'info': response}, result))
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         symbol = market['symbol']

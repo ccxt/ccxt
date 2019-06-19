@@ -114,9 +114,8 @@ class independentreserve extends Exchange {
             $uppercase = strtoupper($currencyId);
             $code = $this->common_currency_code($uppercase);
             $account = $this->account ();
-            $account['free'] = $balance['AvailableBalance'];
-            $account['total'] = $balance['TotalBalance'];
-            $account['used'] = $account['total'] - $account['free'];
+            $account['free'] = $this->safe_float($balance, 'AvailableBalance');
+            $account['total'] = $this->safe_float($balance, 'TotalBalance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
