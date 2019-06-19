@@ -231,10 +231,12 @@ module.exports = class gateio extends Exchange {
             const currency = this.currencies[code];
             const currencyId = currency['id'];
             const uppercaseId = currencyId.toUpperCase ();
-            const account = this.account ();
-            account['free'] = this.safeFloat (available, uppercaseId);
-            account['used'] = this.safeFloat (locked, uppercaseId);
-            result[code] = account;
+            if (uppercaseId in available) {
+                const account = this.account ();
+                account['free'] = this.safeFloat (available, uppercaseId);
+                account['used'] = this.safeFloat (locked, uppercaseId);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
