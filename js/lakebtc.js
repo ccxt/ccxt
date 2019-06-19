@@ -88,15 +88,16 @@ module.exports = class lakebtc extends Exchange {
         const response = await this.privatePostGetAccountInfo (params);
         const balances = this.safeValue (response, 'balance', {});
         const result = { 'info': response };
-        const ids = Object.keys (balances);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            let code = id;
-            if (id in this.currencies_by_id) {
-                const currency = this.currencies_by_id[id];
-                code = currency['code'];
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
             }
-            const balance = this.safeFloat (balances, id);
+            const balance = this.safeFloat (balances, currencyId);
             const account = {
                 'free': balance,
                 'used': 0.0,
