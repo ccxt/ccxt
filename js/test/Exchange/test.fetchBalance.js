@@ -53,7 +53,6 @@ module.exports = async (exchange, symbol) => {
             .filter (currency => (currency in balance) &&
                 (balance[currency]['total'] !== undefined))
 
-
         if (result.length > 0) {
             result = result.map (currency => currency + ': ' + balance[currency]['total'])
             if (exchange.currencies.length > result.length)
