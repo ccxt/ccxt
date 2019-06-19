@@ -326,9 +326,12 @@ module.exports = class latoken extends Exchange {
         return this.parseTicker (response);
     }
 
-    async fetchCurrencies (params = {}) {
-        if (Object.keys (params).length) {
-            const currencies = await this.publicGetExchangeInfoCurrencies (params);
+    async fetchCurrencies (symbol = undefined, params = {}) {
+        const request = {
+            'symbol': symbol,
+        };
+        if (symbol !== undefined) {
+            const currencies = await this.publicGetExchangeInfoCurrencies (this.extend (request, params));
             const id = currencies['currencyId'];
             const symbol = currencies['symbol'];
             const name = currencies['name'];
@@ -344,7 +347,7 @@ module.exports = class latoken extends Exchange {
                 'fee': fee,
             };
         }
-        const currencies = await this.publicGetExchangeInfoCurrencies ();
+        const currencies = await this.publicGetExchangeInfoCurrencies (params);
         const result = [];
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -554,11 +557,13 @@ module.exports = class latoken extends Exchange {
         if (api === 'public') {
             headers = {
                 'Content-type': 'application/json',
+                'x-lat-timestamp': this.nonce (),
+                'x-lat-timeframe': this.options['timeframe'],
             };
             if (path === 'exchangeInfo/pairs' && Object.keys (params).length) {
                 url += '/' + params['currency'];
             } else if (path === 'exchangeInfo/currencies' && Object.keys (params).length) {
-                url += '/' + params;
+                url += '/' + params['symbol'];
             } else if (path === 'marketData/ticker' && Object.keys (params).length) {
                 url += '/' + params['symbol'];
             } else {
