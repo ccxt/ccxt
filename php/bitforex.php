@@ -35,7 +35,7 @@ class bitforex extends Exchange {
                 'www' => 'https://www.bitforex.com',
                 'doc' => 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees' => 'https://help.bitforex.com/en_us/?cat=13',
-                'referral' => 'https://www.bitforex.com/registered?inviterId=1867438',
+                'referral' => 'https://www.bitforex.com/en/invitationRegister?inviterId=1867438',
             ),
             'api' => array (
                 'public' => array (

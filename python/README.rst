@@ -98,7 +98,7 @@ The ccxt library currently supports the following 136 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | bitflyer           | `bitFlyer <https://bitflyer.jp>`__                                                         | 1     | `API <https://lightning.bitflyer.com/docs?lang=en>`__                                           |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| bitforex           | `Bitforex <https://www.bitforex.com/registered?inviterId=1867438>`__                       | 1     | `API <https://github.com/bitforexapi/API_Docs/wiki>`__                                          |                                                                      |
+| bitforex           | `Bitforex <https://www.bitforex.com/en/invitationRegister?inviterId=1867438>`__            | 1     | `API <https://github.com/bitforexapi/API_Docs/wiki>`__                                          |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | bithumb            | `Bithumb <https://www.bithumb.com>`__                                                      | \*    | `API <https://apidocs.bithumb.com>`__                                                           |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -384,14 +384,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.739/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.739/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.740/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.740/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.739/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.740/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
