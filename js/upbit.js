@@ -417,18 +417,19 @@ module.exports = class upbit extends Exchange {
         //                  modified:  false    }   ]
         //
         const result = { 'info': response };
-        const indexed = this.indexBy (response, 'currency');
-        const ids = Object.keys (indexed);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currency = this.commonCurrencyCode (id);
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
             const account = this.account ();
-            const balance = indexed[id];
-            const free = this.safeFloat (balance, 'balance');
-            const used = this.safeFloat (balance, 'locked');
-            account['free'] = free;
-            account['used'] = used;
-            result[currency] = account;
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'locked');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
