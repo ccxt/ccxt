@@ -348,17 +348,46 @@ module.exports = class lbank extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostUserInfo (params);
+        //
+        //     {
+        //         "result":"true",
+        //         "info":{
+        //             "freeze":{
+        //                 "iog":"0.00000000",
+        //                 "ssc":"0.00000000",
+        //                 "eon":"0.00000000",
+        //             },
+        //             "asset":{
+        //                 "iog":"0.00000000",
+        //                 "ssc":"0.00000000",
+        //                 "eon":"0.00000000",
+        //             },
+        //             "free":{
+        //                 "iog":"0.00000000",
+        //                 "ssc":"0.00000000",
+        //                 "eon":"0.00000000",
+        //             },
+        //         }
+        //     }
+        //
         const result = { 'info': response };
         const info = this.safeValue (response, 'info', {});
         const free = this.safeValue (info, 'free', {});
         const freeze = this.safeValue (info, 'freeze', {});
-        const ids = Object.keys (this.extend (free, freeze));
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const code = this.commonCurrencyCode (id.toUpperCase ());
+        const asset = this.safeValue (info, 'asset', {});
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const account = this.account ();
-            account['free'] = this.safeFloat (free, id);
-            account['used'] = this.safeFloat (freeze, id);
+            account['free'] = this.safeFloat (free, currencyId);
+            account['used'] = this.safeFloat (freeze, currencyId);
+            account['total'] = this.safeFloat (asset, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
