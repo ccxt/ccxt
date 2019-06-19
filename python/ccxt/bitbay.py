@@ -379,8 +379,8 @@ class bitbay (Exchange):
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
-        price = self.safe_string(trade, 'price')
-        amount = self.safe_string(trade, 'amount')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
         cost = None
         if amount is not None:
             if price is not None:

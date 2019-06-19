@@ -393,8 +393,8 @@ class bitbay extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_string($trade, 'price');
-        $amount = $this->safe_string($trade, 'amount');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
         $cost = null;
         if ($amount !== null) {
             if ($price !== null) {
