@@ -170,12 +170,19 @@ module.exports = class zaif extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
-        const balances = response['return'];
-        const result = { 'info': balances };
-        const currencies = Object.keys (balances['funds']);
-        for (let i = 0; i < currencies.length; i++) {
-            const currencyId = currencies[i];
-            const balance = this.safeValue (balances['funds'], currencyId);
+        const balances = this.safeValue (response, 'return', {});
+        const result = { 'info': response };
+        const funds = this.safeValue (balances, 'funds', {})
+        const currencyIds = Object.keys (funds);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const balance = this.safeValue (funds, currencyId);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const code = this.commonCurrencyCode (currencyId.toUpperCase ());
             const account = {
                 'free': balance,
