@@ -267,12 +267,23 @@ class liquid (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetAccountsBalance(params)
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currencyId = balance['currency']
-            code = self.common_currency_code(currencyId)
+        response = self.privateGetAccountsBalance(params)
+        #
+        #     [
+        #         {"currency":"USD","balance":"0.0"},
+        #         {"currency":"BTC","balance":"0.0"},
+        #         {"currency":"ETH","balance":"0.1651354"}
+        #     ]
+        #
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             total = self.safe_float(balance, 'balance')
             account = {
                 'free': total,

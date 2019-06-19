@@ -1300,16 +1300,31 @@ class kucoin extends Exchange {
             'type' => 'trade',
         );
         $response = $this->privateGetAccounts (array_merge ($request, $params));
-        $responseData = $response['data'];
-        $result = array( 'info' => $responseData );
-        for ($i = 0; $i < count ($responseData); $i++) {
-            $entry = $responseData[$i];
-            $currencyId = $entry['currency'];
-            $code = $this->common_currency_code($currencyId);
+        //
+        //     {
+        //         "$code":"200000",
+        //         "$data":array (
+        //             array("$balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"),
+        //             array("$balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"),
+        //             array("$balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"),
+        //         )
+        //     }
+        // /
+        $data = $this->safe_value($response, 'data', array());
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count ($data); $i++) {
+            $balance = $data[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
             $account = array();
-            $account['total'] = $this->safe_float($entry, 'balance', 0);
-            $account['free'] = $this->safe_float($entry, 'available', 0);
-            $account['used'] = $this->safe_float($entry, 'holds', 0);
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['used'] = $this->safe_float($balance, 'holds');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

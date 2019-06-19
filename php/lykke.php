@@ -167,15 +167,16 @@ class lykke extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'AssetId');
-            $code = $this->common_currency_code($currencyId);
-            $total = $this->safe_float($balance, 'Balance');
-            $used = $this->safe_float($balance, 'Reserved');
-            $free = $total - $used;
-            $result[$code] = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'Balance');
+            $account['used'] = $this->safe_float($balance, 'Reserved');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

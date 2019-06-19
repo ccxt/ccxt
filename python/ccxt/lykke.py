@@ -160,15 +160,15 @@ class lykke (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'AssetId')
-            code = self.common_currency_code(currencyId)
-            total = self.safe_float(balance, 'Balance')
-            used = self.safe_float(balance, 'Reserved')
-            free = total - used
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'Balance')
+            account['used'] = self.safe_float(balance, 'Reserved')
+            result[code] = account
         return self.parse_balance(result)
 
     def cancel_order(self, id, symbol=None, params={}):

@@ -88,14 +88,15 @@ class lakebtc (Exchange):
         response = self.privatePostGetAccountInfo(params)
         balances = self.safe_value(response, 'balance', {})
         result = {'info': response}
-        ids = list(balances.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            code = id
-            if id in self.currencies_by_id:
-                currency = self.currencies_by_id[id]
-                code = currency['code']
-            balance = self.safe_float(balances, id)
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
+            balance = self.safe_float(balances, currencyId)
             account = {
                 'free': balance,
                 'used': 0.0,
