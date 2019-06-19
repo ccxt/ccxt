@@ -558,16 +558,21 @@ module.exports = class hitbtc extends Exchange {
         method += 'GetBalance';
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
-        const balances = response['balance'];
-        const result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            const balance = balances[b];
-            const code = balance['currency_code'];
-            const currency = this.commonCurrencyCode (code);
+        const balances = this.safeValue (response, 'balance', []);
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency_code');
+            let code = currencyId.toUpperCase ();
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
             const account = this.account ();
-            account['free'] = this.safeFloat2 (balance, 'cash', 'balance', 0.0);
-            account['used'] = this.safeFloat (balance, 'reserved', 0.0);
-            result[currency] = account;
+            account['free'] = this.safeFloat2 (balance, 'cash', 'balance');
+            account['used'] = this.safeFloat (balance, 'reserved');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
