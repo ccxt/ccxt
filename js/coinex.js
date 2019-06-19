@@ -356,11 +356,16 @@ module.exports = class coinex extends Exchange {
         //
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data');
-        const currencies = Object.keys (balances);
-        for (let i = 0; i < currencies.length; i++) {
-            const currencyId = currencies[i];
-            const balance = balances[currencyId];
-            const code = this.commonCurrencyCode (currencyId);
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+            const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
             account['used'] = this.safeFloat (balance, 'frozen');
