@@ -331,7 +331,6 @@ module.exports = class latoken extends Exchange {
        
 
     async fetchCurrencies (symbol = undefined, params = {}) {
-        this.verbose = true;
         const request = {
             'symbol': symbol,
         };
