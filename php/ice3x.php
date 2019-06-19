@@ -244,6 +244,7 @@ class ice3x extends Exchange {
                 'currency' => $market['quote'],
             );
         }
+        $side = $this->safe_string($trade, 'type');
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -251,7 +252,7 @@ class ice3x extends Exchange {
             'id' => $this->safe_string($trade, 'trade_id'),
             'order' => null,
             'type' => 'limit',
-            'side' => $trade['type'],
+            'side' => $side,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -275,19 +276,18 @@ class ice3x extends Exchange {
         $this->load_markets();
         $response = $this->privatePostBalanceList ($params);
         $result = array( 'info' => $response );
-        $balances = $this->safe_value($response['response'], 'entities');
+        $balances = $this->safe_value($response['response'], 'entities', array());
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $id = $balance['currency_id'];
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $currency = $this->currencies_by_id[$id];
-                $code = $currency['code'];
-                $result[$code] = array (
-                    'free' => 0.0,
-                    'used' => 0.0,
-                    'total' => $this->safe_float($balance, 'balance'),
-                );
+            // currency ids are numeric strings
+            $currencyId = $this->safe_string($balance, 'currency_id');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
             }
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

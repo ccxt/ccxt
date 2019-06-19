@@ -276,8 +276,7 @@ class lbank extends Exchange {
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
-                $cost = $this->cost_to_precision($symbol, $price * $amount);
-                $cost = floatval ($cost);
+                $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
             }
         }
         $id = $this->safe_string($trade, 'tid');

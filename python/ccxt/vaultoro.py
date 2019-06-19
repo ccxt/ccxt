@@ -140,19 +140,29 @@ class vaultoro (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'Time'))
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        price = self.safe_float(trade, 'Gold_Price')
+        amount = self.safe_float(trade, 'Gold_Amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         return {
             'id': None,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': None,
-            'price': trade['Gold_Price'],
-            'amount': trade['Gold_Amount'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

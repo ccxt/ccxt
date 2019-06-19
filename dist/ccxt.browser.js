@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.750'
+const version = '1.18.751'
 
 Exchange.ccxtVersion = version
 
@@ -6377,7 +6377,7 @@ module.exports = class bibox extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const request = {
-            'cmd': 'transfer/assets',
+            'cmd': 'transfer/mainAssets',
             'body': this.extend ({
                 'select': 1,
             }, params),
@@ -46318,16 +46318,21 @@ module.exports = class hitbtc extends Exchange {
         method += 'GetBalance';
         const query = this.omit (params, 'type');
         const response = await this[method] (query);
-        const balances = response['balance'];
-        const result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            const balance = balances[b];
-            const code = balance['currency_code'];
-            const currency = this.commonCurrencyCode (code);
+        const balances = this.safeValue (response, 'balance', []);
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency_code');
+            let code = currencyId.toUpperCase ();
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
             const account = this.account ();
-            account['free'] = this.safeFloat2 (balance, 'cash', 'balance', 0.0);
-            account['used'] = this.safeFloat (balance, 'reserved', 0.0);
-            result[currency] = account;
+            account['free'] = this.safeFloat2 (balance, 'cash', 'balance');
+            account['used'] = this.safeFloat (balance, 'reserved');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -47453,7 +47458,12 @@ module.exports = class hitbtc2 extends hitbtc {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
-            const code = this.commonCurrencyCode (currencyId);
+            let code = currencyId.toUpperCase ();
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (code);
+            }
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
             account['used'] = this.safeFloat (balance, 'reserved');
@@ -48821,13 +48831,17 @@ module.exports = class huobipro extends Exchange {
             'id': this.accounts[0]['id'],
         };
         const response = await this[method] (this.extend (request, params));
-        const balances = this.safeValue (response['data'], 'list');
+        const balances = this.safeValue (response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            const uppercase = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercase);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             let account = undefined;
             if (code in result) {
                 account = result[code];
@@ -49662,6 +49676,7 @@ module.exports = class ice3x extends Exchange {
                 'currency': market['quote'],
             };
         }
+        const side = this.safeString (trade, 'type');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -49669,7 +49684,7 @@ module.exports = class ice3x extends Exchange {
             'id': this.safeString (trade, 'trade_id'),
             'order': undefined,
             'type': 'limit',
-            'side': trade['type'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -49693,19 +49708,18 @@ module.exports = class ice3x extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostBalanceList (params);
         const result = { 'info': response };
-        const balances = this.safeValue (response['response'], 'entities');
+        const balances = this.safeValue (response['response'], 'entities', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const id = balance['currency_id'];
-            if (id in this.currencies_by_id) {
-                const currency = this.currencies_by_id[id];
-                const code = currency['code'];
-                result[code] = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': this.safeFloat (balance, 'balance'),
-                };
+            // currency ids are numeric strings
+            const currencyId = this.safeString (balance, 'currency_id');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
             }
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'balance');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -50000,8 +50014,12 @@ module.exports = class independentreserve extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'CurrencyCode');
-            const uppercase = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercase);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'AvailableBalance');
             account['total'] = this.safeFloat (balance, 'TotalBalance');
@@ -51735,7 +51753,12 @@ module.exports = class kkex extends Exchange {
         const currencyIds = Object.keys (free);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const account = this.account ();
             account['free'] = this.safeFloat (free, currencyId);
             account['used'] = this.safeFloat (freezed, currencyId);
@@ -55596,8 +55619,7 @@ module.exports = class lbank extends Exchange {
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
-                cost = this.costToPrecision (symbol, price * amount);
-                cost = parseFloat (cost);
+                cost = parseFloat (this.costToPrecision (symbol, price * amount));
             }
         }
         const id = this.safeString (trade, 'tid');
@@ -57931,7 +57953,12 @@ module.exports = class livecoin extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
-            const code = this.commonCurrencyCode (currencyId);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
             let account = undefined;
             if (code in result) {
                 account = result[code];
@@ -58697,7 +58724,12 @@ module.exports = class luno extends Exchange {
         for (let i = 0; i < wallets.length; i++) {
             const wallet = wallets[i];
             const currencyId = this.safeString (wallet, 'asset');
-            const code = this.commonCurrencyCode (currencyId);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
             const reserved = this.safeFloat (wallet, 'reserved');
             const unconfirmed = this.safeFloat (wallet, 'unconfirmed');
             const balance = this.safeFloat (wallet, 'balance');
@@ -87286,7 +87318,7 @@ module.exports = class upbit extends Exchange {
         //                    ask_bid: "ASK",
         //              sequential_id:  15428949259430000 }
         //
-        // fetchOrder
+        // fetchOrder trades
         //
         //         {
         //             "market": "KRW-BTC",
@@ -88362,19 +88394,32 @@ module.exports = class vaultoro extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'Time'));
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const price = this.safeFloat (trade, 'Gold_Price');
+        const amount = this.safeFloat (trade, 'Gold_Amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'id': undefined,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': undefined,
-            'price': trade['Gold_Price'],
-            'amount': trade['Gold_Amount'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         };
     }
 
@@ -88666,7 +88711,7 @@ module.exports = class virwox extends Exchange {
         };
     }
 
-    parseTrade (trade, symbol = undefined) {
+    parseTrade (trade, market = undefined) {
         let timestamp = this.safeInteger (trade, 'time');
         if (timestamp !== undefined) {
             timestamp *= 1000;
@@ -88679,6 +88724,10 @@ module.exports = class virwox extends Exchange {
             if (amount !== undefined) {
                 cost = price * amount;
             }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
         }
         return {
             'id': id,
@@ -88699,13 +88748,14 @@ module.exports = class virwox extends Exchange {
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetGetRawTradeData (this.extend ({
+        const request = {
             'instrument': symbol,
             'timespan': 3600,
-        }, params));
+        };
+        const response = await this.publicGetGetRawTradeData (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
         const trades = this.safeValue (result, 'data', []);
-        return this.parseTrades (trades, market);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

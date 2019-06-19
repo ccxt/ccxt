@@ -390,7 +390,7 @@ class bibox (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         request = {
-            'cmd': 'transfer/assets',
+            'cmd': 'transfer/mainAssets',
             'body': self.extend({
                 'select': 1,
             }, params),

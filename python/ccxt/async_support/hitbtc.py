@@ -560,16 +560,20 @@ class hitbtc (Exchange):
         method += 'GetBalance'
         query = self.omit(params, 'type')
         response = await getattr(self, method)(query)
-        balances = response['balance']
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            code = balance['currency_code']
-            currency = self.common_currency_code(code)
+        balances = self.safe_value(response, 'balance', [])
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency_code')
+            code = currencyId.upper()
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(code)
             account = self.account()
-            account['free'] = self.safe_float_2(balance, 'cash', 'balance', 0.0)
-            account['used'] = self.safe_float(balance, 'reserved', 0.0)
-            result[currency] = account
+            account['free'] = self.safe_float_2(balance, 'cash', 'balance')
+            account['used'] = self.safe_float(balance, 'reserved')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):

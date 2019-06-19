@@ -568,13 +568,16 @@ class huobipro (Exchange):
             'id': self.accounts[0]['id'],
         }
         response = getattr(self, method)(self.extend(request, params))
-        balances = self.safe_value(response['data'], 'list')
+        balances = self.safe_value(response['data'], 'list', [])
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            uppercase = currencyId.upper()
-            code = self.common_currency_code(uppercase)
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             account = None
             if code in result:
                 account = result[code]

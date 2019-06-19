@@ -699,7 +699,11 @@ class hitbtc2 (hitbtc):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = currencyId.upper()
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(code)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'reserved')

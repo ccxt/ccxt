@@ -608,13 +608,17 @@ class huobipro extends Exchange {
             'id' => $this->accounts[0]['id'],
         );
         $response = $this->$method (array_merge ($request, $params));
-        $balances = $this->safe_value($response['data'], 'list');
+        $balances = $this->safe_value($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $uppercase = strtoupper($currencyId);
-            $code = $this->common_currency_code($uppercase);
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
             $account = null;
             if (is_array($result) && array_key_exists($code, $result)) {
                 $account = $result[$code];

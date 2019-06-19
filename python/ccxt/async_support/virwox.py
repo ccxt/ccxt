@@ -189,7 +189,7 @@ class virwox (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, symbol=None):
+    def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'time')
         if timestamp is not None:
             timestamp *= 1000
@@ -200,6 +200,9 @@ class virwox (Exchange):
         if price is not None:
             if amount is not None:
                 cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'timestamp': timestamp,
@@ -218,13 +221,14 @@ class virwox (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetGetRawTradeData(self.extend({
+        request = {
             'instrument': symbol,
             'timespan': 3600,
-        }, params))
+        }
+        response = await self.publicGetGetRawTradeData(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         trades = self.safe_value(result, 'data', [])
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

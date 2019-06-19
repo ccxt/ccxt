@@ -115,7 +115,11 @@ class luno (Exchange):
         for i in range(0, len(wallets)):
             wallet = wallets[i]
             currencyId = self.safe_string(wallet, 'asset')
-            code = self.common_currency_code(currencyId)
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             reserved = self.safe_float(wallet, 'reserved')
             unconfirmed = self.safe_float(wallet, 'unconfirmed')
             balance = self.safe_float(wallet, 'balance')

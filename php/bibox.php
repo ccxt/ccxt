@@ -405,7 +405,7 @@ class bibox extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $request = array (
-            'cmd' => 'transfer/assets',
+            'cmd' => 'transfer/mainAssets',
             'body' => array_merge (array (
                 'select' => 1,
             ), $params),

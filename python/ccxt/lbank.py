@@ -265,8 +265,7 @@ class lbank (Exchange):
         cost = None
         if price is not None:
             if amount is not None:
-                cost = self.cost_to_precision(symbol, price * amount)
-                cost = float(cost)
+                cost = float(self.cost_to_precision(symbol, price * amount))
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
