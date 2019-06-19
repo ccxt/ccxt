@@ -116,12 +116,14 @@ module.exports = class coincheck extends Exchange {
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currencyId = this.currency (code);
-            const account = this.account ();
-            const reserved = currencyId + '_reserved';
-            account['free'] = this.safeFloat (balances, currencyId);
-            account['used'] = this.safeFloat (balances, reserved);
-            result[code] = account;
+            const currencyId = this.currencyId (code);
+            if (currencyId in balances) {
+                const account = this.account ();
+                const reserved = currencyId + '_reserved';
+                account['free'] = this.safeFloat (balances, currencyId);
+                account['used'] = this.safeFloat (balances, reserved);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
