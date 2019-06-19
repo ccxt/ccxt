@@ -328,17 +328,45 @@ class lbank (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostUserInfo(params)
+        #
+        #     {
+        #         "result":"true",
+        #         "info":{
+        #             "freeze":{
+        #                 "iog":"0.00000000",
+        #                 "ssc":"0.00000000",
+        #                 "eon":"0.00000000",
+        #             },
+        #             "asset":{
+        #                 "iog":"0.00000000",
+        #                 "ssc":"0.00000000",
+        #                 "eon":"0.00000000",
+        #             },
+        #             "free":{
+        #                 "iog":"0.00000000",
+        #                 "ssc":"0.00000000",
+        #                 "eon":"0.00000000",
+        #             },
+        #         }
+        #     }
+        #
         result = {'info': response}
         info = self.safe_value(response, 'info', {})
         free = self.safe_value(info, 'free', {})
         freeze = self.safe_value(info, 'freeze', {})
-        ids = list(self.extend(free, freeze).keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            code = self.common_currency_code(id.upper())
+        asset = self.safe_value(info, 'asset', {})
+        currencyIds = list(free.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             account = self.account()
-            account['free'] = self.safe_float(free, id)
-            account['used'] = self.safe_float(freeze, id)
+            account['free'] = self.safe_float(free, currencyId)
+            account['used'] = self.safe_float(freeze, currencyId)
+            account['total'] = self.safe_float(asset, currencyId)
             result[code] = account
         return self.parse_balance(result)
 

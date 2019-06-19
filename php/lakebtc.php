@@ -89,15 +89,16 @@ class lakebtc extends Exchange {
         $response = $this->privatePostGetAccountInfo ($params);
         $balances = $this->safe_value($response, 'balance', array());
         $result = array( 'info' => $response );
-        $ids = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $code = $id;
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $currency = $this->currencies_by_id[$id];
-                $code = $currency['code'];
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
             }
-            $balance = $this->safe_float($balances, $id);
+            $balance = $this->safe_float($balances, $currencyId);
             $account = array (
                 'free' => $balance,
                 'used' => 0.0,

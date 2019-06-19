@@ -268,12 +268,24 @@ class liquid extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetAccountsBalance ($params);
-        $result = array( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currencyId = $balance['currency'];
-            $code = $this->common_currency_code($currencyId);
+        $response = $this->privateGetAccountsBalance ($params);
+        //
+        //     array (
+        //         array("currency":"USD","$balance":"0.0"),
+        //         array("currency":"BTC","$balance":"0.0"),
+        //         array("currency":"ETH","$balance":"0.1651354")
+        //     )
+        //
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count ($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
             $total = $this->safe_float($balance, 'balance');
             $account = array (
                 'free' => $total,

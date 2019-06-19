@@ -181,17 +181,24 @@ class mercado (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetAccountInfo(params)
-        balances = self.safe_value(response['response_data'], 'balance')
+        data = self.safe_value(response, 'response_data', {})
+        balances = self.safe_value(data, 'balance', {})
         result = {'info': response}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            code = currencies[i]
-            currencyId = self.currencyId(code)
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
+            # currencyId = self.currencyId(code)
             lowercase = currencyId.lower()
             if lowercase in balances:
+                balance = self.safe_value(balances, lowercase, {})
                 account = self.account()
-                account['free'] = float(balances[lowercase]['available'])
-                account['total'] = float(balances[lowercase]['total'])
+                account['free'] = float(balance, 'available')
+                account['total'] = self.safe_float(balance, 'total')
                 result[code] = account
         return self.parse_balance(result)
 
