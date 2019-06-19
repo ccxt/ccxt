@@ -459,6 +459,8 @@ module.exports = class cobinhood extends Exchange {
             let code = currencyId;
             if (currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
             }
             const account = this.account ();
             account['used'] = this.safeFloat (balance, 'on_order');
