@@ -385,7 +385,7 @@ class rightbtc (Exchange):
         #     }
         #
         result = {'info': response}
-        balances = response['result']
+        balances = self.safe_value(response, 'result', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset')

@@ -464,20 +464,21 @@ class oceanex extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privateGetMembersMe ($params);
-        $balances = $this->safe_value($this->safe_value($response, 'data'), 'accounts');
-        $result = array( 'info' => $balances );
+        $data = $this->safe_value($response, 'data');
+        $balances = $this->safe_value($data, 'accounts');
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_value($balance, 'currency');
-            $uppercaseId = strtoupper($currencyId);
-            $code = $this->common_currency_code($uppercaseId);
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
             $account = $this->account ();
-            $free = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'locked');
-            $total = $this->sum ($free, $used);
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $account['total'] = $total;
+            $account['free'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'locked');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
