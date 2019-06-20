@@ -385,9 +385,12 @@ module.exports = class zb extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
