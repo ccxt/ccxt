@@ -232,9 +232,12 @@ module.exports = class coinmate extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 

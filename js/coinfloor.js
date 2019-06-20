@@ -156,7 +156,7 @@ module.exports = class coinfloor extends Exchange {
         return this.parseTicker (response, market);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         let timestamp = this.safeInteger (trade, 'date');
         if (timestamp !== undefined) {
             timestamp *= 1000;
@@ -170,18 +170,24 @@ module.exports = class coinfloor extends Exchange {
                 cost = price * amount;
             }
         }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'id': id,
             'order': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 

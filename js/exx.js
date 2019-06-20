@@ -209,25 +209,39 @@ module.exports = class exx extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'date') * 1000;
+        let timestamp = this.safeInteger (trade, 'date');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
-        const symbol = market['symbol'];
-        const cost = this.costToPrecision (symbol, price * amount);
-        const type = this.safeString (trade, 'type');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const type = 'limit';
+        const side = this.safeString (trade, 'type');
+        const id = this.safeString (trade, 'tid');
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'tid'),
             'order': undefined,
-            'type': 'limit',
-            'side': type,
+            'type': type,
+            'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-            'info': trade,
         };
     }
 

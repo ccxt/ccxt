@@ -236,9 +236,6 @@ module.exports = class coingi extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        if (market === undefined) {
-            market = this.markets_by_id[trade['currencyPair']];
-        }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -249,17 +246,28 @@ module.exports = class coingi extends Exchange {
         }
         const timestamp = this.safeInteger (trade, 'timestamp');
         const id = this.safeString (trade, 'id');
+        const marketId = this.safeString (trade, 'currencyPair');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': undefined, // type
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 

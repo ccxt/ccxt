@@ -222,6 +222,15 @@ module.exports = class crypton extends Exchange {
         }
         const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
+        const orderId = this.safeString (trade, 'orderId');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'size');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'id': id,
             'info': trade,
@@ -230,9 +239,11 @@ module.exports = class crypton extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'size'),
-            'order': this.safeString (trade, 'orderId'),
+            'order': orderId,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         };
     }

@@ -745,6 +745,7 @@ module.exports = class exmo extends Exchange {
             'order': orderId,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,

@@ -391,11 +391,8 @@ module.exports = class gateio extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market) {
-        // public fetchTrades
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        // private fetchMyTrades
-        timestamp = this.safeInteger (trade, 'time_unix', timestamp);
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.safeInteger2 (trade, 'timestamp', 'time_unix');
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
@@ -411,15 +408,20 @@ module.exports = class gateio extends Exchange {
                 cost = price * amount;
             }
         }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': orderId,
             'type': undefined,
             'side': type,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,

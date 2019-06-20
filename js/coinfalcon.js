@@ -204,6 +204,7 @@ module.exports = class coinfalcon extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,

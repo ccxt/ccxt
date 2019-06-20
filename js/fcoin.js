@@ -291,14 +291,22 @@ module.exports = class fcoin extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (trade, 'ts');
-        const side = trade['side'].toLowerCase ();
-        const orderId = this.safeString (trade, 'id');
+        let side = this.safeString (trade, 'side');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
+        const id = this.safeString (trade, 'id');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
-        const cost = price * amount;
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         const fee = undefined;
         return {
-            'id': orderId,
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -306,6 +314,7 @@ module.exports = class fcoin extends Exchange {
             'type': undefined,
             'order': orderId,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,

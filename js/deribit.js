@@ -299,14 +299,15 @@ module.exports = class deribit extends Exchange {
             };
         }
         return {
-            'info': trade,
             'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': orderId,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,

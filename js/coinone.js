@@ -229,7 +229,10 @@ module.exports = class coinone extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'timestamp') * 1000;
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         const is_ask = this.safeString (trade, 'is_ask');
         let side = undefined;
@@ -238,18 +241,28 @@ module.exports = class coinone extends Exchange {
         } else if (is_ask === '0') {
             side = 'buy';
         }
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'qty');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'id': undefined,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'order': undefined,
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'qty'),
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': undefined,
-            'info': trade,
         };
     }
 

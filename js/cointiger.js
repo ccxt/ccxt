@@ -369,14 +369,15 @@ module.exports = class cointiger extends huobipro {
             symbol = market['symbol'];
         }
         return {
-            'info': trade,
             'id': id,
+            'info': trade,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
