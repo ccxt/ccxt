@@ -145,18 +145,24 @@ class bitstamp1 extends Exchange {
                 $cost = $price * $amount;
             }
         }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

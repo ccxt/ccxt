@@ -269,9 +269,11 @@ class bithumb (Exchange):
             'order': None,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

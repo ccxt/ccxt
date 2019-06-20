@@ -135,18 +135,23 @@ class bitstamp1 (Exchange):
         if price is not None:
             if amount is not None:
                 cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

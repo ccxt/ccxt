@@ -251,6 +251,7 @@ class bitso (Exchange):
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

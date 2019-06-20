@@ -270,9 +270,11 @@ class bitlish extends Exchange {
             'order' => null,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

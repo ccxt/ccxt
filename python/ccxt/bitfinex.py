@@ -670,6 +670,7 @@ class bitfinex (Exchange):
             'type': type,
             'order': orderId,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

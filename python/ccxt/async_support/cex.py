@@ -526,17 +526,22 @@ class cex (Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
