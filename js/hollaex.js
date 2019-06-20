@@ -27,7 +27,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
-                //fetchOpenOrders
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 //fetchDeposits
                 //fetchWithdrawls
@@ -378,6 +378,10 @@ module.exports = class hollaex extends Exchange {
         };
         let response = await this.privateGetUserOrders (this.extend (request, params));
         return this.parseOrders (response, market);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrders (symbol, since, limit, params);
     }
 
     parseOrder (order, market = undefined) {

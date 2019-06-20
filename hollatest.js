@@ -2,8 +2,8 @@ const hollaex = require('./js/hollaex');
 
 const holla = new hollaex();
 
-holla.apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOnsiaWQiOjEwMiwiZW1haWwiOiJicmFuZG9uQGJpdGhvbGxhLmNvbSJ9LCJzY29wZXMiOlsidXNlciIsImJvdCJdLCJpc3MiOiJob2xsYWV4LmNvbSIsImlhdCI6MTU1NTQ4MDczN30.kIHywB9dXc4eo904OVozEUUV9rS4_tIGuJT1p0tMfJo';
+holla.apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOnsiaWQiOjEwMiwiZW1haWwiOiJicmFuZG9uQGJpdGhvbGxhLmNvbSJ9LCJzY29wZXMiOlsidXNlciIsImJvdCJdLCJpc3MiOiJiaXRob2xsYS5jb20iLCJpYXQiOjE1NjA4MzcyNzN9.x0tGRwX7u6pp6rzv2x3r_Tm1enQ7eG3mA6pHMSAWrC4';
 
-holla.fetchTickers().then((data) => {
+holla.fetchOpenOrders('BTC/EUR').then((data) => {
     console.log(data);
 })
