@@ -687,6 +687,7 @@ module.exports = class bitfinex extends Exchange {
             'type': type,
             'order': orderId,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
