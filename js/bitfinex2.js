@@ -319,7 +319,7 @@ module.exports = class bitfinex2 extends bitfinex {
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
         };
-        const priceIndex = (fullRequest['precision'] === precision) ? 1 : 0;
+        const priceIndex = (fullRequest['precision'] === 'R0') ? 1 : 0;
         for (let i = 0; i < orderbook.length; i++) {
             const order = orderbook[i];
             const price = order[priceIndex];
