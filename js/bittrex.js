@@ -1161,7 +1161,7 @@ module.exports = class bittrex extends Exchange {
             request['pageSize'] = limit;
         }
         if (since !== undefined) {
-            request['startDate'] = since;
+            request['startDate'] = this.ymdhms (since) + 'Z';
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -1263,7 +1263,7 @@ module.exports = class bittrex extends Exchange {
         } else if (api === 'v3') {
             url += path;
             if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+                url += '?' + this.rawencode (params);
             }
             const contentHash = this.hash ('', 'sha512', 'hex');
             const timestamp = this.milliseconds ().toString ();
