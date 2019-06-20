@@ -31,6 +31,7 @@ class coinexchange (Exchange):
                 'fetchTickers': True,
             },
             'urls': {
+                'referral': 'https://www.coinexchange.io/?r=a1669e56',
                 'logo': 'https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg',
                 'api': 'https://www.coinexchange.io/api/v1',
                 'www': 'https://www.coinexchange.io',

@@ -172,7 +172,7 @@ The ccxt library currently supports the following 136 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | coinex             | `CoinEx <https://www.coinex.com/account/signup?refer_code=yw5fz>`__                        | 1     | `API <https://github.com/coinexcom/coinex_exchange_api/wiki>`__                                 |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| coinexchange       | `CoinExchange <https://www.coinexchange.io>`__                                             | \*    | `API <https://coinexchangeio.github.io/slate/>`__                                               |                                                                      |
+| coinexchange       | `CoinExchange <https://www.coinexchange.io/?r=a1669e56>`__                                 | \*    | `API <https://coinexchangeio.github.io/slate/>`__                                               |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | coinfalcon         | `CoinFalcon <https://coinfalcon.com/?ref=CFJSVGTUPASB>`__                                  | 1     | `API <https://docs.coinfalcon.com>`__                                                           |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-------+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -384,14 +384,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.759/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.759/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.760/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.760/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.759/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.760/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

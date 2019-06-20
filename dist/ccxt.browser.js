@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.759'
+const version = '1.18.760'
 
 Exchange.ccxtVersion = version
 
@@ -31214,6 +31214,7 @@ module.exports = class coinexchange extends Exchange {
                 'fetchTickers': true,
             },
             'urls': {
+                'referral': 'https://www.coinexchange.io/?r=a1669e56',
                 'logo': 'https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg',
                 'api': 'https://www.coinexchange.io/api/v1',
                 'www': 'https://www.coinexchange.io',
