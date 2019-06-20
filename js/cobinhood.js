@@ -390,6 +390,7 @@ module.exports = class cobinhood extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
