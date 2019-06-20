@@ -80,8 +80,10 @@ module.exports = (exchange, ticker, method, symbol) => {
 
     ].includes (exchange.id)) {
 
-        if (ticker['bid'] && ticker['ask'])
-            assert (ticker['bid'] <= ticker['ask'])
+        if (ticker['baseVolume'] || ticker['quoteVolume']) {
+            if (ticker['bid'] && ticker['ask'])
+                assert (ticker['bid'] <= ticker['ask'])
+        }
 
     }
 

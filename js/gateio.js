@@ -25,7 +25,7 @@ module.exports = class gateio extends Exchange {
                 'fetchTransactions': true,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrderTrades': true,

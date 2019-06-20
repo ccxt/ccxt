@@ -230,7 +230,7 @@ module.exports = class bitflyer extends Exchange {
         }
         let order = undefined;
         if (side !== undefined) {
-            side = trade['side'].toLowerCase ();
+            side = side.toLowerCase ();
             const id = side + '_child_order_acceptance_id';
             if (id in trade) {
                 order = trade[id];
@@ -262,9 +262,11 @@ module.exports = class bitflyer extends Exchange {
             'order': order,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
