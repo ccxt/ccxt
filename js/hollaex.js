@@ -21,7 +21,7 @@ module.exports = class hollaex extends Exchange {
                 'CORS': false,
                 'fetchMarkets': true,
                 'fetchTicker': true,
-                //fetchTickers
+                'fetchTickers': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchBalance': true,
@@ -49,6 +49,7 @@ module.exports = class hollaex extends Exchange {
                 'public': {
                     'get': [
                         'ticker',
+                        'ticker/all',
                         'orderbooks',
                         'trades',
                         'constant',
@@ -191,13 +192,34 @@ module.exports = class hollaex extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    async fetchTickers (symbol = undefined, params = {}) {
+        let markets = await this.loadMarkets ();
+        let response = await this.publicGetTickerAll (this.extend (params));
+        return this.parseTickers (response, markets);
+    }
+
+    parseTickers (response, markets) {
+        let result = [];
+        let keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            result.push (this.parseTicker (response[keys[i]], this.marketsById[keys[i]]));
+        }
+        return result;
+    }
+
     parseTicker (response, market = undefined) {
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
         let info = response;
-        let datetime = this.safeString (response, 'timestamp');
+        let time = this.safeString (response, 'time');
+        let datetime = undefined;
+        if (time === undefined) {
+            datetime = this.safeString (response, 'timestamp');
+        } else {
+            datetime = time;
+        }
         let timestamp = this.parse8601 (datetime);
         let high = this.safeFloat (response, 'high');
         let low = this.safeFloat (response, 'low');
