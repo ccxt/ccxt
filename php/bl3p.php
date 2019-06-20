@@ -143,18 +143,41 @@ class bl3p extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $id = $this->safe_string($trade, 'trade_id');
+        $timestamp = $this->safe_integer($trade, 'date');
+        $price = $this->safe_float($trade, 'price_int');
+        if ($price !== null) {
+            $price /= 100000.0;
+        }
+        $amount = $this->safe_float($trade, 'amount_int');
+        if ($amount !== null) {
+            $amount /= 100000000.0;
+        }
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $amount * $price;
+            }
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
-            'timestamp' => $trade['date'],
-            'datetime' => $this->iso8601 ($trade['date']),
-            'symbol' => $market['symbol'],
+            'info' => $trade,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'symbol' => $symbol,
             'type' => null,
             'side' => null,
-            'price' => $trade['price_int'] / 100000.0,
-            'amount' => $trade['amount_int'] / 100000000.0,
-            'info' => $trade,
+            'order' => null,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 

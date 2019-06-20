@@ -275,6 +275,8 @@ class bleutrade (bittrex):
             'symbol': symbol,
             'type': 'limit',
             'side': side,
+            'order': None,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

@@ -381,6 +381,7 @@ class buda (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

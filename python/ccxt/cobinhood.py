@@ -380,6 +380,7 @@ class cobinhood (Exchange):
             'order': None,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

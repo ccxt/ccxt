@@ -190,7 +190,7 @@ class bxinth extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $date = $this->safe_string($trade, 'trade_date');
         $timestamp = null;
         if ($date !== null) {
@@ -208,18 +208,24 @@ class bxinth extends Exchange {
                 $cost = $amount * $price;
             }
         }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'info' => $trade,
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
+            'takerOrMaker' => null,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

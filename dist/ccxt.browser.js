@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.753'
+const version = '1.18.754'
 
 Exchange.ccxtVersion = version
 
@@ -21260,18 +21260,41 @@ module.exports = class bl3p extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         const id = this.safeString (trade, 'trade_id');
+        const timestamp = this.safeInteger (trade, 'date');
+        let price = this.safeFloat (trade, 'price_int');
+        if (price !== undefined) {
+            price /= 100000.0;
+        }
+        let amount = this.safeFloat (trade, 'amount_int');
+        if (amount !== undefined) {
+            amount /= 100000000.0;
+        }
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
-            'timestamp': trade['date'],
-            'datetime': this.iso8601 (trade['date']),
-            'symbol': market['symbol'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
             'type': undefined,
             'side': undefined,
-            'price': trade['price_int'] / 100000.0,
-            'amount': trade['amount_int'] / 100000000.0,
-            'info': trade,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -21632,6 +21655,8 @@ module.exports = class bleutrade extends bittrex {
             'symbol': symbol,
             'type': 'limit',
             'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -22215,19 +22240,21 @@ module.exports = class braziliex extends Exchange {
         const orderId = this.safeString (trade, 'order_number');
         const type = 'limit';
         const side = this.safeString (trade, 'type');
+        const id = this.safeString (trade, '_id');
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, '_id'),
             'order': orderId,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-            'info': trade,
         };
     }
 
@@ -22419,6 +22446,9 @@ module.exports = class braziliex extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
+        if ((typeof response === 'string') && (response.length < 1)) {
+            throw new ExchangeError (this.id + ' returned empty response');
+        }
         if ('success' in response) {
             const success = this.safeInteger (response, 'success');
             if (success === 0) {
@@ -22620,18 +22650,19 @@ module.exports = class btcalpha extends Exchange {
         const side = this.safeString2 (trade, 'my_side', 'side');
         const orderId = this.safeString (trade, 'o_id');
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-            'info': trade,
         };
     }
 
@@ -23053,9 +23084,11 @@ module.exports = class btcbox extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -24084,9 +24117,11 @@ module.exports = class btcmarkets extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -25048,7 +25083,7 @@ module.exports = class btcturk extends Exchange {
         return this.safeValue2 (tickers, market['id'], symbol);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         let timestamp = this.safeInteger (trade, 'date');
         if (timestamp !== undefined) {
             timestamp *= 1000;
@@ -25062,17 +25097,24 @@ module.exports = class btcturk extends Exchange {
                 cost = amount * price;
             }
         }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': undefined,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -25569,6 +25611,7 @@ module.exports = class buda extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -26159,7 +26202,7 @@ module.exports = class bxinth extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         const date = this.safeString (trade, 'trade_date');
         let timestamp = undefined;
         if (date !== undefined) {
@@ -26177,18 +26220,24 @@ module.exports = class bxinth extends Exchange {
                 cost = amount * price;
             }
         }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'info': trade,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
+            'takerOrMaker': undefined,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -27243,6 +27292,7 @@ module.exports = class cex extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'order': undefined,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
@@ -28124,6 +28174,7 @@ module.exports = class cobinhood extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -29013,6 +29064,7 @@ module.exports = class coinbase extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -29087,7 +29139,7 @@ module.exports = class coinbase extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
+            'close': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
@@ -30390,8 +30442,11 @@ module.exports = class coinex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeInteger (ticker, 'date');
-        const symbol = market['symbol'];
-        ticker = ticker['ticker'];
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        ticker = this.safeValue (ticker, 'ticker', {});
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -30433,15 +30488,19 @@ module.exports = class coinex extends Exchange {
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (data, 'date');
         const tickers = this.safeValue (data, 'ticker');
-        const ids = Object.keys (tickers);
+        const marketIds = Object.keys (tickers);
         const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.markets_by_id[id];
-            const symbol = market['symbol'];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            let symbol = marketId;
+            let market = undefined;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
             const ticker = {
                 'date': timestamp,
-                'ticker': tickers[id],
+                'ticker': tickers[marketId],
             };
             result[symbol] = this.parseTicker (ticker, market);
         }
@@ -47719,6 +47778,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'symbol': symbol,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,

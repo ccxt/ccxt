@@ -393,9 +393,11 @@ class btcmarkets extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

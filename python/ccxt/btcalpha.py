@@ -179,18 +179,19 @@ class btcalpha (Exchange):
         side = self.safe_string_2(trade, 'my_side', 'side')
         orderId = self.safe_string(trade, 'o_id')
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

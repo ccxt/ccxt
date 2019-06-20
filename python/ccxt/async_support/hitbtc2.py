@@ -862,6 +862,7 @@ class hitbtc2 (hitbtc):
             'symbol': symbol,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

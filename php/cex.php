@@ -553,6 +553,7 @@ class cex extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
+            'order' => null,
             'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,

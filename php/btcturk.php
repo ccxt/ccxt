@@ -201,7 +201,7 @@ class btcturk extends Exchange {
         return $this->safe_value_2($tickers, $market['id'], $symbol);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $this->safe_integer($trade, 'date');
         if ($timestamp !== null) {
             $timestamp *= 1000;
@@ -215,17 +215,24 @@ class btcturk extends Exchange {
                 $cost = $amount * $price;
             }
         }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null,
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

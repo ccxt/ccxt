@@ -179,7 +179,7 @@ class bxinth (Exchange):
         ticker = self.safe_value(response, id)
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         date = self.safe_string(trade, 'trade_date')
         timestamp = None
         if date is not None:
@@ -194,18 +194,23 @@ class bxinth (Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'info': trade,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
+            'takerOrMaker': None,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
