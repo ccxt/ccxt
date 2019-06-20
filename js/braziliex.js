@@ -570,6 +570,9 @@ module.exports = class braziliex extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
+        if ((typeof response === 'string') && (response.length < 1)) {
+            throw new ExchangeError (this.id + ' returned empty response');
+        }
         if ('success' in response) {
             const success = this.safeInteger (response, 'success');
             if (success === 0) {
