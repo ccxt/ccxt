@@ -189,7 +189,7 @@ class btcturk (Exchange):
         tickers = self.fetch_tickers(params)
         return self.safe_value_2(tickers, market['id'], symbol)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'date')
         if timestamp is not None:
             timestamp *= 1000
@@ -200,17 +200,23 @@ class btcturk (Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': None,
+            'order': None,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

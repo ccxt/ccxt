@@ -294,6 +294,8 @@ class bleutrade extends bittrex {
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,

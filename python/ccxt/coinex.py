@@ -175,8 +175,10 @@ class coinex (Exchange):
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'date')
-        symbol = market['symbol']
-        ticker = ticker['ticker']
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        ticker = self.safe_value(ticker, 'ticker', {})
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -216,15 +218,18 @@ class coinex (Exchange):
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(data, 'date')
         tickers = self.safe_value(data, 'ticker')
-        ids = list(tickers.keys())
+        marketIds = list(tickers.keys())
         result = {}
-        for i in range(0, len(ids)):
-            id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            symbol = marketId
+            market = None
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
             ticker = {
                 'date': timestamp,
-                'ticker': tickers[id],
+                'ticker': tickers[marketId],
             }
             result[symbol] = self.parse_ticker(ticker, market)
         return result

@@ -537,6 +537,7 @@ class cex (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
+            'order': None,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,

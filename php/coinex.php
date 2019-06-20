@@ -173,8 +173,11 @@ class coinex extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'date');
-        $symbol = $market['symbol'];
-        $ticker = $ticker['ticker'];
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $ticker = $this->safe_value($ticker, 'ticker', array());
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -216,15 +219,19 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($data, 'date');
         $tickers = $this->safe_value($data, 'ticker');
-        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $marketIds = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+        for ($i = 0; $i < count ($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $symbol = $marketId;
+            $market = null;
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            }
             $ticker = array (
                 'date' => $timestamp,
-                'ticker' => $tickers[$id],
+                'ticker' => $tickers[$marketId],
             );
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
