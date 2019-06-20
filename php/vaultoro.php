@@ -171,9 +171,11 @@ class vaultoro extends Exchange {
             'order' => null,
             'type' => null,
             'side' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

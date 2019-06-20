@@ -721,6 +721,7 @@ class upbit extends Exchange {
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,

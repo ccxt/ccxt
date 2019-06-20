@@ -138,21 +138,25 @@ class kuna (acx):
                 'bid': 'buy',
             }
             side = self.safe_string(sideMap, side)
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'volume')
         cost = self.safe_float(trade, 'funds')
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'id')
         return {
             'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'volume'),
-            'cost': cost,
             'order': orderId,
-            'info': trade,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

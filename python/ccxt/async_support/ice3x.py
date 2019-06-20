@@ -220,11 +220,15 @@ class ice3x (Exchange):
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'created') * 1000
+        timestamp = self.safe_integer(trade, 'created')
+        if timestamp is not None:
+            timestamp *= 1000
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'volume')
-        symbol = market['symbol']
-        cost = float(self.cost_to_precision(symbol, price * amount))
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         fee = None
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
@@ -232,20 +236,26 @@ class ice3x (Exchange):
                 'cost': feeCost,
                 'currency': market['quote'],
             }
+        type = 'limit'
         side = self.safe_string(trade, 'type')
+        id = self.safe_string(trade, 'trade_id')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'trade_id'),
             'order': None,
-            'type': 'limit',
+            'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
-            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

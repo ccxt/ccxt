@@ -231,11 +231,18 @@ class ice3x extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'created') * 1000;
+        $timestamp = $this->safe_integer($trade, 'created');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
-        $symbol = $market['symbol'];
-        $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
         $fee = null;
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
@@ -244,20 +251,27 @@ class ice3x extends Exchange {
                 'currency' => $market['quote'],
             );
         }
+        $type = 'limit';
         $side = $this->safe_string($trade, 'type');
+        $id = $this->safe_string($trade, 'trade_id');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
+            'id' => $id,
+            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $this->safe_string($trade, 'trade_id'),
             'order' => null,
-            'type' => 'limit',
+            'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
-            'info' => $trade,
         );
     }
 

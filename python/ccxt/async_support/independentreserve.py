@@ -272,6 +272,10 @@ class independentreserve (Exchange):
         orderId = self.safe_string(trade, 'OrderGuid')
         price = self.safe_float_2(trade, 'Price', 'SecondaryCurrencyTradePrice')
         amount = self.safe_float_2(trade, 'VolumeTraded', 'PrimaryCurrencyAmount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -290,8 +294,10 @@ class independentreserve (Exchange):
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': None,
         }
 

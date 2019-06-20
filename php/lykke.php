@@ -138,6 +138,7 @@ class lykke extends Exchange {
             'type' => null,
             'order' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,

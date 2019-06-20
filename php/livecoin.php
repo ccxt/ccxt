@@ -391,7 +391,7 @@ class livecoin extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -409,7 +409,7 @@ class livecoin extends Exchange {
         //         "datetime" => 1435844369,
         //         "$id" => 30651619,
         //         "type" => "sell",
-        //         "symbol" => "BTC/EUR",
+        //         "$symbol" => "BTC/EUR",
         //         "$price" => 230,
         //         "quantity" => 0.1,
         //         "commission" => 0,
@@ -442,15 +442,20 @@ class livecoin extends Exchange {
                 $cost = $amount * $price;
             }
         }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'id' => $id,
+            'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,

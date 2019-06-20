@@ -418,15 +418,17 @@ class huobipro (Exchange):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
+        id = self.safe_string(trade, 'id')
         return {
+            'id': id,
             'info': trade,
-            'id': self.safe_string(trade, 'id'),
             'order': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

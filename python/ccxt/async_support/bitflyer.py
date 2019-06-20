@@ -221,7 +221,7 @@ class bitflyer (Exchange):
                 side = side.lower()
         order = None
         if side is not None:
-            side = trade['side'].lower()
+            side = side.lower()
             id = side + '_child_order_acceptance_id'
             if id in trade:
                 order = trade[id]
@@ -247,9 +247,11 @@ class bitflyer (Exchange):
             'order': order,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

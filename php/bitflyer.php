@@ -231,7 +231,7 @@ class bitflyer extends Exchange {
         }
         $order = null;
         if ($side !== null) {
-            $side = strtolower($trade['side']);
+            $side = strtolower($side);
             $id = $side . '_child_order_acceptance_id';
             if (is_array($trade) && array_key_exists($id, $trade)) {
                 $order = $trade[$id];
@@ -263,9 +263,11 @@ class bitflyer extends Exchange {
             'order' => $order,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

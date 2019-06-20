@@ -160,7 +160,7 @@ class gemini extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $this->safe_integer($trade, 'timestampms');
         $id = $this->safe_string($trade, 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -180,17 +180,33 @@ class gemini extends Exchange {
         }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        $type = null;
+        $side = $this->safe_string($trade, 'type');
+        if ($side !== null) {
+            $side = strtolower($side);
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'order' => $orderId,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => null,
-            'side' => strtolower($trade['type']),
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'amount' => $amount,
             'fee' => $fee,
         );

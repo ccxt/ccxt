@@ -299,6 +299,12 @@ class independentreserve extends Exchange {
         $orderId = $this->safe_string($trade, 'OrderGuid');
         $price = $this->safe_float_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
         $amount = $this->safe_float_2($trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -320,8 +326,10 @@ class independentreserve extends Exchange {
             'order' => $orderId,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
             'fee' => null,
         );
     }

@@ -283,18 +283,19 @@ class lbank extends Exchange {
         $type = null;
         $side = $this->safe_string($trade, 'type');
         return array (
+            'id' => $id,
+            'info' => $this->safe_value($trade, 'info', $trade),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
             'order' => null,
             'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => null,
-            'info' => $this->safe_value($trade, 'info', $trade),
         );
     }
 

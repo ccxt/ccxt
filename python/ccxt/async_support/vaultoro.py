@@ -160,9 +160,11 @@ class vaultoro (Exchange):
             'order': None,
             'type': None,
             'side': None,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

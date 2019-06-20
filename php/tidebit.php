@@ -287,15 +287,18 @@ class tidebit extends Exchange {
         }
         return array (
             'id' => $id,
+            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
-            'info' => $trade,
+            'fee' => null,
         );
     }
 

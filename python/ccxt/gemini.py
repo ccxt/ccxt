@@ -157,7 +157,7 @@ class gemini (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'timestampms')
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
@@ -174,17 +174,29 @@ class gemini (Exchange):
             }
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        type = None
+        side = self.safe_string(trade, 'type')
+        if side is not None:
+            side = side.lower()
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'order': orderId,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
-            'side': trade['type'].lower(),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'takerOrMaker': None,
             'price': price,
-            'cost': price * amount,
+            'cost': cost,
             'amount': amount,
             'fee': fee,
         }

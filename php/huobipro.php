@@ -445,15 +445,17 @@ class huobipro extends Exchange {
                 'currency' => $feeCurrency,
             );
         }
+        $id = $this->safe_string($trade, 'id');
         return array (
+            'id' => $id,
             'info' => $trade,
-            'id' => $this->safe_string($trade, 'id'),
             'order' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
