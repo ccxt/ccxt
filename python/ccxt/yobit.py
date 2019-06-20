@@ -449,6 +449,10 @@ class yobit (Exchange):
                 takerOrMaker = 'maker'
             if fee is None:
                 fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
         return {
             'id': id,
             'order': order,
@@ -460,6 +464,7 @@ class yobit (Exchange):
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': fee,
             'info': trade,
         }

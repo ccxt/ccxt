@@ -464,6 +464,12 @@ class yobit extends Exchange {
                 $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
             }
         }
+        $cost = null;
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $amount * $price;
+            }
+        }
         return array (
             'id' => $id,
             'order' => $order,
@@ -475,6 +481,7 @@ class yobit extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
             'fee' => $fee,
             'info' => $trade,
         );

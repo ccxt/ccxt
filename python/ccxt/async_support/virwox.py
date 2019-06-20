@@ -211,6 +211,7 @@ class virwox (Exchange):
             'symbol': symbol,
             'type': None,
             'side': None,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

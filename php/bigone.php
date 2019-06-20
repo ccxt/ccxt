@@ -290,6 +290,8 @@ class bigone extends Exchange {
                 $cost = $this->cost_to_precision($symbol, $price * $amount);
             }
         }
+        // taker $side is not related to buy/sell $side
+        // the following code is probably a mistake
         $side = null;
         if ($node['taker_side'] === 'ASK') {
             $side = 'sell';
@@ -305,6 +307,7 @@ class bigone extends Exchange {
             'order' => null,
             'type' => 'limit',
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => floatval ($cost),

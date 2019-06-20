@@ -23,6 +23,7 @@ class xbtce (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'createMarketOrder': False,
+                'fetchOHLCV': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',

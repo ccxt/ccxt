@@ -372,9 +372,12 @@ class zb (Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
+            'order': None,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

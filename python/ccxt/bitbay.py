@@ -373,6 +373,15 @@ class bitbay (Exchange):
         }
 
     def parse_public_trade(self, trade, market=None):
+        #
+        #     {
+        #         "date":1459608665,
+        #         "price":0.02722571,
+        #         "type":"sell",
+        #         "amount":1.08112001,
+        #         "tid":"0"
+        #     }
+        #
         timestamp = self.safe_integer(trade, 'date')
         if timestamp is not None:
             timestamp *= 1000
@@ -396,9 +405,12 @@ class bitbay (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
+            'order': None,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -408,6 +420,31 @@ class bitbay (Exchange):
             'id': market['id'],
         }
         response = self.publicGetIdTrades(self.extend(request, params))
+        #
+        #     [
+        #         {
+        #             "date":1459608665,
+        #             "price":0.02722571,
+        #             "type":"sell",
+        #             "amount":1.08112001,
+        #             "tid":"0"
+        #         },
+        #         {
+        #             "date":1459698930,
+        #             "price":0.029,
+        #             "type":"buy",
+        #             "amount":0.444188,
+        #             "tid":"1"
+        #         },
+        #         {
+        #             "date":1459726670,
+        #             "price":0.029,
+        #             "type":"buy",
+        #             "amount":0.25459599,
+        #             "tid":"2"
+        #         }
+        #     ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):

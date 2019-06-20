@@ -841,7 +841,7 @@ class bibox extends Exchange {
             $code = $codes[$i];
             $currency = $this->currency ($code);
             $request = array (
-                'cmd' => 'transfer/transferOutInfo',
+                'cmd' => 'transfer/coinConfig',
                 'body' => array_merge (array (
                     'coin_symbol' => $currency['id'],
                 ), $params),

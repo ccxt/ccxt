@@ -279,6 +279,8 @@ class bigone (Exchange):
         if amount is not None:
             if price is not None:
                 cost = self.cost_to_precision(symbol, price * amount)
+        # taker side is not related to buy/sell side
+        # the following code is probably a mistake
         side = None
         if node['taker_side'] == 'ASK':
             side = 'sell'
@@ -293,6 +295,7 @@ class bigone (Exchange):
             'order': None,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': float(cost),
