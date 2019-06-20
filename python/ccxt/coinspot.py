@@ -30,7 +30,7 @@ class coinspot (Exchange):
                 },
                 'www': 'https://www.coinspot.com.au',
                 'doc': 'https://www.coinspot.com.au/api',
-                'referral': 'https://www.coinspot.com.au/join/FSM11C',
+                'referral': 'https://www.coinspot.com.au?affiliate=PJURCU',
             },
             'api': {
                 'public': {

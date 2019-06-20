@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.760'
+const version = '1.18.761'
 
 Exchange.ccxtVersion = version
 
@@ -34603,7 +34603,7 @@ module.exports = class coinspot extends Exchange {
                 },
                 'www': 'https://www.coinspot.com.au',
                 'doc': 'https://www.coinspot.com.au/api',
-                'referral': 'https://www.coinspot.com.au/join/FSM11C',
+                'referral': 'https://www.coinspot.com.au?affiliate=PJURCU',
             },
             'api': {
                 'public': {
