@@ -33,7 +33,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchDeposits': true,
-                //fetchWithdrawls
+                'fetchWithdrawals': true,
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
@@ -71,6 +71,8 @@ module.exports = class hollaex extends Exchange {
                         'user/trades',
                         'user/orders',
                         'user/orders/{orderId}',
+                        'user/deposits',
+                        'user/withdrawals',
                     ],
                     'post': [
                         'user/request-withdrawal',
@@ -576,6 +578,92 @@ module.exports = class hollaex extends Exchange {
             'address': address,
             'tag': undefined,
             'info': info[currency],
+        };
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a code argument');
+        }
+        await this.loadMarkets ();
+        let currency = this.currency (code)['id'];
+        if (currency === 'eur') {
+            currency = 'fiat';
+        }
+        let request = {
+            'currency': currency,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = await this.privateGetUserDeposits (this.extend (request, params));
+        return this.parseTransactions (response.data);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a code argument');
+        }
+        await this.loadMarkets ();
+        let currency = this.currency (code)['id'];
+        if (currency === 'eur') {
+            currency = 'fiat';
+        }
+        let request = {
+            'currency': currency,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = await this.privateGetUserWithdrawals (this.extend (request, params));
+        return this.parseTransactions (response.data);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let id = this.safeFloat (transaction, 'id');
+        let txid = this.safeString (transaction, 'transaction_id');
+        let datetime = this.safeString (transaction, 'created_at');
+        let timestamp = this.parse8601 (datetime);
+        let addressFrom = undefined;
+        let address = undefined;
+        let addressTo = undefined;
+        let tagFrom = undefined;
+        let tag = undefined;
+        let tagTo = undefined;
+        let type = this.safeString (transaction, 'type');
+        let amount = this.safeFloat (transaction, 'amount');
+        let currencyId = this.safeString (transaction, 'currency');
+        if (currencyId === 'fiat') {
+            currencyId = 'eur';
+        }
+        currency = this.currencies_by_id[currencyId]['code'];
+        let status = 'ok';
+        let updated = undefined;
+        let comment = this.safeString (transaction, 'description');
+        let fee = {
+            'currency': currency,
+            'cost': this.safeFloat (transaction, 'fee'),
+            'rate': undefined,
+        };
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'addressFrom': addressFrom,
+            'address': address,
+            'addressTo': addressTo,
+            'tagFrom': tagFrom,
+            'tag': tag,
+            'tagTo': tagTo,
+            'type': type,
+            'amount': amount,
+            'currency': currency,
+            'status': status,
+            'updated': updated,
+            'comment': comment,
+            'fee': fee,
         };
     }
 
