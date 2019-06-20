@@ -552,6 +552,7 @@ module.exports = class cex extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'order': undefined,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
