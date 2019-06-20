@@ -174,7 +174,6 @@ class Exchange {
         'independentreserve',
         'indodax',
         'itbit',
-        'jubi',
         'kkex',
         'kraken',
         'kucoin',
