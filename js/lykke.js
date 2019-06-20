@@ -136,6 +136,7 @@ module.exports = class lykke extends Exchange {
             'type': undefined,
             'order': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,

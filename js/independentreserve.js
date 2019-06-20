@@ -297,6 +297,12 @@ module.exports = class independentreserve extends Exchange {
         const orderId = this.safeString (trade, 'OrderGuid');
         const price = this.safeFloat2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
         const amount = this.safeFloat2 (trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -318,8 +324,10 @@ module.exports = class independentreserve extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': undefined,
         };
     }

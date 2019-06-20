@@ -230,11 +230,18 @@ module.exports = class ice3x extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'created') * 1000;
+        let timestamp = this.safeInteger (trade, 'created');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'volume');
-        const symbol = market['symbol'];
-        const cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
@@ -243,20 +250,27 @@ module.exports = class ice3x extends Exchange {
                 'currency': market['quote'],
             };
         }
+        const type = 'limit';
         const side = this.safeString (trade, 'type');
+        const id = this.safeString (trade, 'trade_id');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeString (trade, 'trade_id'),
             'order': undefined,
-            'type': 'limit',
+            'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
-            'info': trade,
         };
     }
 

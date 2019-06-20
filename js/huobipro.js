@@ -444,15 +444,17 @@ module.exports = class huobipro extends Exchange {
                 'currency': feeCurrency,
             };
         }
+        const id = this.safeString (trade, 'id');
         return {
+            'id': id,
             'info': trade,
-            'id': this.safeString (trade, 'id'),
             'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,

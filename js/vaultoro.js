@@ -169,9 +169,11 @@ module.exports = class vaultoro extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 

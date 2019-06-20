@@ -286,15 +286,18 @@ module.exports = class tidebit extends Exchange {
         }
         return {
             'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'info': trade,
+            'fee': undefined,
         };
     }
 

@@ -720,6 +720,7 @@ module.exports = class upbit extends Exchange {
             'symbol': symbol,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
