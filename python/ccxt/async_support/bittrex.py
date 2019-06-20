@@ -1077,7 +1077,7 @@ class bittrex (Exchange):
         if limit is not None:
             request['pageSize'] = limit
         if since is not None:
-            request['startDate'] = since
+            request['startDate'] = self.ymdhms(since) + 'Z'
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1166,7 +1166,7 @@ class bittrex (Exchange):
         elif api == 'v3':
             url += path
             if params:
-                url += '?' + self.urlencode(params)
+                url += '?' + self.rawencode(params)
             contentHash = self.hash('', 'sha512', 'hex')
             timestamp = str(self.milliseconds())
             auth = timestamp + url + method + contentHash

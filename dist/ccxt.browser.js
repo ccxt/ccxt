@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.752'
+const version = '1.18.753'
 
 Exchange.ccxtVersion = version
 
@@ -393,9 +393,11 @@ module.exports = class _1btcxe extends Exchange {
             'order': undefined,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -11330,6 +11332,7 @@ module.exports = class bitfinex extends Exchange {
             'type': type,
             'order': orderId,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -13812,9 +13815,11 @@ module.exports = class bithumb extends Exchange {
             'order': undefined,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -14303,9 +14308,11 @@ module.exports = class bitlish extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -14701,9 +14708,11 @@ module.exports = class bitmarket extends Exchange {
             'order': undefined,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -16900,6 +16909,7 @@ module.exports = class bitso extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -16927,7 +16937,7 @@ module.exports = class bitso extends Exchange {
         // warn the user with an exception if the user wants to filter
         // starting from since timestamp, but does not set the trade id with an extra 'marker' param
         if ((since !== undefined) && !markerInParams) {
-            throw ExchangeError (this.id + ' fetchMyTrades does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
+            throw new ExchangeError (this.id + ' fetchMyTrades does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
         if (markerInParams) {
@@ -17683,6 +17693,7 @@ module.exports = class bitstamp extends Exchange {
             'order': orderId,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -18479,18 +18490,24 @@ module.exports = class bitstamp1 extends Exchange {
                 cost = price * amount;
             }
         }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': orderId,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -19786,7 +19803,7 @@ module.exports = class bittrex extends Exchange {
             request['pageSize'] = limit;
         }
         if (since !== undefined) {
-            request['startDate'] = since;
+            request['startDate'] = this.ymdhms (since) + 'Z';
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -19888,7 +19905,7 @@ module.exports = class bittrex extends Exchange {
         } else if (api === 'v3') {
             url += path;
             if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+                url += '?' + this.rawencode (params);
             }
             const contentHash = this.hash ('', 'sha512', 'hex');
             const timestamp = this.milliseconds ().toString ();
@@ -20593,6 +20610,7 @@ module.exports = class bitz extends Exchange {
             'order': undefined,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -26591,9 +26609,11 @@ module.exports = class ccex extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -27211,17 +27231,23 @@ module.exports = class cex extends Exchange {
                 cost = amount * price;
             }
         }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 

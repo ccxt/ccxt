@@ -452,6 +452,7 @@ class bitstamp (Exchange):
             'order': orderId,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

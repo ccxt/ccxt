@@ -1161,7 +1161,7 @@ class bittrex extends Exchange {
             $request['pageSize'] = $limit;
         }
         if ($since !== null) {
-            $request['startDate'] = $since;
+            $request['startDate'] = $this->ymdhms ($since) . 'Z';
         }
         $market = null;
         if ($symbol !== null) {
@@ -1263,7 +1263,7 @@ class bittrex extends Exchange {
         } else if ($api === 'v3') {
             $url .= $path;
             if ($params) {
-                $url .= '?' . $this->urlencode ($params);
+                $url .= '?' . $this->rawencode ($params);
             }
             $contentHash = $this->hash ('', 'sha512', 'hex');
             $timestamp = (string) $this->milliseconds ();

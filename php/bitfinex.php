@@ -687,6 +687,7 @@ class bitfinex extends Exchange {
             'type' => $type,
             'order' => $orderId,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,

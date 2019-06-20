@@ -564,6 +564,7 @@ class bitz (Exchange):
             'order': None,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
