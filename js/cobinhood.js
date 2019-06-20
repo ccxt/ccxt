@@ -51,6 +51,7 @@ module.exports = class cobinhood extends Exchange {
                 '1M': '1M',
             },
             'urls': {
+                'referral': 'https://cobinhood.com?referrerId=a9d57842-99bb-4d7c-b668-0479a15a458b',
                 'logo': 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
                 'api': 'https://api.cobinhood.com',
                 'www': 'https://cobinhood.com',
