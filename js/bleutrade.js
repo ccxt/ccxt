@@ -293,6 +293,8 @@ module.exports = class bleutrade extends bittrex {
             'symbol': symbol,
             'type': 'limit',
             'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
