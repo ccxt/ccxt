@@ -39,6 +39,10 @@ module.exports = class hollaex extends Exchange {
                 'withdraw': true,
                 'fetchDepositAddress': true,
             },
+            'timeframes': {
+                '1h': '1h',
+                '1d': '1d',
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/10441291/59487066-8058b500-8eb6-11e9-82fd-c9157b18c2d8.jpg',
                 'api': 'https://api.hollaex.com',
@@ -57,6 +61,7 @@ module.exports = class hollaex extends Exchange {
                         'orderbooks',
                         'trades',
                         'constant',
+                        'chart',
                     ],
                 },
                 'private': {
@@ -318,6 +323,43 @@ module.exports = class hollaex extends Exchange {
             'fee': fee,
         };
         return result;
+    }
+
+    async fetchOHLCV (symbol = undefined, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        let to = this.seconds ();
+        let from = since;
+        if (from === undefined) {
+            from = to - 2592000; // default to a month
+        } else {
+            from /= 1000;
+        }
+        let request = {
+            'from': from,
+            'to': to,
+            'symbol': market['id'],
+            'resolution': this.timeframes[timeframe],
+        };
+        let response = await this.publicGetChart (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (response, market = undefined, timeframe = '1h', since = undefined, limit = undefined) {
+        let time = this.parse8601 (this.safeString (response, 'time'));
+        let open = this.safeFloat (response, 'open');
+        let high = this.safeFloat (response, 'high');
+        let low = this.safeFloat (response, 'low');
+        let close = this.safeFloat (response, 'close');
+        let volume = this.safeFloat (response, 'volume');
+        return [
+            time,
+            open,
+            high,
+            low,
+            close,
+            volume,
+        ];
     }
 
     async fetchBalance (params = {}) {
