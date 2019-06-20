@@ -39,7 +39,7 @@ class cointiger extends huobipro {
                     'v2' => 'https://api.{hostname}/exchange/trading/api/v2',
                 ),
                 'www' => 'https://www.cointiger.pro',
-                'referral' => 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
+                'referral' => 'https://www.cointiger.one/#/register?refCode=FfvDtt',
                 'doc' => 'https://github.com/cointiger/api-docs-en/wiki',
             ),
             'api' => array (
