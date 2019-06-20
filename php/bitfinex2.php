@@ -320,7 +320,7 @@ class bitfinex2 extends bitfinex {
             'datetime' => $this->iso8601 ($timestamp),
             'nonce' => null,
         );
-        $priceIndex = ($fullRequest['precision'] === $precision) ? 1 : 0;
+        $priceIndex = ($fullRequest['precision'] === 'R0') ? 1 : 0;
         for ($i = 0; $i < count ($orderbook); $i++) {
             $order = $orderbook[$i];
             $price = $order[$priceIndex];
