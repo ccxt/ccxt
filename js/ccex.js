@@ -289,9 +289,11 @@ module.exports = class ccex extends Exchange {
             'symbol': market['symbol'],
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
