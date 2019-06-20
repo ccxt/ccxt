@@ -209,6 +209,13 @@ class crypton (Exchange):
             }
         id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
+        orderId = self.safe_string(trade, 'orderId')
+        price = self.safe_string(trade, 'price')
+        amount = self.safe_string(trade, 'size')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         return {
             'id': id,
             'info': trade,
@@ -217,9 +224,11 @@ class crypton (Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'size'),
-            'order': self.safe_string(trade, 'orderId'),
+            'order': orderId,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         }
 

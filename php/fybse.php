@@ -110,20 +110,38 @@ class fybse extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $this->safe_integer($trade, 'date') * 1000;
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->safe_integer($trade, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $id = $this->safe_string($trade, 'tid');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
         return array (
-            'info' => $trade,
             'id' => $id,
+            'info' => $trade,
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 

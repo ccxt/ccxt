@@ -392,11 +392,8 @@ class gateio extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade ($trade, $market) {
-        // public fetchTrades
-        $timestamp = $this->safe_integer($trade, 'timestamp');
-        // private fetchMyTrades
-        $timestamp = $this->safe_integer($trade, 'time_unix', $timestamp);
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->safe_integer_2($trade, 'timestamp', 'time_unix');
         if ($timestamp !== null) {
             $timestamp *= 1000;
         }
@@ -412,15 +409,20 @@ class gateio extends Exchange {
                 $cost = $price * $amount;
             }
         }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
             'side' => $type,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,

@@ -382,11 +382,8 @@ class gateio (Exchange):
         }, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market):
-        # public fetchTrades
-        timestamp = self.safe_integer(trade, 'timestamp')
-        # private fetchMyTrades
-        timestamp = self.safe_integer(trade, 'time_unix', timestamp)
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_integer_2(trade, 'timestamp', 'time_unix')
         if timestamp is not None:
             timestamp *= 1000
         id = self.safe_string_2(trade, 'tradeID', 'id')
@@ -399,15 +396,19 @@ class gateio (Exchange):
         if price is not None:
             if amount is not None:
                 cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': orderId,
             'type': None,
             'side': type,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

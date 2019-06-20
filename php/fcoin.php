@@ -292,21 +292,30 @@ class fcoin extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($trade, 'ts');
-        $side = strtolower($trade['side']);
-        $orderId = $this->safe_string($trade, 'id');
+        $side = $this->safe_string($trade, 'side');
+        if ($side !== null) {
+            $side = strtolower($side);
+        }
+        $id = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
-        $cost = $price * $amount;
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $amount * $price;
+            }
+        }
         $fee = null;
         return array (
-            'id' => $orderId,
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => null,
-            'order' => $orderId,
+            'order' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,

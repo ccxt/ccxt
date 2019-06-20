@@ -746,6 +746,7 @@ class exmo extends Exchange {
             'order' => $orderId,
             'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,

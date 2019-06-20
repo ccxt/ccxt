@@ -357,14 +357,15 @@ class cointiger (huobipro):
         if market is not None:
             symbol = market['symbol']
         return {
-            'info': trade,
             'id': id,
+            'info': trade,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
