@@ -1265,7 +1265,7 @@ class bittrex extends Exchange {
             if ($params) {
                 $url .= '?' . $this->rawencode ($params);
             }
-            $contentHash = $this->hash ('', 'sha512', 'hex');
+            $contentHash = $this->hash ($this->encode (''), 'sha512', 'hex');
             $timestamp = (string) $this->milliseconds ();
             $auth = $timestamp . $url . $method . $contentHash;
             $subaccountId = $this->safe_value($this->options, 'subaccountId');

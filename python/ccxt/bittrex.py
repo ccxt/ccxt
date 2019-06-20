@@ -1167,7 +1167,7 @@ class bittrex (Exchange):
             url += path
             if params:
                 url += '?' + self.rawencode(params)
-            contentHash = self.hash('', 'sha512', 'hex')
+            contentHash = self.hash(self.encode(''), 'sha512', 'hex')
             timestamp = str(self.milliseconds())
             auth = timestamp + url + method + contentHash
             subaccountId = self.safe_value(self.options, 'subaccountId')

@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.757'
+const version = '1.18.758'
 
 Exchange.ccxtVersion = version
 
@@ -19909,7 +19909,7 @@ module.exports = class bittrex extends Exchange {
             if (Object.keys (params).length) {
                 url += '?' + this.rawencode (params);
             }
-            const contentHash = this.hash ('', 'sha512', 'hex');
+            const contentHash = this.hash (this.encode (''), 'sha512', 'hex');
             const timestamp = this.milliseconds ().toString ();
             let auth = timestamp + url + method + contentHash;
             const subaccountId = this.safeValue (this.options, 'subaccountId');
