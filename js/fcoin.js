@@ -312,7 +312,7 @@ module.exports = class fcoin extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'order': orderId,
+            'order': undefined,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
