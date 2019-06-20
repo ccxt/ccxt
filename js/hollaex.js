@@ -16,7 +16,6 @@ module.exports = class hollaex extends Exchange {
             'rateLimit': 333,
             'version': 'v0',
             'has': {
-                // fetchDepositAddress user info
                 // fetchBidsAsks
                 'CORS': false,
                 'fetchMarkets': true,
@@ -26,6 +25,10 @@ module.exports = class hollaex extends Exchange {
                 'fetchTrades': true,
                 'fetchBalance': true,
                 'createOrder': true,
+                //createLimitBuyOrder
+                //createLimitSellOrder
+                //createMarketBuyOrder
+                //createMarketSellOrder
                 'cancelOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -34,6 +37,7 @@ module.exports = class hollaex extends Exchange {
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
+                'fetchDepositAddress': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/10441291/59487066-8058b500-8eb6-11e9-82fd-c9157b18c2d8.jpg',
@@ -88,6 +92,12 @@ module.exports = class hollaex extends Exchange {
                 '429': BadRequest,
                 '500': NetworkError,
                 '503': NetworkError,
+            },
+            'fullCurrencies': {
+                'BTC': 'bitcoin',
+                'ETH': 'ethereum',
+                'BCH': 'bitcoincash',
+                'XRP': 'ripple',
             },
         });
     }
@@ -381,6 +391,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        console.log(this.commonCurrencies)
         return this.fetchOrders (symbol, since, limit, params);
     }
 
@@ -470,6 +481,27 @@ module.exports = class hollaex extends Exchange {
         }
         let response = await this.privateGetUserTrades (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
+    }
+
+    async fetchDepositAddress (code = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a code argument');
+        }
+        await this.loadMarkets ();
+        let check = this.safeValue (this.currencies, code);
+        if (check === undefined) {
+            throw new BadRequest (this.id + ' ' + code + ' is not supported in the exchange');
+        }
+        let response = await this.privateGetUser ();
+        let info = this.safeValue (response, 'crypto_wallet');
+        let currency = this.safeString (this.fullCurrencies, code);
+        let address = this.safeString (info, currency);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'info': info[currency]
+        }
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
