@@ -409,6 +409,7 @@ class okex3 extends Exchange {
                     '35031' => '\\ccxt\\InvalidOrder', // array( "code" => 35031, "message" => "Cancel order size too large" )
                     '35032' => '\\ccxt\\ExchangeError', // array( "code" => 35032, "message" => "Invalid user status" )
                     '35039' => '\\ccxt\\ExchangeError', // array( "code" => 35039, "message" => "Open order quantity exceeds limit" )
+                    '35040' => '\\ccxt\\InvalidOrder', // array("error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1")
                     '35044' => '\\ccxt\\ExchangeError', // array( "code" => 35044, "message" => "Invalid order status" )
                     '35046' => '\\ccxt\\InsufficientFunds', // array( "code" => 35046, "message" => "Negative account balance" )
                     '35047' => '\\ccxt\\InsufficientFunds', // array( "code" => 35047, "message" => "Insufficient account balance" )
@@ -1144,19 +1145,16 @@ class okex3 extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
-            $account = $this->account ();
-            $total = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'hold');
-            $free = $this->safe_float($balance, 'available');
-            if ($free === null) {
-                if (($total !== null) && ($used !== null)) {
-                    $free = $total - $used;
-                }
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
             }
-            $account['total'] = $total;
-            $account['used'] = $used;
-            $account['free'] = $free;
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'hold');
+            $account['free'] = $this->safe_float($balance, 'available');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -1212,6 +1210,7 @@ class okex3 extends Exchange {
                 'liquidation_price',
                 'product_id',
                 'risk_rate',
+                'margin_ratio',
             ));
             $keys = is_array($omittedBalance) ? array_keys($omittedBalance) : array();
             $accounts = array();
@@ -1221,19 +1220,16 @@ class okex3 extends Exchange {
                 if (mb_strpos($key, ':') !== false) {
                     $parts = explode(':', $key);
                     $currencyId = $parts[1];
-                    $code = $this->common_currency_code($currencyId);
-                    $account = $this->account ();
-                    $total = $this->safe_float($marketBalance, 'balance');
-                    $used = $this->safe_float($marketBalance, 'hold');
-                    $free = $this->safe_float($marketBalance, 'available');
-                    if ($free === null) {
-                        if (($total !== null) && ($used !== null)) {
-                            $free = $total - $used;
-                        }
+                    $code = $currencyId;
+                    if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                        $code = $this->currencies_by_id[$currencyId]['code'];
+                    } else {
+                        $code = $this->common_currency_code($currencyId);
                     }
-                    $account['total'] = $total;
-                    $account['used'] = $used;
-                    $account['free'] = $free;
+                    $account = $this->account ();
+                    $account['total'] = $this->safe_float($marketBalance, 'balance');
+                    $account['used'] = $this->safe_float($marketBalance, 'hold');
+                    $account['free'] = $this->safe_float($marketBalance, 'available');
                     $accounts[$code] = $account;
                 } else {
                     throw new NotSupported($this->id . ' margin $balance $response format has changed!');
@@ -1287,16 +1283,9 @@ class okex3 extends Exchange {
             $code = $this->common_currency_code($id);
             $balance = $this->safe_value($info, $lowercaseId, array());
             $account = $this->account ();
-            // it may be incorrect to use $total, $free and $used for swap accounts
-            $total = $this->safe_float($balance, 'equity');
-            $free = $this->safe_float($balance, 'total_avail_balance');
-            $used = null;
-            if (($total !== null) && ($free !== null)) {
-                $used = max (0, $total - $free);
-            }
-            $account['total'] = $total;
-            $account['used'] = $used;
-            $account['free'] = $free;
+            // it may be incorrect to use total, free and used for swap accounts
+            $account['total'] = $this->safe_float($balance, 'equity');
+            $account['free'] = $this->safe_float($balance, 'total_avail_balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -1325,24 +1314,18 @@ class okex3 extends Exchange {
         // their root field name is "$info", so our $info will contain their $info
         $result = array( 'info' => $response );
         $info = $this->safe_value($response, 'info', array());
-        $lowercaseIds = is_array($info) ? array_keys($info) : array();
-        for ($i = 0; $i < count ($lowercaseIds); $i++) {
-            $lowercaseId = $lowercaseIds[$i];
-            $id = strtoupper($lowercaseId);
-            $code = $this->common_currency_code($id);
-            $balance = $this->safe_value($info, $lowercaseId, array());
-            $account = $this->account ();
-            // it may be incorrect to use $total, $free and $used for swap accounts
-            $total = $this->safe_float($balance, 'equity');
-            $free = $this->safe_float($balance, 'total_avail_balance');
-            $used = null;
-            if (($total !== null) && ($free !== null)) {
-                $used = max (0, $total - $free);
+        for ($i = 0; $i < count ($info); $i++) {
+            $balance = $info[$i];
+            $marketId = $this->safe_string($balance, 'instrument_id');
+            $symbol = $marketId;
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $symbol = $this->markets_by_id[$marketId]['symbol'];
             }
-            $account['total'] = $total;
-            $account['used'] = $used;
-            $account['free'] = $free;
-            $result[$code] = $account;
+            $account = $this->account ();
+            // it may be incorrect to use total, free and used for swap accounts
+            $account['total'] = $this->safe_float($balance, 'equity');
+            $account['free'] = $this->safe_float($balance, 'total_avail_balance');
+            $result[$symbol] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -2041,6 +2024,7 @@ class okex3 extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string_2($depositAddress, 'tag', 'payment_id');
+        $tag = $this->safe_string($depositAddress, 'memo', $tag);
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $code = null;
         if ($currencyId !== null) {

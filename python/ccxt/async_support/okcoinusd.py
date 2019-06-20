@@ -525,7 +525,9 @@ class okcoinusd (Exchange):
         request = {}
         response = await self.publicGetTickers(self.extend(request, params))
         tickers = response['tickers']
-        timestamp = int(response['date']) * 1000
+        timestamp = self.safe_integer(response, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
@@ -538,7 +540,7 @@ class okcoinusd (Exchange):
         await self.load_markets()
         request = {}
         response = await self.webGetSpotMarketsTickers(self.extend(request, params))
-        tickers = response['data']
+        tickers = self.safe_value(response, 'data')
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
@@ -548,8 +550,7 @@ class okcoinusd (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         method = self.options['fetchTickersMethod']
-        response = await getattr(self, method)(symbols, params)
-        return response
+        return await getattr(self, method)(symbols, params)
 
     async def fetch_order_book(self, symbol=None, limit=None, params={}):
         await self.load_markets()
@@ -558,8 +559,8 @@ class okcoinusd (Exchange):
         request = self.create_request(market, params)
         if limit is not None:
             request['size'] = limit
-        orderbook = await getattr(self, method)(request)
-        return self.parse_order_book(orderbook)
+        response = await getattr(self, method)(request)
+        return self.parse_order_book(response)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -688,8 +689,10 @@ class okcoinusd (Exchange):
         method = 'publicGetFutureKline' if market['future'] else 'publicGetKline'
         request = self.create_request(market, {
             'type': self.timeframes[timeframe],
-            'since': since is self.milliseconds() - 86400000 if None else since,  # default last 24h
+            # 'since': since is self.milliseconds() - 86400000 if None else since,  # default last 24h
         })
+        if since is not None:
+            request['since'] = self.milliseconds() - 86400000  # default last 24h
         if limit is not None:
             if self.options['fetchOHLCVWarning']:
                 raise ExchangeError(self.id + ' fetchOHLCV counts "limit" candles from current time backwards, therefore the "limit" argument for ' + self.id + ' is disabled. Set ' + self.id + '.options["fetchOHLCVWarning"] = False to suppress self warning message.')
@@ -700,7 +703,8 @@ class okcoinusd (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostUserinfo(params)
-        balances = response['info']['funds']
+        info = self.safe_value(response, 'info', {})
+        balances = self.safe_value(info, 'funds', {})
         result = {'info': response}
         ids = list(balances['free'].keys())
         usedField = 'freezed'
@@ -718,9 +722,8 @@ class okcoinusd (Exchange):
             else:
                 code = self.common_currency_code(code)
             account = self.account()
-            account['free'] = self.safe_float(balances['free'], id, 0.0)
-            account['used'] = self.safe_float(balances[usedField], id, 0.0)
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = self.safe_float(balances['free'], id)
+            account['used'] = self.safe_float(balances[usedField], id)
             result[code] = account
         return self.parse_balance(result)
 
@@ -751,7 +754,7 @@ class okcoinusd (Exchange):
         timestamp = self.milliseconds()
         return {
             'info': response,
-            'id': str(response['order_id']),
+            'id': self.safe_string(response, 'order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -794,11 +797,11 @@ class okcoinusd (Exchange):
     def parse_order_side(self, side):
         if side == 1:
             return 'buy'  # open long position
-        if side == 2:
+        elif side == 2:
             return 'sell'  # open short position
-        if side == 3:
+        elif side == 3:
             return 'sell'  # liquidate long position
-        if side == 4:
+        elif side == 4:
             return 'buy'  # liquidate short position
         return side
 
@@ -827,10 +830,8 @@ class okcoinusd (Exchange):
                 market = self.markets_by_id[marketId]
         if market:
             symbol = market['symbol']
-        timestamp = None
         createDateField = self.get_create_date_field()
-        if createDateField in order:
-            timestamp = order[createDateField]
+        timestamp = self.safe_integer(order, createDateField)
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'deal_amount')
         amount = max(amount, filled)
@@ -841,16 +842,16 @@ class okcoinusd (Exchange):
         # https://github.com/ccxt/ccxt/issues/2452
         average = self.safe_float(order, 'price_avg', average)
         cost = average * filled
-        result = {
+        return {
             'info': order,
-            'id': str(order['order_id']),
+            'id': self.safe_string(order, 'order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
             'type': type,
             'side': side,
-            'price': order['price'],
+            'price': self.safe_float(order, 'price'),
             'average': average,
             'cost': cost,
             'amount': amount,
@@ -859,7 +860,6 @@ class okcoinusd (Exchange):
             'status': status,
             'fee': None,
         }
-        return result
 
     def get_create_date_field(self):
         # needed for derived exchanges
@@ -925,16 +925,16 @@ class okcoinusd (Exchange):
         return self.parse_orders(response[ordersField], market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        open = 0  # 0 for unfilled orders, 1 for filled orders
-        return await self.fetch_orders(symbol, since, limit, self.extend({
-            'status': open,
-        }, params))
+        request = {
+            'status': 0,  # 0 for unfilled orders, 1 for filled orders
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        closed = 1  # 0 for unfilled orders, 1 for filled orders
-        return await self.fetch_orders(symbol, since, limit, self.extend({
-            'status': closed,
-        }, params))
+        request = {
+            'status': 1,  # 0 for unfilled orders, 1 for filled orders
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -1009,17 +1009,16 @@ class okcoinusd (Exchange):
         }, params)
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if len(body) < 2:
+        if response is None:
             return  # fallback to default error handler
-        if body[0] == '{':
-            if 'error_code' in response:
-                error = self.safe_string(response, 'error_code')
-                message = self.id + ' ' + self.json(response)
-                if error in self.exceptions:
-                    ExceptionClass = self.exceptions[error]
-                    raise ExceptionClass(message)
-                else:
-                    raise ExchangeError(message)
-            if 'result' in response:
-                if not response['result']:
-                    raise ExchangeError(self.id + ' ' + self.json(response))
+        if 'error_code' in response:
+            error = self.safe_string(response, 'error_code')
+            message = self.id + ' ' + self.json(response)
+            if error in self.exceptions:
+                ExceptionClass = self.exceptions[error]
+                raise ExceptionClass(message)
+            else:
+                raise ExchangeError(message)
+        if 'result' in response:
+            if not response['result']:
+                raise ExchangeError(self.id + ' ' + self.json(response))

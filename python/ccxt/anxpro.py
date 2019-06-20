@@ -708,18 +708,20 @@ class anxpro (Exchange):
         self.load_markets()
         response = self.privatePostMoneyInfo(params)
         balance = self.safe_value(response, 'data', {})
-        wallets = balance['Wallets']
-        currencies = list(wallets.keys())
+        wallets = self.safe_value(balance, 'Wallets', {})
+        currencyIds = list(wallets.keys())
         result = {'info': balance}
-        for c in range(0, len(currencies)):
-            currencyId = currencies[c]
-            code = self.common_currency_code(currencyId)
+        for c in range(0, len(currencyIds)):
+            currencyId = currencyIds[c]
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             account = self.account()
-            if currencyId in wallets:
-                wallet = wallets[currencyId]
-                account['free'] = self.safe_float(wallet['Available_Balance'], 'value')
-                account['total'] = self.safe_float(wallet['Balance'], 'value')
-                account['used'] = account['total'] - account['free']
+            wallet = self.safe_value(wallets, currencyId)
+            account['free'] = self.safe_float(wallet['Available_Balance'], 'value')
+            account['total'] = self.safe_float(wallet['Balance'], 'value')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1076,8 +1078,8 @@ class anxpro (Exchange):
             'currency': currency['id'],
         }
         response = self.privatePostMoneyCurrencyAddress(self.extend(request, params))
-        result = response['data']
-        address = self.safe_string(result, 'addr')
+        data = self.safe_value(response, 'data', {})
+        address = self.safe_string(data, 'addr')
         self.check_address(address)
         return {
             'currency': code,

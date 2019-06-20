@@ -416,20 +416,18 @@ class upbit (Exchange):
         #                  modified:  False    }   ]
         #
         result = {'info': response}
-        indexed = self.index_by(response, 'currency')
-        ids = list(indexed.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            currency = self.common_currency_code(id)
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             account = self.account()
-            balance = indexed[id]
-            free = self.safe_float(balance, 'balance')
-            used = self.safe_float(balance, 'locked')
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
-            result[currency] = account
+            account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'locked')
+            result[code] = account
         return self.parse_balance(result)
 
     def get_symbol_from_market_id(self, marketId, market=None):
@@ -633,7 +631,7 @@ class upbit (Exchange):
         #                    ask_bid: "ASK",
         #              sequential_id:  15428949259430000}
         #
-        # fetchOrder
+        # fetchOrder trades
         #
         #         {
         #             "market": "KRW-BTC",

@@ -174,7 +174,7 @@ class uex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetCommonSymbols ();
+        $response = $this->publicGetCommonSymbols ($params);
         //
         //     { code =>   "0",
         //        msg =>   "suc",
@@ -201,10 +201,8 @@ class uex extends Exchange {
             $id = $market['symbol'];
             $baseId = $market['base_coin'];
             $quoteId = $market['count_coin'];
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->common_currency_code(strtoupper($baseId));
+            $quote = $this->common_currency_code(strtoupper($quoteId));
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $market['amount_precision'],
@@ -248,7 +246,7 @@ class uex extends Exchange {
         //
         //     { $code =>   "0",
         //        msg =>   "suc",
-        //       data => array ( total_asset =>   "0.00000000",
+        //       $data => array ( total_asset =>   "0.00000000",
         //                 coin_list => [ array (      normal => "0.00000000",
         //                                btcValuatin => "0.00000000",
         //                                     locked => "0.00000000",
@@ -266,11 +264,12 @@ class uex extends Exchange {
         //                                     locked => "0.00000000",
         //                                       coin => "ren"         )])}
         //
-        $balances = $response['data']['coin_list'];
-        $result = array( 'info' => $balances );
+        $data = $this->safe_value($response, 'data', array());
+        $balances = $this->safe_value($data, 'coin_list', array());
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $balance['coin'];
+            $currencyId = $this->safe_string($balance, 'coin');
             $code = strtoupper($currencyId);
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
@@ -278,12 +277,8 @@ class uex extends Exchange {
                 $code = $this->common_currency_code($code);
             }
             $account = $this->account ();
-            $free = floatval ($balance['normal']);
-            $used = floatval ($balance['locked']);
-            $total = $this->sum ($free, $used);
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $account['total'] = $total;
+            $account['free'] = $this->safe_float($balance, 'normal');
+            $account['used'] = $this->safe_float($balance, 'locked');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -692,8 +687,9 @@ class uex extends Exchange {
         //                             $status =>    2                                 } }
         //
         $side = $this->safe_string($order, 'side');
-        if ($side !== null)
+        if ($side !== null) {
             $side = strtolower($side);
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $symbol = null;
         if ($market === null) {
@@ -1158,8 +1154,9 @@ class uex extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
-            if ($params)
+            if ($params) {
                 $url .= '?' . $this->urlencode ($params);
+            }
         } else {
             $this->check_required_credentials();
             $timestamp = (string) $this->seconds ();
@@ -1190,24 +1187,21 @@ class uex extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
+        if ($response === null) {
             return; // fallback to default error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            //
-            // array("$code":"0","msg":"suc","data":array())
-            //
-            $code = $this->safe_string($response, 'code');
-            // $message = $this->safe_string($response, 'msg');
-            $feedback = $this->id . ' ' . $this->json ($response);
-            $exceptions = $this->exceptions;
-            if ($code !== '0') {
-                if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
-                    throw new $exceptions[$code]($feedback);
-                } else {
-                    throw new ExchangeError($feedback);
-                }
+        }
+        //
+        // array("$code":"0","msg":"suc","data":array())
+        //
+        $code = $this->safe_string($response, 'code');
+        // $message = $this->safe_string($response, 'msg');
+        $feedback = $this->id . ' ' . $this->json ($response);
+        $exceptions = $this->exceptions;
+        if ($code !== '0') {
+            if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
+                throw new $exceptions[$code]($feedback);
+            } else {
+                throw new ExchangeError($feedback);
             }
         }
     }

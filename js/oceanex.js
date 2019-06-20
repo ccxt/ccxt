@@ -366,8 +366,8 @@ module.exports = class oceanex extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -428,7 +428,7 @@ module.exports = class oceanex extends Exchange {
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
-        let timestamp = this.safeInteger (response, 'data');
+        const timestamp = this.safeInteger (response, 'data');
         return timestamp * 1000;
     }
 
@@ -463,20 +463,21 @@ module.exports = class oceanex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetMembersMe (params);
-        const balances = this.safeValue (this.safeValue (response, 'data'), 'accounts');
-        const result = { 'info': balances };
+        const data = this.safeValue (response, 'data');
+        const balances = this.safeValue (data, 'accounts');
+        const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeValue (balance, 'currency');
-            const uppercaseId = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercaseId);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
             const account = this.account ();
-            const free = this.safeFloat (balance, 'balance');
-            const used = this.safeFloat (balance, 'locked');
-            const total = this.sum (free, used);
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = total;
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -558,8 +559,8 @@ module.exports = class oceanex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.parseOrderStatus (this.safeValue (order, 'state'));
-        let marketId = this.safeValue2 (order, 'market', 'market_id');
+        const status = this.parseOrderStatus (this.safeValue (order, 'state'));
+        const marketId = this.safeValue2 (order, 'market', 'market_id');
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
@@ -647,11 +648,11 @@ module.exports = class oceanex extends Exchange {
         if (api === 'public') {
             if (path === 'tickers_multi' || path === 'order_book/multi') {
                 let request = '?';
-                let markets = this.safeValue (params, 'markets');
+                const markets = this.safeValue (params, 'markets');
                 for (let i = 0; i < markets.length; i++) {
                     request += 'markets[]=' + markets[i] + '&';
                 }
-                let limit = this.safeValue (params, 'limit');
+                const limit = this.safeValue (params, 'limit');
                 if (limit !== undefined) {
                     request += 'limit=' + limit;
                 }

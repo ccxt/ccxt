@@ -124,7 +124,7 @@ class therock extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetFunds ();
+        $response = $this->publicGetFunds ($params);
         //
         //     { funds => array ( array (                      $id =>   "BTCEUR",
         //                              description =>   "Trade Bitcoin with Euro",
@@ -206,39 +206,42 @@ class therock extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetBalances ();
-        $balances = $response['balances'];
+        $response = $this->privateGetBalances ($params);
+        $balances = $this->safe_value($response, 'balances', array());
         $result = array( 'info' => $response );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['currency'];
-            $free = $balance['trading_balance'];
-            $total = $balance['balance'];
-            $used = $total - $free;
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
-            $result[$currency] = $account;
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'trading_balance');
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetFundsIdOrderbook (array_merge (array (
+        $request = array (
             'id' => $this->market_id($symbol),
-        ), $params));
-        $timestamp = $this->parse8601 ($orderbook['date']);
+        );
+        $orderbook = $this->publicGetFundsIdOrderbook (array_merge ($request, $params));
+        $timestamp = $this->parse8601 ($this->safe_string($orderbook, 'date'));
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->parse8601 ($ticker['date']);
         $symbol = null;
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -328,8 +331,9 @@ class therock extends Exchange {
         //                         currency => "EUR",
         //                         trade_id =>  440492                     }   ) }
         //
-        if (!$market)
+        if (!$market) {
             $market = $this->markets_by_id[$trade['fund_id']];
+        }
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'date'));
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -1156,8 +1160,9 @@ class therock extends Exchange {
                     $headers['Content-Type'] = 'application/json';
                 } else {
                     $queryString = $this->rawencode ($query);
-                    if (strlen ($queryString))
+                    if (strlen ($queryString)) {
                         $url .= '?' . $queryString;
+                    }
                 }
             }
             $nonce = (string) $this->nonce ();

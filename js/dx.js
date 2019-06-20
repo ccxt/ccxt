@@ -148,9 +148,9 @@ module.exports = class dx extends Exchange {
     }
 
     numberToObject (number) {
-        let string = this.decimalToPrecision (number, ROUND, 10, DECIMAL_PLACES, NO_PADDING);
-        let decimals = this.precisionFromString (string);
-        let valueStr = string.replace ('.', '');
+        const string = this.decimalToPrecision (number, ROUND, 10, DECIMAL_PLACES, NO_PADDING);
+        const decimals = this.precisionFromString (string);
+        const valueStr = string.replace ('.', '');
         return {
             'value': this.safeInteger ({ 'a': valueStr }, 'a', undefined),
             'decimals': decimals,
@@ -158,19 +158,19 @@ module.exports = class dx extends Exchange {
     }
 
     objectToNumber (obj) {
-        let value = this.decimalToPrecision (obj['value'], ROUND, 0, DECIMAL_PLACES, NO_PADDING);
-        let decimals = this.decimalToPrecision (-obj['decimals'], ROUND, 0, DECIMAL_PLACES, NO_PADDING);
+        const value = this.decimalToPrecision (obj['value'], ROUND, 0, DECIMAL_PLACES, NO_PADDING);
+        const decimals = this.decimalToPrecision (-obj['decimals'], ROUND, 0, DECIMAL_PLACES, NO_PADDING);
         return this.safeFloat ({
             'a': value + 'e' + decimals,
         }, 'a', undefined);
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicPostAssetManagementGetInstruments (params);
-        let instruments = markets['result']['instruments'];
-        let result = [];
+        const markets = await this.publicPostAssetManagementGetInstruments (params);
+        const instruments = markets['result']['instruments'];
+        const result = [];
         for (let i = 0; i < instruments.length; i++) {
-            let instrument = instruments[i];
+            const instrument = instruments[i];
             const id = this.safeString (instrument, 'id');
             const numericId = this.safeInteger (instrument, 'id');
             const asset = this.safeValue (instrument, 'asset', {});
@@ -222,15 +222,15 @@ module.exports = class dx extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let tickerKeys = Object.keys (ticker);
+        const tickerKeys = Object.keys (ticker);
         // Python needs an integer to access this.markets_by_id
         // and a string to access the ticker object
-        let tickerKey = tickerKeys[0];
-        let instrumentId = this.safeInteger ({ 'a': tickerKey }, 'a');
+        const tickerKey = tickerKeys[0];
+        const instrumentId = this.safeInteger ({ 'a': tickerKey }, 'a');
         ticker = ticker[tickerKey];
-        let symbol = this.markets_by_id[instrumentId]['symbol'];
-        let last = this.safeFloat (ticker, 'last');
-        let timestamp = this.safeInteger (ticker, 'time') / 1000;
+        const symbol = this.markets_by_id[instrumentId]['symbol'];
+        const last = this.safeFloat (ticker, 'last');
+        const timestamp = this.safeInteger (ticker, 'time') / 1000;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -257,12 +257,12 @@ module.exports = class dx extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'instrumentIds': [ market['numericId'] ],
             'currencyId': market['quoteNumericId'],
         };
-        let response = await this.publicPostAssetManagementGetTicker (this.extend (request, params));
+        const response = await this.publicPostAssetManagementGetTicker (this.extend (request, params));
         return this.parseTicker (response['result']['tickers'], market);
     }
 
@@ -332,7 +332,7 @@ module.exports = class dx extends Exchange {
         let orderStatusMap = {
             '1': 'open',
         };
-        let innerOrder = this.safeValue2 (order, 'order', undefined);
+        const innerOrder = this.safeValue (order, 'order', undefined);
         if (innerOrder !== undefined) {
             // fetchClosedOrders returns orders in an extra object
             order = innerOrder;
@@ -346,21 +346,27 @@ module.exports = class dx extends Exchange {
             side = 'sell';
         }
         let status = undefined;
-        let orderStatus = this.safeString (order, 'status', undefined);
+        const orderStatus = this.safeString (order, 'status', undefined);
         if (orderStatus in orderStatusMap) {
             status = orderStatusMap[orderStatus];
         }
-        let symbol = this.markets_by_id[order['instrumentId']]['symbol'];
+        const marketId = this.safeString (order, 'instrumentId');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        }
         let orderType = 'limit';
         if (order['orderType'] === this.options['orderTypes']['market']) {
             orderType = 'market';
         }
-        let timestamp = order['time'] * 1000;
-        let quantity = this.objectToNumber (order['quantity']);
-        let filledQuantity = this.objectToNumber (order['filledQuantity']);
-        let result = {
+        const timestamp = order['time'] * 1000;
+        const quantity = this.objectToNumber (order['quantity']);
+        const filledQuantity = this.objectToNumber (order['filledQuantity']);
+        const id = this.safeString (order, 'externalOrderId');
+        return {
             'info': order,
-            'id': order['externalOrderId'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
@@ -375,7 +381,6 @@ module.exports = class dx extends Exchange {
             'status': status,
             'fee': undefined,
         };
-        return result;
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
@@ -413,21 +418,19 @@ module.exports = class dx extends Exchange {
         const response = await this.privatePostBalanceGet (params);
         const result = { 'info': response };
         const balances = this.safeValue (response['result'], 'balance');
-        const ids = Object.keys (balances);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const balance = balances[id];
-            let code = undefined;
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const balance = this.safeValue (balances, currencyId, {});
+            if (currencyId in this.currencies_by_id) {
+                const code = this.currencies_by_id[currencyId]['code'];
+                const account = {
+                    'free': this.safeFloat (balance, 'available'),
+                    'used': this.safeFloat (balance, 'frozen'),
+                    'total': this.safeFloat (balance, 'total'),
+                };
+                result[code] = account;
             }
-            const account = {
-                'free': this.safeFloat (balance, 'available'),
-                'used': this.safeFloat (balance, 'frozen'),
-                'total': this.safeFloat (balance, 'total'),
-            };
-            account['total'] = this.sum (account['free'], account['used']);
-            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -464,14 +467,14 @@ module.exports = class dx extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         if (Array.isArray (params)) {
-            let arrayLength = params.length;
+            const arrayLength = params.length;
             if (arrayLength === 0) {
                 // In PHP params = array () causes this to fail, because
                 // the API requests an object, not an array, even if it is empty
                 params = { '__associative': true };
             }
         }
-        let parameters = {
+        const parameters = {
             'jsonrpc': '2.0',
             'id': this.milliseconds (),
             'method': path,
@@ -480,8 +483,9 @@ module.exports = class dx extends Exchange {
         let url = this.urls['api'];
         headers = { 'Content-Type': 'application/json-rpc' };
         if (method === 'GET') {
-            if (Object.keys (parameters).length)
+            if (Object.keys (parameters).length) {
                 url += '?' + this.urlencode (parameters);
+            }
         } else {
             body = this.json (parameters);
         }

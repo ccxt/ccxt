@@ -135,13 +135,13 @@ class livecoin extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetExchangeTicker ();
+        $response = $this->publicGetExchangeTicker ($params);
         $restrictions = $this->publicGetExchangeRestrictions ();
         $restrictionsById = $this->index_by($restrictions['restrictions'], 'currencyPair');
         $result = array();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['symbol'];
+        for ($i = 0; $i < count ($response); $i++) {
+            $market = $response[$i];
+            $id = $this->safe_string($market, 'symbol');
             list($baseId, $quoteId) = explode('/', $id);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
@@ -184,28 +184,31 @@ class livecoin extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetInfoCoinInfo ($params);
-        $currencies = $response['info'];
+        $currencies = $this->safe_value($response, 'info');
         $result = array();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
-            $id = $currency['symbol'];
+            $id = $this->safe_string($currency, 'symbol');
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $code = $this->common_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $active = ($currency['walletStatus'] === 'normal');
+            $walletStatus = $this->safe_string($currency, 'walletStatus');
+            $active = ($walletStatus === 'normal');
+            $name = $this->safe_string($currency, 'name');
+            $fee = $this->safe_float($currency, 'withdrawFee');
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
                 'info' => $currency,
-                'name' => $currency['name'],
+                'name' => $name,
                 'active' => $active,
-                'fee' => $currency['withdrawFee'], // todo => redesign
+                'fee' => $fee,
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $currency['minOrderAmount'],
+                        'min' => $this->safe_float($currency, 'minOrderAmount'),
                         'max' => pow(10, $precision),
                     ),
                     'price' => array (
@@ -213,15 +216,15 @@ class livecoin extends Exchange {
                         'max' => pow(10, $precision),
                     ),
                     'cost' => array (
-                        'min' => $currency['minOrderAmount'],
+                        'min' => $this->safe_float($currency, 'minOrderAmount'),
                         'max' => null,
                     ),
                     'withdraw' => array (
-                        'min' => $currency['minWithdrawAmount'],
+                        'min' => $this->safe_float($currency, 'minWithdrawAmount'),
                         'max' => pow(10, $precision),
                     ),
                     'deposit' => array (
-                        'min' => $currency['minDepositAmount'],
+                        'min' => $this->safe_float($currency, 'minDepositAmount'),
                         'max' => null,
                     ),
                 ),
@@ -269,23 +272,33 @@ class livecoin extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetPaymentBalances ();
-        $result = array( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['currency'];
+        $response = $this->privateGetPaymentBalances ($params);
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count ($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
             $account = null;
-            if (is_array($result) && array_key_exists($currency, $result))
-                $account = $result[$currency];
-            else
+            if (is_array($result) && array_key_exists($code, $result)) {
+                $account = $result[$code];
+            } else {
                 $account = $this->account ();
-            if ($balance['type'] === 'total')
-                $account['total'] = floatval ($balance['value']);
-            if ($balance['type'] === 'available')
-                $account['free'] = floatval ($balance['value']);
-            if ($balance['type'] === 'trade')
-                $account['used'] = floatval ($balance['value']);
-            $result[$currency] = $account;
+            }
+            if ($balance['type'] === 'total') {
+                $account['total'] = $this->safe_float($balance, 'value');
+            }
+            if ($balance['type'] === 'available') {
+                $account['free'] = $this->safe_float($balance, 'value');
+            }
+            if ($balance['type'] === 'trade') {
+                $account['used'] = $this->safe_float($balance, 'value');
+            }
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -310,9 +323,9 @@ class livecoin extends Exchange {
         if ($limit !== null) {
             $request['depth'] = $limit; // 100
         }
-        $orderbook = $this->publicGetExchangeOrderBook (array_merge ($request, $params));
-        $timestamp = $orderbook['timestamp'];
-        return $this->parse_order_book($orderbook, $timestamp);
+        $response = $this->publicGetExchangeOrderBook (array_merge ($request, $params));
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        return $this->parse_order_book($response, $timestamp);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -371,9 +384,10 @@ class livecoin extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetExchangeTicker (array_merge (array (
+        $request = array (
             'currencyPair' => $market['id'],
-        ), $params));
+        );
+        $ticker = $this->publicGetExchangeTicker (array_merge ($request, $params));
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -621,15 +635,18 @@ class livecoin extends Exchange {
             $market = $this->market ($symbol);
             $request['currencyPair'] = $market['id'];
         }
-        if ($since !== null)
+        if ($since !== null) {
             $request['issuedFrom'] = intval ($since);
-        if ($limit !== null)
+        }
+        if ($limit !== null) {
             $request['endRow'] = $limit - 1;
+        }
         $response = $this->privateGetExchangeClientOrders (array_merge ($request, $params));
         $result = array();
         $rawOrders = array();
-        if ($response['data'])
+        if ($response['data']) {
             $rawOrders = $response['data'];
+        }
         for ($i = 0; $i < count ($rawOrders); $i++) {
             $order = $rawOrders[$i];
             $result[] = $this->parse_order($order, $market);
@@ -675,15 +692,16 @@ class livecoin extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        if ($symbol === null)
+        if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder requires a $symbol argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $currencyPair = $market['id'];
-        $response = $this->privatePostExchangeCancellimit (array_merge (array (
+        $request = array (
             'orderId' => $id,
-            'currencyPair' => $currencyPair,
-        ), $params));
+            'currencyPair' => $market['id'],
+        );
+        $response = $this->privatePostExchangeCancellimit (array_merge ($request, $params));
         $message = $this->safe_string($response, 'message', $this->json ($response));
         if (is_array($response) && array_key_exists('success', $response)) {
             if (!$response['success']) {
@@ -709,8 +727,9 @@ class livecoin extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         $wallet = $address;
-        if ($tag !== null)
+        if ($tag !== null) {
             $wallet .= '::' . $tag;
+        }
         $request = array (
             'amount' => $this->decimal_to_precision($amount, TRUNCATE, $currency['precision'], DECIMAL_PLACES),
             'currency' => $currency['id'],
@@ -863,8 +882,9 @@ class livecoin extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            if ($method === 'POST')
+            if ($method === 'POST') {
                 $body = $query;
+            }
             $signature = $this->hmac ($this->encode ($query), $this->encode ($this->secret), 'sha256');
             $headers = array (
                 'Api-Key' => $this->apiKey,

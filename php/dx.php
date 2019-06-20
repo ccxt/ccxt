@@ -332,7 +332,7 @@ class dx extends Exchange {
         $orderStatusMap = array (
             '1' => 'open',
         );
-        $innerOrder = $this->safe_value_2($order, 'order', null);
+        $innerOrder = $this->safe_value($order, 'order', null);
         if ($innerOrder !== null) {
             // fetchClosedOrders returns orders in an extra object
             $order = $innerOrder;
@@ -350,7 +350,12 @@ class dx extends Exchange {
         if (is_array($orderStatusMap) && array_key_exists($orderStatus, $orderStatusMap)) {
             $status = $orderStatusMap[$orderStatus];
         }
-        $symbol = $this->markets_by_id[$order['instrumentId']]['symbol'];
+        $marketId = $this->safe_string($order, 'instrumentId');
+        $symbol = null;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
         $orderType = 'limit';
         if ($order['orderType'] === $this->options['orderTypes']['market']) {
             $orderType = 'market';
@@ -358,9 +363,10 @@ class dx extends Exchange {
         $timestamp = $order['time'] * 1000;
         $quantity = $this->object_to_number ($order['quantity']);
         $filledQuantity = $this->object_to_number ($order['filledQuantity']);
-        $result = array (
+        $id = $this->safe_string($order, 'externalOrderId');
+        return array (
             'info' => $order,
-            'id' => $order['externalOrderId'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
@@ -375,7 +381,6 @@ class dx extends Exchange {
             'status' => $status,
             'fee' => null,
         );
-        return $result;
     }
 
     public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {
@@ -413,21 +418,19 @@ class dx extends Exchange {
         $response = $this->privatePostBalanceGet ($params);
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response['result'], 'balance');
-        $ids = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $balance = $balances[$id];
-            $code = null;
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$id]['code'];
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $balance = $this->safe_value($balances, $currencyId, array());
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+                $account = array (
+                    'free' => $this->safe_float($balance, 'available'),
+                    'used' => $this->safe_float($balance, 'frozen'),
+                    'total' => $this->safe_float($balance, 'total'),
+                );
+                $result[$code] = $account;
             }
-            $account = array (
-                'free' => $this->safe_float($balance, 'available'),
-                'used' => $this->safe_float($balance, 'frozen'),
-                'total' => $this->safe_float($balance, 'total'),
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -480,8 +483,9 @@ class dx extends Exchange {
         $url = $this->urls['api'];
         $headers = array( 'Content-Type' => 'application/json-rpc' );
         if ($method === 'GET') {
-            if ($parameters)
+            if ($parameters) {
                 $url .= '?' . $this->urlencode ($parameters);
+            }
         } else {
             $body = $this->json ($parameters);
         }

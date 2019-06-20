@@ -205,9 +205,10 @@ class kkex extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->markets[$symbol];
-        $response = $this->publicGetTicker (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTicker (array_merge ($request, $params));
         $ticker = array_merge ($response['ticker'], $this->omit ($response, 'ticker'));
         return $this->parse_ticker($ticker, $market);
     }
@@ -233,7 +234,7 @@ class kkex extends Exchange {
         //                              open => "0.003189"  } }           ),
         //        $result =>    true                                          }
         //
-        $tickers = $response['tickers'];
+        $tickers = $this->safe_value($response, 'tickers');
         $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ids = is_array($tickers[$i]) ? array_keys($tickers[$i]) : array();
@@ -297,27 +298,34 @@ class kkex extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrades (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privatePostUserinfo ();
-        $result = array( 'info' => $balances['info'] );
-        $funds = $balances['info']['funds'];
-        $assets = is_array($funds['free']) ? array_keys($funds['free']) : array();
-        for ($i = 0; $i < count ($assets); $i++) {
-            $currency = $assets[$i];
-            $uppercase = strtoupper($currency);
-            $uppercase = $this->common_currency_code($uppercase);
+        $response = $this->privatePostUserinfo ($params);
+        $balances = $this->safe_value($response, 'info');
+        $result = array( 'info' => $response );
+        $funds = $this->safe_value($balances, 'funds');
+        $free = $this->safe_value($funds, 'free', array());
+        $freezed = $this->safe_value($funds, 'freezed', array());
+        $currencyIds = is_array($free) ? array_keys($free) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
             $account = $this->account ();
-            $account['free'] = floatval ($funds['free'][$currency]);
-            $account['used'] = floatval ($funds['freezed'][$currency]);
-            $account['total'] = $account['free'] . $account['used'];
-            $result[$uppercase] = $account;
+            $account['free'] = $this->safe_float($free, $currencyId);
+            $account['used'] = $this->safe_float($freezed, $currencyId);
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -402,8 +410,9 @@ class kkex extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $symbol = null;
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $side = $this->safe_string($order, 'side');
         if ($side === null) {
             $side = $this->safe_string($order, 'type');
@@ -521,15 +530,17 @@ class kkex extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'status' => 0,
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'status' => 1,
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function nonce () {
@@ -544,7 +555,10 @@ class kkex extends Exchange {
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $signature = array_merge (array( 'nonce' => $nonce, 'api_key' => $this->apiKey ), $params);
+            $signature = array_merge (array (
+                'nonce' => $nonce,
+                'api_key' => $this->apiKey,
+            ), $params);
             $signature = $this->urlencode ($this->keysort ($signature));
             $signature .= '&secret_key=' . $this->secret;
             $signature = $this->hash ($this->encode ($signature), 'md5');

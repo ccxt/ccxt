@@ -153,6 +153,7 @@ class kucoin (Exchange):
                 '500': ExchangeError,
                 '503': ExchangeNotAvailable,
                 '200004': InsufficientFunds,
+                '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficientnot "}
                 '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
                 '400001': AuthenticationError,
@@ -165,6 +166,7 @@ class kucoin (Exchange):
                 '400008': NotSupported,
                 '400100': ArgumentsRequired,
                 '411100': AccountSuspended,
+                '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                 '500000': ExchangeError,
             },
             'fees': {
@@ -1217,16 +1219,30 @@ class kucoin (Exchange):
             'type': 'trade',
         }
         response = await self.privateGetAccounts(self.extend(request, params))
-        responseData = response['data']
-        result = {'info': responseData}
-        for i in range(0, len(responseData)):
-            entry = responseData[i]
-            currencyId = entry['currency']
-            code = self.common_currency_code(currencyId)
+        #
+        #     {
+        #         "code":"200000",
+        #         "data":[
+        #             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
+        #             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
+        #             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
+        #         ]
+        #     }
+        # /
+        data = self.safe_value(response, 'data', [])
+        result = {'info': response}
+        for i in range(0, len(data)):
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             account = {}
-            account['total'] = self.safe_float(entry, 'balance', 0)
-            account['free'] = self.safe_float(entry, 'available', 0)
-            account['used'] = self.safe_float(entry, 'holds', 0)
+            account['total'] = self.safe_float(balance, 'balance')
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'holds')
             result[code] = account
         return self.parse_balance(result)
 

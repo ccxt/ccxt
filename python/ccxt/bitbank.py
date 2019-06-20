@@ -89,9 +89,8 @@ class bitbank (Exchange):
             },
             'fees': {
                 'trading': {
-                    # only temporarily
-                    'maker': 0.0,
-                    'taker': 0.0,
+                    'maker': -0.05 / 100,
+                    'taker': 0.15 / 100,
                 },
                 'funding': {
                     'withdraw': {
@@ -129,8 +128,10 @@ class bitbank (Exchange):
         })
 
     def parse_ticker(self, ticker, market=None):
-        symbol = market['symbol']
-        timestamp = ticker['timestamp']
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -158,43 +159,55 @@ class bitbank (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetPairTicker(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = self.publicGetPairTicker(self.extend(request, params))
         return self.parse_ticker(response['data'], market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        response = self.publicGetPairDepth(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
-        orderbook = response['data']
-        return self.parse_order_book(orderbook, orderbook['timestamp'])
+        }
+        response = self.publicGetPairDepth(self.extend(request, params))
+        orderbook = self.safe_value(response, 'data', {})
+        timestamp = self.safe_integer(orderbook, 'timestamp')
+        return self.parse_order_book(orderbook, timestamp)
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['executed_at']
+        timestamp = self.safe_integer(trade, 'executed_at')
+        symbol = None
+        feeCurrency = None
+        if market is not None:
+            symbol = market['symbol']
+            feeCurrency = market['quote']
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        symbol = market['symbol']
-        cost = float(self.cost_to_precision(symbol, price * amount))
-        id = self.safe_string(trade, 'transaction_id')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = float(self.cost_to_precision(symbol, price * amount))
+        id = self.safe_string_2(trade, 'transaction_id', 'trade_id')
         takerOrMaker = self.safe_string(trade, 'maker_taker')
-        if not id:
-            id = self.safe_string(trade, 'trade_id')
         fee = None
-        if 'fee_amount_quote' in trade:
+        feeCost = self.safe_float(trade, 'fee_amount_quote')
+        if feeCost is not None:
             fee = {
                 'currency': market['quote'],
-                'cost': self.safe_float(trade, 'fee_amount_quote'),
+                'cost': feeCurrency,
             }
+        orderId = self.safe_string(trade, 'order_id')
+        type = self.safe_string(trade, 'type')
+        side = self.safe_string(trade, 'side')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'id': id,
-            'order': self.safe_string(trade, 'order_id'),
-            'type': self.safe_string(trade, 'type'),
-            'side': trade['side'],
+            'order': orderId,
+            'type': type,
+            'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
@@ -206,10 +219,11 @@ class bitbank (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        trades = self.publicGetPairTransactions(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
-        return self.parse_trades(trades['data']['transactions'], market, since, limit)
+        }
+        response = self.publicGetPairTransactions(self.extend(request, params))
+        return self.parse_trades(response['data']['transactions'], market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
@@ -227,12 +241,13 @@ class bitbank (Exchange):
         date = self.milliseconds()
         date = self.ymd(date)
         date = date.split('-')
-        response = self.publicGetPairCandlestickCandletypeYyyymmdd(self.extend({
+        request = {
             'pair': market['id'],
             'candletype': self.timeframes[timeframe],
             'yyyymmdd': ''.join(date),
-        }, params))
-        ohlcv = response['data']['candlestick'][0]['ohlcv']
+        }
+        response = self.publicGetPairCandlestickCandletypeYyyymmdd(self.extend(request, params))
+        ohlcv = self.safe_value(response['data']['candlestick'][0], 'ohlcv')
         return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
@@ -247,38 +262,42 @@ class bitbank (Exchange):
             if id in self.currencies_by_id:
                 code = self.currencies_by_id[id]['code']
             account = {
-                'free': float(balance['free_amount']),
-                'used': float(balance['locked_amount']),
-                'total': float(balance['onhand_amount']),
+                'free': self.safe_float(balance, 'free_amount'),
+                'used': self.safe_float(balance, 'locked_amount'),
+                'total': self.safe_float(balance, 'onhand_amount'),
             }
             result[code] = account
         return self.parse_balance(result)
 
+    def parse_order_status(self, status):
+        statuses = {
+            'UNFILLED': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FULLY_FILLED': 'closed',
+            'CANCELED_UNFILLED': 'canceled',
+            'CANCELED_PARTIALLY_FILLED': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
+        id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
         symbol = None
         if marketId and not market and(marketId in list(self.marketsById.keys())):
             market = self.marketsById[marketId]
-        if market:
+        if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'ordered_at')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'start_amount')
         filled = self.safe_float(order, 'executed_amount')
         remaining = self.safe_float(order, 'remaining_amount')
-        cost = filled * self.safe_float(order, 'average_price')
-        status = self.safe_string(order, 'status')
-        # UNFILLED
-        # PARTIALLY_FILLED
-        # FULLY_FILLED
-        # CANCELED_UNFILLED
-        # CANCELED_PARTIALLY_FILLED
-        if status == 'FULLY_FILLED':
-            status = 'closed'
-        elif status == 'CANCELED_UNFILLED' or status == 'CANCELED_PARTIALLY_FILLED':
-            status = 'canceled'
-        else:
-            status = 'open'
+        average = self.safe_float(order, 'average_price')
+        cost = None
+        if filled is not None:
+            if average is not None:
+                cost = filled * average
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         type = self.safe_string(order, 'type')
         if type is not None:
             type = type.lower()
@@ -286,7 +305,7 @@ class bitbank (Exchange):
         if side is not None:
             side = side.lower()
         return {
-            'id': self.safe_string(order, 'order_id'),
+            'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -296,6 +315,7 @@ class bitbank (Exchange):
             'side': side,
             'price': price,
             'cost': cost,
+            'average': average,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -317,27 +337,29 @@ class bitbank (Exchange):
             'type': type,
         }
         response = self.privatePostUserSpotOrder(self.extend(request, params))
-        id = response['data']['order_id']
         order = self.parse_order(response['data'], market)
+        id = order['id']
         self.orders[id] = order
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.privatePostUserSpotCancelOrder(self.extend({
+        request = {
             'order_id': id,
             'pair': market['id'],
-        }, params))
+        }
+        response = self.privatePostUserSpotCancelOrder(self.extend(request, params))
         return response['data']
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.privateGetUserSpotOrder(self.extend({
+        request = {
             'order_id': id,
             'pair': market['id'],
-        }, params))
+        }
+        response = self.privateGetUserSpotOrder(self.extend(request, params))
         return self.parse_order(response['data'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -350,13 +372,13 @@ class bitbank (Exchange):
             request['count'] = limit
         if since is not None:
             request['since'] = int(since / 1000)
-        orders = self.privateGetUserSpotActiveOrders(self.extend(request, params))
-        return self.parse_orders(orders['data']['orders'], market, since, limit)
+        response = self.privateGetUserSpotActiveOrders(self.extend(request, params))
+        return self.parse_orders(response['data']['orders'], market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         market = None
         if symbol is not None:
-            self.load_markets()
             market = self.market(symbol)
         request = {}
         if market is not None:
@@ -365,15 +387,16 @@ class bitbank (Exchange):
             request['count'] = limit
         if since is not None:
             request['since'] = int(since / 1000)
-        trades = self.privateGetUserSpotTradeHistory(self.extend(request, params))
-        return self.parse_trades(trades['data']['trades'], market, since, limit)
+        response = self.privateGetUserSpotTradeHistory(self.extend(request, params))
+        return self.parse_trades(response['data']['trades'], market, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privateGetUserWithdrawalAccount(self.extend({
+        request = {
             'asset': currency['id'],
-        }, params))
+        }
+        response = self.privateGetUserWithdrawalAccount(self.extend(request, params))
         # Not sure about self if there could be more than one account...
         accounts = response['data']['accounts']
         address = self.safe_string(accounts[0], 'address')
@@ -389,13 +412,15 @@ class bitbank (Exchange):
             raise ExchangeError(self.id + ' uuid is required for withdrawal')
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostUserRequestWithdrawal(self.extend({
+        request = {
             'asset': currency['id'],
             'amount': amount,
-        }, params))
+        }
+        response = self.privatePostUserRequestWithdrawal(self.extend(request, params))
+        txid = self.safe_string(response['data'], 'txid')
         return {
             'info': response,
-            'id': response['data']['txid'],
+            'id': txid,
         }
 
     def nonce(self):

@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.666';
+$version = '1.18.756';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.666';
+    const VERSION = '1.18.756';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -647,6 +647,15 @@ class Exchange {
         return implode('', func_get_args());
     }
 
+
+    public static function binary_to_base64($binary) {
+        return base64_encode($binary);
+    }
+
+    public static function binaryToBase64($binary) {
+        return static::binary_to_base64($binary);
+    }
+
     public static function json($data, $params = array()) {
         $options = array(
             'convertArraysToObjects' => JSON_FORCE_OBJECT,
@@ -1025,29 +1034,41 @@ class Exchange {
     }
 
     public function jwt($request, $secret, $alg = 'HS256') {
-        $algos = array(
+        $algorithms = array(
             'HS256' => 'sha256',
             'HS384' => 'sha384',
             'HS512' => 'sha512',
-            'RS256' => \OPENSSL_ALGO_SHA256,
-            'RS384' => \OPENSSL_ALGO_SHA384,
-            'RS512' => \OPENSSL_ALGO_SHA512,
         );
         $encodedHeader = $this->urlencodeBase64(json_encode(array('alg' => $alg, 'typ' => 'JWT')));
         $encodedData = $this->urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
         $algoType = substr($alg, 0, 2);
-        if (!array_key_exists($alg, $algos)) {
-            throw new ExchangeError($alg . ' is not a supported jwt algorithm.');
-        }
-        $algName = $algos[$alg];
+
         if ($algoType === 'HS') {
-            $signature = $this->hmac($token, $secret, $algName, 'binary');
+            $algName = $algorithms[$alg];
+            if (!array_key_exists($alg, $algorithms)) {
+                throw new ExchangeError($alg . ' is not a supported jwt algorithm.');
+            }
+            $signature =  static::hmac($token, $secret, $algName, 'binary');
         } elseif ($algoType === 'RS') {
-            $signature = null;
-            \openssl_sign($token, $signature, $secret, $algName);
+            $signature = static::rsa($token, $secret, $alg);
         }
         return $token . '.' . $this->urlencodeBase64($signature);
+    }
+
+    public static function rsa($request, $secret, $alg = 'RS256') {
+        $algorithms = array(
+            'RS256' => \OPENSSL_ALGO_SHA256,
+            'RS384' => \OPENSSL_ALGO_SHA384,
+            'RS512' => \OPENSSL_ALGO_SHA512,
+        );
+        if (!array_key_exists($alg, $algorithms)) {
+            throw new ExchangeError($alg . ' is not a supported rsa signing algorithm.');
+        }
+        $algName = $algorithms[$alg];
+        $signature = null;
+        \openssl_sign($request, $signature, $secret, $algName);
+        return $signature;
     }
 
     public function raise_error($exception_type, $url, $method = 'GET', $error = null, $details = null) {
@@ -1496,6 +1517,29 @@ class Exchange {
 
     public function parse_balance($balance) {
         $currencies = array_keys($this->omit($balance, 'info'));
+
+        $balance['free'] = array();
+        $balance['used'] = array();
+        $balance['total'] = array();
+
+        foreach ($currencies as $currency) {
+            if (!isset($currencies[$currency]['total'])) {
+                if (isset($currencies[$currency]['free']) && isset($currencies[$currency]['used'])) {
+                    $currencies[$currency]['total'] = static::sum($currencies[$currency]['free'], $currencies[$currency]['used']);
+                }
+            }
+            if (!isset($currencies[$currency]['used'])) {
+                if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['free'])) {
+                    $currencies[$currency]['used'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['free']);
+                }
+            }
+            if (!isset($currencies[$currency]['free'])) {
+                if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['used'])) {
+                    $currencies[$currency]['free'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['used']);
+                }
+            }
+        }
+
         $accounts = array('free', 'used', 'total');
         foreach ($accounts as $account) {
             $balance[$account] = array();
@@ -1759,7 +1803,7 @@ class Exchange {
         return $this->orders;
     }
 
-    public function purgeCachesOrders($before) {
+    public function purgeCachedOrders($before) {
         return $this->purge_cached_orders($before);
     }
 
@@ -2058,9 +2102,9 @@ class Exchange {
 
     public static function account() {
         return array(
-            'free' => 0.0,
-            'used' => 0.0,
-            'total' => 0.0,
+            'free' => null,
+            'used' => null,
+            'total' => null,
         );
     }
 

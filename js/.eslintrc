@@ -24,7 +24,7 @@
     "multiline-comment-style": ["error", "separate-lines"],
     "dot-notation": "off",
     "quote-props": ["error", "always"],
-    "no-multi-spaces": ["error", { ignoreEOLComments: true }],
+    "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
     "no-whitespace-before-property": "error",
     "space-before-blocks": ["error", "always"],
     "space-before-function-paren": ["error", "always"],
@@ -44,7 +44,10 @@
     "new-parens": "error",
     "new-cap": ["error"],
     "no-var": "error",
-    "prefer-const": "off",
+    "prefer-const": ["error", {
+        "destructuring": "any",
+        "ignoreReadBeforeAssign": false
+    }],
     "no-warning-comments": ["warn", { "terms": ["fixme"] }],
     "padded-blocks": ["error", "never"],
     "lines-between-class-members": "error",
@@ -55,7 +58,7 @@
       { "blankLine": "always", "prev":"*", "next": "cjs-export" }
     ],
     "prefer-template": "off",
-    "curly": "off",
+    "curly": "error",
     "no-plusplus": "off",
     "no-restricted-properties": "off",
     "prefer-destructuring": "off",

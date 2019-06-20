@@ -719,19 +719,21 @@ class anxpro extends Exchange {
         $this->load_markets();
         $response = $this->privatePostMoneyInfo ($params);
         $balance = $this->safe_value($response, 'data', array());
-        $wallets = $balance['Wallets'];
-        $currencies = is_array($wallets) ? array_keys($wallets) : array();
+        $wallets = $this->safe_value($balance, 'Wallets', array());
+        $currencyIds = is_array($wallets) ? array_keys($wallets) : array();
         $result = array( 'info' => $balance );
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $currencyId = $currencies[$c];
-            $code = $this->common_currency_code($currencyId);
-            $account = $this->account ();
-            if (is_array($wallets) && array_key_exists($currencyId, $wallets)) {
-                $wallet = $wallets[$currencyId];
-                $account['free'] = $this->safe_float($wallet['Available_Balance'], 'value');
-                $account['total'] = $this->safe_float($wallet['Balance'], 'value');
-                $account['used'] = $account['total'] - $account['free'];
+        for ($c = 0; $c < count ($currencyIds); $c++) {
+            $currencyId = $currencyIds[$c];
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
             }
+            $account = $this->account ();
+            $wallet = $this->safe_value($wallets, $currencyId);
+            $account['free'] = $this->safe_float($wallet['Available_Balance'], 'value');
+            $account['total'] = $this->safe_float($wallet['Balance'], 'value');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -853,10 +855,11 @@ class anxpro extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        if (is_array($order) && array_key_exists('orderId', $order))
+        if (is_array($order) && array_key_exists('orderId', $order)) {
             return $this->parse_order_v3 ($order, $market);
-        else
+        } else {
             return $this->parse_order_v2 ($order, $market);
+        }
     }
 
     public function parse_order_status ($status) {
@@ -923,8 +926,9 @@ class anxpro extends Exchange {
         for ($i = 0; $i < count ($order['trades']); $i++) {
             $trade = $order['trades'][$i];
             $tradeTimestamp = $this->safe_integer($trade, 'timestamp');
-            if (!$lastTradeTimestamp || $lastTradeTimestamp < $tradeTimestamp)
+            if (!$lastTradeTimestamp || $lastTradeTimestamp < $tradeTimestamp) {
                 $lastTradeTimestamp = $tradeTimestamp;
+            }
             $parsedTrade = array_merge ($this->parse_trade($trade), array( 'side' => $side, 'type' => $type ));
             $trades[] = $parsedTrade;
             $filled = $this->sum ($filled, $parsedTrade['amount']);
@@ -1112,8 +1116,8 @@ class anxpro extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privatePostMoneyCurrencyAddress (array_merge ($request, $params));
-        $result = $response['data'];
-        $address = $this->safe_string($result, 'addr');
+        $data = $this->safe_value($response, 'data', array());
+        $address = $this->safe_string($data, 'addr');
         $this->check_address($address);
         return array (
             'currency' => $code,
@@ -1131,8 +1135,9 @@ class anxpro extends Exchange {
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $request;
         if ($api === 'public' || $api === 'v3public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();

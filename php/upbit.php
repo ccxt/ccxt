@@ -406,32 +406,31 @@ class upbit extends Exchange {
         $this->load_markets();
         $response = $this->privateGetAccounts ($params);
         //
-        //     array ( array (          $currency => "BTC",
+        //     array ( array (          currency => "BTC",
         //                   $balance => "0.005",
         //                    locked => "0.0",
         //         avg_krw_buy_price => "7446000",
         //                  modified =>  false     ),
-        //       {          $currency => "ETH",
+        //       {          currency => "ETH",
         //                   $balance => "0.1",
         //                    locked => "0.0",
         //         avg_krw_buy_price => "250000",
         //                  modified =>  false    }   )
         //
         $result = array( 'info' => $response );
-        $indexed = $this->index_by($response, 'currency');
-        $ids = is_array($indexed) ? array_keys($indexed) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $currency = $this->common_currency_code($id);
+        for ($i = 0; $i < count ($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
             $account = $this->account ();
-            $balance = $indexed[$id];
-            $free = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'locked');
-            $total = $this->sum ($free, $used);
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $account['total'] = $total;
-            $result[$currency] = $account;
+            $account['free'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'locked');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -651,7 +650,7 @@ class upbit extends Exchange {
         //                    ask_bid => "ASK",
         //              sequential_id =>  15428949259430000 }
         //
-        // fetchOrder
+        // fetchOrder trades
         //
         //         {
         //             "$market" => "KRW-BTC",
@@ -1051,8 +1050,9 @@ class upbit extends Exchange {
         $updated = $this->parse8601 ($this->safe_string($transaction, 'done_at'));
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at', $updated));
         $type = $this->safe_string($transaction, 'type');
-        if ($type === 'withdraw')
+        if ($type === 'withdraw') {
             $type = 'withdrawal';
+        }
         $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
         $currency = $this->safe_value($this->currencies_by_id, $currencyId);
@@ -1476,8 +1476,9 @@ class upbit extends Exchange {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         }
         if ($api === 'private') {
             $this->check_required_credentials();
@@ -1502,8 +1503,9 @@ class upbit extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if ($response === null)
+        if ($response === null) {
             return; // fallback to default $error handler
+        }
         //
         //   array( 'error' => array ( 'message' => "Missing request parameter $error-> Check the required parameters!", 'name' =>  400 ) ),
         //   array( 'error' => array ( 'message' => "side is missing, side does not have a valid value", 'name' => "validation_error" ) ),

@@ -35,7 +35,7 @@ class bitforex extends Exchange {
                 'www' => 'https://www.bitforex.com',
                 'doc' => 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees' => 'https://help.bitforex.com/en_us/?cat=13',
-                'referral' => 'https://www.bitforex.com/registered?inviterId=1867438',
+                'referral' => 'https://www.bitforex.com/en/invitationRegister?inviterId=1867438',
             ),
             'api' => array (
                 'public' => array (
@@ -218,28 +218,26 @@ class bitforex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetApiV1MarketSymbols ();
+        $response = $this->publicGetApiV1MarketSymbols ($params);
         $data = $response['data'];
         $result = array();
         for ($i = 0; $i < count ($data); $i++) {
             $market = $data[$i];
-            $id = $market['symbol'];
+            $id = $this->safe_string($market, 'symbol');
             $symbolParts = explode('-', $id);
             $baseId = $symbolParts[2];
             $quoteId = $symbolParts[1];
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->common_currency_code(strtoupper($baseId));
+            $quote = $this->common_currency_code(strtoupper($quoteId));
             $symbol = $base . '/' . $quote;
             $active = true;
             $precision = array (
-                'amount' => $market['amountPrecision'],
-                'price' => $market['pricePrecision'],
+                'amount' => $this->safe_integer($market, 'amountPrecision'),
+                'price' => $this->safe_integer($market, 'pricePrecision'),
             );
             $limits = array (
                 'amount' => array (
-                    'min' => $market['minOrderAmount'],
+                    'min' => $this->safe_float($market, 'minOrderAmount'),
                     'max' => null,
                 ),
                 'price' => array (
@@ -322,12 +320,7 @@ class bitforex extends Exchange {
         for ($i = 0; $i < count ($data); $i++) {
             $current = $data[$i];
             $currencyId = $current['currency'];
-            $code = strtoupper($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($code);
-            }
+            $code = $this->common_currency_code(strtoupper($currencyId));
             $account = $this->account ();
             $result[$code] = $account;
             $result[$code]['used'] = $this->safe_float($current, 'frozen');

@@ -197,8 +197,8 @@ class stronghold (Exchange):
         for i in range(0, len(data)):
             entry = data[i]
             marketId = entry['id']
-            baseId = entry['baseAssetId']
-            quoteId = entry['counterAssetId']
+            baseId = self.safe_string(entry, 'baseAssetId')
+            quoteId = self.safe_string(entry, 'counterAssetId')
             baseAssetId = baseId.split('/')[0]
             quoteAssetId = quoteId.split('/')[0]
             base = self.common_currency_code(baseAssetId)
@@ -582,17 +582,22 @@ class stronghold (Exchange):
         if not('accountId' in list(request.keys())):
             raise ArgumentsRequired(self.id + " fetchBalance requires either the 'accountId' extra parameter or exchange.options['accountId'] = 'YOUR_ACCOUNT_ID'.")
         response = await self.privateGetVenuesVenueIdAccountsAccountId(request)
-        balances = response['result']['balances']
-        result = {}
+        balances = self.safe_value(response['result'], 'balances')
+        result = {'info': response}
         for i in range(0, len(balances)):
-            entry = balances[i]
-            asset = entry['assetId'].split('/')[0]
-            code = self.common_currency_code(asset)
-            account = {}
-            account['total'] = self.safe_float(entry, 'amount', 0.0)
-            account['free'] = self.safe_float(entry, 'availableForTrade', 0.0)
-            account['used'] = account['total'] - account['free']
-            result[code] = account
+            balance = balances[i]
+            assetId = self.safe_string(balance, 'assetId')
+            if assetId is not None:
+                currencyId = assetId.split('/')[0]
+                code = currencyId
+                if currencyId in self.currencies_by_id:
+                    code = self.currencies_by_id[currencyId]['code']
+                else:
+                    code = self.common_currency_code(currencyId)
+                account = {}
+                account['total'] = self.safe_float(balance, 'amount')
+                account['free'] = self.safe_float(balance, 'availableForTrade')
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):

@@ -567,18 +567,20 @@ class coinexchange (Exchange):
 
     def fetch_currencies(self, params={}):
         response = self.publicGetGetcurrencies(params)
-        currencies = response['result']
+        currencies = self.safe_value(response, 'result')
         precision = self.precision['amount']
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            id = currency['CurrencyID']
-            code = self.common_currency_code(currency['TickerCode'])
-            active = currency['WalletStatus'] == 'online'
+            id = self.safe_string(currency, 'CurrencyID')
+            code = self.common_currency_code(self.safe_string(currency, 'TickerCode'))
+            walletStatus = self.safe_string(currency, 'WalletStatus')
+            active = walletStatus == 'online'
+            name = self.safe_string(currency, 'Name')
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': currency['Name'],
+                'name': name,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -604,7 +606,7 @@ class coinexchange (Exchange):
         return result
 
     def fetch_markets(self, params={}):
-        response = self.publicGetGetmarkets()
+        response = self.publicGetGetmarkets(params)
         markets = response['result']
         result = []
         for i in range(0, len(markets)):
@@ -631,7 +633,7 @@ class coinexchange (Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = None
         if market is None:
-            marketId = ticker['MarketID']
+            marketId = self.safe_string(ticker, 'MarketID')
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
             else:
@@ -666,9 +668,10 @@ class coinexchange (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.publicGetGetmarketsummary(self.extend({
+        request = {
             'market_id': market['id'],
-        }, params))
+        }
+        ticker = self.publicGetGetmarketsummary(self.extend(request, params))
         return self.parse_ticker(ticker['result'], market)
 
     def fetch_tickers(self, symbols=None, params={}):
@@ -684,9 +687,10 @@ class coinexchange (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetGetorderbook(self.extend({
+        request = {
             'market_id': self.market_id(symbol),
-        }, params))
+        }
+        orderbook = self.publicGetGetorderbook(self.extend(request, params))
         return self.parse_order_book(orderbook['result'], None, 'BuyOrders', 'SellOrders', 'Price', 'Quantity')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

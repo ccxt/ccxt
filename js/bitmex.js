@@ -177,7 +177,7 @@ module.exports = class bitmex extends Exchange {
             let type = undefined;
             let future = false;
             let prediction = false;
-            let position = this.commonCurrencyCode (positionId);
+            const position = this.commonCurrencyCode (positionId);
             let symbol = id;
             if (swap) {
                 type = 'swap';
@@ -230,8 +230,8 @@ module.exports = class bitmex extends Exchange {
                 'active': active,
                 'precision': precision,
                 'limits': limits,
-                'taker': market['takerFee'],
-                'maker': market['makerFee'],
+                'taker': this.safeFloat (market, 'takerFee'),
+                'maker': this.safeFloat (market, 'makerFee'),
                 'type': type,
                 'spot': false,
                 'swap': swap,
@@ -245,24 +245,27 @@ module.exports = class bitmex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const request = { 'currency': 'all' };
+        const request = {
+            'currency': 'all',
+        };
         const response = await this.privateGetUserMargin (this.extend (request, params));
         const result = { 'info': response };
-        for (let b = 0; b < response.length; b++) {
-            const balance = response[b];
-            let currencyId = this.safeString (balance, 'currency');
-            currencyId = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (currencyId);
-            const account = {
-                'free': balance['availableMargin'],
-                'used': 0.0,
-                'total': balance['marginBalance'],
-            };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'availableMargin');
+            account['total'] = this.safeFloat (balance, 'marginBalance');
             if (code === 'BTC') {
                 account['free'] = account['free'] * 0.00000001;
                 account['total'] = account['total'] * 0.00000001;
             }
-            account['used'] = account['total'] - account['free'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -270,25 +273,26 @@ module.exports = class bitmex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['depth'] = limit;
-        let orderbook = await this.publicGetOrderBookL2 (this.extend (request, params));
-        let result = {
+        }
+        const response = await this.publicGetOrderBookL2 (this.extend (request, params));
+        const result = {
             'bids': [],
             'asks': [],
             'timestamp': undefined,
             'datetime': undefined,
             'nonce': undefined,
         };
-        for (let o = 0; o < orderbook.length; o++) {
-            let order = orderbook[o];
-            let side = (order['side'] === 'Sell') ? 'asks' : 'bids';
-            let amount = this.safeFloat (order, 'size');
-            let price = this.safeFloat (order, 'price');
+        for (let i = 0; i < response.length; i++) {
+            const order = response[i];
+            const side = (order['side'] === 'Sell') ? 'asks' : 'bids';
+            const amount = this.safeFloat (order, 'size');
+            const price = this.safeFloat (order, 'price');
             // https://github.com/ccxt/ccxt/issues/4926
             // https://github.com/ccxt/ccxt/issues/4927
             // the exchange sometimes returns null price in the orderbook
@@ -302,11 +306,16 @@ module.exports = class bitmex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        let filter = { 'filter': { 'orderID': id }};
-        let result = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter, params));
-        let numResults = result.length;
-        if (numResults === 1)
-            return result[0];
+        const filter = {
+            'filter': {
+                'orderID': id,
+            },
+        };
+        const response = await this.fetchOrders (symbol, undefined, undefined, this.deepExtend (filter, params));
+        const numResults = response.length;
+        if (numResults === 1) {
+            return response[0];
+        }
         throw new OrderNotFound (this.id + ': The order ' + id + ' not found.');
     }
 
@@ -318,28 +327,35 @@ module.exports = class bitmex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since !== undefined)
+        if (since !== undefined) {
             request['startTime'] = this.iso8601 (since);
-        if (limit !== undefined)
+        }
+        if (limit !== undefined) {
             request['count'] = limit;
+        }
         request = this.deepExtend (request, params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
         // Bitmex doesn't like that. Hence resorting to this hack.
-        if ('filter' in request)
+        if ('filter' in request) {
             request['filter'] = this.json (request['filter']);
-        let response = await this.privateGetOrder (request);
+        }
+        const response = await this.privateGetOrder (request);
         return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let filter_params = { 'filter': { 'open': true }};
-        return await this.fetchOrders (symbol, since, limit, this.deepExtend (filter_params, params));
+        const request = {
+            'filter': {
+                'open': true,
+            },
+        };
+        return await this.fetchOrders (symbol, since, limit, this.deepExtend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // Bitmex barfs if you set 'open': false in the filter...
-        let orders = await this.fetchOrders (symbol, since, limit, params);
+        const orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
     }
 
@@ -351,10 +367,12 @@ module.exports = class bitmex extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since !== undefined)
+        if (since !== undefined) {
             request['startTime'] = this.iso8601 (since);
-        if (limit !== undefined)
+        }
+        if (limit !== undefined) {
             request['count'] = limit;
+        }
         request = this.deepExtend (request, params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
         // E.g. self.urlencode({"filter": {"open": True}}) will return "filter={'open':+True}"
@@ -362,7 +380,7 @@ module.exports = class bitmex extends Exchange {
         if ('filter' in request) {
             request['filter'] = this.json (request['filter']);
         }
-        let response = await this.privateGetExecutionTradeHistory (request);
+        const response = await this.privateGetExecutionTradeHistory (request);
         //
         //     [
         //         {
@@ -830,7 +848,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        let timestamp = this.parse8601 (ohlcv['timestamp']);
+        const timestamp = this.parse8601 (this.safeString (ohlcv, 'timestamp'));
         return [
             timestamp,
             this.safeFloat (ohlcv, 'open'),
@@ -849,8 +867,8 @@ module.exports = class bitmex extends Exchange {
         // send a bare series (e.g. XBU) to nearest expiring contract in that series
         // you can also send a timeframe, e.g. XBU:monthly
         // timeframes: daily, weekly, monthly, quarterly, and biquarterly
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
             'binSize': this.timeframes[timeframe],
             'partial': true,     // true == include yet-incomplete current bins
@@ -860,14 +878,15 @@ module.exports = class bitmex extends Exchange {
             // 'reverse': false, // true == newest first
             // 'endTime': '',    // ending date filter for results
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['count'] = limit; // default 100, max 500
+        }
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
-            let ymdhms = this.ymdhms (since);
+            const ymdhms = this.ymdhms (since);
             request['startTime'] = ymdhms; // starting date filter for results
         }
-        let response = await this.publicGetTradeBucketed (this.extend (request, params));
+        const response = await this.publicGetTradeBucketed (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -940,12 +959,12 @@ module.exports = class bitmex extends Exchange {
         //         "timestamp": "2019-03-05T12:47:02.762Z"
         //     }
         //
-        let timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat2 (trade, 'size', 'lastQty');
-        let id = this.safeString (trade, 'trdMatchID');
-        let order = this.safeString (trade, 'orderID');
-        let side = this.safeString (trade, 'side').toLowerCase ();
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat2 (trade, 'size', 'lastQty');
+        const id = this.safeString (trade, 'trdMatchID');
+        const order = this.safeString (trade, 'orderID');
+        const side = this.safeString (trade, 'side').toLowerCase ();
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         let cost = this.safeFloat (trade, 'execCost');
         if (cost !== undefined) {
@@ -958,7 +977,7 @@ module.exports = class bitmex extends Exchange {
             let currencyId = this.safeString (trade, 'settlCurrency');
             currencyId = currencyId.toUpperCase ();
             const feeCurrency = this.commonCurrencyCode (currencyId);
-            let feeRate = this.safeFloat (trade, 'commission');
+            const feeRate = this.safeFloat (trade, 'commission');
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -1001,7 +1020,7 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'New': 'open',
             'PartiallyFilled': 'open',
             'Filled': 'closed',
@@ -1019,22 +1038,22 @@ module.exports = class bitmex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
+        const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         } else {
-            let id = order['symbol'];
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
+            const marketId = this.safeString (order, 'symbol');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
             }
         }
-        let timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
-        let lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
-        let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'orderQty');
-        let filled = this.safeFloat (order, 'cumQty', 0.0);
+        const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
+        const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'orderQty');
+        const filled = this.safeFloat (order, 'cumQty', 0.0);
         let remaining = undefined;
         if (amount !== undefined) {
             if (filled !== undefined) {
@@ -1050,15 +1069,24 @@ module.exports = class bitmex extends Exchange {
                 cost = price * filled;
             }
         }
-        let result = {
+        const id = this.safeString (order, 'orderID');
+        let type = this.safeString (order, 'ordType');
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
+        let side = this.safeString (order, 'side');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
+        return {
             'info': order,
-            'id': order['orderID'].toString (),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': order['ordType'].toLowerCase (),
-            'side': order['side'].toLowerCase (),
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -1068,13 +1096,12 @@ module.exports = class bitmex extends Exchange {
             'status': status,
             'fee': undefined,
         };
-        return result;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1083,7 +1110,7 @@ module.exports = class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let response = await this.publicGetTrade (this.extend (request, params));
+        const response = await this.publicGetTrade (this.extend (request, params));
         //
         //     [
         //         {
@@ -1117,54 +1144,61 @@ module.exports = class bitmex extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'symbol': this.marketId (symbol),
             'side': this.capitalize (side),
             'orderQty': amount,
             'ordType': this.capitalize (type),
         };
-        if (price !== undefined)
+        if (price !== undefined) {
             request['price'] = price;
-        let response = await this.privatePostOrder (this.extend (request, params));
-        let order = this.parseOrder (response);
-        let id = order['id'];
+        }
+        const response = await this.privatePostOrder (this.extend (request, params));
+        const order = this.parseOrder (response);
+        const id = this.safeString (order, 'id');
         this.orders[id] = order;
         return this.extend ({ 'info': response }, order);
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'orderID': id,
         };
-        if (amount !== undefined)
+        if (amount !== undefined) {
             request['orderQty'] = amount;
-        if (price !== undefined)
+        }
+        if (price !== undefined) {
             request['price'] = price;
-        let response = await this.privatePutOrder (this.extend (request, params));
-        let order = this.parseOrder (response);
+        }
+        const response = await this.privatePutOrder (this.extend (request, params));
+        const order = this.parseOrder (response);
         this.orders[order['id']] = order;
         return this.extend ({ 'info': response }, order);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateDeleteOrder (this.extend ({ 'orderID': id }, params));
+        const response = await this.privateDeleteOrder (this.extend ({ 'orderID': id }, params));
         let order = response[0];
-        let error = this.safeString (order, 'error');
-        if (error !== undefined)
-            if (error.indexOf ('Unable to cancel order due to existing state') >= 0)
+        const error = this.safeString (order, 'error');
+        if (error !== undefined) {
+            if (error.indexOf ('Unable to cancel order due to existing state') >= 0) {
                 throw new OrderNotFound (this.id + ' cancelOrder() failed: ' + error);
+            }
+        }
         order = this.parseOrder (order);
         this.orders[order['id']] = order;
         return this.extend ({ 'info': response }, order);
     }
 
     isFiat (currency) {
-        if (currency === 'EUR')
+        if (currency === 'EUR') {
             return true;
-        if (currency === 'PLN')
+        }
+        if (currency === 'PLN') {
             return true;
+        }
         return false;
     }
 
@@ -1175,14 +1209,14 @@ module.exports = class bitmex extends Exchange {
         if (code !== 'BTC') {
             throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
         }
-        let request = {
+        const request = {
             'currency': 'XBt', // temporarily
             'amount': amount,
             'address': address,
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
-        let response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
+        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
         return {
             'info': response,
             'id': response['transactID'],
@@ -1190,29 +1224,29 @@ module.exports = class bitmex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (code === 429)
+        if (response === undefined) {
+            return;
+        }
+        if (code === 429) {
             throw new DDoSProtection (this.id + ' ' + body);
+        }
         if (code >= 400) {
-            if (body) {
-                if (body[0] === '{') {
-                    const error = this.safeValue (response, 'error', {});
-                    const message = this.safeString (error, 'message');
-                    const feedback = this.id + ' ' + body;
-                    const exact = this.exceptions['exact'];
-                    if (message in exact) {
-                        throw new exact[message] (feedback);
-                    }
-                    const broad = this.exceptions['broad'];
-                    const broadKey = this.findBroadlyMatchedKey (broad, message);
-                    if (broadKey !== undefined) {
-                        throw new broad[broadKey] (feedback);
-                    }
-                    if (code === 400) {
-                        throw new BadRequest (feedback);
-                    }
-                    throw new ExchangeError (feedback); // unknown message
-                }
+            const error = this.safeValue (response, 'error', {});
+            const message = this.safeString (error, 'message');
+            const feedback = this.id + ' ' + body;
+            const exact = this.exceptions['exact'];
+            if (message in exact) {
+                throw new exact[message] (feedback);
             }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            if (code === 400) {
+                throw new BadRequest (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 
@@ -1233,7 +1267,7 @@ module.exports = class bitmex extends Exchange {
                 params = this.omit (params, '_format');
             }
         }
-        let url = this.urls['api'] + query;
+        const url = this.urls['api'] + query;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let auth = method + query;
