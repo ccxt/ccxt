@@ -9,7 +9,20 @@ const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds } = 
 
 module.exports = class bleutrade extends bittrex {
     describe () {
-        return this.deepExtend (super.describe (), {
+        const timeframes = {
+            '15m': '15m',
+            '20m': '20m',
+            '30m': '30m',
+            '1h': '1h',
+            '2h': '2h',
+            '3h': '3h',
+            '4h': '4h',
+            '6h': '6h',
+            '8h': '8h',
+            '12h': '12h',
+            '1d': '1d',
+        };
+        const result = this.deepExtend (super.describe (), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
             'countries': [ 'BR' ], // Brazil
@@ -23,19 +36,7 @@ module.exports = class bleutrade extends bittrex {
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
             },
-            'timeframes': {
-                '15m': '15m',
-                '20m': '20m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '3h': '3h',
-                '4h': '4h',
-                '6h': '6h',
-                '8h': '8h',
-                '12h': '12h',
-                '1d': '1d',
-            },
+            'timeframes': timeframes,
             'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -141,6 +142,9 @@ module.exports = class bleutrade extends bittrex {
                 'symbolSeparator': '_',
             },
         });
+        // bittrex inheritance override
+        result['timeframes'] = timeframes;
+        return result;
     }
 
     parseOrderStatus (status) {
