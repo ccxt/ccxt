@@ -276,19 +276,21 @@ class coinegg (Exchange):
                 cost = self.cost_to_precision(symbol, price * amount)
         type = 'limit'
         side = self.safe_string(trade, 'type')
+        id = self.safe_string(trade, 'tid')
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'tid'),
             'order': None,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

@@ -616,18 +616,19 @@ class coss extends Exchange {
             }
         }
         $result = array (
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
             'order' => $orderId,
             'type' => null,
-            'takerOrMaker' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
-            'cost' => $cost,
             'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
         $fee = $this->parse_trade_fee ($this->safe_string($trade, 'fee'));
         if ($fee !== null) {

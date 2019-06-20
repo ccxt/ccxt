@@ -205,25 +205,35 @@ class exx (Exchange):
         return self.parse_order_book(response, response['timestamp'])
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date') * 1000
+        timestamp = self.safe_integer(trade, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        symbol = market['symbol']
-        cost = self.cost_to_precision(symbol, price * amount)
-        type = self.safe_string(trade, 'type')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        type = 'limit'
+        side = self.safe_string(trade, 'type')
+        id = self.safe_string(trade, 'tid')
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'tid'),
             'order': None,
-            'type': 'limit',
-            'side': type,
+            'type': type,
+            'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

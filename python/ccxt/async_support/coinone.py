@@ -225,7 +225,9 @@ class coinone (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'timestamp') * 1000
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = market['symbol'] if (market is not None) else None
         is_ask = self.safe_string(trade, 'is_ask')
         side = None
@@ -233,18 +235,26 @@ class coinone (Exchange):
             side = 'sell'
         elif is_ask == '0':
             side = 'buy'
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'qty')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
             'id': None,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': None,
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'qty'),
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

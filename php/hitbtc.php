@@ -662,6 +662,9 @@ class hitbtc extends Exchange {
         if ($tradeLength > 3) {
             $side = $trade[4];
         }
+        $price = floatval ($trade[1]);
+        $amount = floatval ($trade[2]);
+        $cost = $price * $amount;
         return array (
             'info' => $trade,
             'id' => (string) $trade[0],
@@ -670,8 +673,12 @@ class hitbtc extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => floatval ($trade[1]),
-            'amount' => floatval ($trade[2]),
+            'order' => null,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 

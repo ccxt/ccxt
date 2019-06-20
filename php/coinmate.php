@@ -233,9 +233,12 @@ class coinmate extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => null,
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

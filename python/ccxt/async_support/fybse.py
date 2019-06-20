@@ -107,20 +107,34 @@ class fybse (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'date') * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_integer(trade, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
         id = self.safe_string(trade, 'tid')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
-            'info': trade,
             'id': id,
+            'info': trade,
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': None,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

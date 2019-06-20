@@ -237,9 +237,6 @@ class coingi extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        if ($market === null) {
-            $market = $this->markets_by_id[$trade['currencyPair']];
-        }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -250,17 +247,28 @@ class coingi extends Exchange {
         }
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $id = $this->safe_string($trade, 'id');
+        $marketId = $this->safe_string($trade, 'currencyPair');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null, // type
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

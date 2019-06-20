@@ -157,7 +157,7 @@ class coinfloor extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $this->safe_integer($trade, 'date');
         if ($timestamp !== null) {
             $timestamp *= 1000;
@@ -171,18 +171,24 @@ class coinfloor extends Exchange {
                 $cost = $price * $amount;
             }
         }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'info' => $trade,
             'id' => $id,
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

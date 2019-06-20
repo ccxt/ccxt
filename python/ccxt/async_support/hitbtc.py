@@ -649,6 +649,9 @@ class hitbtc (Exchange):
         tradeLength = len(trade)
         if tradeLength > 3:
             side = trade[4]
+        price = float(trade[1])
+        amount = float(trade[2])
+        cost = price * amount
         return {
             'info': trade,
             'id': str(trade[0]),
@@ -657,8 +660,12 @@ class hitbtc (Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': float(trade[1]),
-            'amount': float(trade[2]),
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def parse_order_trade(self, trade, market=None):

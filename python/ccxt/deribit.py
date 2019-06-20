@@ -298,14 +298,15 @@ class deribit (Exchange):
                 'currency': feeCurrencyCode,
             }
         return {
-            'info': trade,
             'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

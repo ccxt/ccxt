@@ -280,19 +280,21 @@ class coinegg extends Exchange {
         }
         $type = 'limit';
         $side = $this->safe_string($trade, 'type');
+        $id = $this->safe_string($trade, 'tid');
         return array (
+            'id' => $id,
+            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $this->safe_string($trade, 'tid'),
             'order' => null,
             'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => null,
-            'info' => $trade,
         );
     }
 
