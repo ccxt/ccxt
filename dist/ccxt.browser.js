@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.760'
+const version = '1.18.763'
 
 Exchange.ccxtVersion = version
 
@@ -27837,6 +27837,7 @@ module.exports = class cobinhood extends Exchange {
                 '1M': '1M',
             },
             'urls': {
+                'referral': 'https://cobinhood.com?referrerId=a9d57842-99bb-4d7c-b668-0479a15a458b',
                 'logo': 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
                 'api': 'https://api.cobinhood.com',
                 'www': 'https://cobinhood.com',
@@ -34603,7 +34604,7 @@ module.exports = class coinspot extends Exchange {
                 },
                 'www': 'https://www.coinspot.com.au',
                 'doc': 'https://www.coinspot.com.au/api',
-                'referral': 'https://www.coinspot.com.au/join/FSM11C',
+                'referral': 'https://www.coinspot.com.au/register?code=PJURCU',
             },
             'api': {
                 'public': {
