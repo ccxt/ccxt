@@ -172,8 +172,11 @@ module.exports = class coinex extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.safeInteger (ticker, 'date');
-        const symbol = market['symbol'];
-        ticker = ticker['ticker'];
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        ticker = this.safeValue (ticker, 'ticker', {});
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -215,15 +218,19 @@ module.exports = class coinex extends Exchange {
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (data, 'date');
         const tickers = this.safeValue (data, 'ticker');
-        const ids = Object.keys (tickers);
+        const marketIds = Object.keys (tickers);
         const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = this.markets_by_id[id];
-            const symbol = market['symbol'];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            let symbol = marketId;
+            let market = undefined;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            }
             const ticker = {
                 'date': timestamp,
-                'ticker': tickers[id],
+                'ticker': tickers[marketId],
             };
             result[symbol] = this.parseTicker (ticker, market);
         }
