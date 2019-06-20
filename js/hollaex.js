@@ -15,23 +15,28 @@ module.exports = class hollaex extends Exchange {
             'countries': [ 'KR' ],
             'rateLimit': 333,
             'version': 'v0',
-            'verbose': true,
             'has': {
+                // fetchDepositAddress user info
+                // fetchBidsAsks
                 'CORS': false,
                 'fetchMarkets': true,
                 'fetchTicker': true,
+                //fetchTickers
                 'fetchOrderBook': true,
                 'fetchTrades': true,
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                //fetchOpenOrders
                 'fetchOrder': true,
+                //fetchDeposits
+                //fetchWithdrawls
                 'fetchOrders': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/10441291/59324510-26bb8380-8d1a-11e9-91a5-5c89402b6f0c.png',
+                'logo': 'https://user-images.githubusercontent.com/10441291/59487066-8058b500-8eb6-11e9-82fd-c9157b18c2d8.jpg',
                 'api': 'https://api.hollaex.com',
                 'www': 'https://hollaex.com',
                 'doc': 'https://apidocs.hollaex.com',
@@ -58,12 +63,18 @@ module.exports = class hollaex extends Exchange {
                         'user/orders/{orderId}',
                     ],
                     'post': [
-                        'user/request-Withdrawal',
+                        'user/request-withdrawal',
                         'order',
                     ],
                     'delete': [
                         'user/orders/{orderId}',
                     ],
+                },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
                 },
             },
             'exceptions': {
@@ -81,7 +92,7 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetConstant (this.extend (params));
+        let response = await this.publicGetConstant ();
         let markets = this.safeValue (response, 'pairs');
         let keys = Object.keys (markets);
         let result = [];
@@ -90,18 +101,31 @@ module.exports = class hollaex extends Exchange {
             let market = markets[id];
             let baseId = market['pair_base'];
             let quoteId = market['pair_2'];
+            let tickSize = market['tick_size'];
+            let pricePrecision = 0;
+            for (let i = 1; i >= 0 && tickSize < 1; i++) {
+                tickSize = tickSize * 10;
+                pricePrecision = i;
+            }
+            let minAmount = market['min_size'];
+            let amountPrecision = 0;
+            for (let i = 1; i >= 0 && minAmount < 1; i++) {
+                minAmount = minAmount * 10;
+                amountPrecision = i;
+            }
+            let precision = {
+                'cost': undefined,
+                'price': pricePrecision,
+                'amount': amountPrecision,
+            };
             if (quoteId === 'fiat') {
                 quoteId = 'eur';
+                precision['price'] = 2;
             }
             let base = this.commonCurrencyCode (baseId).toUpperCase ();
             let quote = this.commonCurrencyCode (quoteId).toUpperCase ();
             let symbol = base + '/' + quote;
             let active = true;
-            let precision = {
-                'cost': undefined,
-                'price': undefined,
-                'amount': undefined,
-            };
             let limits = {
                 'amount': {
                     'min': market['min_size'],
@@ -149,7 +173,7 @@ module.exports = class hollaex extends Exchange {
             'asks': response['asks'],
             'timestamp': timestamp,
             'datetime': datetime,
-            'nonce': undefined,
+            'nonce': Date.now (),
         };
         return result;
     }
@@ -244,7 +268,7 @@ module.exports = class hollaex extends Exchange {
         let takerOrMaker = undefined;
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'size');
-        let cost = price * amount;
+        let cost = parseFloat (this.amountToPrecision (symbol, price * amount));
         let fee = undefined;
         let result = {
             'info': info,
@@ -285,8 +309,7 @@ module.exports = class hollaex extends Exchange {
             }
             free[currency] = response[responseCurr + '_available'];
             total[currency] = response[responseCurr + '_balance'];
-            // used[currency] = total[currency] - free[currency];
-            used[currency] = undefined;
+            used[currency] = parseFloat (this.currencyToPrecision (currency, total[currency] - free[currency]));
             result[currency] = {
                 'free': free[currency],
                 'used': used[currency],
@@ -344,15 +367,19 @@ module.exports = class hollaex extends Exchange {
         let datetime = this.safeString (order, 'created_at');
         let timestamp = this.parse8601 (datetime);
         let lastTradeTimestamp = undefined;
-        let status = undefined;
         let type = this.safeString (order, 'type');
         let side = this.safeString (order, 'side');
         let price = this.safeFloat (order, 'price');
         let amount = this.safeFloat (order, 'size');
         let filled = this.safeFloat (order, 'filled');
-        // let remaining = amount - filled;
-        let remaining = undefined;
-        let cost = filled * price;
+        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
+        let cost = undefined;
+        let status = 'open';
+        if (type === 'market') {
+            status = 'closed';
+        } else {
+            cost = parseFloat (this.priceToPrecision (symbol, filled * price));
+        }
         let trades = undefined;
         let fee = undefined;
         let info = order;
@@ -388,7 +415,7 @@ module.exports = class hollaex extends Exchange {
             'price': price,
         };
         let response = await this.privatePostOrder (this.extend (order, params));
-        // response['created_at'] = this.iso8601 (this.milliseconds ());
+        response['created_at'] = this.iso8601 (this.milliseconds ());
         return this.parseOrder (response, market);
     }
 
