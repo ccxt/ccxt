@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.751'
+const version = '1.18.752'
 
 Exchange.ccxtVersion = version
 
@@ -747,17 +747,24 @@ module.exports = class acx extends Exchange {
     parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         const id = this.safeString (trade, 'tid');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
+            'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'side': undefined,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': this.safeFloat (trade, 'price'),
             'amount': this.safeFloat (trade, 'volume'),
             'cost': this.safeFloat (trade, 'funds'),
-            'info': trade,
+            'fee': undefined,
         };
     }
 
@@ -6813,7 +6820,7 @@ module.exports = class bibox extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const request = {
-                'cmd': 'transfer/transferOutInfo',
+                'cmd': 'transfer/coinConfig',
                 'body': this.extend ({
                     'coin_symbol': currency['id'],
                 }, params),
@@ -7177,6 +7184,8 @@ module.exports = class bigone extends Exchange {
                 cost = this.costToPrecision (symbol, price * amount);
             }
         }
+        // taker side is not related to buy/sell side
+        // the following code is probably a mistake
         let side = undefined;
         if (node['taker_side'] === 'ASK') {
             side = 'sell';
@@ -7192,6 +7201,7 @@ module.exports = class bigone extends Exchange {
             'order': undefined,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': parseFloat (cost),
@@ -10400,6 +10410,15 @@ module.exports = class bitbay extends Exchange {
     }
 
     parsePublicTrade (trade, market = undefined) {
+        //
+        //     {
+        //         "date":1459608665,
+        //         "price":0.02722571,
+        //         "type":"sell",
+        //         "amount":1.08112001,
+        //         "tid":"0"
+        //     }
+        //
         let timestamp = this.safeInteger (trade, 'date');
         if (timestamp !== undefined) {
             timestamp *= 1000;
@@ -10427,9 +10446,12 @@ module.exports = class bitbay extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -10440,6 +10462,31 @@ module.exports = class bitbay extends Exchange {
             'id': market['id'],
         };
         const response = await this.publicGetIdTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "date":1459608665,
+        //             "price":0.02722571,
+        //             "type":"sell",
+        //             "amount":1.08112001,
+        //             "tid":"0"
+        //         },
+        //         {
+        //             "date":1459698930,
+        //             "price":0.029,
+        //             "type":"buy",
+        //             "amount":0.444188,
+        //             "tid":"1"
+        //         },
+        //         {
+        //             "date":1459726670,
+        //             "price":0.029,
+        //             "type":"buy",
+        //             "amount":0.25459599,
+        //             "tid":"2"
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -85041,6 +85088,12 @@ module.exports = class tidex extends Exchange {
                 fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
             }
         }
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'id': id,
             'order': orderId,
@@ -85052,6 +85105,7 @@ module.exports = class tidex extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': fee,
             'info': trade,
         };
@@ -88737,6 +88791,7 @@ module.exports = class virwox extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -88853,6 +88908,7 @@ module.exports = class xbtce extends Exchange {
                 'CORS': false,
                 'fetchTickers': true,
                 'createMarketOrder': false,
+                'fetchOHLCV': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
@@ -89662,6 +89718,12 @@ module.exports = class yobit extends Exchange {
                 fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
             }
         }
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'id': id,
             'order': order,
@@ -89673,6 +89735,7 @@ module.exports = class yobit extends Exchange {
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': fee,
             'info': trade,
         };
@@ -90419,9 +90482,12 @@ module.exports = class zaif extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -91038,9 +91104,12 @@ module.exports = class zb extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 

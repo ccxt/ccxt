@@ -386,9 +386,12 @@ class zb extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

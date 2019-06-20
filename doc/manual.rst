@@ -3035,7 +3035,7 @@ Trade structure
        'order':        '12345-67890:09876/54321',  // string order id or undefined/None/null
        'type':         'limit',                    // order type, 'market', 'limit' or undefined/None/null
        'side':         'buy',                      // direction of the trade, 'buy' or 'sell'
-       'takerOrMaker': 'taker'                     // string, 'taker' or 'maker'
+       'takerOrMaker': 'taker',                    // string, 'taker' or 'maker'
        'price':        0.06917684,                 // float price in quote currency
        'amount':       1.5,                        // amount of base currency
        'cost':         0.10376526,                 // total cost (including fees), `price * amount`

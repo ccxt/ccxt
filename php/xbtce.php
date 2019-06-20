@@ -20,6 +20,7 @@ class xbtce extends Exchange {
                 'CORS' => false,
                 'fetchTickers' => true,
                 'createMarketOrder' => false,
+                'fetchOHLCV' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',

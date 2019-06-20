@@ -780,7 +780,7 @@ class bibox (Exchange):
             code = codes[i]
             currency = self.currency(code)
             request = {
-                'cmd': 'transfer/transferOutInfo',
+                'cmd': 'transfer/coinConfig',
                 'body': self.extend({
                     'coin_symbol': currency['id'],
                 }, params),

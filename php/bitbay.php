@@ -386,6 +386,15 @@ class bitbay extends Exchange {
     }
 
     public function parse_public_trade ($trade, $market = null) {
+        //
+        //     {
+        //         "date":1459608665,
+        //         "$price":0.02722571,
+        //         "$type":"sell",
+        //         "$amount":1.08112001,
+        //         "tid":"0"
+        //     }
+        //
         $timestamp = $this->safe_integer($trade, 'date');
         if ($timestamp !== null) {
             $timestamp *= 1000;
@@ -413,9 +422,12 @@ class bitbay extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 
@@ -426,6 +438,31 @@ class bitbay extends Exchange {
             'id' => $market['id'],
         );
         $response = $this->publicGetIdTrades (array_merge ($request, $params));
+        //
+        //     array (
+        //         array (
+        //             "date":1459608665,
+        //             "price":0.02722571,
+        //             "type":"sell",
+        //             "amount":1.08112001,
+        //             "tid":"0"
+        //         ),
+        //         array (
+        //             "date":1459698930,
+        //             "price":0.029,
+        //             "type":"buy",
+        //             "amount":0.444188,
+        //             "tid":"1"
+        //         ),
+        //         {
+        //             "date":1459726670,
+        //             "price":0.029,
+        //             "type":"buy",
+        //             "amount":0.25459599,
+        //             "tid":"2"
+        //         }
+        //     )
+        //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 

@@ -463,6 +463,12 @@ class tidex extends Exchange {
                 $fee = $this->calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker);
             }
         }
+        $cost = null;
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $amount * $price;
+            }
+        }
         return array (
             'id' => $id,
             'order' => $orderId,
@@ -474,6 +480,7 @@ class tidex extends Exchange {
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
             'fee' => $fee,
             'info' => $trade,
         );
