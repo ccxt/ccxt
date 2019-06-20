@@ -16,13 +16,13 @@ module.exports = class hollaex extends Exchange {
             'rateLimit': 333,
             'version': 'v0',
             'has': {
-                // fetchBidsAsks
                 'CORS': false,
                 'fetchMarkets': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
+                'fetchOHLCV': true,
                 'fetchBalance': true,
                 'createOrder': true,
                 'createLimitBuyOrder': true,
@@ -473,19 +473,19 @@ module.exports = class hollaex extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    async createLimitBuyOrder (symbol, amount, price, params = {}) {
+    async createLimitBuyOrder (symbol = undefined, amount = undefined, price = undefined, params = {}) {
         return this.createOrder (symbol, 'limit', 'buy', amount, price, params);
     }
 
-    async createLimitSellOrder (symbol, amount, price, params = {}) {
+    async createLimitSellOrder (symbol = undefined, amount = undefined, price = undefined, params = {}) {
         return this.createOrder (symbol, 'limit', 'sell', amount, price, params);
     }
 
-    async createMarketBuyOrder (symbol, amount, params = {}) {
+    async createMarketBuyOrder (symbol = undefined, amount = undefined, params = {}) {
         return this.createOrder (symbol, 'market', 'buy', amount, undefined, params);
     }
 
-    async createMarketSellOrder (symbol, amount, params = {}) {
+    async createMarketSellOrder (symbol = undefined, amount = undefined, params = {}) {
         return this.createOrder (symbol, 'market', 'sell', amount, undefined, params);
     }
 
@@ -534,7 +534,16 @@ module.exports = class hollaex extends Exchange {
         };
     }
 
-    async withdraw (code, amount, address, tag = undefined, params = {}) {
+    async withdraw (code = undefined, amount = undefined, address = undefined, tag = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw requires a code argument');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw requires an amount argument');
+        }
+        if (address === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw requires an address argument');
+        }
         this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currencies[code]['id'];
