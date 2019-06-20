@@ -32,7 +32,7 @@ module.exports = class hollaex extends Exchange {
                 'cancelOrder': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                // fetchDeposits
+                'fetchDeposits': true,
                 //fetchWithdrawls
                 'fetchOrders': true,
                 'fetchMyTrades': true,
@@ -326,6 +326,9 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchOHLCV (symbol = undefined, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let to = this.seconds ();
