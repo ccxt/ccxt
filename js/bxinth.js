@@ -189,7 +189,7 @@ module.exports = class bxinth extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         const date = this.safeString (trade, 'trade_date');
         let timestamp = undefined;
         if (date !== undefined) {
@@ -207,18 +207,24 @@ module.exports = class bxinth extends Exchange {
                 cost = amount * price;
             }
         }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'info': trade,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
+            'takerOrMaker': undefined,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
