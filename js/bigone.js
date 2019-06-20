@@ -289,6 +289,8 @@ module.exports = class bigone extends Exchange {
                 cost = this.costToPrecision (symbol, price * amount);
             }
         }
+        // taker side is not related to buy/sell side
+        // the following code is probably a mistake
         let side = undefined;
         if (node['taker_side'] === 'ASK') {
             side = 'sell';
@@ -304,6 +306,7 @@ module.exports = class bigone extends Exchange {
             'order': undefined,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': parseFloat (cost),

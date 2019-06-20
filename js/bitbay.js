@@ -385,6 +385,15 @@ module.exports = class bitbay extends Exchange {
     }
 
     parsePublicTrade (trade, market = undefined) {
+        //
+        //     {
+        //         "date":1459608665,
+        //         "price":0.02722571,
+        //         "type":"sell",
+        //         "amount":1.08112001,
+        //         "tid":"0"
+        //     }
+        //
         let timestamp = this.safeInteger (trade, 'date');
         if (timestamp !== undefined) {
             timestamp *= 1000;
@@ -412,9 +421,12 @@ module.exports = class bitbay extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -425,6 +437,31 @@ module.exports = class bitbay extends Exchange {
             'id': market['id'],
         };
         const response = await this.publicGetIdTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "date":1459608665,
+        //             "price":0.02722571,
+        //             "type":"sell",
+        //             "amount":1.08112001,
+        //             "tid":"0"
+        //         },
+        //         {
+        //             "date":1459698930,
+        //             "price":0.029,
+        //             "type":"buy",
+        //             "amount":0.444188,
+        //             "tid":"1"
+        //         },
+        //         {
+        //             "date":1459726670,
+        //             "price":0.029,
+        //             "type":"buy",
+        //             "amount":0.25459599,
+        //             "tid":"2"
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
