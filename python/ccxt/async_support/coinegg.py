@@ -25,7 +25,7 @@ class coinegg (Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': 'emulated',
-                'fetchMyTrades': True,
+                'fetchMyTrades': False,
                 'fetchTickers': False,
             },
             'urls': {
