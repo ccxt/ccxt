@@ -19,7 +19,6 @@ module.exports = class coinspot extends Exchange {
                 'createMarketOrder': false,
             },
             'urls': {
-                'referral': 'https://www.coinspot.com.au?affiliate=PJURCU',
                 'logo': 'https://user-images.githubusercontent.com/1294454/28208429-3cacdf9a-6896-11e7-854e-4c79a772a30f.jpg',
                 'api': {
                     'public': 'https://www.coinspot.com.au/pubapi',
@@ -27,7 +26,7 @@ module.exports = class coinspot extends Exchange {
                 },
                 'www': 'https://www.coinspot.com.au',
                 'doc': 'https://www.coinspot.com.au/api',
-                'referral': 'https://www.coinspot.com.au/join/FSM11C',
+                'referral': 'https://www.coinspot.com.au?affiliate=PJURCU',
             },
             'api': {
                 'public': {
