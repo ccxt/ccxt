@@ -840,7 +840,7 @@ module.exports = class bibox extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const request = {
-                'cmd': 'transfer/transferOutInfo',
+                'cmd': 'transfer/coinConfig',
                 'body': this.extend ({
                     'coin_symbol': currency['id'],
                 }, params),
