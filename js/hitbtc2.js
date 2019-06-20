@@ -887,6 +887,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'symbol': symbol,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
