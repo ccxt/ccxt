@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.763'
+__version__ = '1.18.764'
 
 # ----------------------------------------------------------------------------
 
@@ -158,7 +158,6 @@ from ccxt.ice3x import ice3x                                # noqa: F401
 from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.indodax import indodax                            # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
-from ccxt.jubi import jubi                                  # noqa: F401
 from ccxt.kkex import kkex                                  # noqa: F401
 from ccxt.kraken import kraken                              # noqa: F401
 from ccxt.kucoin import kucoin                              # noqa: F401
@@ -296,7 +295,6 @@ exchanges = [
     'independentreserve',
     'indodax',
     'itbit',
-    'jubi',
     'kkex',
     'kraken',
     'kucoin',

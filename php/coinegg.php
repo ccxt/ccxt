@@ -30,7 +30,7 @@ class coinegg extends Exchange {
                 'www' => 'https://www.coinegg.com',
                 'doc' => 'https://www.coinegg.com/explain.api.html',
                 'fees' => 'https://www.coinegg.com/fee.html',
-                'referral' => 'http://www.coinegg.com/user/register?invite=523218',
+                'referral' => 'https://www.coinegg.com/user/register?invite=523218',
             ),
             'api' => array (
                 'web' => array (
