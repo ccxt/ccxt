@@ -456,6 +456,9 @@ module.exports = class hollaex extends Exchange {
         if (type === 'limit' && price === undefined) {
             throw new ArgumentsRequired (this.id + ' limit createOrder requires a price argument');
         }
+        if (type === 'market' && price !== undefined) {
+            throw new BadRequest (this.id + ' market createOrder does not require a price argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let order = {
