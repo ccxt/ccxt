@@ -340,12 +340,12 @@ module.exports = class coss extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             'tt': this.timeframes[timeframe],
         };
-        let response = await this.engineGetCs (this.extend (request, params));
+        const response = await this.engineGetCs (this.extend (request, params));
         //
         //     {       tt:   "1m",
         //         symbol:   "ETH_BTC",
@@ -406,7 +406,7 @@ module.exports = class coss extends Exchange {
         //               Bid: "0.00063400",
         //           PrevDay:  0.000636                   }
         //
-        let timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
+        const timestamp = this.parse8601 (this.safeString (ticker, 'TimeStamp'));
         let symbol = undefined;
         let marketId = this.safeString (ticker, 'MarketName');
         if (marketId !== undefined) {
@@ -424,16 +424,18 @@ module.exports = class coss extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let previous = this.safeFloat (ticker, 'PrevDay');
-        let last = this.safeFloat (ticker, 'Last');
+        const previous = this.safeFloat (ticker, 'PrevDay');
+        const last = this.safeFloat (ticker, 'Last');
         let change = undefined;
         let percentage = undefined;
-        if (last !== undefined)
+        if (last !== undefined) {
             if (previous !== undefined) {
                 change = last - previous;
-                if (previous > 0)
+                if (previous > 0) {
                     percentage = (change / previous) * 100;
+                }
             }
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -509,7 +511,7 @@ module.exports = class coss extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        let tickers = await this.fetchTickers ([ symbol ], params);
+        const tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
 
@@ -613,18 +615,19 @@ module.exports = class coss extends Exchange {
             }
         }
         const result = {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': undefined,
-            'takerOrMaker': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
-            'cost': cost,
             'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
         const fee = this.parseTradeFee (this.safeString (trade, 'fee'));
         if (fee !== undefined) {
@@ -724,9 +727,10 @@ module.exports = class coss extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.tradePostOrderDetails (this.extend ({
+        const request = {
             'order_id': id,
-        }, params));
+        };
+        const response = await this.tradePostOrderDetails (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -739,7 +743,7 @@ module.exports = class coss extends Exchange {
         const request = {
             'order_id': id,
         };
-        let response = await this.tradePostOrderTradeDetail (this.extend (request, params));
+        const response = await this.tradePostOrderTradeDetail (this.extend (request, params));
         //
         //     [ {         hex_id:  null,
         //                 symbol: "COSS_ETH",
@@ -759,11 +763,11 @@ module.exports = class coss extends Exchange {
         if (status === undefined) {
             return status;
         }
-        let statuses = {
+        const statuses = {
             'OPEN': 'open',
             'CANCELLED': 'canceled',
             'FILLED': 'closed',
-            'PARTIAL_FILL': 'open',
+            'PARTIAL_FILL': 'closed',
             'CANCELLING': 'open',
         };
         return this.safeString (statuses, status.toUpperCase (), status);

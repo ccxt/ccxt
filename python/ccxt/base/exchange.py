@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.471'
+__version__ = '1.18.771'
 
 # -----------------------------------------------------------------------------
 
@@ -24,6 +24,15 @@ from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
 from ccxt.base.decimal_to_precision import number_to_string
 
 # -----------------------------------------------------------------------------
+
+# rsa jwt signing
+from cryptography.hazmat import backends
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
+# -----------------------------------------------------------------------------
+
 
 __all__ = [
     'Exchange',
@@ -146,6 +155,7 @@ class Exchange(object):
     uid = ''
     privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
     walletAddress = ''  # the wallet address "0x"-prefixed hexstring
+    token = ''  # reserved for HTTP auth in some cases
     twofa = None
     marketsById = None
     markets_by_id = None
@@ -209,6 +219,7 @@ class Exchange(object):
         'twofa': False,  # 2-factor authentication (one-time password key)
         'privateKey': False,  # a "0x"-prefixed hexstring private key for a wallet
         'walletAddress': False,  # the wallet address "0x"-prefixed hexstring
+        'token': False,  # reserved for HTTP auth in some cases
     }
 
     # API method metainfo
@@ -347,6 +358,12 @@ class Exchange(object):
     def __del__(self):
         if self.session:
             self.session.close()
+
+    def __repr__(self):
+        return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
+
+    def __str__(self):
+        return self.name
 
     def describe(self):
         return {}
@@ -939,25 +956,44 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def binary_to_string(s):
-        return s.decode('ascii')
-
-    @staticmethod
     def base64urlencode(s):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
     @staticmethod
-    def jwt(request, secret, algorithm=hashlib.sha256, alg='HS256'):
+    def binary_to_base64(s):
+        return Exchange.decode(base64.standard_b64encode(s))
+
+    @staticmethod
+    def jwt(request, secret, alg='HS256'):
+        algos = {
+            'HS256': hashlib.sha256,
+            'HS384': hashlib.sha384,
+            'HS512': hashlib.sha512,
+        }
         header = Exchange.encode(Exchange.json({
             'alg': alg,
             'typ': 'JWT',
         }))
-        encodedHeader = Exchange.base64urlencode(header)
-        encodedData = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
-        token = encodedHeader + '.' + encodedData
-        hmac = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
-        signature = Exchange.base64urlencode(hmac)
-        return token + '.' + signature
+        encoded_header = Exchange.base64urlencode(header)
+        encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
+        token = encoded_header + '.' + encoded_data
+        if alg[:2] == 'RS':
+            signature = Exchange.rsa(token, secret, alg)
+        else:
+            algorithm = algos[alg]
+            signature = Exchange.hmac(token, secret, algorithm, 'binary')
+        return token + '.' + Exchange.base64urlencode(signature)
+
+    @staticmethod
+    def rsa(request, secret, alg='RS256'):
+        algorithms = {
+            "RS256": hashes.SHA256(),
+            "RS384": hashes.SHA384(),
+            "RS512": hashes.SHA512(),
+        }
+        algorithm = algorithms[alg]
+        priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
+        return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
     def unjson(input):
@@ -1007,9 +1043,9 @@ class Exchange(object):
 
     def account(self):
         return {
-            'free': 0.0,
-            'used': 0.0,
-            'total': 0.0,
+            'free': None,
+            'used': None,
+            'total': None,
         }
 
     def common_currency_code(self, currency):
@@ -1245,6 +1281,24 @@ class Exchange(object):
 
     def parse_balance(self, balance):
         currencies = self.omit(balance, 'info').keys()
+
+        balance['free'] = {}
+        balance['used'] = {}
+        balance['total'] = {}
+
+        for currency in currencies:
+            if balance[currency].get('total') is None:
+                if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
+                    balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
+
+            if balance[currency].get('free') is None:
+                if balance[currency].get('total') is not None and balance[currency].get('used') is not None:
+                    balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
+
+            if balance[currency].get('used') is None:
+                if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
+                    balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
+
         for account in ['free', 'used', 'total']:
             balance[account] = {}
             for currency in currencies:
@@ -1383,16 +1437,16 @@ class Exchange(object):
             scale = 60  # 1m by default
         return amount * scale
 
-    def parse_trades(self, trades, market=None, since=None, limit=None):
+    def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
-        array = [self.parse_trade(trade, market) for trade in array]
+        array = [self.extend(self.parse_trade(trade, market), params) for trade in array]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
-    def parse_ledger(self, data, currency=None, since=None, limit=None):
+    def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         array = self.to_array(data)
-        array = [self.parse_ledger_entry(item, currency) for item in array]
+        array = [self.extend(self.parse_ledger_entry(item, currency), params) for item in array]
         array = self.sort_by(array, 'timestamp')
         code = currency['code'] if currency else None
         return self.filter_by_currency_since_limit(array, code, since, limit)
@@ -1404,9 +1458,9 @@ class Exchange(object):
         code = currency['code'] if currency else None
         return self.filter_by_currency_since_limit(array, code, since, limit)
 
-    def parse_orders(self, orders, market=None, since=None, limit=None):
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         array = self.to_array(orders)
-        array = [self.parse_order(order, market) for order in array]
+        array = [self.extend(self.parse_order(order, market), params) for order in array]
         array = self.sort_by(array, 'timestamp')
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)

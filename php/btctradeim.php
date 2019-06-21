@@ -15,6 +15,7 @@ class btctradeim extends coinegg {
             'name' => 'BtcTrade.im',
             'countries' => array ( 'HK' ),
             'urls' => array (
+                'referral' => 'https://m.baobi.com/invite?inv=1765b2',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
                 'api' => array (
                     'web' => 'https://api.btctrade.im/coin',
@@ -56,7 +57,7 @@ class btctradeim extends coinegg {
             $code = $this->safe_string($response, 'code');
             if ($code !== '0') {
                 $message = $this->safe_string($response, 'msg', 'Error');
-                throw new ExchangeError ($message);
+                throw new ExchangeError($message);
             }
             return $data;
         }

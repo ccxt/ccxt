@@ -32,9 +32,9 @@ class getbtc extends _1btcxe {
                 ),
             ),
             'markets' => array (
-                'BTC/USD' => array ( 'symbol' => 'BTC/USD', 'quote' => 'USD', 'base' => 'BTC', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'id' => 'USD', 'limits' => array ( 'amount' => array ( 'max' => null, 'min' => 1e-08 ), 'price' => array ( 'max' => null, 'min' => 1e-08 ))),
-                'BTC/EUR' => array ( 'symbol' => 'BTC/EUR', 'quote' => 'EUR', 'base' => 'BTC', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'id' => 'EUR', 'limits' => array ( 'amount' => array ( 'max' => null, 'min' => 1e-08 ), 'price' => array ( 'max' => null, 'min' => 1e-08 ))),
-                'BTC/RUB' => array ( 'symbol' => 'BTC/RUB', 'quote' => 'RUB', 'base' => 'BTC', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'id' => 'RUB', 'limits' => array ( 'amount' => array ( 'max' => null, 'min' => 1e-08 ), 'price' => array ( 'max' => null, 'min' => 1e-08 ))),
+                'BTC/USD' => array( 'symbol' => 'BTC/USD', 'quote' => 'USD', 'base' => 'BTC', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'id' => 'USD', 'limits' => array( 'amount' => array ( 'max' => null, 'min' => 1e-08 ), 'price' => array( 'max' => null, 'min' => 1e-08 ))),
+                'BTC/EUR' => array( 'symbol' => 'BTC/EUR', 'quote' => 'EUR', 'base' => 'BTC', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'id' => 'EUR', 'limits' => array( 'amount' => array ( 'max' => null, 'min' => 1e-08 ), 'price' => array( 'max' => null, 'min' => 1e-08 ))),
+                'BTC/RUB' => array( 'symbol' => 'BTC/RUB', 'quote' => 'RUB', 'base' => 'BTC', 'precision' => array ( 'amount' => 8, 'price' => 8 ), 'id' => 'RUB', 'limits' => array( 'amount' => array ( 'max' => null, 'min' => 1e-08 ), 'price' => array( 'max' => null, 'min' => 1e-08 ))),
             ),
         ));
     }

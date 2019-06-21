@@ -29,6 +29,7 @@ module.exports = class mandala extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
+                'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOrderStatus': true,
                 'fetchTickers': true,
@@ -48,7 +49,7 @@ module.exports = class mandala extends Exchange {
                 'api': 'https://zapi.{hostname}',
                 'www': 'https://mandalaex.com',
                 'doc': [
-                    'https://documenter.getpostman.com/view/6273708/RznBP1Hh',
+                    'https://apidocs.mandalaex.com',
                 ],
                 'fees': [
                     'https://mandalaex.com/trading-rules/',
@@ -478,18 +479,20 @@ module.exports = class mandala extends Exchange {
         //         ],
         //     }
         //
-        const data = this.safeValue (response, 'Data');
+        const data = this.safeValue (response, 'Data', []);
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
-            const code = this.commonCurrencyCode (this.safeString (balance, 'currency'));
+            const currencyId = this.safeString (balance, 'currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
             const account = this.account ();
-            const free = this.safeFloat (balance, 'balance', 0);
-            const used = this.safeFloat (balance, 'balanceInTrade', 0);
-            const total = this.sum (free, used);
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = total;
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'balanceInTrade');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -720,15 +723,15 @@ module.exports = class mandala extends Exchange {
             };
         }
         return {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': undefined,
-            'takerOrMaker': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -888,11 +891,12 @@ module.exports = class mandala extends Exchange {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
+        id = id.toString ();
         const request = {
-            'orderId': id.toString (),
+            'orderId': id,
             'side': side.toUpperCase (),
         };
         const response = await this.orderPostCancelMyOrder (this.extend (request, params));
@@ -906,7 +910,7 @@ module.exports = class mandala extends Exchange {
         return this.parseOrder (response, {
             'id': id,
             'symbol': symbol,
-            'side': side,
+            'side': side.toLowerCase (),
             'status': 'canceled',
         });
     }
@@ -914,15 +918,15 @@ module.exports = class mandala extends Exchange {
     async cancelAllOrders (symbols = undefined, params = {}) {
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbols argument (a list containing one symbol)');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a `symbols` argument (a list containing one symbol)');
         } else {
             const numSymbols = symbols.length;
             if (numSymbols !== 1) {
-                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbols argument (a list containing one symbol)');
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a `symbols` argument (a list containing one symbol)');
             }
         }
         const symbol = symbols[0];
@@ -999,12 +1003,14 @@ module.exports = class mandala extends Exchange {
             filled = Math.max (amount - remaining, 0);
         }
         if (!cost) {
-            if (price && filled)
+            if (price && filled) {
                 cost = price * filled;
+            }
         }
         if (!price) {
-            if (cost && filled)
+            if (cost && filled) {
                 price = cost / filled;
+            }
         }
         let status = this.safeValue2 (order, 'orderStatus', 'Status');
         status = status ? 'closed' : 'open';
@@ -1049,7 +1055,7 @@ module.exports = class mandala extends Exchange {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         const request = {
@@ -1094,7 +1100,9 @@ module.exports = class mandala extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const market = (symbol !== undefined) ? this.market (symbol) : undefined;
-        return this.parseOrders (data, market, since, limit);
+        return this.parseOrders (data, market, since, limit, {
+            'side': side.toLowerCase (),
+        });
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1142,17 +1150,18 @@ module.exports = class mandala extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrderStatus (id, symbol = undefined, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrderStatus() requires an order side extra parameter');
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
+        id = id.toString ();
         const request = {
             'key': this.apiKey,
             'side': side.toUpperCase (),
-            'orderId': id.toString (),
+            'orderId': id,
         };
         const response = await this.orderGetMyOrderStatusKeySideOrderId (this.extend (request, params));
         //
@@ -1168,8 +1177,10 @@ module.exports = class mandala extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        const order = this.parseOrder (data);
-        return order['status'];
+        return this.extend (this.parseOrder (data), {
+            'id': id,
+            'side': side.toLowerCase (),
+        });
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1336,7 +1347,7 @@ module.exports = class mandala extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'withdrawalReqDate', updated));
         const type = ('withdrawalReqDate' in transaction) ? 'withdrawal' : 'deposit';
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'withdrawalType');
+        const currencyId = this.safeString (transaction, 'withdrawalType');
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
             code = currency['code'];
@@ -1572,12 +1583,12 @@ module.exports = class mandala extends Exchange {
             if (api === 'api') {
                 const token = this.safeString (this.options, 'accessToken');
                 if (token === undefined) {
-                    throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method');
+                    throw new AuthenticationError (this.id + ' ' + path + ' endpoint requires an `accessToken` option or a prior call to signIn() method');
                 }
                 const expires = this.safeInteger (this.options, 'expires');
                 if (expires !== undefined) {
                     if (this.milliseconds () >= expires) {
-                        throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call signIn() method');
+                        throw new AuthenticationError (this.id + ' accessToken expired, supply a new `accessToken` or call signIn() method');
                     }
                 }
                 const tokenType = this.safeString (this.options, 'tokenType', 'bearer');

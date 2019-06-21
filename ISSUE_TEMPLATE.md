@@ -1,6 +1,6 @@
 ATTENTION!!!
 
-MUST READ THIS BEFORE SUBMITTING ISSUES:
+MUST READ THIS BEFORE SUBMITTING ISSUES (read the link, then delete this message before submitting):
 
 https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue
 

@@ -21,6 +21,7 @@ module.exports = class bequant extends hitbtc2 {
                 'fees': [
                     'https://bequant.io/fees-and-limits',
                 ],
+                'referral': 'https://bequant.io',
             },
         });
     }

@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 
 
 class bitmarket (Exchange):
@@ -101,13 +102,13 @@ class bitmarket (Exchange):
                 },
             },
             'markets': {
-                'BCH/PLN': {'id': 'BCCPLN', 'symbol': 'BCH/PLN', 'base': 'BCH', 'quote': 'PLN'},
-                'BTG/PLN': {'id': 'BTGPLN', 'symbol': 'BTG/PLN', 'base': 'BTG', 'quote': 'PLN'},
-                'BTC/PLN': {'id': 'BTCPLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN'},
-                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
-                'LTC/PLN': {'id': 'LTCPLN', 'symbol': 'LTC/PLN', 'base': 'LTC', 'quote': 'PLN'},
-                'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-                'LiteMineX/BTC': {'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC'},
+                'BCH/PLN': {'id': 'BCCPLN', 'symbol': 'BCH/PLN', 'base': 'BCH', 'quote': 'PLN', 'baseId': 'BCC', 'quoteId': 'PLN'},
+                'BTG/PLN': {'id': 'BTGPLN', 'symbol': 'BTG/PLN', 'base': 'BTG', 'quote': 'PLN', 'baseId': 'BTG', 'quoteId': 'PLN'},
+                'BTC/PLN': {'id': 'BTCPLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN', 'baseId': 'BTC', 'quoteId': 'PLN'},
+                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR'},
+                'LTC/PLN': {'id': 'LTCPLN', 'symbol': 'LTC/PLN', 'base': 'LTC', 'quote': 'PLN', 'baseId': 'LTC', 'quoteId': 'PLN'},
+                'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'LTC', 'quoteId': 'BTC'},
+                'LiteMineX/BTC': {'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC', 'baseId': 'LiteMineX', 'quoteId': 'BTC'},
             },
             'fees': {
                 'trading': {
@@ -177,36 +178,49 @@ class bitmarket (Exchange):
                     },
                 },
             },
+            'exceptions': {
+                'exact': {
+                    '501': AuthenticationError,  # {"error":501,"errorMsg":"Invalid API key","time":1560869976}
+                },
+                'broad': {
+                },
+            },
         })
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostInfo()
-        data = response['data']
-        balance = data['balances']
-        result = {'info': data}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            account = self.account()
-            if currency in balance['available']:
-                account['free'] = balance['available'][currency]
-            if currency in balance['blocked']:
-                account['used'] = balance['blocked'][currency]
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+        response = await self.privatePostInfo(params)
+        data = self.safe_value(response, 'data', {})
+        balances = self.safe_value(data, 'balances', {})
+        available = self.safe_value(balances, 'available', {})
+        blocked = self.safe_value(balances, 'blocked', {})
+        result = {'info': response}
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currencyId = self.currencyId(code)
+            free = self.safe_float(available, currencyId)
+            if free is not None:
+                account = self.account()
+                account['free'] = self.safe_float(available, currencyId)
+                account['used'] = self.safe_float(blocked, currencyId)
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbook = await self.publicGetJsonMarketOrderbook(self.extend({
+        await self.load_markets()
+        request = {
             'market': self.market_id(symbol),
-        }, params))
+        }
+        orderbook = await self.publicGetJsonMarketOrderbook(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
     async def fetch_ticker(self, symbol, params={}):
-        ticker = await self.publicGetJsonMarketTicker(self.extend({
+        await self.load_markets()
+        request = {
             'market': self.market_id(symbol),
-        }, params))
+        }
+        ticker = await self.publicGetJsonMarketTicker(self.extend(request, params))
         timestamp = self.milliseconds()
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
@@ -239,25 +253,42 @@ class bitmarket (Exchange):
 
     def parse_trade(self, trade, market=None):
         side = 'buy' if (trade['type'] == 'bid') else 'sell'
-        timestamp = trade['date'] * 1000
+        timestamp = self.safe_integer(trade, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
+        id = self.safe_string(trade, 'tid')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
-            'id': str(trade['tid']),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetJsonMarketTrades(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        response = await self.publicGetJsonMarketTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='90m', since=None, limit=None):
@@ -274,18 +305,21 @@ class bitmarket (Exchange):
         await self.load_markets()
         method = 'publicGetGraphsMarket' + self.timeframes[timeframe]
         market = self.market(symbol)
-        response = await getattr(self, method)(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        response = await getattr(self, method)(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        response = await self.privatePostTrade(self.extend({
+        await self.load_markets()
+        request = {
             'market': self.market_id(symbol),
             'type': side,
             'amount': amount,
             'rate': price,
-        }, params))
+        }
+        response = await self.privatePostTrade(self.extend(request, params))
         result = {
             'info': response,
         }
@@ -354,3 +388,23 @@ class bitmarket (Exchange):
                 'API-Hash': self.hmac(self.encode(body), self.encode(self.secret), hashlib.sha512),
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if response is None:
+            return  # fallback to default error handler
+        #
+        #     {"error":501,"errorMsg":"Invalid API key","time":1560869976}
+        #
+        code = self.safe_string(response, 'error')
+        message = self.safe_string(response, 'errorMsg')
+        feedback = self.id + ' ' + self.json(response)
+        exact = self.exceptions['exact']
+        if code in exact:
+            raise exact[code](feedback)
+        elif message in exact:
+            raise exact[message](feedback)
+        broad = self.exceptions['broad']
+        broadKey = self.findBroadlyMatchedKey(broad, message)
+        if broadKey is not None:
+            raise broad[broadKey](feedback)
+        # raise ExchangeError(feedback)  # unknown message

@@ -66,62 +66,65 @@ class _1btcxe (Exchange):
 
     async def fetch_markets(self, params={}):
         return [
-            {'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
-            {'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
-            {'id': 'CNY', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY'},
-            {'id': 'RUB', 'symbol': 'BTC/RUB', 'base': 'BTC', 'quote': 'RUB'},
-            {'id': 'CHF', 'symbol': 'BTC/CHF', 'base': 'BTC', 'quote': 'CHF'},
-            {'id': 'JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY'},
-            {'id': 'GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP'},
-            {'id': 'CAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD'},
-            {'id': 'AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD'},
-            {'id': 'AED', 'symbol': 'BTC/AED', 'base': 'BTC', 'quote': 'AED'},
-            {'id': 'BGN', 'symbol': 'BTC/BGN', 'base': 'BTC', 'quote': 'BGN'},
-            {'id': 'CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK'},
-            {'id': 'DKK', 'symbol': 'BTC/DKK', 'base': 'BTC', 'quote': 'DKK'},
-            {'id': 'HKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD'},
-            {'id': 'HRK', 'symbol': 'BTC/HRK', 'base': 'BTC', 'quote': 'HRK'},
-            {'id': 'HUF', 'symbol': 'BTC/HUF', 'base': 'BTC', 'quote': 'HUF'},
-            {'id': 'ILS', 'symbol': 'BTC/ILS', 'base': 'BTC', 'quote': 'ILS'},
-            {'id': 'INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR'},
-            {'id': 'MUR', 'symbol': 'BTC/MUR', 'base': 'BTC', 'quote': 'MUR'},
-            {'id': 'MXN', 'symbol': 'BTC/MXN', 'base': 'BTC', 'quote': 'MXN'},
-            {'id': 'NOK', 'symbol': 'BTC/NOK', 'base': 'BTC', 'quote': 'NOK'},
-            {'id': 'NZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD'},
-            {'id': 'PLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN'},
-            {'id': 'RON', 'symbol': 'BTC/RON', 'base': 'BTC', 'quote': 'RON'},
-            {'id': 'SEK', 'symbol': 'BTC/SEK', 'base': 'BTC', 'quote': 'SEK'},
-            {'id': 'SGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD'},
-            {'id': 'THB', 'symbol': 'BTC/THB', 'base': 'BTC', 'quote': 'THB'},
-            {'id': 'TRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY'},
-            {'id': 'ZAR', 'symbol': 'BTC/ZAR', 'base': 'BTC', 'quote': 'ZAR'},
+            {'id': 'USD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'BTC', 'quoteId': 'USD'},
+            {'id': 'EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR'},
+            {'id': 'CNY', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'baseId': 'BTC', 'quoteId': 'CNY'},
+            {'id': 'RUB', 'symbol': 'BTC/RUB', 'base': 'BTC', 'quote': 'RUB', 'baseId': 'BTC', 'quoteId': 'RUB'},
+            {'id': 'CHF', 'symbol': 'BTC/CHF', 'base': 'BTC', 'quote': 'CHF', 'baseId': 'BTC', 'quoteId': 'CHF'},
+            {'id': 'JPY', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'BTC', 'quoteId': 'JPY'},
+            {'id': 'GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'baseId': 'BTC', 'quoteId': 'GBP'},
+            {'id': 'CAD', 'symbol': 'BTC/CAD', 'base': 'BTC', 'quote': 'CAD', 'baseId': 'BTC', 'quoteId': 'CAD'},
+            {'id': 'AUD', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'BTC', 'quoteId': 'AUD'},
+            {'id': 'AED', 'symbol': 'BTC/AED', 'base': 'BTC', 'quote': 'AED', 'baseId': 'BTC', 'quoteId': 'AED'},
+            {'id': 'BGN', 'symbol': 'BTC/BGN', 'base': 'BTC', 'quote': 'BGN', 'baseId': 'BTC', 'quoteId': 'BGN'},
+            {'id': 'CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK', 'baseId': 'BTC', 'quoteId': 'CZK'},
+            {'id': 'DKK', 'symbol': 'BTC/DKK', 'base': 'BTC', 'quote': 'DKK', 'baseId': 'BTC', 'quoteId': 'DKK'},
+            {'id': 'HKD', 'symbol': 'BTC/HKD', 'base': 'BTC', 'quote': 'HKD', 'baseId': 'BTC', 'quoteId': 'HKD'},
+            {'id': 'HRK', 'symbol': 'BTC/HRK', 'base': 'BTC', 'quote': 'HRK', 'baseId': 'BTC', 'quoteId': 'HRK'},
+            {'id': 'HUF', 'symbol': 'BTC/HUF', 'base': 'BTC', 'quote': 'HUF', 'baseId': 'BTC', 'quoteId': 'HUF'},
+            {'id': 'ILS', 'symbol': 'BTC/ILS', 'base': 'BTC', 'quote': 'ILS', 'baseId': 'BTC', 'quoteId': 'ILS'},
+            {'id': 'INR', 'symbol': 'BTC/INR', 'base': 'BTC', 'quote': 'INR', 'baseId': 'BTC', 'quoteId': 'INR'},
+            {'id': 'MUR', 'symbol': 'BTC/MUR', 'base': 'BTC', 'quote': 'MUR', 'baseId': 'BTC', 'quoteId': 'MUR'},
+            {'id': 'MXN', 'symbol': 'BTC/MXN', 'base': 'BTC', 'quote': 'MXN', 'baseId': 'BTC', 'quoteId': 'MXN'},
+            {'id': 'NOK', 'symbol': 'BTC/NOK', 'base': 'BTC', 'quote': 'NOK', 'baseId': 'BTC', 'quoteId': 'NOK'},
+            {'id': 'NZD', 'symbol': 'BTC/NZD', 'base': 'BTC', 'quote': 'NZD', 'baseId': 'BTC', 'quoteId': 'NZD'},
+            {'id': 'PLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN', 'baseId': 'BTC', 'quoteId': 'PLN'},
+            {'id': 'RON', 'symbol': 'BTC/RON', 'base': 'BTC', 'quote': 'RON', 'baseId': 'BTC', 'quoteId': 'RON'},
+            {'id': 'SEK', 'symbol': 'BTC/SEK', 'base': 'BTC', 'quote': 'SEK', 'baseId': 'BTC', 'quoteId': 'SEK'},
+            {'id': 'SGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD', 'baseId': 'BTC', 'quoteId': 'SGD'},
+            {'id': 'THB', 'symbol': 'BTC/THB', 'base': 'BTC', 'quote': 'THB', 'baseId': 'BTC', 'quoteId': 'THB'},
+            {'id': 'TRY', 'symbol': 'BTC/TRY', 'base': 'BTC', 'quote': 'TRY', 'baseId': 'BTC', 'quoteId': 'TRY'},
+            {'id': 'ZAR', 'symbol': 'BTC/ZAR', 'base': 'BTC', 'quote': 'ZAR', 'baseId': 'BTC', 'quoteId': 'ZAR'},
         ]
 
     async def fetch_balance(self, params={}):
-        response = await self.privatePostBalancesAndInfo()
+        response = await self.privatePostBalancesAndInfo(params)
         balance = response['balances-and-info']
         result = {'info': balance}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currency = self.currency(code)
+            currencyId = currency['id']
             account = self.account()
-            account['free'] = self.safe_float(balance['available'], currency, 0.0)
-            account['used'] = self.safe_float(balance['on_hold'], currency, 0.0)
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            account['free'] = self.safe_float(balance['available'], currencyId)
+            account['used'] = self.safe_float(balance['on_hold'], currencyId)
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
-        response = await self.publicGetOrderBook(self.extend({
+        request = {
             'currency': self.market_id(symbol),
-        }, params))
+        }
+        response = await self.publicGetOrderBook(self.extend(request, params))
         return self.parse_order_book(response['order-book'], None, 'bid', 'ask', 'price', 'order_amount')
 
     async def fetch_ticker(self, symbol, params={}):
-        response = await self.publicGetStats(self.extend({
+        request = {
             'currency': self.market_id(symbol),
-        }, params))
-        ticker = response['stats']
+        }
+        response = await self.publicGetStats(self.extend(request, params))
+        ticker = self.safe_value(response, 'stats', {})
         last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
@@ -152,7 +155,7 @@ class _1btcxe (Exchange):
             None,
             None,
             None,
-            float(ohlcv['price']),
+            self.safe_float(ohlcv, 'price'),
             None,
         ]
 
@@ -165,19 +168,36 @@ class _1btcxe (Exchange):
         ohlcvs = self.to_array(self.omit(response['historical-prices'], 'request_currency'))
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market):
-        timestamp = int(trade['timestamp']) * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
+        id = self.safe_string(trade, 'id')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        type = None
+        side = self.safe_string(trade, 'maker_type')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
         return {
-            'id': trade['id'],
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
-            'type': None,
-            'side': trade['maker_type'],
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'type': type,
+            'side': side,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -192,22 +212,25 @@ class _1btcxe (Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        order = {
+        request = {
             'side': side,
             'type': type,
             'currency': self.market_id(symbol),
             'amount': amount,
         }
         if type == 'limit':
-            order['limit_price'] = price
-        result = await self.privatePostOrdersNew(self.extend(order, params))
+            request['limit_price'] = price
+        result = await self.privatePostOrdersNew(self.extend(request, params))
         return {
             'info': result,
             'id': result,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostOrdersCancel({'id': id})
+        request = {
+            'id': id,
+        }
+        return await self.privatePostOrdersCancel(self.extend(request, params))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

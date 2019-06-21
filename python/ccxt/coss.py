@@ -584,18 +584,19 @@ class coss (Exchange):
             if price is not None:
                 cost = price * amount
         result = {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': None,
-            'takerOrMaker': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
-            'cost': cost,
             'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
         fee = self.parse_trade_fee(self.safe_string(trade, 'fee'))
         if fee is not None:
@@ -685,9 +686,10 @@ class coss (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.tradePostOrderDetails(self.extend({
+        request = {
             'order_id': id,
-        }, params))
+        }
+        response = self.tradePostOrderDetails(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
@@ -720,7 +722,7 @@ class coss (Exchange):
             'OPEN': 'open',
             'CANCELLED': 'canceled',
             'FILLED': 'closed',
-            'PARTIAL_FILL': 'open',
+            'PARTIAL_FILL': 'closed',
             'CANCELLING': 'open',
         }
         return self.safe_string(statuses, status.upper(), status)

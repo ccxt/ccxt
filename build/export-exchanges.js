@@ -168,23 +168,23 @@ function makeTable (jsonArray) {
     return lines.map (line => '|' + line + '|').join ("\n")
 }
 
-let exchangesTable = makeTable (tableData)
-let numExchanges = keys (exchanges).length
-let beginning = "The ccxt library currently supports the following "
-let ending = " cryptocurrency exchange markets and trading APIs:\n\n"
-let totalString = beginning + numExchanges + ending
-let howMany = totalString + exchangesTable + "$1"
-let allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^#]+\\|([\n][\n]|[\n]$|$)", 'm')
-replaceInFile ('README.md', allExchangesRegex, howMany)
-replaceInFile (wikiPath + '/Manual.md', allExchangesRegex, howMany)
-replaceInFile (wikiPath + '/Exchange-Markets.md', allExchangesRegex, howMany)
+const exchangesTable = makeTable (tableData)
+const numExchanges = keys (exchanges).length
+const beginning = "The ccxt library currently supports the following "
+const ending = " cryptocurrency exchange markets and trading APIs:\n\n"
+const totalString = beginning + numExchanges + ending
+const allExchanges = totalString + exchangesTable + "$1"
+const allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
+replaceInFile ('README.md', allExchangesRegex, allExchanges)
+replaceInFile (wikiPath + '/Manual.md', allExchangesRegex, allExchanges)
+replaceInFile (wikiPath + '/Exchange-Markets.md', allExchangesRegex, allExchanges)
 
-let certifiedFieldIndex = tableHeadings.indexOf ('certified')
-let certified = tableData.filter ((x) => x[certifiedFieldIndex] !== '' )
-let allCertifiedRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
-let certifiedTable = makeTable (certified)
-let certifiedTableReplacement = '$1' + certifiedTable + "\n"
-replaceInFile ('README.md', allCertifiedRegex, certifiedTableReplacement)
+const certifiedFieldIndex = tableHeadings.indexOf ('certified')
+const certified = tableData.filter ((x) => x[certifiedFieldIndex] !== '' )
+const certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
+const certifiedExchangesTable = makeTable (certified)
+const certifiedExchanges = '$1' + certifiedExchangesTable + "\n"
+replaceInFile ('README.md', certifiedExchangesRegex, certifiedExchanges)
 
 
 let exchangesByCountries = []

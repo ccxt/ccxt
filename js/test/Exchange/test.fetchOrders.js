@@ -13,6 +13,16 @@ const log       = require ('ololog')
 
 module.exports = async (exchange, symbol) => {
 
+    const skippedExchanges = [
+        'mandala',
+        'rightbtc',
+    ]
+
+    if (skippedExchanges.includes (exchange.id)) {
+        log (exchange.id, 'found in ignored exchanges, skipping fetchMyTrades...')
+        return
+    }
+
     if (exchange.has.fetchOrders) {
 
         // log ('fetching orders...')

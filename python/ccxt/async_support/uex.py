@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -186,7 +179,7 @@ class uex (Exchange):
         }
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetCommonSymbols()
+        response = await self.publicGetCommonSymbols(params)
         #
         #     {code:   "0",
         #        msg:   "suc",
@@ -213,10 +206,8 @@ class uex (Exchange):
             id = market['symbol']
             baseId = market['base_coin']
             quoteId = market['count_coin']
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.common_currency_code(baseId.upper())
+            quote = self.common_currency_code(quoteId.upper())
             symbol = base + '/' + quote
             precision = {
                 'amount': market['amount_precision'],
@@ -276,23 +267,20 @@ class uex (Exchange):
         #                                     locked: "0.00000000",
         #                                       coin: "ren"         }]}}
         #
-        balances = response['data']['coin_list']
-        result = {'info': balances}
+        data = self.safe_value(response, 'data', {})
+        balances = self.safe_value(data, 'coin_list', [])
+        result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['coin']
+            currencyId = self.safe_string(balance, 'coin')
             code = currencyId.upper()
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
             else:
                 code = self.common_currency_code(code)
             account = self.account()
-            free = float(balance['normal'])
-            used = float(balance['locked'])
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
+            account['free'] = self.safe_float(balance, 'normal')
+            account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1123,20 +1111,17 @@ class uex (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            #
-            # {"code":"0","msg":"suc","data":{}}
-            #
-            code = self.safe_string(response, 'code')
-            # message = self.safe_string(response, 'msg')
-            feedback = self.id + ' ' + self.json(response)
-            exceptions = self.exceptions
-            if code != '0':
-                if code in exceptions:
-                    raise exceptions[code](feedback)
-                else:
-                    raise ExchangeError(feedback)
+        #
+        # {"code":"0","msg":"suc","data":{}}
+        #
+        code = self.safe_string(response, 'code')
+        # message = self.safe_string(response, 'msg')
+        feedback = self.id + ' ' + self.json(response)
+        exceptions = self.exceptions
+        if code != '0':
+            if code in exceptions:
+                raise exceptions[code](feedback)
+            else:
+                raise ExchangeError(feedback)
