@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.766'
+const version = '1.18.767'
 
 Exchange.ccxtVersion = version
 
@@ -48580,7 +48580,7 @@ module.exports = class huobipro extends Exchange {
                     'zendesk': 'https://huobiglobal.zendesk.com/hc/en-us/articles',
                 },
                 'www': 'https://www.huobi.pro',
-                'referral': 'https://www.huobi.br.com/en-us/topic/invited/?invite_code=rwrd3',
+                'referral': 'https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3',
                 'doc': 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
                 'fees': 'https://www.huobi.pro/about/fee/',
             },
