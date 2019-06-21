@@ -191,7 +191,7 @@ module.exports = class hollaex extends Exchange {
             'asks': response['asks'],
             'timestamp': timestamp,
             'datetime': datetime,
-            'nonce': Date.now (),
+            'nonce': this.milliseconds (),
         };
         return result;
     }
@@ -221,7 +221,7 @@ module.exports = class hollaex extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             result.push (this.parseTicker (response[keys[i]], this.marketsById[keys[i]]));
         }
-        return result;
+        return this.filterByArray (result, 'symbol');
     }
 
     parseTicker (response, market = undefined) {
@@ -248,6 +248,9 @@ module.exports = class hollaex extends Exchange {
         let open = this.safeFloat (response, 'open');
         let close = this.safeFloat (response, 'close');
         let last = this.safeFloat (response, 'last');
+        if (last === undefined) {
+            last = close;
+        }
         let previousClose = undefined;
         let change = undefined;
         let percentage = undefined;
@@ -334,14 +337,14 @@ module.exports = class hollaex extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let to = this.seconds ();
-        let from = since;
-        if (from === undefined) {
-            from = to - 2592000; // default to a month
+        let fromTime = since;
+        if (fromTime === undefined) {
+            fromTime = to - 2592000; // default to a month
         } else {
-            from /= 1000;
+            fromTime /= 1000;
         }
         let request = {
-            'from': from,
+            'from': fromTime,
             'to': to,
             'symbol': market['id'],
             'resolution': this.timeframes[timeframe],
