@@ -392,13 +392,15 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchTrades (symbol, limit = 100, params = {}) {
+        // argument list is ↑↑↑ not unified here 
         await this.loadMarkets ();
         const market = this.market (symbol);
         const resp = {
             'symbol': market['symbol'],
         };
         const response = await this.publicGetMarketDataTrades (this.extend (resp, params));
-        return this.parseTrades (response);
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades); // ← this should be parseTrades (trades, market, since, limit)
     }
 
     async fetchMyTrades (symbol = undefined, params = {}, limit = 10) {
