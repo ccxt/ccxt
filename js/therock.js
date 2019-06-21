@@ -655,6 +655,24 @@ module.exports = class therock extends Exchange {
         //         }
         //     }
         //
+        //     {
+        //         "id": 12564223,
+        //         "date": "2017-08-07T08:13:50.023Z",
+        //         "note": "GB7IDL401573388",
+        //         "type": "withdraw",
+        //         "price": 4345.93,
+        //         "fund_id": null,
+        //         "currency": "EUR",
+        //         "order_id": null,
+        //         "trade_id": null,
+        //         "transfer_detail": {
+        //             "id": "EXECUTEDBUTUNCHECKED",
+        //             "method": "wire_transfer",
+        //             "recipient": "GB7IDL401573388",
+        //             "confirmations": 0
+        //         }
+        //     }
+        //
         //     // crypto
         //
         //     {
@@ -720,8 +738,15 @@ module.exports = class therock extends Exchange {
         const id = this.safeString (transaction, 'id');
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         const detail = this.safeValue (transaction, 'transfer_detail', {});
-        const txid = this.safeString (detail, 'id');
-        const address = this.safeString (detail, 'recipient');
+        const method = this.safeString (detail, 'method');
+        let txid = undefined;
+        let address = undefined;
+        if (method !== undefined) {
+            if (method !== 'wire_transfer') {
+                txid = this.safeString (detail, 'id');
+                address = this.safeString (detail, 'recipient');
+            }
+        }
         let currencyId = this.safeString (transaction, 'currency');
         let code = undefined;
         if (currencyId !== undefined) {
