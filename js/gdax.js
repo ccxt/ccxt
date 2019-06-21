@@ -686,7 +686,7 @@ module.exports = class gdax extends Exchange {
         }
         const processed = this.safeValue (transaction, 'processed_at');
         const completed = this.safeValue (transaction, 'completed_at');
-        if (processed && completed) {
+        if (completed) {
             return 'ok';
         } else if (processed && !completed) {
             return 'failed';
