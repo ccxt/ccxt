@@ -398,21 +398,7 @@ module.exports = class latoken extends Exchange {
             'symbol': market['symbol'],
         };
         const response = await this.publicGetMarketDataTrades (this.extend (resp, params));
-        const result = [];
-        for (let i = 0; i < response.trades.length; i++) {
-            const resp = response.trades[i];
-            result.push ({
-                'pairId': response['pairId'],
-                'symbol': response['symbol'],
-                'tradeCount': response['tradeCount'],
-                'side': resp['side'],
-                'price': resp['price'],
-                'amount': resp['amount'],
-                'timestamp': resp['timestamp'],
-            });
-        }
-        const trades = this.parseTrades (result);
-        return trades;
+        return this.parseTrades (response);
     }
 
     async fetchMyTrades (symbol = undefined, params = {}, limit = 10) {
