@@ -635,7 +635,7 @@ class gdax (Exchange):
             return 'canceled'
         processed = self.safe_value(transaction, 'processed_at')
         completed = self.safe_value(transaction, 'completed_at')
-        if processed and completed:
+        if completed:
             return 'ok'
         elif processed and not completed:
             return 'failed'

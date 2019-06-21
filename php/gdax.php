@@ -687,7 +687,7 @@ class gdax extends Exchange {
         }
         $processed = $this->safe_value($transaction, 'processed_at');
         $completed = $this->safe_value($transaction, 'completed_at');
-        if ($processed && $completed) {
+        if ($completed) {
             return 'ok';
         } else if ($processed && !$completed) {
             return 'failed';

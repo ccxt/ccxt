@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.769'
+const version = '1.18.770'
 
 Exchange.ccxtVersion = version
 
@@ -45245,7 +45245,7 @@ module.exports = class gdax extends Exchange {
         }
         const processed = this.safeValue (transaction, 'processed_at');
         const completed = this.safeValue (transaction, 'completed_at');
-        if (processed && completed) {
+        if (completed) {
             return 'ok';
         } else if (processed && !completed) {
             return 'failed';
