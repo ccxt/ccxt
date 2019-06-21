@@ -631,6 +631,24 @@ class therock (Exchange):
         #         }
         #     }
         #
+        #     {
+        #         "id": 12564223,
+        #         "date": "2017-08-07T08:13:50.023Z",
+        #         "note": "GB7IDL401573388",
+        #         "type": "withdraw",
+        #         "price": 4345.93,
+        #         "fund_id": null,
+        #         "currency": "EUR",
+        #         "order_id": null,
+        #         "trade_id": null,
+        #         "transfer_detail": {
+        #             "id": "EXECUTEDBUTUNCHECKED",
+        #             "method": "wire_transfer",
+        #             "recipient": "GB7IDL401573388",
+        #             "confirmations": 0
+        #         }
+        #     }
+        #
         #     # crypto
         #
         #     {
@@ -696,8 +714,13 @@ class therock (Exchange):
         id = self.safe_string(transaction, 'id')
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         detail = self.safe_value(transaction, 'transfer_detail', {})
-        txid = self.safe_string(detail, 'id')
-        address = self.safe_string(detail, 'recipient')
+        method = self.safe_string(detail, 'method')
+        txid = None
+        address = None
+        if method is not None:
+            if method != 'wire_transfer':
+                txid = self.safe_string(detail, 'id')
+                address = self.safe_string(detail, 'recipient')
         currencyId = self.safe_string(transaction, 'currency')
         code = None
         if currencyId is not None:

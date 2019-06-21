@@ -649,9 +649,27 @@ class therock extends Exchange {
         //         "order_id" => null,
         //         "trade_id" => null,
         //         "transfer_detail" => {
-        //             "method" => "wire_transfer",
+        //             "$method" => "wire_transfer",
         //             "$id" => "F112DD3",
         //             "recipient" => "IT123456789012",
+        //             "confirmations" => 0
+        //         }
+        //     }
+        //
+        //     {
+        //         "$id" => 12564223,
+        //         "date" => "2017-08-07T08:13:50.023Z",
+        //         "note" => "GB7IDL401573388",
+        //         "$type" => "withdraw",
+        //         "price" => 4345.93,
+        //         "fund_id" => null,
+        //         "$currency" => "EUR",
+        //         "order_id" => null,
+        //         "trade_id" => null,
+        //         "transfer_detail" => {
+        //             "$id" => "EXECUTEDBUTUNCHECKED",
+        //             "$method" => "wire_transfer",
+        //             "recipient" => "GB7IDL401573388",
         //             "confirmations" => 0
         //         }
         //     }
@@ -669,7 +687,7 @@ class therock extends Exchange {
         //         trade_id => null,
         //         note => '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
         //         transfer_detail => {
-        //             method => 'bitcoin_cash',
+        //             $method => 'bitcoin_cash',
         //             $id => '8261949194985b01985006724dca5d6059989e096fa95608271d00dd902327fa',
         //             recipient => '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
         //             confirmations => 0
@@ -692,7 +710,7 @@ class therock extends Exchange {
         //         trade_id => null,
         //         note => 'Mistral deposit',
         //         transfer_detail => {
-        //             method => 'wire_transfer',
+        //             $method => 'wire_transfer',
         //             $id => '972JQ49337DX769T',
         //             recipient => null,
         //             confirmations => 0
@@ -711,7 +729,7 @@ class therock extends Exchange {
         //         "order_id" => null,
         //         "trade_id" => null,
         //         "transfer_detail" => {
-        //             "method" => "bitcoin",
+        //             "$method" => "bitcoin",
         //             "$id" => "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
         //             "recipient" => "mzb3NgX9Dr6jgGAu31L6jsPGB2zkaFxxyf",
         //             "confirmations" => 3
@@ -721,8 +739,15 @@ class therock extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $type = $this->parse_transaction_type ($this->safe_string($transaction, 'type'));
         $detail = $this->safe_value($transaction, 'transfer_detail', array());
-        $txid = $this->safe_string($detail, 'id');
-        $address = $this->safe_string($detail, 'recipient');
+        $method = $this->safe_string($detail, 'method');
+        $txid = null;
+        $address = null;
+        if ($method !== null) {
+            if ($method !== 'wire_transfer') {
+                $txid = $this->safe_string($detail, 'id');
+                $address = $this->safe_string($detail, 'recipient');
+            }
+        }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = null;
         if ($currencyId !== null) {
