@@ -197,8 +197,10 @@ class southxchange (Exchange):
             'type': None,
             'side': side,
             'price': price,
+            'takerOrMaker': None,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

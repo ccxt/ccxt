@@ -214,8 +214,10 @@ class southxchange extends Exchange {
             'type' => null,
             'side' => $side,
             'price' => $price,
+            'takerOrMaker' => null,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 
