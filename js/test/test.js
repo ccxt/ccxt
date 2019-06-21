@@ -87,8 +87,8 @@ let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 // eslint-disable-next-line import/no-dynamic-require
 let settings = require ('../../' + keysFile)[exchangeId]
 
-if (settings) {
-    settings.options = ccxt.deepExtend (exchange.options, settings.options)
+if (settings.options) {
+    settings.options = ccxt.deepExtend (exchange.options || {}, settings.options)
 }
 
 Object.assign (exchange, settings)
