@@ -46951,17 +46951,15 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits requires a code argument');
-        }
         await this.loadMarkets ();
-        let currency = this.currency (code)['id'];
-        if (currency === 'eur') {
-            currency = 'fiat';
+        let request = {};
+        if (code !== undefined) {
+            let currency = this.currency (code)['id'];
+            if (currency === 'eur') {
+                currency = 'fiat';
+            }
+            request['currency'] = currency;
         }
-        let request = {
-            'currency': currency,
-        };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -46970,17 +46968,15 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals requires a code argument');
-        }
         await this.loadMarkets ();
-        let currency = this.currency (code)['id'];
-        if (currency === 'eur') {
-            currency = 'fiat';
+        let request = {};
+        if (code !== undefined) {
+            let currency = this.currency (code)['id'];
+            if (currency === 'eur') {
+                currency = 'fiat';
+            }
+            request['currency'] = currency;
         }
-        let request = {
-            'currency': currency,
-        };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -47006,7 +47002,17 @@ module.exports = class hollaex extends Exchange {
             currencyId = 'eur';
         }
         currency = this.currencies_by_id[currencyId]['code'];
-        let status = 'ok';
+        let message = 'pending';
+        let status = transaction['status'];
+        let dismissed = transaction['dismissed'];
+        let rejected = transaction['rejected'];
+        if (status) {
+            message = 'ok';
+        } else if (dismissed) {
+            message = 'canceled';
+        } else if (rejected) {
+            message = 'failed';
+        }
         let updated = undefined;
         let comment = this.safeString (transaction, 'description');
         let fee = {
@@ -47029,7 +47035,7 @@ module.exports = class hollaex extends Exchange {
             'type': type,
             'amount': amount,
             'currency': currency,
-            'status': status,
+            'status': message,
             'updated': updated,
             'comment': comment,
             'fee': fee,
