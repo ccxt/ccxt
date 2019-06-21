@@ -213,8 +213,10 @@ module.exports = class southxchange extends Exchange {
             'type': undefined,
             'side': side,
             'price': price,
+            'takerOrMaker': undefined,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 
