@@ -981,7 +981,7 @@ class Exchange(object):
             signature = Exchange.rsa(token, secret, alg)
         else:
             algorithm = algos[alg]
-            signature = Exchange.hmac(Exchange.encode (token), secret, algorithm, 'binary')
+            signature = Exchange.hmac(Exchange.encode(token), secret, algorithm, 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
 
     @staticmethod
