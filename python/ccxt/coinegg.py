@@ -325,7 +325,9 @@ class coinegg (Exchange):
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
-        symbol = market['symbol']
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount_original')
@@ -340,15 +342,18 @@ class coinegg (Exchange):
         else:
             status = 'open' if remaining else 'closed'
         info = self.safe_value(order, 'info', order)
+        type = 'limit'
+        side = self.safe_string(order, 'type')
+        id = self.safe_string(order, 'id')
         return {
-            'id': self.safe_string(order, 'id'),
+            'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': None,
             'amount': amount,
