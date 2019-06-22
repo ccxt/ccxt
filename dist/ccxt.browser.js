@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.784'
+const version = '1.18.785'
 
 Exchange.ccxtVersion = version
 
@@ -6032,7 +6032,7 @@ module.exports = class bibox extends Exchange {
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
-                'referral': 'https://www.bibox.com/signPage?id=11468678&lang=en',
+                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
             },
             'api': {
                 'public': {
