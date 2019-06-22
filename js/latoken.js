@@ -392,7 +392,7 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchTrades (symbol, limit = 100, params = {}) {
-        // argument list is ↑↑↑ not unified here 
+        // argument list is ↑↑↑ not unified here
         await this.loadMarkets ();
         const market = this.market (symbol);
         const resp = {
