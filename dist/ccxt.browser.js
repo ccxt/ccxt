@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.777'
+const version = '1.18.778'
 
 Exchange.ccxtVersion = version
 
@@ -24365,7 +24365,7 @@ module.exports = class btcmarkets extends Exchange {
                 'apikey': this.apiKey,
                 'timestamp': nonce,
             };
-            if (method === 'post') {
+            if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
                 auth = uri + "\n" + nonce + "\n"; // eslint-disable-line quotes
                 body = this.json (params);

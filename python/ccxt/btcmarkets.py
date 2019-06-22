@@ -613,7 +613,7 @@ class btcmarkets (Exchange):
                 'apikey': self.apiKey,
                 'timestamp': nonce,
             }
-            if method == 'post':
+            if method == 'POST':
                 headers['Content-Type'] = 'application/json'
                 auth = uri + "\n" + nonce + "\n"  # eslint-disable-line quotes
                 body = self.json(params)
