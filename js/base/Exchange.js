@@ -1345,7 +1345,7 @@ module.exports = class Exchange {
 
     checkRequiredDependencies () {
         if (!Exchange.hasWeb3 ()) {
-            throw new ExchangeError ("The following npm modules are required:\nnpm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save");
+            throw new ExchangeError ("Required dependencies missing: \nnpm i web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save");
         }
     }
 
