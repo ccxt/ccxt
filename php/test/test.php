@@ -134,7 +134,7 @@ function try_all_proxies($exchange, $proxies) {
     $max_retries = count($proxies);
 
     // a special case for ccex
-    if ($exchange->id == 'ccex')
+    if ($exchange->id == 'ccex') {
         $currentProxy = 1;
     }
 
