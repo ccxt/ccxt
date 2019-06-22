@@ -121,7 +121,7 @@ module.exports = class mixcoins extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeString (trade, 'date');
+        let timestamp = this.safeInteger (trade, 'date');
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
