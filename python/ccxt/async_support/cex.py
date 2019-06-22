@@ -608,6 +608,10 @@ class cex (Exchange):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
+        # sell orders can have a negative amount
+        # https://github.com/ccxt/ccxt/issues/5338
+        if amount is not None:
+            amount = abs(amount)
         remaining = self.safe_float_2(order, 'pending', 'remains')
         filled = amount - remaining
         fee = None

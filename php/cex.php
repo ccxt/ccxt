@@ -636,6 +636,11 @@ class cex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
+        // sell orders can have a negative $amount
+        // https://github.com/ccxt/ccxt/issues/5338
+        if ($amount !== null) {
+            $amount = abs ($amount);
+        }
         $remaining = $this->safe_float_2($order, 'pending', 'remains');
         $filled = $amount - $remaining;
         $fee = null;
