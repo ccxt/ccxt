@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.775'
+__version__ = '1.18.776'
 
 # ----------------------------------------------------------------------------
 
@@ -189,7 +189,6 @@ from ccxt.theocean import theocean                          # noqa: F401
 from ccxt.therock import therock                            # noqa: F401
 from ccxt.tidebit import tidebit                            # noqa: F401
 from ccxt.tidex import tidex                                # noqa: F401
-from ccxt.uex import uex                                    # noqa: F401
 from ccxt.upbit import upbit                                # noqa: F401
 from ccxt.urdubit import urdubit                            # noqa: F401
 from ccxt.vaultoro import vaultoro                          # noqa: F401
@@ -325,7 +324,6 @@ exchanges = [
     'therock',
     'tidebit',
     'tidex',
-    'uex',
     'upbit',
     'urdubit',
     'vaultoro',
