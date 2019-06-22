@@ -240,6 +240,11 @@ module.exports = class itbit extends Exchange {
                 };
             }
         }
+        if (!('fee' in result)) {
+            if (!('fees' in result)) {
+                result['fee'] = undefined;
+            }
+        }
         return result;
     }
 
