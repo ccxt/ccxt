@@ -239,7 +239,7 @@ module.exports = class btctradeua extends Exchange {
         return timestamp - 10800000;
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         const timestamp = this.parseCyrillicDatetime (this.safeString (trade, 'pub_date'));
         const id = this.safeString (trade, 'id');
         const type = 'limit';
