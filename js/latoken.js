@@ -16,7 +16,6 @@ module.exports = class latoken extends Exchange {
             'version': 'v1',
             'rateLimit': 1500,
             'certified': false,
-            // new metainfo interface
             'has': {
                 'CORS': false,
                 'publicAPI': true,
