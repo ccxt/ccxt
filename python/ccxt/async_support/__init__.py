@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.779'
+__version__ = '1.18.780'
 
 # -----------------------------------------------------------------------------
 
@@ -128,7 +128,6 @@ from ccxt.async_support.fybsg import fybsg                                # noqa
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gdax import gdax                                  # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
-from ccxt.async_support.getbtc import getbtc                              # noqa: F401
 from ccxt.async_support.hadax import hadax                                # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                              # noqa: F401
 from ccxt.async_support.hitbtc2 import hitbtc2                            # noqa: F401
@@ -263,7 +262,6 @@ exchanges = [
     'gateio',
     'gdax',
     'gemini',
-    'getbtc',
     'hadax',
     'hitbtc',
     'hitbtc2',
