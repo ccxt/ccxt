@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.774'
+const version = '1.18.775'
 
 Exchange.ccxtVersion = version
 
@@ -3720,7 +3720,7 @@ module.exports = class Exchange {
 
     checkRequiredDependencies () {
         if (!Exchange.hasWeb3 ()) {
-            throw new ExchangeError ("The following npm modules are required:\nnpm install web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save");
+            throw new ExchangeError ("Required dependencies missing: \nnpm i web3 ethereumjs-util ethereumjs-abi bignumber.js --no-save");
         }
     }
 
@@ -82403,8 +82403,8 @@ module.exports = class theocean extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const baseToken = this.safeString (market, 'baseToken');
-            const quoteToken = this.safeString (market, 'quoteToken');
+            const baseToken = this.safeValue (market, 'baseToken', {});
+            const quoteToken = this.safeValue (market, 'quoteToken', {});
             const baseId = this.safeString (baseToken, 'address');
             const quoteId = this.safeString (quoteToken, 'address');
             const base = this.commonCurrencyCode (this.safeString (baseToken, 'symbol'));
@@ -82724,7 +82724,10 @@ module.exports = class theocean extends Exchange {
         //       blockNumber: "8094822",
         //         timestamp: "1532261686"                                                          }
         //
-        const timestamp = this.safeInteger (trade, 'lastUpdated');
+        let timestamp = this.safeInteger (trade, 'lastUpdated');
+        if (timestamp !== undefined) {
+            timestamp /= 1000;
+        }
         const price = this.safeFloat (trade, 'price');
         const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
