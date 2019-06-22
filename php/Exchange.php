@@ -163,7 +163,6 @@ class Exchange {
         'gateio',
         'gdax',
         'gemini',
-        'getbtc',
         'hadax',
         'hitbtc',
         'hitbtc2',
