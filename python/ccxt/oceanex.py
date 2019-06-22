@@ -440,35 +440,47 @@ class oceanex (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privateGetMembersMe(params)
-        data = self.safe_value(response, 'data')
-        balances = self.safe_value(data, 'accounts')
-        result = {'info': response}
+        balances = self.safe_value(self.safe_value(response, 'data'), 'accounts')
+        result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_value(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            uppercaseId = currencyId.upper()
+            code = self.common_currency_code(uppercaseId)
             account = self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'locked')
+            free = self.safe_float(balance, 'balance')
+            used = self.safe_float(balance, 'locked')
+            total = self.sum(free, used)
+            account['free'] = free
+            account['used'] = used
+            account['total'] = total
             result[code] = account
         return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise InvalidOrder(self.id + ' createOrder supports `limit` orders only.')
-        self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'market': market['id'],
-            'side': side,
-            'ord_type': type,
-            'volume': self.amount_to_precision(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
-        }
+            self.load_markets()
+            market = self.market(symbol)
+            if type == 'limit': 
+                request = {
+                    'market': market['id'],
+                    'side': side,
+                    'ord_type': type,
+                    'volume': self.amount_to_precision(symbol, amount),
+                    'price': self.price_to_precision(symbol, price),
+                }
+            else: 
+                if type == 'market': 
+                    self.load_markets()
+                    market = self.market(symbol)
+                    request = {
+                        'market': market['id'],
+                        'side': side,
+                        'ord_type': type,
+                        'volume': self.amount_to_precision(symbol, amount),
+                    }
+                else:
+                    raise InvalidOrder(self.id + ' createOrder supports `limit and market` orders only.')
+
         response = self.privatePostOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
