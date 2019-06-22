@@ -48,7 +48,7 @@ class oceanex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchBalance': True,
-                'createMarketOrder': False,
+                'createMarketOrder': True,
                 'createOrder': True,
                 'cancelOrder': True,
                 'cancelAllOrders': True,
