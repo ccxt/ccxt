@@ -199,6 +199,7 @@ class itbit (Exchange):
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -227,6 +228,9 @@ class itbit (Exchange):
                     'cost': feeCost,
                     'currency': feeCurrency,
                 }
+        if not('fee' in list(result.keys())):
+            if not('fees' in list(result.keys())):
+                result['fee'] = None
         return result
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
@@ -503,8 +507,6 @@ class itbit (Exchange):
             url += '?' + self.urlencode(query)
         if method == 'POST' and query:
             body = self.json(query)
-        else:
-            body = ''
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())

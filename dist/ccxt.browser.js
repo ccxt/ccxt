@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.778'
+const version = '1.18.779'
 
 Exchange.ccxtVersion = version
 
@@ -51334,6 +51334,7 @@ module.exports = class itbit extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -51363,6 +51364,11 @@ module.exports = class itbit extends Exchange {
                     'cost': feeCost,
                     'currency': feeCurrency,
                 };
+            }
+        }
+        if (!('fee' in result)) {
+            if (!('fees' in result)) {
+                result['fee'] = undefined;
             }
         }
         return result;
@@ -51673,8 +51679,6 @@ module.exports = class itbit extends Exchange {
         }
         if (method === 'POST' && Object.keys (query).length) {
             body = this.json (query);
-        } else {
-            body = '';
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -87338,7 +87342,7 @@ module.exports = class upbit extends Exchange {
             if (Object.keys (query).length) {
                 request['query'] = this.urlencode (query);
             }
-            const jwt = this.jwt (request, this.secret);
+            const jwt = this.jwt (request, this.encode (this.secret));
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             };

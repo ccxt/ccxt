@@ -209,6 +209,7 @@ class itbit extends Exchange {
             'order' => $orderId,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -238,6 +239,11 @@ class itbit extends Exchange {
                     'cost' => $feeCost,
                     'currency' => $feeCurrency,
                 );
+            }
+        }
+        if (!(is_array($result) && array_key_exists('fee', $result))) {
+            if (!(is_array($result) && array_key_exists('fees', $result))) {
+                $result['fee'] = null;
             }
         }
         return $result;
@@ -548,8 +554,6 @@ class itbit extends Exchange {
         }
         if ($method === 'POST' && $query) {
             $body = $this->json ($query);
-        } else {
-            $body = '';
         }
         if ($api === 'private') {
             $this->check_required_credentials();
