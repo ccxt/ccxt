@@ -41,7 +41,7 @@ class oceanex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchBalance' => true,
-                'createMarketOrder' => false,
+                'createMarketOrder' => true,
                 'createOrder' => true,
                 'cancelOrder' => true,
                 'cancelAllOrders' => true,
@@ -485,9 +485,6 @@ class oceanex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type !== 'limit') {
-            throw new InvalidOrder($this->id . ' createOrder supports `limit` orders only.');
-        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -495,8 +492,10 @@ class oceanex extends Exchange {
             'side' => $side,
             'ord_type' => $type,
             'volume' => $this->amount_to_precision($symbol, $amount),
-            'price' => $this->price_to_precision($symbol, $price),
         );
+        if ($type === 'limit') {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = $this->privatePostOrders (array_merge ($request, $params));
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data, $market);

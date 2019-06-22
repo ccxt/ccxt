@@ -48,7 +48,7 @@ class oceanex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchBalance': True,
-                'createMarketOrder': False,
+                'createMarketOrder': True,
                 'createOrder': True,
                 'cancelOrder': True,
                 'cancelAllOrders': True,
@@ -458,8 +458,6 @@ class oceanex (Exchange):
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise InvalidOrder(self.id + ' createOrder supports `limit` orders only.')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -467,8 +465,9 @@ class oceanex (Exchange):
             'side': side,
             'ord_type': type,
             'volume': self.amount_to_precision(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
         }
+        if type == 'limit':
+            request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)

@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.782'
+const version = '1.18.783'
 
 Exchange.ccxtVersion = version
 
@@ -62950,7 +62950,7 @@ module.exports = class oceanex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchBalance': true,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
@@ -63394,9 +63394,6 @@ module.exports = class oceanex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new InvalidOrder (this.id + ' createOrder supports `limit` orders only.');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -63404,8 +63401,10 @@ module.exports = class oceanex extends Exchange {
             'side': side,
             'ord_type': type,
             'volume': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
         };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.privatePostOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
