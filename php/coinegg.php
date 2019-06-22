@@ -335,7 +335,10 @@ class coinegg extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $symbol = $market['symbol'];
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         $timestamp = $this->parse8601 ($this->safe_string($order, 'datetime'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount_original');
@@ -353,15 +356,18 @@ class coinegg extends Exchange {
             $status = $remaining ? 'open' : 'closed';
         }
         $info = $this->safe_value($order, 'info', $order);
+        $type = 'limit';
+        $side = $this->safe_string($order, 'type');
+        $id = $this->safe_string($order, 'id');
         return array (
-            'id' => $this->safe_string($order, 'id'),
+            'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => 'limit',
-            'side' => $order['type'],
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'cost' => null,
             'amount' => $amount,
