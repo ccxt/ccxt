@@ -100,7 +100,6 @@ class Exchange {
         'bitflyer',
         'bitforex',
         'bithumb',
-        'bitibu',
         'bitkk',
         'bitlish',
         'bitmarket',
