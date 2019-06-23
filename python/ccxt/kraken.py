@@ -23,6 +23,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -258,7 +259,7 @@ class kraken (Exchange):
         parts = html.split('<td class="wysiwyg-text-align-right">')
         numParts = len(parts)
         if numParts < 3:
-            raise ExchangeError(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
+            raise NotSupported(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
         result = {}
         # skip the part before the header and the header itself
         for i in range(2, len(parts)):
