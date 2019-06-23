@@ -153,19 +153,20 @@ module.exports = class gemini extends Exchange {
         const response = await this.webGetRestApi (params);
         const sections = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const numSections = sections.length;
+        const error = this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.';
         if (numSections !== 2) {
-            throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+            throw new NotSupported (error);
         }
         const tables = sections[1].split ('tbody>');
         const numTables = tables.length;
         if (numTables < 2) {
-            throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+            throw new NotSupported (error);
         }
         tables[1] = tables[1].replace ("\n", ''); // eslint-disable-line quotes
         const rows = tables[1].split ("<tr>\n"); // eslint-disable-line quotes
         const numRows = rows.length;
         if (numRows < 2) {
-            throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+            throw new NotSupported (error);
         }
         const result = [];
         // skip the first element (empty string)
@@ -174,7 +175,7 @@ module.exports = class gemini extends Exchange {
             const cells = row.split ("</td>\n"); // eslint-disable-line quotes
             const numCells = cells.length;
             if (numCells < 7) {
-                throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+                throw new NotSupported (error);
             }
             //
             //     [
