@@ -667,7 +667,7 @@ class bigone extends Exchange {
                 'sub' => $this->apiKey,
                 'nonce' => $nonce,
             );
-            $jwt = $this->jwt ($request, $this->secret);
+            $jwt = $this->jwt ($request, $this->encode ($this->secret));
             $headers = array (
                 'Authorization' => 'Bearer ' . $jwt,
             );

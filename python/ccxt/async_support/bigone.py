@@ -627,7 +627,7 @@ class bigone (Exchange):
                 'sub': self.apiKey,
                 'nonce': nonce,
             }
-            jwt = self.jwt(request, self.secret)
+            jwt = self.jwt(request, self.encode(self.secret))
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             }
