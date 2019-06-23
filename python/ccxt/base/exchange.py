@@ -992,7 +992,7 @@ class Exchange(object):
             "RS512": hashes.SHA512(),
         }
         algorithm = algorithms[alg]
-        priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
+        priv_key = load_pem_private_key(secret, None, backends.default_backend())
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
