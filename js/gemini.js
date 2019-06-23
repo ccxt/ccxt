@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, DDoSProtection, InsufficientFunds, AuthenticationError, ExchangeNotAvailable, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -34,8 +34,11 @@ module.exports = class gemini extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
-                'api': 'https://api.gemini.com',
-                'www': 'https://gemini.com',
+                'api': {
+                    'public': 'https://api.gemini.com',
+                    'private': 'https://api.gemini.com',
+                    'web': 'https://docs.gemini.com',
+                },
                 'doc': [
                     'https://docs.gemini.com/rest-api',
                     'https://docs.sandbox.gemini.com',
@@ -47,6 +50,11 @@ module.exports = class gemini extends Exchange {
                 ],
             },
             'api': {
+                'web': {
+                    'get': [
+                        'rest-api',
+                    ],
+                },
                 'public': {
                     'get': [
                         'symbols',
@@ -82,10 +90,127 @@ module.exports = class gemini extends Exchange {
                     'maker': 0.001,
                 },
             },
+            'httpExceptions': {
+                '400': BadRequest, // Auction not open or paused, ineligible timing, market not open, or the request was malformed; in the case of a private API request, missing or malformed Gemini private API authentication headers
+                '403': PermissionDenied, // The API key is missing the role necessary to access this private API endpoint
+                '404': OrderNotFound, // Unknown API entry point or Order not found
+                '406': InsufficientFunds, // Insufficient Funds
+                '429': DDoSProtection, // Rate Limiting was applied
+                '500': ExchangeError, // The server encountered an error
+                '502': ExchangeError, // Technical issues are preventing the request from being satisfied
+                '503': ExchangeNotAvailable, // The exchange is down for maintenance
+            },
+            'exceptions': {
+                'exact': {
+                    'AuctionNotOpen': BadRequest, // Failed to place an auction-only order because there is no current auction open for this symbol
+                    'ClientOrderIdTooLong': BadRequest, // The Client Order ID must be under 100 characters
+                    'ClientOrderIdMustBeString': BadRequest, // The Client Order ID must be a string
+                    'ConflictingOptions': BadRequest, // New orders using a combination of order execution options are not supported
+                    'EndpointMismatch': BadRequest, // The request was submitted to an endpoint different than the one in the payload
+                    'EndpointNotFound': BadRequest, // No endpoint was specified
+                    'IneligibleTiming': BadRequest, // Failed to place an auction order for the current auction on this symbol because the timing is not eligible: new orders may only be placed before the auction begins.
+                    'InsufficientFunds': InsufficientFunds, // The order was rejected because of insufficient funds
+                    'InvalidJson': BadRequest, // The JSON provided is invalid
+                    'InvalidNonce': InvalidNonce, // The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidOrderType': InvalidOrder, // An unknown order type was provided
+                    'InvalidPrice': InvalidOrder, // For new orders, the price was invalid
+                    'InvalidQuantity': InvalidOrder, // A negative or otherwise invalid quantity was specified
+                    'InvalidSide': InvalidOrder, // For new orders, and invalid side was specified
+                    'InvalidSignature': AuthenticationError, // The signature did not match the expected signature
+                    'InvalidSymbol': BadRequest, // An invalid symbol was specified
+                    'InvalidTimestampInPayload': BadRequest, // The JSON payload contained a timestamp parameter with an unsupported value.
+                    'Maintenance': ExchangeNotAvailable, // The system is down for maintenance
+                    'MarketNotOpen': InvalidOrder, // The order was rejected because the market is not accepting new orders
+                    'MissingApikeyHeader': AuthenticationError, // The X-GEMINI-APIKEY header was missing
+                    'MissingOrderField': InvalidOrder, // A required order_id field was not specified
+                    'MissingRole': AuthenticationError, // The API key used to access this endpoint does not have the required role assigned to it
+                    'MissingPayloadHeader': AuthenticationError, // The X-GEMINI-PAYLOAD header was missing
+                    'MissingSignatureHeader': AuthenticationError, // The X-GEMINI-SIGNATURE header was missing
+                    'NoSSL': AuthenticationError, // You must use HTTPS to access the API
+                    'OptionsMustBeArray': BadRequest, // The options parameter must be an array.
+                    'OrderNotFound': OrderNotFound, // The order specified was not found
+                    'RateLimit': DDoSProtection, // Requests were made too frequently. See Rate Limits below.
+                    'System': ExchangeError, // We are experiencing technical issues
+                    'UnsupportedOption': BadRequest, // This order execution option is not supported.
+                },
+                'broad': {
+                },
+            },
         });
     }
 
+    async fetchTradingLimits (symbols = undefined, params = {}) {
+        const response = await this.webGetRestApi (params);
+        const parts = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
+        console.log (parts[1]);
+        process.exit ();
+        // this method should not be called directly, use loadTradingLimits () instead
+        // by default it will try load withdrawal fees of all currencies (with separate requests, sequentially)
+        // however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
+        await this.loadMarkets ();
+        if (symbols === undefined) {
+            symbols = this.symbols;
+        }
+        const result = {};
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
+        }
+        return result;
+    }
+
+    // async fetchTradingLimitsFromWeb (id, params = {}) {
+    //     const request = {
+    //         'symbol': id,
+    //     };
+    //     const response = await this.publicPostApiOrderTicker (this.extend (request, params));
+    //     //
+    //     //     {  code:    0,
+    //     //         msg:   "获取牌价信息成功",
+    //     //        data: {         high:  0.03721392,
+    //     //                         low:  0.03335362,
+    //     //                         buy: "0.03525757",
+    //     //                        sell: "0.03531160",
+    //     //                        last:  0.0352634,
+    //     //                         vol: "184742.4176",
+    //     //                   min_trade: "0.01500000",
+    //     //                   max_trade: "100.00000000",
+    //     //                number_float: "4",
+    //     //                 price_float: "8"             } } }
+    //     //
+    //     return this.parseTradingLimits (this.safeValue (response, 'data', {}));
+    // }
+
+    parseTradingLimits (limits, symbol = undefined, params = {}) {
+        //
+        //  {         high:  0.03721392,
+        //             low:  0.03335362,
+        //             buy: "0.03525757",
+        //            sell: "0.03531160",
+        //            last:  0.0352634,
+        //             vol: "184742.4176",
+        //       min_trade: "0.01500000",
+        //       max_trade: "100.00000000",
+        //    number_float: "4",
+        //     price_float: "8"             }
+        //
+        return {
+            'info': limits,
+            'precision': {
+                'amount': this.safeInteger (limits, 'number_float'),
+                'price': this.safeInteger (limits, 'price_float'),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.safeFloat (limits, 'min_trade'),
+                    'max': this.safeFloat (limits, 'max_trade'),
+                },
+            },
+        };
+    }
+
     async fetchMarkets (params = {}) {
+        const limits = await this.fetchTradingLimits ()
         const response = await this.publicGetSymbols (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -446,13 +571,12 @@ module.exports = class gemini extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = '/' + this.implodeParams (path, params);
+        if (api !== 'web') {
+            url = '/' + this.version + url;
+        }
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
             const request = this.extend ({
@@ -468,19 +592,94 @@ module.exports = class gemini extends Exchange {
                 'X-GEMINI-PAYLOAD': this.decode (payload),
                 'X-GEMINI-SIGNATURE': signature,
             };
+        } else {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response) {
-            if (response['result'] === 'error') {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-            }
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (response === undefined) {
+            return; // fallback to default error handler
         }
-        return response;
+        //
+        //     {
+        //         "result": "error",
+        //         "reason": "BadNonce",
+        //         "message": "Out-of-sequence nonce <1234> precedes previously used nonce <2345>"
+        //     }
+        //
+        const result = this.safeString (response, 'result');
+        if (result === 'error') {
+            const reason = this.safeString (response, 'reason');
+            const message = this.safeString (response, 'message');
+            const feedback = this.id + ' ' + message;
+            const exact = this.exceptions['exact'];
+            if (reason in exact) {
+                throw new exact[code] (feedback);
+            } else if (message in exact) {
+                throw new exact[message] (feedback);
+            }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
+        }
+        // HTTP Error Codes
+        // HTTP Status	Meaning
+        // 200	Request was successful
+        // 30x	API entry point has moved, see Location: header. Most likely an http: to https: redirect.
+        // 400	Auction not open or paused, ineligible timing, market not open, or the request was malformed; in the case of a private API request, missing or malformed Gemini private API authentication headers
+        // 403	The API key is missing the role necessary to access this private API endpoint
+        // 404	Unknown API entry point or Order not found
+        // 406	Insufficient Funds
+        // 429	Rate Limiting was applied
+        // 500	The server encountered an error
+        // 502	Technical issues are preventing the request from being satisfied
+        // 503	The exchange is down for maintenance
+        // if ('success' in response) {
+        //     //
+        //     // 1 - Liqui only returns the integer 'success' key from their private API
+        //     //
+        //     //     { "success": 1, ... } httpCode === 200
+        //     //     { "success": 0, ... } httpCode === 200
+        //     //
+        //     // 2 - However, exchanges derived from Liqui, can return non-integers
+        //     //
+        //     //     It can be a numeric string
+        //     //     { "sucesss": "1", ... }
+        //     //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
+        //     //
+        //     //     Or just a string
+        //     //     { "success": "true", ... }
+        //     //     { "success": "false", ... }, httpCode >= 200
+        //     //
+        //     //     Or a boolean
+        //     //     { "success": true, ... }
+        //     //     { "success": false, ... }, httpCode >= 200
+        //     //
+        //     // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
+        //     //
+        //     // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
+        //     //
+        //     // To cover points 1, 2, 3 and 4 combined this handler should work like this:
+        //     //
+        //     let success = this.safeValue (response, 'success', false);
+        //     if (typeof success === 'string') {
+        //         if ((success === 'true') || (success === '1')) {
+        //             success = true;
+        //         } else {
+        //             success = false;
+        //         }
+        //     }
+        //     if (!success) {
+        //     }
+        // }
     }
 
     async createDepositAddress (code, params = {}) {
