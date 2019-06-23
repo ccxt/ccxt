@@ -115,10 +115,41 @@ class bibox extends Exchange {
             'cmd' => 'marketAll',
         );
         $response = $this->publicGetMdata (array_merge ($request, $params));
+        //
+        //     {
+        //         "$result" => array (
+        //             {
+        //                 "is_hide":0,
+        //                 "high_cny":"1.9478",
+        //                 "amount":"272.41",
+        //                 "coin_symbol":"BIX",
+        //                 "last":"0.00002487",
+        //                 "currency_symbol":"BTC",
+        //                 "change":"+0.00000073",
+        //                 "low_cny":"1.7408",
+        //                 "base_last_cny":"1.84538041",
+        //                 "area_id":7,
+        //                 "percent":"+3.02%",
+        //                 "last_cny":"1.8454",
+        //                 "high":"0.00002625",
+        //                 "low":"0.00002346",
+        //                 "pair_type":0,
+        //                 "last_usd":"0.2686",
+        //                 "vol24H":"10940613",
+        //                 "$id":1,
+        //                 "high_usd":"0.2835",
+        //                 "low_usd":"0.2534"
+        //             }
+        //         ),
+        //         "cmd":"marketAll",
+        //         "ver":"1.1"
+        //     }
+        //
         $markets = $this->safe_value($response, 'result');
         $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
+            $numericId = $this->safe_integer($market, 'id');
             $baseId = $this->safe_string($market, 'coin_symbol');
             $quoteId = $this->safe_string($market, 'currency_symbol');
             $base = $this->common_currency_code($baseId);
@@ -131,6 +162,7 @@ class bibox extends Exchange {
             );
             $result[] = array (
                 'id' => $id,
+                'numericId' => $numericId,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,

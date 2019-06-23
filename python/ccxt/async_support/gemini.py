@@ -171,7 +171,7 @@ class gemini (Exchange):
         numTables = len(tables)
         if numTables < 2:
             raise NotSupported(error)
-        tables[1] = tables[1].replace("\n", '')  # eslint-disable-line quotes
+        # tables[1] = tables[1].replace("\n", '')  # eslint-disable-line quotes
         rows = tables[1].split("<tr>\n")  # eslint-disable-line quotes
         numRows = len(rows)
         if numRows < 2:

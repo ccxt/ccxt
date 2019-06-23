@@ -162,7 +162,7 @@ class gemini extends Exchange {
         if ($numTables < 2) {
             throw new NotSupported($error);
         }
-        $tables[1] = str_replace("\n", '', $tables[1]); // eslint-disable-line quotes
+        // $tables[1] = str_replace("\n", '', $tables[1]); // eslint-disable-line quotes
         $rows = explode("{tr}\n", $tables[1]); // eslint-disable-line quotes
         $numRows = is_array ($rows) ? count ($rows) : 0;
         if ($numRows < 2) {
