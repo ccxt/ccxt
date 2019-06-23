@@ -172,7 +172,7 @@ class gdax extends Exchange {
                 'max' => null,
             );
             $precision = array (
-                'amount' => 8,
+                'amount' => $this->precision_from_string($this->safe_string($market, 'base_increment')),
                 'price' => $this->precision_from_string($this->safe_string($market, 'quote_increment')),
             );
             $taker = $this->fees['trading']['taker'];  // does not seem right
