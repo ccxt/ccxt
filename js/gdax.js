@@ -458,11 +458,19 @@ module.exports = class gdax extends Exchange {
             }
         }
         const cost = this.safeFloat (order, 'executed_value');
-        const fee = {
-            'cost': this.safeFloat (order, 'fill_fees'),
-            'currency': undefined,
-            'rate': undefined,
-        };
+        const feeCost = this.safeFloat (order, 'fill_fees');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            let feeCurrencyCode = undefined;
+            if (market !== undefined) {
+                feeCurrencyCode = market['quote'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+                'rate': undefined,
+            };
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
