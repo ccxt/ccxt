@@ -754,13 +754,13 @@ class therock (Exchange):
         request = {
             'type': 'withdraw',
         }
-        return await self.fetch_transactions('withdraw', code, since, limit, self.extend(request, params))
+        return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         request = {
             'type': 'atm_payment',
         }
-        return await self.fetch_transactions('atm_payment', code, since, limit, self.extend(request, params))
+        return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()

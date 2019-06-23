@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.792'
+const version = '1.18.793'
 
 Exchange.ccxtVersion = version
 
@@ -83818,14 +83818,14 @@ module.exports = class therock extends Exchange {
         const request = {
             'type': 'withdraw',
         };
-        return await this.fetchTransactions ('withdraw', code, since, limit, this.extend (request, params));
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'type': 'atm_payment',
         };
-        return await this.fetchTransactions ('atm_payment', code, since, limit, this.extend (request, params));
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
