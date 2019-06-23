@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, DDoSProtection, InsufficientFunds, AuthenticationError, ExchangeNotAvailable, PermissionDenied } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, DDoSProtection, InsufficientFunds, AuthenticationError, ExchangeNotAvailable, PermissionDenied, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -45,8 +45,9 @@ module.exports = class gemini extends Exchange {
                 ],
                 'test': 'https://api.sandbox.gemini.com',
                 'fees': [
-                    'https://gemini.com/fee-schedule/',
-                    'https://gemini.com/transfer-fees/',
+                    'https://gemini.com/api-fee-schedule',
+                    'https://gemini.com/trading-fees',
+                    'https://gemini.com/transfer-fees',
                 ],
             },
             'api': {
@@ -136,81 +137,106 @@ module.exports = class gemini extends Exchange {
                 'broad': {
                 },
             },
+            'options': {
+                'fetchMarketsMethod': 'fetch_markets_from_web',
+            },
         });
     }
 
-    async fetchTradingLimits (symbols = undefined, params = {}) {
+    async fetchMarkets (params = {}) {
+        const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+        return await this[method] (params);
+    }
+
+    async fetchMarketsFromWeb (symbols = undefined, params = {}) {
         const response = await this.webGetRestApi (params);
-        const parts = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
-        console.log (parts[1]);
-        process.exit ();
-        // this method should not be called directly, use loadTradingLimits () instead
-        // by default it will try load withdrawal fees of all currencies (with separate requests, sequentially)
-        // however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
-        await this.loadMarkets ();
-        if (symbols === undefined) {
-            symbols = this.symbols;
+        const sections = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
+        const numSections = sections.length;
+        if (numSections !== 2) {
+            throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
         }
-        const result = {};
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
+        const tables = sections[1].split ('tbody>');
+        const numTables = tables.length;
+        if (numTables < 2) {
+            throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+        }
+        tables[1] = tables[1].replace ("\n", ''); // eslint-disable-line quotes
+        const rows = tables[1].split ("<tr>\n"); // eslint-disable-line quotes
+        const numRows = rows.length;
+        if (numRows < 2) {
+            throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+        }
+        const result = [];
+        // skip the first element (empty string)
+        for (let i = 1; i < numRows; i++) {
+            const row = rows[i];
+            const cells = row.split ("</td>\n"); // eslint-disable-line quotes
+            const numCells = cells.length;
+            if (numCells < 7) {
+                throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+            }
+            //
+            //     [
+            //         '<td><code class="prettyprint">btcusd</code>',
+            //         '<td>USD', // quote
+            //         '<td>BTC', // base
+            //         '<td>0.00001 BTC (1e-5)', // min amount
+            //         '<td>0.00000001 BTC (1e-8)', // amount min tick size
+            //         '<td>0.01 USD', // price min tick size
+            //         '</tr>\n'
+            //     ]
+            //
+            let id = cells[0].replace ('<td>', '');
+            id = id.replace ('<code class="prettyprint">', '');
+            id = id.replace ('</code>', '');
+            let baseId = cells[2].replace ('<td>', '');
+            let quoteId = cells[1].replace ('<td>', '');
+            const minAmountAsString = cells[3].replace ('<td>', '');
+            const amountTickSizeAsString = cells[4].replace ('<td>', '');
+            const priceTickSizeAsString = cells[5].replace ('<td>', '');
+            const minAmount = minAmountAsString.split (' ');
+            const amountPrecision = amountTickSizeAsString.split (' ');
+            const pricePrecision = priceTickSizeAsString.split (' ');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            baseId = baseId.toLowerCase ();
+            quoteId = quoteId.toLowerCase ();
+            const precision = {
+                'amount': this.precisionFromString (amountPrecision[0]),
+                'price': this.precisionFromString (pricePrecision[0]),
+            };
+            const active = undefined;
+            result.push ({
+                'id': id,
+                'info': row,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': parseFloat (minAmount[0]),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
         }
         return result;
     }
 
-    // async fetchTradingLimitsFromWeb (id, params = {}) {
-    //     const request = {
-    //         'symbol': id,
-    //     };
-    //     const response = await this.publicPostApiOrderTicker (this.extend (request, params));
-    //     //
-    //     //     {  code:    0,
-    //     //         msg:   "获取牌价信息成功",
-    //     //        data: {         high:  0.03721392,
-    //     //                         low:  0.03335362,
-    //     //                         buy: "0.03525757",
-    //     //                        sell: "0.03531160",
-    //     //                        last:  0.0352634,
-    //     //                         vol: "184742.4176",
-    //     //                   min_trade: "0.01500000",
-    //     //                   max_trade: "100.00000000",
-    //     //                number_float: "4",
-    //     //                 price_float: "8"             } } }
-    //     //
-    //     return this.parseTradingLimits (this.safeValue (response, 'data', {}));
-    // }
-
-    parseTradingLimits (limits, symbol = undefined, params = {}) {
-        //
-        //  {         high:  0.03721392,
-        //             low:  0.03335362,
-        //             buy: "0.03525757",
-        //            sell: "0.03531160",
-        //            last:  0.0352634,
-        //             vol: "184742.4176",
-        //       min_trade: "0.01500000",
-        //       max_trade: "100.00000000",
-        //    number_float: "4",
-        //     price_float: "8"             }
-        //
-        return {
-            'info': limits,
-            'precision': {
-                'amount': this.safeInteger (limits, 'number_float'),
-                'price': this.safeInteger (limits, 'price_float'),
-            },
-            'limits': {
-                'amount': {
-                    'min': this.safeFloat (limits, 'min_trade'),
-                    'max': this.safeFloat (limits, 'max_trade'),
-                },
-            },
-        };
-    }
-
-    async fetchMarkets (params = {}) {
-        const limits = await this.fetchTradingLimits ()
+    async fetchMarketsFromAPI (params = {}) {
         const response = await this.publicGetSymbols (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -223,14 +249,33 @@ module.exports = class gemini extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             const symbol = base + '/' + quote;
+            const precision = {
+                'amount': undefined,
+                'price': undefined,
+            };
             result.push ({
                 'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
@@ -619,7 +664,7 @@ module.exports = class gemini extends Exchange {
             const feedback = this.id + ' ' + message;
             const exact = this.exceptions['exact'];
             if (reason in exact) {
-                throw new exact[code] (feedback);
+                throw new exact[reason] (feedback);
             } else if (message in exact) {
                 throw new exact[message] (feedback);
             }
@@ -630,56 +675,6 @@ module.exports = class gemini extends Exchange {
             }
             throw new ExchangeError (feedback); // unknown message
         }
-        // HTTP Error Codes
-        // HTTP Status	Meaning
-        // 200	Request was successful
-        // 30x	API entry point has moved, see Location: header. Most likely an http: to https: redirect.
-        // 400	Auction not open or paused, ineligible timing, market not open, or the request was malformed; in the case of a private API request, missing or malformed Gemini private API authentication headers
-        // 403	The API key is missing the role necessary to access this private API endpoint
-        // 404	Unknown API entry point or Order not found
-        // 406	Insufficient Funds
-        // 429	Rate Limiting was applied
-        // 500	The server encountered an error
-        // 502	Technical issues are preventing the request from being satisfied
-        // 503	The exchange is down for maintenance
-        // if ('success' in response) {
-        //     //
-        //     // 1 - Liqui only returns the integer 'success' key from their private API
-        //     //
-        //     //     { "success": 1, ... } httpCode === 200
-        //     //     { "success": 0, ... } httpCode === 200
-        //     //
-        //     // 2 - However, exchanges derived from Liqui, can return non-integers
-        //     //
-        //     //     It can be a numeric string
-        //     //     { "sucesss": "1", ... }
-        //     //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
-        //     //
-        //     //     Or just a string
-        //     //     { "success": "true", ... }
-        //     //     { "success": "false", ... }, httpCode >= 200
-        //     //
-        //     //     Or a boolean
-        //     //     { "success": true, ... }
-        //     //     { "success": false, ... }, httpCode >= 200
-        //     //
-        //     // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
-        //     //
-        //     // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
-        //     //
-        //     // To cover points 1, 2, 3 and 4 combined this handler should work like this:
-        //     //
-        //     let success = this.safeValue (response, 'success', false);
-        //     if (typeof success === 'string') {
-        //         if ((success === 'true') || (success === '1')) {
-        //             success = true;
-        //         } else {
-        //             success = false;
-        //         }
-        //     }
-        //     if (!success) {
-        //     }
-        // }
     }
 
     async createDepositAddress (code, params = {}) {
