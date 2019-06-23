@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.791'
+const version = '1.18.792'
 
 Exchange.ccxtVersion = version
 
@@ -44634,11 +44634,19 @@ module.exports = class gdax extends Exchange {
             }
         }
         const cost = this.safeFloat (order, 'executed_value');
-        const fee = {
-            'cost': this.safeFloat (order, 'fill_fees'),
-            'currency': undefined,
-            'rate': undefined,
-        };
+        const feeCost = this.safeFloat (order, 'fill_fees');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            let feeCurrencyCode = undefined;
+            if (market !== undefined) {
+                feeCurrencyCode = market['quote'];
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+                'rate': undefined,
+            };
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
