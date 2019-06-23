@@ -171,7 +171,7 @@ module.exports = class gdax extends Exchange {
                 'max': undefined,
             };
             const precision = {
-                'amount': 8,
+                'amount': this.precisionFromString (this.safeString (market, 'base_increment')),
                 'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
             };
             let taker = this.fees['trading']['taker'];  // does not seem right

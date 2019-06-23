@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.787'
+const version = '1.18.790'
 
 Exchange.ccxtVersion = version
 
@@ -7558,7 +7558,7 @@ module.exports = class bigone extends Exchange {
                 'sub': this.apiKey,
                 'nonce': nonce,
             };
-            const jwt = this.jwt (request, this.secret);
+            const jwt = this.jwt (request, this.encode (this.secret));
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             };
@@ -44347,7 +44347,7 @@ module.exports = class gdax extends Exchange {
                 'max': undefined,
             };
             const precision = {
-                'amount': 8,
+                'amount': this.precisionFromString (this.safeString (market, 'base_increment')),
                 'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
             };
             let taker = this.fees['trading']['taker'];  // does not seem right
@@ -57510,7 +57510,7 @@ module.exports = class liquid extends Exchange {
                 'token_id': this.apiKey,
                 'iat': Math.floor (nonce / 1000), // issued at
             };
-            headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
+            headers['X-Quoine-Auth'] = this.jwt (request, this.encode (this.secret));
         } else {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -63212,7 +63212,7 @@ module.exports = class oceanex extends Exchange {
             // to set the private key:
             // const fs = require ('fs')
             // exchange.secret = fs.readFileSync ('oceanex.pem', 'utf8')
-            const jwt_token = this.jwt (request, this.secret, 'RS256');
+            const jwt_token = this.jwt (request, this.encode (this.secret), 'RS256');
             url += '?user_jwt=' + jwt_token;
         }
         headers = { 'Content-Type': 'application/json' };

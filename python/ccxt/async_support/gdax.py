@@ -180,7 +180,7 @@ class gdax (Exchange):
                 'max': None,
             }
             precision = {
-                'amount': 8,
+                'amount': self.precision_from_string(self.safe_string(market, 'base_increment')),
                 'price': self.precision_from_string(self.safe_string(market, 'quote_increment')),
             }
             taker = self.fees['trading']['taker']  # does not seem right
