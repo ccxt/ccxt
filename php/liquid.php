@@ -779,7 +779,7 @@ class liquid extends Exchange {
                 'token_id' => $this->apiKey,
                 'iat' => (int) floor($nonce / 1000), // issued at
             );
-            $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
+            $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->encode ($this->secret));
         } else {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);

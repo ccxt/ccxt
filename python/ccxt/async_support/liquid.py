@@ -726,7 +726,7 @@ class liquid (Exchange):
                 'token_id': self.apiKey,
                 'iat': int(math.floor(nonce / 1000)),  # issued at
             }
-            headers['X-Quoine-Auth'] = self.jwt(request, self.secret)
+            headers['X-Quoine-Auth'] = self.jwt(request, self.encode(self.secret))
         else:
             if query:
                 url += '?' + self.urlencode(query)
