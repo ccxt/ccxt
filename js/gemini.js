@@ -161,7 +161,7 @@ module.exports = class gemini extends Exchange {
         if (numTables < 2) {
             throw new NotSupported (error);
         }
-        tables[1] = tables[1].replace ("\n", ''); // eslint-disable-line quotes
+        // tables[1] = tables[1].replace ("\n", ''); // eslint-disable-line quotes
         const rows = tables[1].split ("<tr>\n"); // eslint-disable-line quotes
         const numRows = rows.length;
         if (numRows < 2) {
