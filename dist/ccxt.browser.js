@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.787'
+const version = '1.18.788'
 
 Exchange.ccxtVersion = version
 
@@ -57510,7 +57510,7 @@ module.exports = class liquid extends Exchange {
                 'token_id': this.apiKey,
                 'iat': Math.floor (nonce / 1000), // issued at
             };
-            headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
+            headers['X-Quoine-Auth'] = this.jwt (request, this.encode (this.secret));
         } else {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
