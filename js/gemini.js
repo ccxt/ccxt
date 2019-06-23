@@ -93,7 +93,7 @@ module.exports = class gemini extends Exchange {
                 },
             },
             'httpExceptions': {
-                '400': BadRequest, // Auction not open or paused, ineligible timing, market not open, or the request was malformed; in the case of a private API request, missing or malformed Gemini private API authentication headers
+                '400': BadRequest, // Auction not open or paused, ineligible timing, market not open, or the request was malformed, in the case of a private API request, missing or malformed Gemini private API authentication headers
                 '403': PermissionDenied, // The API key is missing the role necessary to access this private API endpoint
                 '404': OrderNotFound, // Unknown API entry point or Order not found
                 '406': InsufficientFunds, // Insufficient Funds
@@ -110,7 +110,7 @@ module.exports = class gemini extends Exchange {
                     'ConflictingOptions': BadRequest, // New orders using a combination of order execution options are not supported
                     'EndpointMismatch': BadRequest, // The request was submitted to an endpoint different than the one in the payload
                     'EndpointNotFound': BadRequest, // No endpoint was specified
-                    'IneligibleTiming': BadRequest, // Failed to place an auction order for the current auction on this symbol because the timing is not eligible: new orders may only be placed before the auction begins.
+                    'IneligibleTiming': BadRequest, // Failed to place an auction order for the current auction on this symbol because the timing is not eligible, new orders may only be placed before the auction begins.
                     'InsufficientFunds': InsufficientFunds, // The order was rejected because of insufficient funds
                     'InvalidJson': BadRequest, // The JSON provided is invalid
                     'InvalidNonce': InvalidNonce, // The nonce was not greater than the previously used nonce, or was not present
@@ -135,8 +135,7 @@ module.exports = class gemini extends Exchange {
                     'System': ExchangeError, // We are experiencing technical issues
                     'UnsupportedOption': BadRequest, // This order execution option is not supported.
                 },
-                'broad': {
-                },
+                'broad': {},
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
