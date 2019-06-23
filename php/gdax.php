@@ -459,11 +459,19 @@ class gdax extends Exchange {
             }
         }
         $cost = $this->safe_float($order, 'executed_value');
-        $fee = array (
-            'cost' => $this->safe_float($order, 'fill_fees'),
-            'currency' => null,
-            'rate' => null,
-        );
+        $feeCost = $this->safe_float($order, 'fill_fees');
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyCode = null;
+            if ($market !== null) {
+                $feeCurrencyCode = $market['quote'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+                'rate' => null,
+            );
+        }
         if ($market !== null) {
             $symbol = $market['symbol'];
         }

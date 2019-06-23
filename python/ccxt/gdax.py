@@ -437,11 +437,17 @@ class gdax (Exchange):
             if filled is not None:
                 remaining = amount - filled
         cost = self.safe_float(order, 'executed_value')
-        fee = {
-            'cost': self.safe_float(order, 'fill_fees'),
-            'currency': None,
-            'rate': None,
-        }
+        feeCost = self.safe_float(order, 'fill_fees')
+        fee = None
+        if feeCost is not None:
+            feeCurrencyCode = None
+            if market is not None:
+                feeCurrencyCode = market['quote']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+                'rate': None,
+            }
         if market is not None:
             symbol = market['symbol']
         id = self.safe_string(order, 'id')
