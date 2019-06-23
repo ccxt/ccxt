@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, DDoSProtection, InsufficientFunds, AuthenticationError, ExchangeNotAvailable, PermissionDenied, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -34,19 +34,28 @@ module.exports = class gemini extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
-                'api': 'https://api.gemini.com',
-                'www': 'https://gemini.com',
+                'api': {
+                    'public': 'https://api.gemini.com',
+                    'private': 'https://api.gemini.com',
+                    'web': 'https://docs.gemini.com',
+                },
                 'doc': [
                     'https://docs.gemini.com/rest-api',
                     'https://docs.sandbox.gemini.com',
                 ],
                 'test': 'https://api.sandbox.gemini.com',
                 'fees': [
-                    'https://gemini.com/fee-schedule/',
-                    'https://gemini.com/transfer-fees/',
+                    'https://gemini.com/api-fee-schedule',
+                    'https://gemini.com/trading-fees',
+                    'https://gemini.com/transfer-fees',
                 ],
             },
             'api': {
+                'web': {
+                    'get': [
+                        'rest-api',
+                    ],
+                },
                 'public': {
                     'get': [
                         'symbols',
@@ -82,10 +91,152 @@ module.exports = class gemini extends Exchange {
                     'maker': 0.001,
                 },
             },
+            'httpExceptions': {
+                '400': BadRequest, // Auction not open or paused, ineligible timing, market not open, or the request was malformed; in the case of a private API request, missing or malformed Gemini private API authentication headers
+                '403': PermissionDenied, // The API key is missing the role necessary to access this private API endpoint
+                '404': OrderNotFound, // Unknown API entry point or Order not found
+                '406': InsufficientFunds, // Insufficient Funds
+                '429': DDoSProtection, // Rate Limiting was applied
+                '500': ExchangeError, // The server encountered an error
+                '502': ExchangeError, // Technical issues are preventing the request from being satisfied
+                '503': ExchangeNotAvailable, // The exchange is down for maintenance
+            },
+            'exceptions': {
+                'exact': {
+                    'AuctionNotOpen': BadRequest, // Failed to place an auction-only order because there is no current auction open for this symbol
+                    'ClientOrderIdTooLong': BadRequest, // The Client Order ID must be under 100 characters
+                    'ClientOrderIdMustBeString': BadRequest, // The Client Order ID must be a string
+                    'ConflictingOptions': BadRequest, // New orders using a combination of order execution options are not supported
+                    'EndpointMismatch': BadRequest, // The request was submitted to an endpoint different than the one in the payload
+                    'EndpointNotFound': BadRequest, // No endpoint was specified
+                    'IneligibleTiming': BadRequest, // Failed to place an auction order for the current auction on this symbol because the timing is not eligible: new orders may only be placed before the auction begins.
+                    'InsufficientFunds': InsufficientFunds, // The order was rejected because of insufficient funds
+                    'InvalidJson': BadRequest, // The JSON provided is invalid
+                    'InvalidNonce': InvalidNonce, // The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidOrderType': InvalidOrder, // An unknown order type was provided
+                    'InvalidPrice': InvalidOrder, // For new orders, the price was invalid
+                    'InvalidQuantity': InvalidOrder, // A negative or otherwise invalid quantity was specified
+                    'InvalidSide': InvalidOrder, // For new orders, and invalid side was specified
+                    'InvalidSignature': AuthenticationError, // The signature did not match the expected signature
+                    'InvalidSymbol': BadRequest, // An invalid symbol was specified
+                    'InvalidTimestampInPayload': BadRequest, // The JSON payload contained a timestamp parameter with an unsupported value.
+                    'Maintenance': ExchangeNotAvailable, // The system is down for maintenance
+                    'MarketNotOpen': InvalidOrder, // The order was rejected because the market is not accepting new orders
+                    'MissingApikeyHeader': AuthenticationError, // The X-GEMINI-APIKEY header was missing
+                    'MissingOrderField': InvalidOrder, // A required order_id field was not specified
+                    'MissingRole': AuthenticationError, // The API key used to access this endpoint does not have the required role assigned to it
+                    'MissingPayloadHeader': AuthenticationError, // The X-GEMINI-PAYLOAD header was missing
+                    'MissingSignatureHeader': AuthenticationError, // The X-GEMINI-SIGNATURE header was missing
+                    'NoSSL': AuthenticationError, // You must use HTTPS to access the API
+                    'OptionsMustBeArray': BadRequest, // The options parameter must be an array.
+                    'OrderNotFound': OrderNotFound, // The order specified was not found
+                    'RateLimit': DDoSProtection, // Requests were made too frequently. See Rate Limits below.
+                    'System': ExchangeError, // We are experiencing technical issues
+                    'UnsupportedOption': BadRequest, // This order execution option is not supported.
+                },
+                'broad': {
+                },
+            },
+            'options': {
+                'fetchMarketsMethod': 'fetch_markets_from_web',
+            },
         });
     }
 
     async fetchMarkets (params = {}) {
+        const method = this.safeValue (this.options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+        return await this[method] (params);
+    }
+
+    async fetchMarketsFromWeb (symbols = undefined, params = {}) {
+        const response = await this.webGetRestApi (params);
+        const sections = response.split ('<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
+        const numSections = sections.length;
+        if (numSections !== 2) {
+            throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+        }
+        const tables = sections[1].split ('tbody>');
+        const numTables = tables.length;
+        if (numTables < 2) {
+            throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+        }
+        tables[1] = tables[1].replace ("\n", ''); // eslint-disable-line quotes
+        const rows = tables[1].split ("<tr>\n"); // eslint-disable-line quotes
+        const numRows = rows.length;
+        if (numRows < 2) {
+            throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+        }
+        const result = [];
+        // skip the first element (empty string)
+        for (let i = 1; i < numRows; i++) {
+            const row = rows[i];
+            const cells = row.split ("</td>\n"); // eslint-disable-line quotes
+            const numCells = cells.length;
+            if (numCells < 7) {
+                throw new NotSupported (this.id + ' the ' + this.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + this.name + ' markets.');
+            }
+            //
+            //     [
+            //         '<td><code class="prettyprint">btcusd</code>',
+            //         '<td>USD', // quote
+            //         '<td>BTC', // base
+            //         '<td>0.00001 BTC (1e-5)', // min amount
+            //         '<td>0.00000001 BTC (1e-8)', // amount min tick size
+            //         '<td>0.01 USD', // price min tick size
+            //         '</tr>\n'
+            //     ]
+            //
+            let id = cells[0].replace ('<td>', '');
+            id = id.replace ('<code class="prettyprint">', '');
+            id = id.replace ('</code>', '');
+            let baseId = cells[2].replace ('<td>', '');
+            let quoteId = cells[1].replace ('<td>', '');
+            const minAmountAsString = cells[3].replace ('<td>', '');
+            const amountTickSizeAsString = cells[4].replace ('<td>', '');
+            const priceTickSizeAsString = cells[5].replace ('<td>', '');
+            const minAmount = minAmountAsString.split (' ');
+            const amountPrecision = amountTickSizeAsString.split (' ');
+            const pricePrecision = priceTickSizeAsString.split (' ');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            baseId = baseId.toLowerCase ();
+            quoteId = quoteId.toLowerCase ();
+            const precision = {
+                'amount': this.precisionFromString (amountPrecision[0]),
+                'price': this.precisionFromString (pricePrecision[0]),
+            };
+            const active = undefined;
+            result.push ({
+                'id': id,
+                'info': row,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': parseFloat (minAmount[0]),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            });
+        }
+        return result;
+    }
+
+    async fetchMarketsFromAPI (params = {}) {
         const response = await this.publicGetSymbols (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -98,14 +249,33 @@ module.exports = class gemini extends Exchange {
             base = this.commonCurrencyCode (base);
             quote = this.commonCurrencyCode (quote);
             const symbol = base + '/' + quote;
+            const precision = {
+                'amount': undefined,
+                'price': undefined,
+            };
             result.push ({
                 'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             });
         }
         return result;
@@ -446,13 +616,12 @@ module.exports = class gemini extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/' + this.version + '/' + this.implodeParams (path, params);
+        let url = '/' + this.implodeParams (path, params);
+        if (api !== 'web') {
+            url = '/' + this.version + url;
+        }
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else {
+        if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();
             const request = this.extend ({
@@ -468,19 +637,44 @@ module.exports = class gemini extends Exchange {
                 'X-GEMINI-PAYLOAD': this.decode (payload),
                 'X-GEMINI-SIGNATURE': signature,
             };
+        } else {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('result' in response) {
-            if (response['result'] === 'error') {
-                throw new ExchangeError (this.id + ' ' + this.json (response));
-            }
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (response === undefined) {
+            return; // fallback to default error handler
         }
-        return response;
+        //
+        //     {
+        //         "result": "error",
+        //         "reason": "BadNonce",
+        //         "message": "Out-of-sequence nonce <1234> precedes previously used nonce <2345>"
+        //     }
+        //
+        const result = this.safeString (response, 'result');
+        if (result === 'error') {
+            const reason = this.safeString (response, 'reason');
+            const message = this.safeString (response, 'message');
+            const feedback = this.id + ' ' + message;
+            const exact = this.exceptions['exact'];
+            if (reason in exact) {
+                throw new exact[reason] (feedback);
+            } else if (message in exact) {
+                throw new exact[message] (feedback);
+            }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 
     async createDepositAddress (code, params = {}) {
