@@ -299,9 +299,8 @@ class bibox (Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
-        if amount is not None:
-            if cost is not None:
-                cost = price * amount
+        if price is not None and amount is not None:
+            cost = price * amount
         if feeCost is not None:
             fee = {
                 'cost': feeCost,

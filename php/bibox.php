@@ -301,10 +301,8 @@ class bibox extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
-        if ($amount !== null) {
-            if ($cost !== null) {
-                $cost = $price * $amount;
-            }
+        if ($price !== null && $amount !== null) {
+            $cost = $price * $amount;
         }
         if ($feeCost !== null) {
             $fee = array (
