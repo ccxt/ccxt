@@ -313,7 +313,7 @@ class Exchange(object):
         #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
         # }
 
-        self.origin = self.uuid ()
+        self.origin = self.uuid()
         self.userAgent = default_user_agent()
 
         settings = self.deep_extend(self.describe(), config)
