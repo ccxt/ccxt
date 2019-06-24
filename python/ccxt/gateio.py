@@ -235,6 +235,8 @@ class gateio (Exchange):
         response = self.privatePostBalances(params)
         result = {'info': response}
         available = self.safe_value(response, 'available', {})
+        if isinstance(available, list):
+            available = {}
         locked = self.safe_value(response, 'locked', {})
         currencyIds = list(available.keys())
         for i in range(0, len(currencyIds)):
