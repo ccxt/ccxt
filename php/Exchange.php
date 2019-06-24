@@ -684,7 +684,6 @@ class Exchange {
     }
 
     public function check_required_credentials($error = true) {
-        $keys = array_keys($this->requiredCredentials);
         foreach ($this->requiredCredentials as $key => $value) {
             if ($value && (!$this->$key)) {
                 if ($error) {
