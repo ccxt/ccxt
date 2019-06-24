@@ -546,7 +546,7 @@ module.exports = class bitbay extends Exchange {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-            const nonce = this.now ();
+            const nonce = this.milliseconds ();
             const payload = this.apiKey + nonce;
             if (body !== undefined) {
                 body = this.json (body);
