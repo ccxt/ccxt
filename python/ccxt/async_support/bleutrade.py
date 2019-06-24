@@ -234,11 +234,11 @@ class bleutrade (bittrex):
         timestamp = self.parse8601(ohlcv['TimeStamp'] + '+00:00')
         return [
             timestamp,
-            ohlcv['Open'],
-            ohlcv['High'],
-            ohlcv['Low'],
-            ohlcv['Close'],
-            ohlcv['Volume'],
+            self.safe_float(ohlcv, 'Open'),
+            self.safe_float(ohlcv, 'High'),
+            self.safe_float(ohlcv, 'Low'),
+            self.safe_float(ohlcv, 'Close'),
+            self.safe_float(ohlcv, 'Volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
