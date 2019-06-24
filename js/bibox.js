@@ -300,10 +300,8 @@ module.exports = class bibox extends Exchange {
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
-        if (amount !== undefined) {
-            if (cost !== undefined) {
-                cost = price * amount;
-            }
+        if (price !== undefined && amount !== undefined) {
+            cost = price * amount;
         }
         if (feeCost !== undefined) {
             fee = {
