@@ -214,7 +214,7 @@ class bibox (Exchange):
             symbol = base + '/' + quote
         last = self.safe_float(ticker, 'last')
         change = self.safe_float(ticker, 'change')
-        baseVolume = self.safe_float(ticker, 'vol', 'vol24H')
+        baseVolume = self.safe_float_2(ticker, 'vol', 'vol24H')
         open = None
         if (last is not None) and(change is not None):
             open = last - change

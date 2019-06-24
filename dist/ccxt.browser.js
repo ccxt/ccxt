@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.797'
+const version = '1.18.798'
 
 Exchange.ccxtVersion = version
 
@@ -6177,7 +6177,7 @@ module.exports = class bibox extends Exchange {
         }
         const last = this.safeFloat (ticker, 'last');
         const change = this.safeFloat (ticker, 'change');
-        const baseVolume = this.safeFloat (ticker, 'vol', 'vol24H');
+        const baseVolume = this.safeFloat2 (ticker, 'vol', 'vol24H');
         let open = undefined;
         if ((last !== undefined) && (change !== undefined)) {
             open = last - change;
