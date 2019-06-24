@@ -129,6 +129,9 @@ class Exchange(BaseExchange):
         response = None
         http_response = None
         json_response = None
+        headers = None
+        http_status_code = None
+        http_status_text = None
         try:
             async with session_method(yarl.URL(url, encoded=True),
                                       data=encoded_body,
@@ -138,6 +141,8 @@ class Exchange(BaseExchange):
                 http_response = await response.text()
                 json_response = self.parse_json(http_response) if self.is_json_encoded_object(http_response) else None
                 headers = response.headers
+                http_status_code = response.status
+                http_status_text = response.reason
                 if self.enableLastHttpResponse:
                     self.last_http_response = http_response
                 if self.enableLastResponseHeaders:
@@ -145,20 +150,20 @@ class Exchange(BaseExchange):
                 if self.enableLastJsonResponse:
                     self.last_json_response = json_response
                 if self.verbose:
-                    print("\nResponse:", method, url, response.status, headers, http_response)
+                    print("\nResponse:", method, url, http_status_code, headers, http_response)
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, headers, http_response)
 
         except socket.gaierror as e:
-            self.raise_error(ExchangeNotAvailable, url, method, e, None)
+            self.raise_error(ExchangeError, http_status_code, http_status_text, url, method, headers, str(e))
 
         except concurrent.futures._base.TimeoutError as e:
-            self.raise_error(RequestTimeout, method, url, e, None)
+            self.raise_error(RequestTimeout, http_status_code, http_status_text, url, method, headers, str(e))
 
         except aiohttp.client_exceptions.ClientConnectionError as e:
-            self.raise_error(ExchangeNotAvailable, url, method, e, None)
+            self.raise_error(ExchangeNotAvailable, http_status_code, http_status_text, url, method, headers, str(e))
 
         except aiohttp.client_exceptions.ClientError as e:  # base exception class
-            self.raise_error(ExchangeError, url, method, e, None)
+            self.raise_error(ExchangeError, http_status_code, http_status_text, url, method, headers, str(e))
 
         self.handle_errors(response.status, response.reason, url, method, headers, http_response, json_response)
         self.handle_rest_errors(None, response.status, http_response, url, method)
@@ -228,7 +233,7 @@ class Exchange(BaseExchange):
         })
 
     async def perform_order_book_request(self, market, limit=None, params={}):
-        raise NotSupported(self.id + ' performOrderBookRequest not supported yet')
+        self.raise_error(NotSupported, details=self.id + ' performOrderBookRequest not supported yet')
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()

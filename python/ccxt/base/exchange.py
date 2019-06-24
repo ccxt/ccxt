@@ -375,7 +375,7 @@ class Exchange(object):
                 self.urls['api_backup'] = self.urls['api']
                 self.urls['api'] = self.urls['test']
             else:
-                raise NotSupported(self.id + ' does not have a sandbox URL')
+                self.raise_error(NotSupported, details='does not have a sandbox URL')
         elif 'api_backup' in self.urls:
             self.urls['api'] = self.urls['api_backup']
             del self.urls['api_backup']
@@ -427,12 +427,12 @@ class Exchange(object):
 
     def raise_error(self, exception, code=None, reason=None, url=None, method=None, headers=None, details=None):
         exception_class = type(exception)
-        error_string = ' '.join(filter(lambda x: x != None, [method, url, code, reason]))
+        error_string = ' '.join(filter(lambda x: x is not None, [self.id, method, url, code, reason]))
         if headers is not None:
             error_string += self.json(headers)
         if details is not None:
             error_string += details
-        raise exception_class(error_string)
+        raise exception(error_string) if exception_class is type else exception_class(error_string)
 
     def throttle(self):
         now = float(self.milliseconds())
@@ -562,27 +562,27 @@ class Exchange(object):
             return json_response
         return http_response
 
-    def handle_rest_errors(self, exception, http_status_code, response, url, method='GET'):
+    def handle_rest_errors(self, exception, http_status_code, body, url, method='GET'):
         error = None
         string_code = str(http_status_code)
         if string_code in self.httpExceptions:
             error = self.httpExceptions[string_code]
             if error == ExchangeNotAvailable:
-                if re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE):
+                if re.search('(cloudflare|incapsula|overload|ddos)', body, flags=re.IGNORECASE):
                     error = DDoSProtection
         if error:
-            self.raise_error(error, url, method, exception if exception else http_status_code, response)
+            self.raise_error(error, http_status_code, None, url, method, None, str(exception) + ' ' + body)
 
-    def handle_rest_response(self, response, json_response, url, method='GET', headers=None, body=None):
-        if self.is_json_encoded_object(response) and json_response is None:
-            ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
-            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
+    def handle_rest_response(self, body, json_response, url, method='GET'):
+        if self.is_json_encoded_object(body) and json_response is None:
+            ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', body, flags=re.IGNORECASE)
+            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', body, flags=re.IGNORECASE)
+            message = 'exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect '
             if ddos_protection:
-                self.raise_error(DDoSProtection, method, url, None, response)
+                self.raise_error(DDoSProtection, None, None, method, url, None, message + body)
             if exchange_not_available:
-                message = response + ' exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
-                self.raise_error(ExchangeNotAvailable, method, url, None, message)
-            self.raise_error(ExchangeError, method, url, ValueError('failed to decode json'), response)
+                self.raise_error(ExchangeNotAvailable, None, None, method, url, None, message + body)
+            self.raise_error(ExchangeNotAvailable, None, None, method, url, None, 'failed to decode json')
 
     def parse_json(self, http_response):
         try:
@@ -1038,16 +1038,16 @@ class Exchange(object):
         for key in keys:
             if self.requiredCredentials[key] and not getattr(self, key):
                 if error:
-                    raise AuthenticationError('requires `' + key + '`')
+                    self.raise_error(AuthenticationError, details='requires `' + key + '`')
                 else:
                     return error
 
     def check_address(self, address):
         """Checks an address is not the same character repeated or an empty sequence"""
         if address is None:
-            raise InvalidAddress('address is None')
+            self.raise_error(InvalidAddress, details='address is None')
         if all(letter == address[0] for letter in address) or len(address) < self.minFundingAddressLength or ' ' in address:
-            raise InvalidAddress('address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
+            self.raise_error(InvalidAddress, details='address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
         return address
 
     def account(self):
@@ -1188,16 +1188,16 @@ class Exchange(object):
         }
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        raise NotSupported('create_order() not supported yet')
+        self.raise_error(NotSupported, details='create_order() not supported yet')
 
     def cancel_order(self, id, symbol=None, params={}):
-        raise NotSupported('cancel_order() not supported yet')
+        self.raise_error(NotSupported, details='cancel_order() not supported yet')
 
     def fetch_bids_asks(self, symbols=None, params={}):
-        raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
+        self.raise_error(NotSupported, details='API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
 
     def fetch_tickers(self, symbols=None, params={}):
-        raise NotSupported('API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
+        self.raise_error(NotSupported, details='API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')
 
     def fetch_order_status(self, id, symbol=None, params={}):
         order = self.fetch_order(id, symbol, params)
@@ -1210,31 +1210,31 @@ class Exchange(object):
         return self.orders
 
     def fetch_order(self, id, symbol=None, params={}):
-        raise NotSupported('fetch_order() is not supported yet')
+        self.raise_error(NotSupported, details='fetch_order() is not supported yet')
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_orders() is not supported yet')
+        self.raise_error(NotSupported, details='fetch_orders() is not supported yet')
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_open_orders() is not supported yet')
+        self.raise_error(NotSupported, details='fetch_open_orders() is not supported yet')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_closed_orders() is not supported yet')
+        self.raise_error(NotSupported, details='fetch_closed_orders() is not supported yet')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_my_trades() is not supported yet')
+        self.raise_error(NotSupported, details='fetch_my_trades() is not supported yet')
 
     def fetch_order_trades(self, id, symbol=None, params={}):
-        raise NotSupported('fetch_order_trades() is not supported yet')
+        self.raise_error(NotSupported, details='fetch_order_trades() is not supported yet')
 
     def fetch_transactions(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_transactions() is not supported yet')
+        self.raise_error(NotSupported, details='fetch_transactions() is not supported yet')
 
     def fetch_deposits(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_deposits() is not supported yet')
+        self.raise_error(NotSupported, details='fetch_deposits() is not supported yet')
 
     def fetch_withdrawals(self, symbol=None, since=None, limit=None, params={}):
-        raise NotSupported('fetch_withdrawals() is not supported yet')
+        self.raise_error(NotSupported, details='fetch_withdrawals() is not supported yet')
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return ohlcv[0:6] if isinstance(ohlcv, list) else ohlcv
@@ -1269,7 +1269,7 @@ class Exchange(object):
                     if (price_key in bidask) and (amount_key in bidask) and (bidask[price_key] and bidask[amount_key]):
                         result.append(self.parse_bid_ask(bidask, price_key, amount_key))
             else:
-                raise ExchangeError('unrecognized bidask format: ' + str(bidasks[0]))
+                self.raise_error(ExchangeError, details='unrecognized bidask format: ' + str(bidasks[0]))
         return result
 
     def fetch_l2_order_book(self, symbol, limit=None, params={}):
@@ -1328,19 +1328,19 @@ class Exchange(object):
         return self.fetch_partial_balance('total', params)
 
     def fetch_trading_fees(self, symbol, params={}):
-        raise NotSupported('fetch_trading_fees() not supported yet')
+        self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
 
     def fetch_trading_fee(self, symbol, params={}):
         if not self.has['fetchTradingFees']:
-            raise NotSupported('fetch_trading_fee() not supported yet')
+            self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
         return self.fetch_trading_fees(params)
 
     def fetch_funding_fees(self, params={}):
-        raise NotSupported('fetch_funding_fees() not supported yet')
+        self.raise_error(NotSupported, details='fetch_funding_fees() not supported yet')
 
     def fetch_funding_fee(self, code, params={}):
         if not self.has['fetchFundingFees']:
-            raise NotSupported('fetch_funding_fee() not supported yet')
+            self.raise_error(NotSupported, details='fetch_funding_fee() not supported yet')
         return self.fetch_funding_fees(params)
 
     def load_trading_limits(self, symbols=None, reload=False, params={}):
@@ -1355,7 +1355,7 @@ class Exchange(object):
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
-            raise NotSupported('fetch_ohlcv() not supported yet')
+            self.raise_error(NotSupported, details='fetch_ohlcv() not supported yet')
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
@@ -1533,14 +1533,14 @@ class Exchange(object):
 
     def currency(self, code):
         if not self.currencies:
-            raise ExchangeError('Currencies not loaded')
+            self.raise_error(ExchangeError, details='Currencies not loaded')
         if isinstance(code, basestring) and (code in self.currencies):
             return self.currencies[code]
-        raise ExchangeError('Does not have currency code ' + str(code))
+        self.raise_error(ExchangeError, details='Does not have currency code ' + str(code))
 
     def find_market(self, string):
         if not self.markets:
-            raise ExchangeError('Markets not loaded')
+            self.raise_error(ExchangeError, details='Markets not loaded')
         if isinstance(string, basestring):
             if string in self.markets_by_id:
                 return self.markets_by_id[string]
@@ -1557,10 +1557,10 @@ class Exchange(object):
 
     def market(self, symbol):
         if not self.markets:
-            raise ExchangeError('Markets not loaded')
+            self.raise_error(ExchangeError, details='Markets not loaded')
         if isinstance(symbol, basestring) and (symbol in self.markets):
             return self.markets[symbol]
-        raise ExchangeError('No market symbol ' + str(symbol))
+        self.raise_error(ExchangeError, details='No market symbol ' + str(symbol))
 
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]
@@ -1591,7 +1591,7 @@ class Exchange(object):
 
     def edit_order(self, id, symbol, *args):
         if not self.enableRateLimit:
-            raise ExchangeError('edit_order() requires enableRateLimit = true')
+            self.raise_error(ExchangeError, details='edit_order() requires enableRateLimit = true')
         self.cancel_order(id, symbol)
         return self.create_order(symbol, *args)
 
@@ -1614,7 +1614,7 @@ class Exchange(object):
         return self.create_order(symbol, 'market', 'sell', amount, None, params)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        raise NotSupported(self.id + ' sign() pure method must be redefined in derived classes')
+        self.raise_error(NotSupported, details='sign() pure method must be redefined in derived classes')
 
     # -------------------------------------------------------------------------
     # web3 / 0x methods
@@ -1625,7 +1625,7 @@ class Exchange(object):
 
     def check_required_dependencies(self):
         if not Exchange.has_web3():
-            raise NotSupported("Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
+            self.raise_error(NotSupported, details="Web3 functionality requires Python3 and web3 package installed: https://github.com/ethereum/web3.py")
 
     def eth_decimals(self, unit='ether'):
         units = {
@@ -1673,7 +1673,7 @@ class Exchange(object):
 
     def fromWei(self, amount, unit='ether', decimals=18):
         if Web3 is None:
-            raise NotSupported("ethereum web3 methods require Python 3: https://pythonclock.org")
+            self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
         if amount is None:
             return amount
         if decimals != 18:
@@ -1685,7 +1685,7 @@ class Exchange(object):
 
     def toWei(self, amount, unit='ether', decimals=18):
         if Web3 is None:
-            raise NotSupported("ethereum web3 methods require Python 3: https://pythonclock.org")
+            self.raise_error(NotSupported, details="ethereum web3 methods require Python 3: https://pythonclock.org")
         if amount is None:
             return amount
         if decimals != 18:
@@ -1788,7 +1788,7 @@ class Exchange(object):
 
         def to_bytes(value):
             if not isinstance(value, str):
-                raise TypeError("Value must be an instance of str")
+                self.raise_error(TypeError, details="Value must be an instance of str")
             if len(value) % 2:
                 value = "0x0" + self.remove_0x_prefix(value)
             return base64.b16decode(self.remove_0x_prefix(value), casefold=True)
@@ -1904,7 +1904,7 @@ class Exchange(object):
         if self.twofa is not None:
             return self.totp(self.twofa)
         else:
-            raise ExchangeError(self.id + ' set .twofa to use this feature')
+            self.raise_error(ExchangeError, details='set .twofa to use this feature')
 
     @staticmethod
     def totp(key):
