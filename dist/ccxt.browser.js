@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.798'
+const version = '1.18.799'
 
 Exchange.ccxtVersion = version
 
@@ -43612,7 +43612,10 @@ module.exports = class gateio extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostBalances (params);
         const result = { 'info': response };
-        const available = this.safeValue (response, 'available', {});
+        let available = this.safeValue (response, 'available', {});
+        if (Array.isArray (available)) {
+            available = {};
+        }
         const locked = this.safeValue (response, 'locked', {});
         const currencyIds = Object.keys (available);
         for (let i = 0; i < currencyIds.length; i++) {

@@ -225,6 +225,9 @@ class gateio extends Exchange {
         $response = $this->privatePostBalances ($params);
         $result = array( 'info' => $response );
         $available = $this->safe_value($response, 'available', array());
+        if (gettype ($available) === 'array' && count (array_filter (array_keys ($available), 'is_string')) == 0) {
+            $available = array();
+        }
         $locked = $this->safe_value($response, 'locked', array());
         $currencyIds = is_array($available) ? array_keys($available) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
