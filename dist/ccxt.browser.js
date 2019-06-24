@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.807'
+const version = '1.18.808'
 
 Exchange.ccxtVersion = version
 
@@ -18534,7 +18534,7 @@ module.exports = class bitstamp1 extends Exchange {
             account['free'] = this.safeFloat (balance, currencyId + '_available', 0.0);
             account['used'] = this.safeFloat (balance, currencyId + '_reserved', 0.0);
             account['total'] = this.safeFloat (balance, currencyId + '_balance', 0.0);
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
