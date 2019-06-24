@@ -18,8 +18,6 @@ module.exports = (exchange, ohlcv, symbol, now) => {
         assert (ohlcv[i] === undefined || typeof ohlcv[i] === 'number')
     }
 
-    log (ohlcv)
-
     assert (ohlcv[0] > 1230940800000) // 03 Jan 2009 - first block
     assert (ohlcv[0] < 2147483648000) // 19 Jan 2038 - int32 overflows
 
