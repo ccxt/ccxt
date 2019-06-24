@@ -1631,7 +1631,8 @@ module.exports = class Exchange {
         }
     }
 
-    raiseError (Exception, code = undefined, reason = undefined, url = undefined, method = undefined, headers = undefined, details = undefined) {
+    raiseError (exception, code = undefined, reason = undefined, url = undefined, method = undefined, headers = undefined, details = undefined) {
+        const ExceptionClass = exception.constructor
         let errorString = [this.id, method, url, code, reason].filter (x => x !== undefined).join (' ')
         if (headers !== undefined) {
             errorString += '\n' + JSON.stringify (headers)
@@ -1639,6 +1640,6 @@ module.exports = class Exchange {
         if (details !== undefined) {
             errorString += '\n' + details
         }
-        throw new Exception (errorString)
+        throw new ExceptionClass (errorString)
     }
 }
