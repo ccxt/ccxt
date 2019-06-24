@@ -190,7 +190,7 @@ module.exports = class bitstamp1 extends Exchange {
             account['free'] = this.safeFloat (balance, currencyId + '_available', 0.0);
             account['used'] = this.safeFloat (balance, currencyId + '_reserved', 0.0);
             account['total'] = this.safeFloat (balance, currencyId + '_balance', 0.0);
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
