@@ -518,7 +518,7 @@ class bitbay (Exchange):
             url += '/' + self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
-            nonce = self.now()
+            nonce = self.milliseconds()
             payload = self.apiKey + nonce
             if body is not None:
                 body = self.json(body)

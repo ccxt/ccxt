@@ -547,7 +547,7 @@ class bitbay extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);
             }
-            $nonce = $this->now ();
+            $nonce = $this->milliseconds ();
             $payload = $this->apiKey . $nonce;
             if ($body !== null) {
                 $body = $this->json ($body);
