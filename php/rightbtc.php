@@ -358,12 +358,12 @@ class rightbtc extends Exchange {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         return [
-            $ohlcv[0],
-            $ohlcv[2] / 1e8,
-            $ohlcv[3] / 1e8,
-            $ohlcv[4] / 1e8,
-            $ohlcv[5] / 1e8,
-            $ohlcv[1] / 1e8,
+            intval ($ohlcv[0]),
+            floatval ($ohlcv[2]) / 1e8,
+            floatval ($ohlcv[3]) / 1e8,
+            floatval ($ohlcv[4]) / 1e8,
+            floatval ($ohlcv[5]) / 1e8,
+            floatval ($ohlcv[1]) / 1e8,
         ];
     }
 
