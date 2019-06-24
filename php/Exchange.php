@@ -1066,17 +1066,6 @@ class Exchange {
         return $signature;
     }
 
-    public function raise_error($exception_type, $url, $method = 'GET', $error = null, $details = null) {
-        $exception_class = __NAMESPACE__ . '\\' . $exception_type;
-        throw new $exception_class(implode(' ', array(
-            $this->id,
-            $method,
-            $url,
-            $error,
-            $details,
-        )));
-    }
-
     // this method is experimental
     public function throttle() {
         $now = $this->milliseconds();
@@ -1218,20 +1207,27 @@ class Exchange {
         curl_setopt($this->curl, CURLOPT_FAILONERROR, false);
 
         $response_headers = array();
+        $http_status_text = null;
 
         // this function is called by curl for each header received
         curl_setopt($this->curl, CURLOPT_HEADERFUNCTION,
-            function ($curl, $header) use (&$response_headers) {
+            function ($curl, $header) use (&$response_headers, &$http_status_text) {
                 $length = strlen($header);
-                $header = explode(':', $header, 2);
-                if (count($header) < 2) { // ignore invalid headers
+                $header_pairs = explode(':', $header, 2);
+                if (count($header_pairs) !== 2) { // ignore invalid headers
+                    if (substr($header, 0, 4) === 'HTTP') {
+                        $header_parts = explode(' ', $header);
+                        if (count($header_parts) === 3) {
+                            $http_status_text = trim($header_parts[2]);
+                        }
+                    }
                     return $length;
                 }
-                $name = strtolower(trim($header[0]));
-                if (!array_key_exists($name, $response_headers)) {
-                    $response_headers[$name] = array(trim($header[1]));
+                $key = strtolower(trim($header_pairs[0]));
+                if (!array_key_exists($key, $response_headers)) {
+                    $response_headers[$key] = array(trim($header_pairs[1]));
                 } else {
-                    $response_headers[$name][] = trim($header[1]);
+                    $response_headers[$key][] = trim($header_pairs[1]);
                 }
                 return $length;
             }
@@ -1276,17 +1272,16 @@ class Exchange {
             print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
-        $this->handle_errors($http_status_code, $curl_error, $url, $method, $response_headers, $result ? $result : null, $json_response);
+        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response);
 
         if ($result === false) {
+            $details = 'curl error: ' . $curl_errno . ' ' . $curl_error;
             if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
-                $this->raise_error('RequestTimeout', $url, $method, $curl_errno, $curl_error);
+                $this->raise_error('RequestTimeout', $http_status_code, $http_status_text, $url, $method, $response_headers, $details);
             }
 
-            // var_dump ($result);
-
             // all sorts of SSL problems, accessibility
-            $this->raise_error('ExchangeNotAvailable', $url, $method, $curl_errno, $curl_error);
+            $this->raise_error('ExchangeNotAvailable', $http_status_code, $http_status_text, $url, $method, $response_headers, $details);
         }
 
         $string_code = (string) $http_status_code;
@@ -1306,28 +1301,23 @@ class Exchange {
                         'rate-limiting in effect',
                     )) . ')';
                 }
-                $this->raise_error($error_class, $url, $method, $http_status_code, $result, isset($details) ? $details : null);
-            } else {
-                $this->raise_error($error_class, $url, $method, $http_status_code, $result);
             }
+            $this->raise_error($error_class, $http_status_code, $http_status_text, $url, $method, $response_headers, (isset($details) ? $details . ' ': '') . $result);
         }
 
         if (!$json_response) {
-            if (preg_match('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
-                $details = '(possible reasons: ' . implode(', ', array(
+            $details = '(possible reasons: ' . implode(', ', array(
                     'exchange is down or offline',
                     'on maintenance',
                     'DDoS protection',
                     'rate-limiting in effect',
-                )) . ')';
-
-                $this->raise_error('ExchangeNotAvailable', $url, $method, $http_status_code,
-                    'not accessible from this location at the moment', $details);
+                    )) . ')';
+            if (preg_match('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
+                $this->raise_error('ExchangeNotAvailable', $http_status_code, $http_status_text, $url, $method, $response_headers, 'offline, on maintenance, or unreachable from this location at the moment '. $details);
             }
 
             if (preg_match('#cloudflare|incapsula#i', $result)) {
-                $this->raise_error('DDoSProtection', $url, $method, $http_status_code,
-                    'not accessible from this location at the moment');
+                $this->raise_error('DDosProtection', $http_status_code, $http_status_text, $url, $method, $response_headers, 'not accessible from this location at the moment ' . $details);
             }
         }
 
@@ -2684,5 +2674,29 @@ class Exchange {
         $code = ($hmac[$offset + 0] & 0x7F) << 24 | ($hmac[$offset + 1] & 0xFF) << 16 | ($hmac[$offset + 2] & 0xFF) << 8 | ($hmac[$offset + 3] & 0xFF);
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
+    }
+
+    public function raise_error ($error, $code = null, $reason = null, $url = null, $method = null, $headers = null, $details = null) {
+        if (is_string ($error)) {
+            $ExceptionClass = __NAMESPACE__ . '\\' . $error;
+        } else {
+            $ExceptionClass = get_class ($error);
+        }
+        $params = array(
+            $this->id,
+            $method,
+            $url,
+            $code,
+            $reason,
+        );
+        $filtered = array_filter($params, 'is_string');
+        $errorString = implode(' ', $filtered);
+        if ($headers !== null) {
+            $errorString = $errorString . "\n" . $this->json ($headers);
+        }
+        if ($details !== null) {
+            $errorString = $errorString . "\n" . $details;
+        }
+        throw new $ExceptionClass($errorString);
     }
 }

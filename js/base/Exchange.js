@@ -546,7 +546,7 @@ module.exports = class Exchange {
                 let ExceptionClass = ExchangeNotAvailable
                 let details = 'not accessible from this location at the moment'
                 if (maintenance)
-                    details = 'offline, on maintenance or unreachable from this location at the moment'
+                    details = 'offline, on maintenance, or unreachable from this location at the moment'
                 // http error codes proxied by cloudflare are not really DDoSProtection errors (mostly)
                 if ((response.status < 500) && (ddosProtection)) {
                     ExceptionClass = DDoSProtection
@@ -639,8 +639,7 @@ module.exports = class Exchange {
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
 
-            const args = [ response.status, response.statusText, url, method, responseHeaders, responseBody, json ]
-            this.handleErrors (...args)
+            this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
             this.defaultErrorHandler (response, responseBody, url, method)
 
             return json || responseBody
@@ -1630,5 +1629,16 @@ module.exports = class Exchange {
         } else {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
+    }
+
+    raiseError (Exception, code = undefined, reason = undefined, url = undefined, method = undefined, headers = undefined, details = undefined) {
+        let errorString = [this.id, method, url, code, reason].filter (x => x !== undefined).join (' ')
+        if (headers !== undefined) {
+            errorString += '\n' + JSON.stringify (headers)
+        }
+        if (details !== undefined) {
+            errorString += '\n' + details
+        }
+        throw new Exception (errorString)
     }
 }
