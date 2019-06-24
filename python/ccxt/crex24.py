@@ -1118,7 +1118,7 @@ class crex24 (Exchange):
                 body = self.json(params)
                 auth += body
             signature = base64.b64encode(self.hmac(self.encode(auth), secret, hashlib.sha512, 'binary'))
-            headers['X-CREX24-API-SIGN'] = signature
+            headers['X-CREX24-API-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
