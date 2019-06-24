@@ -403,7 +403,7 @@ class livecoin (Exchange):
         #         "commission": 0,
         #         "clientorderid": 1472837650
         #     }
-        timestamp = self.safe_string_2(trade, 'time', 'datetime')
+        timestamp = self.safe_integer_2(trade, 'time', 'datetime')
         if timestamp is not None:
             timestamp = timestamp * 1000
         fee = None

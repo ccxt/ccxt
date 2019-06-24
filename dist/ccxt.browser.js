@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.794'
+const version = '1.18.795'
 
 Exchange.ccxtVersion = version
 
@@ -58225,7 +58225,7 @@ module.exports = class livecoin extends Exchange {
         //         "commission": 0,
         //         "clientorderid": 1472837650
         //     }
-        let timestamp = this.safeString2 (trade, 'time', 'datetime');
+        let timestamp = this.safeInteger2 (trade, 'time', 'datetime');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
         }
