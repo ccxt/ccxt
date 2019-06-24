@@ -200,7 +200,7 @@ module.exports = class bibox extends Exchange {
         }
         const last = this.safeFloat (ticker, 'last');
         const change = this.safeFloat (ticker, 'change');
-        const baseVolume = this.safeFloat (ticker, 'vol', 'vol24H');
+        const baseVolume = this.safeFloat2 (ticker, 'vol', 'vol24H');
         let open = undefined;
         if ((last !== undefined) && (change !== undefined)) {
             open = last - change;
