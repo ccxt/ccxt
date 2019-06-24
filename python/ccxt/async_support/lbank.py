@@ -192,10 +192,16 @@ class lbank (Exchange):
         ticker = info['ticker']
         last = self.safe_float(ticker, 'latest')
         percentage = self.safe_float(ticker, 'change')
-        relativeChange = percentage / 100
-        open = last / self.sum(1, relativeChange)
-        change = last - open
-        average = self.sum(last, open) / 2
+        open = None
+        if percentage is not None:
+            relativeChange = self.sum(1, percentage / 100)
+            if relativeChange > 0:
+                open = last / self.sum(1, relativeChange)
+        change = None
+        average = None
+        if last is not None and open is not None:
+            change = last - open
+            average = self.sum(last, open) / 2
         if market is not None:
             symbol = market['symbol']
         return {

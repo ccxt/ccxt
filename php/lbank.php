@@ -195,10 +195,19 @@ class lbank extends Exchange {
         $ticker = $info['ticker'];
         $last = $this->safe_float($ticker, 'latest');
         $percentage = $this->safe_float($ticker, 'change');
-        $relativeChange = $percentage / 100;
-        $open = $last / $this->sum (1, $relativeChange);
-        $change = $last - $open;
-        $average = $this->sum ($last, $open) / 2;
+        $open = null;
+        if ($percentage !== null) {
+            $relativeChange = $this->sum (1, $percentage / 100);
+            if ($relativeChange > 0) {
+                $open = $last / $this->sum (1, $relativeChange);
+            }
+        }
+        $change = null;
+        $average = null;
+        if ($last !== null && $open !== null) {
+            $change = $last - $open;
+            $average = $this->sum ($last, $open) / 2;
+        }
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
