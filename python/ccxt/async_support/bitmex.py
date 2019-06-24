@@ -478,7 +478,8 @@ class bitmex (Exchange):
             amount = abs(amount)
         else:
             direction = 'in'
-        status = self.parse_transaction_status(item, 'transactStatus')
+
+        status = self.parse_transaction_status(self.safe_string(item, 'transactStatus'))
         return {
             'info': item,
             'id': id,
