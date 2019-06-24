@@ -22,6 +22,7 @@ module.exports = class xbtce extends Exchange {
                 'fetchOHLCV': false,
             },
             'urls': {
+                'referral': 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
                 'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
                 'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
                 'www': 'https://www.xbtce.com',
