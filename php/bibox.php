@@ -201,7 +201,7 @@ class bibox extends Exchange {
         }
         $last = $this->safe_float($ticker, 'last');
         $change = $this->safe_float($ticker, 'change');
-        $baseVolume = $this->safe_float($ticker, 'vol', 'vol24H');
+        $baseVolume = $this->safe_float_2($ticker, 'vol', 'vol24H');
         $open = null;
         if (($last !== null) && ($change !== null)) {
             $open = $last - $change;
