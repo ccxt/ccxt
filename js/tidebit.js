@@ -190,7 +190,7 @@ module.exports = class tidebit extends Exchange {
         const request = {
             'market': market['id'],
         };
-        if (limit === undefined) {
+        if (limit !== undefined) {
             request['limit'] = limit; // default = 300
         }
         request['market'] = market['id'];
