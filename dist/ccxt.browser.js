@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.815'
+const version = '1.18.817'
 
 Exchange.ccxtVersion = version
 
@@ -20717,7 +20717,11 @@ module.exports = class bitz extends Exchange {
         //       microtime:   "0.56462100 1535973435",
         //          source:   "api"                                                    }
         //
-        return this.parseOHLCVs (response['data']['bars'], market, timeframe, since, limit);
+        const bars = this.safeValue (response['data'], 'bars', undefined);
+        if (bars === undefined) {
+            return [];
+        }
+        return this.parseOHLCVs (bars, market, timeframe, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -67809,12 +67813,10 @@ module.exports = class poloniex extends Exchange {
                     ],
                 },
             },
-            // Fees are tier-based. More info: https://poloniex.com/fees/
-            // Rates below are highest possible.
             'fees': {
                 'trading': {
-                    'maker': 0.001,
-                    'taker': 0.002,
+                    'maker': 0.15 / 100,
+                    'taker': 0.25 / 100,
                 },
                 'funding': {},
             },
