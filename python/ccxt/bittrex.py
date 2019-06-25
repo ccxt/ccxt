@@ -1234,18 +1234,23 @@ class bittrex (Exchange):
                     cancel = 'cancel'
                     indexOfCancel = url.find(cancel)
                     if indexOfCancel >= 0:
-                        parts = url.split('&')
-                        orderId = None
-                        for i in range(0, len(parts)):
-                            part = parts[i]
-                            keyValue = part.split('=')
-                            if keyValue[0] == 'uuid':
-                                orderId = keyValue[1]
-                                break
-                        if orderId is not None:
-                            raise OrderNotFound(self.id + ' cancelOrder ' + orderId + ' ' + self.json(response))
-                        else:
-                            raise OrderNotFound(self.id + ' cancelOrder ' + self.json(response))
+                        urlParts = url.split('?')
+                        numParts = len(urlParts)
+                        if numParts > 1:
+                            query = urlParts[1]
+                            params = query.split('&')
+                            numParams = len(params)
+                            orderId = None
+                            for i in range(0, numParams):
+                                param = params[i]
+                                keyValue = param.split('=')
+                                if keyValue[0] == 'uuid':
+                                    orderId = keyValue[1]
+                                    break
+                            if orderId is not None:
+                                raise OrderNotFound(self.id + ' cancelOrder ' + orderId + ' ' + self.json(response))
+                            else:
+                                raise OrderNotFound(self.id + ' cancelOrder ' + self.json(response))
                 if message in exceptions:
                     raise exceptions[message](feedback)
                 if message is not None:

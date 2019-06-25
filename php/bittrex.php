@@ -1343,20 +1343,26 @@ class bittrex extends Exchange {
                     $cancel = 'cancel';
                     $indexOfCancel = mb_strpos($url, $cancel);
                     if ($indexOfCancel >= 0) {
-                        $parts = explode('&', $url);
-                        $orderId = null;
-                        for ($i = 0; $i < count ($parts); $i++) {
-                            $part = $parts[$i];
-                            $keyValue = explode('=', $part);
-                            if ($keyValue[0] === 'uuid') {
-                                $orderId = $keyValue[1];
-                                break;
+                        $urlParts = explode('?', $url);
+                        $numParts = is_array ($urlParts) ? count ($urlParts) : 0;
+                        if ($numParts > 1) {
+                            $query = $urlParts[1];
+                            $params = explode('&', $query);
+                            $numParams = is_array ($params) ? count ($params) : 0;
+                            $orderId = null;
+                            for ($i = 0; $i < $numParams; $i++) {
+                                $param = $params[$i];
+                                $keyValue = explode('=', $param);
+                                if ($keyValue[0] === 'uuid') {
+                                    $orderId = $keyValue[1];
+                                    break;
+                                }
                             }
-                        }
-                        if ($orderId !== null) {
-                            throw new OrderNotFound($this->id . ' cancelOrder ' . $orderId . ' ' . $this->json ($response));
-                        } else {
-                            throw new OrderNotFound($this->id . ' cancelOrder ' . $this->json ($response));
+                            if ($orderId !== null) {
+                                throw new OrderNotFound($this->id . ' cancelOrder ' . $orderId . ' ' . $this->json ($response));
+                            } else {
+                                throw new OrderNotFound($this->id . ' cancelOrder ' . $this->json ($response));
+                            }
                         }
                     }
                 }

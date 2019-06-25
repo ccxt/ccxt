@@ -731,7 +731,7 @@ class okcoinusd extends Exchange {
         }
         if ($limit !== null) {
             if ($this->options['fetchOHLCVWarning']) {
-                throw new ExchangeError($this->id . ' fetchOHLCV counts "$limit" candles from current time backwards, therefore the "$limit" argument for ' . $this->id . ' is disabled. Set ' . $this->id . '.options["fetchOHLCVWarning"] = false to suppress this warning message.');
+                throw new ExchangeError($this->id . ' fetchOHLCV counts "$limit" candles backwards in chronological ascending order, therefore the "$limit" argument for ' . $this->id . ' is disabled. Set ' . $this->id . '.options["fetchOHLCVWarning"] = false to suppress this warning message.');
             }
             $request['size'] = intval ($limit); // max is 1440 candles
         }
