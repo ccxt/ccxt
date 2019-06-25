@@ -184,7 +184,7 @@ class tidebit (Exchange):
         request = {
             'market': market['id'],
         }
-        if limit is None:
+        if limit is not None:
             request['limit'] = limit  # default = 300
         request['market'] = market['id']
         response = await self.publicGetDepth(self.extend(request, params))

@@ -191,7 +191,7 @@ class tidebit extends Exchange {
         $request = array (
             'market' => $market['id'],
         );
-        if ($limit === null) {
+        if ($limit !== null) {
             $request['limit'] = $limit; // default = 300
         }
         $request['market'] = $market['id'];
