@@ -601,7 +601,7 @@ module.exports = class lbank extends Exchange {
             } else {
                 pem = this.convertSecretToPem (this.secret);
             }
-            const sign = this.binaryToBase64 (this.rsa (message, pem, 'RS256'));
+            const sign = this.binaryToBase64 (this.rsa (message, this.encode (pem), 'RS256'));
             query['sign'] = sign;
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
