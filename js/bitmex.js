@@ -503,7 +503,7 @@ module.exports = class bitmex extends Exchange {
         } else {
             direction = 'in';
         }
-        const status = this.parseTransactionStatus (item, 'transactStatus');
+        const status = this.parseTransactionStatus (this.safeString (item, 'transactStatus'));
         return {
             'info': item,
             'id': id,
