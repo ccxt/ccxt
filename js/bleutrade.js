@@ -479,9 +479,9 @@ module.exports = class bleutrade extends bittrex {
         let feeCost = undefined;
         const labelParts = label.split (';');
         if (labelParts.length === 3) {
-            amount = labelParts[0];
+            amount = parseFloat (labelParts[0]);
             address = labelParts[1];
-            feeCost = labelParts[2];
+            feeCost = parseFloat (labelParts[2]);
         } else {
             address = label;
         }
