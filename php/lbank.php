@@ -602,7 +602,7 @@ class lbank extends Exchange {
             } else {
                 $pem = $this->convert_secret_to_pem ($this->secret);
             }
-            $sign = $this->binaryToBase64 ($this->rsa ($message, $pem, 'RS256'));
+            $sign = $this->binaryToBase64 ($this->rsa ($message, $this->encode ($pem), 'RS256'));
             $query['sign'] = $sign;
             $body = $this->urlencode ($query);
             $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );
