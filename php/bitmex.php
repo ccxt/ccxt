@@ -503,7 +503,7 @@ class bitmex extends Exchange {
         } else {
             $direction = 'in';
         }
-        $status = $this->parse_transaction_status ($item, 'transactStatus');
+        $status = $this->parse_transaction_status ($this->safe_string($item, 'transactStatus'));
         return array (
             'info' => $item,
             'id' => $id,
