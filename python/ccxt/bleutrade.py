@@ -434,9 +434,9 @@ class bleutrade (bittrex):
         feeCost = None
         labelParts = label.split('')
         if len(labelParts) == 3:
-            amount = labelParts[0]
+            amount = float(labelParts[0])
             address = labelParts[1]
-            feeCost = labelParts[2]
+            feeCost = float(labelParts[2])
         else:
             address = label
         fee = None

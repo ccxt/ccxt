@@ -971,7 +971,7 @@ class bittrex extends Exchange {
             $side = 'sell';
         }
         // We parse different fields in a very specific $order->
-        // Order might well be closed and then canceled.
+        // Order might well be $closed and then canceled.
         $status = null;
         if ((is_array($order) && array_key_exists('Opened', $order)) && $order['Opened']) {
             $status = 'open';
@@ -987,12 +987,14 @@ class bittrex extends Exchange {
         }
         $symbol = null;
         if (is_array($order) && array_key_exists('Exchange', $order)) {
-            $marketId = $order['Exchange'];
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-                $symbol = $market['symbol'];
-            } else {
-                $symbol = $this->parse_symbol ($marketId);
+            $marketId = $this->safe_string($order, 'Exchange');
+            if ($marketId !== null) {
+                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                    $market = $this->markets_by_id[$marketId];
+                    $symbol = $market['symbol'];
+                } else {
+                    $symbol = $this->parse_symbol ($marketId);
+                }
             }
         } else {
             if ($market !== null) {
@@ -1000,18 +1002,22 @@ class bittrex extends Exchange {
             }
         }
         $timestamp = null;
-        if (is_array($order) && array_key_exists('Opened', $order)) {
-            $timestamp = $this->parse8601 ($order['Opened'] . '+00:00');
+        $opened = $this->safe_string($order, 'Opened');
+        if ($opened !== null) {
+            $timestamp = $this->parse8601 ($opened . '+00:00');
         }
-        if (is_array($order) && array_key_exists('Created', $order)) {
-            $timestamp = $this->parse8601 ($order['Created'] . '+00:00');
+        $created = $this->safe_string($order, 'Created');
+        if ($created !== null) {
+            $timestamp = $this->parse8601 ($created . '+00:00');
         }
         $lastTradeTimestamp = null;
-        if ((is_array($order) && array_key_exists('TimeStamp', $order)) && ($order['TimeStamp'] !== null)) {
-            $lastTradeTimestamp = $this->parse8601 ($order['TimeStamp'] . '+00:00');
+        $lastTimestamp = $this->safe_string($order, 'TimeStamp');
+        if ($lastTimestamp !== null) {
+            $lastTradeTimestamp = $this->parse8601 ($lastTimestamp . '+00:00');
         }
-        if ((is_array($order) && array_key_exists('Closed', $order)) && ($order['Closed'] !== null)) {
-            $lastTradeTimestamp = $this->parse8601 ($order['Closed'] . '+00:00');
+        $closed = $this->safe_string($order, 'Closed');
+        if ($closed !== null) {
+            $lastTradeTimestamp = $this->parse8601 ($closed . '+00:00');
         }
         if ($timestamp === null) {
             $timestamp = $lastTradeTimestamp;

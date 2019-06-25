@@ -480,9 +480,9 @@ class bleutrade extends bittrex {
         $feeCost = null;
         $labelParts = explode(';', $label);
         if (strlen ($labelParts) === 3) {
-            $amount = $labelParts[0];
+            $amount = floatval ($labelParts[0]);
             $address = $labelParts[1];
-            $feeCost = $labelParts[2];
+            $feeCost = floatval ($labelParts[2]);
         } else {
             $address = $label;
         }
