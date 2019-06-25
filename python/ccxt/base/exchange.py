@@ -123,6 +123,7 @@ class Exchange(object):
     verbose = False
     markets = None
     symbols = None
+    timeframes = None
     fees = {
         'trading': {
             'percentage': True,  # subclasses should rarely have to redefine this
