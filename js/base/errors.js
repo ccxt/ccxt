@@ -72,7 +72,7 @@ function subclass (BaseClass, classes, namespace = {}) {
 
                     this.constructor = Class
                     this.__proto__   = Class.prototype
-                    this.name = className
+                    this.name        = className
                     this.message     = message
                 }
             }
