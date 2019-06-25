@@ -478,7 +478,7 @@ class bitmex (Exchange):
             amount = abs(amount)
         else:
             direction = 'in'
-        status = self.parse_transaction_status(item, 'transactStatus')
+        status = self.parse_transaction_status(self.safe_string(item, 'transactStatus'))
         return {
             'info': item,
             'id': id,
@@ -548,7 +548,7 @@ class bitmex (Exchange):
         if limit is not None:
             request['count'] = limit
         response = self.privateGetUserWalletHistory(self.extend(request, params))
-        transactions = self.filter_by_array(response, ['Withdrawal', 'Deposit'], False)
+        transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
         currency = None
         if code is not None:
             currency = self.currency(code)
