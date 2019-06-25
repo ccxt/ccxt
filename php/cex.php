@@ -907,6 +907,9 @@ class cex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
+            return $response; // public endpoints may return array()-arrays
+        }
         if (!$response) {
             throw new NullResponse($this->id . ' returned ' . $this->json ($response));
         } else if ($response === true || $response === 'true') {
