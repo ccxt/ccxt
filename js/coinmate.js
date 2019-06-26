@@ -281,6 +281,10 @@ module.exports = class coinmate extends Exchange {
         return await this.privatePostCancelOrder ({ 'orderId': id });
     }
 
+    nonce () {
+        return this.milliseconds ();
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (api === 'public') {
