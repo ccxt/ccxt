@@ -511,7 +511,8 @@ class itbit (Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             timestamp = nonce
-            auth = [method, url, body, nonce, timestamp]
+            authBody = body if (method == 'POST') else ''
+            auth = [method, url, authBody, nonce, timestamp]
             message = nonce + self.json(auth).replace('\\/', '/')
             hash = self.hash(self.encode(message), 'sha256', 'binary')
             binaryUrl = self.encode(url)

@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.819'
+const version = '1.18.820'
 
 Exchange.ccxtVersion = version
 
@@ -51537,7 +51537,8 @@ module.exports = class itbit extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const timestamp = nonce;
-            const auth = [ method, url, body, nonce, timestamp ];
+            const authBody = (method === 'POST') ? body : '';
+            const auth = [ method, url, authBody, nonce, timestamp ];
             const message = nonce + this.json (auth).replace ('\\/', '/');
             const hash = this.hash (this.encode (message), 'sha256', 'binary');
             const binaryUrl = this.stringToBinary (this.encode (url));

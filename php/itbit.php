@@ -559,7 +559,8 @@ class itbit extends Exchange {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $timestamp = $nonce;
-            $auth = array ( $method, $url, $body, $nonce, $timestamp );
+            $authBody = ($method === 'POST') ? $body : '';
+            $auth = array ( $method, $url, $authBody, $nonce, $timestamp );
             $message = $nonce . str_replace('\\/', '/', $this->json ($auth));
             $hash = $this->hash ($this->encode ($message), 'sha256', 'binary');
             $binaryUrl = $this->encode ($url);
