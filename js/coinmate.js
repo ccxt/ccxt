@@ -45,19 +45,46 @@ module.exports = class coinmate extends Exchange {
                 'private': {
                     'post': [
                         'balances',
-                        'bitcoinWithdrawal',
+                        'bitcoinCashWithdrawal',
+                        'bitcoinCashDepositAddresses',
                         'bitcoinDepositAddresses',
+                        'bitcoinWithdrawal',
+                        'bitcoinWithdrawalFees',
                         'buyInstant',
                         'buyLimit',
                         'cancelOrder',
                         'cancelOrderWithInfo',
                         'createVoucher',
+                        'dashDepositAddresses',
+                        'dashWithdrawal',
+                        'ethereumWithdrawal',
+                        'ethereumDepositAddresses',
+                        'litecoinWithdrawal',
+                        'litecoinDepositAddresses',
                         'openOrders',
+                        'order',
+                        'orderHistory',
+                        'pusherAuth',
                         'redeemVoucher',
+                        'replaceByBuyLimit',
+                        'replaceByBuyInstant',
+                        'replaceBySellLimit',
+                        'replaceBySellInstant',
+                        'rippleDepositAddresses',
+                        'rippleWithdrawal',
                         'sellInstant',
                         'sellLimit',
                         'transactionHistory',
+                        'traderFees',
+                        'tradeHistory',
+                        'transfer',
+                        'transferHistory',
                         'unconfirmedBitcoinDeposits',
+                        'unconfirmedBitcoinCashDeposits',
+                        'unconfirmedDashDeposits',
+                        'unconfirmedEthereumDeposits',
+                        'unconfirmedLitecoinDeposits',
+                        'unconfirmedRippleDeposits',
                     ],
                 },
             },
@@ -203,7 +230,72 @@ module.exports = class coinmate extends Exchange {
         };
     }
 
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 1000;
+        }
+        const request = {
+            'limit': limit,
+        };
+        if (since !== undefined) {
+            request['timestampFrom'] = since;
+        }
+        const response = await this.privatePostTradeHistory (this.extend (request, params));
+        const items = response['data'];
+        return this.parseTrades (items, undefined, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
+        if ('createdTimestamp' in trade) {
+            return this.parsePrivateTrade (trade, market);
+        } else {
+            return this.parsePublicTrade (trade, market);
+        }
+    }
+
+    parsePrivateTrade (item, market = undefined) {
+        // { transactionId: 2671819,
+        //     createdTimestamp: 1529649127605,
+        //     currencyPair: 'LTC_BTC',
+        //     type: 'BUY',
+        //     orderType: 'LIMIT',
+        //     orderId: 101810227,
+        //     amount: 0.01,
+        //     price: 0.01406,
+        //     fee: 0,
+        //     feeType: 'MAKER' }
+        const timestamp = this.safeInteger (item, 'createdTimestamp');
+        const amount = this.safeFloat (item, 'amount');
+        const price = this.safeFloat (item, 'price');
+        const fee = this.safeFloat (item, 'fee');
+        const currencyPair = this.safeString (item, 'currencyPair');
+        market = this.findMarket (currencyPair);
+        const side = this.safeString (item, 'type').toLowerCase ();
+        const type = this.safeString (item, 'orderType').toLowerCase ();
+        const takerOrMaker = this.safeString (item, 'feeType') === 'MAKER' ? 'maker' : 'taker';
+        const cost = amount * price;
+        return {
+            'id': this.safeString (item, 'transactionId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'type': type,
+            'order': this.safeString (item, 'orderId'),
+            'takerOrMaker': takerOrMaker,
+            'fee': {
+                'cost': fee,
+                'currency': market['quote'],
+            },
+            'info': item,
+        };
+    }
+
+    parsePublicTrade (trade, market = undefined) {
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (trade, 'currencyPair');
