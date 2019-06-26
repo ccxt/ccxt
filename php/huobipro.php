@@ -57,7 +57,7 @@ class huobipro extends Exchange {
                 ),
                 'www' => 'https://www.huobi.pro',
                 'referral' => 'https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3',
-                'doc' => 'https://github.com/huobiapi/API_Docs/wiki/REST_api_reference',
+                'doc' => 'https://huobiapi.github.io/docs/spot/v1/cn/',
                 'fees' => 'https://www.huobi.pro/about/fee/',
             ),
             'api' => array (
@@ -92,7 +92,7 @@ class huobipro extends Exchange {
                         'account/accounts/{id}/balance', // 查询指定账户的余额
                         'order/orders/{id}', // 查询某个订单详情
                         'order/orders/{id}/matchresults', // 查询某个订单的成交明细
-                        'order/orders', // 查询当前委托、历史委托
+                        'order/history', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
                         'dw/deposit-virtual/addresses',
@@ -648,7 +648,7 @@ class huobipro extends Exchange {
             $market = $this->market ($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetOrderOrders (array_merge ($request, $params));
+        $response = $this->privateGetOrderHistory (array_merge ($request, $params));
         //
         //     { status =>   "ok",
         //         data => array ( {                  id =>  13997833014,
@@ -1038,19 +1038,21 @@ class huobipro extends Exchange {
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $code argument');
-        }
         if ($limit === null || $limit > 100) {
             $limit = 100;
         }
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
         $request = array (
-            'currency' => $currency['id'],
             'type' => 'deposit',
             'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
         );
+        if ($currency !== null) {
+            $request['currency'] = $currency['id'];
+        }
         if ($limit !== null) {
             $request['size'] = $limit; // max 100
         }
@@ -1060,19 +1062,21 @@ class huobipro extends Exchange {
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $code argument');
-        }
         if ($limit === null || $limit > 100) {
             $limit = 100;
         }
         $this->load_markets();
-        $currency = $this->currency ($code);
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
         $request = array (
-            'currency' => $currency['id'],
             'type' => 'withdraw',
             'from' => 0, // From 'id' ... if you want to get results after a particular transaction id, pass the id in $params->from
         );
+        if ($currency !== null) {
+            $request['currency'] = $currency['id'];
+        }
         if ($limit !== null) {
             $request['size'] = $limit; // max 100
         }
