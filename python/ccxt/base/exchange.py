@@ -1342,12 +1342,10 @@ class Exchange(object):
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
 
-    def fetchStatus(self, params={}):
+    def fetch_status(self, params={}):
         if self.has['fetchTime']:
-            time = self.fetchTime(params)
-            self.status = self.extend(self.status, {
-                'updated': time,
-            })
+            updated = self.fetchTime(params)
+            self.status['updated'] = updated
         return self.status
 
     def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
