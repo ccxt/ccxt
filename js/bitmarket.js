@@ -286,16 +286,17 @@ module.exports = class bitmarket extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (limit === undefined) {
-            limit = 100;
-        }
         const request = {
             'market': market['id'],
             'count': limit,
         };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.privatePostTrades (this.extend (request, params));
-        const items = response['data']['results'];
-        return this.parseTrades (items, market, since, limit);
+        const data = this.safeValue (response, 'data', {});
+        const results = this.safeValue (data, 'results', []);
+        return this.parseTrades (results, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
