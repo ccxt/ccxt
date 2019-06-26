@@ -214,7 +214,7 @@ class Exchange(BaseExchange):
     
     async def fetch_status(self, params={}):
         if self.has['fetchTime']:
-            updated = await self.fetchTime(params)
+            updated = await self.fetch_time(params)
             self.status['updated'] = updated
         return self.status
 
