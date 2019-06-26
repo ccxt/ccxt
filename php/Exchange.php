@@ -684,7 +684,6 @@ class Exchange {
     }
 
     public function check_required_credentials($error = true) {
-        $keys = array_keys($this->requiredCredentials);
         foreach ($this->requiredCredentials as $key => $value) {
             if ($value && (!$this->$key)) {
                 if ($error) {
@@ -1222,20 +1221,30 @@ class Exchange {
         curl_setopt($this->curl, CURLOPT_FAILONERROR, false);
 
         $response_headers = array();
+        $http_status_text = '';
 
         // this function is called by curl for each header received
         curl_setopt($this->curl, CURLOPT_HEADERFUNCTION,
-            function ($curl, $header) use (&$response_headers) {
+            function ($curl, $header) use (&$response_headers, &$http_status_text) {
                 $length = strlen($header);
-                $header = explode(':', $header, 2);
-                if (count($header) < 2) { // ignore invalid headers
+                $tuple = explode(':', $header, 2);
+                if (count($tuple) !== 2) { // ignore invalid headers
+                    // if it's a "GET https://example.com/path 200 OK" line
+                    // try to parse the "OK" HTTP status string
+                    if (substr($header, 0, 4) === 'HTTP') {
+                        $parts = explode(' ', $header);
+                        if (count($parts) === 3) {
+                            $http_status_text = trim($parts[2]);
+                        }
+                    }
                     return $length;
                 }
-                $name = strtolower(trim($header[0]));
-                if (!array_key_exists($name, $response_headers)) {
-                    $response_headers[$name] = array(trim($header[1]));
+                $key = strtolower(trim($tuple[0]));
+                $value = trim($tuple[1]);
+                if (!array_key_exists($key, $response_headers)) {
+                    $response_headers[$key] = array($value);
                 } else {
-                    $response_headers[$name][] = trim($header[1]);
+                    $response_headers[$key][] = $value;
                 }
                 return $length;
             }
@@ -1280,7 +1289,7 @@ class Exchange {
             print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
-        $this->handle_errors($http_status_code, $curl_error, $url, $method, $response_headers, $result ? $result : null, $json_response);
+        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response);
 
         if ($result === false) {
             if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
