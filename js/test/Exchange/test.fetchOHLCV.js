@@ -14,6 +14,7 @@ const log       = require ('ololog')
 module.exports = async (exchange, symbol) => {
 
     const skippedExchanges = [
+        'bitmex', // an issue with null values,to be resolved later
         'cex',
         'okex',
         'okcoinusd',
