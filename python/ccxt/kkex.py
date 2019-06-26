@@ -343,7 +343,7 @@ class kkex (Exchange):
         }
         if since is not None:
             # since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
-            request['since'] = since
+            request['since'] = int(since / 1000)
         if limit is not None:
             request['size'] = limit
         response = self.publicGetKline(self.extend(request, params))
