@@ -1223,21 +1223,24 @@ class Exchange {
         curl_setopt($this->curl, CURLOPT_HEADERFUNCTION,
             function ($curl, $header) use (&$response_headers, &$http_status_text) {
                 $length = strlen($header);
-                $header_pairs = explode(':', $header, 2);
-                if (count($header_pairs) !== 2) { // ignore invalid headers
+                $tuple = explode(':', $header, 2);
+                if (count($tuple) !== 2) { // ignore invalid headers
+                    // if it's a "GET https://example.com/path 200 OK" line
+                    // try to parse the "OK" HTTP status string
                     if (substr($header, 0, 4) === 'HTTP') {
-                        $header_parts = explode(' ', $header);
-                        if (count($header_parts) === 3) {
-                            $http_status_text = trim($header_parts[2]);
+                        $parts = explode(' ', $header);
+                        if (count($parts) === 3) {
+                            $http_status_text = trim($parts[2]);
                         }
                     }
                     return $length;
                 }
-                $key = strtolower(trim($header_pairs[0]));
+                $key = strtolower(trim($tuple[0]));
+                $value = trim($tuple[1]);
                 if (!array_key_exists($key, $response_headers)) {
-                    $response_headers[$key] = array(trim($header_pairs[1]));
+                    $response_headers[$key] = array($value);
                 } else {
-                    $response_headers[$key][] = trim($header_pairs[1]);
+                    $response_headers[$key][] = $value;
                 }
                 return $length;
             }
