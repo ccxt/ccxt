@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, AuthenticationError } = require ('./base/errors');
-const crypto = require ('crypto');
 
 //  ---------------------------------------------------------------------------
 
