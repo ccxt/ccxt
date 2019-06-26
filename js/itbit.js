@@ -561,7 +561,7 @@ module.exports = class itbit extends Exchange {
             const timestamp = nonce;
             const message =
             nonce +
-            JSON.stringify ([method, url, '', nonce.toString (), timestamp.toString ()]);
+            JSON.stringify ([method, url, body, nonce.toString (), timestamp.toString ()]);
             const hashBuffer = crypto
                 .createHash ('sha256')
                 .update (message)
