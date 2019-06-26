@@ -1139,7 +1139,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 - `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
 - `fetchOrderBook (symbol[, limit = undefined[, params = {}]])`: Fetch L2/L3 order book for a particular market trading symbol.
-- `fetchStatus ([, params = {}])`: Returns information regarding the exchange status from either the instance or the api if available such as `status`, `updated`, `eta`, `url`.
+- `fetchStatus ([, params = {}])`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
 - `fetchL2OrderBook (symbol[, limit = undefined[, params]])`: Level 2 (price-aggregated) order book for a particular symbol.
 - `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
@@ -3075,26 +3075,35 @@ Because this is still a work in progress, some or all of methods and info descri
 
 ### Exchange Status
 
-The exchange status describes the latest known information regarding the exchange api. This information is either hardcoded into the class or fetched directly from the api.
-The `fetchStatus` method can be used to get this information. 
-The fetchStatus method functions using either of the following methods:
-- Hardcoded into the exchange class, e.g. if the api has changed or shutdown
-- Updated using the exchange ping or fetchTime endpoint to see if its alive
-- Updated using the dedicated exchange api status endpoint.
+The exchange status describes the latest known information on the availability of the exchange API. This information is either hardcoded into the exchange class or fetched live directly from the exchange API. The `fetchStatus(params = {})` method can be used to get this information. The status returned by `fetchStatus` is one of:
+
+- Hardcoded into the exchange class, e.g. if the API has been broken or shutdown.
+- Updated using the exchange ping or `fetchTime` endpoint to see if its alive
+- Updated using the dedicated exchange API status endpoint.
 
 ```Javascript
 fetchStatus(params = {})
  ```  
 
-### Exchange Status Structure
+#### Exchange Status Structure
+
+The `fetchStatus()` method will return a status structure like shown below:
+
 ```Javascript
 {
-    'status': 'ok' // possible values of 'ok', 'shutdown', 'error', 'maintenance'
-    'updated': undefined // Last Updated time if updated via the endpoints
-    'eta': undefined, // When the maintenance or error is expected to be fixed
-    'url': undefined, // Link to CCXT Github Issue referencing the cause of the status
+    'status': 'ok' // 'ok', 'shutdown', 'error', 'maintenance'
+    'updated': undefined // integer, last updated timestamp in milliseconds if updated via the API
+    'eta': undefined, // when the maintenance or outage is expected to end
+    'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
 }
 ```
+
+The possible values in the `status` field are:
+
+- `'ok'` means the exchange API is fully operational
+- `'shutdown`' means the exchange was closed, and the `updated` field should contain the datetime of the shutdown
+- `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
+- `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
 ### Trading Fees
 
