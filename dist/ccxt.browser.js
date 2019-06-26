@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.829'
+const version = '1.18.830'
 
 Exchange.ccxtVersion = version
 
@@ -61553,6 +61553,7 @@ module.exports = class mercado extends Exchange {
                 'fetchTickers': false,
             },
             'timeframes': {
+                '1m': '1m',
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
@@ -61999,7 +62000,8 @@ module.exports = class mercado extends Exchange {
             request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
         }
         const response = await this.v4PublicGetCoinCandle (this.extend (request, params));
-        return this.parseOHLCVs (response['candles'], market, timeframe, since, limit);
+        const candles = this.safeValue (response, 'candles', []);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

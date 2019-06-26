@@ -31,6 +31,7 @@ class mercado (Exchange):
                 'fetchTickers': False,
             },
             'timeframes': {
+                '1m': '1m',
                 '5m': '5m',
                 '15m': '15m',
                 '30m': '30m',
@@ -436,7 +437,8 @@ class mercado (Exchange):
             request['to'] = self.seconds()
             request['from'] = request['to'] - (limit * self.parse_timeframe(timeframe))
         response = self.v4PublicGetCoinCandle(self.extend(request, params))
-        return self.parse_ohlcvs(response['candles'], market, timeframe, since, limit)
+        candles = self.safe_value(response, 'candles', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
