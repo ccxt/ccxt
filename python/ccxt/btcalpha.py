@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -117,17 +110,19 @@ class btcalpha (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetPairs()
+        response = self.publicGetPairs(params)
         result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = market['name']
-            base = self.common_currency_code(market['currency1'])
-            quote = self.common_currency_code(market['currency2'])
+        for i in range(0, len(response)):
+            market = response[i]
+            id = self.safe_string(market, 'name')
+            baseId = self.safe_string(market, 'currency1')
+            quoteId = self.safe_string(market, 'currency2')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
-                'price': int(market['price_precision']),
+                'price': self.safe_integer(market, 'price_precision'),
             }
             result.append({
                 'id': id,
@@ -138,8 +133,8 @@ class btcalpha (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': float(market['minimum_order_size']),
-                        'max': float(market['maximum_order_size']),
+                        'min': self.safe_float(market, 'minimum_order_size'),
+                        'max': self.safe_float(market, 'maximum_order_size'),
                     },
                     'price': {
                         'min': math.pow(10, -precision['price']),
@@ -167,35 +162,36 @@ class btcalpha (Exchange):
 
     def parse_trade(self, trade, market=None):
         symbol = None
-        if not market:
+        if market is None:
             market = self.safe_value(self.marketsById, trade['pair'])
-        if market:
+        if market is not None:
             symbol = market['symbol']
-        timestamp = int(trade['timestamp'] * 1000)
-        price = float(trade['price'])
-        amount = float(trade['amount'])
-        cost = self.cost_to_precision(symbol, price * amount)
-        id = self.safe_string(trade, 'id')
-        side = None
-        if 'my_side' in trade:
-            side = self.safe_string(trade, 'my_side')
-        else:
-            side = self.safe_string(trade, 'side')
-        if not id:
-            id = self.safe_string(trade, 'tid')
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = float(self.cost_to_precision(symbol, price * amount))
+        id = self.safe_string_2(trade, 'id', 'tid')
+        side = self.safe_string_2(trade, 'my_side', 'side')
+        orderId = self.safe_string(trade, 'o_id')
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
-            'order': self.safe_string(trade, 'o_id'),
+            'order': orderId,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': float(cost),
+            'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -205,7 +201,7 @@ class btcalpha (Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         trades = self.publicGetExchanges(self.extend(request, params))
         return self.parse_trades(trades, market, since, limit)
@@ -227,27 +223,28 @@ class btcalpha (Exchange):
             'pair': market['id'],
             'type': self.timeframes[timeframe],
         }
-        if limit:
+        if limit is not None:
             request['limit'] = limit
-        if since:
+        if since is not None:
             request['since'] = int(since / 1000)
         response = self.publicGetChartsPairTypeChart(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetWallets(params)
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currency = self.common_currency_code(balance['currency'])
+        response = self.privateGetWallets(params)
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.common_currency_code(currencyId)
             used = self.safe_float(balance, 'reserve')
             total = self.safe_float(balance, 'balance')
             free = None
             if used is not None:
                 if total is not None:
                     free = total - used
-            result[currency] = {
+            result[code] = {
                 'free': free,
                 'used': used,
                 'total': total,
@@ -264,22 +261,19 @@ class btcalpha (Exchange):
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
+        if market is None:
             market = self.safe_value(self.marketsById, order['pair'])
-        if market:
+        if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'date')
         if timestamp is not None:
             timestamp *= 1000
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string(order, 'oid')
-        if not id:
-            id = self.safe_string(order, 'id')
-        trades = self.safe_value(order, 'trades')
-        if trades:
-            trades = self.parse_trades(trades, market)
+        id = self.safe_string_2(order, 'oid', 'id')
+        trades = self.safe_value(order, 'trades', [])
+        trades = self.parse_trades(trades, market)
         side = self.safe_string_2(order, 'my_side', 'type')
         return {
             'id': id,
@@ -302,60 +296,63 @@ class btcalpha (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.privatePostOrder(self.extend({
+        request = {
             'pair': market['id'],
             'type': side,
             'amount': amount,
             'price': self.price_to_precision(symbol, price),
-        }, params))
+        }
+        response = self.privatePostOrder(self.extend(request, params))
         if not response['success']:
             raise InvalidOrder(self.id + ' ' + self.json(response))
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
-        response = self.privatePostOrderCancel(self.extend({
+        request = {
             'order': id,
-        }, params))
+        }
+        response = self.privatePostOrderCancel(self.extend(request, params))
         return response
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        order = self.privateGetOrderId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        order = self.privateGetOrderId(self.extend(request, params))
         return self.parse_order(order)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         orders = self.privateGetOrdersOwn(self.extend(request, params))
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'status': '1',
-        }, params))
-        return orders
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'status': '3',
-        }, params))
-        return orders
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         request = {}
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-        if limit:
+        if limit is not None:
             request['limit'] = limit
         trades = self.privateGetExchangesOwn(self.extend(request, params))
         return self.parse_trades(trades, None, since, limit)
@@ -388,16 +385,13 @@ class btcalpha (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
+        if response is None:
+            return  # fallback to default error handler
         if code < 400:
-            return
-        if not isinstance(body, basestring):
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            message = self.id + ' ' + self.safe_value(response, 'detail', body)
-            if code == 401 or code == 403:
-                raise AuthenticationError(message)
-            elif code == 429:
-                raise DDoSProtection(message)
-            raise ExchangeError(message)
+        message = self.id + ' ' + self.safe_value(response, 'detail', body)
+        if code == 401 or code == 403:
+            raise AuthenticationError(message)
+        elif code == 429:
+            raise DDoSProtection(message)
+        raise ExchangeError(message)

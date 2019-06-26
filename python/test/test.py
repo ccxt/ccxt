@@ -312,6 +312,8 @@ def try_all_proxies(exchange, proxies=['']):
     # a special case for ccex
     if exchange.id == 'ccex' and max_retries > 1:
         current_proxy = 1
+    if exchange.proxy in proxies:
+        current_proxy = proxies.index(exchange.proxy)
     for num_retries in range(0, max_retries):
         try:
             exchange.proxy = proxies[current_proxy]
@@ -365,7 +367,7 @@ for id in ccxt.exchanges:
     if sys.version_info[0] < 3:
         exchange_config.update({'enableRateLimit': True})
     if id in config:
-        exchange_config.update(config[id])
+        exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
     exchanges[id] = exchange(exchange_config)
 
 # ------------------------------------------------------------------------------

@@ -99,6 +99,7 @@ module.exports = class coinmarketcap extends Exchange {
             'Bitgem': 'Bitgem',
             'BlazeCoin': 'BlazeCoin',
             'BlockCAT': 'BlockCAT',
+            'Blocktrade Token': 'Blocktrade Token',
             'Catcoin': 'Catcoin',
             'CanYaCoin': 'CanYaCoin', // conflict with CAN (Content and AD Network)
             'Comet': 'Comet', // conflict with CMT (CyberMiles)
@@ -116,6 +117,7 @@ module.exports = class coinmarketcap extends Exchange {
             'GuccioneCoin': 'GuccioneCoin', // conflict with GCC (Global Cryptocurrency)
             'HarmonyCoin': 'HarmonyCoin', // conflict with HMC (Hi Mutual Society)
             'Harvest Masternode Coin': 'Harvest Masternode Coin', // conflict with HC (HyperCash)
+            'HOT Token': 'HOT Token',
             'Hydro Protocol': 'Hydro Protocol', // conflict with HOT (Holo)
             'Huncoin': 'Huncoin', // conflict with HNC (Helleniccoin)
             'iCoin': 'iCoin',
@@ -130,26 +132,25 @@ module.exports = class coinmarketcap extends Exchange {
             'PutinCoin': 'PutinCoin', // conflict with PUT (Profile Utility Token)
             'Rcoin': 'Rcoin', // conflict with RCN (Ripio Credit Network)
         };
-        if (name in currencies)
-            return currencies[name];
-        return base;
+        return this.safeValue (currencies, name, base);
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetTicker ({
+        const request = {
             'limit': 0,
-        });
-        let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let currencies = this.currencyCodes;
-            for (let i = 0; i < currencies.length; i++) {
-                let quote = currencies[i];
-                let quoteId = quote.toLowerCase ();
-                let baseId = market['id'];
-                let base = this.currencyCode (market['symbol'], market['name']);
-                let symbol = base + '/' + quote;
-                let id = baseId + '/' + quoteId;
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const currencies = this.currencyCodes;
+            for (let j = 0; j < currencies.length; j++) {
+                const quote = currencies[j];
+                const quoteId = quote.toLowerCase ();
+                const baseId = market['id'];
+                const base = this.currencyCode (market['symbol'], market['name']);
+                const symbol = base + '/' + quote;
+                const id = baseId + '/' + quoteId;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -166,34 +167,30 @@ module.exports = class coinmarketcap extends Exchange {
 
     async fetchGlobal (currency = 'USD') {
         await this.loadMarkets ();
-        let request = {};
-        if (currency)
+        const request = {};
+        if (currency) {
             request['convert'] = currency;
+        }
         return await this.publicGetGlobal (request);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.milliseconds ();
-        if ('last_updated' in ticker)
-            if (ticker['last_updated'])
-                timestamp = parseInt (ticker['last_updated']) * 1000;
-        let change = undefined;
-        if ('percent_change_24h' in ticker)
-            if (ticker['percent_change_24h'])
-                change = this.safeFloat (ticker, 'percent_change_24h');
+        let timestamp = this.safeInteger (ticker, 'last_updated');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        } else {
+            timestamp = this.milliseconds ();
+        }
+        const change = this.safeFloat (ticker, 'percent_change_24h');
         let last = undefined;
         let symbol = undefined;
         let volume = undefined;
         if (market !== undefined) {
-            let priceKey = 'price_' + market['quoteId'];
-            if (priceKey in ticker)
-                if (ticker[priceKey])
-                    last = this.safeFloat (ticker, priceKey);
             symbol = market['symbol'];
-            let volumeKey = '24h_volume_' + market['quoteId'];
-            if (volumeKey in ticker)
-                if (ticker[volumeKey])
-                    volume = this.safeFloat (ticker, volumeKey);
+            const priceKey = 'price_' + market['quoteId'];
+            last = this.safeFloat (ticker, priceKey);
+            const volumeKey = '24h_volume_' + market['quoteId'];
+            volume = this.safeFloat (ticker, volumeKey);
         }
         return {
             'symbol': symbol,
@@ -221,54 +218,56 @@ module.exports = class coinmarketcap extends Exchange {
 
     async fetchTickers (currency = 'USD', params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'limit': 10000,
         };
-        if (currency)
+        if (currency) {
             request['convert'] = currency;
-        let response = await this.publicGetTicker (this.extend (request, params));
-        let tickers = {};
+        }
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const result = {};
         for (let t = 0; t < response.length; t++) {
-            let ticker = response[t];
-            let currencyId = currency.toLowerCase ();
-            let id = ticker['id'] + '/' + currencyId;
+            const ticker = response[t];
+            const currencyId = currency.toLowerCase ();
+            const id = ticker['id'] + '/' + currencyId;
             let symbol = id;
             let market = undefined;
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
-            tickers[symbol] = this.parseTicker (ticker, market);
+            result[symbol] = this.parseTicker (ticker, market);
         }
-        return tickers;
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'convert': market['quote'],
             'id': market['baseId'],
-        }, params);
-        let response = await this.publicGetTickerId (request);
-        let ticker = response[0];
+        };
+        const response = await this.publicGetTickerId (this.extend (request, params));
+        const ticker = response[0];
         return this.parseTicker (ticker, market);
     }
 
     async fetchCurrencies (params = {}) {
-        let currencies = await this.publicGetTicker (this.extend ({
+        const request = {
             'limit': 0,
-        }, params));
-        let result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['symbol'];
-            let name = currency['name'];
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'symbol');
+            const name = this.safeString (currency, 'name');
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            let precision = 8; // default precision, todo: fix "magic constants"
-            let code = this.currencyCode (id, name);
+            const precision = 8; // default precision, todo: fix "magic constants"
+            const code = this.currencyCode (id, name);
             result[code] = {
                 'id': id,
                 'code': code,
@@ -302,14 +301,15 @@ module.exports = class coinmarketcap extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length)
+        const query = this.omit (params, this.extractParams (path));
+        if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+        const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('error' in response) {
             if (response['error']) {
                 throw new ExchangeError (this.id + ' ' + this.json (response));

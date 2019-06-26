@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -35,14 +36,13 @@ class deribit (Exchange):
                 'fetchMyTrades': True,
                 'fetchTickers': False,
             },
-            'timeframes': {},
             'urls': {
                 'test': 'https://test.deribit.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
                 'api': 'https://www.deribit.com',
                 'www': 'https://www.deribit.com',
                 'doc': [
-                    'https://docs.deribit.com/',
+                    'https://docs.deribit.com',
                     'https://github.com/deribit',
                 ],
                 'fees': 'https://www.deribit.com/pages/information/fees',
@@ -51,6 +51,7 @@ class deribit (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'ping',
                         'test',
                         'getinstruments',
                         'index',
@@ -142,16 +143,16 @@ class deribit (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        marketsResponse = self.publicGetGetinstruments()
-        markets = marketsResponse['result']
+        response = self.publicGetGetinstruments(params)
+        markets = self.safe_value(response, 'result')
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['instrumentName']
-            base = market['baseCurrency']
-            quote = market['currency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'instrumentName')
+            baseId = self.safe_string(market, 'baseCurrency')
+            quoteId = self.safe_string(market, 'currency')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             result.append({
                 'id': id,
                 'symbol': id,
@@ -179,34 +180,34 @@ class deribit (Exchange):
         return result
 
     def fetch_balance(self, params={}):
-        account = self.privateGetAccount()
+        response = self.privateGetAccount(params)
         result = {
             'BTC': {
-                'free': account['result']['availableFunds'],
-                'used': account['result']['maintenanceMargin'],
-                'total': account['result']['equity'],
+                'free': self.safe_float(response['result'], 'availableFunds'),
+                'used': self.safe_float(response['result'], 'maintenanceMargin'),
+                'total': self.safe_float(response['result'], 'equity'),
             },
         }
         return self.parse_balance(result)
 
     def fetch_deposit_address(self, currency, params={}):
-        account = self.privateGetAccount()
+        response = self.privateGetAccount(params)
+        address = self.safe_string(response, 'depositAddress')
         return {
-            'currency': 'BTC',
-            'address': account['depositAddress'],
+            'currency': self.common_currency_code('BTC'),
+            'address': address,
             'tag': None,
-            'info': account,
+            'info': response,
         }
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'created')
-        iso8601 = None if (timestamp is None) else self.iso8601(timestamp)
         symbol = self.find_symbol(self.safe_string(ticker, 'instrumentName'), market)
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bidPrice'),
@@ -229,28 +230,86 @@ class deribit (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetGetsummary(self.extend({
+        request = {
             'instrument': market['id'],
-        }, params))
+        }
+        response = self.publicGetGetsummary(self.extend(request, params))
         return self.parse_ticker(response['result'], market)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "tradeId":23197559,
+        #         "instrument":"BTC-28JUN19",
+        #         "timeStamp":1559643011379,
+        #         "tradeSeq":1997200,
+        #         "quantity":2,
+        #         "amount":20.0,
+        #         "price":8010.0,
+        #         "direction":"sell",
+        #         "tickDirection":2,
+        #         "indexPrice":7969.01
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         "quantity":54,
+        #         "amount":540.0,
+        #         "tradeId":23087297,
+        #         "instrument":"BTC-PERPETUAL",
+        #         "timeStamp":1559604178803,
+        #         "tradeSeq":8265011,
+        #         "price":8213.0,
+        #         "side":"sell",
+        #         "orderId":12373631800,
+        #         "matchingId":0,
+        #         "liquidity":"T",
+        #         "fee":0.000049312,
+        #         "feeCurrency":"BTC",
+        #         "tickDirection":3,
+        #         "indexPrice":8251.94,
+        #         "selfTrade":false
+        #     }
+        #
         id = self.safe_string(trade, 'tradeId')
+        orderId = self.safe_string(trade, 'orderId')
         symbol = None
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'timeStamp')
+        side = self.safe_string_2(trade, 'side', 'direction')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'quantity')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
+        fee = None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'feeCurrency')
+            feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
         return {
-            'info': trade,
             'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': None,
+            'order': orderId,
             'type': None,
-            'side': trade['direction'],
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'quantity'),
+            'side': side,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -264,13 +323,41 @@ class deribit (Exchange):
         else:
             request['limit'] = 10000
         response = self.publicGetGetlasttrades(self.extend(request, params))
-        return self.parse_trades(response['result'], market, since, limit)
+        #
+        #     {
+        #         "usOut":1559643108984527,
+        #         "usIn":1559643108984470,
+        #         "usDiff":57,
+        #         "testnet":false,
+        #         "success":true,
+        #         "result": [
+        #             {
+        #                 "tradeId":23197559,
+        #                 "instrument":"BTC-28JUN19",
+        #                 "timeStamp":1559643011379,
+        #                 "tradeSeq":1997200,
+        #                 "quantity":2,
+        #                 "amount":20.0,
+        #                 "price":8010.0,
+        #                 "direction":"sell",
+        #                 "tickDirection":2,
+        #                 "indexPrice":7969.01
+        #             }
+        #         ],
+        #         "message":""
+        #     }
+        #
+        result = self.safe_value(response, 'result', [])
+        return self.parse_trades(result, market, since, limit)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetGetorderbook({'instrument': market['id']})
-        timestamp = int(response['usOut'] / 1000)
+        request = {
+            'instrument': market['id'],
+        }
+        response = self.publicGetGetorderbook(self.extend(request, params))
+        timestamp = self.safe_integer(response, 'usOut') / 1000
         orderbook = self.parse_order_book(response['result'], timestamp, 'bids', 'asks', 'price', 'quantity')
         return self.extend(orderbook, {
             'nonce': self.safe_integer(response, 'tstamp'),
@@ -282,9 +369,7 @@ class deribit (Exchange):
             'cancelled': 'canceled',
             'filled': 'closed',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
@@ -342,13 +427,18 @@ class deribit (Exchange):
             'currency': 'BTC',
         }
         type = self.safe_string(order, 'type')
+        marketId = self.safe_string(order, 'instrument')
+        symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': order['instrument'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
@@ -364,8 +454,14 @@ class deribit (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateGetOrderstate({'orderId': id})
-        return self.parse_order(response['result'])
+        request = {
+            'orderId': id,
+        }
+        response = self.privateGetOrderstate(self.extend(request, params))
+        result = self.safe_value(response, 'result')
+        if result is None:
+            raise OrderNotFound(self.id + ' fetchOrder() ' + self.json(response))
+        return self.parse_order(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -373,6 +469,7 @@ class deribit (Exchange):
             'instrument': self.market_id(symbol),
             'quantity': amount,
             'type': type,
+            # 'post_only': 'false' or 'true', https://github.com/ccxt/ccxt/issues/5159
         }
         if price is not None:
             request['price'] = price
@@ -397,10 +494,15 @@ class deribit (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostCancel(self.extend({'orderId': id}, params))
+        request = {
+            'orderId': id,
+        }
+        response = self.privatePostCancel(self.extend(request, params))
         return self.parse_order(response['result']['order'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -410,6 +512,8 @@ class deribit (Exchange):
         return self.parse_orders(response['result'], market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -427,7 +531,39 @@ class deribit (Exchange):
         if limit is not None:
             request['count'] = limit  # default = 20
         response = self.privateGetTradehistory(self.extend(request, params))
-        return self.parse_trades(response['result'], market, since, limit)
+        #
+        #     {
+        #         "usOut":1559611553394836,
+        #         "usIn":1559611553394000,
+        #         "usDiff":836,
+        #         "testnet":false,
+        #         "success":true,
+        #         "result": [
+        #             {
+        #                 "quantity":54,
+        #                 "amount":540.0,
+        #                 "tradeId":23087297,
+        #                 "instrument":"BTC-PERPETUAL",
+        #                 "timeStamp":1559604178803,
+        #                 "tradeSeq":8265011,
+        #                 "price":8213.0,
+        #                 "side":"sell",
+        #                 "orderId":12373631800,
+        #                 "matchingId":0,
+        #                 "liquidity":"T",
+        #                 "fee":0.000049312,
+        #                 "feeCurrency":"BTC",
+        #                 "tickDirection":3,
+        #                 "indexPrice":8251.94,
+        #                 "selfTrade":false
+        #             }
+        #         ],
+        #         "message":"",
+        #         "has_more":true
+        #     }
+        #
+        trades = self.safe_value(response, 'result', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def nonce(self):
         return self.milliseconds()
@@ -442,7 +578,7 @@ class deribit (Exchange):
             self.check_required_credentials()
             nonce = str(self.nonce())
             auth = '_=' + nonce + '&_ackey=' + self.apiKey + '&_acsec=' + self.secret + '&_action=' + query
-            if method == 'POST':
+            if params:
                 params = self.keysort(params)
                 auth += '&' + self.urlencode(params)
             hash = self.hash(self.encode(auth), 'sha256', 'base64')
@@ -453,6 +589,8 @@ class deribit (Exchange):
             if method != 'GET':
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
                 body = self.urlencode(params)
+            elif params:
+                url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):

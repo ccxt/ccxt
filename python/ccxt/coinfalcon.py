@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import DDoSProtection
 
 
@@ -22,6 +23,7 @@ class coinfalcon (Exchange):
             'has': {
                 'fetchTickers': True,
                 'fetchOpenOrders': True,
+                'fetchMyTrades': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
@@ -68,8 +70,8 @@ class coinfalcon (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetMarkets()
-        markets = response['data']
+        response = self.publicGetMarkets(params)
+        markets = self.safe_value(response, 'data')
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -132,22 +134,23 @@ class coinfalcon (Exchange):
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': float(ticker['change_in_24h']),
+            'change': self.safe_float(ticker, 'change_in_24h'),
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['volume']),
+            'quoteVolume': self.safe_float(ticker, 'volume'),
             'info': ticker,
         }
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         tickers = self.fetch_tickers(params)
         return tickers[symbol]
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetMarkets()
-        tickers = response['data']
+        response = self.publicGetMarkets(params)
+        tickers = self.safe_value(response, 'data')
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
@@ -157,32 +160,63 @@ class coinfalcon (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        response = self.publicGetMarketsMarketOrders(self.extend({
+        request = {
             'market': self.market_id(symbol),
             'level': '3',
-        }, params))
+        }
+        response = self.publicGetMarketsMarketOrders(self.extend(request, params))
         return self.parse_order_book(response['data'], None, 'bids', 'asks', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['created_at'])
-        price = float(trade['price'])
-        amount = float(trade['size'])
+        timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'size')
         symbol = market['symbol']
-        cost = float(self.cost_to_precision(symbol, price * amount))
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = float(self.cost_to_precision(symbol, price * amount))
+        tradeId = self.safe_string(trade, 'id')
+        side = self.safe_string(trade, 'side')
+        orderId = self.safe_string(trade, 'order_id')
+        fee = None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrencyCode = None
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': None,
-            'order': None,
+            'id': tradeId,
+            'order': orderId,
             'type': None,
-            'side': None,
+            'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+        }
+        if since is not None:
+            request['start_time'] = self.iso8601(since)
+        if limit is not None:
+            request['limit'] = limit
+        response = self.privateGetUserTrades(self.extend(request, params))
+        return self.parse_trades(response['data'], market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -199,7 +233,7 @@ class coinfalcon (Exchange):
         self.load_markets()
         response = self.privateGetUserAccounts(params)
         result = {'info': response}
-        balances = response['data']
+        balances = self.safe_value(response, 'data')
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')
@@ -208,12 +242,22 @@ class coinfalcon (Exchange):
             if uppercase in self.currencies_by_id:
                 code = self.currencies_by_id[uppercase]['code']
             account = {
-                'free': float(balance['available_balance']),
-                'used': float(balance['hold_balance']),
-                'total': float(balance['balance']),
+                'free': self.safe_float(balance, 'available_balance'),
+                'used': self.safe_float(balance, 'hold_balance'),
+                'total': self.safe_float(balance, 'balance'),
             }
             result[code] = account
         return self.parse_balance(result)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'fulfilled': 'closed',
+            'canceled': 'canceled',
+            'pending': 'open',
+            'open': 'open',
+            'partially_filled': 'open',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         if market is None:
@@ -223,29 +267,31 @@ class coinfalcon (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.parse8601(order['created_at'])
+        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'size_filled')
-        remaining = float(self.amount_to_precision(symbol, amount - filled))
-        cost = float(self.price_to_precision(symbol, amount * price))
-        # pending, open, partially_filled, fullfilled, canceled
-        status = order['status']
-        if status == 'fulfilled':
-            status = 'closed'
-        elif status == 'canceled':
-            status = 'canceled'
-        else:
-            status = 'open'
-        type = order['operation_type'].split('_')
+        remaining = None
+        cost = None
+        if amount is not None:
+            if filled is not None:
+                remaining = float(self.amount_to_precision(symbol, amount - filled))
+            if price is not None:
+                cost = float(self.price_to_precision(symbol, filled * price))
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        type = self.safe_string(order, 'operation_type')
+        if type is not None:
+            type = type.split('_')
+            type = type[0]
+        side = self.safe_string(order, 'order_type')
         return {
             'id': self.safe_string(order, 'id'),
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'status': status,
             'symbol': symbol,
-            'type': type[0],
-            'side': order['order_type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -260,10 +306,9 @@ class coinfalcon (Exchange):
         self.load_markets()
         market = self.market(symbol)
         # price/size must be string
-        amount = self.amount_to_precision(symbol, amount)
         request = {
             'market': market['id'],
-            'size': amount,
+            'size': self.amount_to_precision(symbol, amount),
             'order_type': side,
         }
         if type == 'limit':
@@ -278,17 +323,19 @@ class coinfalcon (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateDeleteUserOrdersId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        response = self.privateDeleteUserOrdersId(self.extend(request, params))
         market = self.market(symbol)
         return self.parse_order(response['data'], market)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateGetUserOrdersId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        response = self.privateGetUserOrdersId(self.extend(request, params))
         return self.parse_order(response['data'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -306,17 +353,16 @@ class coinfalcon (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + 'api/' + self.version + '/' + self.implode_params(path, params)
-        url = self.urls['api'] + request
+        request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
-                url += '?' + self.urlencode(query)
+                request += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             if method == 'GET':
                 if query:
-                    url += '?' + self.urlencode(query)
+                    request += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
             seconds = str(self.seconds())
@@ -330,6 +376,7 @@ class coinfalcon (Exchange):
                 'CF-API-SIGNATURE': signature,
                 'Content-Type': 'application/json',
             }
+        url = self.urls['api'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):

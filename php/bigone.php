@@ -16,13 +16,14 @@ class bigone extends Exchange {
             'countries' => array ( 'GB' ),
             'version' => 'v2',
             'has' => array (
-                'fetchTickers' => true,
-                'fetchOpenOrders' => true,
-                'fetchMyTrades' => true,
-                'fetchDepositAddress' => true,
-                'withdraw' => true,
-                'fetchOHLCV' => false,
+                'cancelAllOrders' => true,
                 'createMarketOrder' => false,
+                'fetchDepositAddress' => true,
+                'fetchMyTrades' => false,
+                'fetchOHLCV' => false,
+                'fetchOpenOrders' => true,
+                'fetchTickers' => true,
+                'withdraw' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/42803606-27c2b5ec-89af-11e8-8d15-9c8c245e8b2c.jpg',
@@ -92,7 +93,7 @@ class bigone extends Exchange {
             'exceptions' => array (
                 'codes' => array (
                     '401' => '\\ccxt\\AuthenticationError',
-                    '10030' => '\\ccxt\\InvalidNonce', // array ("message":"invalid nonce, nonce should be a 19bits number","code":10030)
+                    '10030' => '\\ccxt\\InvalidNonce', // array("message":"invalid nonce, nonce should be a 19bits number","code":10030)
                 ),
                 'detail' => array (
                     'Internal server error' => '\\ccxt\\ExchangeNotAvailable',
@@ -102,34 +103,36 @@ class bigone extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetMarkets ();
-        $markets = $response['data'];
-        $result = array ();
-        $this->options['marketsByUuid'] = array ();
+        $response = $this->publicGetMarkets ($params);
+        $markets = $this->safe_value($response, 'data');
+        $result = array();
+        $this->options['marketsByUuid'] = array();
         for ($i = 0; $i < count ($markets); $i++) {
             //
             //      {       $uuid =>   "550b34db-696e-4434-a126-196f827d9172",
             //        quoteScale =>    3,
-            //        quoteAsset => array (   $uuid => "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+            //        $quoteAsset => array (   $uuid => "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
             //                      $symbol => "USDT",
             //                        name => "TetherUS"                              ),
             //              name =>   "BTC-USDT",
             //         baseScale =>    5,
-            //         baseAsset => {   $uuid => "0df9c3c3-255a-46d7-ab82-dedae169fba9",
+            //         $baseAsset => {   $uuid => "0df9c3c3-255a-46d7-ab82-dedae169fba9",
             //                      $symbol => "BTC",
             //                        name => "Bitcoin"                               }  } }
             //
             $market = $markets[$i];
-            $id = $market['name'];
-            $uuid = $market['uuid'];
-            $baseId = $market['baseAsset']['symbol'];
-            $quoteId = $market['quoteAsset']['symbol'];
+            $id = $this->safe_string($market, 'name');
+            $uuid = $this->safe_string($market, 'uuid');
+            $baseAsset = $this->safe_value($market, 'baseAsset', array());
+            $quoteAsset = $this->safe_value($market, 'quoteAsset', array());
+            $baseId = $this->safe_string($baseAsset, 'symbol');
+            $quoteId = $this->safe_string($quoteAsset, 'symbol');
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => $market['baseScale'],
-                'price' => $market['quoteScale'],
+                'amount' => $this->safe_integer($market, 'baseScale'),
+                'price' => $this->safe_integer($market, 'quoteScale'),
             );
             $entry = array (
                 'id' => $id,
@@ -142,12 +145,12 @@ class bigone extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
-                        'max' => pow (10, $precision['amount']),
+                        'min' => pow(10, -$precision['amount']),
+                        'max' => pow(10, $precision['amount']),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
-                        'max' => pow (10, $precision['price']),
+                        'min' => pow(10, -$precision['price']),
+                        'max' => pow(10, $precision['price']),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -175,11 +178,11 @@ class bigone extends Exchange {
         //             "daily_change_perc" => "-0.3789180767180466680525339760",
         //             "daily_change" => "-0.0002945600000000",
         //             "$close" => "0.0774425600000000", // last price
-        //             "bid" => array (
+        //             "$bid" => array (
         //                 "price" => "0.0764777900000000",
         //                 "amount" => "6.4248000000000000"
         //             ),
-        //             "ask" => {
+        //             "$ask" => {
         //                 "price" => "0.0774425600000000",
         //                 "amount" => "1.1741000000000000"
         //             }
@@ -188,7 +191,7 @@ class bigone extends Exchange {
         //
         if ($market === null) {
             $marketId = $this->safe_string($ticker, 'market_id');
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             }
         }
@@ -198,16 +201,18 @@ class bigone extends Exchange {
         }
         $timestamp = $this->milliseconds ();
         $close = $this->safe_float($ticker, 'close');
+        $bid = $this->safe_value($ticker, 'bid', array());
+        $ask = $this->safe_value($ticker, 'ask', array());
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
-            'bid' => $this->safe_float($ticker['bid'], 'price'),
-            'bidVolume' => $this->safe_float($ticker['bid'], 'amount'),
-            'ask' => $this->safe_float($ticker['ask'], 'price'),
-            'askVolume' => $this->safe_float($ticker['ask'], 'amount'),
+            'bid' => $this->safe_float($bid, 'price'),
+            'bidVolume' => $this->safe_float($bid, 'amount'),
+            'ask' => $this->safe_float($ask, 'price'),
+            'askVolume' => $this->safe_float($ask, 'amount'),
             'vwap' => null,
             'open' => $this->safe_float($ticker, 'open'),
             'close' => $close,
@@ -225,17 +230,18 @@ class bigone extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetMarketsSymbolTicker (array_merge (array (
+        $request = array (
             'symbol' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetMarketsSymbolTicker (array_merge ($request, $params));
         return $this->parse_ticker($response['data'], $market);
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetTickers ($params);
-        $tickers = $response['data'];
-        $result = array ();
+        $tickers = $this->safe_value($response, 'data');
+        $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $this->parse_ticker($tickers[$i]);
             $symbol = $ticker['symbol'];
@@ -246,9 +252,10 @@ class bigone extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->publicGetMarketsSymbolDepth (array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-        ), $params));
+        );
+        $response = $this->publicGetMarketsSymbolDepth (array_merge ($request, $params));
         return $this->parse_order_book($response['data'], null, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -259,17 +266,17 @@ class bigone extends Exchange {
         //                 market_uuid => "38dd30bf-76c2-4777-ae2a-a3222433eef3",
         //                   market_id => "ETH-BTC",
         //                 inserted_at => "2018-07-14T09:22:06Z",
-        //                          id => "19913306",
+        //                          $id => "19913306",
         //                      $amount => "0.8800000000000000"                    ),
         //       cursor =>   "Y3Vyc29yOnYxOjE5OTEzMzA2"                              }
         //
-        $node = $trade['node'];
-        $timestamp = $this->parse8601 ($node['inserted_at']);
+        $node = $this->safe_value($trade, 'node', array());
+        $timestamp = $this->parse8601 ($this->safe_string($node, 'inserted_at'));
         $price = $this->safe_float($node, 'price');
         $amount = $this->safe_float($node, 'amount');
         if ($market === null) {
             $marketId = $this->safe_string($node, 'market_id');
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             }
         }
@@ -277,21 +284,30 @@ class bigone extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $cost = $this->cost_to_precision($symbol, $price * $amount);
+        $cost = null;
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $this->cost_to_precision($symbol, $price * $amount);
+            }
+        }
+        // taker $side is not related to buy/sell $side
+        // the following code is probably a mistake
         $side = null;
         if ($node['taker_side'] === 'ASK') {
             $side = 'sell';
         } else {
             $side = 'buy';
         }
+        $id = $this->safe_string($node, 'id');
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $this->safe_string($node, 'id'),
+            'id' => $id,
             'order' => null,
             'type' => 'limit',
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => floatval ($cost),
@@ -360,13 +376,13 @@ class bigone extends Exchange {
         //                     asset_uuid => "05bc0d34-4809-4a39-a3c8-3a1851c8d224",
         //                       asset_id => "READ"                                  ),
         //
-        $result = array ( 'info' => $response );
-        $balances = $response['data'];
+        $result = array( 'info' => $response );
+        $balances = $this->safe_value($response, 'data');
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $balance['asset_id'];
+            $currencyId = $this->safe_string($balance, 'asset_id');
             $code = $this->common_currency_code($currencyId);
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
             }
             $total = $this->safe_float($balance, 'balance');
@@ -403,11 +419,11 @@ class bigone extends Exchange {
         $id = $this->safe_string($order, 'id');
         if ($market === null) {
             $marketId = $this->safe_string($order, 'market_id');
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 $marketUuid = $this->safe_string($order, 'market_uuid');
-                if (is_array ($this->options['marketsByUuid']) && array_key_exists ($marketUuid, $this->options['marketsByUuid'])) {
+                if (is_array($this->options['marketsByUuid']) && array_key_exists($marketUuid, $this->options['marketsByUuid'])) {
                     $market = $this->options['marketsByUuid'][$marketUuid];
                 }
             }
@@ -428,6 +444,12 @@ class bigone extends Exchange {
         } else {
             $side = 'sell';
         }
+        $cost = null;
+        if ($filled !== null) {
+            if ($price !== null) {
+                $cost = $filled * $price;
+            }
+        }
         return array (
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
@@ -437,7 +459,7 @@ class bigone extends Exchange {
             'type' => null,
             'side' => $side,
             'price' => $price,
-            'cost' => null,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => $filled,
             'remaining' => $remaining,
@@ -479,7 +501,7 @@ class bigone extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array ( 'order_id' => $id );
+        $request = array( 'order_id' => $id );
         $response = $this->privatePostOrdersOrderIdCancel (array_merge ($request, $params));
         //
         //     {
@@ -496,11 +518,11 @@ class bigone extends Exchange {
         //         }
         //     }
         //
-        $order = $response['data'];
+        $order = $this->safe_value($response, 'data');
         return $this->parse_order($order);
     }
 
-    public function cancel_all_orders ($symbols = null, $params = array ()) {
+    public function cancel_all_orders ($symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privatePostOrdersOrderIdCancel ($params);
         //
@@ -525,7 +547,7 @@ class bigone extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array ( 'order_id' => $id );
+        $request = array( 'order_id' => $id );
         $response = $this->privateGetOrdersOrderId (array_merge ($request, $params));
         //
         //     {
@@ -547,20 +569,20 @@ class bigone extends Exchange {
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        // NAME      DESCRIPTION                                           EXAMPLE         REQUIRED
-        // market_id $market id                                             ETH-BTC         true
-        // after     ask for the server to return $orders after the cursor  dGVzdGN1cmVzZQo false
-        // before    ask for the server to return $orders before the cursor dGVzdGN1cmVzZQo false
-        // first     slicing count                                         20              false
-        // last      slicing count                                         20              false
-        // side      order side one of                                     "ASK"/"BID"     false
-        // state     order state one of                      "CANCELED"/"FILLED"/"PENDING" false
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrders requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrders requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
+            // NAME      DESCRIPTION                                           EXAMPLE         REQUIRED
+            // market_id $market id                                             ETH-BTC         true
+            // after     ask for the server to return $orders after the cursor  dGVzdGN1cmVzZQo false
+            // before    ask for the server to return $orders before the cursor dGVzdGN1cmVzZQo false
+            // first     slicing count                                         20              false
+            // last      slicing count                                         20              false
+            // side      order side one of                                     "ASK"/"BID"     false
+            // state     order state one of                      "CANCELED"/"FILLED"/"PENDING" false
             'market_id' => $market['id'],
         );
         if ($limit !== null) {
@@ -594,9 +616,9 @@ class bigone extends Exchange {
         //          }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array ());
-        $orders = $this->safe_value($data, 'edges', array ());
-        $result = array ();
+        $data = $this->safe_value($response, 'data', array());
+        $orders = $this->safe_value($data, 'edges', array());
+        $result = array();
         for ($i = 0; $i < count ($orders); $i++) {
             $result[] = $this->parse_order($orders[$i]['node'], $market);
         }
@@ -613,15 +635,17 @@ class bigone extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'state' => 'PENDING',
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'state' => 'FILLED',
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function nonce () {
@@ -632,8 +656,9 @@ class bigone extends Exchange {
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
@@ -642,54 +667,52 @@ class bigone extends Exchange {
                 'sub' => $this->apiKey,
                 'nonce' => $nonce,
             );
-            $jwt = $this->jwt ($request, $this->secret);
+            $jwt = $this->jwt ($request, $this->encode ($this->secret));
             $headers = array (
                 'Authorization' => 'Bearer ' . $jwt,
             );
             if ($method === 'GET') {
-                if ($query)
+                if ($query) {
                     $url .= '?' . $this->urlencode ($query);
+                }
             } else if ($method === 'POST') {
                 $headers['Content-Type'] = 'application/json';
                 $body = $this->json ($query);
             }
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
+        if ($response === null) {
             return; // fallback to default $error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default $error handler
-        if (($body[0] === '{') || ($body[0] === '[')) {
-            //
-            //      array ("$errors":{"detail":"Internal server $error")}
-            //      array ("$errors":[{"message":"invalid nonce, nonce should be a 19bits number","$code":10030)],"$data":null}
-            //
-            $error = $this->safe_value($response, 'error');
-            $errors = $this->safe_value($response, 'errors');
-            $data = $this->safe_value($response, 'data');
-            if ($error !== null || $errors !== null || $data === null) {
-                $feedback = $this->id . ' ' . $this->json ($response);
-                $code = null;
-                if ($error !== null) {
-                    $code = $this->safe_integer($error, 'code');
-                }
-                $exceptions = $this->exceptions['codes'];
-                if ($errors !== null) {
-                    if (gettype ($errors) === 'array' && count (array_filter (array_keys ($errors), 'is_string')) == 0) {
-                        $code = $this->safe_string($errors[0], 'code');
-                    } else {
-                        $code = $this->safe_string($errors, 'detail');
-                        $exceptions = $this->exceptions['detail'];
-                    }
-                }
-                if (is_array ($exceptions) && array_key_exists ($code, $exceptions)) {
-                    throw new $exceptions[$code] ($feedback);
+        }
+        //
+        //      array("$errors":{"detail":"Internal server $error")}
+        //      array("$errors":[{"message":"invalid nonce, nonce should be a 19bits number","$code":10030)],"$data":null}
+        //
+        $error = $this->safe_value($response, 'error');
+        $errors = $this->safe_value($response, 'errors');
+        $data = $this->safe_value($response, 'data');
+        if ($error !== null || $errors !== null || $data === null) {
+            $feedback = $this->id . ' ' . $this->json ($response);
+            $code = null;
+            if ($error !== null) {
+                $code = $this->safe_integer($error, 'code');
+            }
+            $exceptions = $this->exceptions['codes'];
+            if ($errors !== null) {
+                if (gettype ($errors) === 'array' && count (array_filter (array_keys ($errors), 'is_string')) == 0) {
+                    $code = $this->safe_string($errors[0], 'code');
                 } else {
-                    throw new ExchangeError ($feedback);
+                    $code = $this->safe_string($errors, 'detail');
+                    $exceptions = $this->exceptions['detail'];
                 }
+            }
+            if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
+                throw new $exceptions[$code]($feedback);
+            } else {
+                throw new ExchangeError($feedback);
             }
         }
     }

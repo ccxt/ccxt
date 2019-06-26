@@ -59,66 +59,69 @@ class _1btcxe extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         return array (
-            array ( 'id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD' ),
-            array ( 'id' => 'EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR' ),
-            array ( 'id' => 'CNY', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY' ),
-            array ( 'id' => 'RUB', 'symbol' => 'BTC/RUB', 'base' => 'BTC', 'quote' => 'RUB' ),
-            array ( 'id' => 'CHF', 'symbol' => 'BTC/CHF', 'base' => 'BTC', 'quote' => 'CHF' ),
-            array ( 'id' => 'JPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY' ),
-            array ( 'id' => 'GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP' ),
-            array ( 'id' => 'CAD', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD' ),
-            array ( 'id' => 'AUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD' ),
-            array ( 'id' => 'AED', 'symbol' => 'BTC/AED', 'base' => 'BTC', 'quote' => 'AED' ),
-            array ( 'id' => 'BGN', 'symbol' => 'BTC/BGN', 'base' => 'BTC', 'quote' => 'BGN' ),
-            array ( 'id' => 'CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK' ),
-            array ( 'id' => 'DKK', 'symbol' => 'BTC/DKK', 'base' => 'BTC', 'quote' => 'DKK' ),
-            array ( 'id' => 'HKD', 'symbol' => 'BTC/HKD', 'base' => 'BTC', 'quote' => 'HKD' ),
-            array ( 'id' => 'HRK', 'symbol' => 'BTC/HRK', 'base' => 'BTC', 'quote' => 'HRK' ),
-            array ( 'id' => 'HUF', 'symbol' => 'BTC/HUF', 'base' => 'BTC', 'quote' => 'HUF' ),
-            array ( 'id' => 'ILS', 'symbol' => 'BTC/ILS', 'base' => 'BTC', 'quote' => 'ILS' ),
-            array ( 'id' => 'INR', 'symbol' => 'BTC/INR', 'base' => 'BTC', 'quote' => 'INR' ),
-            array ( 'id' => 'MUR', 'symbol' => 'BTC/MUR', 'base' => 'BTC', 'quote' => 'MUR' ),
-            array ( 'id' => 'MXN', 'symbol' => 'BTC/MXN', 'base' => 'BTC', 'quote' => 'MXN' ),
-            array ( 'id' => 'NOK', 'symbol' => 'BTC/NOK', 'base' => 'BTC', 'quote' => 'NOK' ),
-            array ( 'id' => 'NZD', 'symbol' => 'BTC/NZD', 'base' => 'BTC', 'quote' => 'NZD' ),
-            array ( 'id' => 'PLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN' ),
-            array ( 'id' => 'RON', 'symbol' => 'BTC/RON', 'base' => 'BTC', 'quote' => 'RON' ),
-            array ( 'id' => 'SEK', 'symbol' => 'BTC/SEK', 'base' => 'BTC', 'quote' => 'SEK' ),
-            array ( 'id' => 'SGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD' ),
-            array ( 'id' => 'THB', 'symbol' => 'BTC/THB', 'base' => 'BTC', 'quote' => 'THB' ),
-            array ( 'id' => 'TRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY' ),
-            array ( 'id' => 'ZAR', 'symbol' => 'BTC/ZAR', 'base' => 'BTC', 'quote' => 'ZAR' ),
+            array( 'id' => 'USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'BTC', 'quoteId' => 'USD' ),
+            array( 'id' => 'EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR' ),
+            array( 'id' => 'CNY', 'symbol' => 'BTC/CNY', 'base' => 'BTC', 'quote' => 'CNY', 'baseId' => 'BTC', 'quoteId' => 'CNY' ),
+            array( 'id' => 'RUB', 'symbol' => 'BTC/RUB', 'base' => 'BTC', 'quote' => 'RUB', 'baseId' => 'BTC', 'quoteId' => 'RUB' ),
+            array( 'id' => 'CHF', 'symbol' => 'BTC/CHF', 'base' => 'BTC', 'quote' => 'CHF', 'baseId' => 'BTC', 'quoteId' => 'CHF' ),
+            array( 'id' => 'JPY', 'symbol' => 'BTC/JPY', 'base' => 'BTC', 'quote' => 'JPY', 'baseId' => 'BTC', 'quoteId' => 'JPY' ),
+            array( 'id' => 'GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'BTC', 'quoteId' => 'GBP' ),
+            array( 'id' => 'CAD', 'symbol' => 'BTC/CAD', 'base' => 'BTC', 'quote' => 'CAD', 'baseId' => 'BTC', 'quoteId' => 'CAD' ),
+            array( 'id' => 'AUD', 'symbol' => 'BTC/AUD', 'base' => 'BTC', 'quote' => 'AUD', 'baseId' => 'BTC', 'quoteId' => 'AUD' ),
+            array( 'id' => 'AED', 'symbol' => 'BTC/AED', 'base' => 'BTC', 'quote' => 'AED', 'baseId' => 'BTC', 'quoteId' => 'AED' ),
+            array( 'id' => 'BGN', 'symbol' => 'BTC/BGN', 'base' => 'BTC', 'quote' => 'BGN', 'baseId' => 'BTC', 'quoteId' => 'BGN' ),
+            array( 'id' => 'CZK', 'symbol' => 'BTC/CZK', 'base' => 'BTC', 'quote' => 'CZK', 'baseId' => 'BTC', 'quoteId' => 'CZK' ),
+            array( 'id' => 'DKK', 'symbol' => 'BTC/DKK', 'base' => 'BTC', 'quote' => 'DKK', 'baseId' => 'BTC', 'quoteId' => 'DKK' ),
+            array( 'id' => 'HKD', 'symbol' => 'BTC/HKD', 'base' => 'BTC', 'quote' => 'HKD', 'baseId' => 'BTC', 'quoteId' => 'HKD' ),
+            array( 'id' => 'HRK', 'symbol' => 'BTC/HRK', 'base' => 'BTC', 'quote' => 'HRK', 'baseId' => 'BTC', 'quoteId' => 'HRK' ),
+            array( 'id' => 'HUF', 'symbol' => 'BTC/HUF', 'base' => 'BTC', 'quote' => 'HUF', 'baseId' => 'BTC', 'quoteId' => 'HUF' ),
+            array( 'id' => 'ILS', 'symbol' => 'BTC/ILS', 'base' => 'BTC', 'quote' => 'ILS', 'baseId' => 'BTC', 'quoteId' => 'ILS' ),
+            array( 'id' => 'INR', 'symbol' => 'BTC/INR', 'base' => 'BTC', 'quote' => 'INR', 'baseId' => 'BTC', 'quoteId' => 'INR' ),
+            array( 'id' => 'MUR', 'symbol' => 'BTC/MUR', 'base' => 'BTC', 'quote' => 'MUR', 'baseId' => 'BTC', 'quoteId' => 'MUR' ),
+            array( 'id' => 'MXN', 'symbol' => 'BTC/MXN', 'base' => 'BTC', 'quote' => 'MXN', 'baseId' => 'BTC', 'quoteId' => 'MXN' ),
+            array( 'id' => 'NOK', 'symbol' => 'BTC/NOK', 'base' => 'BTC', 'quote' => 'NOK', 'baseId' => 'BTC', 'quoteId' => 'NOK' ),
+            array( 'id' => 'NZD', 'symbol' => 'BTC/NZD', 'base' => 'BTC', 'quote' => 'NZD', 'baseId' => 'BTC', 'quoteId' => 'NZD' ),
+            array( 'id' => 'PLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN', 'baseId' => 'BTC', 'quoteId' => 'PLN' ),
+            array( 'id' => 'RON', 'symbol' => 'BTC/RON', 'base' => 'BTC', 'quote' => 'RON', 'baseId' => 'BTC', 'quoteId' => 'RON' ),
+            array( 'id' => 'SEK', 'symbol' => 'BTC/SEK', 'base' => 'BTC', 'quote' => 'SEK', 'baseId' => 'BTC', 'quoteId' => 'SEK' ),
+            array( 'id' => 'SGD', 'symbol' => 'BTC/SGD', 'base' => 'BTC', 'quote' => 'SGD', 'baseId' => 'BTC', 'quoteId' => 'SGD' ),
+            array( 'id' => 'THB', 'symbol' => 'BTC/THB', 'base' => 'BTC', 'quote' => 'THB', 'baseId' => 'BTC', 'quoteId' => 'THB' ),
+            array( 'id' => 'TRY', 'symbol' => 'BTC/TRY', 'base' => 'BTC', 'quote' => 'TRY', 'baseId' => 'BTC', 'quoteId' => 'TRY' ),
+            array( 'id' => 'ZAR', 'symbol' => 'BTC/ZAR', 'base' => 'BTC', 'quote' => 'ZAR', 'baseId' => 'BTC', 'quoteId' => 'ZAR' ),
         );
     }
 
     public function fetch_balance ($params = array ()) {
-        $response = $this->privatePostBalancesAndInfo ();
+        $response = $this->privatePostBalancesAndInfo ($params);
         $balance = $response['balances-and-info'];
-        $result = array ( 'info' => $balance );
-        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
+        $result = array( 'info' => $balance );
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currency = $this->currency ($code);
+            $currencyId = $currency['id'];
             $account = $this->account ();
-            $account['free'] = $this->safe_float($balance['available'], $currency, 0.0);
-            $account['used'] = $this->safe_float($balance['on_hold'], $currency, 0.0);
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            $account['free'] = $this->safe_float($balance['available'], $currencyId);
+            $account['used'] = $this->safe_float($balance['on_hold'], $currencyId);
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        $response = $this->publicGetOrderBook (array_merge (array (
+        $request = array (
             'currency' => $this->market_id($symbol),
-        ), $params));
+        );
+        $response = $this->publicGetOrderBook (array_merge ($request, $params));
         return $this->parse_order_book($response['order-book'], null, 'bid', 'ask', 'price', 'order_amount');
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
-        $response = $this->publicGetStats (array_merge (array (
+        $request = array (
             'currency' => $this->market_id($symbol),
-        ), $params));
-        $ticker = $response['stats'];
+        );
+        $response = $this->publicGetStats (array_merge ($request, $params));
+        $ticker = $this->safe_value($response, 'stats', array());
         $last = $this->safe_float($ticker, 'last_price');
         return array (
             'symbol' => $symbol,
@@ -150,7 +153,7 @@ class _1btcxe extends Exchange {
             null,
             null,
             null,
-            floatval ($ohlcv['price']),
+            $this->safe_float($ohlcv, 'price'),
             null,
         ];
     }
@@ -165,19 +168,40 @@ class _1btcxe extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = intval ($trade['timestamp']) * 1000;
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->safe_integer($trade, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        $id = $this->safe_string($trade, 'id');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $type = null;
+        $side = $this->safe_string($trade, 'maker_type');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = null;
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $amount * $price;
+            }
+        }
         return array (
-            'id' => $trade['id'],
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => null,
-            'type' => null,
-            'side' => $trade['maker_type'],
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'type' => $type,
+            'side' => $side,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 
@@ -195,15 +219,16 @@ class _1btcxe extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $order = array (
+        $request = array (
             'side' => $side,
             'type' => $type,
             'currency' => $this->market_id($symbol),
             'amount' => $amount,
         );
-        if ($type === 'limit')
-            $order['limit_price'] = $price;
-        $result = $this->privatePostOrdersNew (array_merge ($order, $params));
+        if ($type === 'limit') {
+            $request['limit_price'] = $price;
+        }
+        $result = $this->privatePostOrdersNew (array_merge ($request, $params));
         return array (
             'info' => $result,
             'id' => $result,
@@ -211,7 +236,10 @@ class _1btcxe extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrdersCancel (array ( 'id' => $id ));
+        $request = array (
+            'id' => $id,
+        );
+        return $this->privatePostOrdersCancel (array_merge ($request, $params));
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
@@ -231,12 +259,14 @@ class _1btcxe extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if ($this->id === 'cryptocapital')
-            throw new ExchangeError ($this->id . ' is an abstract base API for _1btcxe');
+        if ($this->id === 'cryptocapital') {
+            throw new ExchangeError($this->id . ' is an abstract base API for _1btcxe');
+        }
         $url = $this->urls['api'] . '/' . $path;
         if ($api === 'public') {
-            if ($params)
+            if ($params) {
                 $url .= '?' . $this->urlencode ($params);
+            }
         } else {
             $this->check_required_credentials();
             $query = array_merge (array (
@@ -246,26 +276,26 @@ class _1btcxe extends Exchange {
             $request = $this->json ($query);
             $query['signature'] = $this->hmac ($this->encode ($request), $this->encode ($this->secret));
             $body = $this->json ($query);
-            $headers = array ( 'Content-Type' => 'application/json' );
+            $headers = array( 'Content-Type' => 'application/json' );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (gettype ($response) === 'string') {
-            if (mb_strpos ($response, 'Maintenance') !== false) {
-                throw new ExchangeNotAvailable ($this->id . ' on maintenance');
+            if (mb_strpos($response, 'Maintenance') !== false) {
+                throw new ExchangeNotAvailable($this->id . ' on maintenance');
             }
         }
-        if (is_array ($response) && array_key_exists ('errors', $response)) {
-            $errors = array ();
+        if (is_array($response) && array_key_exists('errors', $response)) {
+            $errors = array();
             for ($e = 0; $e < count ($response['errors']); $e++) {
                 $error = $response['errors'][$e];
                 $errors[] = $error['code'] . ' => ' . $error['message'];
             }
-            $errors = implode (' ', $errors);
-            throw new ExchangeError ($this->id . ' ' . $errors);
+            $errors = implode(' ', $errors);
+            throw new ExchangeError($this->id . ' ' . $errors);
         }
         return $response;
     }

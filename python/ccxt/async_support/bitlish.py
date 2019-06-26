@@ -123,22 +123,25 @@ class bitlish (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetPairs()
+        response = await self.publicGetPairs(params)
         result = []
-        keys = list(markets.keys())
-        for p in range(0, len(keys)):
-            market = markets[keys[p]]
-            id = market['id']
-            symbol = market['name']
-            base, quote = symbol.split('/')
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+        keys = list(response.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            market = response[key]
+            id = self.safe_string(market, 'id')
+            name = self.safe_string(market, 'name')
+            baseId, quoteId = name.split('/')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             })
         return result
@@ -146,7 +149,7 @@ class bitlish (Exchange):
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {
@@ -198,9 +201,9 @@ class bitlish (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        tickers = await self.publicGetTickers(params)
-        ticker = tickers[market['id']]
-        return self.parse_ticker(ticker, market)
+        response = await self.publicGetTickers(params)
+        marketId = market['id']
+        return self.parse_ticker(response[marketId], market)
 
     async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         await self.load_markets()
@@ -210,27 +213,37 @@ class bitlish (Exchange):
         if since is not None:
             start = int(since / 1000)
         interval = [str(start), None]
-        return await self.publicPostOhlcv(self.extend({
+        request = {
             'time_range': interval,
-        }, params))
+        }
+        return await self.publicPostOhlcv(self.extend(request, params))
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetTradesDepth(self.extend({
+        request = {
             'pair_id': self.market_id(symbol),
-        }, params))
+        }
+        response = await self.publicGetTradesDepth(self.extend(request, params))
         timestamp = None
-        last = self.safe_integer(orderbook, 'last')
-        if last:
+        last = self.safe_integer(response, 'last')
+        if last is not None:
             timestamp = int(last / 1000)
-        return self.parse_order_book(orderbook, timestamp, 'bid', 'ask', 'price', 'volume')
+        return self.parse_order_book(response, timestamp, 'bid', 'ask', 'price', 'volume')
 
     def parse_trade(self, trade, market=None):
         side = 'buy' if (trade['dir'] == 'bid') else 'sell'
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
-        timestamp = int(trade['created'] / 1000)
+        timestamp = self.safe_integer(trade, 'created')
+        if timestamp is not None:
+            timestamp = int(timestamp / 1000)
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = price * amount
         return {
             'id': None,
             'info': trade,
@@ -240,8 +253,11 @@ class bitlish (Exchange):
             'order': None,
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -254,69 +270,67 @@ class bitlish (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostBalance()
+        response = await self.privatePostBalance(params)
         result = {'info': response}
-        currencies = list(response.keys())
-        balance = {}
-        for c in range(0, len(currencies)):
-            currency = currencies[c]
-            account = response[currency]
-            currency = currency.upper()
-            # issue  #4 bitlish names Dash as DSH, instead of DASH
-            if currency == 'DSH':
-                currency = 'DASH'
-            if currency == 'XDG':
-                currency = 'DOGE'
-            balance[currency] = account
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
+        currencyIds = list(response.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             account = self.account()
-            if currency in balance:
-                account['free'] = float(balance[currency]['funds'])
-                account['used'] = float(balance[currency]['holded'])
-                account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            balance = self.safe_value(response, currencyId, {})
+            account['free'] = self.safe_float(balance, 'funds')
+            account['used'] = self.safe_float(balance, 'holded')
+            result[code] = account
         return self.parse_balance(result)
 
-    def sign_in(self):
-        return self.privatePostSignin({
+    async def sign_in(self, params={}):
+        request = {
             'login': self.login,
             'passwd': self.password,
-        })
+        }
+        return await self.privatePostSignin(self.extend(request, params))
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        order = {
+        request = {
             'pair_id': self.market_id(symbol),
             'dir': 'bid' if (side == 'buy') else 'ask',
             'amount': amount,
         }
         if type == 'limit':
-            order['price'] = price
-        result = await self.privatePostCreateTrade(self.extend(order, params))
+            request['price'] = price
+        response = await self.privatePostCreateTrade(self.extend(request, params))
+        id = self.safe_string(response, 'id')
         return {
-            'info': result,
-            'id': result['id'],
+            'info': response,
+            'id': id,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostCancelTrade({'id': id})
+        request = {
+            'id': id,
+        }
+        return await self.privatePostCancelTrade(self.extend(request, params))
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
-        self.check_address(address)
-        await self.load_markets()
-        currency = self.currency(code)
         if code != 'BTC':
             # they did not document other types...
             raise NotSupported(self.id + ' currently supports BTC withdrawals only, until they document other currencies...')
-        response = await self.privatePostWithdraw(self.extend({
+        self.check_address(address)
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
             'currency': currency.lower(),
             'amount': float(amount),
             'account': address,
             'payment_method': 'bitcoin',  # they did not document other types...
-        }, params))
+        }
+        response = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': response['message_id'],

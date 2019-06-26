@@ -70,23 +70,23 @@ module.exports = class crypton extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetMarkets ();
-        let markets = response['result'];
-        let result = [];
-        let keys = Object.keys (markets);
+        const response = await this.publicGetMarkets (params);
+        const markets = response['result'];
+        const result = [];
+        const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
-            let id = keys[i];
-            let market = markets[id];
-            let baseId = market['base'];
-            let quoteId = market['quote'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let precision = {
+            const id = keys[i];
+            const market = markets[id];
+            const baseId = this.safeString (market, 'base');
+            const quoteId = this.safeString (market, 'quote');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
                 'amount': 8,
                 'price': this.precisionFromString (this.safeString (market, 'priceStep')),
             };
-            let active = market['enabled'];
+            const active = market['enabled'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -118,20 +118,17 @@ module.exports = class crypton extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let balances = await this.privateGetBalances (params);
-        let result = { 'info': balances };
-        let keys = Object.keys (balances);
+        const balances = await this.privateGetBalances (params);
+        const result = { 'info': balances };
+        const keys = Object.keys (balances);
         for (let i = 0; i < keys.length; i++) {
-            let id = keys[i];
-            let currency = this.commonCurrencyCode (id);
-            let account = this.account ();
-            let balance = balances[id];
-            let total = parseFloat (balance['total']);
-            let free = parseFloat (balance['free']);
-            let used = parseFloat (balance['locked']);
-            account['total'] = total;
-            account['free'] = free;
-            account['used'] = used;
+            const id = keys[i];
+            const currency = this.commonCurrencyCode (id);
+            const account = this.account ();
+            const balance = balances[id];
+            account['total'] = this.safeFloat (balance, 'total');
+            account['free'] = this.safeFloat (balance, 'free');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[currency] = account;
         }
         return this.parseBalance (result);
@@ -139,18 +136,20 @@ module.exports = class crypton extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetMarketsIdOrderbook (this.extend ({
+        const request = {
             'id': this.marketId (symbol),
-        }, params));
-        return this.parseOrderBook (orderbook);
+        };
+        const response = await this.publicGetMarketsIdOrderbook (this.extend (request, params));
+        return this.parseOrderBook (response);
     }
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
-        let relativeChange = this.safeFloat (ticker, 'change24h', 0.0);
+        }
+        const last = this.safeFloat (ticker, 'last');
+        const relativeChange = this.safeFloat (ticker, 'change24h', 0.0);
         return {
             'symbol': symbol,
             'timestamp': undefined,
@@ -177,13 +176,13 @@ module.exports = class crypton extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetTickers (params);
-        let tickers = response['result'];
-        let keys = Object.keys (tickers);
-        let result = {};
+        const response = await this.publicGetTickers (params);
+        const tickers = this.safeValue (response, 'result');
+        const keys = Object.keys (tickers);
+        const result = {};
         for (let i = 0; i < keys.length; i++) {
-            let id = keys[i];
-            let ticker = tickers[id];
+            const id = keys[i];
+            const ticker = tickers[id];
             let market = undefined;
             let symbol = id;
             if (id in this.markets_by_id) {
@@ -198,91 +197,124 @@ module.exports = class crypton extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['time']);
+        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         let symbol = undefined;
-        if ('market' in trade) {
-            let marketId = trade['market'];
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                symbol = this.parseSymbol (marketId);
+        const marketId = this.safeString (trade, 'market');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
             }
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const feeCost = this.safeFloat (trade, 'fee');
         let fee = undefined;
-        if ('fee' in trade) {
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+            const feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': this.safeFloat (trade, 'fee'),
-                'currency': this.commonCurrencyCode (trade['feeCurrency']),
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
             };
         }
+        const id = this.safeString (trade, 'id');
+        const side = this.safeString (trade, 'side');
+        const orderId = this.safeString (trade, 'orderId');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'size');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
-            'id': trade['id'].toString (),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': trade['side'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'size'),
-            'order': this.safeString (trade, 'orderId'),
+            'side': side,
+            'order': orderId,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'id': market['id'],
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['limit'] = limit;
-        let response = await this.publicGetMarketsIdTrades (this.extend (request, params));
+        }
+        const response = await this.publicGetMarketsIdTrades (this.extend (request, params));
+        //
+        //     {
+        //         "result":[
+        //             {
+        //                 "id":4256381,
+        //                 "price":7901.56,
+        //                 "side":"buy",
+        //                 "size":0.75708114,
+        //                 "time":"2019-05-14T16:15:46.781653+00:00"
+        //             }
+        //         ],
+        //         "success":true
+        //     }
+        //
         return this.parseTrades (response['result'], market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {};
-        if (limit !== undefined)
+        const market = this.market (symbol);
+        const request = {};
+        if (limit !== undefined) {
             request['limit'] = limit;
-        let response = await this.privateGetFills (this.extend (request, params));
-        let trades = this.parseTrades (response['result'], market, since, limit);
+        }
+        const response = await this.privateGetFills (this.extend (request, params));
+        const trades = this.parseTrades (response['result'], market, since, limit);
         return this.filterBySymbol (trades, symbol);
     }
 
     parseOrder (order, market = undefined) {
-        let id = order['id'].toString ();
-        let status = order['status'];
-        let side = order['side'];
-        let type = order['type'];
+        const id = this.safeString (order, 'id');
+        const status = this.safeString (order, 'status');
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'type');
         let symbol = undefined;
-        let marketId = order['market'];
+        const marketId = this.safeString (order, 'market');
         if (marketId in this.markets_by_id) {
             market = this.markets_by_id[marketId];
             symbol = market['symbol'];
         } else {
             symbol = this.parseSymbol (marketId);
         }
-        let timestamp = this.parse8601 (order['createdAt']);
+        const timestamp = this.parse8601 (this.safeString (order, 'createdAt'));
+        const feeCost = this.safeFloat (order, 'fee');
         let fee = undefined;
-        if ('fee' in order) {
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (order, 'feeCurrency');
+            const feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': parseFloat (order['fee']),
-                'currency': this.commonCurrencyCode (order['feeCurrency']),
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
             };
         }
-        let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'size');
-        let filled = this.safeFloat (order, 'filledSize');
-        let remaining = amount - filled;
-        let cost = filled * price;
-        let result = {
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'size');
+        const filled = this.safeFloat (order, 'filledSize');
+        const remaining = amount - filled;
+        const cost = filled * price;
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -300,48 +332,47 @@ module.exports = class crypton extends Exchange {
             'status': status,
             'fee': fee,
         };
-        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'id': id,
         };
-        let response = await this.privateGetOrdersId (this.extend (request, params));
+        const response = await this.privateGetOrdersId (this.extend (request, params));
         return this.parseOrder (response['result']);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
+        const request = {};
+        const market = undefined;
         if (symbol !== undefined) {
             request['market'] = this.marketId (symbol);
         }
-        let response = await this.privateGetOrders (this.extend (request, params));
+        const response = await this.privateGetOrders (this.extend (request, params));
         return this.parseOrders (response['result'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = {
+        const request = {
             'market': this.marketId (symbol),
             'side': side,
             'type': type,
             'size': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
         };
-        let response = await this.privatePostOrders (this.extend (order, params));
+        const response = await this.privatePostOrders (this.extend (request, params));
         return this.parseOrder (response['result']);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'id': id,
         };
-        let response = await this.privateDeleteOrdersId (this.extend (request, params));
+        const response = await this.privateDeleteOrdersId (this.extend (request, params));
         return this.parseOrder (response['result']);
     }
 
@@ -354,13 +385,14 @@ module.exports = class crypton extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let response = await this.privateGetDepositAddressCurrency (this.extend ({
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
-        }, params));
-        let result = response['result'];
-        let address = this.safeString (result, 'address');
-        let tag = this.safeString (result, 'tag');
+        };
+        const response = await this.privateGetDepositAddressCurrency (this.extend (request, params));
+        const result = this.safeValue (response, 'result');
+        const address = this.safeString (result, 'address');
+        const tag = this.safeString (result, 'tag');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -372,15 +404,16 @@ module.exports = class crypton extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 request += '?' + this.urlencode (query);
+            }
         }
-        let url = this.urls['api'] + request;
+        const url = this.urls['api'] + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let timestamp = this.milliseconds ().toString ();
+            const timestamp = this.milliseconds ().toString ();
             let payload = '';
             if (method !== 'GET') {
                 if (Object.keys (query).length) {
@@ -388,8 +421,8 @@ module.exports = class crypton extends Exchange {
                     payload = body;
                 }
             }
-            let what = timestamp + method + request + payload;
-            let signature = this.hmac (this.encode (what), this.encode (this.secret), 'sha256');
+            const auth = timestamp + method + request + payload;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             headers = {
                 'CRYPTON-APIKEY': this.apiKey,
                 'CRYPTON-SIGNATURE': signature,
@@ -401,11 +434,12 @@ module.exports = class crypton extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
-        if (body[0] === '{') {
-            let success = this.safeValue (response, 'success');
-            if (!success) {
-                throw new ExchangeError (this.id + ' ' + body);
-            }
+        if (response === undefined) {
+            return;
+        }
+        const success = this.safeValue (response, 'success');
+        if (!success) {
+            throw new ExchangeError (this.id + ' ' + body);
         }
     }
 };

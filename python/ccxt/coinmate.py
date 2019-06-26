@@ -22,6 +22,7 @@ class coinmate (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
                 'api': 'https://coinmate.io/api',
                 'www': 'https://coinmate.io',
+                'fees': 'https://coinmate.io/fees',
                 'doc': [
                     'https://coinmate.docs.apiary.io',
                     'https://coinmate.io/developers',
@@ -39,6 +40,7 @@ class coinmate (Exchange):
                         'orderBook',
                         'ticker',
                         'transactions',
+                        'tradingPairs',
                     ],
                 },
                 'private': {
@@ -60,49 +62,115 @@ class coinmate (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BTC/EUR': {'id': 'BTC_EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'precision': {'amount': 4, 'price': 2}},
-                'BTC/CZK': {'id': 'BTC_CZK', 'symbol': 'BTC/CZK', 'base': 'BTC', 'quote': 'CZK', 'precision': {'amount': 4, 'price': 2}},
-                'LTC/BTC': {'id': 'LTC_BTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'precision': {'amount': 4, 'price': 5}},
-            },
             'fees': {
                 'trading': {
-                    'maker': 0.0005,
-                    'taker': 0.0035,
+                    'maker': 0.05 / 100,
+                    'taker': 0.15 / 100,
                 },
             },
         })
 
+    def fetch_markets(self, params={}):
+        response = self.publicGetTradingPairs(params)
+        #
+        #     {
+        #         "error":false,
+        #         "errorMessage":null,
+        #         "data": [
+        #             {
+        #                 "name":"BTC_EUR",
+        #                 "firstCurrency":"BTC",
+        #                 "secondCurrency":"EUR",
+        #                 "priceDecimals":2,
+        #                 "lotDecimals":8,
+        #                 "minAmount":0.0002,
+        #                 "tradesWebSocketChannelId":"trades-BTC_EUR",
+        #                 "orderBookWebSocketChannelId":"order_book-BTC_EUR",
+        #                 "tradeStatisticsWebSocketChannelId":"statistics-BTC_EUR"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        result = []
+        for i in range(0, len(data)):
+            market = data[i]
+            id = self.safe_string(market, 'name')
+            baseId = self.safe_string(market, 'firstCurrency')
+            quoteId = self.safe_string(market, 'secondCurrency')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': None,
+                'info': market,
+                'precision': {
+                    'price': self.safe_integer(market, 'priceDecimals'),
+                    'amount': self.safe_integer(market, 'lotDecimals'),
+                },
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(market, 'minAmount'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+        return result
+
     def fetch_balance(self, params={}):
-        response = self.privatePostBalances()
-        balances = response['data']
-        result = {'info': balances}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
+        self.load_markets()
+        response = self.privatePostBalances(params)
+        balances = self.safe_value(response, 'data')
+        result = {'info': response}
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.common_currency_code(currencyId)
+            balance = self.safe_value(balances, currencyId)
             account = self.account()
-            if currency in balances:
-                account['free'] = balances[currency]['available']
-                account['used'] = balances[currency]['reserved']
-                account['total'] = balances[currency]['balance']
-            result[currency] = account
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'reserved')
+            account['total'] = self.safe_float(balance, 'balance')
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        response = self.publicGetOrderBook(self.extend({
+        self.load_markets()
+        request = {
             'currencyPair': self.market_id(symbol),
             'groupByPriceLimit': 'False',
-        }, params))
+        }
+        response = self.publicGetOrderBook(self.extend(request, params))
         orderbook = response['data']
-        timestamp = orderbook['timestamp'] * 1000
+        timestamp = self.safe_integer(orderbook, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
-        response = self.publicGetTicker(self.extend({
+        self.load_markets()
+        request = {
             'currencyPair': self.market_id(symbol),
-        }, params))
-        ticker = response['data']
-        timestamp = ticker['timestamp'] * 1000
+        }
+        response = self.publicGetTicker(self.extend(request, params))
+        ticker = self.safe_value(response, 'data')
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -128,44 +196,64 @@ class coinmate (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        if not market:
-            market = self.markets_by_id[trade['currencyPair']]
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(trade, 'currencyPair')
+            if marketId in self.markets_by_id[marketId]:
+                market = self.markets_by_id[marketId]
+        if market is not None:
+            symbol = market['symbol']
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = price * amount
+        id = self.safe_string(trade, 'transactionId')
+        timestamp = self.safe_integer(trade, 'timestamp')
         return {
-            'id': trade['transactionId'],
+            'id': id,
             'info': trade,
-            'timestamp': trade['timestamp'],
-            'datetime': self.iso8601(trade['timestamp']),
-            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'symbol': symbol,
             'type': None,
             'side': None,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTransactions(self.extend({
+        request = {
             'currencyPair': market['id'],
             'minutesIntoHistory': 10,
-        }, params))
+        }
+        response = self.publicGetTransactions(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         method = 'privatePost' + self.capitalize(side)
-        order = {
+        request = {
             'currencyPair': self.market_id(symbol),
         }
         if type == 'market':
             if side == 'buy':
-                order['total'] = amount  # amount in fiat
+                request['total'] = amount  # amount in fiat
             else:
-                order['amount'] = amount  # amount in fiat
+                request['amount'] = amount  # amount in fiat
             method += 'Instant'
         else:
-            order['amount'] = amount  # amount in crypto
-            order['price'] = price
+            request['amount'] = amount  # amount in crypto
+            request['price'] = price
             method += self.capitalize(type)
-        response = getattr(self, method)(self.extend(order, params))
+        response = getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
             'id': str(response['data']),

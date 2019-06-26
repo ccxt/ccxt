@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import base64
 import hashlib
 import math
@@ -39,6 +32,7 @@ class bitsane (Exchange):
                 'www': 'https://bitsane.com',
                 'doc': 'https://bitsane.com/help/api',
                 'fees': 'https://bitsane.com/help/fees',
+                'referral': 'https://bitsane.com?ref=CGOvuPA2LR3GcdOUOKjc',
             },
             'api': {
                 'public': {
@@ -101,9 +95,7 @@ class bitsane (Exchange):
             code = self.common_currency_code(id)
             canWithdraw = self.safe_value(currency, 'withdrawal', True)
             canDeposit = self.safe_value(currency, 'deposit', True)
-            active = True
-            if not canWithdraw or not canDeposit:
-                active = False
+            active = canWithdraw and canDeposit
             result[code] = {
                 'id': id,
                 'code': code,
@@ -139,14 +131,16 @@ class bitsane (Exchange):
         return result
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetAssetsPairs()
+        markets = self.publicGetAssetsPairs(params)
         result = []
         marketIds = list(markets.keys())
         for i in range(0, len(marketIds)):
             id = marketIds[i]
             market = markets[id]
-            base = self.common_currency_code(market['base'])
-            quote = self.common_currency_code(market['quote'])
+            baseId = self.safe_string(market, 'base')
+            quoteId = self.safe_string(market, 'quote')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             limits = self.safe_value(market, 'limits')
             minLimit = None
@@ -155,7 +149,7 @@ class bitsane (Exchange):
                 minLimit = self.safe_float(limits, 'minimum')
                 maxLimit = self.safe_float(limits, 'maximum')
             precision = {
-                'amount': int(market['precision']),
+                'amount': self.safe_integer(market, 'precision'),
                 'price': 8,
             }
             result.append({
@@ -163,8 +157,8 @@ class bitsane (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': market['base'],
-                'quoteId': market['quote'],
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,
                 'precision': precision,
                 'limits': {
@@ -186,7 +180,9 @@ class bitsane (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        symbol = market['symbol']
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         timestamp = self.milliseconds()
         last = self.safe_float(ticker, 'last')
         return {
@@ -222,43 +218,50 @@ class bitsane (Exchange):
         if symbols:
             ids = self.market_ids(symbols)
             request['pairs'] = ','.join(ids)
-        tickers = self.publicGetTicker(self.extend(request, params))
-        marketIds = list(tickers.keys())
+        response = self.publicGetTicker(self.extend(request, params))
+        marketIds = list(response.keys())
         result = {}
         for i in range(0, len(marketIds)):
             id = marketIds[i]
             market = self.safe_value(self.marketsById, id)
-            if market is None:
-                continue
-            symbol = market['symbol']
-            ticker = tickers[id]
-            result[symbol] = self.parse_ticker(ticker, market)
+            if market is not None:
+                symbol = market['symbol']
+                result[symbol] = self.parse_ticker(response[id], market)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        response = self.publicGetOrderbook(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
+        }
+        response = self.publicGetOrderbook(self.extend(request, params))
         return self.parse_order_book(response['result'], None, 'bids', 'asks', 'price', 'amount')
 
     def parse_trade(self, trade, market=None):
-        symbol = market['symbol']
-        timestamp = int(trade['timestamp']) * 1000
-        price = float(trade['price'])
-        amount = float(trade['amount'])
-        cost = self.cost_to_precision(symbol, price * amount)
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = float(self.cost_to_precision(symbol, price * amount))
+        id = self.safe_string(trade, 'tid')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'tid'),
+            'id': id,
             'order': None,
             'type': None,
             'side': None,
             'price': price,
             'amount': amount,
-            'cost': float(cost),
+            'cost': cost,
             'fee': None,
             'info': trade,
         }
@@ -280,7 +283,7 @@ class bitsane (Exchange):
         self.load_markets()
         response = self.privatePostBalances(params)
         result = {'info': response}
-        balances = response['result']
+        balances = self.safe_value(response, 'result')
         ids = list(balances.keys())
         for i in range(0, len(ids)):
             id = ids[i]
@@ -291,28 +294,30 @@ class bitsane (Exchange):
             else:
                 code = self.common_currency_code(code)
             account = {
-                'free': float(balance['amount']),
-                'used': float(balance['locked']),
-                'total': float(balance['total']),
+                'free': self.safe_float(balance, 'amount'),
+                'used': self.safe_float(balance, 'locked'),
+                'total': self.safe_float(balance, 'total'),
             }
             result[code] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         symbol = None
-        if not market:
-            market = self.safe_value(self.marketsById, order['pair'])
-        if market:
+        marketId = self.safe_string(order, 'pair')
+        market = self.safe_value(self.marketsById, marketId, market)
+        if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp') * 1000
-        price = float(order['price'])
+        price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'original_amount')
         filled = self.safe_float(order, 'executed_amount')
         remaining = self.safe_float(order, 'remaining_amount')
+        isCanceled = self.safe_value(order, 'is_cancelled')
+        isLive = self.safe_value(order, 'is_live')
         status = 'closed'
-        if order['is_cancelled']:
+        if isCanceled:
             status = 'canceled'
-        elif order['is_live']:
+        elif isLive:
             status = 'open'
         return {
             'id': self.safe_string(order, 'id'),
@@ -354,30 +359,35 @@ class bitsane (Exchange):
         return order
 
     def cancel_order(self, id, symbol=None, params={}):
-        response = self.privatePostOrderCancel(self.extend({
+        self.load_markets()
+        request = {
             'order_id': id,
-        }, params))
+        }
+        response = self.privatePostOrderCancel(self.extend(request, params))
         return self.parse_order(response['result'])
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostOrderStatus(self.extend({
+        request = {
             'order_id': id,
-        }, params))
+        }
+        response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order(response['result'])
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        response = self.privatePostOrders()
+        response = self.privatePostOrders(params)
         return self.parse_orders(response['result'], None, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostDepositAddress(self.extend({
+        request = {
             'currency': currency['id'],
-        }, params))
-        address = self.safe_string(response['result'], 'address')
+        }
+        response = self.privatePostDepositAddress(self.extend(request, params))
+        result = self.safe_value(response, 'result', {})
+        address = self.safe_string(result, 'address')
         return {
             'currency': code,
             'address': address,
@@ -393,11 +403,13 @@ class bitsane (Exchange):
             'amount': amount,
             'address': address,
         }
-        if tag:
+        if tag is not None:
             request['additional'] = tag
         response = self.privatePostWithdraw(self.extend(request, params))
+        result = self.safe_value(response, 'result', {})
+        id = self.safe_string(result, 'withdrawal_id')
         return {
-            'id': response['result']['withdrawal_id'],
+            'id': id,
             'info': response,
         }
 
@@ -422,18 +434,14 @@ class bitsane (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            statusCode = self.safe_string(response, 'statusCode')
-            if statusCode is not None:
-                if statusCode != '0':
-                    feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if statusCode in exceptions:
-                        raise exceptions[statusCode](feedback)
-                    else:
-                        raise ExchangeError(self.id + ' ' + self.json(response))
-            return response
+        statusCode = self.safe_string(response, 'statusCode')
+        if statusCode is not None:
+            if statusCode != '0':
+                feedback = self.id + ' ' + self.json(response)
+                exceptions = self.exceptions
+                if statusCode in exceptions:
+                    raise exceptions[statusCode](feedback)
+                else:
+                    raise ExchangeError(self.id + ' ' + self.json(response))

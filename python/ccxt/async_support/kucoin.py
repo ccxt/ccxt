@@ -55,7 +55,7 @@ class kucoin (Exchange):
                 'fetchOHLCV': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
                 'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
@@ -100,11 +100,15 @@ class kucoin (Exchange):
                         'accounts/{accountId}/holds',
                         'deposit-addresses',
                         'deposits',
+                        'hist-deposits',
+                        'hist-orders',
+                        'hist-withdrawals',
                         'withdrawals',
                         'withdrawals/quotas',
                         'orders',
                         'orders/{orderId}',
                         'fills',
+                        'limit/fills',
                     ],
                     'post': [
                         'accounts',
@@ -136,6 +140,10 @@ class kucoin (Exchange):
                 '1w': '1week',
             },
             'exceptions': {
+                'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
+                'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
+                'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
                 '400': BadRequest,
                 '401': AuthenticationError,
                 '403': NotSupported,
@@ -145,6 +153,8 @@ class kucoin (Exchange):
                 '500': ExchangeError,
                 '503': ExchangeNotAvailable,
                 '200004': InsufficientFunds,
+                '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficientnot "}
+                '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
                 '400001': AuthenticationError,
                 '400002': InvalidNonce,
@@ -156,10 +166,8 @@ class kucoin (Exchange):
                 '400008': NotSupported,
                 '400100': ArgumentsRequired,
                 '411100': AccountSuspended,
+                '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                 '500000': ExchangeError,
-                'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
             },
             'fees': {
                 'trading': {
@@ -174,6 +182,9 @@ class kucoin (Exchange):
                     'withdraw': {},
                     'deposit': {},
                 },
+            },
+            'commonCurrencies': {
+                'HOT': 'HOTNOW',
             },
             'options': {
                 'version': 'v1',
@@ -208,7 +219,7 @@ class kucoin (Exchange):
         #   baseCurrency: 'KCS'}
         #
         data = response['data']
-        result = {}
+        result = []
         for i in range(0, len(data)):
             market = data[i]
             id = market['name']
@@ -222,7 +233,7 @@ class kucoin (Exchange):
             baseMinSize = self.safe_float(market, 'baseMinSize')
             quoteMaxSize = self.safe_float(market, 'quoteMaxSize')
             quoteMinSize = self.safe_float(market, 'quoteMinSize')
-            quoteIncrement = self.safe_float(market, 'quoteIncrement')
+            # quoteIncrement = self.safe_float(market, 'quoteIncrement')
             precision = {
                 'amount': self.precision_from_string(self.safe_string(market, 'baseIncrement')),
                 'price': self.precision_from_string(self.safe_string(market, 'priceIncrement')),
@@ -233,7 +244,7 @@ class kucoin (Exchange):
                     'max': baseMaxSize,
                 },
                 'price': {
-                    'min': max(quoteMinSize / baseMinSize, quoteIncrement),
+                    'min': self.safe_float(market, 'priceIncrement'),
                     'max': quoteMaxSize / baseMinSize,
                 },
                 'cost': {
@@ -241,7 +252,7 @@ class kucoin (Exchange):
                     'max': quoteMaxSize,
                 },
             }
-            result[symbol] = {
+            result.append({
                 'id': id,
                 'symbol': symbol,
                 'baseId': baseId,
@@ -252,7 +263,7 @@ class kucoin (Exchange):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-            }
+            })
         return result
 
     async def fetch_currencies(self, params={}):
@@ -490,7 +501,8 @@ class kucoin (Exchange):
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        address = address.replace('bitcoincash:', '')
+        if address is not None:
+            address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
         self.check_address(address)
         return {
@@ -567,7 +579,7 @@ class kucoin (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         request = {'orderId': id}
-        response = self.privateDeleteOrdersOrderId(self.extend(request, params))
+        response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
         return response
 
     async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
@@ -584,15 +596,58 @@ class kucoin (Exchange):
         if limit is not None:
             request['pageSize'] = limit
         response = await self.privateGetOrders(self.extend(request, params))
+        #
+        #     {
+        #         code: '200000',
+        #         data: {
+        #             "currentPage": 1,
+        #             "pageSize": 1,
+        #             "totalNum": 153408,
+        #             "totalPage": 153408,
+        #             "items": [
+        #                 {
+        #                     "id": "5c35c02703aa673ceec2a168",   #orderid
+        #                     "symbol": "BTC-USDT",   #symbol
+        #                     "opType": "DEAL",      # operation type,deal is pending order,cancel is cancel order
+        #                     "type": "limit",       # order type,e.g. limit,markrt,stop_limit.
+        #                     "side": "buy",         # transaction direction,include buy and sell
+        #                     "price": "10",         # order price
+        #                     "size": "2",           # order quantity
+        #                     "funds": "0",          # order funds
+        #                     "dealFunds": "0.166",  # deal funds
+        #                     "dealSize": "2",       # deal quantity
+        #                     "fee": "0",            # fee
+        #                     "feeCurrency": "USDT",  # charge fee currency
+        #                     "stp": "",             # self trade prevention,include CN,CO,DC,CB
+        #                     "stop": "",            # stop type
+        #                     "stopTriggered": False,  # stop order is triggered
+        #                     "stopPrice": "0",      # stop price
+        #                     "timeInForce": "GTC",  # time InForce,include GTC,GTT,IOC,FOK
+        #                     "postOnly": False,     # postOnly
+        #                     "hidden": False,       # hidden order
+        #                     "iceberg": False,      # iceberg order
+        #                     "visibleSize": "0",    # display quantity for iceberg order
+        #                     "cancelAfter": 0,      # cancel orders time，requires timeInForce to be GTT
+        #                     "channel": "IOS",      # order source
+        #                     "clientOid": "",       # user-entered order unique mark
+        #                     "remark": "",          # remark
+        #                     "tags": "",            # tag order source
+        #                     "isActive": False,     # status before unfilled or uncancelled
+        #                     "cancelExist": False,   # order cancellation transaction record
+        #                     "createdAt": 1547026471000  # time
+        #                 },
+        #             ]
+        #         }
+        #    }
         responseData = self.safe_value(response, 'data', {})
         orders = self.safe_value(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('done', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('done', symbol, since, limit, params)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_status('active', symbol, since, limit, params)
+        return await self.fetch_orders_by_status('active', symbol, since, limit, params)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -608,35 +663,39 @@ class kucoin (Exchange):
 
     def parse_order(self, order, market=None):
         #
-        #   {"id": "5c35c02703aa673ceec2a168",
-        #     "symbol": "BTC-USDT",
-        #     "opType": "DEAL",
-        #     "type": "limit",
-        #     "side": "buy",
-        #     "price": "10",
-        #     "size": "2",
-        #     "funds": "0",
-        #     "dealFunds": "0.166",
-        #     "dealSize": "2",
-        #     "fee": "0",
-        #     "feeCurrency": "USDT",
-        #     "stp": "",
-        #     "stop": "",
-        #     "stopTriggered": False,
-        #     "stopPrice": "0",
-        #     "timeInForce": "GTC",
-        #     "postOnly": False,
-        #     "hidden": False,
-        #     "iceberge": False,
-        #     "visibleSize": "0",
-        #     "cancelAfter": 0,
-        #     "channel": "IOS",
-        #     "clientOid": "",
-        #     "remark": "",
-        #     "tags": "",
-        #     "isActive": False,
-        #     "cancelExist": False,
-        #     "createdAt": 1547026471000}
+        # fetchOpenOrders, fetchClosedOrders
+        #
+        #     {
+        #         "id": "5c35c02703aa673ceec2a168",   #orderid
+        #         "symbol": "BTC-USDT",   #symbol
+        #         "opType": "DEAL",      # operation type,deal is pending order,cancel is cancel order
+        #         "type": "limit",       # order type,e.g. limit,markrt,stop_limit.
+        #         "side": "buy",         # transaction direction,include buy and sell
+        #         "price": "10",         # order price
+        #         "size": "2",           # order quantity
+        #         "funds": "0",          # order funds
+        #         "dealFunds": "0.166",  # deal funds
+        #         "dealSize": "2",       # deal quantity
+        #         "fee": "0",            # fee
+        #         "feeCurrency": "USDT",  # charge fee currency
+        #         "stp": "",             # self trade prevention,include CN,CO,DC,CB
+        #         "stop": "",            # stop type
+        #         "stopTriggered": False,  # stop order is triggered
+        #         "stopPrice": "0",      # stop price
+        #         "timeInForce": "GTC",  # time InForce,include GTC,GTT,IOC,FOK
+        #         "postOnly": False,     # postOnly
+        #         "hidden": False,       # hidden order
+        #         "iceberg": False,      # iceberg order
+        #         "visibleSize": "0",    # display quantity for iceberg order
+        #         "cancelAfter": 0,      # cancel orders time，requires timeInForce to be GTT
+        #         "channel": "IOS",      # order source
+        #         "clientOid": "",       # user-entered order unique mark
+        #         "remark": "",          # remark
+        #         "tags": "",            # tag order source
+        #         "isActive": False,     # status before unfilled or uncancelled
+        #         "cancelExist": False,   # order cancellation transaction record
+        #         "createdAt": 1547026471000  # time
+        #     }
         #
         symbol = None
         marketId = self.safe_string(order, 'symbol')
@@ -672,6 +731,11 @@ class kucoin (Exchange):
             'currency': feeCurrency,
             'cost': feeCost,
         }
+        if type == 'market':
+            if price == 0.0:
+                if (cost is not None) and(filled is not None):
+                    if (cost > 0) and(filled > 0):
+                        price = cost / filled
         return {
             'id': orderId,
             'symbol': symbol,
@@ -696,11 +760,59 @@ class kucoin (Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        if since is not None:
-            request['startAt'] = since
         if limit is not None:
             request['pageSize'] = limit
-        response = await self.privateGetFills(self.extend(request, params))
+        method = 'privateGetFills'
+        if since is not None:
+            # if since is earlier than 2019-02-18T00:00:00Z
+            if since < 1550448000000:
+                request['startAt'] = int(since / 1000)
+                # despite that self endpoint is called `HistOrders`
+                # it returns historical trades instead of orders
+                method = 'privateGetHistOrders'
+            else:
+                request['startAt'] = since
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "currentPage": 1,
+        #         "pageSize": 50,
+        #         "totalNum": 1,
+        #         "totalPage": 1,
+        #         "items": [
+        #             {
+        #                 "symbol":"BTC-USDT",       # symbol
+        #                 "tradeId":"5c35c02709e4f67d5266954e",        # trade id
+        #                 "orderId":"5c35c02703aa673ceec2a168",        # order id
+        #                 "counterOrderId":"5c1ab46003aa676e487fa8e3",  # counter order id
+        #                 "side":"buy",              # transaction direction,include buy and sell
+        #                 "liquidity":"taker",       # include taker and maker
+        #                 "forceTaker":true,         # forced to become taker
+        #                 "price":"0.083",           # order price
+        #                 "size":"0.8424304",        # order quantity
+        #                 "funds":"0.0699217232",    # order funds
+        #                 "fee":"0",                 # fee
+        #                 "feeRate":"0",             # fee rate
+        #                 "feeCurrency":"USDT",      # charge fee currency
+        #                 "stop":"",                 # stop type
+        #                 "type":"limit",            # order type, e.g. limit, market, stop_limit.
+        #                 "createdAt":1547026472000  # time
+        #             },
+        #             #------------------------------------------------------
+        #             # v1(historical) trade response structure
+        #             {
+        #                 "symbol": "SNOV-ETH",
+        #                 "dealPrice": "0.0000246",
+        #                 "dealValue": "0.018942",
+        #                 "amount": "770",
+        #                 "fee": "0.00001137",
+        #                 "side": "sell",
+        #                 "createdAt": 1540080199
+        #                 "id":"5c4d389e4c8c60413f78e2e5",
+        #             }
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data', {})
         trades = self.safe_value(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
@@ -716,6 +828,7 @@ class kucoin (Exchange):
         if limit is not None:
             request['pageSize'] = limit
         response = await self.publicGetMarketHistories(self.extend(request, params))
+        #
         #     {
         #         "code": "200000",
         #         "data": [
@@ -744,7 +857,7 @@ class kucoin (Exchange):
         #         "time":1548848575203567174
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades(private) v2
         #
         #     {
         #         "symbol":"BTC-USDT",
@@ -765,6 +878,37 @@ class kucoin (Exchange):
         #         "createdAt":1547026472000
         #     }
         #
+        # fetchMyTrades v2 alternative format since 2019-05-21 https://github.com/ccxt/ccxt/pull/5162
+        #
+        #     {
+        #         symbol: "OPEN-BTC",
+        #         forceTaker:  False,
+        #         orderId: "5ce36420054b4663b1fff2c9",
+        #         fee: "0",
+        #         feeCurrency: "",
+        #         type: "",
+        #         feeRate: "0",
+        #         createdAt: 1558417615000,
+        #         size: "12.8206",
+        #         stop: "",
+        #         price: "0",
+        #         funds: "0",
+        #         tradeId: "5ce390cf6e0db23b861c6e80"
+        #     }
+        #
+        # fetchMyTrades(private) v1(historical)
+        #
+        #     {
+        #         "symbol": "SNOV-ETH",
+        #         "dealPrice": "0.0000246",
+        #         "dealValue": "0.018942",
+        #         "amount": "770",
+        #         "fee": "0.00001137",
+        #         "side": "sell",
+        #         "createdAt": 1540080199
+        #         "id":"5c4d389e4c8c60413f78e2e5",
+        #     }
+        #
         symbol = None
         marketId = self.safe_string(trade, 'symbol')
         if marketId is not None:
@@ -776,32 +920,44 @@ class kucoin (Exchange):
                 base = self.common_currency_code(baseId)
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
-            market = self.safe_value(self.markets_by_id, marketId)
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
-        id = self.safe_string(trade, 'tradeId')
+        id = self.safe_string_2(trade, 'tradeId', 'id')
         if id is not None:
             id = str(id)
         orderId = self.safe_string(trade, 'orderId')
-        amount = self.safe_float(trade, 'size')
+        takerOrMaker = self.safe_string(trade, 'liquidity')
+        amount = self.safe_float_2(trade, 'size', 'amount')
         timestamp = self.safe_integer(trade, 'time')
         if timestamp is not None:
             timestamp = int(timestamp / 1000000)
         else:
             timestamp = self.safe_integer(trade, 'createdAt')
-        price = self.safe_float(trade, 'price')
+            # if it's a historical v1 trade, the exchange returns timestamp in seconds
+            if ('dealValue' in list(trade.keys())) and(timestamp is not None):
+                timestamp = timestamp * 1000
+        price = self.safe_float_2(trade, 'price', 'dealPrice')
         side = self.safe_string(trade, 'side')
-        fee = {
-            'cost': self.safe_float(trade, 'fee'),
-            'rate': self.safe_float(trade, 'feeRate'),
-            'currency': self.safe_string(trade, 'feeCurrency'),
-        }
+        fee = None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'feeCurrency')
+            feeCurrency = self.common_currency_code(feeCurrencyId)
+            if feeCurrency is None:
+                if market is not None:
+                    feeCurrency = market['quote'] if (side == 'sell') else market['base']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+                'rate': self.safe_float(trade, 'feeRate'),
+            }
         type = self.safe_string(trade, 'type')
-        cost = self.safe_float(trade, 'funds')
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
+        cost = self.safe_float_2(trade, 'funds', 'dealValue')
+        if cost is None:
+            if amount is not None:
+                if price is not None:
+                    cost = amount * price
         return {
             'info': trade,
             'id': id,
@@ -810,6 +966,7 @@ class kucoin (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
@@ -832,10 +989,9 @@ class kucoin (Exchange):
         #
         # {"withdrawalId": "5bffb63303aa675e8bbe18f9"}
         #
-        responseData = response['data']
         return {
-            'id': self.safe_string(responseData, 'withdrawalId'),
-            'info': responseData,
+            'id': self.safe_string(response, 'withdrawalId'),
+            'info': response,
         }
 
     def parse_transaction_status(self, status):
@@ -848,29 +1004,36 @@ class kucoin (Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
-        # Deposits
-        #   {"address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
-        #     "memo": "5c247c8a03aa677cea2a251d",
-        #     "amount": 1,
-        #     "fee": 0.0001,
-        #     "currency": "KCS",
-        #     "isInner": False,
-        #     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
-        #     "status": "SUCCESS",
-        #     "createdAt": 1544178843000,
-        #     "updatedAt": 1544178891000}
-        # Withdrawals
-        #   {"id": "5c2dc64e03aa675aa263f1ac",
-        #     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
-        #     "memo": "",
-        #     "currency": "ETH",
-        #     "amount": 1.0000000,
-        #     "fee": 0.0100000,
-        #     "walletTxId": "3e2414d82acce78d38be7fe9",
-        #     "isInner": False,
-        #     "status": "FAILURE",
-        #     "createdAt": 1546503758000,
-        #     "updatedAt": 1546504603000}
+        # fetchDeposits
+        #
+        #     {
+        #         "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        #         "memo": "5c247c8a03aa677cea2a251d",
+        #         "amount": 1,
+        #         "fee": 0.0001,
+        #         "currency": "KCS",
+        #         "isInner": False,
+        #         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
+        #         "status": "SUCCESS",
+        #         "createdAt": 1544178843000,
+        #         "updatedAt": 1544178891000
+        #     }
+        #
+        # fetchWithdrawals
+        #
+        #     {
+        #         "id": "5c2dc64e03aa675aa263f1ac",
+        #         "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
+        #         "memo": "",
+        #         "currency": "ETH",
+        #         "amount": 1.0000000,
+        #         "fee": 0.0100000,
+        #         "walletTxId": "3e2414d82acce78d38be7fe9",
+        #         "isInner": False,
+        #         "status": "FAILURE",
+        #         "createdAt": 1546503758000,
+        #         "updatedAt": 1546504603000
+        #     }
         #
         code = None
         currencyId = self.safe_string(transaction, 'currency')
@@ -882,18 +1045,42 @@ class kucoin (Exchange):
         address = self.safe_string(transaction, 'address')
         amount = self.safe_float(transaction, 'amount')
         txid = self.safe_string(transaction, 'walletTxId')
+        if txid is not None:
+            txidParts = txid.split('@')
+            numTxidParts = len(txidParts)
+            if numTxidParts > 1:
+                if address is None:
+                    if len(txidParts[1]) > 1:
+                        address = txidParts[1]
+            txid = txidParts[0]
         type = txid is 'withdrawal' if None else 'deposit'
         rawStatus = self.safe_string(transaction, 'status')
         status = self.parse_transaction_status(rawStatus)
-        fees = {
-            'cost': self.safe_float(transaction, 'fee'),
-        }
-        if fees['cost'] is not None and amount is not None:
-            fees['rate'] = fees['cost'] / amount
+        fee = None
+        feeCost = self.safe_float(transaction, 'fee')
+        if feeCost is not None:
+            rate = None
+            if amount is not None:
+                rate = feeCost / amount
+            fee = {
+                'cost': feeCost,
+                'rate': rate,
+                'currency': code,
+            }
         tag = self.safe_string(transaction, 'memo')
-        timestamp = self.safe_integer_2(transaction, 'updatedAt', 'createdAt')
-        datetime = self.iso8601(timestamp)
+        timestamp = self.safe_integer_2(transaction, 'createdAt', 'createAt')
+        id = self.safe_string(transaction, 'id')
+        updated = self.safe_integer(transaction, 'updatedAt')
+        isV1 = not('createdAt' in list(transaction.keys()))
+        # if it's a v1 structure
+        if isV1:
+            type = 'withdrawal' if ('address' in list(transaction.keys())) else 'deposit'
+            if timestamp is not None:
+                timestamp = timestamp * 1000
+            if updated is not None:
+                updated = updated * 1000
         return {
+            'id': id,
             'address': address,
             'tag': tag,
             'currency': code,
@@ -901,9 +1088,10 @@ class kucoin (Exchange):
             'txid': txid,
             'type': type,
             'status': status,
-            'fee': fees,
+            'fee': fee,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
+            'updated': updated,
             'info': transaction,
         }
 
@@ -914,24 +1102,56 @@ class kucoin (Exchange):
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
-        if since is not None:
-            request['startAt'] = since
         if limit is not None:
             request['pageSize'] = limit
-        response = await self.privateGetDeposits(self.extend(request, params))
+        method = 'privateGetDeposits'
+        if since is not None:
+            # if since is earlier than 2019-02-18T00:00:00Z
+            if since < 1550448000000:
+                request['startAt'] = int(since / 1000)
+                method = 'privateGetHistDeposits'
+            else:
+                request['startAt'] = since
+        response = await getattr(self, method)(self.extend(request, params))
         #
-        # paginated
-        # {code: '200000',
-        #   data:
-        #    {totalNum: 0,
-        #      totalPage: 0,
-        #      pageSize: 10,
-        #      currentPage: 1,
-        #      items: [...]
-        #     }}
+        #     {
+        #         code: '200000',
+        #         data: {
+        #             "currentPage": 1,
+        #             "pageSize": 5,
+        #             "totalNum": 2,
+        #             "totalPage": 1,
+        #             "items": [
+        #                 #--------------------------------------------------
+        #                 # version 2 deposit response structure
+        #                 {
+        #                     "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        #                     "memo": "5c247c8a03aa677cea2a251d",
+        #                     "amount": 1,
+        #                     "fee": 0.0001,
+        #                     "currency": "KCS",
+        #                     "isInner": False,
+        #                     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
+        #                     "status": "SUCCESS",
+        #                     "createdAt": 1544178843000,
+        #                     "updatedAt": 1544178891000
+        #                 },
+        #                 #--------------------------------------------------
+        #                 # version 1(historical) deposit response structure
+        #                 {
+        #                     "currency": "BTC",
+        #                     "createAt": 1528536998,
+        #                     "amount": "0.03266638",
+        #                     "walletTxId": "55c643bc2c68d6f17266383ac1be9e454038864b929ae7cee0bc408cc5c869e8@12ffGWmMMD1zA1WbFm7Ho3JZ1w6NYXjpFk@234",
+        #                     "isInner": False,
+        #                     "status": "SUCCESS",
+        #                 }
+        #             ]
+        #         }
+        #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit)
+        return self.parseTransactions(responseData, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -940,23 +1160,58 @@ class kucoin (Exchange):
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
-        if since is not None:
-            request['startAt'] = since
         if limit is not None:
             request['pageSize'] = limit
-        response = await self.privateGetWithdrawals(self.extend(request, params))
+        method = 'privateGetWithdrawals'
+        if since is not None:
+            # if since is earlier than 2019-02-18T00:00:00Z
+            if since < 1550448000000:
+                request['startAt'] = int(since / 1000)
+                method = 'privateGetHistWithdrawals'
+            else:
+                request['startAt'] = since
+        response = await getattr(self, method)(self.extend(request, params))
         #
-        # paginated
-        # {code: '200000',
-        #   data:
-        #    {totalNum: 0,
-        #      totalPage: 0,
-        #      pageSize: 10,
-        #      currentPage: 1,
-        #      items: [...]} }
+        #     {
+        #         code: '200000',
+        #         data: {
+        #             "currentPage": 1,
+        #             "pageSize": 5,
+        #             "totalNum": 2,
+        #             "totalPage": 1,
+        #             "items": [
+        #                 #--------------------------------------------------
+        #                 # version 2 withdrawal response structure
+        #                 {
+        #                     "id": "5c2dc64e03aa675aa263f1ac",
+        #                     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
+        #                     "memo": "",
+        #                     "currency": "ETH",
+        #                     "amount": 1.0000000,
+        #                     "fee": 0.0100000,
+        #                     "walletTxId": "3e2414d82acce78d38be7fe9",
+        #                     "isInner": False,
+        #                     "status": "FAILURE",
+        #                     "createdAt": 1546503758000,
+        #                     "updatedAt": 1546504603000
+        #                 },
+        #                 #--------------------------------------------------
+        #                 # version 1(historical) withdrawal response structure
+        #                 {
+        #                     "currency": "BTC",
+        #                     "createAt": 1526723468,
+        #                     "amount": "0.534",
+        #                     "address": "33xW37ZSW4tQvg443Pc7NLCAs167Yc2XUV",
+        #                     "walletTxId": "aeacea864c020acf58e51606169240e96774838dcd4f7ce48acf38e3651323f4",
+        #                     "isInner": False,
+        #                     "status": "SUCCESS"
+        #                 }
+        #             ]
+        #         }
+        #     }
         #
         responseData = response['data']['items']
-        return self.parseTransactions(responseData, currency, since, limit)
+        return self.parseTransactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -964,16 +1219,30 @@ class kucoin (Exchange):
             'type': 'trade',
         }
         response = await self.privateGetAccounts(self.extend(request, params))
-        responseData = response['data']
-        result = {'info': responseData}
-        for i in range(0, len(responseData)):
-            entry = responseData[i]
-            currencyId = entry['currency']
-            code = self.common_currency_code(currencyId)
+        #
+        #     {
+        #         "code":"200000",
+        #         "data":[
+        #             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
+        #             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
+        #             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
+        #         ]
+        #     }
+        # /
+        data = self.safe_value(response, 'data', [])
+        result = {'info': response}
+        for i in range(0, len(data)):
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             account = {}
-            account['total'] = self.safe_float(entry, 'balance', 0)
-            account['free'] = self.safe_float(entry, 'available', 0)
-            account['used'] = self.safe_float(entry, 'holds', 0)
+            account['total'] = self.safe_float(balance, 'balance')
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'holds')
             result[code] = account
         return self.parse_balance(result)
 

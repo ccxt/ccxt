@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -18,7 +11,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
 
 
@@ -33,23 +25,24 @@ class coinegg (Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': 'emulated',
-                'fetchMyTrades': True,
-                'fetchTickers': True,
+                'fetchMyTrades': False,
+                'fetchTickers': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
                 'api': {
-                    'web': 'https://www.coinegg.com/coin',
+                    'web': 'https://trade.coinegg.com/web',
                     'rest': 'https://api.coinegg.com/api/v1',
                 },
                 'www': 'https://www.coinegg.com',
                 'doc': 'https://www.coinegg.com/explain.api.html',
                 'fees': 'https://www.coinegg.com/fee.html',
+                'referral': 'https://www.coinegg.com/user/register?invite=523218',
             },
             'api': {
                 'web': {
                     'get': [
-                        '{quote}/allcoin',
+                        'symbol/ticker?right_coin={quote}',
                         '{quote}/trends',
                         '{quote}/{base}/order',
                         '{quote}/{base}/trades',
@@ -170,23 +163,18 @@ class coinegg (Exchange):
         result = []
         for b in range(0, len(quoteIds)):
             quoteId = quoteIds[b]
-            bases = await self.webGetQuoteAllcoin({
+            response = await self.webGetSymbolTickerRightCoinQuote({
                 'quote': quoteId,
             })
-            if bases is None:
-                raise ExchangeNotAvailable(self.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + self.json(bases) + '"')
-            baseIds = list(bases.keys())
-            numBaseIds = len(baseIds)
-            if numBaseIds < 1:
-                raise ExchangeNotAvailable(self.id + ' fetchMarkets() for "' + quoteId + '" returned: "' + self.json(bases) + '"')
-            for i in range(0, len(baseIds)):
-                baseId = baseIds[i]
-                market = bases[baseId]
+            tickers = self.safe_value(response, 'data', [])
+            for i in range(0, len(tickers)):
+                ticker = tickers[i]
+                id = ticker['symbol']
+                baseId = id.split('_')[0]
                 base = baseId.upper()
                 quote = quoteId.upper()
                 base = self.common_currency_code(base)
                 quote = self.common_currency_code(quote)
-                id = baseId + quoteId
                 symbol = base + '/' + quote
                 precision = {
                     'amount': 8,
@@ -215,7 +203,7 @@ class coinegg (Exchange):
                             'max': None,
                         },
                     },
-                    'info': market,
+                    'info': ticker,
                 })
         return result
 
@@ -258,87 +246,69 @@ class coinegg (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetTickerRegionQuote(self.extend({
+        request = {
             'coin': market['baseId'],
             'quote': market['quoteId'],
-        }, params))
-        return self.parse_ticker(ticker, market)
-
-    async def fetch_tickers(self, symbols=None, params={}):
-        await self.load_markets()
-        quoteIds = self.options['quoteIds']
-        result = {}
-        for b in range(0, len(quoteIds)):
-            quoteId = quoteIds[b]
-            tickers = await self.webGetQuoteAllcoin({
-                'quote': quoteId,
-            })
-            baseIds = list(tickers.keys())
-            if not len(baseIds):
-                raise ExchangeError('fetchTickers failed')
-            for i in range(0, len(baseIds)):
-                baseId = baseIds[i]
-                ticker = tickers[baseId]
-                id = baseId + quoteId
-                if id in self.markets_by_id:
-                    market = self.marketsById[id]
-                    symbol = market['symbol']
-                    result[symbol] = self.parse_ticker({
-                        'high': ticker[4],
-                        'low': ticker[5],
-                        'buy': ticker[2],
-                        'sell': ticker[3],
-                        'last': ticker[1],
-                        'change': ticker[8],
-                        'vol': ticker[6],
-                        'quoteVol': ticker[7],
-                    }, market)
-        return result
+        }
+        response = await self.publicGetTickerRegionQuote(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetDepthRegionQuote(self.extend({
+        request = {
             'coin': market['baseId'],
             'quote': market['quoteId'],
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        response = await self.publicGetDepthRegionQuote(self.extend(request, params))
+        return self.parse_order_book(response)
 
     def parse_trade(self, trade, market=None):
-        timestamp = int(trade['date']) * 1000
+        timestamp = self.safe_integer(trade, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         symbol = market['symbol']
-        cost = self.cost_to_precision(symbol, price * amount)
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = self.cost_to_precision(symbol, price * amount)
+        type = 'limit'
+        side = self.safe_string(trade, 'type')
+        id = self.safe_string(trade, 'tid')
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'tid'),
             'order': None,
-            'type': 'limit',
-            'side': trade['type'],
+            'type': type,
+            'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        trades = await self.publicGetOrdersRegionQuote(self.extend({
+        request = {
             'coin': market['baseId'],
             'quote': market['quoteId'],
-        }, params))
-        return self.parse_trades(trades, market, since, limit)
+        }
+        response = await self.publicGetOrdersRegionQuote(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostBalance(params)
-        result = {}
-        balances = self.omit(response['data'], 'uid')
+        result = {'info': response}
+        data = self.safe_value(response, 'data', {})
+        balances = self.omit(data, 'uid')
         keys = list(balances.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -346,42 +316,44 @@ class coinegg (Exchange):
             code = currencyId
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             if not(code in list(result.keys())):
-                result[code] = {
-                    'free': None,
-                    'used': None,
-                    'total': None,
-                }
-            accountType = 'used' if (accountType == 'lock') else 'free'
-            result[code][accountType] = float(balances[key])
-        currencies = list(result.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            result[currency]['total'] = self.sum(result[currency]['free'], result[currency]['used'])
-        return self.parse_balance(self.extend({'info': response}, result))
+                result[code] = self.account()
+            type = 'used' if (accountType == 'lock') else 'free'
+            result[code][type] = self.safe_float(balances, key)
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
-        symbol = market['symbol']
-        timestamp = self.parse8601(order['datetime'])
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount_original')
         remaining = self.safe_float(order, 'amount_outstanding')
-        filled = amount - remaining
+        filled = None
+        if amount is not None:
+            if remaining is not None:
+                filled = amount - remaining
         status = self.safe_string(order, 'status')
         if status == 'cancelled':
             status = 'canceled'
         else:
             status = 'open' if remaining else 'closed'
         info = self.safe_value(order, 'info', order)
+        type = 'limit'
+        side = self.safe_string(order, 'type')
+        id = self.safe_string(order, 'id')
         return {
-            'id': self.safe_string(order, 'id'),
+            'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': None,
             'amount': amount,
@@ -395,14 +367,15 @@ class coinegg (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostTradeAddRegionQuote(self.extend({
+        request = {
             'coin': market['baseId'],
             'quote': market['quoteId'],
             'type': side,
             'amount': amount,
             'price': price,
-        }, params))
-        id = str(response['id'])
+        }
+        response = await self.privatePostTradeAddRegionQuote(self.extend(request, params))
+        id = self.safe_string(response, 'id')
         order = self.parse_order({
             'id': id,
             'datetime': self.ymdhms(self.milliseconds()),
@@ -418,21 +391,22 @@ class coinegg (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostTradeCancelRegionQuote(self.extend({
+        request = {
             'id': id,
             'coin': market['baseId'],
             'quote': market['quoteId'],
-        }, params))
-        return response
+        }
+        return await self.privatePostTradeCancelRegionQuote(self.extend(request, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostTradeViewRegionQuote(self.extend({
+        request = {
             'id': id,
             'coin': market['baseId'],
             'quote': market['quoteId'],
-        }, params))
+        }
+        response = await self.privatePostTradeViewRegionQuote(self.extend(request, params))
         return self.parse_order(response['data'], market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -444,14 +418,14 @@ class coinegg (Exchange):
         }
         if since is not None:
             request['since'] = since / 1000
-        orders = await self.privatePostTradeListRegionQuote(self.extend(request, params))
-        return self.parse_orders(orders['data'], market, since, limit)
+        response = await self.privatePostTradeListRegionQuote(self.extend(request, params))
+        return self.parse_orders(response['data'], market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = await self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'type': 'open',
-        }, params))
-        return result
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def nonce(self):
         return self.milliseconds()
@@ -463,8 +437,6 @@ class coinegg (Exchange):
         url = self.urls['api'][apiType] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public' or api == 'web':
-            if api == 'web':
-                query['t'] = self.nonce()
             if query:
                 url += '?' + self.urlencode(query)
         else:
@@ -486,12 +458,7 @@ class coinegg (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        # checks against error codes
-        if not isinstance(body, basestring):
-            return
-        if len(body) == 0:
-            return
-        if body[0] != '{':
+        if response is None:
             return
         # private endpoints return the following structure:
         # {"result":true,"data":{...}} - success

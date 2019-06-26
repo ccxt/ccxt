@@ -36,14 +36,32 @@ class gateio (Exchange):
                 'createMarketOrder': False,
                 'fetchTickers': True,
                 'withdraw': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
+                'fetchTransactions': True,
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
-                'fetchClosedOrders': True,
+                'fetchClosedOrders': False,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrderTrades': True,
                 'fetchOrders': True,
                 'fetchOrder': True,
                 'fetchMyTrades': True,
+            },
+            'timeframes': {
+                '1m': '60',
+                '5m': '300',
+                '10m': '600',
+                '15m': '900',
+                '30m': '1800',
+                '1h': '3600',
+                '2h': '7200',
+                '4h': '14400',
+                '6h': '21600',
+                '12h': '43200',
+                '1d': '86400',
+                '1w': '604800',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg',
@@ -62,6 +80,7 @@ class gateio (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'candlestick2/{id}',
                         'pairs',
                         'marketinfo',
                         'marketlist',
@@ -146,7 +165,7 @@ class gateio (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetMarketinfo()
+        response = await self.publicGetMarketinfo(params)
         markets = self.safe_value(response, 'pairs')
         if not markets:
             raise ExchangeError(self.id + ' fetchMarkets got an unrecognized response')
@@ -156,7 +175,16 @@ class gateio (Exchange):
             keys = list(market.keys())
             id = keys[0]
             details = market[id]
-            baseId, quoteId = id.split('_')
+            # all of their symbols are separated with an underscore
+            # but not boe_eth_eth(BOE_ETH/ETH) which has two underscores
+            # https://github.com/ccxt/ccxt/issues/4894
+            parts = id.split('_')
+            numParts = len(parts)
+            baseId = parts[0]
+            quoteId = parts[1]
+            if numParts > 2:
+                baseId = parts[0] + '_' + parts[1]
+                quoteId = parts[2]
             base = baseId.upper()
             quote = quoteId.upper()
             base = self.common_currency_code(base)
@@ -204,29 +232,67 @@ class gateio (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balance = await self.privatePostBalances()
-        result = {'info': balance}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            code = self.common_currency_code(currency)
+        response = await self.privatePostBalances(params)
+        result = {'info': response}
+        available = self.safe_value(response, 'available', {})
+        if isinstance(available, list):
+            available = {}
+        locked = self.safe_value(response, 'locked', {})
+        currencyIds = list(available.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.common_currency_code(currencyId.upper())
             account = self.account()
-            if 'available' in balance:
-                if currency in balance['available']:
-                    account['free'] = float(balance['available'][currency])
-            if 'locked' in balance:
-                if currency in balance['locked']:
-                    account['used'] = float(balance['locked'][currency])
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = self.safe_float(available, currencyId)
+            account['used'] = self.safe_float(locked, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetOrderBookId(self.extend({
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        response = await self.publicGetOrderBookId(self.extend(request, params))
+        return self.parse_order_book(response)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        # they return [Timestamp, Volume, Close, High, Low, Open]
+        return [
+            int(ohlcv[0]),   # t
+            float(ohlcv[5]),  # o
+            float(ohlcv[3]),  # h
+            float(ohlcv[4]),  # l
+            float(ohlcv[2]),  # c
+            float(ohlcv[1]),  # v
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': market['id'],
+            'group_sec': self.timeframes[timeframe],
+        }
+        # max limit = 1001
+        if limit is not None:
+            periodDurationInSeconds = self.parse_timeframe(timeframe)
+            hours = int((periodDurationInSeconds * limit) / 3600)
+            request['range_hour'] = max(0, hours - 1)
+        response = await self.publicGetCandlestick2Id(self.extend(request, params))
+        #
+        #     {
+        #         "elapsed": "15ms",
+        #         "result": "true",
+        #         "data": [
+        #             ["1553930820000", "1.005299", "4081.05", "4086.18", "4081.05", "4086.18"],
+        #             ["1553930880000", "0.110923277", "4095.2", "4095.23", "4091.15", "4091.15"],
+        #             ...
+        #             ["1553934420000", "0", "4089.42", "4089.42", "4089.42", "4089.42"],
+        #         ]
+        #     }
+        #
+        return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -261,15 +327,13 @@ class gateio (Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'quoteVolume'),
-            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
+            'baseVolume': self.safe_float(ticker, 'baseVolume'),
+            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
             'info': ticker,
         }
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if len(body) <= 0:
-            return
-        if body[0] != '{':
+        if response is None:
             return
         resultString = self.safe_string(response, 'result', '')
         if resultString != 'false':
@@ -288,9 +352,9 @@ class gateio (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        tickers = await self.publicGetTickers(params)
+        response = await self.publicGetTickers(params)
         result = {}
-        ids = list(tickers.keys())
+        ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             baseId, quoteId = id.split('_')
@@ -299,13 +363,17 @@ class gateio (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
-            ticker = tickers[id]
             market = None
             if symbol in self.markets:
                 market = self.markets[symbol]
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
-            result[symbol] = self.parse_ticker(ticker, market)
+            ticker = self.parse_ticker(response[id], market)
+            # https://github.com/ccxt/ccxt/pull/5138
+            baseVolume = ticker['baseVolume']
+            ticker['baseVolume'] = ticker['quoteVolume']
+            ticker['quoteVolume'] = baseVolume
+            result[symbol] = ticker
         return result
 
     async def fetch_ticker(self, symbol, params={}):
@@ -316,33 +384,33 @@ class gateio (Exchange):
         }, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market):
-        # public fetchTrades
-        timestamp = self.safe_integer(trade, 'timestamp')
-        # private fetchMyTrades
-        timestamp = self.safe_integer(trade, 'time_unix', timestamp)
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_integer_2(trade, 'timestamp', 'time_unix')
         if timestamp is not None:
             timestamp *= 1000
-        id = self.safe_string(trade, 'tradeID')
-        id = self.safe_string(trade, 'id', id)
+        id = self.safe_string_2(trade, 'tradeID', 'id')
         # take either of orderid or orderId
-        orderId = self.safe_string(trade, 'orderid')
-        orderId = self.safe_string(trade, 'orderNumber', orderId)
+        orderId = self.safe_string_2(trade, 'orderid', 'orderNumber')
         price = self.safe_float(trade, 'rate')
         amount = self.safe_float(trade, 'amount')
+        type = self.safe_string(trade, 'type')
         cost = None
         if price is not None:
             if amount is not None:
                 cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': orderId,
             'type': None,
-            'side': trade['type'],
+            'side': type,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -352,9 +420,10 @@ class gateio (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTradeHistoryId(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
+        }
+        response = await self.publicGetTradeHistoryId(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -363,10 +432,11 @@ class gateio (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privatePostGetOrder(self.extend({
+        request = {
             'orderNumber': id,
             'currencyPair': self.market_id(symbol),
-        }, params))
+        }
+        response = await self.privatePostGetOrder(self.extend(request, params))
         return self.parse_order(response['order'])
 
     def parse_order_status(self, status):
@@ -375,9 +445,7 @@ class gateio (Exchange):
             # 'closed': 'closed',  # these two statuses aren't actually needed
             # 'open': 'open',  # as they are mapped one-to-one
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
@@ -413,10 +481,8 @@ class gateio (Exchange):
         price = self.safe_float(order, 'filledRate')
         amount = self.safe_float(order, 'initialAmount')
         filled = self.safe_float(order, 'filledAmount')
-        remaining = self.safe_float(order, 'leftAmount')
-        if remaining is None:
-            # In the order status response, self field has a different name.
-            remaining = self.safe_float(order, 'left')
+        # In the order status response, self field has a different name.
+        remaining = self.safe_float_2(order, 'leftAmount', 'left')
         feeCost = self.safe_float(order, 'feeValue')
         feeCurrency = self.safe_string(order, 'feeCurrency')
         feeRate = self.safe_float(order, 'feePercentage')
@@ -453,12 +519,12 @@ class gateio (Exchange):
         await self.load_markets()
         method = 'privatePost' + self.capitalize(side)
         market = self.market(symbol)
-        order = {
+        request = {
             'currencyPair': market['id'],
             'rate': price,
             'amount': amount,
         }
-        response = await getattr(self, method)(self.extend(order, params))
+        response = await getattr(self, method)(self.extend(request, params))
         return self.parse_order(self.extend({
             'status': 'open',
             'type': side,
@@ -469,18 +535,20 @@ class gateio (Exchange):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder requires symbol argument')
         await self.load_markets()
-        return await self.privatePostCancelOrder({
+        request = {
             'orderNumber': id,
             'currencyPair': self.market_id(symbol),
-        })
+        }
+        return await self.privatePostCancelOrder(self.extend(request, params))
 
     async def query_deposit_address(self, method, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
         method = 'privatePost' + method + 'Address'
-        response = await getattr(self, method)(self.extend({
+        request = {
             'currency': currency['id'],
-        }, params))
+        }
+        response = await getattr(self, method)(self.extend(request, params))
         address = self.safe_string(response, 'addr')
         tag = None
         if (address is not None) and(address.find('address') >= 0):
@@ -507,7 +575,7 @@ class gateio (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privatePostOpenOrders()
+        response = await self.privatePostOpenOrders(params)
         return self.parse_orders(response['orders'], market, since, limit)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
@@ -515,10 +583,11 @@ class gateio (Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostTradeHistory(self.extend({
+        request = {
             'currencyPair': market['id'],
             'orderNumber': id,
-        }, params))
+        }
+        response = await self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -526,8 +595,10 @@ class gateio (Exchange):
             raise ExchangeError(self.id + ' fetchMyTrades requires symbol param')
         await self.load_markets()
         market = self.market(symbol)
-        id = market['id']
-        response = await self.privatePostTradeHistory(self.extend({'currencyPair': id}, params))
+        request = {
+            'currencyPair': market['id'],
+        }
+        response = await self.privatePostTradeHistory(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
@@ -566,6 +637,108 @@ class gateio (Exchange):
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    async def fetch_transactions_by_type(self, type=None, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        if since is not None:
+            request['start'] = since
+        response = self.privatePostDepositsWithdrawals(self.extend(request, params))
+        transactions = None
+        if type is None:
+            deposits = self.safe_value(response, 'deposits', [])
+            withdrawals = self.safe_value(response, 'withdraws', [])
+            transactions = self.array_concat(deposits, withdrawals)
+        else:
+            transactions = self.safe_value(response, type, [])
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        return self.parseTransactions(transactions, currency, since, limit)
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_by_type(None, code, since, limit, params)
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_by_type('deposits', code, since, limit, params)
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        return await self.fetch_transactions_by_type('withdraws', code, since, limit, params)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # deposit
+        #
+        #     {
+        #         'id': 'd16520849',
+        #         'currency': 'NEO',
+        #         'address': False,
+        #         'amount': '1',
+        #         'txid': '01acf6b8ce4d24a....',
+        #         'timestamp': '1553125968',
+        #         'status': 'DONE',
+        #         'type': 'deposit'
+        #     }
+        #
+        # withdrawal
+        #
+        #     {
+        #         'id': 'w5864259',
+        #         'currency': 'ETH',
+        #         'address': '0x72632f462....',
+        #         'amount': '0.4947',
+        #         'txid': '0x111167d120f736....',
+        #         'timestamp': '1553123688',
+        #         'status': 'DONE',
+        #         'type': 'withdrawal'
+        #     }
+        #
+        code = None
+        currencyId = self.safe_string(transaction, 'currency')
+        currency = self.safe_value(self.currencies_by_id, currencyId)
+        if currency is None:
+            code = self.common_currency_code(currencyId)
+        if currency is not None:
+            code = currency['code']
+        id = self.safe_string(transaction, 'id')
+        txid = self.safe_string(transaction, 'txid')
+        amount = self.safe_float(transaction, 'amount')
+        address = self.safe_string(transaction, 'address')
+        timestamp = self.safe_integer(transaction, 'timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        type = self.parse_transaction_type(id[0])
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': None,
+            'status': status,
+            'type': type,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': None,
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'PEND': 'pending',
+            'REQUEST': 'pending',
+            'CANCEL': 'failed',
+            'DONE': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'd': 'deposit',
+            'w': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

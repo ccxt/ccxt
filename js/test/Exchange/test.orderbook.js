@@ -8,7 +8,7 @@ const log       = require ('ololog')
     , expect    = chai.expect
     , assert    = chai.assert
 
-//-----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 const printOrderBookOneLiner = (orderbook, method, symbol) => {
 

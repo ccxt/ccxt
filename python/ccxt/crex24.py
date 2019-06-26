@@ -30,26 +30,27 @@ class crex24 (Exchange):
             'version': 'v2',
             # new metainfo interface
             'has': {
+                'cancelAllOrders': True,
+                'CORS': False,
+                'editOrder': True,
+                'fetchBidsAsks': True,
+                'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
-                'CORS': False,
-                'fetchBidsAsks': True,
-                'fetchTickers': True,
-                'fetchOHLCV': False,
+                'fetchDeposits': True,
+                'fetchFundingFees': False,
                 'fetchMyTrades': True,
+                'fetchOHLCV': False,
+                'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': False,
-                'fetchOpenOrders': True,
-                'fetchClosedOrders': True,
-                'withdraw': True,
+                'fetchOrderTrades': True,
+                'fetchTickers': True,
                 'fetchTradingFee': False,  # actually, True, but will be implemented later
                 'fetchTradingFees': False,  # actually, True, but will be implemented later
-                'fetchFundingFees': False,
-                'fetchDeposits': True,
-                'fetchWithdrawals': True,
                 'fetchTransactions': True,
-                'fetchOrderTrades': True,
-                'editOrder': True,
+                'fetchWithdrawals': True,
+                'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -150,7 +151,7 @@ class crex24 (Exchange):
         return self.milliseconds()
 
     def fetch_markets(self, params={}):
-        response = self.publicGetInstruments()
+        response = self.publicGetInstruments(params)
         #
         #     [{             symbol:   "$PAC-BTC",
         #                baseCurrency:   "$PAC",
@@ -174,15 +175,18 @@ class crex24 (Exchange):
         result = []
         for i in range(0, len(response)):
             market = response[i]
-            id = market['symbol']
-            baseId = market['baseCurrency']
-            quoteId = market['quoteCurrency']
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'baseCurrency')
+            quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
+            tickSize = self.safe_value(market, 'tickSize')
+            minPrice = self.safe_value(market, 'minPrice')
+            minAmount = self.safe_float(market, 'minVolume')
             precision = {
-                'amount': self.precision_from_string(self.truncate_to_string(market['tickSize'], 8)),
-                'price': self.precision_from_string(self.truncate_to_string(market['minPrice'], 8)),
+                'amount': self.precision_from_string(self.number_to_string(minAmount)),
+                'price': self.precision_from_string(self.number_to_string(tickSize)),
             }
             active = (market['state'] == 'active')
             result.append({
@@ -197,11 +201,11 @@ class crex24 (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'minVolume'),
+                        'min': minAmount,
                         'max': None,
                     },
                     'price': {
-                        'min': math.pow(10, -precision['price']),
+                        'min': minPrice,
                         'max': None,
                     },
                     'cost': {
@@ -243,7 +247,7 @@ class crex24 (Exchange):
         result = {}
         for i in range(0, len(response)):
             currency = response[i]
-            id = currency['symbol']
+            id = self.safe_string(currency, 'symbol')
             code = self.common_currency_code(id)
             precision = self.safe_integer(currency, 'withdrawalPrecision')
             address = self.safe_value(currency, 'BaseAddress')
@@ -312,14 +316,10 @@ class crex24 (Exchange):
                 code = self.currencies_by_id[currencyId]['code']
             else:
                 code = self.common_currency_code(code)
-            free = self.safe_float(balance, 'available')
-            used = self.safe_float(balance, 'reserved')
-            total = self.sum(free, used)
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'reserved')
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -366,7 +366,7 @@ class crex24 (Exchange):
         #                   bid:  0.0007,
         #             timestamp: "2018-10-31T09:21:25Z"}   ]
         #
-        timestamp = self.parse8601(ticker['timestamp'])
+        timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
         symbol = None
         marketId = self.safe_string(ticker, 'instrument')
         market = self.safe_value(self.markets_by_id, marketId, market)
@@ -491,7 +491,7 @@ class crex24 (Exchange):
         #         "feeCurrency": "ETH"
         #     }
         #
-        timestamp = self.parse8601(trade['timestamp'])
+        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'volume')
         cost = None
@@ -625,7 +625,7 @@ class crex24 (Exchange):
                 average = cost / filled
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
-        result = {
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -644,7 +644,6 @@ class crex24 (Exchange):
             'fee': fee,
             'trades': trades,
         }
-        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -866,11 +865,12 @@ class crex24 (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.tradingPostCancelOrdersById(self.extend({
+        request = {
             'ids': [
                 int(id),
             ],
-        }, params))
+        }
+        response = self.tradingPostCancelOrdersById(self.extend(request, params))
         #
         #     [
         #         465448358,
@@ -879,7 +879,7 @@ class crex24 (Exchange):
         #
         return self.parse_order(response)
 
-    def cancel_all_orders(self, symbols=None, params={}):
+    def cancel_all_orders(self, symbol=None, params={}):
         response = self.tradingPostCancelAllOrders(params)
         #
         #     [
@@ -980,14 +980,16 @@ class crex24 (Exchange):
         return self.parseTransactions(response, currency, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend({
+        request = {
             'type': 'deposit',
-        }, params))
+        }
+        return self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        return self.fetch_transactions(code, since, limit, self.extend({
+        request = {
             'type': 'withdrawal',
-        }, params))
+        }
+        return self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -1029,8 +1031,8 @@ class crex24 (Exchange):
         if currency is not None:
             code = currency['code']
         type = self.safe_string(transaction, 'type')
-        timestamp = self.parse8601(transaction, 'createdAt')
-        updated = self.parse8601(transaction, 'processedAt')
+        timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
+        updated = self.parse8601(self.safe_string(transaction, 'processedAt'))
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_float(transaction, 'amount')
         feeCost = self.safe_float(transaction, 'fee')
@@ -1116,7 +1118,7 @@ class crex24 (Exchange):
                 body = self.json(params)
                 auth += body
             signature = base64.b64encode(self.hmac(self.encode(auth), secret, hashlib.sha512, 'binary'))
-            headers['X-CREX24-API-SIGN'] = signature
+            headers['X-CREX24-API-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):

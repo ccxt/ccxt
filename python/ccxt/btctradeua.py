@@ -51,23 +51,23 @@ class btctradeua (Exchange):
                 },
             },
             'markets': {
-                'BCH/UAH': {'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH'},
-                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}},
-                'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC'},
-                'DASH/UAH': {'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH'},
-                'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC'},
-                'DOGE/UAH': {'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH'},
-                'ETH/UAH': {'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH'},
-                'ITI/UAH': {'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH'},
-                'KRB/UAH': {'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH'},
-                'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC'},
-                'LTC/UAH': {'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH'},
-                'NVC/BTC': {'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC'},
-                'NVC/UAH': {'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH'},
-                'PPC/BTC': {'id': 'ppc_btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC'},
-                'SIB/UAH': {'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH'},
-                'XMR/UAH': {'id': 'xmr_uah', 'symbol': 'XMR/UAH', 'base': 'XMR', 'quote': 'UAH'},
-                'ZEC/UAH': {'id': 'zec_uah', 'symbol': 'ZEC/UAH', 'base': 'ZEC', 'quote': 'UAH'},
+                'BCH/UAH': {'id': 'bch_uah', 'symbol': 'BCH/UAH', 'base': 'BCH', 'quote': 'UAH', 'baseId': 'bch', 'quoteId': 'uah'},
+                'BTC/UAH': {'id': 'btc_uah', 'symbol': 'BTC/UAH', 'base': 'BTC', 'quote': 'UAH', 'baseId': 'btc', 'quoteId': 'uah', 'precision': {'price': 1}, 'limits': {'amount': {'min': 0.0000000001}}},
+                'DASH/BTC': {'id': 'dash_btc', 'symbol': 'DASH/BTC', 'base': 'DASH', 'quote': 'BTC', 'baseId': 'dash', 'quoteId': 'btc'},
+                'DASH/UAH': {'id': 'dash_uah', 'symbol': 'DASH/UAH', 'base': 'DASH', 'quote': 'UAH', 'baseId': 'dash', 'quoteId': 'uah'},
+                'DOGE/BTC': {'id': 'doge_btc', 'symbol': 'DOGE/BTC', 'base': 'DOGE', 'quote': 'BTC', 'baseId': 'doge', 'quoteId': 'btc'},
+                'DOGE/UAH': {'id': 'doge_uah', 'symbol': 'DOGE/UAH', 'base': 'DOGE', 'quote': 'UAH', 'baseId': 'doge', 'quoteId': 'uah'},
+                'ETH/UAH': {'id': 'eth_uah', 'symbol': 'ETH/UAH', 'base': 'ETH', 'quote': 'UAH', 'baseId': 'eth', 'quoteId': 'uah'},
+                'ITI/UAH': {'id': 'iti_uah', 'symbol': 'ITI/UAH', 'base': 'ITI', 'quote': 'UAH', 'baseId': 'iti', 'quoteId': 'uah'},
+                'KRB/UAH': {'id': 'krb_uah', 'symbol': 'KRB/UAH', 'base': 'KRB', 'quote': 'UAH', 'baseId': 'krb', 'quoteId': 'uah'},
+                'LTC/BTC': {'id': 'ltc_btc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc'},
+                'LTC/UAH': {'id': 'ltc_uah', 'symbol': 'LTC/UAH', 'base': 'LTC', 'quote': 'UAH', 'baseId': 'ltc', 'quoteId': 'uah'},
+                'NVC/BTC': {'id': 'nvc_btc', 'symbol': 'NVC/BTC', 'base': 'NVC', 'quote': 'BTC', 'baseId': 'nvc', 'quoteId': 'btc'},
+                'NVC/UAH': {'id': 'nvc_uah', 'symbol': 'NVC/UAH', 'base': 'NVC', 'quote': 'UAH', 'baseId': 'nvc', 'quoteId': 'uah'},
+                'PPC/BTC': {'id': 'ppc_btc', 'symbol': 'PPC/BTC', 'base': 'PPC', 'quote': 'BTC', 'baseId': 'ppc', 'quoteId': 'btc'},
+                'SIB/UAH': {'id': 'sib_uah', 'symbol': 'SIB/UAH', 'base': 'SIB', 'quote': 'UAH', 'baseId': 'sib', 'quoteId': 'uah'},
+                'XMR/UAH': {'id': 'xmr_uah', 'symbol': 'XMR/UAH', 'base': 'XMR', 'quote': 'UAH', 'baseId': 'xmr', 'quoteId': 'uah'},
+                'ZEC/UAH': {'id': 'zec_uah', 'symbol': 'ZEC/UAH', 'base': 'ZEC', 'quote': 'UAH', 'baseId': 'zec', 'quoteId': 'uah'},
             },
             'fees': {
                 'trading': {
@@ -85,33 +85,34 @@ class btctradeua (Exchange):
             },
         })
 
-    def sign_in(self):
-        return self.privatePostAuth()
+    def sign_in(self, params={}):
+        return self.privatePostAuth(params)
 
     def fetch_balance(self, params={}):
-        response = self.privatePostBalance()
+        self.load_markets()
+        response = self.privatePostBalance(params)
         result = {'info': response}
-        if 'accounts' in response:
-            accounts = response['accounts']
-            for b in range(0, len(accounts)):
-                account = accounts[b]
-                currency = account['currency']
-                balance = float(account['balance'])
-                result[currency] = {
-                    'free': balance,
-                    'used': 0.0,
-                    'total': balance,
-                }
+        accounts = self.safe_value(response, 'accounts')
+        for i in range(0, len(accounts)):
+            account = accounts[i]
+            currencyId = account['currency']
+            code = self.common_currency_code(currencyId)
+            balance = self.safe_float(account, 'balance')
+            result[code] = {
+                'free': balance,
+                'used': 0.0,
+                'total': balance,
+            }
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        bids = self.publicGetTradesBuySymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        asks = self.publicGetTradesSellSymbol(self.extend({
-            'symbol': market['id'],
-        }, params))
+        }
+        bids = self.publicGetTradesBuySymbol(self.extend(request, params))
+        asks = self.publicGetTradesSellSymbol(self.extend(request, params))
         orderbook = {
             'bids': [],
             'asks': [],
@@ -125,10 +126,12 @@ class btctradeua (Exchange):
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'currency_trade')
 
     def fetch_ticker(self, symbol, params={}):
-        response = self.publicGetJapanStatHighSymbol(self.extend({
+        self.load_markets()
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
-        ticker = response['trades']
+        }
+        response = self.publicGetJapanStatHighSymbol(self.extend(request, params))
+        ticker = self.safe_value(response, 'trades')
         timestamp = self.milliseconds()
         result = {
             'symbol': symbol,
@@ -155,8 +158,8 @@ class btctradeua (Exchange):
         tickerLength = len(ticker)
         if tickerLength > 0:
             start = max(tickerLength - 48, 0)
-            for t in range(start, len(ticker)):
-                candle = ticker[t]
+            for i in range(start, len(ticker)):
+                candle = ticker[i]
                 if result['open'] is None:
                     result['open'] = candle[1]
                 if (result['high'] is None) or (result['high'] < candle[2]):
@@ -188,10 +191,7 @@ class btctradeua (Exchange):
             u'ноября': '11',
             u'декабря': '12',
         }
-        month = None
-        if cyrillic in months:
-            month = months[cyrillic]
-        return month
+        return self.safe_string(months, cyrillic)
 
     def parse_cyrillic_datetime(self, cyrillic):
         parts = cyrillic.split(' ')
@@ -219,25 +219,43 @@ class btctradeua (Exchange):
         # subtract 3 hours during summer
         return timestamp - 10800000
 
-    def parse_trade(self, trade, market):
-        timestamp = self.parse_cyrillic_datetime(trade['pub_date'])
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse_cyrillic_datetime(self.safe_string(trade, 'pub_date'))
+        id = self.safe_string(trade, 'id')
+        type = 'limit'
+        side = self.safe_string(trade, 'type')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amnt_trade')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
-            'id': str(trade['id']),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': 'limit',
-            'side': trade['type'],
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amnt_trade'),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetDealsSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.publicGetDealsSymbol(self.extend(request, params))
         # they report each trade twice(once for both of the two sides of the fill)
         # deduplicate trades for that reason
         trades = []
@@ -249,46 +267,55 @@ class btctradeua (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
+        self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side) + 'Id'
-        order = {
+        request = {
             'count': amount,
-            'currency1': market['quote'],
-            'currency': market['base'],
+            'currency1': market['quoteId'],
+            'currency': market['baseId'],
             'price': price,
         }
-        return getattr(self, method)(self.extend(order, params))
+        return getattr(self, method)(self.extend(request, params))
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostRemoveOrderId({'id': id})
+        request = {
+            'id': id,
+        }
+        return self.privatePostRemoveOrderId(self.extend(request, params))
 
-    def parse_order(self, trade, market):
-        timestamp = self.milliseconds
+    def parse_order(self, order, market=None):
+        timestamp = self.milliseconds()
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
-            'id': trade['id'],
+            'id': self.safe_string(order, 'id'),
             'timestamp': timestamp,  # until they fix their timestamp
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': 'open',
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
-            'side': trade['type'],
-            'price': trade['price'],
-            'amount': trade['amnt_trade'],
+            'side': self.safe_string(order, 'type'),
+            'price': self.safe_float(order, 'price'),
+            'amount': self.safe_float(order, 'amnt_trade'),
             'filled': 0,
-            'remaining': trade['amnt_trade'],
+            'remaining': self.safe_float(order, 'amnt_trade'),
             'trades': None,
-            'info': trade,
+            'info': order,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+        self.load_markets()
         market = self.market(symbol)
-        response = self.privatePostMyOrdersSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        orders = response['your_open_orders']
+        }
+        response = self.privatePostMyOrdersSymbol(self.extend(request, params))
+        orders = self.safe_value(response, 'your_open_orders')
         return self.parse_orders(orders, market, since, limit)
 
     def nonce(self):

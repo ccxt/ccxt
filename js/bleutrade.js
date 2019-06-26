@@ -9,7 +9,20 @@ const { ExchangeError, AuthenticationError, InvalidOrder, InsufficientFunds } = 
 
 module.exports = class bleutrade extends bittrex {
     describe () {
-        return this.deepExtend (super.describe (), {
+        const timeframes = {
+            '15m': '15m',
+            '20m': '20m',
+            '30m': '30m',
+            '1h': '1h',
+            '2h': '2h',
+            '3h': '3h',
+            '4h': '4h',
+            '6h': '6h',
+            '8h': '8h',
+            '12h': '12h',
+            '1d': '1d',
+        };
+        const result = this.deepExtend (super.describe (), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
             'countries': [ 'BR' ], // Brazil
@@ -23,6 +36,7 @@ module.exports = class bleutrade extends bittrex {
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
             },
+            'timeframes': timeframes,
             'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -47,6 +61,18 @@ module.exports = class bleutrade extends bittrex {
                         'orderhistory',
                         'withdrawhistory',
                         'withdraw',
+                    ],
+                },
+                'public': {
+                    'get': [
+                        'candles',
+                        'currencies',
+                        'markethistory',
+                        'markets',
+                        'marketsummaries',
+                        'marketsummary',
+                        'orderbook',
+                        'ticker',
                     ],
                 },
             },
@@ -116,19 +142,18 @@ module.exports = class bleutrade extends bittrex {
                 'symbolSeparator': '_',
             },
         });
+        // bittrex inheritance override
+        result['timeframes'] = timeframes;
+        return result;
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'OK': 'closed',
             'OPEN': 'open',
             'CANCELED': 'canceled',
         };
-        if (status in statuses) {
-            return statuses[status];
-        } else {
-            return status;
-        }
+        return this.safeString (statuses, status, status);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -139,17 +164,20 @@ module.exports = class bleutrade extends bittrex {
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
-            await this.loadMarkets ();
             market = this.market (symbol);
         } else {
             market = undefined;
         }
-        let response = await this.accountGetOrders (this.extend ({ 'market': 'ALL', 'orderstatus': 'ALL' }, params));
+        const request = {
+            'market': 'ALL',
+            'orderstatus': 'ALL',
+        };
+        const response = await this.accountGetOrders (this.extend (request, params));
         return this.parseOrders (response['result'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.fetchOrders (symbol, since, limit, params);
+        const response = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (response, 'status', 'closed');
     }
 
@@ -166,16 +194,18 @@ module.exports = class bleutrade extends bittrex {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'market': this.marketId (symbol),
             'type': 'ALL',
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['depth'] = limit; // 50
-        let response = await this.publicGetOrderbook (this.extend (request, params));
-        let orderbook = this.safeValue (response, 'result');
-        if (!orderbook)
+        }
+        const response = await this.publicGetOrderbook (this.extend (request, params));
+        const orderbook = this.safeValue (response, 'result');
+        if (!orderbook) {
             throw new ExchangeError (this.id + ' publicGetOrderbook() returneded no result ' + this.json (response));
+        }
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
@@ -185,23 +215,20 @@ module.exports = class bleutrade extends bittrex {
         // Similarly, the correct 'side' for the trade is that of the order.
         // The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
         await this.loadMarkets ();
-        let response = await this.accountGetOrderhistory ({ 'orderid': id });
-        let trades = this.parseTrades (response['result'], undefined, since, limit);
-        let result = [];
-        for (let i = 0; i < trades.length; i++) {
-            let trade = this.extend (trades[i], {
-                'order': id,
-            });
-            result.push (trade);
-        }
-        return result;
+        const request = {
+            'orderid': id,
+        };
+        const response = await this.accountGetOrderhistory (this.extend (request, params));
+        return this.parseTrades (response['result'], undefined, since, limit, {
+            'order': id,
+        });
     }
 
     async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let method = (type === 'deposit') ? 'accountGetDeposithistory' : 'accountGetWithdrawhistory';
-        let response = await this[method] (params);
-        let result = this.parseTransactions (response['result']);
+        const method = (type === 'deposit') ? 'accountGetDeposithistory' : 'accountGetWithdrawhistory';
+        const response = await this[method] (params);
+        const result = this.parseTransactions (response['result']);
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
@@ -213,21 +240,50 @@ module.exports = class bleutrade extends bittrex {
         return await this.fetchTransactionsByType ('withdrawal', code, since, limit, params);
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1d', since = undefined, limit = undefined) {
+        const timestamp = this.parse8601 (ohlcv['TimeStamp'] + '+00:00');
+        return [
+            timestamp,
+            this.safeFloat (ohlcv, 'Open'),
+            this.safeFloat (ohlcv, 'High'),
+            this.safeFloat (ohlcv, 'Low'),
+            this.safeFloat (ohlcv, 'Close'),
+            this.safeFloat (ohlcv, 'Volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'period': this.timeframes[timeframe],
+            'market': market['id'],
+            'count': limit,
+        };
+        const response = await this.publicGetCandles (this.extend (request, params));
+        if ('result' in response) {
+            if (response['result']) {
+                return this.parseOHLCVs (response['result'], market, timeframe, since, limit);
+            }
+        }
+    }
+
     parseTrade (trade, market = undefined) {
-        let timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
+        const timestamp = this.parse8601 (trade['TimeStamp'] + '+00:00');
         let side = undefined;
         if (trade['OrderType'] === 'BUY') {
             side = 'buy';
         } else if (trade['OrderType'] === 'SELL') {
             side = 'sell';
         }
-        let id = this.safeString (trade, 'TradeID');
+        const id = this.safeString (trade, 'TradeID');
         let symbol = undefined;
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         let cost = undefined;
-        let price = this.safeFloat (trade, 'Price');
-        let amount = this.safeFloat (trade, 'Quantity');
+        const price = this.safeFloat (trade, 'Price');
+        const amount = this.safeFloat (trade, 'Quantity');
         if (amount !== undefined) {
             if (price !== undefined) {
                 cost = price * amount;
@@ -241,10 +297,131 @@ module.exports = class bleutrade extends bittrex {
             'symbol': symbol,
             'type': 'limit',
             'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': undefined,
+        };
+    }
+
+    parseOrder (order, market = undefined) {
+        let side = this.safeString2 (order, 'OrderType', 'Type');
+        const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
+        const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
+        if (isBuyOrder) {
+            side = 'buy';
+        }
+        if (isSellOrder) {
+            side = 'sell';
+        }
+        // We parse different fields in a very specific order.
+        // Order might well be closed and then canceled.
+        let status = undefined;
+        if (('Opened' in order) && order['Opened']) {
+            status = 'open';
+        }
+        if (('Closed' in order) && order['Closed']) {
+            status = 'closed';
+        }
+        if (('CancelInitiated' in order) && order['CancelInitiated']) {
+            status = 'canceled';
+        }
+        if (('Status' in order) && this.options['parseOrderStatus']) {
+            status = this.parseOrderStatus (this.safeString (order, 'Status'));
+        }
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'Exchange');
+        if (marketId === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        } else {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                symbol = this.parseSymbol (marketId);
+            }
+        }
+        let timestamp = undefined;
+        if ('Opened' in order) {
+            timestamp = this.parse8601 (order['Opened'] + '+00:00');
+        }
+        if ('Created' in order) {
+            timestamp = this.parse8601 (order['Created'] + '+00:00');
+        }
+        let lastTradeTimestamp = undefined;
+        if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined)) {
+            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
+        }
+        if (('Closed' in order) && (order['Closed'] !== undefined)) {
+            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
+        }
+        if (timestamp === undefined) {
+            timestamp = lastTradeTimestamp;
+        }
+        let fee = undefined;
+        let commission = undefined;
+        if ('Commission' in order) {
+            commission = 'Commission';
+        } else if ('CommissionPaid' in order) {
+            commission = 'CommissionPaid';
+        }
+        if (commission) {
+            fee = {
+                'cost': this.safeFloat (order, commission),
+            };
+            if (market !== undefined) {
+                fee['currency'] = market['quote'];
+            } else if (symbol !== undefined) {
+                const currencyIds = symbol.split ('/');
+                const quoteCurrencyId = currencyIds[1];
+                if (quoteCurrencyId in this.currencies_by_id) {
+                    fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
+                } else {
+                    fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
+                }
+            }
+        }
+        let price = this.safeFloat (order, 'Price');
+        let cost = undefined;
+        const amount = this.safeFloat (order, 'Quantity');
+        const remaining = this.safeFloat (order, 'QuantityRemaining');
+        let filled = undefined;
+        if (amount !== undefined && remaining !== undefined) {
+            filled = amount - remaining;
+        }
+        if (!cost) {
+            if (price && filled) {
+                cost = price * filled;
+            }
+        }
+        if (!price) {
+            if (cost && filled) {
+                price = cost / filled;
+            }
+        }
+        const average = this.safeFloat (order, 'PricePerUnit');
+        const id = this.safeString2 (order, 'OrderUuid', 'OrderId');
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
         };
     }
 
@@ -280,14 +457,14 @@ module.exports = class bleutrade extends bittrex {
         //         "TransactionId": "CANCELED"
         //     }
         //
-        let id = this.safeString (transaction, 'Id');
+        const id = this.safeString (transaction, 'Id');
         let amount = this.safeFloat (transaction, 'Amount');
         let type = 'deposit';
         if (amount < 0) {
             amount = Math.abs (amount);
             type = 'withdrawal';
         }
-        let currencyId = this.safeString (transaction, 'Coin');
+        const currencyId = this.safeString (transaction, 'Coin');
         let code = undefined;
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
@@ -295,25 +472,26 @@ module.exports = class bleutrade extends bittrex {
         } else {
             code = this.commonCurrencyCode (currencyId);
         }
-        let label = this.safeString (transaction, 'Label');
-        let timestamp = this.parse8601 (this.safeString (transaction, 'TimeStamp'));
+        const label = this.safeString (transaction, 'Label');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'TimeStamp'));
         let txid = this.safeString (transaction, 'TransactionId');
         let address = undefined;
         let feeCost = undefined;
-        let labelParts = label.split (';');
+        const labelParts = label.split (';');
         if (labelParts.length === 3) {
-            amount = labelParts[0];
+            amount = parseFloat (labelParts[0]);
             address = labelParts[1];
-            feeCost = labelParts[2];
+            feeCost = parseFloat (labelParts[2]);
         } else {
             address = label;
         }
         let fee = undefined;
-        if (feeCost !== undefined)
+        if (feeCost !== undefined) {
             fee = {
                 'currency': code,
                 'cost': feeCost,
             };
+        }
         let status = 'ok';
         if (txid === 'CANCELED') {
             txid = undefined;

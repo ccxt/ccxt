@@ -70,24 +70,28 @@ module.exports = class flowbtc extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicPostGetProductPairs ();
-        let markets = response['productPairs'];
-        let result = {};
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let id = market['name'];
-            let base = market['product1Label'];
-            let quote = market['product2Label'];
-            let precision = {
+        const response = await this.publicPostGetProductPairs (params);
+        const markets = this.safeValue (response, 'productPairs');
+        const result = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'name');
+            const baseId = this.safeString (market, 'product1Label');
+            const quoteId = this.safeString (market, 'product2Label');
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commoCurrencyCode (quoteId);
+            const precision = {
                 'amount': this.safeInteger (market, 'product1DecimalPlaces'),
                 'price': this.safeInteger (market, 'product2DecimalPlaces'),
             };
-            let symbol = base + '/' + quote;
+            const symbol = base + '/' + quote;
             result[symbol] = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -111,40 +115,40 @@ module.exports = class flowbtc extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetAccountInfo ();
-        let balances = response['currencies'];
-        let result = { 'info': response };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = balance['name'];
-            let account = {
-                'free': balance['balance'],
-                'used': balance['hold'],
-                'total': 0.0,
-            };
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+        const response = await this.privatePostGetAccountInfo (params);
+        const balances = this.safeValue (response, 'currencies');
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = balance['name'];
+            const code = this.commonCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['total'] = this.safeFloat (balance, 'hold');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let orderbook = await this.publicPostGetOrderBook (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'productPair': market['id'],
-        }, params));
-        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'px', 'qty');
+        };
+        const response = await this.publicPostGetOrderBook (this.extend (request, params));
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'px', 'qty');
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.publicPostGetTicker (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'productPair': market['id'],
-        }, params));
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'last');
+        };
+        const ticker = await this.publicPostGetTicker (this.extend (request, params));
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -170,43 +174,54 @@ module.exports = class flowbtc extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = trade['unixtime'] * 1000;
-        let side = (trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
+        const timestamp = this.safeInteger (trade, 'unixtime') * 1000;
+        const side = (trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
+        const id = this.safeString (trade, 'tid');
+        const price = this.safeFloat (trade, 'px');
+        const amount = this.safeFloat (trade, 'qty');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'id': trade['tid'].toString (),
+            'id': id,
             'order': undefined,
             'type': undefined,
             'side': side,
-            'price': trade['px'],
-            'amount': trade['qty'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicPostGetTrades (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'ins': market['id'],
             'startIndex': -1,
-        }, params));
+        };
+        const response = await this.publicPostGetTrades (this.extend (request, params));
         return this.parseTrades (response['trades'], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderType = (type === 'market') ? 1 : 0;
-        let order = {
+        const orderType = (type === 'market') ? 1 : 0;
+        const request = {
             'ins': this.marketId (symbol),
             'side': side,
             'orderType': orderType,
             'qty': amount,
             'px': this.priceToPrecision (symbol, price),
         };
-        let response = await this.privatePostCreateOrder (this.extend (order, params));
+        const response = await this.privatePostCreateOrder (this.extend (request, params));
         return {
             'info': response,
             'id': response['serverOrderId'],
@@ -216,24 +231,25 @@ module.exports = class flowbtc extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         if ('ins' in params) {
-            return await this.privatePostCancelOrder (this.extend ({
+            const request = {
                 'serverOrderId': id,
-            }, params));
+            };
+            return await this.privatePostCancelOrder (this.extend (request, params));
         }
         throw new ExchangeError (this.id + ' requires `ins` symbol parameter for cancelling an order');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        const url = this.urls['api'] + '/' + this.version + '/' + path;
         if (api === 'public') {
             if (Object.keys (params).length) {
                 body = this.json (params);
             }
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
-            let auth = nonce.toString () + this.uid + this.apiKey;
-            let signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            const nonce = this.nonce ();
+            const auth = nonce.toString () + this.uid + this.apiKey;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             body = this.json (this.extend ({
                 'apiKey': this.apiKey,
                 'apiNonce': nonce,
@@ -247,10 +263,12 @@ module.exports = class flowbtc extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('isAccepted' in response)
-            if (response['isAccepted'])
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('isAccepted' in response) {
+            if (response['isAccepted']) {
                 return response;
+            }
+        }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
 };

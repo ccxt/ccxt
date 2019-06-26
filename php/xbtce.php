@@ -20,8 +20,10 @@ class xbtce extends Exchange {
                 'CORS' => false,
                 'fetchTickers' => true,
                 'createMarketOrder' => false,
+                'fetchOHLCV' => false,
             ),
             'urls' => array (
+                'referral' => 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
                 'api' => 'https://cryptottlivewebapi.xbtce.net:8443/api',
                 'www' => 'https://www.xbtce.com',
@@ -102,19 +104,22 @@ class xbtce extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'DSH' => 'DASH',
+            ),
         ));
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->privateGetSymbol ();
-        $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['Symbol'];
-            $base = $market['MarginCurrency'];
-            $quote = $market['ProfitCurrency'];
-            if ($base === 'DSH')
-                $base = 'DASH';
+        $response = $this->privateGetSymbol ($params);
+        $result = array();
+        for ($i = 0; $i < count ($response); $i++) {
+            $market = $response[$i];
+            $id = $this->safe_string($market, 'Symbol');
+            $baseId = $this->safe_string($market, 'MarginCurrency');
+            $quoteId = $this->safe_string($market, 'ProfitCurrency');
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $symbol = $market['IsTradeAllowed'] ? $symbol : $id;
             $result[] = array (
@@ -122,6 +127,8 @@ class xbtce extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'info' => $market,
             );
         }
@@ -130,21 +137,23 @@ class xbtce extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetAsset ();
-        $result = array ( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['Currency'];
-            $uppercase = strtoupper ($currency);
-            // xbtce names DASH incorrectly as DSH
-            if ($uppercase === 'DSH')
-                $uppercase = 'DASH';
+        $balances = $this->privateGetAsset ($params);
+        $result = array( 'info' => $balances );
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'Currency');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
             $account = array (
-                'free' => $balance['FreeAmount'],
-                'used' => $balance['LockedAmount'],
-                'total' => $balance['Amount'],
+                'free' => $this->safe_float($balance, 'FreeAmount'),
+                'used' => $this->safe_float($balance, 'LockedAmount'),
+                'total' => $this->safe_float($balance, 'Amount'),
             );
-            $result[$uppercase] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -152,32 +161,37 @@ class xbtce extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $orderbook = $this->privateGetLevel2Filter (array_merge (array (
+        $request = array (
             'filter' => $market['id'],
-        ), $params));
-        $orderbook = $orderbook[0];
-        $timestamp = $orderbook['Timestamp'];
+        );
+        $response = $this->privateGetLevel2Filter (array_merge ($request, $params));
+        $orderbook = $response[0];
+        $timestamp = $this->safe_integer($orderbook, 'Timestamp');
         return $this->parse_order_book($orderbook, $timestamp, 'Bids', 'Asks', 'Price', 'Volume');
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = 0;
         $last = null;
-        if (is_array ($ticker) && array_key_exists ('LastBuyTimestamp', $ticker))
+        if (is_array($ticker) && array_key_exists('LastBuyTimestamp', $ticker)) {
             if ($timestamp < $ticker['LastBuyTimestamp']) {
                 $timestamp = $ticker['LastBuyTimestamp'];
                 $last = $ticker['LastBuyPrice'];
             }
-        if (is_array ($ticker) && array_key_exists ('LastSellTimestamp', $ticker))
+        }
+        if (is_array($ticker) && array_key_exists('LastSellTimestamp', $ticker)) {
             if ($timestamp < $ticker['LastSellTimestamp']) {
                 $timestamp = $ticker['LastSellTimestamp'];
                 $last = $ticker['LastSellPrice'];
             }
-        if (!$timestamp)
+        }
+        if (!$timestamp) {
             $timestamp = $this->milliseconds ();
+        }
         $symbol = null;
-        if ($market)
+        if ($market) {
             $symbol = $market['symbol'];
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -204,24 +218,22 @@ class xbtce extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGetTicker ($params);
-        $tickers = $this->index_by($tickers, 'Symbol');
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
-        $result = array ();
+        $response = $this->publicGetTicker ($params);
+        $tickers = $this->index_by($response, 'Symbol');
+        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = null;
             $symbol = null;
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
-                $base = mb_substr ($id, 0, 3);
-                $quote = mb_substr ($id, 3, 6);
-                if ($base === 'DSH')
-                    $base = 'DASH';
-                if ($quote === 'DSH')
-                    $quote = 'DASH';
+                $baseId = mb_substr($id, 0, 3 - 0);
+                $quoteId = mb_substr($id, 3, 6 - 3);
+                $base = $this->common_currency_code($baseId);
+                $quote = $this->common_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
             $ticker = $tickers[$id];
@@ -233,13 +245,15 @@ class xbtce extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $tickers = $this->publicGetTickerFilter (array_merge (array (
+        $request = array (
             'filter' => $market['id'],
-        ), $params));
-        $length = is_array ($tickers) ? count ($tickers) : 0;
-        if ($length < 1)
-            throw new ExchangeError ($this->id . ' fetchTicker returned empty response, xBTCe public API error');
-        $tickers = $this->index_by($tickers, 'Symbol');
+        );
+        $response = $this->publicGetTickerFilter (array_merge ($request, $params));
+        $length = is_array ($response) ? count ($response) : 0;
+        if ($length < 1) {
+            throw new ExchangeError($this->id . ' fetchTicker returned empty $response, xBTCe public API error');
+        }
+        $tickers = $this->index_by($response, 'Symbol');
         $ticker = $tickers[$market['id']];
         return $this->parse_ticker($ticker, $market);
     }
@@ -277,19 +291,21 @@ class xbtce extends Exchange {
         //         'count' => $limit,
         //     ), $params));
         //     return $this->parse_ohlcvs($response['Bars'], $market, $timeframe, $since, $limit);
-        throw new NotSupported ($this->id . ' fetchOHLCV is disabled by the exchange');
+        throw new NotSupported($this->id . ' fetchOHLCV is disabled by the exchange');
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        if ($type === 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
-        $response = $this->privatePostTrade (array_merge (array (
+        if ($type === 'market') {
+            throw new ExchangeError($this->id . ' allows limit orders only');
+        }
+        $request = array (
             'pair' => $this->market_id($symbol),
             'type' => $side,
             'amount' => $amount,
             'rate' => $price,
-        ), $params));
+        );
+        $response = $this->privatePostTrade (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => (string) $response['Id'],
@@ -297,10 +313,11 @@ class xbtce extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privateDeleteTrade (array_merge (array (
+        $request = array (
             'Type' => 'Cancel',
             'Id' => $id,
-        ), $params));
+        );
+        return $this->privateDeleteTrade (array_merge ($request, $params));
     }
 
     public function nonce () {
@@ -308,21 +325,25 @@ class xbtce extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        if (!$this->apiKey)
-            throw new AuthenticationError ($this->id . ' requires apiKey for all requests, their public API is always busy');
-        if (!$this->uid)
-            throw new AuthenticationError ($this->id . ' requires uid property for authentication and trading, their public API is always busy');
+        if (!$this->apiKey) {
+            throw new AuthenticationError($this->id . ' requires apiKey for all requests, their public API is always busy');
+        }
+        if (!$this->uid) {
+            throw new AuthenticationError($this->id . ' requires uid property for authentication and trading, their public API is always busy');
+        }
         $url = $this->urls['api'] . '/' . $this->version;
-        if ($api === 'public')
+        if ($api === 'public') {
             $url .= '/' . $api;
+        }
         $url .= '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
-            $headers = array ( 'Accept-Encoding' => 'gzip, deflate' );
+            $headers = array( 'Accept-Encoding' => 'gzip, deflate' );
             $nonce = (string) $this->nonce ();
             if ($method === 'POST') {
                 if ($query) {
@@ -333,12 +354,13 @@ class xbtce extends Exchange {
                 }
             }
             $auth = $nonce . $this->uid . $this->apiKey . $method . $url;
-            if ($body)
+            if ($body) {
                 $auth .= $body;
+            }
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
-            $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $this->binary_to_string($signature);
+            $credentials = $this->uid . ':' . $this->apiKey . ':' . $nonce . ':' . $this->decode ($signature);
             $headers['Authorization'] = 'HMAC ' . $credentials;
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }
