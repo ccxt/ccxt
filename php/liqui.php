@@ -39,6 +39,12 @@ class liqui extends Exchange {
                 'doc' => 'https://liqui.io/api',
                 'fees' => 'https://liqui.io/fee',
             ),
+            'status' => array (
+                'status' => 'shutdown',
+                'updated' => null,
+                'eta' => null,
+                'url' => null,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (

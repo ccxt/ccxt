@@ -42,6 +42,12 @@ class bcex (Exchange):
                 'fees': 'https://bcex.udesk.cn/hc/articles/57085',
                 'referral': 'https://www.bcex.top/register?invite_code=758978&lang=en',
             },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
             'api': {
                 'public': {
                     'get': [

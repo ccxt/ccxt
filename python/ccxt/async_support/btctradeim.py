@@ -25,6 +25,12 @@ class btctradeim (coinegg):
                 'doc': 'https://www.btctrade.im/help.api.html',
                 'fees': 'https://www.btctrade.im/spend.price.html',
             },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
             'fees': {
                 'trading': {
                     'maker': 0.2 / 100,

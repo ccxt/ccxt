@@ -47,6 +47,12 @@ class buda (Exchange):
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
             },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
             'api': {
                 'public': {
                     'get': [

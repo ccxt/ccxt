@@ -25,4 +25,10 @@ class fybsg (fybse):
             'markets': {
                 'BTC/SGD': {'id': 'SGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD'},
             },
+            'status': {
+                'status': 'shutdown',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
         })

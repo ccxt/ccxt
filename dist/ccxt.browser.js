@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.821'
+const version = '1.18.822'
 
 Exchange.ccxtVersion = version
 
@@ -1002,6 +1002,12 @@ module.exports = class allcoin extends okcoinusd {
                 'www': 'https://www.allcoin.com',
                 'doc': 'https://www.allcoin.com/api_market/market',
                 'referral': 'https://www.allcoin.com',
+            },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
             },
             'api': {
                 'web': {
@@ -2479,8 +2485,10 @@ module.exports = class Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
+                'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': false,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -2526,6 +2534,12 @@ module.exports = class Exchange {
                     'withdraw': {},
                     'deposit': {},
                 },
+            },
+            'status': {
+                'status': 'ok',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
             },
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
@@ -3432,6 +3446,16 @@ module.exports = class Exchange {
 
     fetchTotalBalance (params = {}) {
         return this.fetchPartialBalance ('total', params)
+    }
+
+    async fetchStatus (params = {}) {
+        if (this.has['fetchTime']) {
+            const time = await this.fetchTime(params)
+            return this.status = this.extend(this.status, {
+                'updated': time,
+            })
+        }
+        return this.status
     }
 
     async fetchTradingFees (params = {}) {
@@ -5272,6 +5296,12 @@ module.exports = class bcex extends Exchange {
                 'doc': 'https://github.com/BCEX-TECHNOLOGY-LIMITED/API_Docs/wiki/Interface',
                 'fees': 'https://bcex.udesk.cn/hc/articles/57085',
                 'referral': 'https://www.bcex.top/register?invite_code=758978&lang=en',
+            },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
             },
             'api': {
                 'public': {
@@ -8012,6 +8042,18 @@ module.exports = class binance extends Exchange {
             'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
             'info': ticker,
         };
+    }
+
+    async fetchStatus (params = {}) {
+        const systemStatus = await this.wapiGetSystemStatus ();
+        const status = this.safeValue (systemStatus, 'status');
+        if (status !== undefined) {
+            this.status = this.extend (this.status, {
+                'status': status === 0 ? 'ok' : 'maintenance',
+                'updated': this.milliseconds (),
+            });
+        }
+        return this.status;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -24481,6 +24523,12 @@ module.exports = class btctradeim extends coinegg {
                 'doc': 'https://www.btctrade.im/help.api.html',
                 'fees': 'https://www.btctrade.im/spend.price.html',
             },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
+            },
             'fees': {
                 'trading': {
                     'maker': 0.2 / 100,
@@ -25278,6 +25326,12 @@ module.exports = class buda extends Exchange {
                 'www': 'https://www.buda.com',
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
+            },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
             },
             'api': {
                 'public': {
@@ -43399,6 +43453,12 @@ module.exports = class fybsg extends fybse {
             'markets': {
                 'BTC/SGD': { 'id': 'SGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD' },
             },
+            'status': {
+                'status': 'shutdown',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
+            },
         });
     }
 };
@@ -56194,6 +56254,12 @@ module.exports = class liqui extends Exchange {
                 'www': 'https://liqui.io',
                 'doc': 'https://liqui.io/api',
                 'fees': 'https://liqui.io/fee',
+            },
+            'status': {
+                'status': 'shutdown',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
             },
             'api': {
                 'public': {

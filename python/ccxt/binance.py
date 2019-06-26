@@ -365,6 +365,16 @@ class binance (Exchange):
             'info': ticker,
         }
 
+    def fetch_status(self, params={}):
+        systemStatus = self.wapiGetSystemStatus()
+        status = self.safe_value(systemStatus, 'status')
+        if status is not None:
+            self.status = self.extend(self.status, {
+                'status': status == 'ok' if 0 else 'maintenance',
+                'updated': self.milliseconds(),
+            })
+        return self.status
+
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)

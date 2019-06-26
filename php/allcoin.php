@@ -29,6 +29,12 @@ class allcoin extends okcoinusd {
                 'doc' => 'https://www.allcoin.com/api_market/market',
                 'referral' => 'https://www.allcoin.com',
             ),
+            'status' => array (
+                'status' => 'error',
+                'updated' => null,
+                'eta' => null,
+                'url' => null,
+            ),
             'api' => array (
                 'web' => array (
                     'get' => array (
