@@ -559,19 +559,15 @@ module.exports = class itbit extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const timestamp = nonce;
-            let message = nonce + JSON.stringify ([method, url, '', nonce.toString (), timestamp.toString ()]);
+            let auth = [ method, url, '', nonce, timestamp ];
             if (method === 'POST') {
-                message = nonce + JSON.stringify ([method, url, body, nonce.toString (), timestamp.toString ()]);
-            }   
-            const hashBuffer = crypto
-                .createHash ('sha256')
-                .update (message)
-                .digest ();
-            const bufferToHash = Buffer.concat ([Buffer.from (url), hashBuffer]);
-            const signature = crypto
-                .createHmac ('sha512', this.secret)
-                .update (bufferToHash)
-                .digest ('base64');
+                auth = [ method, url, body, nonce, timestamp ];
+            }
+            const message = nonce + this.json (auth).replace ('\\/', '/');
+            const hash = this.hash (this.encode (message), 'sha256', 'binary');
+            const binaryUrl = this.stringToBinary (this.encode (url));
+            const binhash = this.binaryConcat (binaryUrl, hash);
+            const signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
             headers = {
                 'Authorization': this.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
