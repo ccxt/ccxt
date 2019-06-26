@@ -1344,7 +1344,7 @@ class Exchange(object):
 
     def fetch_status(self, params={}):
         if self.has['fetchTime']:
-            updated = self.fetchTime(params)
+            updated = self.fetch_time(params)
             self.status['updated'] = updated
         return self.status
 
