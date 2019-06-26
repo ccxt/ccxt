@@ -230,6 +230,83 @@ module.exports = class coinmate extends Exchange {
         };
     }
 
+    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'limit': 1000,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['timestampFrom'] = since;
+        }
+        if (code !== undefined) {
+            request['currency'] = this.currencyId (code);
+        }
+        const response = await this.privatePostTransferHistory (this.extend (request, params));
+        const items = response['data'];
+        return this.parseTransactions (items, undefined, since, limit);
+    }
+
+    parseTransaction (item, currency = undefined) {
+        //   { transactionId: 1862815,
+        //     timestamp: 1516803982388,
+        //     amountCurrency: 'LTC',
+        //     amount: 1,
+        //     fee: 0,
+        //     walletType: 'LTC',
+        //     transferType: 'DEPOSIT',
+        //     transferStatus: 'COMPLETED',
+        //     txid:
+        //     'ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245',
+        //         destination: 'LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn',
+        //     destinationTag: null }
+        //
+        //   { transactionId: 2140966,
+        //     timestamp: 1519314282976,
+        //     amountCurrency: 'EUR',
+        //     amount: 8421.7228,
+        //     fee: 16.8772,
+        //     walletType: 'BANK_WIRE',
+        //     transferType: 'WITHDRAWAL',
+        //     transferStatus: 'COMPLETED',
+        //     txid: null,
+        //     destination: null,
+        //     destinationTag: null }
+        const timestamp = this.safeInteger (item, 'timestamp');
+        const amount = this.safeFloat (item, 'amount');
+        const fee = this.safeFloat (item, 'fee');
+        const txid = this.safeString (item, 'txid', undefined);
+        const address = this.safeString (item, 'destination', undefined);
+        const tag = this.safeString (item, 'destinationTag', undefined);
+        const amountCurrency = this.safeString (item, 'amountCurrency');
+        currency = this.commonCurrencyCode (amountCurrency);
+        const type = this.safeString (item, 'transferType').toLowerCase ();
+        const transferStatus = this.safeString (item, 'transferStatus');
+        let status = undefined;
+        if (transferStatus === 'COMPLETED') {
+            status = 'ok';
+        }
+        return {
+            'id': this.safeString (item, 'transactionId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': currency,
+            'amount': amount,
+            'type': type,
+            'txid': txid,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'fee': {
+                'cost': fee,
+                'currency': currency,
+            },
+            'info': item,
+        };
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (limit === undefined) {
