@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -177,6 +177,9 @@ module.exports = class bitmarket extends Exchange {
                 'broad': {
                 },
             },
+            'options': {
+                'fetchMarketsWarning': true,
+            },
         });
     }
 
@@ -184,22 +187,31 @@ module.exports = class bitmarket extends Exchange {
         const response = await this.publicGetJsonInternalAllTicker (this.extend ({}, params));
         const ids = Object.keys (response);
         const result = [];
+        const maxIdLength = 6;
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const item = response[id];
-            const baseId = id.substring (0, 3);
-            const quoteId = id.substring (3);
+            if (id.length > 6) {
+                if (this.options['fetchMarketsWarning']) {
+                    throw new NotSupported (this.id + ' fetchMarkets encountered a market id `' + id + '` (length > ' + maxIdLength + ". Set exchange.options['fetchMarketsWarning'] = false to suppress this warning and skip this market."); // eslint-disable-line quotes
+                } else {
+                    continue;
+                }
+            }
+            const baseId = id.slice (0, 3);
+            const quoteId = id.slice (3, 6);
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
-                'symbol': base + '/' + quote,
+                'info': item,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': undefined,
-                'info': item,
             });
         }
         return result;
@@ -218,17 +230,22 @@ module.exports = class bitmarket extends Exchange {
     }
 
     parseTransaction (item, currency = undefined) {
-        //   { id: 240565,
-        //     transaction_id:
-        //     '78cbf0405f07a578164644aa67f5c6a08197574bc100a50aaee40ef2e11dc2d7',
+        //
+        //     {
+        //         id: 240565,
+        //         transaction_id: '78cbf0405f07a578164644aa67f5c6a08197574bc100a50aaee40ef2e11dc2d7',
         //         received_in: '1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3',
-        //     currency: 'BTC',
-        //     amount: 0.49926113,
-        //     time: 1518353534,
-        //     commission: 0.0008,
-        //     withdraw_type: 'Cryptocurrency' }
-        const time = this.safeInteger (item, 'time');
-        const timestamp = time * 1000;
+        //         currency: 'BTC',
+        //         amount: 0.49926113,
+        //         time: 1518353534,
+        //         commission: 0.0008,
+        //         withdraw_type: 'Cryptocurrency'
+        //     }
+        //
+        let timestamp = this.safeInteger (item, 'time');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         let code = undefined;
         const currencyId = this.safeString (item, 'currency');
         if (currencyId !== undefined) {
