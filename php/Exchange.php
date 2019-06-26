@@ -1067,7 +1067,11 @@ class Exchange {
     }
 
     public function raise_error($exception_type, $url, $method = 'GET', $error = null, $details = null) {
-        $exception_class = __NAMESPACE__ . '\\' . $exception_type;
+        $exception_class = $exception_type;
+        $namespace = '\\' . __NAMESPACE__ . '\\';
+        if (substr($exception_class, 0, strlen($namespace)) !== $namespace) {
+            $exception_class =  $namespace . $exception_type;
+        }
         throw new $exception_class(implode(' ', array(
             $this->id,
             $method,
