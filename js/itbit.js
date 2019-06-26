@@ -559,14 +559,15 @@ module.exports = class itbit extends Exchange {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const timestamp = nonce;
-            const message =
-            nonce +
-            JSON.stringify ([method, url, body, nonce.toString (), timestamp.toString ()]);
+            let message = nonce + JSON.stringify ([method, url, '', nonce.toString (), timestamp.toString ()]);
+            if (method === 'POST') {
+                message = nonce + JSON.stringify ([method, url, body, nonce.toString (), timestamp.toString ()]);
+            }   
             const hashBuffer = crypto
                 .createHash ('sha256')
                 .update (message)
                 .digest ();
-            const bufferToHash = Buffer.concat ([Buffer.from (url), hashBuffer]); 
+            const bufferToHash = Buffer.concat ([Buffer.from (url), hashBuffer]);
             const signature = crypto
                 .createHmac ('sha512', this.secret)
                 .update (bufferToHash)
