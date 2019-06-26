@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.820'
+const version = '1.18.821'
 
 Exchange.ccxtVersion = version
 
@@ -2918,7 +2918,7 @@ module.exports = class Exchange {
                 let ExceptionClass = ExchangeNotAvailable
                 let details = 'not accessible from this location at the moment'
                 if (maintenance)
-                    details = 'offline, on maintenance or unreachable from this location at the moment'
+                    details = 'offline, on maintenance, or unreachable from this location at the moment'
                 // http error codes proxied by cloudflare are not really DDoSProtection errors (mostly)
                 if ((response.status < 500) && (ddosProtection)) {
                     ExceptionClass = DDoSProtection
@@ -3011,8 +3011,7 @@ module.exports = class Exchange {
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
 
-            const args = [ response.status, response.statusText, url, method, responseHeaders, responseBody, json ]
-            this.handleErrors (...args)
+            this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
             this.defaultErrorHandler (response, responseBody, url, method)
 
             return json || responseBody
@@ -4059,7 +4058,7 @@ module.exports = subclass (
 
 function subclass (BaseClass, classes, namespace = {}) {
 
-    for (const [$class, subclasses] of Object.entries (classes)) {
+    for (const [className, subclasses] of Object.entries (classes)) {
 
         const Class = Object.assign (namespace, {
 
@@ -4068,7 +4067,7 @@ function subclass (BaseClass, classes, namespace = {}) {
             the super-useful `e.constructor.name` magic wouldn't work — we then would have no chance to
             obtain a error type string from an error instance programmatically!                               */
 
-            [$class]: class extends BaseClass {
+            [className]: class extends BaseClass {
 
                 constructor (message) {
 
@@ -4081,11 +4080,12 @@ function subclass (BaseClass, classes, namespace = {}) {
 
                     this.constructor = Class
                     this.__proto__   = Class.prototype
+                    this.name        = className
                     this.message     = message
                 }
             }
 
-        })[$class]
+        })[className]
 
         subclass (Class, subclasses, namespace)
     }
