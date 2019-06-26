@@ -1919,8 +1919,12 @@ class Exchange {
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
     }
-
+    
     public function fetchStatus($params = array()) {
+        return $this->fetch_status($params);
+    }
+
+    public function fetch_status($params = array()) {
         if ($this->has['fetchTime']) {
             $time = $this->fetch_time($params);
             $this->status = array_merge($this->status, array(
