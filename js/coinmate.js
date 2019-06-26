@@ -310,7 +310,7 @@ module.exports = class coinmate extends Exchange {
             type = type.toLowerCase ();
         }
         const status = this.parseTransactionStatus (this.safeString (item, 'transferStatus'));
-        const id = this.safeString (item, 'transactionId'); 
+        const id = this.safeString (item, 'transactionId');
         return {
             'id': id,
             'timestamp': timestamp,
