@@ -227,10 +227,17 @@ module.exports = class bitmarket extends Exchange {
         //     time: 1518353534,
         //     commission: 0.0008,
         //     withdraw_type: 'Cryptocurrency' }
-        const ccyCode = this.safeString (item, 'currency');
         const time = this.safeInteger (item, 'time');
         const timestamp = time * 1000;
-        const ccyId = this.currencyId (ccyCode);
+        let code = undefined;
+        const currencyId = this.safeString (item, 'currency');
+        if (currencyId !== undefined) {
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+        }
         const type = 'withdraw_type' in item ? 'withdrawal' : undefined; // only withdrawals are supported right now
         return {
             'id': this.safeString (item, 'id'),
@@ -239,14 +246,14 @@ module.exports = class bitmarket extends Exchange {
             'tag': undefined,
             'type': type,
             'amount': this.safeFloat (item, 'amount'),
-            'currency': ccyId,
+            'currency': code,
             'status': 'ok',
             'address': this.safeString (item, 'received_in'),
             'txid': this.safeString (item, 'transaction_id'),
             'updated': undefined,
             'fee': {
                 'cost': this.safeFloat (item, 'commission'),
-                'currency': ccyId,
+                'currency': code,
             },
             'info': item,
         };
