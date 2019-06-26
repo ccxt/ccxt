@@ -1124,7 +1124,7 @@ module.exports = class poloniex extends Exchange {
         const response = await this.privatePostWithdraw (this.extend (request, params));
         return {
             'info': response,
-            'id': response['response'],
+            'id': this.safeString (response, 'withdrawalNumber'),
         };
     }
 
