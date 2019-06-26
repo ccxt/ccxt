@@ -249,50 +249,73 @@ module.exports = class coinmate extends Exchange {
         return this.parseTransactions (items, undefined, since, limit);
     }
 
+    parseTransactionStatus (status) {
+        const statuses = {
+            // any other types ?
+            'COMPLETED': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransaction (item, currency = undefined) {
-        //   { transactionId: 1862815,
-        //     timestamp: 1516803982388,
-        //     amountCurrency: 'LTC',
-        //     amount: 1,
-        //     fee: 0,
-        //     walletType: 'LTC',
-        //     transferType: 'DEPOSIT',
-        //     transferStatus: 'COMPLETED',
-        //     txid:
-        //     'ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245',
-        //         destination: 'LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn',
-        //     destinationTag: null }
         //
-        //   { transactionId: 2140966,
-        //     timestamp: 1519314282976,
-        //     amountCurrency: 'EUR',
-        //     amount: 8421.7228,
-        //     fee: 16.8772,
-        //     walletType: 'BANK_WIRE',
-        //     transferType: 'WITHDRAWAL',
-        //     transferStatus: 'COMPLETED',
-        //     txid: null,
-        //     destination: null,
-        //     destinationTag: null }
+        // deposits
+        //
+        //     {
+        //         transactionId: 1862815,
+        //         timestamp: 1516803982388,
+        //         amountCurrency: 'LTC',
+        //         amount: 1,
+        //         fee: 0,
+        //         walletType: 'LTC',
+        //         transferType: 'DEPOSIT',
+        //         transferStatus: 'COMPLETED',
+        //         txid:
+        //         'ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245',
+        //         destination: 'LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn',
+        //         destinationTag: null
+        //     }
+        //
+        // withdrawals
+        //
+        //     {
+        //         transactionId: 2140966,
+        //         timestamp: 1519314282976,
+        //         amountCurrency: 'EUR',
+        //         amount: 8421.7228,
+        //         fee: 16.8772,
+        //         walletType: 'BANK_WIRE',
+        //         transferType: 'WITHDRAWAL',
+        //         transferStatus: 'COMPLETED',
+        //         txid: null,
+        //         destination: null,
+        //         destinationTag: null
+        //     }
+        //
         const timestamp = this.safeInteger (item, 'timestamp');
         const amount = this.safeFloat (item, 'amount');
         const fee = this.safeFloat (item, 'fee');
-        const txid = this.safeString (item, 'txid', undefined);
-        const address = this.safeString (item, 'destination', undefined);
-        const tag = this.safeString (item, 'destinationTag', undefined);
-        const amountCurrency = this.safeString (item, 'amountCurrency');
-        currency = this.commonCurrencyCode (amountCurrency);
-        const type = this.safeString (item, 'transferType').toLowerCase ();
-        const transferStatus = this.safeString (item, 'transferStatus');
-        let status = undefined;
-        if (transferStatus === 'COMPLETED') {
-            status = 'ok';
+        const txid = this.safeString (item, 'txid');
+        const address = this.safeString (item, 'destination');
+        const tag = this.safeString (item, 'destinationTag');
+        let code = undefined;
+        const currencyId = this.safeString (item, 'amountCurrency');
+        if (currencyId in this.currencies_by_id) {
+            code = this.currencies_by_id[currencyId]['code'];
+        } else {
+            code = this.commonCurrencyCide (currencyId);
         }
+        let type = this.safeString (item, 'transferType');
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
+        const status = this.parseTransactionStatus (this.safeString (item, 'transferStatus'));
+        const id = this.safeString (item, 'transactionId'); 
         return {
-            'id': this.safeString (item, 'transactionId'),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': currency,
+            'currency': code,
             'amount': amount,
             'type': type,
             'txid': txid,
