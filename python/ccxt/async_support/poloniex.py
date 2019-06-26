@@ -1031,7 +1031,7 @@ class poloniex (Exchange):
         response = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
-            'id': response['response'],
+            'id': self.safe_string(response, 'withdrawalNumber'),
         }
 
     async def fetch_transactions_helper(self, code=None, since=None, limit=None, params={}):
