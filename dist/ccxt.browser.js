@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.823'
+const version = '1.18.824'
 
 Exchange.ccxtVersion = version
 
@@ -84747,7 +84747,7 @@ module.exports = class tidebit extends Exchange {
             'limit': limit,
         };
         if (since !== undefined) {
-            request['timestamp'] = since;
+            request['timestamp'] = parseInt (since / 1000);
         } else {
             request['timestamp'] = 1800000;
         }
