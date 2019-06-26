@@ -238,7 +238,11 @@ module.exports = class bitmarket extends Exchange {
                 code = this.commonCurrencyCode (currencyId);
             }
         }
-        const type = 'withdraw_type' in item ? 'withdrawal' : undefined; // only withdrawals are supported right now
+        let type = undefined;
+        if ('withdraw_type' in item) {
+            type = 'withdrawal';
+            // only withdrawals are supported right now
+        }
         return {
             'id': this.safeString (item, 'id'),
             'timestamp': timestamp,
