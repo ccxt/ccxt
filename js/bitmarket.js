@@ -231,17 +231,17 @@ module.exports = class bitmarket extends Exchange {
         const time = this.safeInteger (item, 'time');
         const timestamp = time * 1000;
         const ccyId = this.currencyId (ccyCode);
-        const type = 'withdraw' in item ? 'withdrawal' : undefined; // only withdrawals are supported right now
+        const type = 'withdraw_type' in item ? 'withdrawal' : undefined; // only withdrawals are supported right now
         return {
             'id': this.safeString (item, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': this.safeString (item, 'received_in'),
             'tag': undefined,
             'type': type,
             'amount': this.safeFloat (item, 'amount'),
             'currency': ccyId,
             'status': 'ok',
+            'address': this.safeString (item, 'received_in'),
             'txid': this.safeString (item, 'transaction_id'),
             'updated': undefined,
             'fee': {
