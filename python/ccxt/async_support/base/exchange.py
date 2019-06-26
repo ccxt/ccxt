@@ -211,7 +211,7 @@ class Exchange(BaseExchange):
         # this is for historical reasons
         # and may be changed for consistency later
         return self.currencies
-    
+
     async def fetch_status(self, params={}):
         if self.has['fetchTime']:
             updated = await self.fetch_time(params)
