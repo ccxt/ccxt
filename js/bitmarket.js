@@ -352,44 +352,29 @@ module.exports = class bitmarket extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        if ('id' in trade) {
-            return this.parsePrivateTrade (trade, market);
-        } else {
-            return this.parsePublicTrade (trade, market);
+        let side = this.safeString (trade, 'type');
+        if (side === 'bid') {
+            side = 'buy';
+        } else if (side === 'ask') {
+            side = 'sell';
         }
-    }
-
-    parsePrivateTrade (trade, market) {
-        const timestamp = this.parseTimestamp (trade, 'time');
-        return {
-            'id': this.safeString (trade, 'id'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'order': undefined,
-            'type': undefined,
-            'side': this.safeString (trade, 'type'),
-            'price': this.safeFloat (trade, 'rate'),
-            'amount': this.safeFloat (trade, 'amountCrypto'),
-            'cost': this.safeFloat (trade, 'amountFiat'),
-            'info': trade,
-        };
-    }
-
-    parsePublicTrade (trade, market) {
-        const side = (trade['type'] === 'bid') ? 'buy' : 'sell';
-        const timestamp = this.parseTimestamp (trade, 'date');
-        const id = this.safeString (trade, 'tid');
+        let timestamp = this.safeInteger2 (trade, 'date', 'time');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const id = this.safeString2 (trade, 'tid', 'id');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
+        const price = this.safeFloat2 (trade, 'price', 'rate');
+        const amount = this.safeFloat2 (trade, 'amount', 'amountCrypto');
+        let cost = this.safeFloat (trade, 'amountFiat');
+        if (cost === undefined) {
+            if (price !== undefined) {
+                if (amount !== undefined) {
+                    cost = price * amount;
+                }
             }
         }
         return {
@@ -407,14 +392,6 @@ module.exports = class bitmarket extends Exchange {
             'cost': cost,
             'fee': undefined,
         };
-    }
-
-    parseTimestamp (trade, fieldName) {
-        let timestamp = this.safeInteger (trade, fieldName);
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
-        return timestamp;
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
