@@ -858,11 +858,13 @@ module.exports = class coss extends Exchange {
         const market = this.market (symbol);
         const request = {
             'order_symbol': market['id'],
-            'order_price': parseFloat (this.priceToPrecision (symbol, price)),
-            'order_size': parseFloat (this.amountToPrecision (symbol, amount)),
+            'order_size': this.amountToPrecision (symbol, amount),
             'order_side': side.toUpperCase (),
             'type': type,
         };
+        if (price !== undefined) {
+            request['order_price'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.tradePostOrderAdd (this.extend (request, params));
         //
         //     {
