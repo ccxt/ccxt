@@ -41,12 +41,17 @@ module.exports = class bleutrade extends bittrex {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
                 'api': {
-                    'public': 'https://{hostname}/api',
-                    'account': 'https://{hostname}/api',
-                    'market': 'https://{hostname}/api',
+                    'public': 'https://{hostname}/api/v2',
+                    'account': 'https://{hostname}/api/v2',
+                    'market': 'https://{hostname}/api/v2',
+                    'v3Private': 'https://{hostname}/api/v3/private',
+                    'v3Public': 'https://{hostname}/api/v3/public',
                 },
                 'www': 'https://bleutrade.com',
-                'doc': 'https://bleutrade.com/help/API',
+                'doc': [
+                    'https://bleutrade.com/help/API',
+                    'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
+                ],
                 'fees': 'https://bleutrade.com/help/fees_and_deadlines',
             },
             'api': {
@@ -73,6 +78,23 @@ module.exports = class bleutrade extends bittrex {
                         'marketsummary',
                         'orderbook',
                         'ticker',
+                    ],
+                },
+                'v3Public': {
+                    'get': [
+                        'assets',
+                        'markets',
+                        'ticker',
+                        'marketsummary',
+                        'marketsummaries',
+                        'orderbook',
+                        'markethistory',
+                        'candles',
+                    ],
+                },
+                'v3Private': {
+                    'get': [
+                        'getmytransactions',
                     ],
                 },
             },
@@ -306,6 +328,108 @@ module.exports = class bleutrade extends bittrex {
         };
     }
 
+    parseLedgerEntryType (type) {
+        // deposits don't seem to appear in here
+        const types = {
+            'TRADE': 'trade',
+            'WITHDRAW': 'withdrawal',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //     trade (both sides)
+        //      { ID: 109660527,
+        //         TimeStamp: '2018-11-14 15:12:57.140776',
+        //         Asset: 'ETH',
+        //         AssetName: 'Ethereum',
+        //         Amount: 0.01,
+        //         Type: 'TRADE',
+        //         Description: 'Trade +, order id 133111123',
+        //         Comments: '',
+        //         CoinSymbol: 'ETH',
+        //         CoinName: 'Ethereum' },
+        //       { ID: 109660526,
+        //         TimeStamp: '2018-11-14 15:12:57.140776',
+        //         Asset: 'BTC',
+        //         AssetName: 'Bitcoin',
+        //         Amount: -0.00031776,
+        //         Type: 'TRADE',
+        //         Description: 'Trade -, order id 133111123, fee -0.00000079',
+        //         Comments: '',
+        //         CoinSymbol: 'BTC',
+        //         CoinName: 'Bitcoin' },
+        //
+        //    withdrawal
+        //    { ID: 104672316,
+        //     TimeStamp: '2018-05-03 08:18:19.031831',
+        //     Asset: 'DOGE',
+        //     AssetName: 'Dogecoin',
+        //     Amount: -61893.87864686,
+        //     Type: 'WITHDRAW',
+        //     Description:
+        //     'Withdraw: 61883.87864686 to address DD8tgehNNyYB2iqVazi2W1paaztgcWXtF6; fee 10.00000000',
+        //         Comments: '',
+        //     CoinSymbol: 'DOGE',
+        //     CoinName: 'Dogecoin' }
+        //
+        const currencyId = this.safeString (item, 'CoinSymbol');
+        let code = undefined;
+        if (currencyId !== undefined) {
+            code = this.commonCurrencyCode (currencyId.toUpperCase ());
+        }
+        const description = item['Description'];
+        const descParts = description.split (',');
+        const type = this.parseLedgerEntryType (this.safeString (item, 'Type'));
+        let referenceId = undefined;
+        let fee = undefined;
+        for (let i = 0; i < descParts.length; i++) {
+            const part = descParts[i].trim ();
+            if (part.startsWith ('fee')) {
+                const feeCost = this.safeFloat (part.replace ('fee -', '').trim ());
+                fee = {
+                    'cost': feeCost,
+                    'currency': code,
+                };
+            } else if (part.startsWith ('order id') && type === 'trade') {
+                referenceId = descParts[1].replace ('order id', '').trim ();
+            }
+        }
+        const time = this.safeString (item, 'TimeStamp');
+        const timestamp = this.parse8601 (time);
+        if (type === this.safeString (item, 'Type')) {
+            throw Error ();
+        }
+        const amount = this.safeFloat (item, 'Amount');
+        let direction = undefined;
+        if (amount < 0) {
+            direction = 'out';
+        } else {
+            direction = 'in';
+        }
+        return {
+            'id': this.safeString (item, 'ID'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'currency': code,
+            'amount': amount < 0 ? -amount : amount,
+            'direction': direction,
+            'before': undefined,
+            'after': undefined,
+            'status': 'ok',
+            'fee': fee,
+            'info': item,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.v3PrivateGetGetmytransactions ();
+        return this.parseLedger (response['result'], code, since, limit);
+    }
+
     parseOrder (order, market = undefined) {
         let side = this.safeString2 (order, 'OrderType', 'Type');
         const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
@@ -512,5 +636,33 @@ module.exports = class bleutrade extends bittrex {
             'txid': txid,
             'fee': fee,
         };
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.implodeParams (this.urls['api'][api], {
+            'hostname': this.hostname,
+        }) + '/';
+        if (api === 'v3Private' || api === 'account') {
+            this.checkRequiredCredentials ();
+            if (api === 'account') {
+                url += api + '/';
+            }
+            if (((api === 'account') && (path !== 'withdraw')) || (path === 'openorders')) {
+                url += method.toLowerCase ();
+            }
+            const request = {
+                'apikey': this.apiKey,
+            };
+            request['nonce'] = this.nonce ();
+            url += path + '?' + this.urlencode (this.extend (request, params));
+            const signature = this.hmac (this.encode (url), this.encode (this.secret), 'sha512');
+            headers = { 'apisign': signature };
+        } else {
+            url += api + '/' + method.toLowerCase () + path;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
