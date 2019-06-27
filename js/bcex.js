@@ -36,6 +36,12 @@ module.exports = class bcex extends Exchange {
                 'fees': 'https://bcex.udesk.cn/hc/articles/57085',
                 'referral': 'https://www.bcex.top/register?invite_code=758978&lang=en',
             },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
+            },
             'api': {
                 'public': {
                     'get': [

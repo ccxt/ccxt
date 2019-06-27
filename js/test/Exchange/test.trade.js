@@ -54,19 +54,8 @@ module.exports = (exchange, trade, symbol, now) => {
     }
 
     //------------------------------------------------------------------
-    // console.log (exchange.iso8601 (trade.timestamp), exchange.iso8601 (now))
 
-    // The next assertion line breaks Kraken. They report trades that are
-    // approximately 500ms ahead of `now`. Tried synching system clock against
-    // different servers. Apparently, Kraken's own clock drifts by up to 10 (!) seconds.
-
-    const isExchangeTimeDrifting = [
-        'bitfinex',
-        'bitfinex2',
-        'kraken', // override for kraken and possibly other exchanges as well
-    ].includes (exchange.id)
-
-    const adjustedNow = now + (isExchangeTimeDrifting ? 10000 : 0)
+    const adjustedNow = now + 60000
 
     const exchangesExcludedFromTimestampCheck = [
         'gdax',
@@ -99,5 +88,6 @@ module.exports = (exchange, trade, symbol, now) => {
     assert (trade.price > 0)
     assert (typeof trade.amount === 'number', 'trade.amount is not a number')
     assert (trade.amount >= 0)
+    assert (trade.takerOrMaker === undefined || trade.takerOrMaker === 'taker' || trade.takerOrMaker === 'maker')
     assert.isOk (trade.info)
 }

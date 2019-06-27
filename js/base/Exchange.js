@@ -107,8 +107,10 @@ module.exports = class Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
+                'fetchStatus': 'emulated',
                 'fetchTicker': true,
                 'fetchTickers': false,
+                'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -154,6 +156,12 @@ module.exports = class Exchange {
                     'withdraw': {},
                     'deposit': {},
                 },
+            },
+            'status': {
+                'status': 'ok',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
             },
             'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
@@ -546,7 +554,7 @@ module.exports = class Exchange {
                 let ExceptionClass = ExchangeNotAvailable
                 let details = 'not accessible from this location at the moment'
                 if (maintenance)
-                    details = 'offline, on maintenance or unreachable from this location at the moment'
+                    details = 'offline, on maintenance, or unreachable from this location at the moment'
                 // http error codes proxied by cloudflare are not really DDoSProtection errors (mostly)
                 if ((response.status < 500) && (ddosProtection)) {
                     ExceptionClass = DDoSProtection
@@ -639,8 +647,7 @@ module.exports = class Exchange {
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
 
-            const args = [ response.status, response.statusText, url, method, responseHeaders, responseBody, json ]
-            this.handleErrors (...args)
+            this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
             this.defaultErrorHandler (response, responseBody, url, method)
 
             return json || responseBody
@@ -1061,6 +1068,16 @@ module.exports = class Exchange {
 
     fetchTotalBalance (params = {}) {
         return this.fetchPartialBalance ('total', params)
+    }
+
+    async fetchStatus (params = {}) {
+        if (this.has['fetchTime']) {
+            const time = await this.fetchTime(params)
+            return this.status = this.extend(this.status, {
+                'updated': time,
+            })
+        }
+        return this.status
     }
 
     async fetchTradingFees (params = {}) {

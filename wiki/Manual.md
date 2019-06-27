@@ -21,8 +21,8 @@ The structure of the library can be outlined as follows:
     |       fetchTickers           .            fetchOrders       |
     |       fetchOrderBook         .        fetchOpenOrders       |
     |       fetchOHLCV             .      fetchClosedOrders       |
-    |       fetchTrades            .          fetchMyTrades       |
-    |                              .                deposit       |
+    |       fetchStatus            .          fetchMyTrades       |
+    |       fetchTrades            .                deposit       |
     |                              .               withdraw       |
     │                              .                              |
     +=============================================================+
@@ -141,7 +141,7 @@ The ccxt library currently supports the following 131 cryptocurrency exchange ma
 |[![hadax](https://user-images.githubusercontent.com/1294454/38059952-4756c49e-32f1-11e8-90b9-45c1eccba9cd.jpg)](https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3)                   | hadax              | [HADAX](https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3)                    | 1   | [API](https://github.com/huobiapi/API_Docs/wiki)                                             |                                                                                                                             | China                                   |
 |[![hitbtc](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                     | hitbtc             | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                      | 1   | [API](https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md)                         |                                                                                                                             | Hong Kong                               |
 |[![hitbtc2](https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg)](https://hitbtc.com/?ref_id=5a5d39a65d466)                                    | hitbtc2            | [HitBTC](https://hitbtc.com/?ref_id=5a5d39a65d466)                                      | 2   | [API](https://api.hitbtc.com)                                                                |                                                                                                                             | Hong Kong                               |
-|[![huobipro](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)](https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3)                | huobipro           | [Huobi Pro](https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3)                | 1   | [API](https://github.com/huobiapi/API_Docs/wiki/REST_api_reference)                          |                                                                                                                             | China                                   |
+|[![huobipro](https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg)](https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3)                | huobipro           | [Huobi Pro](https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3)                | 1   | [API](https://huobiapi.github.io/docs/spot/v1/cn/)                                           |                                                                                                                             | China                                   |
 |[![huobiru](https://user-images.githubusercontent.com/1294454/52978816-e8552e00-33e3-11e9-98ed-845acfece834.jpg)](https://www.huobi.com.ru/invite?invite_code=esc74)                           | huobiru            | [Huobi Russia](https://www.huobi.com.ru/invite?invite_code=esc74)                       | 1   | [API](https://github.com/cloudapidoc/API_Docs_en)                                            |                                                                                                                             | Russia                                  |
 |[![ice3x](https://user-images.githubusercontent.com/1294454/38012176-11616c32-3269-11e8-9f05-e65cf885bb15.jpg)](https://ice3x.com?ref=14341802)                                                | ice3x              | [ICE3X](https://ice3x.com?ref=14341802)                                                 | 1   | [API](https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017)          |                                                                                                                             | South Africa                            |
 |[![independentreserve](https://user-images.githubusercontent.com/1294454/30521662-cf3f477c-9bcb-11e7-89bc-d1ac85012eda.jpg)](https://www.independentreserve.com)                               | independentreserve | [Independent Reserve](https://www.independentreserve.com)                               | *   | [API](https://www.independentreserve.com/API)                                                |                                                                                                                             | Australia, New Zealand                  |
@@ -152,7 +152,7 @@ The ccxt library currently supports the following 131 cryptocurrency exchange ma
 |[![kucoin](https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg)](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                           | kucoin             | [KuCoin](https://www.kucoin.com/ucenter/signup?rcode=E5wkqe)                            | 2   | [API](https://docs.kucoin.com)                                                               | [![CCXT Certified](https://img.shields.io/badge/CCXT-certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | Seychelles                              |
 |[![kuna](https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg)](https://kuna.io?r=kunaid-gvfihe8az7o4)                                          | kuna               | [Kuna](https://kuna.io?r=kunaid-gvfihe8az7o4)                                           | 2   | [API](https://kuna.io/documents/api)                                                         |                                                                                                                             | Ukraine                                 |
 |[![lakebtc](https://user-images.githubusercontent.com/1294454/28074120-72b7c38a-6660-11e7-92d9-d9027502281d.jpg)](https://www.lakebtc.com)                                                     | lakebtc            | [LakeBTC](https://www.lakebtc.com)                                                      | 2   | [API](https://www.lakebtc.com/s/api_v2)                                                      |                                                                                                                             | US                                      |
-|[![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US)                        | lbank              | [LBank](https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US)                         | 1   | [API](https://github.com/LBank-exchange/lbank-official-api-docs)                             |                                                                                                                             | China                                   |
+|[![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbex.io/invite?icode=7QCY)                                         | lbank              | [LBank](https://www.lbex.io/invite?icode=7QCY)                                          | 1   | [API](https://github.com/LBank-exchange/lbank-official-api-docs)                             |                                                                                                                             | China                                   |
 |[![liqui](https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg)](https://liqui.io)                                                              | liqui              | [Liqui](https://liqui.io)                                                               | 3   | [API](https://liqui.io/api)                                                                  |                                                                                                                             | Ukraine                                 |
 |[![liquid](https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg)](https://www.liquid.com?affiliate=SbzC62lt30976)                               | liquid             | [Liquid](https://www.liquid.com?affiliate=SbzC62lt30976)                                | 2   | [API](https://developers.liquid.com)                                                         |                                                                                                                             | Japan, China, Taiwan                    |
 |[![livecoin](https://user-images.githubusercontent.com/1294454/27980768-f22fc424-638a-11e7-89c9-6010a54ff9be.jpg)](https://livecoin.net/?from=Livecoin-CQ1hfx44)                               | livecoin           | [LiveCoin](https://livecoin.net/?from=Livecoin-CQ1hfx44)                                | *   | [API](https://www.livecoin.net/api?lang=en)                                                  |                                                                                                                             | US, UK, Russia                          |
@@ -357,6 +357,7 @@ Here's an overview of base exchange properties with values added for example:
         'fetchOrder': false,
         'fetchOrderBook': true,
         'fetchOrders': false,
+        'fetchStatus': 'emulated',
         'fetchTicker': true,
         'fetchTickers': false,
         'fetchBidsAsks': false,
@@ -446,6 +447,8 @@ Below is a detailed description of each of the base exchange properties:
 
 - `options`: An exchange-specific associative dictionary containing special keys and options that are accepted by the underlying exchange and supported in CCXT.
 
+- `precisionMode`: The exchange decimal precision counting mode, read more about [Precision And Limits](#precision-and-limits)
+
 See this section on [Overriding exchange properties](https://github.com/ccxt/ccxt/wiki/Manual#overriding-exchange-properties-upon-instantiation).
 
 #### Exchange Metadata
@@ -477,6 +480,7 @@ See this section on [Overriding exchange properties](https://github.com/ccxt/ccx
         'fetchOrder': false,
         'fetchOrderBook': true,
         'fetchOrders': false,
+        'fetchStatus': 'emulated',
         'fetchTicker': true,
         'fetchTickers': false,
         'fetchBidsAsks': false,
@@ -599,7 +603,7 @@ In terms of the ccxt library, every exchange offers multiple markets within itse
     'quoteId': 'usd',     // any string, exchange-specific quote currency id
     'active': true,       // boolean, market status
     'precision': {        // number of decimal digits "after the dot"
-        'price': 8,       // integer, might be missing if not supplied by the exchange
+        'price': 8,       // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
         'amount': 8,      // integer, might be missing if not supplied by the exchange
         'cost': 8,        // integer, very few exchanges actually have it
     },
@@ -696,6 +700,26 @@ The above values can be missing with some exchanges that don't provide info on l
 
 #### Methods For Formatting Decimals
 
+Each exchange has its own rounding, counting and padding modes.
+
+Supported rounding modes are:
+
+- `ROUND` – will round the last decimal digits to precision
+- `TRUNCATE`– will cut off the digits after certain precision
+
+The decimal precision counting mode is available in the `exchange.precisionMode` property.
+
+Supported counting modes are:
+
+- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode
+- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals
+- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` uses this mode)
+
+Supported padding modes are:
+
+- `NO_PADDING` – default for most cases
+- `PAD_WITH_ZERO` – appends zero characters up to precision
+
 The exchange base class contains the `decimalToPrecision` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
 
 ```JavaScript
@@ -713,22 +737,6 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 // PHP
 function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
 ```
-
-Supported rounding modes are:
-
-- `ROUND` – will round the last decimal digits to precision
-- `TRUNCATE`– will cut off the digits after certain precision
-
-Supported counting modes are:
-
-- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode
-- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals
-- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` uses this mode)
-
-Supported padding modes are:
-
-- `NO_PADDING` – default for most cases
-- `PAD_WITH_ZERO` – appends zero characters up to precision
 
 For examples of how to use the `decimalToPrecision` to format strings and floats, please, see the following files:
 
@@ -1132,6 +1140,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 - `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
 - `fetchOrderBook (symbol[, limit = undefined[, params = {}]])`: Fetch L2/L3 order book for a particular market trading symbol.
+- `fetchStatus ([, params = {}])`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
 - `fetchL2OrderBook (symbol[, limit = undefined[, params]])`: Level 2 (price-aggregated) order book for a particular symbol.
 - `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
@@ -3064,6 +3073,38 @@ Because this is still a work in progress, some or all of methods and info descri
     'cost': feePaid, // the fee cost (amount * fee rate)
 }
 ```
+
+### Exchange Status
+
+The exchange status describes the latest known information on the availability of the exchange API. This information is either hardcoded into the exchange class or fetched live directly from the exchange API. The `fetchStatus(params = {})` method can be used to get this information. The status returned by `fetchStatus` is one of:
+
+- Hardcoded into the exchange class, e.g. if the API has been broken or shutdown.
+- Updated using the exchange ping or `fetchTime` endpoint to see if its alive
+- Updated using the dedicated exchange API status endpoint.
+
+```Javascript
+fetchStatus(params = {})
+ ```
+
+#### Exchange Status Structure
+
+The `fetchStatus()` method will return a status structure like shown below:
+
+```Javascript
+{
+    'status': 'ok' // 'ok', 'shutdown', 'error', 'maintenance'
+    'updated': undefined // integer, last updated timestamp in milliseconds if updated via the API
+    'eta': undefined, // when the maintenance or outage is expected to end
+    'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
+}
+```
+
+The possible values in the `status` field are:
+
+- `'ok'` means the exchange API is fully operational
+- `'shutdown`' means the exchange was closed, and the `updated` field should contain the datetime of the shutdown
+- `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
+- `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
 
 ### Trading Fees
 

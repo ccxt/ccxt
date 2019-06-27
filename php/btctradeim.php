@@ -25,6 +25,12 @@ class btctradeim extends coinegg {
                 'doc' => 'https://www.btctrade.im/help.api.html',
                 'fees' => 'https://www.btctrade.im/spend.price.html',
             ),
+            'status' => array (
+                'status' => 'error',
+                'updated' => null,
+                'eta' => null,
+                'url' => null,
+            ),
             'fees' => array (
                 'trading' => array (
                     'maker' => 0.2 / 100,

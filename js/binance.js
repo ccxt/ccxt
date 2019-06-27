@@ -372,6 +372,18 @@ module.exports = class binance extends Exchange {
         };
     }
 
+    async fetchStatus (params = {}) {
+        const systemStatus = await this.wapiGetSystemStatus ();
+        const status = this.safeValue (systemStatus, 'status');
+        if (status !== undefined) {
+            this.status = this.extend (this.status, {
+                'status': status === 0 ? 'ok' : 'maintenance',
+                'updated': this.milliseconds (),
+            });
+        }
+        return this.status;
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);

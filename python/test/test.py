@@ -134,10 +134,22 @@ def test_order_book(exchange, symbol):
 
 
 def test_ohlcv(exchange, symbol):
+    ignored_exchanges = [
+        'cex',  # CEX can return historical candles for a certain date only
+        'okex',  # okex fetchOHLCV counts "limit" candles from current time backwards
+        'okcoinusd',  # okex base class
+    ]
+    if exchange.id in ignored_exchanges:
+        return
     if exchange.has['fetchOHLCV']:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        ohlcvs = exchange.fetch_ohlcv(symbol)
+        timeframes = exchange.timeframes if exchange.timeframes else {'1d': '1d'}
+        timeframe = list(timeframes.keys())[0]
+        limit = 10
+        duration = exchange.parse_timeframe(timeframe)
+        since = exchange.milliseconds() - duration * limit * 1000 - 1000
+        ohlcvs = exchange.fetch_ohlcv(symbol, timeframe, since, limit)
         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
         dump(yellow(exchange.id), 'fetching OHLCV not supported')
@@ -321,18 +333,10 @@ def try_all_proxies(exchange, proxies=['']):
             current_proxy = (current_proxy + 1) % len(proxies)
             load_exchange(exchange)
             test_exchange(exchange)
-        except ccxt.RequestTimeout as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
-        except ccxt.NotSupported as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
-        except ccxt.DDoSProtection as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
-        except ccxt.ExchangeNotAvailable as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
-        except ccxt.AuthenticationError as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
-        except ccxt.ExchangeError as e:
-            dump_error(yellow('[' + type(e).__name__ + ']'), str(e.args)[0:200])
+        except (ccxt.RequestTimeout, ccxt.AuthenticationError, ccxt.NotSupported, ccxt.DDoSProtection, ccxt.ExchangeNotAvailable, ccxt.ExchangeError) as e:
+            print({'type': type(e).__name__, 'num_retries': num_retries, 'max_retries': max_retries}, str(e)[0:200])
+            if (num_retries + 1) == max_retries:
+                dump_error(yellow('[' + type(e).__name__ + ']'), str(e)[0:200])
         else:
             # no exception
             return True

@@ -7,6 +7,8 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import NotSupported
 
 
 class bitmarket (Exchange):
@@ -21,6 +23,9 @@ class bitmarket (Exchange):
                 'CORS': False,
                 'fetchOHLCV': True,
                 'withdraw': True,
+                'fetchWithdrawals': True,
+                'fetchDeposits': False,
+                'fetchMyTrades': True,
             },
             'timeframes': {
                 '90m': '90m',
@@ -52,6 +57,7 @@ class bitmarket (Exchange):
             'api': {
                 'public': {
                     'get': [
+                        'json_internal/all/ticker',
                         'json/{market}/ticker',
                         'json/{market}/orderbook',
                         'json/{market}/trades',
@@ -101,14 +107,8 @@ class bitmarket (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'BCH/PLN': {'id': 'BCCPLN', 'symbol': 'BCH/PLN', 'base': 'BCH', 'quote': 'PLN', 'baseId': 'BCC', 'quoteId': 'PLN'},
-                'BTG/PLN': {'id': 'BTGPLN', 'symbol': 'BTG/PLN', 'base': 'BTG', 'quote': 'PLN', 'baseId': 'BTG', 'quoteId': 'PLN'},
-                'BTC/PLN': {'id': 'BTCPLN', 'symbol': 'BTC/PLN', 'base': 'BTC', 'quote': 'PLN', 'baseId': 'BTC', 'quoteId': 'PLN'},
-                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR'},
-                'LTC/PLN': {'id': 'LTCPLN', 'symbol': 'LTC/PLN', 'base': 'LTC', 'quote': 'PLN', 'baseId': 'LTC', 'quoteId': 'PLN'},
-                'LTC/BTC': {'id': 'LTCBTC', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'LTC', 'quoteId': 'BTC'},
-                'LiteMineX/BTC': {'id': 'LiteMineXBTC', 'symbol': 'LiteMineX/BTC', 'base': 'LiteMineX', 'quote': 'BTC', 'baseId': 'LiteMineX', 'quoteId': 'BTC'},
+            'commonCurrencies': {
+                'BCC': 'BCH',
             },
             'fees': {
                 'trading': {
@@ -185,7 +185,112 @@ class bitmarket (Exchange):
                 'broad': {
                 },
             },
+            'options': {
+                'fetchMarketsWarning': True,
+            },
         })
+
+    async def fetch_markets(self, params={}):
+        response = await self.publicGetJsonInternalAllTicker(self.extend({}, params))
+        ids = list(response.keys())
+        result = []
+        maxIdLength = 6
+        for i in range(0, len(ids)):
+            id = ids[i]
+            item = response[id]
+            if len(id) > 6:
+                if self.options['fetchMarketsWarning']:
+                    raise NotSupported(self.id + ' fetchMarkets encountered a market id `' + id + '`(length > ' + maxIdLength + ". Set exchange.options['fetchMarketsWarning'] = False to suppress self warning and skip self market.")  # eslint-disable-line quotes
+                else:
+                    continue
+            baseId = id[0:3]
+            quoteId = id[3:6]
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
+            result.append({
+                'id': id,
+                'info': item,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': None,
+            })
+        return result
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.privatePostWithdrawals(self.extend(request, params))
+        items = response['data']['results']
+        return self.parseTransactions(items, None, since, limit)
+
+    def parse_transaction(self, item, currency=None):
+        #
+        #     {
+        #         id: 240565,
+        #         transaction_id: '78cbf0405f07a578164644aa67f5c6a08197574bc100a50aaee40ef2e11dc2d7',
+        #         received_in: '1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3',
+        #         currency: 'BTC',
+        #         amount: 0.49926113,
+        #         time: 1518353534,
+        #         commission: 0.0008,
+        #         withdraw_type: 'Cryptocurrency'
+        #     }
+        #
+        timestamp = self.safe_integer(item, 'time')
+        if timestamp is not None:
+            timestamp *= 1000
+        code = None
+        currencyId = self.safe_string(item, 'currency')
+        if currencyId is not None:
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
+        type = None
+        if 'withdraw_type' in item:
+            type = 'withdrawal'
+            # only withdrawals are supported right now
+        return {
+            'id': self.safe_string(item, 'id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'tag': None,
+            'type': type,
+            'amount': self.safe_float(item, 'amount'),
+            'currency': code,
+            'status': 'ok',
+            'address': self.safe_string(item, 'received_in'),
+            'txid': self.safe_string(item, 'transaction_id'),
+            'updated': None,
+            'fee': {
+                'cost': self.safe_float(item, 'commission'),
+                'currency': code,
+            },
+            'info': item,
+        }
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'market': market['id'],
+            'count': limit,
+        }
+        if limit is not None:
+            request['count'] = limit
+        response = await self.privatePostTrades(self.extend(request, params))
+        data = self.safe_value(response, 'data', {})
+        results = self.safe_value(data, 'results', [])
+        return self.parse_trades(results, market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -252,20 +357,25 @@ class bitmarket (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        side = 'buy' if (trade['type'] == 'bid') else 'sell'
-        timestamp = self.safe_integer(trade, 'date')
+        side = self.safe_string(trade, 'type')
+        if side == 'bid':
+            side = 'buy'
+        elif side == 'ask':
+            side = 'sell'
+        timestamp = self.safe_integer_2(trade, 'date', 'time')
         if timestamp is not None:
             timestamp *= 1000
-        id = self.safe_string(trade, 'tid')
+        id = self.safe_string_2(trade, 'tid', 'id')
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+        price = self.safe_float_2(trade, 'price', 'rate')
+        amount = self.safe_float_2(trade, 'amount', 'amountCrypto')
+        cost = self.safe_float(trade, 'amountFiat')
+        if cost is None:
+            if price is not None:
+                if amount is not None:
+                    cost = price * amount
         return {
             'id': id,
             'info': trade,

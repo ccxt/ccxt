@@ -34,6 +34,12 @@ module.exports = class liqui extends Exchange {
                 'doc': 'https://liqui.io/api',
                 'fees': 'https://liqui.io/fee',
             },
+            'status': {
+                'status': 'shutdown',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
+            },
             'api': {
                 'public': {
                     'get': [

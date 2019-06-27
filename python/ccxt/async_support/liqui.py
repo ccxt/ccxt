@@ -54,6 +54,12 @@ class liqui (Exchange):
                 'doc': 'https://liqui.io/api',
                 'fees': 'https://liqui.io/fee',
             },
+            'status': {
+                'status': 'shutdown',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
             'api': {
                 'public': {
                     'get': [

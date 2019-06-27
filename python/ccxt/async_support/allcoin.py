@@ -28,6 +28,12 @@ class allcoin (okcoinusd):
                 'doc': 'https://www.allcoin.com/api_market/market',
                 'referral': 'https://www.allcoin.com',
             },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
             'api': {
                 'web': {
                     'get': [

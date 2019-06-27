@@ -232,7 +232,7 @@ The ccxt library currently supports the following 131 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | hitbtc2            | `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                      | 2   | `API <https://api.hitbtc.com>`__                                                                |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| huobipro           | `Huobi Pro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__                | 1   | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                          |                                                                      |
+| huobipro           | `Huobi Pro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__                | 1   | `API <https://huobiapi.github.io/docs/spot/v1/cn/>`__                                           |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | huobiru            | `Huobi Russia <https://www.huobi.com.ru/invite?invite_code=esc74>`__                       | 1   | `API <https://github.com/cloudapidoc/API_Docs_en>`__                                            |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -254,7 +254,7 @@ The ccxt library currently supports the following 131 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | lakebtc            | `LakeBTC <https://www.lakebtc.com>`__                                                      | 2   | `API <https://www.lakebtc.com/s/api_v2>`__                                                      |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| lbank              | `LBank <https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US>`__                         | 1   | `API <https://github.com/LBank-exchange/lbank-official-api-docs>`__                             |                                                                      |
+| lbank              | `LBank <https://www.lbex.io/invite?icode=7QCY>`__                                          | 1   | `API <https://github.com/LBank-exchange/lbank-official-api-docs>`__                             |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | liqui              | `Liqui <https://liqui.io>`__                                                               | 3   | `API <https://liqui.io/api>`__                                                                  |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -374,14 +374,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.820/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.820/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.838/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.838/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.820/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.838/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

@@ -23,8 +23,8 @@ The structure of the library can be outlined as follows:
        |       fetchTickers           .            fetchOrders       |
        |       fetchOrderBook         .        fetchOpenOrders       |
        |       fetchOHLCV             .      fetchClosedOrders       |
-       |       fetchTrades            .          fetchMyTrades       |
-       |                              .                deposit       |
+       |       fetchStatus            .          fetchMyTrades       |
+       |       fetchTrades            .                deposit       |
        |                              .               withdraw       |
        │                              .                              |
        +=============================================================+
@@ -228,7 +228,7 @@ The ccxt library currently supports the following 131 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `hitbtc2 <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                    | hitbtc2            | `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                      | 2   | `API <https://api.hitbtc.com>`__                                                                |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `huobipro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__                | huobipro           | `Huobi Pro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__                | 1   | `API <https://github.com/huobiapi/API_Docs/wiki/REST_api_reference>`__                          |                                                                      |
+| `huobipro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__                | huobipro           | `Huobi Pro <https://www.huobi.co/en-us/topic/invited/?invite_code=rwrd3>`__                | 1   | `API <https://huobiapi.github.io/docs/spot/v1/cn/>`__                                           |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `huobiru <https://www.huobi.com.ru/invite?invite_code=esc74>`__                           | huobiru            | `Huobi Russia <https://www.huobi.com.ru/invite?invite_code=esc74>`__                       | 1   | `API <https://github.com/cloudapidoc/API_Docs_en>`__                                            |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -250,7 +250,7 @@ The ccxt library currently supports the following 131 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `lakebtc <https://www.lakebtc.com>`__                                                     | lakebtc            | `LakeBTC <https://www.lakebtc.com>`__                                                      | 2   | `API <https://www.lakebtc.com/s/api_v2>`__                                                      |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `lbank <https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US>`__                        | lbank              | `LBank <https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US>`__                         | 1   | `API <https://github.com/LBank-exchange/lbank-official-api-docs>`__                             |                                                                      |
+| `lbank <https://www.lbex.io/invite?icode=7QCY>`__                                         | lbank              | `LBank <https://www.lbex.io/invite?icode=7QCY>`__                                          | 1   | `API <https://github.com/LBank-exchange/lbank-official-api-docs>`__                             |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `liqui <https://liqui.io>`__                                                              | liqui              | `Liqui <https://liqui.io>`__                                                               | 3   | `API <https://liqui.io/api>`__                                                                  |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -494,6 +494,7 @@ Here’s an overview of base exchange properties with values added for example:
            'fetchOrder': false,
            'fetchOrderBook': true,
            'fetchOrders': false,
+           'fetchStatus': 'emulated',
            'fetchTicker': true,
            'fetchTickers': false,
            'fetchBidsAsks': false,
@@ -584,6 +585,8 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``options``: An exchange-specific associative dictionary containing special keys and options that are accepted by the underlying exchange and supported in CCXT.
 
+-  ``precisionMode``: The exchange decimal precision counting mode, read more about `Precision And Limits <#precision-and-limits>`__
+
 See this section on `Overriding exchange properties <https://github.com/ccxt/ccxt/wiki/Manual#overriding-exchange-properties-upon-instantiation>`__.
 
 Exchange Metadata
@@ -617,6 +620,7 @@ Exchange Metadata
           'fetchOrder': false,
           'fetchOrderBook': true,
           'fetchOrders': false,
+          'fetchStatus': 'emulated',
           'fetchTicker': true,
           'fetchTickers': false,
           'fetchBidsAsks': false,
@@ -745,7 +749,7 @@ Market Structure
        'quoteId': 'usd',     // any string, exchange-specific quote currency id
        'active': true,       // boolean, market status
        'precision': {        // number of decimal digits "after the dot"
-           'price': 8,       // integer, might be missing if not supplied by the exchange
+           'price': 8,       // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
            'amount': 8,      // integer, might be missing if not supplied by the exchange
            'cost': 8,        // integer, very few exchanges actually have it
        },
@@ -853,6 +857,26 @@ The above values can be missing with some exchanges that don’t provide info on
 Methods For Formatting Decimals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Each exchange has its own rounding, counting and padding modes.
+
+Supported rounding modes are:
+
+-  ``ROUND`` – will round the last decimal digits to precision
+-  ``TRUNCATE``– will cut off the digits after certain precision
+
+The decimal precision counting mode is available in the ``exchange.precisionMode`` property.
+
+Supported counting modes are:
+
+-  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode
+-  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals
+-  ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (``bitmex`` uses this mode)
+
+Supported padding modes are:
+
+-  ``NO_PADDING`` – default for most cases
+-  ``PAD_WITH_ZERO`` – appends zero characters up to precision
+
 The exchange base class contains the ``decimalToPrecision`` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
 
 .. code:: javascript
@@ -870,22 +894,6 @@ The exchange base class contains the ``decimalToPrecision`` method to help forma
 
    // PHP
    function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
-
-Supported rounding modes are:
-
--  ``ROUND`` – will round the last decimal digits to precision
--  ``TRUNCATE``– will cut off the digits after certain precision
-
-Supported counting modes are:
-
--  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode
--  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals
--  ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (``bitmex`` uses this mode)
-
-Supported padding modes are:
-
--  ``NO_PADDING`` – default for most cases
--  ``PAD_WITH_ZERO`` – appends zero characters up to precision
 
 For examples of how to use the ``decimalToPrecision`` to format strings and floats, please, see the following files:
 
@@ -1312,6 +1320,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 -  ``fetchMarkets ()``: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as ``symbol``, ``base``, ``quote`` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 -  ``loadMarkets ([reload])``: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the ``reload = true`` flag is forced.
 -  ``fetchOrderBook (symbol[, limit = undefined[, params = {}]])``: Fetch L2/L3 order book for a particular market trading symbol.
+-  ``fetchStatus ([, params = {}])``: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
 -  ``fetchL2OrderBook (symbol[, limit = undefined[, params]])``: Level 2 (price-aggregated) order book for a particular symbol.
 -  ``fetchTrades (symbol[, since[, [limit, [params]]]])``: Fetch recent trades for a particular trading symbol.
 -  ``fetchTicker (symbol)``: Fetch latest ticker data by trading symbol.
@@ -3313,6 +3322,40 @@ Fee Structure
        'rate': percentage, // the fee rate, 0.05% = 0.0005, 1% = 0.01, ...
        'cost': feePaid, // the fee cost (amount * fee rate)
    }
+
+Exchange Status
+~~~~~~~~~~~~~~~
+
+The exchange status describes the latest known information on the availability of the exchange API. This information is either hardcoded into the exchange class or fetched live directly from the exchange API. The ``fetchStatus(params = {})`` method can be used to get this information. The status returned by ``fetchStatus`` is one of:
+
+-  Hardcoded into the exchange class, e.g. if the API has been broken or shutdown.
+-  Updated using the exchange ping or ``fetchTime`` endpoint to see if its alive
+-  Updated using the dedicated exchange API status endpoint.
+
+.. code:: javascript
+
+   fetchStatus(params = {})
+
+Exchange Status Structure
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``fetchStatus()`` method will return a status structure like shown below:
+
+.. code:: javascript
+
+   {
+       'status': 'ok' // 'ok', 'shutdown', 'error', 'maintenance'
+       'updated': undefined // integer, last updated timestamp in milliseconds if updated via the API
+       'eta': undefined, // when the maintenance or outage is expected to end
+       'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
+   }
+
+The possible values in the ``status`` field are:
+
+-  ``'ok'`` means the exchange API is fully operational
+-  ``'shutdown``\ ’ means the exchange was closed, and the ``updated`` field should contain the datetime of the shutdown
+-  ``'error'`` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
+-  ``'maintenance'`` means regular maintenance, and the ``eta`` field should contain the datetime when the exchange is expected to be operational again
 
 Trading Fees
 ~~~~~~~~~~~~

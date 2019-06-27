@@ -313,7 +313,7 @@ class tidebit (Exchange):
             'limit': limit,
         }
         if since is not None:
-            request['timestamp'] = since
+            request['timestamp'] = int(since / 1000)
         else:
             request['timestamp'] = 1800000
         response = self.publicGetK(self.extend(request, params))

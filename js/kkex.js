@@ -367,7 +367,7 @@ module.exports = class kkex extends Exchange {
         };
         if (since !== undefined) {
             // since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
-            request['since'] = since;
+            request['since'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['size'] = limit;
