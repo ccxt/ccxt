@@ -786,7 +786,7 @@ module.exports = class huobipro extends Exchange {
         }
         const timestamp = this.safeInteger (order, 'created-at');
         let amount = this.safeFloat (order, 'amount');
-        const filled = this.safeFloat (order, 'field-amount'); // typo in their API, filled amount
+        const filled = this.safeFloat2 (order, 'filled-amount', 'field-amount'); // typo in their API, filled amount
         if ((type === 'market') && (side === 'buy')) {
             amount = (status === 'closed') ? filled : undefined;
         }
@@ -794,7 +794,7 @@ module.exports = class huobipro extends Exchange {
         if (price === 0.0) {
             price = undefined;
         }
-        const cost = this.safeFloat (order, 'field-cash-amount'); // same typo
+        const cost = this.safeFloat2 (order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         let remaining = undefined;
         let average = undefined;
         if (filled !== undefined) {
@@ -806,7 +806,7 @@ module.exports = class huobipro extends Exchange {
                 average = cost / filled;
             }
         }
-        const feeCost = this.safeFloat (order, 'field-fees'); // typo in their API, filled fees
+        const feeCost = this.safeFloat2 (order, 'filled-fees', 'field-fees'); // typo in their API, filled fees
         let fee = undefined;
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
