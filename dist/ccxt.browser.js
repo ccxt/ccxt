@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.836'
+const version = '1.18.837'
 
 Exchange.ccxtVersion = version
 
@@ -14483,6 +14483,9 @@ module.exports = class bitmarket extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': true,
                 'withdraw': true,
+                'fetchWithdrawals': true,
+                'fetchDeposits': false,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '90m': '90m',
