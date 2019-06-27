@@ -723,13 +723,13 @@ class huobipro (Exchange):
             symbol = market['symbol']
         timestamp = self.safe_integer(order, 'created-at')
         amount = self.safe_float(order, 'amount')
-        filled = self.safe_float(order, 'field-amount')  # typo in their API, filled amount
+        filled = self.safe_float_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
         if (type == 'market') and(side == 'buy'):
             amount = filled if (status == 'closed') else None
         price = self.safe_float(order, 'price')
         if price == 0.0:
             price = None
-        cost = self.safe_float(order, 'field-cash-amount')  # same typo
+        cost = self.safe_float_2(order, 'filled-cash-amount', 'field-cash-amount')  # same typo
         remaining = None
         average = None
         if filled is not None:
@@ -738,7 +738,7 @@ class huobipro (Exchange):
             # if cost is defined and filled is not zero
             if (cost is not None) and(filled > 0):
                 average = cost / filled
-        feeCost = self.safe_float(order, 'field-fees')  # typo in their API, filled fees
+        feeCost = self.safe_float_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
         fee = None
         if feeCost is not None:
             feeCurrency = None
