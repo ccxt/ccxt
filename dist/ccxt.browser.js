@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.838'
+const version = '1.18.839'
 
 Exchange.ccxtVersion = version
 
@@ -67423,17 +67423,32 @@ module.exports = class okex3 extends Exchange {
             address = addressFrom;
         }
         let currencyId = this.safeString (transaction, 'currency');
+        let code = undefined;
         if (currencyId !== undefined) {
-            currencyId = currencyId.toUpperCase ();
+            const uppercaseId = currencyId;
+            currencyId = currencyId.toLowerCase ();
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+                code = currency['code'];
+            } else {
+                code = this.commonCurrencyCode (uppercaseId);
+            }
         }
-        const code = this.commonCurrencyCode (currencyId);
         const amount = this.safeFloat (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const txid = this.safeString (transaction, 'txid');
         const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
-        let feeCost = this.safeFloat (transaction, 'fee');
+        let feeCost = undefined;
         if (type === 'deposit') {
             feeCost = 0;
+        } else {
+            if (currencyId !== undefined) {
+                const feeWithCurrencyId = this.safeString (transaction, 'fee');
+                if (feeWithCurrencyId !== undefined) {
+                    const feeWithoutCurrencyId = feeWithCurrencyId.replace (currencyId, '');
+                    feeCost = parseFloat (feeWithoutCurrencyId);
+                }
+            }
         }
         // todo parse tags
         return {
