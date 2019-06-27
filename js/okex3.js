@@ -2230,9 +2230,12 @@ module.exports = class okex3 extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const txid = this.safeString (transaction, 'txid');
         const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
-        let feeCost = this.safeFloat (transaction, 'fee');
+        let feeCost = undefined;
         if (type === 'deposit') {
             feeCost = 0;
+        } else {
+            const feeStr = transaction['fee'].replace (code.toLowerCase (), '');
+            feeCost = parseFloat (feeStr);
         }
         // todo parse tags
         return {
