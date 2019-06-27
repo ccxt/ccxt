@@ -787,7 +787,7 @@ class huobipro extends Exchange {
         }
         $timestamp = $this->safe_integer($order, 'created-at');
         $amount = $this->safe_float($order, 'amount');
-        $filled = $this->safe_float($order, 'field-amount'); // typo in their API, $filled $amount
+        $filled = $this->safe_float_2($order, 'filled-amount', 'field-amount'); // typo in their API, $filled $amount
         if (($type === 'market') && ($side === 'buy')) {
             $amount = ($status === 'closed') ? $filled : null;
         }
@@ -795,7 +795,7 @@ class huobipro extends Exchange {
         if ($price === 0.0) {
             $price = null;
         }
-        $cost = $this->safe_float($order, 'field-cash-amount'); // same typo
+        $cost = $this->safe_float_2($order, 'filled-cash-amount', 'field-cash-amount'); // same typo
         $remaining = null;
         $average = null;
         if ($filled !== null) {
@@ -807,7 +807,7 @@ class huobipro extends Exchange {
                 $average = $cost / $filled;
             }
         }
-        $feeCost = $this->safe_float($order, 'field-fees'); // typo in their API, $filled fees
+        $feeCost = $this->safe_float_2($order, 'filled-fees', 'field-fees'); // typo in their API, $filled fees
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrency = null;
