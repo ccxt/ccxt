@@ -716,7 +716,29 @@ module.exports = class huobipro extends Exchange {
         }
         const omitted = this.omit (params, 'account-id');
         const response = await this.privateGetOrderOpenOrders (this.extend (request, omitted));
-        return this.parseOrders (response['data'], market, since, limit);
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":[
+        //             {
+        //                 "symbol":"ethusdt",
+        //                 "source":"api",
+        //                 "amount":"0.010000000000000000",
+        //                 "account-id":1528640,
+        //                 "created-at":1561597491963,
+        //                 "price":"400.000000000000000000",
+        //                 "filled-amount":"0.0",
+        //                 "filled-cash-amount":"0.0",
+        //                 "filled-fees":"0.0",
+        //                 "id":38477101630,
+        //                 "state":"submitted",
+        //                 "type":"sell-limit"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -739,9 +761,9 @@ module.exports = class huobipro extends Exchange {
         //                     price: "0.034014000000000000",
         //              'created-at':  1545836976871,
         //                      type: "sell-limit",
-        //            'field-amount': "0.045000000000000000",
-        //       'field-cash-amount': "0.001530630000000000",
-        //              'field-fees': "0.000003061260000000",
+        //            'field-amount': "0.045000000000000000", // they have fixed it for filled-amount
+        //       'field-cash-amount': "0.001530630000000000", // they have fixed it for filled-cash-amount
+        //              'field-fees': "0.000003061260000000", // they have fixed it for filled-fees
         //             'finished-at':  1545837948214,
         //                    source: "spot-api",
         //                     state: "filled",
@@ -754,9 +776,9 @@ module.exports = class huobipro extends Exchange {
         //                     price: "0.0",
         //              'created-at':  1545831584023,
         //                      type: "buy-market",
-        //            'field-amount': "0.029100000000000000",
-        //       'field-cash-amount': "0.000999788700000000",
-        //              'field-fees': "0.000058200000000000",
+        //            'field-amount': "0.029100000000000000", // they have fixed it for filled-amount
+        //       'field-cash-amount': "0.000999788700000000", // they have fixed it for filled-cash-amount
+        //              'field-fees': "0.000058200000000000", // they have fixed it for filled-fees
         //             'finished-at':  1545831584181,
         //                    source: "spot-api",
         //                     state: "filled",
