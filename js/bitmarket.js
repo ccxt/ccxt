@@ -18,6 +18,9 @@ module.exports = class bitmarket extends Exchange {
                 'CORS': false,
                 'fetchOHLCV': true,
                 'withdraw': true,
+                'fetchWithdrawals': true,
+                'fetchDeposits': false,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '90m': '90m',
