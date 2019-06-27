@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.831'
+const version = '1.18.832'
 
 Exchange.ccxtVersion = version
 
@@ -48540,7 +48540,7 @@ module.exports = class hitbtc2 extends hitbtc {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -48626,6 +48626,7 @@ module.exports = class huobipro extends Exchange {
                     'get': [
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
+                        'order/openOrders',
                         'order/orders/{id}', // 查询某个订单详情
                         'order/orders/{id}/matchresults', // 查询某个订单的成交明细
                         'order/history', // 查询当前委托、历史委托
@@ -49209,10 +49210,6 @@ module.exports = class huobipro extends Exchange {
         return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return await this.fetchOrdersByStates ('pre-submitted,submitted,partial-filled', symbol, since, limit, params);
-    }
-
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
@@ -49225,6 +49222,38 @@ module.exports = class huobipro extends Exchange {
         const response = await this.privateGetOrderOrdersId (this.extend (request, params));
         const order = this.safeValue (response, 'data');
         return this.parseOrder (order);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        let accountId = this.safeString (params, 'account-id');
+        if (accountId === undefined) {
+            // pick the first account
+            await this.loadAccounts ();
+            for (let i = 0; i < this.accounts.length; i++) {
+                const account = this.accounts[i];
+                if (account['type'] === 'spot') {
+                    accountId = this.safeString (account, 'id');
+                    if (accountId !== undefined) {
+                        break;
+                    }
+                }
+            }
+        }
+        const request = {
+            'symbol': market['id'],
+            'account-id': accountId,
+        };
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const omitted = this.omit (params, 'account-id');
+        const response = this.privateGetOrderOpenOrders (this.extend (request, omitted));
+        return this.parseOrders (response['data'], market, since, limit);
     }
 
     parseOrderStatus (status) {

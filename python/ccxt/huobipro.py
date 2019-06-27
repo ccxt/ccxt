@@ -8,6 +8,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -97,6 +98,7 @@ class huobipro (Exchange):
                     'get': [
                         'account/accounts',  # 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance',  # 查询指定账户的余额
+                        'order/openOrders',
                         'order/orders/{id}',  # 查询某个订单详情
                         'order/orders/{id}/matchresults',  # 查询某个订单的成交明细
                         'order/history',  # 查询当前委托、历史委托
@@ -623,9 +625,6 @@ class huobipro (Exchange):
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
-
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
@@ -637,6 +636,31 @@ class huobipro (Exchange):
         response = self.privateGetOrderOrdersId(self.extend(request, params))
         order = self.safe_value(response, 'data')
         return self.parse_order(order)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+        market = self.market(symbol)
+        accountId = self.safe_string(params, 'account-id')
+        if accountId is None:
+            # pick the first account
+            self.loadAccounts()
+            for i in range(0, len(self.accounts)):
+                account = self.accounts[i]
+                if account['type'] == 'spot':
+                    accountId = self.safe_string(account, 'id')
+                    if accountId is not None:
+                        break
+        request = {
+            'symbol': market['id'],
+            'account-id': accountId,
+        }
+        if limit is not None:
+            request['size'] = limit
+        omitted = self.omit(params, 'account-id')
+        response = self.privateGetOrderOpenOrders(self.extend(request, omitted))
+        return self.parse_orders(response['data'], market, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

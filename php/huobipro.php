@@ -90,6 +90,7 @@ class huobipro extends Exchange {
                     'get' => array (
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
+                        'order/openOrders',
                         'order/orders/{id}', // 查询某个订单详情
                         'order/orders/{id}/matchresults', // 查询某个订单的成交明细
                         'order/history', // 查询当前委托、历史委托
@@ -673,10 +674,6 @@ class huobipro extends Exchange {
         return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders_by_states ('pre-submitted,submitted,partial-filled', $symbol, $since, $limit, $params);
-    }
-
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         return $this->fetch_orders_by_states ('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
@@ -689,6 +686,38 @@ class huobipro extends Exchange {
         $response = $this->privateGetOrderOrdersId (array_merge ($request, $params));
         $order = $this->safe_value($response, 'data');
         return $this->parse_order($order);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
+        }
+        $market = $this->market ($symbol);
+        $accountId = $this->safe_string($params, 'account-id');
+        if ($accountId === null) {
+            // pick the first $account
+            $this->loadAccounts ();
+            for ($i = 0; $i < count ($this->accounts); $i++) {
+                $account = $this->accounts[$i];
+                if ($account['type'] === 'spot') {
+                    $accountId = $this->safe_string($account, 'id');
+                    if ($accountId !== null) {
+                        break;
+                    }
+                }
+            }
+        }
+        $request = array (
+            'symbol' => $market['id'],
+            'account-id' => $accountId,
+        );
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        }
+        $omitted = $this->omit ($params, 'account-id');
+        $response = $this->privateGetOrderOpenOrders (array_merge ($request, $omitted));
+        return $this->parse_orders($response['data'], $market, $since, $limit);
     }
 
     public function parse_order_status ($status) {
