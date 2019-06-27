@@ -2222,10 +2222,17 @@ module.exports = class okex3 extends Exchange {
             address = addressFrom;
         }
         let currencyId = this.safeString (transaction, 'currency');
+        let code = this.commonCurrencyCode ;
         if (currencyId !== undefined) {
-            currencyId = currencyId.toUpperCase ();
+            const uppercaseId = currencyId;
+            currencyId = currencyId.toLowerCase ();
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId];
+                code = currency['code'];
+            } else {
+                code = this.commonCurrencyCode (uppercaseId);
+            }
         }
-        const code = this.commonCurrencyCode (currencyId);
         const amount = this.safeFloat (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const txid = this.safeString (transaction, 'txid');
@@ -2234,8 +2241,13 @@ module.exports = class okex3 extends Exchange {
         if (type === 'deposit') {
             feeCost = 0;
         } else {
-            const feeStr = transaction['fee'].replace (code.toLowerCase (), '');
-            feeCost = parseFloat (feeStr);
+            if (currencyId !== undefined) {
+                const feeWithCurrencyId = this.safeString (transaction, 'fee');
+                if (feeWithCurrencyId !== undefined) {
+                    const feeWithoutCurrencyId = feeWithCurrencyId.replace (currencyId, '');                    
+                    feeCost = parseFloat (feeWithoutCurrencyId);
+                }
+            }
         }
         // todo parse tags
         return {
