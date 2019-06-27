@@ -715,7 +715,7 @@ module.exports = class huobipro extends Exchange {
             request['size'] = limit;
         }
         const omitted = this.omit (params, 'account-id');
-        const response = this.privateGetOrderOpenOrders (this.extend (request, omitted));
+        const response = await this.privateGetOrderOpenOrders (this.extend (request, omitted));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
