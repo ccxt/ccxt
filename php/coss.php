@@ -859,11 +859,13 @@ class coss extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'order_symbol' => $market['id'],
-            'order_price' => floatval ($this->price_to_precision($symbol, $price)),
-            'order_size' => floatval ($this->amount_to_precision($symbol, $amount)),
+            'order_size' => $this->amount_to_precision($symbol, $amount),
             'order_side' => strtoupper($side),
             'type' => $type,
         );
+        if ($price !== null) {
+            $request['order_price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = $this->tradePostOrderAdd (array_merge ($request, $params));
         //
         //     {

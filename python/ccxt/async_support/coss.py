@@ -805,11 +805,12 @@ class coss (Exchange):
         market = self.market(symbol)
         request = {
             'order_symbol': market['id'],
-            'order_price': float(self.price_to_precision(symbol, price)),
-            'order_size': float(self.amount_to_precision(symbol, amount)),
+            'order_size': self.amount_to_precision(symbol, amount),
             'order_side': side.upper(),
             'type': type,
         }
+        if price is not None:
+            request['order_price'] = self.price_to_precision(symbol, price)
         response = await self.tradePostOrderAdd(self.extend(request, params))
         #
         #     {
