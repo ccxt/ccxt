@@ -99,5 +99,6 @@ module.exports = (exchange, trade, symbol, now) => {
     assert (trade.price > 0)
     assert (typeof trade.amount === 'number', 'trade.amount is not a number')
     assert (trade.amount >= 0)
+    assert (trade.takerOrMaker === undefined || trade.takerOrMaker === 'taker' || trade.takerOrMaker === 'maker')
     assert.isOk (trade.info)
 }
