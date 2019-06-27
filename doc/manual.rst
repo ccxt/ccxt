@@ -585,6 +585,8 @@ Below is a detailed description of each of the base exchange properties:
 
 -  ``options``: An exchange-specific associative dictionary containing special keys and options that are accepted by the underlying exchange and supported in CCXT.
 
+-  ``precisionMode``: The exchange decimal precision counting mode, read more about `Precision And Limits <#precision-and-limits>`__
+
 See this section on `Overriding exchange properties <https://github.com/ccxt/ccxt/wiki/Manual#overriding-exchange-properties-upon-instantiation>`__.
 
 Exchange Metadata
@@ -747,7 +749,7 @@ Market Structure
        'quoteId': 'usd',     // any string, exchange-specific quote currency id
        'active': true,       // boolean, market status
        'precision': {        // number of decimal digits "after the dot"
-           'price': 8,       // integer, might be missing if not supplied by the exchange
+           'price': 8,       // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
            'amount': 8,      // integer, might be missing if not supplied by the exchange
            'cost': 8,        // integer, very few exchanges actually have it
        },
@@ -855,6 +857,26 @@ The above values can be missing with some exchanges that don’t provide info on
 Methods For Formatting Decimals
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Each exchange has its own rounding, counting and padding modes.
+
+Supported rounding modes are:
+
+-  ``ROUND`` – will round the last decimal digits to precision
+-  ``TRUNCATE``– will cut off the digits after certain precision
+
+The decimal precision counting mode is available in the ``exchange.precisionMode`` property.
+
+Supported counting modes are:
+
+-  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode
+-  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals
+-  ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (``bitmex`` uses this mode)
+
+Supported padding modes are:
+
+-  ``NO_PADDING`` – default for most cases
+-  ``PAD_WITH_ZERO`` – appends zero characters up to precision
+
 The exchange base class contains the ``decimalToPrecision`` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
 
 .. code:: javascript
@@ -872,22 +894,6 @@ The exchange base class contains the ``decimalToPrecision`` method to help forma
 
    // PHP
    function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
-
-Supported rounding modes are:
-
--  ``ROUND`` – will round the last decimal digits to precision
--  ``TRUNCATE``– will cut off the digits after certain precision
-
-Supported counting modes are:
-
--  ``DECIMAL_PLACES`` – counts all digits, 99% of exchanges use this counting mode
--  ``SIGNIFICANT_DIGITS`` – counts non-zero digits only, some exchanges (``bitfinex`` and maybe a few other) implement this mode of counting decimals
--  ``TICK_SIZE`` – some exchanges only allow a multiple of a specific value (``bitmex`` uses this mode)
-
-Supported padding modes are:
-
--  ``NO_PADDING`` – default for most cases
--  ``PAD_WITH_ZERO`` – appends zero characters up to precision
 
 For examples of how to use the ``decimalToPrecision`` to format strings and floats, please, see the following files:
 
