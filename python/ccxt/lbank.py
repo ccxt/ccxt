@@ -47,7 +47,7 @@ class lbank (Exchange):
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees': 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
-                'referral': 'https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US',
+                'referral': 'https://www.lbex.io/invite?icode=7QCY',
             },
             'api': {
                 'public': {
@@ -192,10 +192,16 @@ class lbank (Exchange):
         ticker = info['ticker']
         last = self.safe_float(ticker, 'latest')
         percentage = self.safe_float(ticker, 'change')
-        relativeChange = percentage / 100
-        open = last / self.sum(1, relativeChange)
-        change = last - open
-        average = self.sum(last, open) / 2
+        open = None
+        if percentage is not None:
+            relativeChange = self.sum(1, percentage / 100)
+            if relativeChange > 0:
+                open = last / self.sum(1, relativeChange)
+        change = None
+        average = None
+        if last is not None and open is not None:
+            change = last - open
+            average = self.sum(last, open) / 2
         if market is not None:
             symbol = market['symbol']
         return {
@@ -548,7 +554,7 @@ class lbank (Exchange):
                     self.options['pem'] = pem
             else:
                 pem = self.convert_secret_to_pem(self.secret)
-            sign = self.binaryToBase64(self.rsa(message, pem, 'RS256'))
+            sign = self.binaryToBase64(self.rsa(message, self.encode(pem), 'RS256'))
             query['sign'] = sign
             body = self.urlencode(query)
             headers = {'Content-Type': 'application/x-www-form-urlencoded'}

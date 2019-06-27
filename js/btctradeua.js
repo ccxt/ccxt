@@ -239,7 +239,7 @@ module.exports = class btctradeua extends Exchange {
         return timestamp - 10800000;
     }
 
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         const timestamp = this.parseCyrillicDatetime (this.safeString (trade, 'pub_date'));
         const id = this.safeString (trade, 'id');
         const type = 'limit';
@@ -252,17 +252,24 @@ module.exports = class btctradeua extends Exchange {
                 cost = price * amount;
             }
         }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 

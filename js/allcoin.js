@@ -27,6 +27,12 @@ module.exports = class allcoin extends okcoinusd {
                 'doc': 'https://www.allcoin.com/api_market/market',
                 'referral': 'https://www.allcoin.com',
             },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
+            },
             'api': {
                 'web': {
                     'get': [

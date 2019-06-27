@@ -647,7 +647,7 @@ class hitbtc (Exchange):
             symbol = market['symbol']
         side = None
         tradeLength = len(trade)
-        if tradeLength > 3:
+        if tradeLength > 4:
             side = trade[4]
         price = float(trade[1])
         amount = float(trade[2])

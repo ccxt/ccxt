@@ -666,7 +666,7 @@ module.exports = class btcmarkets extends Exchange {
                 'apikey': this.apiKey,
                 'timestamp': nonce,
             };
-            if (method === 'post') {
+            if (method === 'POST') {
                 headers['Content-Type'] = 'application/json';
                 auth = uri + "\n" + nonce + "\n"; // eslint-disable-line quotes
                 body = this.json (params);

@@ -1491,7 +1491,7 @@ class upbit extends Exchange {
             if ($query) {
                 $request['query'] = $this->urlencode ($query);
             }
-            $jwt = $this->jwt ($request, $this->secret);
+            $jwt = $this->jwt ($request, $this->encode ($this->secret));
             $headers = array (
                 'Authorization' => 'Bearer ' . $jwt,
             );

@@ -177,7 +177,7 @@ class bitstamp1 (Exchange):
             account['free'] = self.safe_float(balance, currencyId + '_available', 0.0)
             account['used'] = self.safe_float(balance, currencyId + '_reserved', 0.0)
             account['total'] = self.safe_float(balance, currencyId + '_balance', 0.0)
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

@@ -191,7 +191,7 @@ class bitstamp1 extends Exchange {
             $account['free'] = $this->safe_float($balance, $currencyId . '_available', 0.0);
             $account['used'] = $this->safe_float($balance, $currencyId . '_reserved', 0.0);
             $account['total'] = $this->safe_float($balance, $currencyId . '_balance', 0.0);
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

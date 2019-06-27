@@ -118,8 +118,8 @@ module.exports = class theocean extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const baseToken = this.safeString (market, 'baseToken');
-            const quoteToken = this.safeString (market, 'quoteToken');
+            const baseToken = this.safeValue (market, 'baseToken', {});
+            const quoteToken = this.safeValue (market, 'quoteToken', {});
             const baseId = this.safeString (baseToken, 'address');
             const quoteId = this.safeString (quoteToken, 'address');
             const base = this.commonCurrencyCode (this.safeString (baseToken, 'symbol'));
@@ -439,7 +439,10 @@ module.exports = class theocean extends Exchange {
         //       blockNumber: "8094822",
         //         timestamp: "1532261686"                                                          }
         //
-        const timestamp = this.safeInteger (trade, 'lastUpdated');
+        let timestamp = this.safeInteger (trade, 'lastUpdated');
+        if (timestamp !== undefined) {
+            timestamp /= 1000;
+        }
         const price = this.safeFloat (trade, 'price');
         const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');

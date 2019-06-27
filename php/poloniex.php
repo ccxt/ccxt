@@ -108,12 +108,10 @@ class poloniex extends Exchange {
                     ),
                 ),
             ),
-            // Fees are tier-based. More info => https://poloniex.com/fees/
-            // Rates below are highest possible.
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.001,
-                    'taker' => 0.002,
+                    'maker' => 0.15 / 100,
+                    'taker' => 0.25 / 100,
                 ),
                 'funding' => array(),
             ),
@@ -1125,7 +1123,7 @@ class poloniex extends Exchange {
         $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
             'info' => $response,
-            'id' => $response['response'],
+            'id' => $this->safe_string($response, 'withdrawalNumber'),
         );
     }
 

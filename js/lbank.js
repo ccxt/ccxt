@@ -42,7 +42,7 @@ module.exports = class lbank extends Exchange {
                 'www': 'https://www.lbank.info',
                 'doc': 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees': 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
-                'referral': 'https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US',
+                'referral': 'https://www.lbex.io/invite?icode=7QCY',
             },
             'api': {
                 'public': {
@@ -194,10 +194,19 @@ module.exports = class lbank extends Exchange {
         ticker = info['ticker'];
         const last = this.safeFloat (ticker, 'latest');
         const percentage = this.safeFloat (ticker, 'change');
-        const relativeChange = percentage / 100;
-        const open = last / this.sum (1, relativeChange);
-        const change = last - open;
-        const average = this.sum (last, open) / 2;
+        let open = undefined;
+        if (percentage !== undefined) {
+            const relativeChange = this.sum (1, percentage / 100);
+            if (relativeChange > 0) {
+                open = last / this.sum (1, relativeChange);
+            }
+        }
+        let change = undefined;
+        let average = undefined;
+        if (last !== undefined && open !== undefined) {
+            change = last - open;
+            average = this.sum (last, open) / 2;
+        }
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -592,7 +601,7 @@ module.exports = class lbank extends Exchange {
             } else {
                 pem = this.convertSecretToPem (this.secret);
             }
-            const sign = this.binaryToBase64 (this.rsa (message, pem, 'RS256'));
+            const sign = this.binaryToBase64 (this.rsa (message, this.encode (pem), 'RS256'));
             query['sign'] = sign;
             body = this.urlencode (query);
             headers = { 'Content-Type': 'application/x-www-form-urlencoded' };

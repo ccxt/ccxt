@@ -35,7 +35,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.771'
+const version = '1.18.841'
 
 Exchange.ccxtVersion = version
 
@@ -61,7 +61,6 @@ const exchanges = {
     'bitflyer':                require ('./js/bitflyer.js'),
     'bitforex':                require ('./js/bitforex.js'),
     'bithumb':                 require ('./js/bithumb.js'),
-    'bitibu':                  require ('./js/bitibu.js'),
     'bitkk':                   require ('./js/bitkk.js'),
     'bitlish':                 require ('./js/bitlish.js'),
     'bitmarket':               require ('./js/bitmarket.js'),
@@ -85,7 +84,6 @@ const exchanges = {
     'btcturk':                 require ('./js/btcturk.js'),
     'buda':                    require ('./js/buda.js'),
     'bxinth':                  require ('./js/bxinth.js'),
-    'ccex':                    require ('./js/ccex.js'),
     'cex':                     require ('./js/cex.js'),
     'chbtc':                   require ('./js/chbtc.js'),
     'chilebit':                require ('./js/chilebit.js'),
@@ -125,7 +123,6 @@ const exchanges = {
     'gateio':                  require ('./js/gateio.js'),
     'gdax':                    require ('./js/gdax.js'),
     'gemini':                  require ('./js/gemini.js'),
-    'getbtc':                  require ('./js/getbtc.js'),
     'hadax':                   require ('./js/hadax.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
     'hitbtc2':                 require ('./js/hitbtc2.js'),
@@ -167,7 +164,6 @@ const exchanges = {
     'therock':                 require ('./js/therock.js'),
     'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
-    'uex':                     require ('./js/uex.js'),
     'upbit':                   require ('./js/upbit.js'),
     'urdubit':                 require ('./js/urdubit.js'),
     'vaultoro':                require ('./js/vaultoro.js'),

@@ -184,7 +184,7 @@ class tidebit (Exchange):
         request = {
             'market': market['id'],
         }
-        if limit is None:
+        if limit is not None:
             request['limit'] = limit  # default = 300
         request['market'] = market['id']
         response = self.publicGetDepth(self.extend(request, params))
@@ -313,7 +313,7 @@ class tidebit (Exchange):
             'limit': limit,
         }
         if since is not None:
-            request['timestamp'] = since
+            request['timestamp'] = int(since / 1000)
         else:
             request['timestamp'] = 1800000
         response = self.publicGetK(self.extend(request, params))

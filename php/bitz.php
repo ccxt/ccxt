@@ -660,7 +660,7 @@ class bitz extends Exchange {
         //
         //     {    status =>    200,
         //             msg =>   "",
-        //            data => {       bars => array ( array (     time => "1535973420000",
+        //            data => {       $bars => array ( array (     time => "1535973420000",
         //                                        open => "0.03975084",
         //                                        high => "0.03975084",
         //                                         low => "0.03967700",
@@ -683,7 +683,11 @@ class bitz extends Exchange {
         //       microtime =>   "0.56462100 1535973435",
         //          source =>   "api"                                                    }
         //
-        return $this->parse_ohlcvs($response['data']['bars'], $market, $timeframe, $since, $limit);
+        $bars = $this->safe_value($response['data'], 'bars', null);
+        if ($bars === null) {
+            return array();
+        }
+        return $this->parse_ohlcvs($bars, $market, $timeframe, $since, $limit);
     }
 
     public function parse_order_status ($status) {

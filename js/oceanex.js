@@ -40,7 +40,7 @@ module.exports = class oceanex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchBalance': true,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
@@ -484,9 +484,6 @@ module.exports = class oceanex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new InvalidOrder (this.id + ' createOrder supports `limit` orders only.');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -494,8 +491,10 @@ module.exports = class oceanex extends Exchange {
             'side': side,
             'ord_type': type,
             'volume': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
         };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.privatePostOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
@@ -669,7 +668,7 @@ module.exports = class oceanex extends Exchange {
             // to set the private key:
             // const fs = require ('fs')
             // exchange.secret = fs.readFileSync ('oceanex.pem', 'utf8')
-            const jwt_token = this.jwt (request, this.secret, 'RS256');
+            const jwt_token = this.jwt (request, this.encode (this.secret), 'RS256');
             url += '?user_jwt=' + jwt_token;
         }
         headers = { 'Content-Type': 'application/json' };

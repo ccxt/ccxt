@@ -43,7 +43,7 @@ class lbank extends Exchange {
                 'www' => 'https://www.lbank.info',
                 'doc' => 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees' => 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
-                'referral' => 'https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US',
+                'referral' => 'https://www.lbex.io/invite?icode=7QCY',
             ),
             'api' => array (
                 'public' => array (
@@ -195,10 +195,19 @@ class lbank extends Exchange {
         $ticker = $info['ticker'];
         $last = $this->safe_float($ticker, 'latest');
         $percentage = $this->safe_float($ticker, 'change');
-        $relativeChange = $percentage / 100;
-        $open = $last / $this->sum (1, $relativeChange);
-        $change = $last - $open;
-        $average = $this->sum ($last, $open) / 2;
+        $open = null;
+        if ($percentage !== null) {
+            $relativeChange = $this->sum (1, $percentage / 100);
+            if ($relativeChange > 0) {
+                $open = $last / $this->sum (1, $relativeChange);
+            }
+        }
+        $change = null;
+        $average = null;
+        if ($last !== null && $open !== null) {
+            $change = $last - $open;
+            $average = $this->sum ($last, $open) / 2;
+        }
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
@@ -593,7 +602,7 @@ class lbank extends Exchange {
             } else {
                 $pem = $this->convert_secret_to_pem ($this->secret);
             }
-            $sign = $this->binaryToBase64 ($this->rsa ($message, $pem, 'RS256'));
+            $sign = $this->binaryToBase64 ($this->rsa ($message, $this->encode ($pem), 'RS256'));
             $query['sign'] = $sign;
             $body = $this->urlencode ($query);
             $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );

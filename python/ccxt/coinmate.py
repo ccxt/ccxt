@@ -17,6 +17,8 @@ class coinmate (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': True,
+                'fetchMyTrades': True,
+                'fetchTransactions': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
@@ -46,19 +48,46 @@ class coinmate (Exchange):
                 'private': {
                     'post': [
                         'balances',
-                        'bitcoinWithdrawal',
+                        'bitcoinCashWithdrawal',
+                        'bitcoinCashDepositAddresses',
                         'bitcoinDepositAddresses',
+                        'bitcoinWithdrawal',
+                        'bitcoinWithdrawalFees',
                         'buyInstant',
                         'buyLimit',
                         'cancelOrder',
                         'cancelOrderWithInfo',
                         'createVoucher',
+                        'dashDepositAddresses',
+                        'dashWithdrawal',
+                        'ethereumWithdrawal',
+                        'ethereumDepositAddresses',
+                        'litecoinWithdrawal',
+                        'litecoinDepositAddresses',
                         'openOrders',
+                        'order',
+                        'orderHistory',
+                        'pusherAuth',
                         'redeemVoucher',
+                        'replaceByBuyLimit',
+                        'replaceByBuyInstant',
+                        'replaceBySellLimit',
+                        'replaceBySellInstant',
+                        'rippleDepositAddresses',
+                        'rippleWithdrawal',
                         'sellInstant',
                         'sellLimit',
                         'transactionHistory',
+                        'traderFees',
+                        'tradeHistory',
+                        'transfer',
+                        'transferHistory',
                         'unconfirmedBitcoinDeposits',
+                        'unconfirmedBitcoinCashDeposits',
+                        'unconfirmedDashDeposits',
+                        'unconfirmedEthereumDeposits',
+                        'unconfirmedLitecoinDeposits',
+                        'unconfirmedRippleDeposits',
                     ],
                 },
             },
@@ -195,36 +224,192 @@ class coinmate (Exchange):
             'info': ticker,
         }
 
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        request = {
+            'limit': 1000,
+        }
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['timestampFrom'] = since
+        if code is not None:
+            request['currency'] = self.currencyId(code)
+        response = self.privatePostTransferHistory(self.extend(request, params))
+        items = response['data']
+        return self.parseTransactions(items, None, since, limit)
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            # any other types ?
+            'COMPLETED': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction(self, item, currency=None):
+        #
+        # deposits
+        #
+        #     {
+        #         transactionId: 1862815,
+        #         timestamp: 1516803982388,
+        #         amountCurrency: 'LTC',
+        #         amount: 1,
+        #         fee: 0,
+        #         walletType: 'LTC',
+        #         transferType: 'DEPOSIT',
+        #         transferStatus: 'COMPLETED',
+        #         txid:
+        #         'ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245',
+        #         destination: 'LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn',
+        #         destinationTag: null
+        #     }
+        #
+        # withdrawals
+        #
+        #     {
+        #         transactionId: 2140966,
+        #         timestamp: 1519314282976,
+        #         amountCurrency: 'EUR',
+        #         amount: 8421.7228,
+        #         fee: 16.8772,
+        #         walletType: 'BANK_WIRE',
+        #         transferType: 'WITHDRAWAL',
+        #         transferStatus: 'COMPLETED',
+        #         txid: null,
+        #         destination: null,
+        #         destinationTag: null
+        #     }
+        #
+        timestamp = self.safe_integer(item, 'timestamp')
+        amount = self.safe_float(item, 'amount')
+        fee = self.safe_float(item, 'fee')
+        txid = self.safe_string(item, 'txid')
+        address = self.safe_string(item, 'destination')
+        tag = self.safe_string(item, 'destinationTag')
+        code = None
+        currencyId = self.safe_string(item, 'amountCurrency')
+        if currencyId in self.currencies_by_id:
+            code = self.currencies_by_id[currencyId]['code']
+        else:
+            code = self.commonCurrencyCide(currencyId)
+        type = self.safe_string(item, 'transferType')
+        if type is not None:
+            type = type.lower()
+        status = self.parse_transaction_status(self.safe_string(item, 'transferStatus'))
+        id = self.safe_string(item, 'transactionId')
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': code,
+            'amount': amount,
+            'type': type,
+            'txid': txid,
+            'address': address,
+            'tag': tag,
+            'status': status,
+            'fee': {
+                'cost': fee,
+                'currency': currency,
+            },
+            'info': item,
+        }
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        if limit is None:
+            limit = 1000
+        request = {
+            'limit': limit,
+        }
+        if since is not None:
+            request['timestampFrom'] = since
+        response = self.privatePostTradeHistory(self.extend(request, params))
+        items = response['data']
+        return self.parse_trades(items, None, since, limit)
+
     def parse_trade(self, trade, market=None):
+        #
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         transactionId: 2671819,
+        #         createdTimestamp: 1529649127605,
+        #         currencyPair: 'LTC_BTC',
+        #         type: 'BUY',
+        #         orderType: 'LIMIT',
+        #         orderId: 101810227,
+        #         amount: 0.01,
+        #         price: 0.01406,
+        #         fee: 0,
+        #         feeType: 'MAKER'
+        #     }
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         "timestamp":1561598833416,
+        #         "transactionId":"4156303",
+        #         "price":10950.41,
+        #         "amount":0.004,
+        #         "currencyPair":"BTC_EUR",
+        #         "tradeType":"BUY"
+        #     }
+        #
         symbol = None
-        if market is None:
-            marketId = self.safe_string(trade, 'currencyPair')
+        marketId = self.safe_string(trade, 'currencyPair')
+        quote = None
+        if marketId is not None:
             if marketId in self.markets_by_id[marketId]:
                 market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+                quote = market['quote']
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
         if amount is not None:
             if price is not None:
                 cost = price * amount
+        side = self.safe_string_2(trade, 'type', 'tradeType')
+        if side is not None:
+            side = side.lower()
+        type = self.safe_string(trade, 'orderType')
+        if type is not None:
+            type = type.lower()
+        orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string(trade, 'transactionId')
-        timestamp = self.safe_integer(trade, 'timestamp')
+        timestamp = self.safe_integer_2(trade, 'timestamp', 'createdTimestamp')
+        fee = None
+        feeCost = self.safe_float(trade, 'fee')
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': quote,
+            }
+        takerOrMaker = self.safe_string(trade, 'feeType')
+        takerOrMaker = 'maker' if (takerOrMaker == 'MAKER') else 'taker'
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': None,
-            'side': None,
-            'order': None,
-            'takerOrMaker': None,
+            'type': type,
+            'side': side,
+            'order': orderId,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -235,7 +420,24 @@ class coinmate (Exchange):
             'minutesIntoHistory': 10,
         }
         response = self.publicGetTransactions(self.extend(request, params))
-        return self.parse_trades(response['data'], market, since, limit)
+        #
+        #     {
+        #         "error":false,
+        #         "errorMessage":null,
+        #         "data":[
+        #             {
+        #                 "timestamp":1561598833416,
+        #                 "transactionId":"4156303",
+        #                 "price":10950.41,
+        #                 "amount":0.004,
+        #                 "currencyPair":"BTC_EUR",
+        #                 "tradeType":"BUY"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_trades(data, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -261,6 +463,9 @@ class coinmate (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         return self.privatePostCancelOrder({'orderId': id})
+
+    def nonce(self):
+        return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + path

@@ -122,12 +122,10 @@ class poloniex (Exchange):
                     ],
                 },
             },
-            # Fees are tier-based. More info: https://poloniex.com/fees/
-            # Rates below are highest possible.
             'fees': {
                 'trading': {
-                    'maker': 0.001,
-                    'taker': 0.002,
+                    'maker': 0.15 / 100,
+                    'taker': 0.25 / 100,
                 },
                 'funding': {},
             },
@@ -1033,7 +1031,7 @@ class poloniex (Exchange):
         response = await self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
-            'id': response['response'],
+            'id': self.safe_string(response, 'withdrawalNumber'),
         }
 
     async def fetch_transactions_helper(self, code=None, since=None, limit=None, params={}):

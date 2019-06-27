@@ -342,12 +342,12 @@ class rightbtc (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
-            ohlcv[0],
-            ohlcv[2] / 1e8,
-            ohlcv[3] / 1e8,
-            ohlcv[4] / 1e8,
-            ohlcv[5] / 1e8,
-            ohlcv[1] / 1e8,
+            int(ohlcv[0]),
+            float(ohlcv[2]) / 1e8,
+            float(ohlcv[3]) / 1e8,
+            float(ohlcv[4]) / 1e8,
+            float(ohlcv[5]) / 1e8,
+            float(ohlcv[1]) / 1e8,
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):

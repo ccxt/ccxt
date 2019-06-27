@@ -782,14 +782,14 @@ module.exports = class therock extends Exchange {
         const request = {
             'type': 'withdraw',
         };
-        return await this.fetchTransactions ('withdraw', code, since, limit, this.extend (request, params));
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         const request = {
             'type': 'atm_payment',
         };
-        return await this.fetchTransactions ('atm_payment', code, since, limit, this.extend (request, params));
+        return await this.fetchTransactions (code, since, limit, this.extend (request, params));
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {

@@ -35,19 +35,29 @@ class gemini extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
-                'api' => 'https://api.gemini.com',
-                'www' => 'https://gemini.com',
+                'api' => array (
+                    'public' => 'https://api.gemini.com',
+                    'private' => 'https://api.gemini.com',
+                    'web' => 'https://docs.gemini.com',
+                ),
+                'www' => 'https://gemini.com/',
                 'doc' => array (
                     'https://docs.gemini.com/rest-api',
                     'https://docs.sandbox.gemini.com',
                 ),
                 'test' => 'https://api.sandbox.gemini.com',
                 'fees' => array (
-                    'https://gemini.com/fee-schedule/',
-                    'https://gemini.com/transfer-fees/',
+                    'https://gemini.com/api-fee-schedule',
+                    'https://gemini.com/trading-fees',
+                    'https://gemini.com/transfer-fees',
                 ),
             ),
             'api' => array (
+                'web' => array (
+                    'get' => array (
+                        'rest-api',
+                    ),
+                ),
                 'public' => array (
                     'get' => array (
                         'symbols',
@@ -83,10 +93,152 @@ class gemini extends Exchange {
                     'maker' => 0.001,
                 ),
             ),
+            'httpExceptions' => array (
+                '400' => '\\ccxt\\BadRequest', // Auction not open or paused, ineligible timing, market not open, or the request was malformed, in the case of a private API request, missing or malformed Gemini private API authentication headers
+                '403' => '\\ccxt\\PermissionDenied', // The API key is missing the role necessary to access this private API endpoint
+                '404' => '\\ccxt\\OrderNotFound', // Unknown API entry point or Order not found
+                '406' => '\\ccxt\\InsufficientFunds', // Insufficient Funds
+                '429' => '\\ccxt\\DDoSProtection', // Rate Limiting was applied
+                '500' => '\\ccxt\\ExchangeError', // The server encountered an error
+                '502' => '\\ccxt\\ExchangeError', // Technical issues are preventing the request from being satisfied
+                '503' => '\\ccxt\\ExchangeNotAvailable', // The exchange is down for maintenance
+            ),
+            'exceptions' => array (
+                'exact' => array (
+                    'AuctionNotOpen' => '\\ccxt\\BadRequest', // Failed to place an auction-only order because there is no current auction open for this symbol
+                    'ClientOrderIdTooLong' => '\\ccxt\\BadRequest', // The Client Order ID must be under 100 characters
+                    'ClientOrderIdMustBeString' => '\\ccxt\\BadRequest', // The Client Order ID must be a string
+                    'ConflictingOptions' => '\\ccxt\\BadRequest', // New orders using a combination of order execution options are not supported
+                    'EndpointMismatch' => '\\ccxt\\BadRequest', // The request was submitted to an endpoint different than the one in the payload
+                    'EndpointNotFound' => '\\ccxt\\BadRequest', // No endpoint was specified
+                    'IneligibleTiming' => '\\ccxt\\BadRequest', // Failed to place an auction order for the current auction on this symbol because the timing is not eligible, new orders may only be placed before the auction begins.
+                    'InsufficientFunds' => '\\ccxt\\InsufficientFunds', // The order was rejected because of insufficient funds
+                    'InvalidJson' => '\\ccxt\\BadRequest', // The JSON provided is invalid
+                    'InvalidNonce' => '\\ccxt\\InvalidNonce', // The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidOrderType' => '\\ccxt\\InvalidOrder', // An unknown order type was provided
+                    'InvalidPrice' => '\\ccxt\\InvalidOrder', // For new orders, the price was invalid
+                    'InvalidQuantity' => '\\ccxt\\InvalidOrder', // A negative or otherwise invalid quantity was specified
+                    'InvalidSide' => '\\ccxt\\InvalidOrder', // For new orders, and invalid side was specified
+                    'InvalidSignature' => '\\ccxt\\AuthenticationError', // The signature did not match the expected signature
+                    'InvalidSymbol' => '\\ccxt\\BadRequest', // An invalid symbol was specified
+                    'InvalidTimestampInPayload' => '\\ccxt\\BadRequest', // The JSON payload contained a timestamp parameter with an unsupported value.
+                    'Maintenance' => '\\ccxt\\ExchangeNotAvailable', // The system is down for maintenance
+                    'MarketNotOpen' => '\\ccxt\\InvalidOrder', // The order was rejected because the market is not accepting new orders
+                    'MissingApikeyHeader' => '\\ccxt\\AuthenticationError', // The X-GEMINI-APIKEY header was missing
+                    'MissingOrderField' => '\\ccxt\\InvalidOrder', // A required order_id field was not specified
+                    'MissingRole' => '\\ccxt\\AuthenticationError', // The API key used to access this endpoint does not have the required role assigned to it
+                    'MissingPayloadHeader' => '\\ccxt\\AuthenticationError', // The X-GEMINI-PAYLOAD header was missing
+                    'MissingSignatureHeader' => '\\ccxt\\AuthenticationError', // The X-GEMINI-SIGNATURE header was missing
+                    'NoSSL' => '\\ccxt\\AuthenticationError', // You must use HTTPS to access the API
+                    'OptionsMustBeArray' => '\\ccxt\\BadRequest', // The options parameter must be an array.
+                    'OrderNotFound' => '\\ccxt\\OrderNotFound', // The order specified was not found
+                    'RateLimit' => '\\ccxt\\DDoSProtection', // Requests were made too frequently. See Rate Limits below.
+                    'System' => '\\ccxt\\ExchangeError', // We are experiencing technical issues
+                    'UnsupportedOption' => '\\ccxt\\BadRequest', // This order execution option is not supported.
+                ),
+                'broad' => array(),
+            ),
+            'options' => array (
+                'fetchMarketsMethod' => 'fetch_markets_from_web',
+            ),
         ));
     }
 
     public function fetch_markets ($params = array ()) {
+        $method = $this->safe_value($this->options, 'fetchMarketsMethod', 'fetch_markets_from_api');
+        return $this->$method ($params);
+    }
+
+    public function fetch_markets_from_web ($symbols = null, $params = array ()) {
+        $response = $this->webGetRestApi ($params);
+        $sections = explode('<h1 $id="$symbols-and-minimums">Symbols and minimums</h1>', $response);
+        $numSections = is_array ($sections) ? count ($sections) : 0;
+        $error = $this->id . ' the ' . $this->name . ' API doc HTML markup has changed, breaking the parser of order limits and $precision info for ' . $this->name . ' markets.';
+        if ($numSections !== 2) {
+            throw new NotSupported($error);
+        }
+        $tables = explode('tbody>', $sections[1]);
+        $numTables = is_array ($tables) ? count ($tables) : 0;
+        if ($numTables < 2) {
+            throw new NotSupported($error);
+        }
+        // $tables[1] = str_replace("\n", '', $tables[1]); // eslint-disable-line quotes
+        $rows = explode("{tr}\n", $tables[1]); // eslint-disable-line quotes
+        $numRows = is_array ($rows) ? count ($rows) : 0;
+        if ($numRows < 2) {
+            throw new NotSupported($error);
+        }
+        $result = array();
+        // skip the first element (empty string)
+        for ($i = 1; $i < $numRows; $i++) {
+            $row = $rows[$i];
+            $cells = explode("</td>\n", $row); // eslint-disable-line quotes
+            $numCells = is_array ($cells) ? count ($cells) : 0;
+            if ($numCells < 7) {
+                throw new NotSupported($error);
+            }
+            //
+            //     array (
+            //         '{td}<code class="prettyprint">btcusd</code>',
+            //         '{td}USD', // $quote
+            //         '{td}BTC', // $base
+            //         '{td}0.00001 BTC (1e-5)', // min amount
+            //         '{td}0.00000001 BTC (1e-8)', // amount min tick size
+            //         '{td}0.01 USD', // price min tick size
+            //         '</tr>\n'
+            //     )
+            //
+            $id = str_replace('{td}', '', $cells[0]);
+            $id = str_replace('<code class="prettyprint">', '', $id);
+            $id = str_replace('</code>', '', $id);
+            $baseId = str_replace('{td}', '', $cells[2]);
+            $quoteId = str_replace('{td}', '', $cells[1]);
+            $minAmountAsString = str_replace('{td}', '', $cells[3]);
+            $amountTickSizeAsString = str_replace('{td}', '', $cells[4]);
+            $priceTickSizeAsString = str_replace('{td}', '', $cells[5]);
+            $minAmount = explode(' ', $minAmountAsString);
+            $amountPrecision = explode(' ', $amountTickSizeAsString);
+            $pricePrecision = explode(' ', $priceTickSizeAsString);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $baseId = strtolower($baseId);
+            $quoteId = strtolower($quoteId);
+            $precision = array (
+                'amount' => $this->precision_from_string($amountPrecision[0]),
+                'price' => $this->precision_from_string($pricePrecision[0]),
+            );
+            $active = null;
+            $result[] = array (
+                'id' => $id,
+                'info' => $row,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => $active,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => floatval ($minAmount[0]),
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_markets_from_api ($params = array ()) {
         $response = $this->publicGetSymbols ($params);
         $result = array();
         for ($i = 0; $i < count ($response); $i++) {
@@ -99,14 +251,33 @@ class gemini extends Exchange {
             $base = $this->common_currency_code($base);
             $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
+            $precision = array (
+                'amount' => null,
+                'price' => null,
+            );
             $result[] = array (
                 'id' => $id,
+                'info' => $market,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'info' => $market,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -447,13 +618,12 @@ class gemini extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $url = '/' . $this->implode_params($path, $params);
+        if ($api !== 'web') {
+            $url = '/' . $this->version . $url;
+        }
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api === 'public') {
-            if ($query) {
-                $url .= '?' . $this->urlencode ($query);
-            }
-        } else {
+        if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $request = array_merge (array (
@@ -469,19 +639,44 @@ class gemini extends Exchange {
                 'X-GEMINI-PAYLOAD' => $this->decode ($payload),
                 'X-GEMINI-SIGNATURE' => $signature,
             );
+        } else {
+            if ($query) {
+                $url .= '?' . $this->urlencode ($query);
+            }
         }
-        $url = $this->urls['api'] . $url;
+        $url = $this->urls['api'][$api] . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('result', $response)) {
-            if ($response['result'] === 'error') {
-                throw new ExchangeError($this->id . ' ' . $this->json ($response));
-            }
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+        if ($response === null) {
+            return; // fallback to default error handler
         }
-        return $response;
+        //
+        //     {
+        //         "$result" => "error",
+        //         "$reason" => "BadNonce",
+        //         "$message" => "Out-of-sequence nonce {1234} precedes previously used nonce {2345}"
+        //     }
+        //
+        $result = $this->safe_string($response, 'result');
+        if ($result === 'error') {
+            $reason = $this->safe_string($response, 'reason');
+            $message = $this->safe_string($response, 'message');
+            $feedback = $this->id . ' ' . $message;
+            $exact = $this->exceptions['exact'];
+            if (is_array($exact) && array_key_exists($reason, $exact)) {
+                throw new $exact[$reason]($feedback);
+            } else if (is_array($exact) && array_key_exists($message, $exact)) {
+                throw new $exact[$message]($feedback);
+            }
+            $broad = $this->exceptions['broad'];
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey]($feedback);
+            }
+            throw new ExchangeError($feedback); // unknown $message
+        }
     }
 
     public function create_deposit_address ($code, $params = array ()) {

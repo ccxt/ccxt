@@ -334,7 +334,10 @@ module.exports = class coinegg extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const symbol = market['symbol'];
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         const timestamp = this.parse8601 (this.safeString (order, 'datetime'));
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount_original');
@@ -352,15 +355,18 @@ module.exports = class coinegg extends Exchange {
             status = remaining ? 'open' : 'closed';
         }
         const info = this.safeValue (order, 'info', order);
+        const type = 'limit';
+        const side = this.safeString (order, 'type');
+        const id = this.safeString (order, 'id');
         return {
-            'id': this.safeString (order, 'id'),
+            'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': undefined,
             'amount': amount,

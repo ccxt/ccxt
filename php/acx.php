@@ -304,7 +304,7 @@ class acx extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            $request['timestamp'] = $since;
+            $request['timestamp'] = intval ($since / 1000);
         }
         $response = $this->publicGetK (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);

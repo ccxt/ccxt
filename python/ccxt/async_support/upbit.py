@@ -1407,7 +1407,7 @@ class upbit (Exchange):
             }
             if query:
                 request['query'] = self.urlencode(query)
-            jwt = self.jwt(request, self.secret)
+            jwt = self.jwt(request, self.encode(self.secret))
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             }

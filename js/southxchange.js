@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -92,9 +91,6 @@ module.exports = class southxchange extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostListBalances (params);
-        if (!response) {
-            throw new ExchangeError (this.id + ' fetchBalance got an unrecognized response');
-        }
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];

@@ -661,7 +661,10 @@ class bitz (Exchange):
         #       microtime:   "0.56462100 1535973435",
         #          source:   "api"                                                    }
         #
-        return self.parse_ohlcvs(response['data']['bars'], market, timeframe, since, limit)
+        bars = self.safe_value(response['data'], 'bars', None)
+        if bars is None:
+            return []
+        return self.parse_ohlcvs(bars, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
         statuses = {

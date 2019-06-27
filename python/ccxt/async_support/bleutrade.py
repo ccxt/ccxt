@@ -234,11 +234,11 @@ class bleutrade (bittrex):
         timestamp = self.parse8601(ohlcv['TimeStamp'] + '+00:00')
         return [
             timestamp,
-            ohlcv['Open'],
-            ohlcv['High'],
-            ohlcv['Low'],
-            ohlcv['Close'],
-            ohlcv['Volume'],
+            self.safe_float(ohlcv, 'Open'),
+            self.safe_float(ohlcv, 'High'),
+            self.safe_float(ohlcv, 'Low'),
+            self.safe_float(ohlcv, 'Close'),
+            self.safe_float(ohlcv, 'Volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
@@ -434,9 +434,9 @@ class bleutrade (bittrex):
         feeCost = None
         labelParts = label.split('')
         if len(labelParts) == 3:
-            amount = labelParts[0]
+            amount = float(labelParts[0])
             address = labelParts[1]
-            feeCost = labelParts[2]
+            feeCost = float(labelParts[2])
         else:
             address = label
         fee = None

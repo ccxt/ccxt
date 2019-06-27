@@ -987,12 +987,14 @@ module.exports = class bittrex extends Exchange {
         }
         let symbol = undefined;
         if ('Exchange' in order) {
-            const marketId = order['Exchange'];
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                symbol = market['symbol'];
-            } else {
-                symbol = this.parseSymbol (marketId);
+            const marketId = this.safeString (order, 'Exchange');
+            if (marketId !== undefined) {
+                if (marketId in this.markets_by_id) {
+                    market = this.markets_by_id[marketId];
+                    symbol = market['symbol'];
+                } else {
+                    symbol = this.parseSymbol (marketId);
+                }
             }
         } else {
             if (market !== undefined) {
@@ -1000,18 +1002,22 @@ module.exports = class bittrex extends Exchange {
             }
         }
         let timestamp = undefined;
-        if ('Opened' in order) {
-            timestamp = this.parse8601 (order['Opened'] + '+00:00');
+        const opened = this.safeString (order, 'Opened');
+        if (opened !== undefined) {
+            timestamp = this.parse8601 (opened + '+00:00');
         }
-        if ('Created' in order) {
-            timestamp = this.parse8601 (order['Created'] + '+00:00');
+        const created = this.safeString (order, 'Created');
+        if (created !== undefined) {
+            timestamp = this.parse8601 (created + '+00:00');
         }
         let lastTradeTimestamp = undefined;
-        if (('TimeStamp' in order) && (order['TimeStamp'] !== undefined)) {
-            lastTradeTimestamp = this.parse8601 (order['TimeStamp'] + '+00:00');
+        const lastTimestamp = this.safeString (order, 'TimeStamp');
+        if (lastTimestamp !== undefined) {
+            lastTradeTimestamp = this.parse8601 (lastTimestamp + '+00:00');
         }
-        if (('Closed' in order) && (order['Closed'] !== undefined)) {
-            lastTradeTimestamp = this.parse8601 (order['Closed'] + '+00:00');
+        const closed = this.safeString (order, 'Closed');
+        if (closed !== undefined) {
+            lastTradeTimestamp = this.parse8601 (closed + '+00:00');
         }
         if (timestamp === undefined) {
             timestamp = lastTradeTimestamp;
@@ -1343,20 +1349,26 @@ module.exports = class bittrex extends Exchange {
                     const cancel = 'cancel';
                     const indexOfCancel = url.indexOf (cancel);
                     if (indexOfCancel >= 0) {
-                        const parts = url.split ('&');
-                        let orderId = undefined;
-                        for (let i = 0; i < parts.length; i++) {
-                            const part = parts[i];
-                            const keyValue = part.split ('=');
-                            if (keyValue[0] === 'uuid') {
-                                orderId = keyValue[1];
-                                break;
+                        const urlParts = url.split ('?');
+                        const numParts = urlParts.length;
+                        if (numParts > 1) {
+                            const query = urlParts[1];
+                            const params = query.split ('&');
+                            const numParams = params.length;
+                            let orderId = undefined;
+                            for (let i = 0; i < numParams; i++) {
+                                const param = params[i];
+                                const keyValue = param.split ('=');
+                                if (keyValue[0] === 'uuid') {
+                                    orderId = keyValue[1];
+                                    break;
+                                }
                             }
-                        }
-                        if (orderId !== undefined) {
-                            throw new OrderNotFound (this.id + ' cancelOrder ' + orderId + ' ' + this.json (response));
-                        } else {
-                            throw new OrderNotFound (this.id + ' cancelOrder ' + this.json (response));
+                            if (orderId !== undefined) {
+                                throw new OrderNotFound (this.id + ' cancelOrder ' + orderId + ' ' + this.json (response));
+                            } else {
+                                throw new OrderNotFound (this.id + ' cancelOrder ' + this.json (response));
+                            }
                         }
                     }
                 }

@@ -658,7 +658,7 @@ module.exports = class hitbtc extends Exchange {
         }
         let side = undefined;
         const tradeLength = trade.length;
-        if (tradeLength > 3) {
+        if (tradeLength > 4) {
             side = trade[4];
         }
         const price = parseFloat (trade[1]);

@@ -243,14 +243,14 @@ class bleutrade extends bittrex {
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1d', $since = null, $limit = null) {
         $timestamp = $this->parse8601 ($ohlcv['TimeStamp'] . '+00:00');
-        return [
+        return array (
             $timestamp,
-            $ohlcv['Open'],
-            $ohlcv['High'],
-            $ohlcv['Low'],
-            $ohlcv['Close'],
-            $ohlcv['Volume'],
-        ];
+            $this->safe_float($ohlcv, 'Open'),
+            $this->safe_float($ohlcv, 'High'),
+            $this->safe_float($ohlcv, 'Low'),
+            $this->safe_float($ohlcv, 'Close'),
+            $this->safe_float($ohlcv, 'Volume'),
+        );
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
@@ -480,9 +480,9 @@ class bleutrade extends bittrex {
         $feeCost = null;
         $labelParts = explode(';', $label);
         if (strlen ($labelParts) === 3) {
-            $amount = $labelParts[0];
+            $amount = floatval ($labelParts[0]);
             $address = $labelParts[1];
-            $feeCost = $labelParts[2];
+            $feeCost = floatval ($labelParts[2]);
         } else {
             $address = $label;
         }

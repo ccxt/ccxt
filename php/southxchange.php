@@ -93,9 +93,6 @@ class southxchange extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostListBalances ($params);
-        if (!$response) {
-            throw new ExchangeError($this->id . ' fetchBalance got an unrecognized response');
-        }
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];

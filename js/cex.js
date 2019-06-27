@@ -634,7 +634,12 @@ module.exports = class cex extends Exchange {
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const price = this.safeFloat (order, 'price');
-        const amount = this.safeFloat (order, 'amount');
+        let amount = this.safeFloat (order, 'amount');
+        // sell orders can have a negative amount
+        // https://github.com/ccxt/ccxt/issues/5338
+        if (amount !== undefined) {
+            amount = Math.abs (amount);
+        }
         const remaining = this.safeFloat2 (order, 'pending', 'remains');
         const filled = amount - remaining;
         let fee = undefined;
@@ -901,6 +906,9 @@ module.exports = class cex extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
+        if (Array.isArray (response)) {
+            return response; // public endpoints may return []-arrays
+        }
         if (!response) {
             throw new NullResponse (this.id + ' returned ' + this.json (response));
         } else if (response === true || response === 'true') {

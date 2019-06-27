@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.771'
+__version__ = '1.18.841'
 
 # -----------------------------------------------------------------------------
 
@@ -123,6 +123,7 @@ class Exchange(object):
     verbose = False
     markets = None
     symbols = None
+    timeframes = None
     fees = {
         'trading': {
             'percentage': True,  # subclasses should rarely have to redefine this
@@ -210,6 +211,13 @@ class Exchange(object):
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
 
+    status = {
+        'status': 'ok',
+        'updated': None,
+        'eta': None,
+        'url': None,
+    }
+
     requiredCredentials = {
         'apiKey': True,
         'secret': True,
@@ -250,8 +258,10 @@ class Exchange(object):
         'fetchOrderBook': True,
         'fetchOrderBooks': False,
         'fetchOrders': False,
+        'fetchStatus': 'emulated',
         'fetchTicker': True,
         'fetchTickers': False,
+        'fetchTime': False,
         'fetchTrades': True,
         'fetchTradingFee': False,
         'fetchTradingFees': False,
@@ -313,6 +323,7 @@ class Exchange(object):
         #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
         # }
 
+        self.origin = self.uuid()
         self.userAgent = default_user_agent()
 
         settings = self.deep_extend(self.describe(), config)
@@ -981,7 +992,7 @@ class Exchange(object):
             signature = Exchange.rsa(token, secret, alg)
         else:
             algorithm = algos[alg]
-            signature = Exchange.hmac(token, secret, algorithm, 'binary')
+            signature = Exchange.hmac(Exchange.encode(token), secret, algorithm, 'binary')
         return token + '.' + Exchange.base64urlencode(signature)
 
     @staticmethod
@@ -992,7 +1003,7 @@ class Exchange(object):
             "RS512": hashes.SHA512(),
         }
         algorithm = algorithms[alg]
-        priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
+        priv_key = load_pem_private_key(secret, None, backends.default_backend())
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
@@ -1350,6 +1361,12 @@ class Exchange(object):
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
+
+    def fetch_status(self, params={}):
+        if self.has['fetchTime']:
+            updated = self.fetch_time(params)
+            self.status['updated'] = updated
+        return self.status
 
     def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return self.fetch_ohlcv(symbol, timeframe, since, limit, params)

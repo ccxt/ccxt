@@ -72,7 +72,7 @@ class bibox (Exchange):
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
-                'referral': 'https://www.bibox.com/signPage?id=11468678&lang=en',
+                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
             },
             'api': {
                 'public': {
@@ -131,10 +131,41 @@ class bibox (Exchange):
             'cmd': 'marketAll',
         }
         response = await self.publicGetMdata(self.extend(request, params))
+        #
+        #     {
+        #         "result": [
+        #             {
+        #                 "is_hide":0,
+        #                 "high_cny":"1.9478",
+        #                 "amount":"272.41",
+        #                 "coin_symbol":"BIX",
+        #                 "last":"0.00002487",
+        #                 "currency_symbol":"BTC",
+        #                 "change":"+0.00000073",
+        #                 "low_cny":"1.7408",
+        #                 "base_last_cny":"1.84538041",
+        #                 "area_id":7,
+        #                 "percent":"+3.02%",
+        #                 "last_cny":"1.8454",
+        #                 "high":"0.00002625",
+        #                 "low":"0.00002346",
+        #                 "pair_type":0,
+        #                 "last_usd":"0.2686",
+        #                 "vol24H":"10940613",
+        #                 "id":1,
+        #                 "high_usd":"0.2835",
+        #                 "low_usd":"0.2534"
+        #             }
+        #         ],
+        #         "cmd":"marketAll",
+        #         "ver":"1.1"
+        #     }
+        #
         markets = self.safe_value(response, 'result')
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
+            numericId = self.safe_integer(market, 'id')
             baseId = self.safe_string(market, 'coin_symbol')
             quoteId = self.safe_string(market, 'currency_symbol')
             base = self.common_currency_code(baseId)
@@ -147,6 +178,7 @@ class bibox (Exchange):
             }
             result.append({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -182,7 +214,7 @@ class bibox (Exchange):
             symbol = base + '/' + quote
         last = self.safe_float(ticker, 'last')
         change = self.safe_float(ticker, 'change')
-        baseVolume = self.safe_float(ticker, 'vol', 'vol24H')
+        baseVolume = self.safe_float_2(ticker, 'vol', 'vol24H')
         open = None
         if (last is not None) and(change is not None):
             open = last - change
@@ -267,9 +299,8 @@ class bibox (Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
-        if amount is not None:
-            if cost is not None:
-                cost = price * amount
+        if price is not None and amount is not None:
+            cost = price * amount
         if feeCost is not None:
             fee = {
                 'cost': feeCost,

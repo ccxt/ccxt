@@ -636,6 +636,11 @@ class cex extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
+        // sell orders can have a negative $amount
+        // https://github.com/ccxt/ccxt/issues/5338
+        if ($amount !== null) {
+            $amount = abs ($amount);
+        }
         $remaining = $this->safe_float_2($order, 'pending', 'remains');
         $filled = $amount - $remaining;
         $fee = null;
@@ -902,6 +907,9 @@ class cex extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
+            return $response; // public endpoints may return array()-arrays
+        }
         if (!$response) {
             throw new NullResponse($this->id . ' returned ' . $this->json ($response));
         } else if ($response === true || $response === 'true') {

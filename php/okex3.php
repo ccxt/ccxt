@@ -1794,13 +1794,13 @@ class okex3 extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
         }
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType');
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', $market['type']);
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
             throw new ArgumentsRequired($this->id . " fetchOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
-        $this->load_markets();
-        $market = $this->market ($symbol);
         $instrumentId = ($market['futures'] || $market['swap']) ? 'InstrumentId' : '';
         $method = $type . 'GetOrders' . $instrumentId;
         $request = array (
@@ -2223,17 +2223,32 @@ class okex3 extends Exchange {
             $address = $addressFrom;
         }
         $currencyId = $this->safe_string($transaction, 'currency');
+        $code = null;
         if ($currencyId !== null) {
-            $currencyId = strtoupper($currencyId);
+            $uppercaseId = $currencyId;
+            $currencyId = strtolower($currencyId);
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$currencyId];
+                $code = $currency['code'];
+            } else {
+                $code = $this->common_currency_code($uppercaseId);
+            }
         }
-        $code = $this->common_currency_code($currencyId);
         $amount = $this->safe_float($transaction, 'amount');
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'timestamp'));
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = null;
         if ($type === 'deposit') {
             $feeCost = 0;
+        } else {
+            if ($currencyId !== null) {
+                $feeWithCurrencyId = $this->safe_string($transaction, 'fee');
+                if ($feeWithCurrencyId !== null) {
+                    $feeWithoutCurrencyId = str_replace($currencyId, '', $feeWithCurrencyId);
+                    $feeCost = floatval ($feeWithoutCurrencyId);
+                }
+            }
         }
         // todo parse tags
         return array (

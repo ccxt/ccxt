@@ -354,7 +354,6 @@ declare module 'ccxt' {
     export class bitflyer extends Exchange {}
     export class bitforex extends Exchange {}
     export class bithumb extends Exchange {}
-    export class bitibu extends acx {}
     export class bitkk extends zb {}
     export class bitlish extends Exchange {}
     export class bitmarket extends Exchange {}
@@ -378,7 +377,6 @@ declare module 'ccxt' {
     export class btcturk extends Exchange {}
     export class buda extends Exchange {}
     export class bxinth extends Exchange {}
-    export class ccex extends Exchange {}
     export class cex extends Exchange {}
     export class chbtc extends zb {}
     export class chilebit extends foxbit {}
@@ -418,7 +416,6 @@ declare module 'ccxt' {
     export class gateio extends Exchange {}
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
-    export class getbtc extends _1btcxe {}
     export class hadax extends huobipro {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
@@ -460,7 +457,6 @@ declare module 'ccxt' {
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
-    export class uex extends Exchange {}
     export class upbit extends Exchange {}
     export class urdubit extends foxbit {}
     export class vaultoro extends Exchange {}

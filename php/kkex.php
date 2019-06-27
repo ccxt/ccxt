@@ -368,7 +368,7 @@ class kkex extends Exchange {
         );
         if ($since !== null) {
             // $since = $this->milliseconds () - $this->parse_timeframe($timeframe) * $limit * 1000;
-            $request['since'] = $since;
+            $request['since'] = intval ($since / 1000);
         }
         if ($limit !== null) {
             $request['size'] = $limit;

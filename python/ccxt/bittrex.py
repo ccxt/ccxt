@@ -935,25 +935,30 @@ class bittrex (Exchange):
             status = self.parse_order_status(self.safe_string(order, 'Status'))
         symbol = None
         if 'Exchange' in order:
-            marketId = order['Exchange']
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = self.parse_symbol(marketId)
+            marketId = self.safe_string(order, 'Exchange')
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+                    symbol = market['symbol']
+                else:
+                    symbol = self.parse_symbol(marketId)
         else:
             if market is not None:
                 symbol = market['symbol']
         timestamp = None
-        if 'Opened' in order:
-            timestamp = self.parse8601(order['Opened'] + '+00:00')
-        if 'Created' in order:
-            timestamp = self.parse8601(order['Created'] + '+00:00')
+        opened = self.safe_string(order, 'Opened')
+        if opened is not None:
+            timestamp = self.parse8601(opened + '+00:00')
+        created = self.safe_string(order, 'Created')
+        if created is not None:
+            timestamp = self.parse8601(created + '+00:00')
         lastTradeTimestamp = None
-        if ('TimeStamp' in list(order.keys())) and(order['TimeStamp'] is not None):
-            lastTradeTimestamp = self.parse8601(order['TimeStamp'] + '+00:00')
-        if ('Closed' in list(order.keys())) and(order['Closed'] is not None):
-            lastTradeTimestamp = self.parse8601(order['Closed'] + '+00:00')
+        lastTimestamp = self.safe_string(order, 'TimeStamp')
+        if lastTimestamp is not None:
+            lastTradeTimestamp = self.parse8601(lastTimestamp + '+00:00')
+        closed = self.safe_string(order, 'Closed')
+        if closed is not None:
+            lastTradeTimestamp = self.parse8601(closed + '+00:00')
         if timestamp is None:
             timestamp = lastTradeTimestamp
         fee = None
@@ -1234,18 +1239,23 @@ class bittrex (Exchange):
                     cancel = 'cancel'
                     indexOfCancel = url.find(cancel)
                     if indexOfCancel >= 0:
-                        parts = url.split('&')
-                        orderId = None
-                        for i in range(0, len(parts)):
-                            part = parts[i]
-                            keyValue = part.split('=')
-                            if keyValue[0] == 'uuid':
-                                orderId = keyValue[1]
-                                break
-                        if orderId is not None:
-                            raise OrderNotFound(self.id + ' cancelOrder ' + orderId + ' ' + self.json(response))
-                        else:
-                            raise OrderNotFound(self.id + ' cancelOrder ' + self.json(response))
+                        urlParts = url.split('?')
+                        numParts = len(urlParts)
+                        if numParts > 1:
+                            query = urlParts[1]
+                            params = query.split('&')
+                            numParams = len(params)
+                            orderId = None
+                            for i in range(0, numParams):
+                                param = params[i]
+                                keyValue = param.split('=')
+                                if keyValue[0] == 'uuid':
+                                    orderId = keyValue[1]
+                                    break
+                            if orderId is not None:
+                                raise OrderNotFound(self.id + ' cancelOrder ' + orderId + ' ' + self.json(response))
+                            else:
+                                raise OrderNotFound(self.id + ' cancelOrder ' + self.json(response))
                 if message in exceptions:
                     raise exceptions[message](feedback)
                 if message is not None:

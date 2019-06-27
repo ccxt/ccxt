@@ -1182,7 +1182,7 @@ class crex24 extends Exchange {
                 $auth .= $body;
             }
             $signature = base64_encode ($this->hmac ($this->encode ($auth), $secret, 'sha512', 'binary'));
-            $headers['X-CREX24-API-SIGN'] = $signature;
+            $headers['X-CREX24-API-SIGN'] = $this->decode ($signature);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

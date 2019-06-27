@@ -54,7 +54,7 @@ module.exports = class bibox extends Exchange {
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
-                'referral': 'https://www.bibox.com/signPage?id=11468678&lang=en',
+                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
             },
             'api': {
                 'public': {
@@ -114,10 +114,41 @@ module.exports = class bibox extends Exchange {
             'cmd': 'marketAll',
         };
         const response = await this.publicGetMdata (this.extend (request, params));
+        //
+        //     {
+        //         "result": [
+        //             {
+        //                 "is_hide":0,
+        //                 "high_cny":"1.9478",
+        //                 "amount":"272.41",
+        //                 "coin_symbol":"BIX",
+        //                 "last":"0.00002487",
+        //                 "currency_symbol":"BTC",
+        //                 "change":"+0.00000073",
+        //                 "low_cny":"1.7408",
+        //                 "base_last_cny":"1.84538041",
+        //                 "area_id":7,
+        //                 "percent":"+3.02%",
+        //                 "last_cny":"1.8454",
+        //                 "high":"0.00002625",
+        //                 "low":"0.00002346",
+        //                 "pair_type":0,
+        //                 "last_usd":"0.2686",
+        //                 "vol24H":"10940613",
+        //                 "id":1,
+        //                 "high_usd":"0.2835",
+        //                 "low_usd":"0.2534"
+        //             }
+        //         ],
+        //         "cmd":"marketAll",
+        //         "ver":"1.1"
+        //     }
+        //
         const markets = this.safeValue (response, 'result');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
+            const numericId = this.safeInteger (market, 'id');
             const baseId = this.safeString (market, 'coin_symbol');
             const quoteId = this.safeString (market, 'currency_symbol');
             const base = this.commonCurrencyCode (baseId);
@@ -130,6 +161,7 @@ module.exports = class bibox extends Exchange {
             };
             result.push ({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -168,7 +200,7 @@ module.exports = class bibox extends Exchange {
         }
         const last = this.safeFloat (ticker, 'last');
         const change = this.safeFloat (ticker, 'change');
-        const baseVolume = this.safeFloat (ticker, 'vol', 'vol24H');
+        const baseVolume = this.safeFloat2 (ticker, 'vol', 'vol24H');
         let open = undefined;
         if ((last !== undefined) && (change !== undefined)) {
             open = last - change;
@@ -268,10 +300,8 @@ module.exports = class bibox extends Exchange {
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
-        if (amount !== undefined) {
-            if (cost !== undefined) {
-                cost = price * amount;
-            }
+        if (price !== undefined && amount !== undefined) {
+            cost = price * amount;
         }
         if (feeCost !== undefined) {
             fee = {

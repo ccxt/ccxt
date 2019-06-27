@@ -128,10 +128,13 @@ class coinspot extends Exchange {
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
+        $market = $this->market ($symbol);
         $request = array (
-            'cointype' => $this->market_id($symbol),
+            'cointype' => $market['id'],
         );
-        return $this->privatePostOrdersHistory (array_merge ($request, $params));
+        $response = $this->privatePostOrdersHistory (array_merge ($request, $params));
+        $trades = $this->safe_value($response, 'orders', array());
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

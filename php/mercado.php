@@ -28,6 +28,7 @@ class mercado extends Exchange {
                 'fetchTickers' => false,
             ),
             'timeframes' => array (
+                '1m' => '1m',
                 '5m' => '5m',
                 '15m' => '15m',
                 '30m' => '30m',
@@ -474,7 +475,8 @@ class mercado extends Exchange {
             $request['from'] = $request['to'] - ($limit * $this->parse_timeframe($timeframe));
         }
         $response = $this->v4PublicGetCoinCandle (array_merge ($request, $params));
-        return $this->parse_ohlcvs($response['candles'], $market, $timeframe, $since, $limit);
+        $candles = $this->safe_value($response, 'candles', array());
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {

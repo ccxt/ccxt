@@ -19,6 +19,9 @@ class bitmarket extends Exchange {
                 'CORS' => false,
                 'fetchOHLCV' => true,
                 'withdraw' => true,
+                'fetchWithdrawals' => true,
+                'fetchDeposits' => false,
+                'fetchMyTrades' => true,
             ),
             'timeframes' => array (
                 '90m' => '90m',
@@ -50,6 +53,7 @@ class bitmarket extends Exchange {
             'api' => array (
                 'public' => array (
                     'get' => array (
+                        'json_internal/all/ticker',
                         'json/{market}/ticker',
                         'json/{market}/orderbook',
                         'json/{market}/trades',
@@ -99,14 +103,8 @@ class bitmarket extends Exchange {
                     ),
                 ),
             ),
-            'markets' => array (
-                'BCH/PLN' => array( 'id' => 'BCCPLN', 'symbol' => 'BCH/PLN', 'base' => 'BCH', 'quote' => 'PLN', 'baseId' => 'BCC', 'quoteId' => 'PLN' ),
-                'BTG/PLN' => array( 'id' => 'BTGPLN', 'symbol' => 'BTG/PLN', 'base' => 'BTG', 'quote' => 'PLN', 'baseId' => 'BTG', 'quoteId' => 'PLN' ),
-                'BTC/PLN' => array( 'id' => 'BTCPLN', 'symbol' => 'BTC/PLN', 'base' => 'BTC', 'quote' => 'PLN', 'baseId' => 'BTC', 'quoteId' => 'PLN' ),
-                'BTC/EUR' => array( 'id' => 'BTCEUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'BTC', 'quoteId' => 'EUR' ),
-                'LTC/PLN' => array( 'id' => 'LTCPLN', 'symbol' => 'LTC/PLN', 'base' => 'LTC', 'quote' => 'PLN', 'baseId' => 'LTC', 'quoteId' => 'PLN' ),
-                'LTC/BTC' => array( 'id' => 'LTCBTC', 'symbol' => 'LTC/BTC', 'base' => 'LTC', 'quote' => 'BTC', 'baseId' => 'LTC', 'quoteId' => 'BTC' ),
-                'LiteMineX/BTC' => array( 'id' => 'LiteMineXBTC', 'symbol' => 'LiteMineX/BTC', 'base' => 'LiteMineX', 'quote' => 'BTC', 'baseId' => 'LiteMineX', 'quoteId' => 'BTC' ),
+            'commonCurrencies' => array (
+                'BCC' => 'BCH',
             ),
             'fees' => array (
                 'trading' => array (
@@ -183,7 +181,126 @@ class bitmarket extends Exchange {
                 'broad' => array (
                 ),
             ),
+            'options' => array (
+                'fetchMarketsWarning' => true,
+            ),
         ));
+    }
+
+    public function fetch_markets ($params = array ()) {
+        $response = $this->publicGetJsonInternalAllTicker (array_merge (array(), $params));
+        $ids = is_array($response) ? array_keys($response) : array();
+        $result = array();
+        $maxIdLength = 6;
+        for ($i = 0; $i < count ($ids); $i++) {
+            $id = $ids[$i];
+            $item = $response[$id];
+            if (strlen ($id) > 6) {
+                if ($this->options['fetchMarketsWarning']) {
+                    throw new NotSupported($this->id . ' fetchMarkets encountered a market $id `' . $id . '` (length > ' . $maxIdLength . ". Set exchange.options['fetchMarketsWarning'] = false to suppress this warning and skip this market."); // eslint-disable-line quotes
+                } else {
+                    continue;
+                }
+            }
+            $baseId = mb_substr($id, 0, 3 - 0);
+            $quoteId = mb_substr($id, 3, 6 - 3);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $result[] = array (
+                'id' => $id,
+                'info' => $item,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => null,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->privatePostWithdrawals (array_merge ($request, $params));
+        $items = $response['data']['results'];
+        return $this->parseTransactions ($items, null, $since, $limit);
+    }
+
+    public function parse_transaction ($item, $currency = null) {
+        //
+        //     {
+        //         id => 240565,
+        //         transaction_id => '78cbf0405f07a578164644aa67f5c6a08197574bc100a50aaee40ef2e11dc2d7',
+        //         received_in => '1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3',
+        //         $currency => 'BTC',
+        //         amount => 0.49926113,
+        //         time => 1518353534,
+        //         commission => 0.0008,
+        //         withdraw_type => 'Cryptocurrency'
+        //     }
+        //
+        $timestamp = $this->safe_integer($item, 'time');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        $code = null;
+        $currencyId = $this->safe_string($item, 'currency');
+        if ($currencyId !== null) {
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
+        }
+        $type = null;
+        if (is_array($item) && array_key_exists('withdraw_type', $item)) {
+            $type = 'withdrawal';
+            // only withdrawals are supported right now
+        }
+        return array (
+            'id' => $this->safe_string($item, 'id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'tag' => null,
+            'type' => $type,
+            'amount' => $this->safe_float($item, 'amount'),
+            'currency' => $code,
+            'status' => 'ok',
+            'address' => $this->safe_string($item, 'received_in'),
+            'txid' => $this->safe_string($item, 'transaction_id'),
+            'updated' => null,
+            'fee' => array (
+                'cost' => $this->safe_float($item, 'commission'),
+                'currency' => $code,
+            ),
+            'info' => $item,
+        );
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'market' => $market['id'],
+            'count' => $limit,
+        );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
+        $response = $this->privatePostTrades (array_merge ($request, $params));
+        $data = $this->safe_value($response, 'data', array());
+        $results = $this->safe_value($data, 'results', array());
+        return $this->parse_trades($results, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
@@ -257,22 +374,29 @@ class bitmarket extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $side = ($trade['type'] === 'bid') ? 'buy' : 'sell';
-        $timestamp = $this->safe_integer($trade, 'date');
+        $side = $this->safe_string($trade, 'type');
+        if ($side === 'bid') {
+            $side = 'buy';
+        } else if ($side === 'ask') {
+            $side = 'sell';
+        }
+        $timestamp = $this->safe_integer_2($trade, 'date', 'time');
         if ($timestamp !== null) {
             $timestamp *= 1000;
         }
-        $id = $this->safe_string($trade, 'tid');
+        $id = $this->safe_string_2($trade, 'tid', 'id');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
+        $price = $this->safe_float_2($trade, 'price', 'rate');
+        $amount = $this->safe_float_2($trade, 'amount', 'amountCrypto');
+        $cost = $this->safe_float($trade, 'amountFiat');
+        if ($cost === null) {
+            if ($price !== null) {
+                if ($amount !== null) {
+                    $cost = $price * $amount;
+                }
             }
         }
         return array (

@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.771';
+$version = '1.18.841';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.771';
+    const VERSION = '1.18.841';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -100,7 +100,6 @@ class Exchange {
         'bitflyer',
         'bitforex',
         'bithumb',
-        'bitibu',
         'bitkk',
         'bitlish',
         'bitmarket',
@@ -124,7 +123,6 @@ class Exchange {
         'btcturk',
         'buda',
         'bxinth',
-        'ccex',
         'cex',
         'chbtc',
         'chilebit',
@@ -164,7 +162,6 @@ class Exchange {
         'gateio',
         'gdax',
         'gemini',
-        'getbtc',
         'hadax',
         'hitbtc',
         'hitbtc2',
@@ -206,7 +203,6 @@ class Exchange {
         'therock',
         'tidebit',
         'tidex',
-        'uex',
         'upbit',
         'urdubit',
         'vaultoro',
@@ -688,7 +684,6 @@ class Exchange {
     }
 
     public function check_required_credentials($error = true) {
-        $keys = array_keys($this->requiredCredentials);
         foreach ($this->requiredCredentials as $key => $value) {
             if ($value && (!$this->$key)) {
                 if ($error) {
@@ -787,6 +782,7 @@ class Exchange {
         $this->transactions = array();
         $this->exceptions = array();
         $this->accounts = array();
+        $this->status = array('status' => 'ok', 'updated' => null, 'eta' => null, 'url' => null);
         $this->limits = array(
             'cost' => array(
                 'min' => null,
@@ -886,8 +882,10 @@ class Exchange {
             'fetchOrderBook' => true,
             'fetchOrderBooks' => false,
             'fetchOrders' => false,
+            'fetchStatus' => 'emulated',
             'fetchTicker' => true,
             'fetchTickers' => false,
+            'fetchTime' => false,
             'fetchTrades' => true,
             'fetchTradingFee' => false,
             'fetchTradingFees' => false,
@@ -1071,7 +1069,11 @@ class Exchange {
     }
 
     public function raise_error($exception_type, $url, $method = 'GET', $error = null, $details = null) {
-        $exception_class = __NAMESPACE__ . '\\' . $exception_type;
+        $exception_class = $exception_type;
+        $namespace = '\\' . __NAMESPACE__ . '\\';
+        if (substr($exception_class, 0, strlen($namespace)) !== $namespace) {
+            $exception_class =  $namespace . $exception_type;
+        }
         throw new $exception_class(implode(' ', array(
             $this->id,
             $method,
@@ -1222,20 +1224,30 @@ class Exchange {
         curl_setopt($this->curl, CURLOPT_FAILONERROR, false);
 
         $response_headers = array();
+        $http_status_text = '';
 
         // this function is called by curl for each header received
         curl_setopt($this->curl, CURLOPT_HEADERFUNCTION,
-            function ($curl, $header) use (&$response_headers) {
+            function ($curl, $header) use (&$response_headers, &$http_status_text) {
                 $length = strlen($header);
-                $header = explode(':', $header, 2);
-                if (count($header) < 2) { // ignore invalid headers
+                $tuple = explode(':', $header, 2);
+                if (count($tuple) !== 2) { // ignore invalid headers
+                    // if it's a "GET https://example.com/path 200 OK" line
+                    // try to parse the "OK" HTTP status string
+                    if (substr($header, 0, 4) === 'HTTP') {
+                        $parts = explode(' ', $header);
+                        if (count($parts) === 3) {
+                            $http_status_text = trim($parts[2]);
+                        }
+                    }
                     return $length;
                 }
-                $name = strtolower(trim($header[0]));
-                if (!array_key_exists($name, $response_headers)) {
-                    $response_headers[$name] = array(trim($header[1]));
+                $key = strtolower(trim($tuple[0]));
+                $value = trim($tuple[1]);
+                if (!array_key_exists($key, $response_headers)) {
+                    $response_headers[$key] = array($value);
                 } else {
-                    $response_headers[$name][] = trim($header[1]);
+                    $response_headers[$key][] = $value;
                 }
                 return $length;
             }
@@ -1280,7 +1292,7 @@ class Exchange {
             print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
-        $this->handle_errors($http_status_code, $curl_error, $url, $method, $response_headers, $result ? $result : null, $json_response);
+        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response);
 
         if ($result === false) {
             if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
@@ -1937,6 +1949,21 @@ class Exchange {
         $this->load_markets();
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
+    }
+    
+    public function fetchStatus($params = array()) {
+        return $this->fetch_status($params);
+    }
+
+    public function fetch_status($params = array()) {
+        if ($this->has['fetchTime']) {
+            $time = $this->fetch_time($params);
+            $this->status = array_merge($this->status, array(
+                'updated' => $time,
+            ));
+            return $this->status;
+        }
+        return $this->status;
     }
 
     public function fetchOHLCV($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {

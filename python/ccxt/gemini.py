@@ -7,7 +7,17 @@ from ccxt.base.exchange import Exchange
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import InvalidNonce
 
 
 class gemini (Exchange):
@@ -38,19 +48,29 @@ class gemini (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
-                'api': 'https://api.gemini.com',
-                'www': 'https://gemini.com',
+                'api': {
+                    'public': 'https://api.gemini.com',
+                    'private': 'https://api.gemini.com',
+                    'web': 'https://docs.gemini.com',
+                },
+                'www': 'https://gemini.com/',
                 'doc': [
                     'https://docs.gemini.com/rest-api',
                     'https://docs.sandbox.gemini.com',
                 ],
                 'test': 'https://api.sandbox.gemini.com',
                 'fees': [
-                    'https://gemini.com/fee-schedule/',
-                    'https://gemini.com/transfer-fees/',
+                    'https://gemini.com/api-fee-schedule',
+                    'https://gemini.com/trading-fees',
+                    'https://gemini.com/transfer-fees',
                 ],
             },
             'api': {
+                'web': {
+                    'get': [
+                        'rest-api',
+                    ],
+                },
                 'public': {
                     'get': [
                         'symbols',
@@ -86,9 +106,144 @@ class gemini (Exchange):
                     'maker': 0.001,
                 },
             },
+            'httpExceptions': {
+                '400': BadRequest,  # Auction not open or paused, ineligible timing, market not open, or the request was malformed, in the case of a private API request, missing or malformed Gemini private API authentication headers
+                '403': PermissionDenied,  # The API key is missing the role necessary to access self private API endpoint
+                '404': OrderNotFound,  # Unknown API entry point or Order not found
+                '406': InsufficientFunds,  # Insufficient Funds
+                '429': DDoSProtection,  # Rate Limiting was applied
+                '500': ExchangeError,  # The server encountered an error
+                '502': ExchangeError,  # Technical issues are preventing the request from being satisfied
+                '503': ExchangeNotAvailable,  # The exchange is down for maintenance
+            },
+            'exceptions': {
+                'exact': {
+                    'AuctionNotOpen': BadRequest,  # Failed to place an auction-only order because there is no current auction open for self symbol
+                    'ClientOrderIdTooLong': BadRequest,  # The Client Order ID must be under 100 characters
+                    'ClientOrderIdMustBeString': BadRequest,  # The Client Order ID must be a string
+                    'ConflictingOptions': BadRequest,  # New orders using a combination of order execution options are not supported
+                    'EndpointMismatch': BadRequest,  # The request was submitted to an endpoint different than the one in the payload
+                    'EndpointNotFound': BadRequest,  # No endpoint was specified
+                    'IneligibleTiming': BadRequest,  # Failed to place an auction order for the current auction on self symbol because the timing is not eligible, new orders may only be placed before the auction begins.
+                    'InsufficientFunds': InsufficientFunds,  # The order was rejected because of insufficient funds
+                    'InvalidJson': BadRequest,  # The JSON provided is invalid
+                    'InvalidNonce': InvalidNonce,  # The nonce was not greater than the previously used nonce, or was not present
+                    'InvalidOrderType': InvalidOrder,  # An unknown order type was provided
+                    'InvalidPrice': InvalidOrder,  # For new orders, the price was invalid
+                    'InvalidQuantity': InvalidOrder,  # A negative or otherwise invalid quantity was specified
+                    'InvalidSide': InvalidOrder,  # For new orders, and invalid side was specified
+                    'InvalidSignature': AuthenticationError,  # The signature did not match the expected signature
+                    'InvalidSymbol': BadRequest,  # An invalid symbol was specified
+                    'InvalidTimestampInPayload': BadRequest,  # The JSON payload contained a timestamp parameter with an unsupported value.
+                    'Maintenance': ExchangeNotAvailable,  # The system is down for maintenance
+                    'MarketNotOpen': InvalidOrder,  # The order was rejected because the market is not accepting new orders
+                    'MissingApikeyHeader': AuthenticationError,  # The X-GEMINI-APIKEY header was missing
+                    'MissingOrderField': InvalidOrder,  # A required order_id field was not specified
+                    'MissingRole': AuthenticationError,  # The API key used to access self endpoint does not have the required role assigned to it
+                    'MissingPayloadHeader': AuthenticationError,  # The X-GEMINI-PAYLOAD header was missing
+                    'MissingSignatureHeader': AuthenticationError,  # The X-GEMINI-SIGNATURE header was missing
+                    'NoSSL': AuthenticationError,  # You must use HTTPS to access the API
+                    'OptionsMustBeArray': BadRequest,  # The options parameter must be an array.
+                    'OrderNotFound': OrderNotFound,  # The order specified was not found
+                    'RateLimit': DDoSProtection,  # Requests were made too frequently. See Rate Limits below.
+                    'System': ExchangeError,  # We are experiencing technical issues
+                    'UnsupportedOption': BadRequest,  # This order execution option is not supported.
+                },
+                'broad': {},
+            },
+            'options': {
+                'fetchMarketsMethod': 'fetch_markets_from_web',
+            },
         })
 
     def fetch_markets(self, params={}):
+        method = self.safe_value(self.options, 'fetchMarketsMethod', 'fetch_markets_from_api')
+        return getattr(self, method)(params)
+
+    def fetch_markets_from_web(self, symbols=None, params={}):
+        response = self.webGetRestApi(params)
+        sections = response.split('<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
+        numSections = len(sections)
+        error = self.id + ' the ' + self.name + ' API doc HTML markup has changed, breaking the parser of order limits and precision info for ' + self.name + ' markets.'
+        if numSections != 2:
+            raise NotSupported(error)
+        tables = sections[1].split('tbody>')
+        numTables = len(tables)
+        if numTables < 2:
+            raise NotSupported(error)
+        # tables[1] = tables[1].replace("\n", '')  # eslint-disable-line quotes
+        rows = tables[1].split("<tr>\n")  # eslint-disable-line quotes
+        numRows = len(rows)
+        if numRows < 2:
+            raise NotSupported(error)
+        result = []
+        # skip the first element(empty string)
+        for i in range(1, numRows):
+            row = rows[i]
+            cells = row.split("</td>\n")  # eslint-disable-line quotes
+            numCells = len(cells)
+            if numCells < 7:
+                raise NotSupported(error)
+            #
+            #     [
+            #         '<td><code class="prettyprint">btcusd</code>',
+            #         '<td>USD',  # quote
+            #         '<td>BTC',  # base
+            #         '<td>0.00001 BTC(1e-5)',  # min amount
+            #         '<td>0.00000001 BTC(1e-8)',  # amount min tick size
+            #         '<td>0.01 USD',  # price min tick size
+            #         '</tr>\n'
+            #     ]
+            #
+            id = cells[0].replace('<td>', '')
+            id = id.replace('<code class="prettyprint">', '')
+            id = id.replace('</code>', '')
+            baseId = cells[2].replace('<td>', '')
+            quoteId = cells[1].replace('<td>', '')
+            minAmountAsString = cells[3].replace('<td>', '')
+            amountTickSizeAsString = cells[4].replace('<td>', '')
+            priceTickSizeAsString = cells[5].replace('<td>', '')
+            minAmount = minAmountAsString.split(' ')
+            amountPrecision = amountTickSizeAsString.split(' ')
+            pricePrecision = priceTickSizeAsString.split(' ')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
+            baseId = baseId.lower()
+            quoteId = quoteId.lower()
+            precision = {
+                'amount': self.precision_from_string(amountPrecision[0]),
+                'price': self.precision_from_string(pricePrecision[0]),
+            }
+            active = None
+            result.append({
+                'id': id,
+                'info': row,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': float(minAmount[0]),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            })
+        return result
+
+    def fetch_markets_from_api(self, params={}):
         response = self.publicGetSymbols(params)
         result = []
         for i in range(0, len(response)):
@@ -101,14 +256,33 @@ class gemini (Exchange):
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            precision = {
+                'amount': None,
+                'price': None,
+            }
             result.append({
                 'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             })
         return result
 
@@ -402,12 +576,11 @@ class gemini (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = '/' + self.version + '/' + self.implode_params(path, params)
+        url = '/' + self.implode_params(path, params)
+        if api != 'web':
+            url = '/' + self.version + url
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
+        if api == 'private':
             self.check_required_credentials()
             nonce = self.nonce()
             request = self.extend({
@@ -423,15 +596,37 @@ class gemini (Exchange):
                 'X-GEMINI-PAYLOAD': self.decode(payload),
                 'X-GEMINI-SIGNATURE': signature,
             }
-        url = self.urls['api'] + url
+        else:
+            if query:
+                url += '?' + self.urlencode(query)
+        url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        if 'result' in response:
-            if response['result'] == 'error':
-                raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if response is None:
+            return  # fallback to default error handler
+        #
+        #     {
+        #         "result": "error",
+        #         "reason": "BadNonce",
+        #         "message": "Out-of-sequence nonce <1234> precedes previously used nonce <2345>"
+        #     }
+        #
+        result = self.safe_string(response, 'result')
+        if result == 'error':
+            reason = self.safe_string(response, 'reason')
+            message = self.safe_string(response, 'message')
+            feedback = self.id + ' ' + message
+            exact = self.exceptions['exact']
+            if reason in exact:
+                raise exact[reason](feedback)
+            elif message in exact:
+                raise exact[message](feedback)
+            broad = self.exceptions['broad']
+            broadKey = self.findBroadlyMatchedKey(broad, message)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)  # unknown message
 
     def create_deposit_address(self, code, params={}):
         self.load_markets()

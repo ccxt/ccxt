@@ -354,12 +354,12 @@ module.exports = class rightbtc extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0],
-            ohlcv[2] / 1e8,
-            ohlcv[3] / 1e8,
-            ohlcv[4] / 1e8,
-            ohlcv[5] / 1e8,
-            ohlcv[1] / 1e8,
+            parseInt (ohlcv[0]),
+            parseFloat (ohlcv[2]) / 1e8,
+            parseFloat (ohlcv[3]) / 1e8,
+            parseFloat (ohlcv[4]) / 1e8,
+            parseFloat (ohlcv[5]) / 1e8,
+            parseFloat (ohlcv[1]) / 1e8,
         ];
     }
 

@@ -783,14 +783,14 @@ class therock extends Exchange {
         $request = array (
             'type' => 'withdraw',
         );
-        return $this->fetch_transactions ('withdraw', $code, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_transactions ($code, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $request = array (
             'type' => 'atm_payment',
         );
-        return $this->fetch_transactions ('atm_payment', $code, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_transactions ($code, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {

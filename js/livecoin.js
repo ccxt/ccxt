@@ -415,7 +415,7 @@ module.exports = class livecoin extends Exchange {
         //         "commission": 0,
         //         "clientorderid": 1472837650
         //     }
-        let timestamp = this.safeString2 (trade, 'time', 'datetime');
+        let timestamp = this.safeInteger2 (trade, 'time', 'datetime');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;
         }

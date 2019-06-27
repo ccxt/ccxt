@@ -126,10 +126,13 @@ class coinspot (Exchange):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'cointype': self.market_id(symbol),
+            'cointype': market['id'],
         }
-        return self.privatePostOrdersHistory(self.extend(request, params))
+        response = self.privatePostOrdersHistory(self.extend(request, params))
+        trades = self.safe_value(response, 'orders', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

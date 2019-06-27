@@ -1731,12 +1731,12 @@ class okex3 (Exchange):
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
-        defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType')
+        self.load_markets()
+        market = self.market(symbol)
+        defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
             raise ArgumentsRequired(self.id + " fetchOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
-        self.load_markets()
-        market = self.market(symbol)
         instrumentId = 'InstrumentId' if (market['futures'] or market['swap']) else ''
         method = type + 'GetOrders' + instrumentId
         request = {
@@ -2130,16 +2130,28 @@ class okex3 (Exchange):
             type = 'deposit'
             address = addressFrom
         currencyId = self.safe_string(transaction, 'currency')
+        code = None
         if currencyId is not None:
-            currencyId = currencyId.upper()
-        code = self.common_currency_code(currencyId)
+            uppercaseId = currencyId
+            currencyId = currencyId.lower()
+            if currencyId in self.currencies_by_id:
+                currency = self.currencies_by_id[currencyId]
+                code = currency['code']
+            else:
+                code = self.common_currency_code(uppercaseId)
         amount = self.safe_float(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
         timestamp = self.parse8601(self.safe_string(transaction, 'timestamp'))
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = None
         if type == 'deposit':
             feeCost = 0
+        else:
+            if currencyId is not None:
+                feeWithCurrencyId = self.safe_string(transaction, 'fee')
+                if feeWithCurrencyId is not None:
+                    feeWithoutCurrencyId = feeWithCurrencyId.replace(currencyId, '')
+                    feeCost = float(feeWithoutCurrencyId)
         # todo parse tags
         return {
             'info': transaction,

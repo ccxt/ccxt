@@ -40,6 +40,12 @@ class buda extends Exchange {
                 'doc' => 'https://api.buda.com',
                 'fees' => 'https://www.buda.com/comisiones',
             ),
+            'status' => array (
+                'status' => 'error',
+                'updated' => null,
+                'eta' => null,
+                'url' => null,
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (

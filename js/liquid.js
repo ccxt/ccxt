@@ -778,7 +778,7 @@ module.exports = class liquid extends Exchange {
                 'token_id': this.apiKey,
                 'iat': Math.floor (nonce / 1000), // issued at
             };
-            headers['X-Quoine-Auth'] = this.jwt (request, this.secret);
+            headers['X-Quoine-Auth'] = this.jwt (request, this.encode (this.secret));
         } else {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);

@@ -1490,7 +1490,7 @@ module.exports = class upbit extends Exchange {
             if (Object.keys (query).length) {
                 request['query'] = this.urlencode (query);
             }
-            const jwt = this.jwt (request, this.secret);
+            const jwt = this.jwt (request, this.encode (this.secret));
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             };

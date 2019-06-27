@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -398,13 +398,13 @@ module.exports = class exmo extends Exchange {
             let parts = response.split ('<td class="th_fees_2" colspan="2">');
             let numParts = parts.length;
             if (numParts !== 2) {
-                throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+                throw new NotSupported (this.id + ' fetchTradingFees format has changed');
             }
             const rest = parts[1];
             parts = rest.split ('</td>');
             numParts = parts.length;
             if (numParts < 2) {
-                throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+                throw new NotSupported (this.id + ' fetchTradingFees format has changed');
             }
             const fee = parseFloat (parts[0].replace ('%', '')) * 0.01;
             const taker = fee;

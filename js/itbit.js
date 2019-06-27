@@ -208,6 +208,7 @@ module.exports = class itbit extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -237,6 +238,11 @@ module.exports = class itbit extends Exchange {
                     'cost': feeCost,
                     'currency': feeCurrency,
                 };
+            }
+        }
+        if (!('fee' in result)) {
+            if (!('fees' in result)) {
+                result['fee'] = undefined;
             }
         }
         return result;
@@ -547,14 +553,13 @@ module.exports = class itbit extends Exchange {
         }
         if (method === 'POST' && Object.keys (query).length) {
             body = this.json (query);
-        } else {
-            body = '';
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
             const timestamp = nonce;
-            const auth = [ method, url, body, nonce, timestamp ];
+            const authBody = (method === 'POST') ? body : '';
+            const auth = [ method, url, authBody, nonce, timestamp ];
             const message = nonce + this.json (auth).replace ('\\/', '/');
             const hash = this.hash (this.encode (message), 'sha256', 'binary');
             const binaryUrl = this.stringToBinary (this.encode (url));
