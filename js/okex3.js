@@ -2222,7 +2222,7 @@ module.exports = class okex3 extends Exchange {
             address = addressFrom;
         }
         let currencyId = this.safeString (transaction, 'currency');
-        let code = this.commonCurrencyCode ;
+        let code = undefined;
         if (currencyId !== undefined) {
             const uppercaseId = currencyId;
             currencyId = currencyId.toLowerCase ();
