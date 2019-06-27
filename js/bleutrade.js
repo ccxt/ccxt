@@ -397,9 +397,6 @@ module.exports = class bleutrade extends bittrex {
         }
         const time = this.safeString (item, 'TimeStamp');
         const timestamp = this.parse8601 (time);
-        if (type === this.safeString (item, 'Type')) {
-            throw Error ();
-        }
         const amount = this.safeFloat (item, 'Amount');
         let direction = undefined;
         if (amount < 0) {
