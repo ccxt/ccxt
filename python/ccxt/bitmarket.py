@@ -23,6 +23,9 @@ class bitmarket (Exchange):
                 'CORS': False,
                 'fetchOHLCV': True,
                 'withdraw': True,
+                'fetchWithdrawals': True,
+                'fetchDeposits': False,
+                'fetchMyTrades': True,
             },
             'timeframes': {
                 '90m': '90m',
