@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.840'
+const version = '1.18.841'
 
 Exchange.ccxtVersion = version
 
@@ -32515,6 +32515,7 @@ module.exports = class coingi extends Exchange {
                 'fetchTickers': true,
             },
             'urls': {
+                'referral': 'https://www.coingi.com/?r=XTPPMC',
                 'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api': {
                     'www': 'https://coingi.com',
