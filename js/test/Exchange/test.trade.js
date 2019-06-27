@@ -66,7 +66,7 @@ module.exports = (exchange, trade, symbol, now) => {
         'kraken', // override for kraken and possibly other exchanges as well
     ].includes (exchange.id)
 
-    const adjustedNow = now + (isExchangeTimeDrifting ? 10000 : 0)
+    const adjustedNow = now + (isExchangeTimeDrifting ? 60000 : 0)
 
     const exchangesExcludedFromTimestampCheck = [
         'gdax',
