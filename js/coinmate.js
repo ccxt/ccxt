@@ -347,64 +347,51 @@ module.exports = class coinmate extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        if ('createdTimestamp' in trade) {
-            return this.parsePrivateTrade (trade, market);
-        } else {
-            return this.parsePublicTrade (trade, market);
-        }
-    }
-
-    parsePrivateTrade (item, market = undefined) {
-        // { transactionId: 2671819,
-        //     createdTimestamp: 1529649127605,
-        //     currencyPair: 'LTC_BTC',
-        //     type: 'BUY',
-        //     orderType: 'LIMIT',
-        //     orderId: 101810227,
-        //     amount: 0.01,
-        //     price: 0.01406,
-        //     fee: 0,
-        //     feeType: 'MAKER' }
-        const timestamp = this.safeInteger (item, 'createdTimestamp');
-        const amount = this.safeFloat (item, 'amount');
-        const price = this.safeFloat (item, 'price');
-        const fee = this.safeFloat (item, 'fee');
-        const currencyPair = this.safeString (item, 'currencyPair');
-        market = this.findMarket (currencyPair);
-        const side = this.safeString (item, 'type').toLowerCase ();
-        const type = this.safeString (item, 'orderType').toLowerCase ();
-        const takerOrMaker = this.safeString (item, 'feeType') === 'MAKER' ? 'maker' : 'taker';
-        const cost = amount * price;
-        return {
-            'id': this.safeString (item, 'transactionId'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'type': type,
-            'order': this.safeString (item, 'orderId'),
-            'takerOrMaker': takerOrMaker,
-            'fee': {
-                'cost': fee,
-                'currency': market['quote'],
-            },
-            'info': item,
-        };
-    }
-
-    parsePublicTrade (trade, market = undefined) {
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         transactionId: 2671819,
+        //         createdTimestamp: 1529649127605,
+        //         currencyPair: 'LTC_BTC',
+        //         type: 'BUY',
+        //         orderType: 'LIMIT',
+        //         orderId: 101810227,
+        //         amount: 0.01,
+        //         price: 0.01406,
+        //         fee: 0,
+        //         feeType: 'MAKER'
+        //     }
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "timestamp":1561598833416,
+        //         "transactionId":"4156303",
+        //         "price":10950.41,
+        //         "amount":0.004,
+        //         "currencyPair":"BTC_EUR",
+        //         "tradeType":"BUY"
+        //     }
+        //
         let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'currencyPair');
+        const marketId = this.safeString (trade, 'currencyPair');
+        let quote = undefined;
+        if (marketId !== undefined) {
             if (marketId in this.markets_by_id[marketId]) {
                 market = this.markets_by_id[marketId];
+                quote = market['quote'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.commonCurrencyCode (baseId);
+                quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
             }
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
@@ -414,22 +401,41 @@ module.exports = class coinmate extends Exchange {
                 cost = price * amount;
             }
         }
+        let side = this.safeString2 (trade, 'type', 'tradeType');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
+        let type = this.safeString (trade, 'orderType');
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
+        const orderId = this.safeString (trade, 'orderId');
         const id = this.safeString (trade, 'transactionId');
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        const timestamp = this.safeInteger2 (trade, 'timestamp', 'createdTimestamp');
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': quote,
+            };
+        }
+        let takerOrMaker = this.safeString (trade, 'feeType');
+        takerOrMaker = (takerOrMaker === 'MAKER') ? 'maker' : 'taker';
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'type': undefined,
-            'side': undefined,
-            'order': undefined,
-            'takerOrMaker': undefined,
+            'type': type,
+            'side': side,
+            'order': orderId,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -441,7 +447,24 @@ module.exports = class coinmate extends Exchange {
             'minutesIntoHistory': 10,
         };
         const response = await this.publicGetTransactions (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        //
+        //     {
+        //         "error":false,
+        //         "errorMessage":null,
+        //         "data":[
+        //             {
+        //                 "timestamp":1561598833416,
+        //                 "transactionId":"4156303",
+        //                 "price":10950.41,
+        //                 "amount":0.004,
+        //                 "currencyPair":"BTC_EUR",
+        //                 "tradeType":"BUY"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
