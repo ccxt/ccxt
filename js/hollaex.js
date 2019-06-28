@@ -386,9 +386,6 @@ module.exports = class hollaex extends Exchange {
         for (let i = 0; i < currencyId.length; i++) {
             let currency = this.currencies_by_id[currencyId[i]]['code'];
             let responseCurr = currencyId[i];
-            if (responseCurr === 'eur') {
-                responseCurr = 'fiat';
-            }
             free[currency] = response[responseCurr + '_available'];
             total[currency] = response[responseCurr + '_balance'];
             used[currency] = parseFloat (this.currencyToPrecision (currency, total[currency] - free[currency]));
@@ -589,9 +586,6 @@ module.exports = class hollaex extends Exchange {
         let request = {};
         if (code !== undefined) {
             let currency = this.currency (code)['id'];
-            if (currency === 'eur') {
-                currency = 'fiat';
-            }
             request['currency'] = currency;
         }
         if (limit !== undefined) {
@@ -606,9 +600,6 @@ module.exports = class hollaex extends Exchange {
         let request = {};
         if (code !== undefined) {
             let currency = this.currency (code)['id'];
-            if (currency === 'eur') {
-                currency = 'fiat';
-            }
             request['currency'] = currency;
         }
         if (limit !== undefined) {
@@ -632,9 +623,6 @@ module.exports = class hollaex extends Exchange {
         let type = this.safeString (transaction, 'type');
         let amount = this.safeFloat (transaction, 'amount');
         let currencyId = this.safeString (transaction, 'currency');
-        if (currencyId === 'fiat') {
-            currencyId = 'eur';
-        }
         currency = this.currencies_by_id[currencyId]['code'];
         let message = 'pending';
         let status = transaction['status'];
