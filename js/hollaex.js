@@ -18,6 +18,7 @@ module.exports = class hollaex extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchMarkets': true,
+                'fetchCurrencies': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchOrderBook': true,
@@ -120,17 +121,17 @@ module.exports = class hollaex extends Exchange {
             let id = this.safeString (market, 'name');
             let baseId = this.safeString (market, 'pair_base');
             let quoteId = this.safeString (market, 'pair_2');
-            let tickSize = this.safeFloat (market, 'increment_price');
+            let increment_price = this.safeFloat (market, 'increment_price');
             let pricePrecision = 0;
-            for (let i = 1; i >= 0 && tickSize < 1; i++) {
-                tickSize = tickSize * 10;
-                pricePrecision = i;
+            let decimals = await Math.log10 (increment_price);
+            if (decimals < 0) {
+                pricePrecision = Math.abs (decimals);
             }
             let increment_size = this.safeFloat (market, 'increment_size');
             let amountPrecision = 0;
-            for (let i = 1; i >= 0 && increment_size < 1; i++) {
-                increment_size = increment_size * 10;
-                amountPrecision = i;
+            decimals = await Math.log10 (increment_size);
+            if (decimals < 0) {
+                amountPrecision = Math.abs (decimals);
             }
             let precision = {
                 'cost': undefined,
@@ -138,7 +139,7 @@ module.exports = class hollaex extends Exchange {
                 'amount': amountPrecision,
             };
             if (quoteId === 'eur') {
-                precision['price'] = 2;
+                precision['price'] = 4;
             }
             let base = this.commonCurrencyCode (baseId).toUpperCase ();
             let quote = this.commonCurrencyCode (quoteId).toUpperCase ();
@@ -173,11 +174,58 @@ module.exports = class hollaex extends Exchange {
         return result;
     }
 
+    async fetchCurrencies (params = {}) {
+        let response = await this.publicGetConstant ();
+        let coins = this.safeValue (response, 'coins');
+        let currencies = Object.keys (coins);
+        let result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            let currency = coins[currencies[i]];
+            let id = this.safeString (currency, 'symbol');
+            let code = id.toUpperCase ();
+            let name = this.safeString (currency, 'fullname');
+            let active = this.safeValue (currency, 'active');
+            let fee = this.safeValue (currency, 'fee');
+            let min = this.safeFloat (currency, 'min');
+            let precision = 0;
+            let decimals = await Math.log10 (min);
+            if (decimals < 0) {
+                precision = Math.abs (decimals);
+            }
+            let limits = {
+                'amount': {
+                    'min': min,
+                    'max': this.safeFloat (currency, 'max'),
+                },
+                'price': {
+                    'min': min,
+                    'max': this.safeFloat (currency, 'max'),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': active,
+                'fee': fee,
+                'precision': precision,
+                'limits': limits,
+            };
+        }
+        return result;
+    }
+
     async fetchOrderBook (symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
         }
         await this.loadMarkets ();
+        console.log(this.currencies);
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
