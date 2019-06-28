@@ -123,15 +123,15 @@ module.exports = class hollaex extends Exchange {
             let quoteId = this.safeString (market, 'pair_2');
             let increment_price = this.safeFloat (market, 'increment_price');
             let pricePrecision = 0;
-            let decimals = await Math.log10 (increment_price);
-            if (decimals < 0) {
-                pricePrecision = Math.abs (decimals);
+            for (let i = 1; i >= 0 && increment_price < 1; i++) {
+                increment_price = increment_price * 10;
+                pricePrecision = i;
             }
             let increment_size = this.safeFloat (market, 'increment_size');
             let amountPrecision = 0;
-            decimals = await Math.log10 (increment_size);
-            if (decimals < 0) {
-                amountPrecision = Math.abs (decimals);
+            for (let i = 1; i >= 0 && increment_size < 1; i++) {
+                increment_size = increment_size * 10;
+                amountPrecision = i;
             }
             let precision = {
                 'cost': undefined,
@@ -188,9 +188,9 @@ module.exports = class hollaex extends Exchange {
             let fee = this.safeValue (currency, 'fee');
             let min = this.safeFloat (currency, 'min');
             let precision = 0;
-            let decimals = await Math.log10 (min);
-            if (decimals < 0) {
-                precision = Math.abs (decimals);
+            for (let i = 1; i >= 0 && min < 1; i++) {
+                min = min * 10;
+                precision = i;
             }
             let limits = {
                 'amount': {
@@ -225,7 +225,6 @@ module.exports = class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
         }
         await this.loadMarkets ();
-        console.log(this.currencies);
         let market = this.market (symbol);
         let request = {
             'symbol': market['id'],
