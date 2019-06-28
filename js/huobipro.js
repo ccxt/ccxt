@@ -90,6 +90,7 @@ module.exports = class huobipro extends Exchange {
                         'account/accounts', // 查询当前用户的所有账户(即account-id)
                         'account/accounts/{id}/balance', // 查询指定账户的余额
                         'order/openOrders',
+                        'order/orders',
                         'order/orders/{id}', // 查询某个订单详情
                         'order/orders/{id}/matchresults', // 查询某个订单的成交明细
                         'order/history', // 查询当前委托、历史委托
