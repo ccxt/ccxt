@@ -45,7 +45,8 @@ module.exports = class hollaex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/10441291/59487066-8058b500-8eb6-11e9-82fd-c9157b18c2d8.jpg',
-                'api': 'https://api.hollaex.com',
+                'api': 'https://api.demo.hollaex.com',
+                // 'api': 'https://api.hollaex.com',
                 'www': 'https://hollaex.com',
                 'doc': 'https://apidocs.hollaex.com',
             },
@@ -112,23 +113,23 @@ module.exports = class hollaex extends Exchange {
     async fetchMarkets (params = {}) {
         let response = await this.publicGetConstant ();
         let markets = this.safeValue (response, 'pairs');
-        let keys = Object.keys (markets);
+        let pairs = Object.keys (markets);
         let result = [];
-        for (let i = 0; i < keys.length; i++) {
-            let id = keys[i];
-            let market = markets[id];
-            let baseId = market['pair_base'];
-            let quoteId = market['pair_2'];
-            let tickSize = market['tick_size'];
+        for (let i = 0; i < pairs.length; i++) {
+            let market = markets[pairs[i]];
+            let id = this.safeString (market, 'name');
+            let baseId = this.safeString (market, 'pair_base');
+            let quoteId = this.safeString (market, 'pair_2');
+            let tickSize = this.safeFloat (market, 'increment_price');
             let pricePrecision = 0;
             for (let i = 1; i >= 0 && tickSize < 1; i++) {
                 tickSize = tickSize * 10;
                 pricePrecision = i;
             }
-            let minAmount = market['min_size'];
+            let increment_size = this.safeFloat (market, 'increment_size');
             let amountPrecision = 0;
-            for (let i = 1; i >= 0 && minAmount < 1; i++) {
-                minAmount = minAmount * 10;
+            for (let i = 1; i >= 0 && increment_size < 1; i++) {
+                increment_size = increment_size * 10;
                 amountPrecision = i;
             }
             let precision = {
@@ -136,22 +137,21 @@ module.exports = class hollaex extends Exchange {
                 'price': pricePrecision,
                 'amount': amountPrecision,
             };
-            if (quoteId === 'fiat') {
-                quoteId = 'eur';
+            if (quoteId === 'eur') {
                 precision['price'] = 2;
             }
             let base = this.commonCurrencyCode (baseId).toUpperCase ();
             let quote = this.commonCurrencyCode (quoteId).toUpperCase ();
             let symbol = base + '/' + quote;
-            let active = true;
+            let active = this.safeValue (market, 'active');
             let limits = {
                 'amount': {
-                    'min': market['min_size'],
-                    'max': market['max_size'],
+                    'min': this.safeFloat (market, 'min_size'),
+                    'max': this.safeFloat (market, 'max_size'),
                 },
                 'price': {
-                    'min': market['min_price'],
-                    'max': market['max_price'],
+                    'min': this.safeFloat (market, 'min_price'),
+                    'max': this.safeFloat (market, 'max_price'),
                 },
                 'cost': undefined,
             };
