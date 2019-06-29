@@ -1307,7 +1307,7 @@ class Exchange {
                     throw new DDoSProtection(join(' ', array($url, $method, $http_status_code, $result, $details)));
                 }
             }
-            throw new $error_class(join(' ', array($url, $method, $http_status_code, $result)));
+            throw new ('ccxt\\' . $error_class)(join(' ', array($url, $method, $http_status_code, $result)));
         }
 
         if (!$json_response) {
@@ -1326,7 +1326,7 @@ class Exchange {
                 $error_class = 'DDosProtection';
             }
             if ($error_class !== null) {
-                throw new $error_class(join(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
+                throw new ('ccxt\\' . $error_class)(join(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
             }
         }
 
