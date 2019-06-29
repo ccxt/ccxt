@@ -114,6 +114,7 @@ class Exchange(object):
     aiohttp_proxy = None
     aiohttp_trust_env = False
     session = None  # Session () by default
+    verify = True  # SSL verification
     logger = None  # logging.getLogger(__name__) by default
     userAgent = None
     userAgents = {
@@ -519,7 +520,8 @@ class Exchange(object):
                 data=body,
                 headers=request_headers,
                 timeout=int(self.timeout / 1000),
-                proxies=self.proxies
+                proxies=self.proxies,
+                verify=self.verify
             )
             http_response = response.text
             json_response = self.parse_json(http_response) if self.is_json_encoded_object(http_response) else None
