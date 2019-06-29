@@ -158,7 +158,6 @@ class Exchange {
         'flowbtc',
         'foxbit',
         'fybse',
-        'fybsg',
         'gateio',
         'gdax',
         'gemini',
