@@ -74,7 +74,7 @@ class Exchange(BaseExchange):
 
     def open(self):
         if self.own_session and self.session is None:
-            connector = None
+            context = None
             if self.verify:
                 # Create our SSL context object with our CA cert file
                 context = ssl.create_default_context(cafile=self.cafile)
