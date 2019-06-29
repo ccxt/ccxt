@@ -49,6 +49,7 @@ class Exchange(BaseExchange):
         if 'asyncio_loop' in config:
             self.asyncio_loop = config['asyncio_loop']
         self.asyncio_loop = self.asyncio_loop or asyncio.get_event_loop()
+        self.verify = config.get('verify', self.verify)
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
         self.open()
