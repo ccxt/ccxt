@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.849'
+const version = '1.18.850'
 
 Exchange.ccxtVersion = version
 
@@ -90234,7 +90234,6 @@ module.exports = class zb extends Exchange {
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
-                'referral': 'https://vip.zb.com/user/register?recommendCode=bn070u',
             },
             'api': {
                 'public': {
