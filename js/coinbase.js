@@ -202,9 +202,13 @@ module.exports = class coinbase extends Exchange {
         }
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const response = await this[method] (this.extend ({
+        const request = {
             'account_id': accountId,
-        }, query));
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, query));
         return this.parseTransactions (response['data'], undefined, since, limit);
     }
 
@@ -524,14 +528,14 @@ module.exports = class coinbase extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.implodeParams (path, params);
+        let fullPath = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
             if (Object.keys (query).length) {
-                request += '?' + this.urlencode (query);
+                fullPath += '?' + this.urlencode (query);
             }
         }
-        const url = this.urls['api'] + '/' + this.version + request;
+        const url = this.urls['api'] + fullPath;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
@@ -542,7 +546,7 @@ module.exports = class coinbase extends Exchange {
                     payload = body;
                 }
             }
-            const auth = nonce + method + '/' + this.version + request + payload;
+            const auth = nonce + method + fullPath + payload;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             headers = {
                 'CB-ACCESS-KEY': this.apiKey,
