@@ -556,7 +556,7 @@ class Exchange(object):
                 raise ExchangeError(method + ' ' + url) from e
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
-        self.handle_rest_response(http_response, json_response, url, method, headers, body)
+        self.handle_rest_response(http_response, json_response, url, method)
         if json_response is not None:
             return json_response
         return http_response
@@ -572,7 +572,7 @@ class Exchange(object):
         if error:
             raise error(' '.join([method, url, string_code, http_status_text, body]))
 
-    def handle_rest_response(self, response, json_response, url, method='GET', headers=None, body=None):
+    def handle_rest_response(self, response, json_response, url, method):
         if self.is_json_encoded_object(response) and json_response is None:
             ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
