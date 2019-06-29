@@ -127,6 +127,10 @@ class Exchange(BaseExchange):
         encoded_body = body.encode() if body else None
         session_method = getattr(self.session, method.lower())
 
+        http_response = None
+        http_status_code = None
+        http_status_text = None
+        json_response = None
         try:
             async with session_method(yarl.URL(url, encoded=True),
                                       data=encoded_body,

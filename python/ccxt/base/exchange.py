@@ -503,6 +503,10 @@ class Exchange(object):
 
         self.session.cookies.clear()
 
+        http_response = None
+        http_status_code = None
+        http_status_text = None
+        json_response = None
         try:
             response = self.session.request(
                 method,
