@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.847'
+__version__ = '1.18.848'
 
 # -----------------------------------------------------------------------------
 
@@ -169,7 +169,6 @@ from ccxt.async_support.therock import therock                            # noqa
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
 from ccxt.async_support.upbit import upbit                                # noqa: F401
-from ccxt.async_support.urdubit import urdubit                            # noqa: F401
 from ccxt.async_support.vaultoro import vaultoro                          # noqa: F401
 from ccxt.async_support.vbtc import vbtc                                  # noqa: F401
 from ccxt.async_support.virwox import virwox                              # noqa: F401
@@ -302,7 +301,6 @@ exchanges = [
     'tidebit',
     'tidex',
     'upbit',
-    'urdubit',
     'vaultoro',
     'vbtc',
     'virwox',
