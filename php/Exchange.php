@@ -204,7 +204,6 @@ class Exchange {
         'tidebit',
         'tidex',
         'upbit',
-        'urdubit',
         'vaultoro',
         'vbtc',
         'virwox',
