@@ -156,6 +156,9 @@ class huobipro (Exchange):
                 'api-signature-not-valid': AuthenticationError,  # {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
             },
             'options': {
+                # https://github.com/ccxt/ccxt/issues/5376
+                'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
+                'fetchOpenOrdersMethod': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
                 'createMarketBuyOrderRequiresPrice': True,
                 'fetchMarketsMethod': 'publicGetCommonSymbols',
                 'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
@@ -603,7 +606,8 @@ class huobipro (Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        response = await self.privateGetOrderHistory(self.extend(request, params))
+        method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders')
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {status:   "ok",
         #         data: [{                 id:  13997833014,
@@ -623,12 +627,6 @@ class huobipro (Exchange):
         #
         return self.parse_orders(response['data'], market, since, limit)
 
-    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
-
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
-
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         request = {
@@ -638,7 +636,20 @@ class huobipro (Exchange):
         order = self.safe_value(response, 'data')
         return self.parse_order(order)
 
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled', symbol, since, limit, params)
+
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        method = self.safe_string(self.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1')
+        return await getattr(self, method)(symbol, since, limit, params)
+
+    async def fetch_open_orders_v1(self, symbol=None, since=None, limit=None, params={}):
+        return await self.fetch_orders_by_states('pre-submitted,submitted,partial-filled', symbol, since, limit, params)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return await self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
+
+    async def fetch_open_orders_v2(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
