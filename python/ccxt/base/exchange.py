@@ -570,7 +570,7 @@ class Exchange(object):
                 if re.search('(cloudflare|incapsula|overload|ddos)', body, flags=re.IGNORECASE):
                     error = DDoSProtection
         if error:
-            raise error(method + ' ' + url + ' ' + string_code + ' ' + http_status_text + ' ' + body)
+            raise error(' '.join([method, url, string_code, http_status_text, body]))
 
     def handle_rest_response(self, response, json_response, url, method='GET', headers=None, body=None):
         if self.is_json_encoded_object(response) and json_response is None:
