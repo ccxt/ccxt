@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.848'
+__version__ = '1.18.849'
 
 # ----------------------------------------------------------------------------
 
@@ -142,7 +142,6 @@ from ccxt.fcoinjp import fcoinjp                            # noqa: F401
 from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.foxbit import foxbit                              # noqa: F401
 from ccxt.fybse import fybse                                # noqa: F401
-from ccxt.fybsg import fybsg                                # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gdax import gdax                                  # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
@@ -274,7 +273,6 @@ exchanges = [
     'flowbtc',
     'foxbit',
     'fybse',
-    'fybsg',
     'gateio',
     'gdax',
     'gemini',

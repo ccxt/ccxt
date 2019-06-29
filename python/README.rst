@@ -59,7 +59,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 130 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 129 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -218,8 +218,6 @@ The ccxt library currently supports the following 130 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | fybse              | `FYB-SE <https://www.fybse.se>`__                                                          | \*  | `API <https://fyb.docs.apiary.io>`__                                                            |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| fybsg              | `FYB-SG <https://www.fybsg.com>`__                                                         | \*  | `API <https://fyb.docs.apiary.io>`__                                                            |                                                                      |
-+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | gateio             | `Gate.io <https://www.gate.io/signup/2436035>`__                                           | 2   | `API <https://gate.io/api2>`__                                                                  |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | gdax               | `GDAX <https://www.gdax.com>`__                                                            | \*  | `API <https://docs.gdax.com>`__                                                                 |                                                                      |
@@ -372,14 +370,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.848/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.848/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.849/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.849/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.848/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.849/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
