@@ -34,4 +34,5 @@ module.exports = {
     isWebWorker,
     isNode,
     isWindows,
+    defaultFetch,
 }
