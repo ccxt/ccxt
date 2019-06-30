@@ -1281,34 +1281,35 @@ class Exchange {
 
         if ($result === false) {
             if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
-                throw new RequestTimeout(join(' ', array($url, $method, $curl_errno, $curl_error)));
+                throw new RequestTimeout(implode(' ', array($url, $method, $curl_errno, $curl_error)));
             }
 
             // var_dump ($result);
 
             // all sorts of SSL problems, accessibility
-            throw new ExchangeNotAvailable(join(' ', array($url, $method, $curl_errno, $curl_error)));
+            throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
 
         $string_code = (string) $http_status_code;
 
         if (array_key_exists($string_code, $this->httpExceptions)) {
-            $details = '(possible reasons: ' . implode(', ', array(
-                    'invalid API keys',
-                    'bad or old nonce',
-                    'exchange is down or offline',
-                    'on maintenance',
-                    'DDoS protection',
-                    'rate-limiting in effect',
-                )) . ')';
             $error_class = $this->httpExceptions[$string_code];
             if ($error_class === 'ExchangeNotAvailable') {
                 if (preg_match('#cloudflare|incapsula|overload|ddos#i', $result)) {
-                    throw new DDoSProtection(join(' ', array($url, $method, $http_status_code, $result, $details)));
+                    throw new DDoSProtection(implode(' ', array($url, $method, $http_status_code, $result)));
                 }
+                $details = '(possible reasons: ' . implode(', ', array(
+                        'invalid API keys',
+                        'bad or old nonce',
+                        'exchange is down or offline',
+                        'on maintenance',
+                        'DDoS protection',
+                        'rate-limiting in effect',
+                    )) . ')';
+                throw new ExchangeNotAvailable(implode(' ', array($url, $method, $http_status_code, $result, $details)));
             }
             $namespaced = 'ccxt\\' . $error_class;
-            throw new $namespaced(join(' ', array($url, $method, $http_status_code, $result)));
+            throw new $namespaced(implode(' ', array($url, $method, $http_status_code, $result)));
         }
 
         if (!$json_response) {
@@ -1328,7 +1329,7 @@ class Exchange {
             }
             if ($error_class !== null) {
                 $namespaced = 'ccxt\\' . $error_class;
-                throw new $namespaced(join(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
+                throw new $namespaced(implode(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
             }
         }
 
