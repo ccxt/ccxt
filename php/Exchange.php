@@ -1284,8 +1284,6 @@ class Exchange {
                 throw new RequestTimeout(implode(' ', array($url, $method, $curl_errno, $curl_error)));
             }
 
-            // var_dump ($result);
-
             // all sorts of SSL problems, accessibility
             throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
