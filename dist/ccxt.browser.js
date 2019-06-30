@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.852'
+const version = '1.18.853'
 
 Exchange.ccxtVersion = version
 
@@ -2341,7 +2341,9 @@ const {
     , timeout
     , TimedOut
     , buildOHLCVC
-    , decimalToPrecision } = functions
+    , decimalToPrecision
+    , defaultFetch
+} = functions
 
 const {
     ExchangeError
@@ -2353,8 +2355,6 @@ const {
     , ExchangeNotAvailable } = require ('./errors')
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
-
-const defaultFetch = typeof (fetch) === "undefined" ? require ('../static_dependencies/fetch-ponyfill/fetch-node') ().fetch : fetch
 
 // ----------------------------------------------------------------------------
 // web3 / 0x imports
@@ -3960,7 +3960,7 @@ module.exports = class Exchange {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"../static_dependencies/fetch-ponyfill/fetch-node":130,"./errors":8,"./functions":9,"buffer":171}],8:[function(require,module,exports){
+},{"./errors":8,"./functions":9,"buffer":171}],8:[function(require,module,exports){
 'use strict';
 
 /*  ------------------------------------------------------------------------ */
@@ -4892,6 +4892,8 @@ const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
 const isNode = !(isBrowser || isWebWorker)
 
+const defaultFetch = typeof (fetch) === "undefined" ? require ('../../static_dependencies/fetch-ponyfill/fetch-node') ().fetch : fetch
+
 // ----------------------------------------------------------------------------
 
 module.exports = {
@@ -4901,9 +4903,10 @@ module.exports = {
     isWebWorker,
     isNode,
     isWindows,
+    defaultFetch,
 }
 }).call(this,require('_process'))
-},{"_process":193}],16:[function(require,module,exports){
+},{"../../static_dependencies/fetch-ponyfill/fetch-node":130,"_process":193}],16:[function(require,module,exports){
 "use strict";
 
 /*  ------------------------------------------------------------------------ */
