@@ -1356,47 +1356,61 @@ module.exports = class kucoin extends Exchange {
             request['startAt'] = Math.floor (since / 1000);
         }
         const response = await this.privateGetAccountsAccountIdLedgers (this.extend (request, params));
-        // { code: '200000',
-        //   data:
-        //    { totalNum: 1,
-        //      totalPage: 1,
-        //      pageSize: 50,
-        //      currentPage: 1,
-        //      items:
-        //       [ { createdAt: 1561897880000,
-        //           amount: '0.0111123',
-        //           bizType: 'Exchange',
-        //           balance: '0.13224427',
-        //           fee: '0.0000111',
-        //           context:
-        //            '{"symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806"}',
-        //           currency: 'ETH',
-        //           direction: 'out' } ] } }
+        //
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             totalNum: 1,
+        //             totalPage: 1,
+        //             pageSize: 50,
+        //             currentPage: 1,
+        //             items: [
+        //                 {
+        //                     createdAt: 1561897880000,
+        //                     amount: '0.0111123',
+        //                     bizType: 'Exchange',
+        //                     balance: '0.13224427',
+        //                     fee: '0.0000111',
+        //                     context: '{"symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806"}',
+        //                     currency: 'ETH',
+        //                     direction: 'out'
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         const items = response['data']['items'];
         return this.parseLedger (items, currency, since, limit);
     }
 
     parseLedgerEntry (item, currency = undefined) {
-        // Trade
-        // { createdAt: 1561897880000,
-        //   amount: '0.0111123',
-        //   bizType: 'Exchange',
-        //   balance: '0.13224427',
-        //   fee: '0.0000111',
-        //   context:
-        //    '{"symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806"}',
-        //   currency: 'ETH',
-        //   direction: 'out' }
-        // Withdrawal
-        // { createdAt: 1561900264000,
-        //   amount: '0.14333217',
-        //   bizType: 'Withdrawal',
-        //   balance: '0',
-        //   fee: '0.01',
-        //   context:
-        //    '{"orderId":"5d18b4e687111437cf1c48b9","txId":"0x1d136ee065c5c4c5caa293faa90d43e213c953d7cdd575c89ed0b54eb87228b8"}',
-        //   currency: 'ETH',
-        //   direction: 'out' }
+        //
+        // trade
+        //
+        //     {
+        //         createdAt: 1561897880000,
+        //         amount: '0.0111123',
+        //         bizType: 'Exchange',
+        //         balance: '0.13224427',
+        //         fee: '0.0000111',
+        //         context: '{"symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806"}',
+        //         currency: 'ETH',
+        //         direction: 'out'
+        //     }
+        //
+        // withdrawal
+        //
+        //     {
+        //         createdAt: 1561900264000,
+        //         amount: '0.14333217',
+        //         bizType: 'Withdrawal',
+        //         balance: '0',
+        //         fee: '0.01',
+        //         context: '{"orderId":"5d18b4e687111437cf1c48b9","txId":"0x1d136ee065c5c4c5caa293faa90d43e213c953d7cdd575c89ed0b54eb87228b8"}',
+        //         currency: 'ETH',
+        //         direction: 'out'
+        //     }
+        //
         const currencyId = this.safeString (item, 'currency');
         let code = undefined;
         if (currencyId !== undefined) {
