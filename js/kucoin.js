@@ -1334,7 +1334,7 @@ module.exports = class kucoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchLedgers requires a code param');
         }
         await this.loadMarkets ();
-        await this.loadAccounts ()
+        await this.loadAccounts ();
         const currency = this.currency (code);
         let accountId = this.safeString (params, 'accountId');
         if (accountId === undefined) {
