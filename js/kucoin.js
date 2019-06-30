@@ -1331,7 +1331,7 @@ module.exports = class kucoin extends Exchange {
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchLedgers requires a code param');
+            throw new ArgumentsRequired (this.id + ' fetchLedger requires a code param');
         }
         await this.loadMarkets ();
         await this.loadAccounts ();
