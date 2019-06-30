@@ -278,6 +278,7 @@ class bitfinex extends Exchange {
                 'AIO' => 'AION',
                 'ATM' => 'ATMI',
                 'ATO' => 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
+                'AMP' => 'AMPL',
                 'BAB' => 'BCH',
                 'CTX' => 'CTXC',
                 'DAD' => 'DADI',
