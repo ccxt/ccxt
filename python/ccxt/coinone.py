@@ -84,6 +84,9 @@ class coinone (Exchange):
                 'ZIL/KRW': {'id': 'zil', 'symbol': 'ZIL/KRW', 'base': 'ZIL', 'quote': 'KRW', 'baseId': 'zil', 'quoteId': 'krw'},
                 'KNC/KRW': {'id': 'knc', 'symbol': 'KNC/KRW', 'base': 'KNC', 'quote': 'KRW', 'baseId': 'knc', 'quoteId': 'krw'},
                 'ZRX/KRW': {'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw'},
+                'LUNA/KRW': {'id': 'luna', 'symbol': 'LUNA/KRW', 'base': 'LUNA', 'quote': 'KRW', 'baseId': 'luna', 'quoteId': 'krw'},
+                'ATOM/KRW': {'id': 'atom', 'symbol': 'ATOM/KRW', 'base': 'ATOM', 'quote': 'KRW', 'baseId': 'atom', 'quoteId': 'krw'},
+                'VNT/KRW': {'id': 'vnt', 'symbol': 'vnt/KRW', 'base': 'VNT', 'quote': 'KRW', 'baseId': 'vnt', 'quoteId': 'krw'},
             },
             'fees': {
                 'trading': {
@@ -124,7 +127,8 @@ class coinone (Exchange):
         })
 
     def fetch_balance(self, params={}):
-        response = self.privatePostAccountBalance()
+        self.load_markets()
+        response = self.privatePostAccountBalance(params)
         result = {'info': response}
         balances = self.omit(response, [
             'errorCode',
@@ -138,8 +142,8 @@ class coinone (Exchange):
             code = id.upper()
             if id in self.currencies_by_id:
                 code = self.currencies_by_id[id]['code']
-            free = float(balance['avail'])
-            total = float(balance['balance'])
+            free = self.safe_float(balance, 'avail')
+            total = self.safe_float(balance, 'balance')
             used = total - free
             account = {
                 'free': free,
@@ -150,22 +154,24 @@ class coinone (Exchange):
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetOrderbook(self.extend({
+        request = {
             'currency': market['id'],
             'format': 'json',
-        }, params))
+        }
+        response = self.publicGetOrderbook(self.extend(request, params))
         return self.parse_order_book(response, None, 'bid', 'ask', 'price', 'qty')
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetTicker(self.extend({
+        request = {
             'currency': 'all',
             'format': 'json',
-        }, params))
+        }
+        response = self.publicGetTicker(self.extend(request, params))
         result = {}
-        tickers = response
-        ids = list(tickers.keys())
+        ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             symbol = id
@@ -173,16 +179,18 @@ class coinone (Exchange):
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
-                ticker = tickers[id]
+                ticker = response[id]
                 result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTicker(self.extend({
+        request = {
             'currency': market['id'],
             'format': 'json',
-        }, params))
+        }
+        response = self.publicGetTicker(self.extend(request, params))
         return self.parse_ticker(response, market)
 
     def parse_ticker(self, ticker, market=None):
@@ -217,7 +225,9 @@ class coinone (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = int(trade['timestamp']) * 1000
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = market['symbol'] if (market is not None) else None
         is_ask = self.safe_string(trade, 'is_ask')
         side = None
@@ -225,30 +235,41 @@ class coinone (Exchange):
             side = 'sell'
         elif is_ask == '0':
             side = 'buy'
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'qty')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
             'id': None,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': None,
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'qty'),
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
+        request = {
             'currency': market['id'],
             'period': 'hour',
             'format': 'json',
-        }, params))
+        }
+        response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['completeOrders'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         if type != 'limit':
             raise ExchangeError(self.id + ' allows limit orders only')
         self.load_markets()
@@ -297,10 +318,11 @@ class coinone (Exchange):
         else:
             market = self.market(symbol)
         try:
-            response = self.privatePostOrderOrderInfo(self.extend({
+            request = {
                 'order_id': id,
                 'currency': market['id'],
-            }, params))
+            }
+            response = self.privatePostOrderOrderInfo(self.extend(request, params))
             result = self.parse_order(response)
             self.orders[id] = result
         except Exception as e:
@@ -320,16 +342,14 @@ class coinone (Exchange):
             'partially_filled': 'open',
             'filled': 'closed',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         info = self.safe_value(order, 'info')
         id = self.safe_string(info, 'orderId')
         if id is not None:
             id = id.upper()
-        timestamp = int(info['timestamp']) * 1000
+        timestamp = self.safe_integer(info, 'timestamp') * 1000
         status = self.parse_order_status(self.safe_string(order, 'status'))
         cost = None
         side = self.safe_string(info, 'type')
@@ -359,7 +379,7 @@ class coinone (Exchange):
                 market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        result = {
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -376,9 +396,9 @@ class coinone (Exchange):
             'status': status,
             'fee': fee,
         }
-        return result
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
         order = self.safe_value(self.orders, id)
         amount = None
         price = None
@@ -442,19 +462,20 @@ class coinone (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if (body[0] == '{') or (body[0] == '['):
-            if 'result' in response:
-                result = response['result']
-                if result != 'success':
-                    #
-                    #    { "errorCode": "405",  "status": "maintenance",  "result": "error"}
-                    #
-                    code = self.safe_string(response, 'errorCode')
-                    feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    else:
-                        raise ExchangeError(feedback)
-            else:
-                raise ExchangeError(self.id + ' ' + body)
+        if response is None:
+            return
+        if 'result' in response:
+            result = response['result']
+            if result != 'success':
+                #
+                #    { "errorCode": "405",  "status": "maintenance",  "result": "error"}
+                #
+                code = self.safe_string(response, 'errorCode')
+                feedback = self.id + ' ' + self.json(response)
+                exceptions = self.exceptions
+                if code in exceptions:
+                    raise exceptions[code](feedback)
+                else:
+                    raise ExchangeError(feedback)
+        else:
+            raise ExchangeError(self.id + ' ' + body)

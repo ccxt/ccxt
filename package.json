@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.478",
+  "version": "1.18.851",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -32,7 +32,7 @@
     "qa": "npm run check-python-syntax && npm run check-php-syntax",
     "lint": "eslint",
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
-    "check-js-syntax": "eslint 'js/*.js'",
+    "check-js-syntax": "pwd && eslint --version && eslint 'js/*.js'",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-php-syntax": "php -f php/test/syntax.php",
     "browserify": "browserify ./ccxt.browser.js > ./dist/ccxt.browser.js",
@@ -44,14 +44,10 @@
     "pandoc-doc-install": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst wiki/Install.md",
     "pandoc-doc-exchanges": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst wiki/Exchange-Markets.md",
     "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst wiki/Exchange-Markets-By-Country.md",
-    "postinstall": "opencollective postinstall && node postinstall.js"
+    "postinstall": "node postinstall"
   },
   "types": "./ccxt.d.ts",
-  "dependencies": {
-    "crypto-js": "3.1.9-1",
-    "fetch-ponyfill": "4.1.0",
-    "opencollective": "1.0.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "ansicolor": "1.1.81",
     "as-table": "1.0.37",
@@ -59,7 +55,7 @@
     "browserify": "14.5.0",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
-    "eslint": "4.15.0",
+    "eslint": "^4.18.2",
     "eslint-config-airbnb-base": "12.1.0",
     "eslint-plugin-import": "2.16.0",
     "istanbul": "0.4.5",
@@ -74,7 +70,7 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ccxt-dev/ccxt/issues"
+    "url": "https://github.com/ccxt/ccxt/issues"
   },
   "homepage": "https://ccxt.trade",
   "keywords": [
@@ -462,7 +458,11 @@
     "bequant.io",
     "Bequant",
     "mandalaex.com",
-    "Mandala"
+    "Mandala",
+    "dx.exchange",
+    "DX.Exchange",
+    "oceanex.pro.com",
+    "OceanEx"
   ],
   "collective": {
     "type": "opencollective",

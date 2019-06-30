@@ -9,7 +9,18 @@ const log       = require ('ololog')
     , assert    = chai.assert
     , testTicker = require ('./test.ticker.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
+
+const printTickerOneLiner = (ticker, method, symbol) => {
+
+    log (symbol.toString ().green,
+        method,
+        ticker['datetime'],
+        'bid: '       + (ticker['bid']),
+        'ask: '       + (ticker['ask']))
+}
+
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
 
@@ -22,6 +33,8 @@ module.exports = async (exchange, symbol) => {
         let ticker = await exchange.fetchTicker (symbol)
 
         testTicker (exchange, ticker, method, symbol)
+
+        printTickerOneLiner (ticker, method, symbol)
 
         return ticker
 

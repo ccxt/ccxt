@@ -34,7 +34,7 @@ module.exports = class bitforex extends Exchange {
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
-                'referral': 'https://www.bitforex.com/registered?inviterId=1867438',
+                'referral': 'https://www.bitforex.com/en/invitationRegister?inviterId=1867438',
             },
             'api': {
                 'public': {
@@ -51,6 +51,7 @@ module.exports = class bitforex extends Exchange {
                         'api/v1/fund/mainAccount',
                         'api/v1/fund/allAccount',
                         'api/v1/trade/placeOrder',
+                        'api/v1/trade/placeMultiOrder',
                         'api/v1/trade/cancelOrder',
                         'api/v1/trade/orderInfo',
                         'api/v1/trade/orderInfos',
@@ -61,8 +62,8 @@ module.exports = class bitforex extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.0,
-                    'taker': 0.05 / 100,
+                    'maker': 0.1 / 100,
+                    'taker': 0.1 / 100,
                 },
                 'funding': {
                     'tierBased': false,
@@ -216,28 +217,26 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetApiV1MarketSymbols ();
-        let data = response['data'];
-        let result = [];
+        const response = await this.publicGetApiV1MarketSymbols (params);
+        const data = response['data'];
+        const result = [];
         for (let i = 0; i < data.length; i++) {
-            let market = data[i];
-            let id = market['symbol'];
-            let symbolParts = id.split ('-');
-            let baseId = symbolParts[2];
-            let quoteId = symbolParts[1];
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
-            let symbol = base + '/' + quote;
-            let active = true;
-            let precision = {
-                'amount': market['amountPrecision'],
-                'price': market['pricePrecision'],
+            const market = data[i];
+            const id = this.safeString (market, 'symbol');
+            const symbolParts = id.split ('-');
+            const baseId = symbolParts[2];
+            const quoteId = symbolParts[1];
+            const base = this.commonCurrencyCode (baseId.toUpperCase ());
+            const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            const symbol = base + '/' + quote;
+            const active = true;
+            const precision = {
+                'amount': this.safeInteger (market, 'amountPrecision'),
+                'price': this.safeInteger (market, 'pricePrecision'),
             };
-            let limits = {
+            const limits = {
                 'amount': {
-                    'min': market['minOrderAmount'],
+                    'min': this.safeFloat (market, 'minOrderAmount'),
                     'max': undefined,
                 },
                 'price': {
@@ -270,19 +269,19 @@ module.exports = class bitforex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let timestamp = this.safeInteger (trade, 'time');
-        let id = this.safeString (trade, 'tid');
-        let orderId = undefined;
-        let amount = this.safeFloat (trade, 'amount');
-        let price = this.safeFloat (trade, 'price');
+        const timestamp = this.safeInteger (trade, 'time');
+        const id = this.safeString (trade, 'tid');
+        const orderId = undefined;
+        const amount = this.safeFloat (trade, 'amount');
+        const price = this.safeFloat (trade, 'price');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
                 cost = amount * price;
             }
         }
-        let sideId = this.safeInteger (trade, 'direction');
-        let side = this.parseSide (sideId);
+        const sideId = this.safeInteger (trade, 'direction');
+        const side = this.parseSide (sideId);
         return {
             'info': trade,
             'id': id,
@@ -301,32 +300,27 @@ module.exports = class bitforex extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'symbol': this.marketId (symbol),
         };
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        let market = this.market (symbol);
-        let response = await this.publicGetApiV1MarketTrades (this.extend (request, params));
+        const market = this.market (symbol);
+        const response = await this.publicGetApiV1MarketTrades (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostApiV1FundAllAccount (params);
-        let data = response['data'];
-        let result = { 'info': response };
+        const response = await this.privatePostApiV1FundAllAccount (params);
+        const data = response['data'];
+        const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
-            let current = data[i];
-            let currencyId = current['currency'];
-            let code = currencyId.toUpperCase ();
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
-            let account = this.account ();
+            const current = data[i];
+            const currencyId = current['currency'];
+            const code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            const account = this.account ();
             result[code] = account;
             result[code]['used'] = this.safeFloat (current, 'frozen');
             result[code]['free'] = this.safeFloat (current, 'active');
@@ -337,13 +331,13 @@ module.exports = class bitforex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.markets[symbol];
-        let request = {
+        const market = this.markets[symbol];
+        const request = {
             'symbol': market['id'],
         };
-        let response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
-        let data = response['data'];
-        let timestamp = this.safeInteger (data, 'date');
+        const response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
+        const data = response['data'];
+        const timestamp = this.safeInteger (data, 'date');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -370,26 +364,26 @@ module.exports = class bitforex extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketId = this.marketId (symbol);
-        let request = {
+        const marketId = this.marketId (symbol);
+        const request = {
             'symbol': marketId,
         };
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        let response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
-        let data = response['data'];
-        let timestamp = response['time'];
-        let bidsKey = 'bids';
-        let asksKey = 'asks';
-        let priceKey = 'price';
-        let amountKey = 'amount';
-        let orderbook = this.parseOrderBook (data, timestamp, bidsKey, asksKey, priceKey, amountKey);
+        const response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
+        const data = response['data'];
+        const timestamp = response['time'];
+        const bidsKey = 'bids';
+        const asksKey = 'asks';
+        const priceKey = 'price';
+        const amountKey = 'amount';
+        const orderbook = this.parseOrderBook (data, timestamp, bidsKey, asksKey, priceKey, amountKey);
         return orderbook;
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             '0': 'open',
             '1': 'open',
             '2': 'closed',
@@ -410,27 +404,27 @@ module.exports = class bitforex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let id = this.safeString (order, 'orderId');
-        let timestamp = this.safeFloat (order, 'createTime');
-        let lastTradeTimestamp = this.safeFloat (order, 'lastTime');
-        let symbol = market['symbol'];
-        let sideId = this.safeInteger (order, 'tradeType');
-        let side = this.parseSide (sideId);
-        let type = undefined;
-        let price = this.safeFloat (order, 'orderPrice');
-        let average = this.safeFloat (order, 'avgPrice');
-        let amount = this.safeFloat (order, 'orderAmount');
-        let filled = this.safeFloat (order, 'dealAmount');
-        let remaining = amount - filled;
-        let status = this.parseOrderStatus (this.safeString (order, 'orderState'));
-        let cost = filled * price;
+        const id = this.safeString (order, 'orderId');
+        const timestamp = this.safeFloat (order, 'createTime');
+        const lastTradeTimestamp = this.safeFloat (order, 'lastTime');
+        const symbol = market['symbol'];
+        const sideId = this.safeInteger (order, 'tradeType');
+        const side = this.parseSide (sideId);
+        const type = undefined;
+        const price = this.safeFloat (order, 'orderPrice');
+        const average = this.safeFloat (order, 'avgPrice');
+        const amount = this.safeFloat (order, 'orderAmount');
+        const filled = this.safeFloat (order, 'dealAmount');
+        const remaining = amount - filled;
+        const status = this.parseOrderStatus (this.safeString (order, 'orderState'));
+        const cost = filled * price;
         const feeSide = (side === 'buy') ? 'base' : 'quote';
         const feeCurrency = market[feeSide];
-        let fee = {
+        const fee = {
             'cost': this.safeFloat (order, 'tradeFee'),
             'currency': feeCurrency,
         };
-        let result = {
+        const result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -453,35 +447,35 @@ module.exports = class bitforex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': this.marketId (symbol),
             'orderId': id,
         };
-        let response = await this.privatePostApiV1TradeOrderInfo (this.extend (request, params));
-        let order = this.parseOrder (response['data'], market);
+        const response = await this.privatePostApiV1TradeOrderInfo (this.extend (request, params));
+        const order = this.parseOrder (response['data'], market);
         return order;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': this.marketId (symbol),
             'state': 0,
         };
-        let response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
+        const response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': this.marketId (symbol),
             'state': 1,
         };
-        let response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
+        const response = await this.privatePostApiV1TradeOrderInfos (this.extend (request, params));
         return this.parseOrders (response['data'], market, since, limit);
     }
 
@@ -493,14 +487,14 @@ module.exports = class bitforex extends Exchange {
         } else if (side === 'sell') {
             sideId = 2;
         }
-        let request = {
+        const request = {
             'symbol': this.marketId (symbol),
             'price': price,
             'amount': amount,
             'tradeType': sideId,
         };
-        let response = await this.privatePostApiV1TradePlaceOrder (this.extend (request, params));
-        let data = response['data'];
+        const response = await this.privatePostApiV1TradePlaceOrder (this.extend (request, params));
+        const data = response['data'];
         return {
             'info': response,
             'id': this.safeString (data, 'orderId'),
@@ -509,21 +503,21 @@ module.exports = class bitforex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'orderId': id,
         };
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
         }
-        let results = await this.privatePostApiV1TradeCancelOrder (this.extend (request, params));
-        let success = results['success'];
-        let returnVal = { 'info': results, 'success': success };
+        const results = await this.privatePostApiV1TradeCancelOrder (this.extend (request, params));
+        const success = results['success'];
+        const returnVal = { 'info': results, 'success': success };
         return returnVal;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -536,8 +530,8 @@ module.exports = class bitforex extends Exchange {
                 payload += '&' + this.urlencode (this.keysort (query));
             }
             // let message = '/' + 'api/' + this.version + '/' + path + '?' + payload;
-            let message = '/' + path + '?' + payload;
-            let signature = this.hmac (this.encode (message), this.encode (this.secret));
+            const message = '/' + path + '?' + payload;
+            const signature = this.hmac (this.encode (message), this.encode (this.secret));
             body = payload + '&signData=' + signature;
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -551,11 +545,11 @@ module.exports = class bitforex extends Exchange {
             return; // fallback to default error handler
         }
         if ((body[0] === '{') || (body[0] === '[')) {
-            let feedback = this.id + ' ' + body;
-            let success = this.safeValue (response, 'success');
+            const feedback = this.id + ' ' + body;
+            const success = this.safeValue (response, 'success');
             if (success !== undefined) {
                 if (!success) {
-                    let code = this.safeString (response, 'code');
+                    const code = this.safeString (response, 'code');
                     if (code in this.exceptions) {
                         throw new this.exceptions[code] (feedback);
                     } else {

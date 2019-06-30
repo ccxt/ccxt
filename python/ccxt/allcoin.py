@@ -26,6 +26,13 @@ class allcoin (okcoinusd):
                 },
                 'www': 'https://www.allcoin.com',
                 'doc': 'https://www.allcoin.com/api_market/market',
+                'referral': 'https://www.allcoin.com',
+            },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
             },
             'api': {
                 'web': {
@@ -59,16 +66,18 @@ class allcoin (okcoinusd):
 
     def fetch_markets(self, params={}):
         result = []
-        response = self.webGetHomeMarketOverViewDetail()
+        response = self.webGetHomeMarketOverViewDetail(params)
         coins = response['marketCoins']
         for j in range(0, len(coins)):
             markets = coins[j]['Markets']
             for k in range(0, len(markets)):
                 market = markets[k]['Market']
-                base = market['Primary']
-                quote = market['Secondary']
+                base = self.safe_string(market, 'Primary')
+                quote = self.safe_string(market, 'Secondary')
                 baseId = base.lower()
                 quoteId = quote.lower()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
                 id = baseId + '_' + quoteId
                 symbol = base + '/' + quote
                 active = market['TradeEnabled'] and market['BuyEnabled'] and market['SellEnabled']
@@ -83,20 +92,20 @@ class allcoin (okcoinusd):
                     'type': 'spot',
                     'spot': True,
                     'future': False,
-                    'maker': market['AskFeeRate'],  # BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
-                    'taker': market['AskFeeRate'],  # BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'maker': self.safe_float(market, 'AskFeeRate'),  # BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'taker': self.safe_float(market, 'AskFeeRate'),  # BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
                     'precision': {
-                        'amount': market['PrimaryDigits'],
-                        'price': market['SecondaryDigits'],
+                        'amount': self.safe_integer(market, 'PrimaryDigits'),
+                        'price': self.safe_integer(market, 'SecondaryDigits'),
                     },
                     'limits': {
                         'amount': {
-                            'min': market['MinTradeAmount'],
-                            'max': market['MaxTradeAmount'],
+                            'min': self.safe_float(market, 'MinTradeAmount'),
+                            'max': self.safe_float(market, 'MaxTradeAmount'),
                         },
                         'price': {
-                            'min': market['MinOrderPrice'],
-                            'max': market['MaxOrderPrice'],
+                            'min': self.safe_float(market, 'MinOrderPrice'),
+                            'max': self.safe_float(market, 'MaxOrderPrice'),
                         },
                         'cost': {
                             'min': None,

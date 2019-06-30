@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -165,15 +158,15 @@ class coinbase (Exchange):
             },
         })
 
-    async def fetch_time(self):
-        response = await self.publicGetTime()
-        data = response['data']
-        return self.parse8601(data['iso'])
+    async def fetch_time(self, params={}):
+        response = await self.publicGetTime(params)
+        data = self.safe_value(response, 'data', {})
+        return self.parse8601(self.safe_string(data, 'iso'))
 
     async def fetch_accounts(self, params={}):
         await self.load_markets()
         response = await self.privateGetAccounts(params)
-        return response['data']
+        return self.safe_value(response, 'data')
 
     async def fetch_my_sells(self, symbol=None, since=None, limit=None, params={}):
         # they don't have an endpoint for all historical trades
@@ -283,7 +276,6 @@ class coinbase (Exchange):
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_value(transaction, 'created_at'))
         updated = self.parse8601(self.safe_value(transaction, 'updated_at'))
-        orderId = None
         type = self.safe_string(transaction, 'resource')
         amount = self.safe_float(amountObject, 'amount')
         currencyId = self.safe_string(amountObject, 'currency')
@@ -303,7 +295,6 @@ class coinbase (Exchange):
             'info': transaction,
             'id': id,
             'txid': id,
-            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': None,
@@ -395,6 +386,7 @@ class coinbase (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -405,10 +397,10 @@ class coinbase (Exchange):
         response = await self.publicGetCurrencies(params)
         currencies = response['data']
         result = {}
-        for c in range(0, len(currencies)):
-            currency = currencies[c]
-            id = currency['id']
-            name = currency['name']
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            id = self.safe_string(currency, 'id')
+            name = self.safe_string(currency, 'name')
             code = self.common_currency_code(id)
             minimum = self.safe_float(currency, 'min_size')
             result[code] = {
@@ -466,7 +458,7 @@ class coinbase (Exchange):
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
+            'close': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
@@ -481,8 +473,9 @@ class coinbase (Exchange):
         }
 
     async def fetch_balance(self, params={}):
-        response = await self.privateGetAccounts()
-        balances = response['data']
+        await self.load_markets()
+        response = await self.privateGetAccounts(params)
+        balances = self.safe_value(response, 'data')
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         result = {'info': response}
         for b in range(0, len(balances)):
@@ -496,8 +489,8 @@ class coinbase (Exchange):
                 free = total
                 used = None
                 if code in result:
-                    result[code]['free'] += total
-                    result[code]['total'] += total
+                    result[code]['free'] = self.sum(result[code]['free'], total)
+                    result[code]['total'] = self.sum(result[code]['total'], total)
                 else:
                     account = {
                         'free': free,
@@ -522,8 +515,8 @@ class coinbase (Exchange):
                 if query:
                     body = self.json(query)
                     payload = body
-            what = nonce + method + '/' + self.version + request + payload
-            signature = self.hmac(self.encode(what), self.encode(self.secret))
+            auth = nonce + method + '/' + self.version + request + payload
+            signature = self.hmac(self.encode(auth), self.encode(self.secret))
             headers = {
                 'CB-ACCESS-KEY': self.apiKey,
                 'CB-ACCESS-SIGN': signature,
@@ -533,44 +526,41 @@ class coinbase (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            feedback = self.id + ' ' + body
-            #
-            #    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
-            #
-            # or
-            #
-            #    {
-            #      "errors": [
-            #        {
-            #          "id": "not_found",
-            #          "message": "Not found"
-            #        }
-            #      ]
-            #    }
-            #
-            exceptions = self.exceptions
-            errorCode = self.safe_string(response, 'error')
-            if errorCode is not None:
-                if errorCode in exceptions:
-                    raise exceptions[errorCode](feedback)
-                else:
-                    raise ExchangeError(feedback)
-            errors = self.safe_value(response, 'errors')
-            if errors is not None:
-                if isinstance(errors, list):
-                    numErrors = len(errors)
-                    if numErrors > 0:
-                        errorCode = self.safe_string(errors[0], 'id')
-                        if errorCode is not None:
-                            if errorCode in exceptions:
-                                raise exceptions[errorCode](feedback)
-                            else:
-                                raise ExchangeError(feedback)
-            data = self.safe_value(response, 'data')
-            if data is None:
-                raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
+        feedback = self.id + ' ' + body
+        #
+        #    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
+        #
+        # or
+        #
+        #    {
+        #      "errors": [
+        #        {
+        #          "id": "not_found",
+        #          "message": "Not found"
+        #        }
+        #      ]
+        #    }
+        #
+        exceptions = self.exceptions
+        errorCode = self.safe_string(response, 'error')
+        if errorCode is not None:
+            if errorCode in exceptions:
+                raise exceptions[errorCode](feedback)
+            else:
+                raise ExchangeError(feedback)
+        errors = self.safe_value(response, 'errors')
+        if errors is not None:
+            if isinstance(errors, list):
+                numErrors = len(errors)
+                if numErrors > 0:
+                    errorCode = self.safe_string(errors[0], 'id')
+                    if errorCode is not None:
+                        if errorCode in exceptions:
+                            raise exceptions[errorCode](feedback)
+                        else:
+                            raise ExchangeError(feedback)
+        data = self.safe_value(response, 'data')
+        if data is None:
+            raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))

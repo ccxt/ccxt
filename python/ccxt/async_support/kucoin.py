@@ -55,7 +55,7 @@ class kucoin (Exchange):
                 'fetchOHLCV': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/51909432-b0a72780-23dd-11e9-99ba-73d23c8d4eed.jpg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
                 'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
@@ -153,6 +153,7 @@ class kucoin (Exchange):
                 '500': ExchangeError,
                 '503': ExchangeNotAvailable,
                 '200004': InsufficientFunds,
+                '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficientnot "}
                 '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
                 '400001': AuthenticationError,
@@ -165,6 +166,7 @@ class kucoin (Exchange):
                 '400008': NotSupported,
                 '400100': ArgumentsRequired,
                 '411100': AccountSuspended,
+                '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                 '500000': ExchangeError,
             },
             'fees': {
@@ -499,7 +501,8 @@ class kucoin (Exchange):
         data = self.safe_value(response, 'data', {})
         address = self.safe_string(data, 'address')
         # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
-        address = address.replace('bitcoincash:', '')
+        if address is not None:
+            address = address.replace('bitcoincash:', '')
         tag = self.safe_string(data, 'memo')
         self.check_address(address)
         return {
@@ -576,7 +579,7 @@ class kucoin (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         request = {'orderId': id}
-        response = self.privateDeleteOrdersOrderId(self.extend(request, params))
+        response = await self.privateDeleteOrdersOrderId(self.extend(request, params))
         return response
 
     async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
@@ -875,6 +878,24 @@ class kucoin (Exchange):
         #         "createdAt":1547026472000
         #     }
         #
+        # fetchMyTrades v2 alternative format since 2019-05-21 https://github.com/ccxt/ccxt/pull/5162
+        #
+        #     {
+        #         symbol: "OPEN-BTC",
+        #         forceTaker:  False,
+        #         orderId: "5ce36420054b4663b1fff2c9",
+        #         fee: "0",
+        #         feeCurrency: "",
+        #         type: "",
+        #         feeRate: "0",
+        #         createdAt: 1558417615000,
+        #         size: "12.8206",
+        #         stop: "",
+        #         price: "0",
+        #         funds: "0",
+        #         tradeId: "5ce390cf6e0db23b861c6e80"
+        #     }
+        #
         # fetchMyTrades(private) v1(historical)
         #
         #     {
@@ -914,7 +935,7 @@ class kucoin (Exchange):
         else:
             timestamp = self.safe_integer(trade, 'createdAt')
             # if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if takerOrMaker is None and timestamp is not None:
+            if ('dealValue' in list(trade.keys())) and(timestamp is not None):
                 timestamp = timestamp * 1000
         price = self.safe_float_2(trade, 'price', 'dealPrice')
         side = self.safe_string(trade, 'side')
@@ -1198,16 +1219,30 @@ class kucoin (Exchange):
             'type': 'trade',
         }
         response = await self.privateGetAccounts(self.extend(request, params))
-        responseData = response['data']
-        result = {'info': responseData}
-        for i in range(0, len(responseData)):
-            entry = responseData[i]
-            currencyId = entry['currency']
-            code = self.common_currency_code(currencyId)
+        #
+        #     {
+        #         "code":"200000",
+        #         "data":[
+        #             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
+        #             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
+        #             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
+        #         ]
+        #     }
+        # /
+        data = self.safe_value(response, 'data', [])
+        result = {'info': response}
+        for i in range(0, len(data)):
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             account = {}
-            account['total'] = self.safe_float(entry, 'balance', 0)
-            account['free'] = self.safe_float(entry, 'available', 0)
-            account['used'] = self.safe_float(entry, 'holds', 0)
+            account['total'] = self.safe_float(balance, 'balance')
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'holds')
             result[code] = account
         return self.parse_balance(result)
 

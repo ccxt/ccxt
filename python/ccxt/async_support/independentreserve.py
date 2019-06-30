@@ -37,6 +37,7 @@ class independentreserve (Exchange):
                         'GetValidTransactionTypes',
                         'GetMarketSummary',
                         'GetOrderBook',
+                        'GetAllOrders',
                         'GetTradeHistorySummary',
                         'GetRecentTrades',
                         'GetFxRates',
@@ -59,6 +60,7 @@ class independentreserve (Exchange):
                         'WithdrawDigitalCurrency',
                         'RequestFiatWithdrawal',
                         'GetTrades',
+                        'GetBrokerageFees',
                     ],
                 },
             },
@@ -73,8 +75,8 @@ class independentreserve (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        baseCurrencies = await self.publicGetGetValidPrimaryCurrencyCodes()
-        quoteCurrencies = await self.publicGetGetValidSecondaryCurrencyCodes()
+        baseCurrencies = await self.publicGetGetValidPrimaryCurrencyCodes(params)
+        quoteCurrencies = await self.publicGetGetValidSecondaryCurrencyCodes(params)
         result = []
         for i in range(0, len(baseCurrencies)):
             baseId = baseCurrencies[i]
@@ -99,45 +101,48 @@ class independentreserve (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privatePostGetAccounts()
+        balances = await self.privatePostGetAccounts(params)
         result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyCode = balance['CurrencyCode']
-            uppercase = currencyCode.upper()
-            currency = self.common_currency_code(uppercase)
+            currencyId = self.safe_string(balance, 'CurrencyCode')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             account = self.account()
-            account['free'] = balance['AvailableBalance']
-            account['total'] = balance['TotalBalance']
-            account['used'] = account['total'] - account['free']
-            result[currency] = account
+            account['free'] = self.safe_float(balance, 'AvailableBalance')
+            account['total'] = self.safe_float(balance, 'TotalBalance')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetGetOrderBook(self.extend({
+        request = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
-        }, params))
-        timestamp = self.parse8601(response['CreatedTimestampUtc'])
+        }
+        response = await self.publicGetGetOrderBook(self.extend(request, params))
+        timestamp = self.parse8601(self.safe_string(response, 'CreatedTimestampUtc'))
         return self.parse_order_book(response, timestamp, 'BuyOrders', 'SellOrders', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.parse8601(ticker['CreatedTimestampUtc'])
+        timestamp = self.parse8601(self.safe_string(ticker, 'CreatedTimestampUtc'))
         symbol = None
         if market:
             symbol = market['symbol']
-        last = ticker['LastPrice']
+        last = self.safe_float(ticker, 'LastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': ticker['DayHighestPrice'],
-            'low': ticker['DayLowestPrice'],
-            'bid': ticker['CurrentHighestBidPrice'],
+            'high': self.safe_float(ticker, 'DayHighestPrice'),
+            'low': self.safe_float(ticker, 'DayLowestPrice'),
+            'bid': self.safe_float(ticker, 'CurrentHighestBidPrice'),
             'bidVolume': None,
-            'ask': ticker['CurrentLowestOfferPrice'],
+            'ask': self.safe_float(ticker, 'CurrentLowestOfferPrice'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -146,8 +151,8 @@ class independentreserve (Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': ticker['DayAvgPrice'],
-            'baseVolume': ticker['DayVolumeXbtInSecondaryCurrrency'],
+            'average': self.safe_float(ticker, 'DayAvgPrice'),
+            'baseVolume': self.safe_float(ticker, 'DayVolumeXbtInSecondaryCurrrency'),
             'quoteVolume': None,
             'info': ticker,
         }
@@ -155,10 +160,11 @@ class independentreserve (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetGetMarketSummary(self.extend({
+        request = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
-        }, params))
+        }
+        response = await self.publicGetGetMarketSummary(self.extend(request, params))
         return self.parse_ticker(response, market)
 
     def parse_order(self, order, market=None):
@@ -199,7 +205,7 @@ class independentreserve (Exchange):
             'cost': feeCost,
             'currency': feeCurrency,
         }
-        id = order['OrderGuid']
+        id = self.safe_string(order, 'OrderGuid')
         status = self.parse_order_status(self.safe_string(order, 'Status'))
         cost = self.safe_float(order, 'Value')
         average = self.safe_float(order, 'AvgPrice')
@@ -233,9 +239,7 @@ class independentreserve (Exchange):
             'PartiallyFilledAndExpired': 'canceled',
             'Expired': 'canceled',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
@@ -266,12 +270,12 @@ class independentreserve (Exchange):
         timestamp = self.parse8601(trade['TradeTimestampUtc'])
         id = self.safe_string(trade, 'TradeGuid')
         orderId = self.safe_string(trade, 'OrderGuid')
-        price = self.safe_float(trade, 'Price')
-        if price is None:
-            price = self.safe_float(trade, 'SecondaryCurrencyTradePrice')
-        amount = self.safe_float(trade, 'VolumeTraded')
-        if amount is None:
-            amount = self.safe_float(trade, 'PrimaryCurrencyAmount')
+        price = self.safe_float_2(trade, 'Price', 'SecondaryCurrencyTradePrice')
+        amount = self.safe_float_2(trade, 'VolumeTraded', 'PrimaryCurrencyAmount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -290,19 +294,22 @@ class independentreserve (Exchange):
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetGetRecentTrades(self.extend({
+        request = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'numberOfRecentTradesToRetrieve': 50,  # max = 50
-        }, params))
+        }
+        response = await self.publicGetGetRecentTrades(self.extend(request, params))
         return self.parse_trades(response['Trades'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -312,15 +319,15 @@ class independentreserve (Exchange):
         method = 'privatePostPlace' + capitalizedOrderType + 'Order'
         orderType = capitalizedOrderType
         orderType += 'Offer' if (side == 'sell') else 'Bid'
-        order = self.ordered({
+        request = self.ordered({
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
         })
         if type == 'limit':
-            order['price'] = price
-        order['volume'] = amount
-        response = await getattr(self, method)(self.extend(order, params))
+            request['price'] = price
+        request['volume'] = amount
+        response = await getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
             'id': response['OrderGuid'],
@@ -328,7 +335,10 @@ class independentreserve (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostCancelOrder({'orderGuid': id})
+        request = {
+            'orderGuid': id,
+        }
+        return await self.privatePostCancelOrder(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path

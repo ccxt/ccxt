@@ -7,6 +7,9 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
+from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import OrderNotFound
 
 
 class therock (Exchange):
@@ -22,6 +25,13 @@ class therock (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'fetchMyTrades': True,
+                'fetchLedger': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
+                'fetchTransactions': 'emulated',
+                'fetchOrders': True,
+                'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766869-75057fa2-5ee9-11e7-9a6f-13e641fa4707.jpg',
@@ -99,10 +109,26 @@ class therock (Exchange):
                     },
                 },
             },
+            'exceptions': {
+                'exact': {
+                    'Request already running': BadRequest,
+                    'cannot specify multiple address types': BadRequest,
+                    'Currency is not included in the list': BadRequest,
+                    'Record not found': OrderNotFound,
+                },
+                'broad': {
+                    'before must be greater than after param': BadRequest,
+                    'must be shorter than 60 days': BadRequest,
+                    'must be a multiple of(period param) in minutes': BadRequest,
+                    'Address allocation limit reached for currency': InvalidAddress,
+                    'is not a valid value for param currency': BadRequest,
+                    ' is invalid': InvalidAddress,
+                },
+            },
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetFunds()
+        response = await self.publicGetFunds(params)
         #
         #     {funds: [{                     id:   "BTCEUR",
         #                              description:   "Trade Bitcoin with Euro",
@@ -181,35 +207,36 @@ class therock (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetBalances()
-        balances = response['balances']
+        response = await self.privateGetBalances(params)
+        balances = self.safe_value(response, 'balances', [])
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
-            free = balance['trading_balance']
-            total = balance['balance']
-            used = total - free
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
-            result[currency] = account
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'trading_balance')
+            account['total'] = self.safe_float(balance, 'balance')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetFundsIdOrderbook(self.extend({
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        timestamp = self.parse8601(orderbook['date'])
+        }
+        orderbook = await self.publicGetFundsIdOrderbook(self.extend(request, params))
+        timestamp = self.parse8601(self.safe_string(orderbook, 'date'))
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['date'])
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {
@@ -259,7 +286,7 @@ class therock (Exchange):
 
     def parse_trade(self, trade, market=None):
         #
-        # fetchTrades
+        # fetchTrades, fetchOrder trades
         #
         #     {     id:  4493548,
         #       fund_id: "ETHBTC",
@@ -322,20 +349,690 @@ class therock (Exchange):
                 'cost': feeCost,
                 'currency': market['quote'],
             }
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': fee,
         }
+
+    def parse_ledger_entry_direction(self, direction):
+        directions = {
+            'affiliate_earnings': 'in',
+            'atm_payment': 'in',
+            'bought_currency_from_fund': 'out',
+            'bought_shares': 'out',
+            'paid_commission': 'out',
+            'paypal_payment': 'in',
+            'pos_payment': 'in',
+            'released_currency_to_fund': 'out',
+            'rollover_commission': 'out',
+            'sold_currency_to_fund': 'in',
+            'sold_shares': 'in',
+            'transfer_received': 'in',
+            'transfer_sent': 'out',
+            'withdraw': 'out',
+            # commented types will be shown as-is
+            # 'acquired_currency_from_fund': '',
+            # 'acquired_insurance': '',
+            # 'dividend_distributed_to_holders': '',
+            # 'dividend_from_shares': '',
+            # 'exposed_position': '',
+            # 'insurances_reimbursement': '',
+            # 'lent_currency': '',
+            # 'linden_lab_assessment': '',
+            # 'position_transfer_received': '',
+            # 'return_lent_currency': '',
+            # 'returned_lent_currency': '',
+            # 'the_rock_assessment': '',
+        }
+        return self.safe_string(directions, direction, direction)
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'affiliate_earnings': 'referral',
+            'atm_payment': 'transaction',
+            'bought_currency_from_fund': 'trade',
+            'bought_shares': 'trade',
+            'paid_commission': 'fee',
+            'paypal_payment': 'transaction',
+            'pos_payment': 'transaction',
+            'released_currency_to_fund': 'trade',
+            'rollover_commission': 'fee',
+            'sold_currency_to_fund': 'trade',
+            'sold_shares': 'trade',
+            'transfer_received': 'transfer',
+            'transfer_sent': 'transfer',
+            'withdraw': 'transaction',
+            # commented types will be shown as-is
+            # 'acquired_currency_from_fund': '',
+            # 'acquired_insurance': '',
+            # 'dividend_distributed_to_holders': '',
+            # 'dividend_from_shares': '',
+            # 'exposed_position': '',
+            # 'insurances_reimbursement': '',
+            # 'lent_currency': '',
+            # 'linden_lab_assessment': '',
+            # 'position_transfer_received': '',
+            # 'return_lent_currency': '',
+            # 'returned_lent_currency': '',
+            # 'the_rock_assessment': '',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        # withdrawal
+        #
+        #     {
+        #         "id": 21311223,
+        #         "date": "2015-06-30T13:55:11.000Z",
+        #         "type": "withdraw",
+        #         "price": 103.00,
+        #         "currency": "EUR",
+        #         "fund_id": null,
+        #         "order_id": null,
+        #         "trade_id": null,
+        #         "transfer_detail": {
+        #             "method": "wire_transfer",
+        #             "id": "F112DD3",
+        #             "recipient": "IT123456789012",
+        #             "confirmations": 0
+        #         }
+        #     }
+        #
+        # deposit
+        #
+        #     {
+        #         "id": 21311222,
+        #         "date": "2015-06-30T13:55:11.000Z",
+        #         "type": "atm_payment",
+        #         "price": 2.01291,
+        #         "currency": "BTC",
+        #         "fund_id": "null",
+        #         "order_id": null,
+        #         "trade_id": null,
+        #         "transfer_detail": {
+        #             "method": "bitcoin",
+        #             "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
+        #             "recipient": "mzb3NgX9Dr6jgGAu31L6jsPGB2zkaFxxyf",
+        #             "confirmations": 3
+        #         }
+        #     }
+        #
+        # trade fee
+        #
+        #     {
+        #         "id": 21311221,
+        #         "date": "2015-06-30T13:55:11.000Z",
+        #         "type": "paid_commission",
+        #         "price": 0.0001,
+        #         "fund_id": "BTCEUR",
+        #         "order_id": 12832371,
+        #         "trade_id": 12923212,
+        #         "currency": "BTC",
+        #         "transfer_detail": null
+        #     }
+        #
+        id = self.safe_string(item, 'id')
+        referenceId = None
+        type = self.safe_string(item, 'type')
+        direction = self.parse_ledger_entry_direction(type)
+        type = self.parse_ledger_entry_type(type)
+        if type == 'trade' or type == 'fee':
+            referenceId = self.safe_string(item, 'trade_id')
+        currencyId = self.safe_string(item, 'currency')
+        code = None
+        if currencyId is not None:
+            currencyId = currencyId.upper()
+            code = self.common_currency_code(currencyId)
+        amount = self.safe_float(item, 'price')
+        timestamp = self.parse8601(self.safe_string(item, 'date'))
+        status = 'ok'
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': None,
+            'referenceId': referenceId,
+            'referenceAccount': None,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': None,
+            'after': None,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': None,
+        }
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'page': 1,
+            # 'fund_id': 'ETHBTC',  # filter by fund symbol
+            # 'currency': 'BTC',  # filter by currency
+            # 'after': '2015-02-06T08:47:26Z',  # filter after a certain timestamp
+            # 'before': '2015-02-06T08:47:26Z',
+            # 'type': 'withdraw',
+            # 'order_id': '12832371',  # filter by a specific order ID
+            # 'trade_id': '12923212',  # filter by a specific trade ID
+            # 'transfer_method': 'bitcoin',  # wire_transfer, ripple, greenaddress, bitcoin, litecoin, namecoin, peercoin, dogecoin
+            # 'transfer_recipient': '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',  # filter by a specific recipient(e.g. Bitcoin address, IBAN)
+            # 'transfer_id': '8261949194985b01985006724dca5d6059989e096fa95608271d00dd902327fa',  # filter by a specific transfer ID(e.g. Bitcoin TX hash)
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['after'] = self.iso8601(since)
+        response = await self.privateGetTransactions(self.extend(request, params))
+        #
+        #     {
+        #         "transactions": [
+        #             {
+        #                 "id": 21311223,
+        #                 "date": "2015-06-30T13:55:11.000Z",
+        #                 "type": "withdraw",
+        #                 "price": 103.00,
+        #                 "currency": "EUR",
+        #                 "fund_id": null,
+        #                 "order_id": null,
+        #                 "trade_id": null,
+        #                 "transfer_detail": {
+        #                     "method": "wire_transfer",
+        #                     "id": "F112DD3",
+        #                     "recipient": "IT123456789012",
+        #                     "confirmations": 0
+        #                 }
+        #             },
+        #             {
+        #                 "id": 21311222,
+        #                 "date": "2015-06-30T13:55:11.000Z",
+        #                 "type": "atm_payment",
+        #                 "price": 2.01291,
+        #                 "currency": "BTC",
+        #                 "fund_id": "null",
+        #                 "order_id": null,
+        #                 "trade_id": null,
+        #                 "transfer_detail": {
+        #                     "method": "bitcoin",
+        #                     "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
+        #                     "recipient": "mzb3NgX9Dr6jgGAu31L6jsPGB2zkaFxxyf",
+        #                     "confirmations": 3
+        #                 }
+        #             },
+        #             {
+        #                 "id": 21311221,
+        #                 "date": "2015-06-30T13:55:11.000Z",
+        #                 "type": "paid_commission",
+        #                 "price": 0.0001,
+        #                 "fund_id": "BTCEUR",
+        #                 "order_id": 12832371,
+        #                 "trade_id": 12923212,
+        #                 "currency": "BTC",
+        #                 "transfer_detail": null
+        #             }
+        #         ],
+        #         "meta": {
+        #             "total_count": 1221,
+        #             "first": {"page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1"},
+        #             "previous": null,
+        #             "current": {"page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1"},
+        #             "next": {"page": 2, "href": "https://api.therocktrading.com/v1/transactions?page=2"},
+        #             "last": {"page": 1221, "href": "https://api.therocktrading.com/v1/transactions?page=1221"}
+        #         }
+        #     }
+        #
+        transactions = self.safe_value(response, 'transactions', [])
+        return self.parse_ledger(transactions, currency, since, limit)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'withdraw': 'withdrawal',
+            'atm_payment': 'deposit',
+        }
+        return self.safe_string(types, type, type)
+
+    def parse_transaction(self, transaction, currency=None):
+        #
+        # fetchWithdrawals
+        #
+        #     # fiat
+        #
+        #     {
+        #         "id": 21311223,
+        #         "date": "2015-06-30T13:55:11.000Z",
+        #         "type": "withdraw",
+        #         "price": 103.00,
+        #         "currency": "EUR",
+        #         "fund_id": null,
+        #         "order_id": null,
+        #         "trade_id": null,
+        #         "transfer_detail": {
+        #             "method": "wire_transfer",
+        #             "id": "F112DD3",
+        #             "recipient": "IT123456789012",
+        #             "confirmations": 0
+        #         }
+        #     }
+        #
+        #     {
+        #         "id": 12564223,
+        #         "date": "2017-08-07T08:13:50.023Z",
+        #         "note": "GB7IDL401573388",
+        #         "type": "withdraw",
+        #         "price": 4345.93,
+        #         "fund_id": null,
+        #         "currency": "EUR",
+        #         "order_id": null,
+        #         "trade_id": null,
+        #         "transfer_detail": {
+        #             "id": "EXECUTEDBUTUNCHECKED",
+        #             "method": "wire_transfer",
+        #             "recipient": "GB7IDL401573388",
+        #             "confirmations": 0
+        #         }
+        #     }
+        #
+        #     # crypto
+        #
+        #     {
+        #         id: 20914695,
+        #         date: '2018-02-24T07:13:23.002Z',
+        #         type: 'withdraw',
+        #         price: 2.70883607,
+        #         currency: 'BCH',
+        #         fund_id: null,
+        #         order_id: null,
+        #         trade_id: null,
+        #         note: '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
+        #         transfer_detail: {
+        #             method: 'bitcoin_cash',
+        #             id: '8261949194985b01985006724dca5d6059989e096fa95608271d00dd902327fa',
+        #             recipient: '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
+        #             confirmations: 0
+        #         }
+        #     }
+        #
+        #
+        # fetchDeposits
+        #
+        #     # fiat
+        #
+        #     {
+        #         id: 16176632,
+        #         date: '2017-11-20T21:00:13.355Z',
+        #         type: 'atm_payment',
+        #         price: 5000,
+        #         currency: 'EUR',
+        #         fund_id: null,
+        #         order_id: null,
+        #         trade_id: null,
+        #         note: 'Mistral deposit',
+        #         transfer_detail: {
+        #             method: 'wire_transfer',
+        #             id: '972JQ49337DX769T',
+        #             recipient: null,
+        #             confirmations: 0
+        #         }
+        #     }
+        #
+        #     # crypto
+        #
+        #     {
+        #         "id": 21311222,
+        #         "date": "2015-06-30T13:55:11.000Z",
+        #         "type": "atm_payment",
+        #         "price": 2.01291,
+        #         "currency": "BTC",
+        #         "fund_id": "null",
+        #         "order_id": null,
+        #         "trade_id": null,
+        #         "transfer_detail": {
+        #             "method": "bitcoin",
+        #             "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
+        #             "recipient": "mzb3NgX9Dr6jgGAu31L6jsPGB2zkaFxxyf",
+        #             "confirmations": 3
+        #         }
+        #     }
+        #
+        id = self.safe_string(transaction, 'id')
+        type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
+        detail = self.safe_value(transaction, 'transfer_detail', {})
+        method = self.safe_string(detail, 'method')
+        txid = None
+        address = None
+        if method is not None:
+            if method != 'wire_transfer':
+                txid = self.safe_string(detail, 'id')
+                address = self.safe_string(detail, 'recipient')
+        currencyId = self.safe_string(transaction, 'currency')
+        code = None
+        if currencyId is not None:
+            currencyId = currencyId.upper()
+            code = self.common_currency_code(currencyId)
+        amount = self.safe_float(transaction, 'price')
+        timestamp = self.parse8601(self.safe_string(transaction, 'date'))
+        status = 'ok'
+        # todo parse tags
+        return {
+            'info': transaction,
+            'id': id,
+            'currency': code,
+            'amount': amount,
+            'addressFrom': None,
+            'addressTo': address,
+            'address': address,
+            'tagFrom': None,
+            'tagTo': None,
+            'tag': None,
+            'status': status,
+            'type': type,
+            'updated': None,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': None,
+        }
+
+    async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        request = {
+            'type': 'withdraw',
+        }
+        return await self.fetch_transactions(code, since, limit, self.extend(request, params))
+
+    async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        request = {
+            'type': 'atm_payment',
+        }
+        return await self.fetch_transactions(code, since, limit, self.extend(request, params))
+
+    async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {
+            # 'page': 1,
+            # 'fund_id': 'ETHBTC',  # filter by fund symbol
+            # 'currency': 'BTC',  # filter by currency
+            # 'after': '2015-02-06T08:47:26Z',  # filter after a certain timestamp
+            # 'before': '2015-02-06T08:47:26Z',
+            # 'type': 'withdraw',
+            # 'order_id': '12832371',  # filter by a specific order ID
+            # 'trade_id': '12923212',  # filter by a specific trade ID
+            # 'transfer_method': 'bitcoin',  # wire_transfer, ripple, greenaddress, bitcoin, litecoin, namecoin, peercoin, dogecoin
+            # 'transfer_recipient': '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',  # filter by a specific recipient(e.g. Bitcoin address, IBAN)
+            # 'transfer_id': '8261949194985b01985006724dca5d6059989e096fa95608271d00dd902327fa',  # filter by a specific transfer ID(e.g. Bitcoin TX hash)
+        }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['after'] = self.iso8601(since)
+        params = self.extend(request, params)
+        response = await self.privateGetTransactions(params)
+        #
+        #     {
+        #         "transactions": [
+        #             {
+        #                 "id": 21311223,
+        #                 "date": "2015-06-30T13:55:11.000Z",
+        #                 "type": "withdraw",
+        #                 "price": 103.00,
+        #                 "currency": "EUR",
+        #                 "fund_id": null,
+        #                 "order_id": null,
+        #                 "trade_id": null,
+        #                 "transfer_detail": {
+        #                     "method": "wire_transfer",
+        #                     "id": "F112DD3",
+        #                     "recipient": "IT123456789012",
+        #                     "confirmations": 0
+        #                 }
+        #             },
+        #             {
+        #                 "id": 21311222,
+        #                 "date": "2015-06-30T13:55:11.000Z",
+        #                 "type": "atm_payment",
+        #                 "price": 2.01291,
+        #                 "currency": "BTC",
+        #                 "fund_id": "null",
+        #                 "order_id": null,
+        #                 "trade_id": null,
+        #                 "transfer_detail": {
+        #                     "method": "bitcoin",
+        #                     "id": "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
+        #                     "recipient": "mzb3NgX9Dr6jgGAu31L6jsPGB2zkaFxxyf",
+        #                     "confirmations": 3
+        #                 }
+        #             },
+        #             {
+        #                 "id": 21311221,
+        #                 "date": "2015-06-30T13:55:11.000Z",
+        #                 "type": "paid_commission",
+        #                 "price": 0.0001,
+        #                 "fund_id": "BTCEUR",
+        #                 "order_id": 12832371,
+        #                 "trade_id": 12923212,
+        #                 "currency": "BTC",
+        #                 "transfer_detail": null
+        #             }
+        #         ],
+        #         "meta": {
+        #             "total_count": 1221,
+        #             "first": {"page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1"},
+        #             "previous": null,
+        #             "current": {"page": 1, "href": "https://api.therocktrading.com/v1/transactions?page=1"},
+        #             "next": {"page": 2, "href": "https://api.therocktrading.com/v1/transactions?page=2"},
+        #             "last": {"page": 1221, "href": "https://api.therocktrading.com/v1/transactions?page=1221"}
+        #         }
+        #     }
+        #
+        transactions = self.safe_value(response, 'transactions', [])
+        transactionTypes = ['withdraw', 'atm_payment']
+        depositsAndWithdrawals = self.filter_by_array(transactions, 'type', transactionTypes, False)
+        return self.parseTransactions(depositsAndWithdrawals, currency, since, limit)
+
+    def parse_order_status(self, status):
+        statuses = {
+            'active': 'open',
+            'executed': 'closed',
+            'deleted': 'canceled',
+            # don't know what self status means
+            # 'conditional': '?',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "id": 4325578,
+        #         "fund_id":"BTCEUR",
+        #         "side":"buy",
+        #         "type":"limit",
+        #         "status":"executed",
+        #         "price":0.0102,
+        #         "amount": 50.0,
+        #         "amount_unfilled": 0.0,
+        #         "conditional_type": null,
+        #         "conditional_price": null,
+        #         "date":"2015-06-03T00:49:48.000Z",
+        #         "close_on": nil,
+        #         "leverage": 1.0,
+        #         "position_id": null,
+        #         "trades": [
+        #             {
+        #                 "id":237338,
+        #                 "fund_id":"BTCEUR",
+        #                 "amount":50,
+        #                 "price":0.0102,
+        #                 "side":"buy",
+        #                 "dark":false,
+        #                 "date":"2015-06-03T00:49:49.000Z"
+        #             }
+        #         ]
+        #     }
+        #
+        id = self.safe_string(order, 'id')
+        symbol = None
+        marketId = self.safe_string(order, 'fund_id')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        timestamp = self.parse8601(self.safe_string(order, 'date'))
+        type = self.safe_string(order, 'type')
+        side = self.safe_string(order, 'side')
+        amount = self.safe_float(order, 'amount')
+        remaining = self.safe_float(order, 'amount_unfilled')
+        filled = None
+        if amount is not None:
+            if remaining is not None:
+                filled = amount - remaining
+        price = self.safe_float(order, 'price')
+        trades = self.safe_value(order, 'trades')
+        cost = None
+        average = None
+        lastTradeTimestamp = None
+        if trades is not None:
+            numTrades = len(trades)
+            if numTrades > 0:
+                trades = self.parse_trades(trades, market, None, None, {
+                    'orderId': id,
+                })
+                # todo: determine the cost and the average price from trades
+                cost = 0
+                filled = 0
+                for i in range(0, numTrades):
+                    trade = trades[i]
+                    cost = self.sum(cost, trade['cost'])
+                    filled = self.sum(filled, trade['amount'])
+                if filled > 0:
+                    average = cost / filled
+                lastTradeTimestamp = trades[numTrades - 1]['timestamp']
+            else:
+                cost = 0
+        return {
+            'id': id,
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'average': average,
+            'remaining': remaining,
+            'fee': None,
+            'trades': trades,
+        }
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        request = {
+            'status': 'active',
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        request = {
+            'status': 'executed',
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
+
+    async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'fund_id': market['id'],
+            # 'after': '2015-02-06T08:47:26Z',
+            # 'before': '2015-02-06T08:47:26Z'
+            # 'status': 'active',  # 'executed', 'conditional'
+            # 'side': 'buy',  # 'sell'
+            # 'position_id': 123,  # filter orders by margin position id
+        }
+        if since is not None:
+            request['after'] = self.iso8601(since)
+        response = await self.privateGetFundsFundIdOrders(self.extend(request, params))
+        #
+        #     {
+        #         orders: [
+        #             {
+        #                 id: 299333648,
+        #                 fund_id: 'BTCEUR',
+        #                 side: 'sell',
+        #                 type: 'limit',
+        #                 status: 'executed',
+        #                 price: 5821,
+        #                 amount: 0.1,
+        #                 amount_unfilled: 0,
+        #                 conditional_type: null,
+        #                 conditional_price: null,
+        #                 date: '2018-06-18T17:38:16.129Z',
+        #                 close_on: null,
+        #                 dark: False,
+        #                 leverage: 1,
+        #                 position_id: 0
+        #             }
+        #         ]
+        #     }
+        #
+        orders = self.safe_value(response, 'orders', [])
+        return self.parse_orders(orders, market, since, limit)
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'id': id,
+            'fund_id': market['id'],
+        }
+        response = await self.privatePostFundsFundIdOrdersId(self.extend(request, params))
+        return self.parse_order(response)
+
+    async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        await self.load_markets()
+        if type == 'market':
+            price = 0
+        request = {
+            'fund_id': self.market_id(symbol),
+            'side': side,
+            'amount': amount,
+            'price': price,
+        }
+        response = await self.privatePostFundsFundIdOrders(self.extend(request, params))
+        return self.parse_order(response)
+
+    async def cancel_order(self, id, symbol=None, params={}):
+        await self.load_markets()
+        request = {
+            'id': id,
+            'fund_id': self.market_id(symbol),
+        }
+        response = await self.privateDeleteFundsFundIdOrdersId(self.extend(request, params))
+        return self.parse_order(response)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -422,43 +1119,19 @@ class therock (Exchange):
         #
         return self.parse_trades(response['trades'], market, since, limit)
 
-    async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        await self.load_markets()
-        if type == 'market':
-            price = 0
-        response = await self.privatePostFundsFundIdOrders(self.extend({
-            'fund_id': self.market_id(symbol),
-            'side': side,
-            'amount': amount,
-            'price': price,
-        }, params))
-        return {
-            'info': response,
-            'id': str(response['id']),
-        }
-
-    async def cancel_order(self, id, symbol=None, params={}):
-        await self.load_markets()
-        return await self.privateDeleteFundsFundIdOrdersId(self.extend({
-            'id': id,
-            'fund_id': self.market_id(symbol),
-        }, params))
-
-    def parse_order_status(self, status):
-        statuses = {
-            'active': 'open',
-            'executed': 'closed',
-            'deleted': 'canceled',
-            # don't know what self status means
-            # 'conditional': '?',
-        }
-        return self.safe_string(statuses, status, status)
-
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
             self.check_required_credentials()
+            if query:
+                if method == 'POST':
+                    body = self.json(query)
+                    headers['Content-Type'] = 'application/json'
+                else:
+                    queryString = self.rawencode(query)
+                    if len(queryString):
+                        url += '?' + queryString
             nonce = str(self.nonce())
             auth = nonce + url
             headers = {
@@ -466,16 +1139,39 @@ class therock (Exchange):
                 'X-TRT-NONCE': nonce,
                 'X-TRT-SIGN': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512),
             }
-            if query:
-                body = self.json(query)
-                headers['Content-Type'] = 'application/json'
         elif api == 'public':
             if query:
                 url += '?' + self.rawencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = await self.fetch2(path, api, method, params, headers, body)
-        if 'errors' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if response is None:
+            return  # fallback to default error handler
+        #
+        #     {
+        #         "errors":
+        #         [
+        #             {"message": ":currency is not a valid value for param currency","code": "11","meta": {"key":"currency","value":":currency"}},
+        #             {"message": "Address allocation limit reached for currency :currency.","code": "13"},
+        #             {"message": "Request already running", "code": "50"},
+        #             {"message": "cannot specify multiple address types", "code": "12"},
+        #             {"message": ":address_type is invalid", "code": "12"}
+        #         ]
+        #     }
+        #
+        errors = self.safe_value(response, 'errors', [])
+        numErrors = len(errors)
+        if numErrors > 0:
+            feedback = self.id + ' ' + body
+            exact = self.exceptions['exact']
+            broad = self.exceptions['broad']
+            # here we raise the first error we can identify
+            for i in range(0, numErrors):
+                error = errors[i]
+                message = self.safe_string(error, 'message')
+                if message in exact:
+                    raise exact[message](feedback)
+                broadKey = self.findBroadlyMatchedKey(broad, message)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)  # unknown message

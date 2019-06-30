@@ -38,6 +38,10 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
 ## How To Contribute Code
 
+- **[MAKE SURE YOUR CODE IS UNIFIED](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes)!**
+
+  ↑ This is the most important rule of all.
+
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
   - `/doc/*` (these files are generated from `/wiki/*`, place your edits there)
@@ -240,7 +244,7 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
-- variables should be declared with `const` or `let` keywords semantically (no `var`!)
+- variables should be declared with `const` or `let` keywords semantically (no `var`!), prefer `const` everywhere
 
 And structurally:
 
@@ -254,10 +258,140 @@ And structurally:
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
 - do not use `.includes()`, use `.indexOf()` instead!
 - never use `.toString()` on floats: `Number (0.00000001).toString () === '1e-8'`
+- do not use closures, `a.map` or `a.filter (x => (x === 'foobar'))` is not acceptable in derived classes
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
 - keep it simple, don't do more than one statement in one line
+
+#### Sending Market Ids
+
+Most of exchanges' API endpoints will require an exchange-specific market symbol or trading pair or instrument to be specified in the request.
+
+**We don't send unified symbols to exchanges directly!** They are not interchangeable! There is a significant difference between an *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
+
+- https://github.com/ccxt/ccxt/wiki/Manual#markets
+- https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
+
+**NEVER DO THIS BAD CODE:**
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const request = {
+      'pair': symbol, // very bad, sending unified symbols to the exchange directly
+   };
+   const response = await this.publicGetEndpoint (request);
+   // parse in a unified way...
+}
+```
+
+**DO NOT DO THIS, ALSO AN EXAMPLE OF BAD CODE:**
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const request = {
+      'symbol': symbol, // very bad, sending unified symbols to the exchange directly
+   };
+   const response = await this.publicGetEndpoint (request);
+   // parse in a unified way...
+}
+```
+
+Instead of sending a unified CCXT symbol to the exchange, we **always** take the exchange-specific market-`id` that corresponds to that symbol. If it so happens that an exchange specific market-id is exactly the same as the CCXT unified symbol – that's a happy coincidence, but we never rely on that in the unified CCXT API.
+
+To get the exchange-specific market-id by a unified CCXT symbol, use the following methods:
+
+- `this.market (symbol)` – returns the entire unified market structure, containing the `id`, `baseId`, `quoteId`, and many other interesting things
+- `this.marketId (symbol)` – returns just the exchange-specific `id` of a market by a unified symbol (if you don't need anything else)
+
+**GOOD EXAMPLES:**
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const market = this.market (symbol); // the entire market structure
+   const request = {
+      'pair': market['id'], // good, they may me equal, but often differ, it's ok
+   };
+   const response = await this.publicGetEndpoint (this.extend (request, params));
+   // parse in a unified way...
+}
+```
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const marketId = this.marketId (symbol); // just the id
+   const request = {
+      'symbol': marketId, // good, they may me equal, but often differ, it's ok
+   };
+   const response = await this.publicGetEndpoint (this.extend (request, params));
+   // parse in a unified way...
+}
+```
+
+#### Parsing Symbols
+
+When sending requests to the exchange unified symbols have to be _"converted"_ to exchange-specific market-`id`s like shown above. The same is true on the other side – when receiving an exchange response it has an exchange-specific market-`id` inside it that has to be _"converted back"_ to a unified CCXT symbol.
+
+**We don't put exchange-specific market-`id`s in unified structures directly!** We can't freely interchange symbols with ids! There is a significant difference between an *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
+
+- https://github.com/ccxt/ccxt/wiki/Manual#markets
+- https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
+
+**NEVER DO THIS BAD CODE:**:
+
+```JavaScript
+parseTrade (trade, market = undefined) {
+   // parsing code...
+   return {
+      'info': trade,
+      'symbol': trade['pair'], // very bad, returning exchange-specific market-ids in a unified structure!
+      // other fields...
+   };
+}
+```
+
+**DO NOT DO THIS, ALSO AN EXAMPLE OF BAD CODE:**
+
+```JavaScript
+parseTrade (trade, market = undefined) {
+   // parsing code...
+   return {
+      'info': trade,
+      'symbol': trade['symbol'], // very bad, returning exchange-specific market-ids in a unified structure!
+      // other fields...
+   };
+}
+```
+
+In order to handle the market-`id` properly it has to be looked-up in the info cached on this exchange with `loadMarkets()`:
+
+**GOOD EXAMPLE:**
+
+```JavaScript
+parseTrade (trade, market = undefined) {
+   let symbol = undefined;
+   const marketId = this.safeString (trade, 'pair');
+   if (marketId !== undefined) {
+      if (marketId in this.markets_by_id) {
+         // look up by an exchange-specific id in the preloaded markets first
+         market = this.markets_by_id[market];
+         symbol = market['symbol'];
+      } else {
+         // try to parse it somehow, if the format is known
+         const [ baseId, quoteId ] = marketId.split ('/');
+         const base = this.commonCurrencyCode (baseId); // unified
+         const quote = this.commonCurrencyCode (quoteId);
+         symbol = base + '/' + quote;
+      }
+   }
+   // parsing code...
+   return {
+      'info': trade,
+      'symbol': symbol, // very good, a unified symbol here now
+      // other fields...
+   };
+}
+```
 
 #### Accessing Dictionary Keys
 
@@ -268,11 +402,11 @@ In JavaScript, dictionary keys can be accessed in two notations:
 
 Both work almost identically, and one is implicitly converted to another upon executing the JavaScript code.
 
-While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treaded in the same was as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
+While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treated in the same was as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
 
 To keep the code transpileable, please, remeber this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
 
-#### Sanitizing Input With Safe Methods
+#### Sanitizing Input With `safe`-Methods
 
 JavaScript is less restrictive than other languages. It will tolerate an attempt to dereference a non-existent key where other languages will throw an Exception:
 
@@ -336,7 +470,11 @@ if (params['foo'] !== undefined) {
 const foo = this.safeValue (params, 'foo');
 if (foo !== undefined) {
 }
-// OR
+```
+
+Or:
+
+```JavaScript
 if ('foo' in params) {
 }
 ```
@@ -347,7 +485,9 @@ In JavaScript the common syntax to get a length of a string or an array is to re
 
 ```JavaScript
 someArray.length
+
 // or
+
 someString.length
 ```
 
@@ -355,7 +495,9 @@ And it works for both strings and arrays. In Python this is done in a similar wa
 
 ```Python
 len(some_array)
+
 # or
+
 len(some_string)
 ```
 
@@ -365,7 +507,9 @@ However, with PHP this is different, so the syntax for string lengths and array 
 
 ```PHP
 count(some_array);
+
 // or
+
 strlen(some_string); // or mb_strlen
 ```
 
@@ -383,19 +527,112 @@ That `.length;` line ending does the trick. The only case when the array `.lengt
 
 #### Adding Numbers And Concatenating Strings
 
-In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up variables or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
+In JS the arithmetic addition `+` operator handles both strings and numbers. So, it can concatenate strings with `+` and can sum up numbers with `+` as well. The same is true with Python. With PHP this is different, so it has different operators for string concatenation (the "dot" operator `.`) and for arithmetic addition (the "plus" operator `+`). Once again, because the transpiler does no code introspection it cannot tell if you're adding up numbers or strings in JS. This works fine until you want to transpile this to other languages, be it PHP or whatever other language it is. In order to help the transpiler we have to use `this.sum` for arithmetic additions.
 
-The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**.
+The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.sum (a, b, c, ...)` is for arithmetic additions**. The same logic applies to operator `+=` vs operator `.=` – `this.sum()` has to be used in those cases as well.
 
 #### Formatting Decimal Numbers To Precision
 
 The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
 
+#### Escaped Control Characters
+
+When using strings containing control characters like `"\n"`, `"\t"`, always enclose them in double quotes (`"`), not single quotes (`'`)! Single-quoted strings are not parsed for control characters and are treated as is in many languages apart from JavaScript. Therefore for tabs and newlines to work in PHP, we need to surround them with double quotes (especially in the `sign()` implementation).
+
+Bad:
+
+```JavaScript
+const a = 'GET' + method.toLowerCase () + '\n' + path;
+const b = 'api\nfoobar.com\n';
+```
+
+Good:
+
+```JavaScript
+const a = 'GET' + method.toLowerCase () + "\n" + path; // eslint-disable-line quotes
+// eslint-disable-next-line quotes
+const b = "api\nfoobar.com\n";
+```
+
+**↑ The `eslint-*` comments are mandatory!**
+
+#### Using Ternary Conditionals
+
+Do not use heavy ternary (`?:`) conditionals, **always use brackets in ternary operators!**
+
+Despite that there is operator precedence in the programming languages themselves, the transpiler is regex-based and it does no code introspection, therefore it treats everything as plaintext.
+
+The brackets are needed to hint the transpiler which part of the conditional is which. In the absence of brackets it's hard to understand the line and the intent of the developer.
+
+Here are some examples of a badly-designed code that will break the transpiler:
+
+```JavaScript
+// this is an example of bad codestyle that will likely break the transpiler
+const foo = {
+   'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
+};
+```
+
+```JavaScript
+// this confuses the transpiler and a human developer as well
+const foo = 'bar' + baz + qux ? 'a' : '' + this.c ();
+```
+
+Adding surrounding brackets to corresponding parts would be a more or less correct way to resolve it.
+
+```JavaScript
+const foo = {
+   'bar': (qux === 'baz') ? this.a () : this.b (), // much better now
+};
+```
+
+The universally-working way to solve it is to just break the complex line into a few simpler lines, even at a cost of adding extra lines and conditionals:
+
+```JavaScript
+// before:
+// const foo = {
+//    'bar': 'a' + qux === 'baz' ? this.a () : this.b () + 'b',
+// };
+// ----------------------------------------------------------------------------
+// after:
+const bar = (qux === 'baz') ? this.a () : this.b ();
+const foo = {
+   'bar': 'a' + bar + 'b',
+};
+```
+
+Or even:
+
+```JavaScript
+// before:
+// const foo = 'bar' + baz + qux ? 'a' : '' + this.c ();
+// ----------------------------------------------------------------------------
+// after:
+let foo = 'bar' + baz;
+if (qux) {
+   foo += 'a';
+};
+foo += this.c ();
+```
+
 ---
 
 ### New Exchange Integrations
 
+**REMEMBER:** The key reason why this library is used at all is **Unification**. When developing a new exchange file the goal is not to implement it somehow, but to implement it in a very pedantic, precise and exact way, just as the other exchanges are implemented. For that we have to copy bits of logic from other exchanges and make sure that the new exchange conforms to the Manual in the following aspects:
+
+- market ids, trading pair symbols, currency ids, token codes, symbolic unification and `commonCurrencies` must be standardized in all parsing methods (`fetchMarkets`, `fetchCurrencies`, `parseTrade`, `parseOrder`, ...)
+- all unified API method names and arguments are standard – can't add or change them freely
+- all parser input must be `safe`-sanitized as [described above](#sanitizing-input-with-safe-methods)
+- for bulk operations the base methods should be used (`parseTrades`, `parseOrders`, note the `s` plural ending)
+- use as much of base functionality as you can, do not reinvent the wheel, nor the bicycle, nor the bicycle wheel
+- respect default argument values in `fetch`-methods, check if `since` and `limit` are `undefined` and do not send them to the exchange, we intentionally use the exchanges' defaults in such cases
+- when implementing a unified method that has some arguments – we can't ignore or miss any of those arguments
+- all structures returned from the unified methods must conform to their specifications from the Manual
+
 Please, see the following document for new integrations: https://github.com/ccxt/ccxt/wiki/Requirements
+
+A quick merge of a Pull Request for a new exchange integration depends on consistency and compliance with the above unified rules and standards. Breaking one of those is the key reason for not merging a Pull Request.
 
 **If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges (we recommend certified exchanges) and try to copy the code flow and style.**
 

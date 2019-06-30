@@ -29,6 +29,7 @@ module.exports = class coinexchange extends Exchange {
                 'fetchTickers': true,
             },
             'urls': {
+                'referral': 'https://www.coinexchange.io/?r=a1669e56',
                 'logo': 'https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg',
                 'api': 'https://www.coinexchange.io/api/v1',
                 'www': 'https://www.coinexchange.io',
@@ -565,19 +566,21 @@ module.exports = class coinexchange extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetGetcurrencies (params);
-        let currencies = response['result'];
-        let precision = this.precision['amount'];
-        let result = {};
+        const response = await this.publicGetGetcurrencies (params);
+        const currencies = this.safeValue (response, 'result');
+        const precision = this.precision['amount'];
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['CurrencyID'];
-            let code = this.commonCurrencyCode (currency['TickerCode']);
-            let active = currency['WalletStatus'] === 'online';
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'CurrencyID');
+            const code = this.commonCurrencyCode (this.safeString (currency, 'TickerCode'));
+            const walletStatus = this.safeString (currency, 'WalletStatus');
+            const active = walletStatus === 'online';
+            const name = this.safeString (currency, 'Name');
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': currency['Name'],
+                'name': name,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -605,18 +608,18 @@ module.exports = class coinexchange extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetGetmarkets ();
-        let markets = response['result'];
-        let result = [];
+        const response = await this.publicGetGetmarkets (params);
+        const markets = response['result'];
+        const result = [];
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let id = market['MarketID'];
-            let baseId = this.safeString (market, 'MarketAssetCode');
-            let quoteId = this.safeString (market, 'BaseCurrencyCode');
+            const market = markets[i];
+            const id = market['MarketID'];
+            const baseId = this.safeString (market, 'MarketAssetCode');
+            const quoteId = this.safeString (market, 'BaseCurrencyCode');
             if (baseId !== undefined && quoteId !== undefined) {
-                let base = this.commonCurrencyCode (baseId);
-                let quote = this.commonCurrencyCode (quoteId);
-                let symbol = base + '/' + quote;
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                const symbol = base + '/' + quote;
                 result.push ({
                     'id': id,
                     'symbol': symbol,
@@ -635,16 +638,18 @@ module.exports = class coinexchange extends Exchange {
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = ticker['MarketID'];
-            if (marketId in this.markets_by_id)
+            const marketId = this.safeString (ticker, 'MarketID');
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-            else
+            } else {
                 symbol = marketId;
+            }
         }
-        if (market)
+        if (market) {
             symbol = market['symbol'];
-        let timestamp = this.milliseconds ();
-        let last = this.safeFloat (ticker, 'LastPrice');
+        }
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -671,21 +676,22 @@ module.exports = class coinexchange extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.publicGetGetmarketsummary (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market_id': market['id'],
-        }, params));
+        };
+        const ticker = await this.publicGetGetmarketsummary (this.extend (request, params));
         return this.parseTicker (ticker['result'], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetGetmarketsummaries (params);
-        let tickers = response['result'];
-        let result = {};
+        const response = await this.publicGetGetmarketsummaries (params);
+        const tickers = response['result'];
+        const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = this.parseTicker (tickers[i]);
-            let symbol = ticker['symbol'];
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
@@ -693,26 +699,28 @@ module.exports = class coinexchange extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetGetorderbook (this.extend ({
+        const request = {
             'market_id': this.marketId (symbol),
-        }, params));
+        };
+        const orderbook = await this.publicGetGetorderbook (this.extend (request, params));
         return this.parseOrderBook (orderbook['result'], undefined, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let success = this.safeInteger (response, 'success');
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        const success = this.safeInteger (response, 'success');
         if (success !== 1) {
-            let message = this.safeString (response, 'message', 'Error');
+            const message = this.safeString (response, 'message', 'Error');
             throw new ExchangeError (message);
         }
         return response;

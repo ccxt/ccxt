@@ -17,6 +17,7 @@ The exchange is required to implement the following list of methods and structur
 - [`fetchTicker`](https://github.com/ccxt/ccxt/wiki/Manual#price-tickers) – 24h volumes and stats + [ticker structure](https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure)
 - [`fetchOrderBook`](https://github.com/ccxt/ccxt/wiki/Manual#order-book) – L2/L3 + [orderbook structure](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure)
 - [`fetchTrades`](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions) – a list of recent public trades + [trade structure](https://github.com/ccxt/ccxt/wiki/Manual#trade-structure)
+- [`fetchOHLCV`](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts) – a list of candles or kline data for traded volumes in different timeframes 1m, 15m, 1h, 1d, ... + [OHLCV structure](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-structure
 
 ## Private API
 
@@ -41,6 +42,6 @@ The exchange is required to implement the following list of methods and structur
 - [`fetchDeposits`](https://github.com/ccxt/ccxt/wiki/Manual#transactions)
 - [`fetchWithdrawals`](https://github.com/ccxt/ccxt/wiki/Manual#transactions)
 - [`fetchTransactions`](https://github.com/ccxt/ccxt/wiki/Manual#transactions) + [transaction structure](https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure)
-- [`fetchLedger`](https://github.com/ccxt/ccxt/wiki/Manual#ledger) – transactions, transfers, referrals, cashbacks + [ledger entry structure](https://github.com/ccxt/ccxt/wiki/Manual#ledger-entry-structureccccccigfrubcntngfuhein)
+- [`fetchLedger`](https://github.com/ccxt/ccxt/wiki/Manual#ledger) – transactions, transfers, referrals, cashbacks + [ledger entry structure](https://github.com/ccxt/ccxt/wiki/Manual#ledger-entry-structure)
 - [`withdraw`](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
 - `transfer` – required if exchange has multiple accounts or sub-accounts

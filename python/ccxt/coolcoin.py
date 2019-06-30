@@ -22,6 +22,7 @@ class coolcoin (coinegg):
                 'www': 'https://www.coolcoin.com',
                 'doc': 'https://www.coolcoin.com/help.api.html',
                 'fees': 'https://www.coolcoin.com/spend.price.html',
+                'referral': 'https://www.coolcoin.com/user/register?invite_code=bhaega',
             },
             'fees': {
                 'trading': {

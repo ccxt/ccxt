@@ -13,7 +13,7 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
     // instantiate the exchange
     let gdax = new ccxt.gdax  ({ // ... or new ccxt.gdax ()
         'apiKey': '92560ffae9b8a01d012726c698bcb2f1', // standard
-        'secret': '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg==', 
+        'secret': '9aHjPmW+EtRRKN/OiZGjXh8OxyThnDL4mMDre4Ghvn8wjMniAr5jdEZJLN/knW6FHeQyiz3dPIL5ytnF0Y6Xwg==',
         'password': '6kszf4aci8r', // GDAX requires a password!
     })
 
@@ -25,15 +25,9 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
         'secret': '8340a60fb4e9fc73a169c26c7a7926f5',
     })
 
-    let quadrigacx = new ccxt.quadrigacx ({
-        'apiKey': 'jKvWkMqrOj',
-        'secret': 'f65a2e3bf3c73171ee14e389314b2f78',
-        'uid': '395037', // QuadrigaCX requires uid!
-    })
+    try {
 
-    try { 
-
-        // fetch account balance from the exchange 
+        // fetch account balance from the exchange
         let gdaxBalance = await gdax.fetchBalance ()
 
         // output the result
@@ -44,12 +38,6 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
 
         // output it
         log (hitbtc.name.green, 'balance', hitbtcBalance)
-
-        // and the last one
-        let quadrigacxBalance = await quadrigacx.fetchBalance ()
-
-        // output it
-        log (quadrigacx.name.green, 'balance', quadrigacxBalance)
 
     } catch (e) {
 
@@ -69,5 +57,5 @@ let sleep = (ms) => new Promise (resolve => setTimeout (resolve, ms))
             throw e;
         }
     }
-        
+
 }) ()

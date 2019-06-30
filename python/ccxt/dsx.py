@@ -38,6 +38,7 @@ class dsx (liqui):
                 },
                 'www': 'https://dsx.uk',
                 'doc': [
+                    'https://dsx.uk/developers/publicApiV2',
                     'https://api.dsx.uk',
                     'https://dsx.uk/api_docs/public',
                     'https://dsx.uk/api_docs/private',
@@ -198,7 +199,7 @@ class dsx (liqui):
         }
 
     def fetch_markets(self, params={}):
-        response = self.publicGetInfo()
+        response = self.publicGetInfo(params)
         markets = response['pairs']
         keys = list(markets.keys())
         result = []
@@ -277,19 +278,17 @@ class dsx (liqui):
         #       }
         #     }
         #
-        balances = response['return']
-        result = {'info': balances}
-        funds = balances['funds']
-        ids = list(funds.keys())
-        for c in range(0, len(ids)):
-            id = ids[c]
-            code = self.common_currency_code(id)
-            account = {
-                'free': funds[id]['available'],
-                'used': 0.0,
-                'total': funds[id]['total'],
-            }
-            account['used'] = account['total'] - account['free']
+        balances = self.safe_value(response, 'return')
+        result = {'info': response}
+        funds = self.safe_value(balances, 'funds')
+        currencyIds = list(funds.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.common_currency_code(currencyId)
+            balance = self.safe_value(funds, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 
@@ -743,7 +742,7 @@ class dsx (liqui):
         #
         return self.parse_orders_by_id(self.safe_value(response, 'return', {}), symbol, since, limit)
 
-    def parse_trades(self, trades, market=None, since=None, limit=None):
+    def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         result = []
         if isinstance(trades, list):
             for i in range(0, len(trades)):
@@ -753,7 +752,7 @@ class dsx (liqui):
             for i in range(0, len(ids)):
                 id = ids[i]
                 trade = self.parse_trade(trades[id], market)
-                result.append(self.extend(trade, {'id': id}))
+                result.append(self.extend(trade, {'id': id}, params))
         result = self.sort_by(result, 'timestamp')
         symbol = market['symbol'] if (market is not None) else None
         return self.filter_by_symbol_since_limit(result, symbol, since, limit)
