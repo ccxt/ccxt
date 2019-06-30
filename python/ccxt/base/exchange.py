@@ -535,25 +535,25 @@ class Exchange(object):
             response.raise_for_status()
 
         except Timeout as e:
-            raise RequestTimeout(method + ' ' + url) from e
+            raise RequestTimeout(method + ' ' + url)
 
         except TooManyRedirects as e:
-            raise ExchangeError(method + ' ' + url) from e
+            raise ExchangeError(method + ' ' + url)
 
         except SSLError as e:
-            raise ExchangeError(method + ' ' + url) from e
+            raise ExchangeError(method + ' ' + url)
 
         except HTTPError as e:
             self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
             self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
-            raise ExchangeError(method + ' ' + url) from e
+            raise ExchangeError(method + ' ' + url)
 
         except RequestException as e:  # base exception class
             error_string = str(e)
             if ('ECONNRESET' in error_string) or ('Connection aborted.' in error_string):
-                raise NetworkError(method + ' ' + url) from e
+                raise NetworkError(method + ' ' + url)
             else:
-                raise ExchangeError(method + ' ' + url) from e
+                raise ExchangeError(method + ' ' + url)
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
         self.handle_rest_response(http_response, json_response, url, method)

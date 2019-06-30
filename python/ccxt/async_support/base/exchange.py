@@ -153,16 +153,16 @@ class Exchange(BaseExchange):
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
-            raise ExchangeNotAvailable(method + ' ' + url) from e
+            raise ExchangeNotAvailable(method + ' ' + url)
 
         except concurrent.futures._base.TimeoutError as e:
-            raise RequestTimeout(method + ' ' + url) from e
+            raise RequestTimeout(method + ' ' + url)
 
         except aiohttp.client_exceptions.ClientConnectionError as e:
-            raise ExchangeNotAvailable(method + ' ' + url) from e
+            raise ExchangeNotAvailable(method + ' ' + url)
 
         except aiohttp.client_exceptions.ClientError as e:  # base exception class
-            raise ExchangeError(method + ' ' + url) from e
+            raise ExchangeError(method + ' ' + url)
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
         self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
