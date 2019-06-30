@@ -582,6 +582,7 @@ class Exchange(object):
                 message = response + ' exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
                 raise ExchangeNotAvailable(' '.join([method, url, response, message]))
             raise ExchangeError(' '.join([method, url, response]))
+
     def parse_json(self, http_response):
         try:
             if Exchange.is_json_encoded_object(http_response):
