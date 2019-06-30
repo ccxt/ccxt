@@ -104,7 +104,6 @@ class Exchange {
         'bitlish',
         'bitmarket',
         'bitmex',
-        'bitsane',
         'bitso',
         'bitstamp',
         'bitstamp1',
