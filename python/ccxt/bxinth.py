@@ -13,7 +13,7 @@ class bxinth (Exchange):
         return self.deep_extend(super(bxinth, self).describe(), {
             'id': 'bxinth',
             'name': 'BX.in.th',
-            'countries': 'TH',  # Thailand
+            'countries': ['TH'],  # Thailand
             'rateLimit': 1500,
             'has': {
                 'CORS': False,
@@ -69,96 +69,100 @@ class bxinth (Exchange):
                     'maker': 0.25 / 100,
                 },
             },
+            'commonCurrencies': {
+                'DAS': 'DASH',
+                'DOG': 'DOGE',
+                'LEO': 'LeoCoin',
+            },
         })
 
-    def fetch_markets(self):
-        markets = self.publicGetPairing()
-        keys = list(markets.keys())
+    def fetch_markets(self, params={}):
+        response = self.publicGetPairing(params)
+        keys = list(response.keys())
         result = []
-        for p in range(0, len(keys)):
-            market = markets[keys[p]]
-            id = str(market['pairing_id'])
-            base = market['secondary_currency']
-            quote = market['primary_currency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+        for i in range(0, len(keys)):
+            key = keys[i]
+            market = response[key]
+            id = self.safe_string(market, 'pairing_id')
+            baseId = self.safe_string(market, 'secondary_currency')
+            quoteId = self.safe_string(market, 'primary_currency')
+            active = self.safe_value(market, 'active')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
                 'info': market,
             })
         return result
 
-    def common_currency_code(self, currency):
-        # why would they use three letters instead of four for currency codes
-        if currency == 'DAS':
-            return 'DASH'
-        if currency == 'DOG':
-            return 'DOGE'
-        return currency
-
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostBalance()
-        balance = response['balance']
-        result = {'info': balance}
-        currencies = list(balance.keys())
-        for c in range(0, len(currencies)):
-            currency = currencies[c]
-            code = self.common_currency_code(currency)
-            account = {
-                'free': float(balance[currency]['available']),
-                'used': 0.0,
-                'total': float(balance[currency]['total']),
-            }
-            account['used'] = account['total'] - account['free']
+        response = self.privatePostBalance(params)
+        balances = self.safe_value(response, 'balance', {})
+        result = {'info': balances}
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.common_currency_code(currencyId)
+            balance = self.safe_value(balances, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetOrderbook(self.extend({
+        request = {
             'pairing': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        response = self.publicGetOrderbook(self.extend(request, params))
+        return self.parse_order_book(response)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['orderbook']['bids']['highbid']),
-            'ask': float(ticker['orderbook']['asks']['highbid']),
+            'bid': self.safe_float(ticker['orderbook']['bids'], 'highbid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker['orderbook']['asks'], 'highbid'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
-            'change': float(ticker['change']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': self.safe_float(ticker, 'change'),
             'percentage': None,
             'average': None,
-            'baseVolume': float(ticker['volume_24hours']),
+            'baseVolume': self.safe_float(ticker, 'volume_24hours'),
             'quoteVolume': None,
             'info': ticker,
         }
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        tickers = self.publicGet(params)
+        response = self.publicGet(params)
         result = {}
-        ids = list(tickers.keys())
+        ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            ticker = tickers[id]
+            ticker = response[id]
             market = self.markets_by_id[id]
             symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
@@ -167,73 +171,101 @@ class bxinth (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        tickers = self.publicGet(self.extend({
-            'pairing': market['id'],
-        }, params))
-        id = str(market['id'])
-        ticker = tickers[id]
+        id = market['id']
+        request = {
+            'pairing': id,
+        }
+        response = self.publicGet(self.extend(request, params))
+        ticker = self.safe_value(response, id)
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['trade_date'])
+    def parse_trade(self, trade, market=None):
+        date = self.safe_string(trade, 'trade_date')
+        timestamp = None
+        if date is not None:
+            timestamp = self.parse8601(date + '+07:00')  # Thailand UTC+7 offset
+        id = self.safe_string(trade, 'trade_id')
+        orderId = self.safe_string(trade, 'order_id')
+        type = None
+        side = self.safe_string(trade, 'trade_type')
+        price = self.safe_float(trade, 'rate')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
-            'id': trade['trade_id'],
+            'id': id,
             'info': trade,
-            'order': trade['order_id'],
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
-            'side': trade['trade_type'],
-            'price': float(trade['rate']),
-            'amount': float(trade['amount']),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'takerOrMaker': None,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTrade(self.extend({
+        request = {
             'pairing': market['id'],
-        }, params))
+        }
+        response = self.publicGetTrade(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        response = self.privatePostOrder(self.extend({
+        request = {
             'pairing': self.market_id(symbol),
             'type': side,
             'amount': amount,
             'rate': price,
-        }, params))
+        }
+        response = self.privatePostOrder(self.extend(request, params))
+        id = self.safe_string(response, 'order_id')
         return {
             'info': response,
-            'id': str(response['order_id']),
+            'id': id,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         pairing = None  # TODO fixme
-        return self.privatePostCancel({
+        request = {
             'order_id': id,
             'pairing': pairing,
-        })
+        }
+        return self.privatePostCancel(self.extend(request, params))
 
     def parse_order(self, order, market=None):
         side = self.safe_string(order, 'order_type')
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'pairing_id')
-            if marketId is not None:
-                if marketId in self.markets_by_id:
-                    market = self.markets_by_id[marketId]
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.parse8601(order['date'])
+        timestamp = self.parse8601(self.safe_string(order, 'date'))
         price = self.safe_float(order, 'rate')
         amount = self.safe_float(order, 'amount')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = price * amount
+        id = self.safe_string(order, 'order_id')
         return {
             'info': order,
-            'id': order['order_id'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
@@ -241,6 +273,7 @@ class bxinth (Exchange):
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': cost,
         }
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -252,7 +285,7 @@ class bxinth (Exchange):
             request['pairing'] = market['id']
         response = self.privatePostGetorders(self.extend(request, params))
         orders = self.parse_orders(response['orders'], market, since, limit)
-        return self.filter_orders_by_symbol(orders, symbol)
+        return self.filter_by_symbol(orders, symbol)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

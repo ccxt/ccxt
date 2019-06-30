@@ -11,7 +11,7 @@ module.exports = class vaultoro extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'vaultoro',
             'name': 'Vaultoro',
-            'countries': 'CH',
+            'countries': [ 'CH' ],
             'rateLimit': 1000,
             'version': '1',
             'has': {
@@ -22,6 +22,9 @@ module.exports = class vaultoro extends Exchange {
                 'api': 'https://api.vaultoro.com',
                 'www': 'https://www.vaultoro.com',
                 'doc': 'https://api.vaultoro.com',
+            },
+            'commonCurrencies': {
+                'GLD': 'Gold',
             },
             'api': {
                 'public': {
@@ -55,16 +58,16 @@ module.exports = class vaultoro extends Exchange {
         });
     }
 
-    async fetchMarkets () {
-        let result = [];
-        let markets = await this.publicGetMarkets ();
-        let market = markets['data'];
-        let base = market['BaseCurrency'];
-        let quote = market['MarketCurrency'];
-        let symbol = base + '/' + quote;
-        let baseId = base;
-        let quoteId = quote;
-        let id = market['MarketName'];
+    async fetchMarkets (params = {}) {
+        const result = [];
+        const response = await this.publicGetMarkets (params);
+        const market = this.safeValue (response, 'data');
+        const baseId = this.safeString (market, 'MarketCurrency');
+        const quoteId = this.safeString (market, 'BaseCurrency');
+        const base = this.commonCurrencyCode (baseId);
+        const quote = this.commonCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        const id = this.safeString (market, 'MarketName');
         result.push ({
             'id': id,
             'symbol': symbol,
@@ -79,102 +82,119 @@ module.exports = class vaultoro extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalance ();
-        let balances = response['data'];
-        let result = { 'info': balances };
-        for (let b = 0; b < balances.length; b++) {
-            let balance = balances[b];
-            let currency = balance['currency_code'];
-            let uppercase = currency.toUpperCase ();
-            let free = balance['cash'];
-            let used = balance['reserved'];
-            let total = this.sum (free, used);
-            let account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
-            result[uppercase] = account;
+        const response = await this.privateGetBalance (params);
+        const balances = this.safeValue (response, 'data');
+        const result = { 'info': balances };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency_code');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId.toUpperCase ());
+            }
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'cash');
+            account['used'] = this.safeFloat (balance, 'reserved');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetOrderbook (params);
-        let orderbook = {
+        const response = await this.publicGetOrderbook (params);
+        const orderbook = {
             'bids': response['data'][0]['b'],
             'asks': response['data'][1]['s'],
         };
-        let result = this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        return result;
+        return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let quote = await this.publicGetBidandask (params);
-        let bidsLength = quote['bids'].length;
-        let bid = quote['bids'][bidsLength - 1];
-        let ask = quote['asks'][0];
-        let response = await this.publicGetMarkets (params);
-        let ticker = response['data'];
-        let timestamp = this.milliseconds ();
+        const quote = await this.publicGetBidandask (params);
+        const bidsLength = quote['bids'].length;
+        const bid = quote['bids'][bidsLength - 1];
+        const ask = quote['asks'][0];
+        const response = await this.publicGetMarkets (params);
+        const ticker = this.safeValue (response, 'data');
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': parseFloat (ticker['24hHigh']),
-            'low': parseFloat (ticker['24hLow']),
+            'high': this.safeFloat (ticker, '24hHigh'),
+            'low': this.safeFloat (ticker, '24hLow'),
             'bid': bid[0],
+            'bidVolume': undefined,
             'ask': ask[0],
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': parseFloat (ticker['LastPrice']),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': parseFloat (ticker['24hVolume']),
+            'quoteVolume': this.safeFloat (ticker, '24hVolume'),
             'info': ticker,
         };
     }
 
-    parseTrade (trade, market) {
-        let timestamp = this.parse8601 (trade['Time']);
+    parseTrade (trade, market = undefined) {
+        const timestamp = this.parse8601 (this.safeString (trade, 'Time'));
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const price = this.safeFloat (trade, 'Gold_Price');
+        const amount = this.safeFloat (trade, 'Gold_Amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'id': undefined,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': undefined,
-            'price': trade['Gold_Price'],
-            'amount': trade['Gold_Amount'],
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTransactionsDay (params);
+        const market = this.market (symbol);
+        const response = await this.publicGetTransactionsDay (params);
         return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'privatePost' + this.capitalize (side) + 'SymbolType';
-        let response = await this[method] (this.extend ({
+        const market = this.market (symbol);
+        const method = 'privatePost' + this.capitalize (side) + 'SymbolType';
+        const request = {
             'symbol': market['quoteId'].toLowerCase (),
             'type': type,
             'gld': amount,
             'price': price || 1,
-        }, params));
+        };
+        const response = await this[method] (this.extend (request, params));
         return {
             'info': response,
             'id': response['data']['Order_ID'],
@@ -183,9 +203,10 @@ module.exports = class vaultoro extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        return await this.privatePostCancelId (this.extend ({
+        const request = {
             'id': id,
-        }, params));
+        };
+        return await this.privatePostCancelId (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -194,9 +215,9 @@ module.exports = class vaultoro extends Exchange {
             url += path;
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            const nonce = this.nonce ();
             url += this.version + '/' + this.implodeParams (path, params);
-            let query = this.extend ({
+            const query = this.extend ({
                 'nonce': nonce,
                 'apikey': this.apiKey,
             }, this.omit (params, this.extractParams (path)));

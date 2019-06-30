@@ -6,8 +6,8 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NotSupported
 
 
 class coinspot (Exchange):
@@ -16,7 +16,7 @@ class coinspot (Exchange):
         return self.deep_extend(super(coinspot, self).describe(), {
             'id': 'coinspot',
             'name': 'CoinSpot',
-            'countries': 'AU',  # Australia
+            'countries': ['AU'],  # Australia
             'rateLimit': 1000,
             'has': {
                 'CORS': False,
@@ -30,6 +30,7 @@ class coinspot (Exchange):
                 },
                 'www': 'https://www.coinspot.com.au',
                 'doc': 'https://www.coinspot.com.au/api',
+                'referral': 'https://www.coinspot.com.au/register?code=PJURCU',
             },
             'api': {
                 'public': {
@@ -55,60 +56,66 @@ class coinspot (Exchange):
                 },
             },
             'markets': {
-                'BTC/AUD': {'id': 'BTC', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD'},
-                'LTC/AUD': {'id': 'LTC', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD'},
-                'DOGE/AUD': {'id': 'DOGE', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD'},
+                'BTC/AUD': {'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud'},
+                'LTC/AUD': {'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud'},
+                'DOGE/AUD': {'id': 'doge', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', 'baseId': 'doge', 'quoteId': 'aud'},
+            },
+            'commonCurrencies': {
+                'DRK': 'DASH',
             },
         })
 
     def fetch_balance(self, params={}):
-        response = self.privatePostMyBalances()
+        self.load_markets()
+        response = self.privatePostMyBalances(params)
         result = {'info': response}
-        if 'balance' in response:
-            balances = response['balance']
-            currencies = list(balances.keys())
-            for c in range(0, len(currencies)):
-                currency = currencies[c]
-                uppercase = currency.upper()
-                account = {
-                    'free': balances[currency],
-                    'used': 0.0,
-                    'total': balances[currency],
-                }
-                if uppercase == 'DRK':
-                    uppercase = 'DASH'
-                result[uppercase] = account
+        balances = self.safe_value(response, 'balance', {})
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            uppercase = currencyId.upper()
+            code = self.common_currency_code(uppercase)
+            total = self.safe_float(balances, currencyId)
+            account = {
+                'free': total,
+                'used': 0.0,
+                'total': total,
+            }
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        orderbook = self.privatePostOrders(self.extend({
+        request = {
             'cointype': market['id'],
-        }, params))
-        result = self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        }
+        orderbook = self.privatePostOrders(self.extend(request, params))
+        return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'rate', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
+        self.load_markets()
         response = self.publicGetLatest(params)
         id = self.market_id(symbol)
         id = id.lower()
         ticker = response['prices'][id]
         timestamp = self.milliseconds()
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['bid']),
-            'ask': float(ticker['ask']),
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -118,20 +125,26 @@ class coinspot (Exchange):
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        return self.privatePostOrdersHistory(self.extend({
-            'cointype': self.market_id(symbol),
-        }, params))
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'cointype': market['id'],
+        }
+        response = self.privatePostOrdersHistory(self.extend(request, params))
+        trades = self.safe_value(response, 'orders', [])
+        return self.parse_trades(trades, market, since, limit)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
         method = 'privatePostMy' + self.capitalize(side)
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        order = {
-            'cointype': self.market_id(market),
+        request = {
+            'cointype': self.market_id(symbol),
             'amount': amount,
             'rate': price,
         }
-        return getattr(self, method)(self.extend(order, params))
+        return getattr(self, method)(self.extend(request, params))
 
     def cancel_order(self, id, symbol=None, params={}):
         raise NotSupported(self.id + ' cancelOrder() is not fully implemented yet')

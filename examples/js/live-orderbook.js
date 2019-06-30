@@ -46,6 +46,7 @@ let printOrderBook = async (id, symbol, depth) => {
             const priceVolumeHelper = color => ([price, amount]) => ({
                 price: price.toFixed (pricePrecision)[color],
                 amount: amount.toFixed (amountPrecision)[color],
+                '  ': '  ',
             })
 
             const cursorUp = '\u001b[1A'

@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 
 
 class itbit (Exchange):
@@ -14,7 +15,7 @@ class itbit (Exchange):
         return self.deep_extend(super(itbit, self).describe(), {
             'id': 'itbit',
             'name': 'itBit',
-            'countries': 'US',
+            'countries': ['US'],
             'rateLimit': 2000,
             'version': 'v1',
             'has': {
@@ -45,6 +46,7 @@ class itbit (Exchange):
                         'wallets/{walletId}/balances/{currencyCode}',
                         'wallets/{walletId}/funding_history',
                         'wallets/{walletId}/trades',
+                        'wallets/{walletId}/orders',
                         'wallets/{walletId}/orders/{id}',
                     ],
                     'post': [
@@ -64,45 +66,60 @@ class itbit (Exchange):
                 'BTC/USD': {'id': 'XBTUSD', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD'},
                 'BTC/SGD': {'id': 'XBTSGD', 'symbol': 'BTC/SGD', 'base': 'BTC', 'quote': 'SGD'},
                 'BTC/EUR': {'id': 'XBTEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
+                'ETH/USD': {'id': 'ETHUSD', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD'},
+                'ETH/EUR': {'id': 'ETHEUR', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR'},
+                'ETH/SGD': {'id': 'ETHSGD', 'symbol': 'ETH/SGD', 'base': 'ETH', 'quote': 'SGD'},
             },
             'fees': {
                 'trading': {
-                    'maker': 0,
-                    'taker': 0.2 / 100,
+                    'maker': -0.03 / 100,
+                    'taker': 0.35 / 100,
                 },
+            },
+            'commonCurrencies': {
+                'XBT': 'BTC',
             },
         })
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbook = self.publicGetMarketsSymbolOrderBook(self.extend({
+        self.load_markets()
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
+        }
+        orderbook = self.publicGetMarketsSymbolOrderBook(self.extend(request, params))
         return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol, params={}):
-        ticker = self.publicGetMarketsSymbolTicker(self.extend({
+        self.load_markets()
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
-        serverTimeUTC = ('serverTimeUTC' in list(ticker.keys()))
+        }
+        ticker = self.publicGetMarketsSymbolTicker(self.extend(request, params))
+        serverTimeUTC = self.safe_string(ticker, 'serverTimeUTC')
         if not serverTimeUTC:
             raise ExchangeError(self.id + ' fetchTicker returned a bad response: ' + self.json(ticker))
-        timestamp = self.parse8601(ticker['serverTimeUTC'])
-        vwap = float(ticker['vwap24h'])
-        baseVolume = float(ticker['volume24h'])
-        quoteVolume = baseVolume * vwap
+        timestamp = self.parse8601(serverTimeUTC)
+        vwap = self.safe_float(ticker, 'vwap24h')
+        baseVolume = self.safe_float(ticker, 'volume24h')
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
+        last = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high24h']),
-            'low': float(ticker['low24h']),
+            'high': self.safe_float(ticker, 'high24h'),
+            'low': self.safe_float(ticker, 'low24h'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': vwap,
-            'open': float(ticker['openToday']),
-            'close': None,
-            'first': None,
-            'last': float(ticker['lastPrice']),
+            'open': self.safe_float(ticker, 'openToday'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
@@ -111,47 +128,331 @@ class itbit (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['timestamp'])
-        id = str(trade['matchNumber'])
-        return {
+    def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #     {
+        #         timestamp: "2015-05-22T17:45:34.7570000Z",
+        #         matchNumber: "5CR1JEUBBM8J",
+        #         price: "351.45000000",
+        #         amount: "0.00010000"
+        #     }
+        #
+        # fetchMyTrades(private)
+        #
+        #     {
+        #         "orderId": "248ffda4-83a0-4033-a5bb-8929d523f59f",
+        #         "timestamp": "2015-05-11T14:48:01.9870000Z",
+        #         "instrument": "XBTUSD",
+        #         "direction": "buy",                      # buy or sell
+        #         "currency1": "XBT",                      # base currency
+        #         "currency1Amount": "0.00010000",         # order amount in base currency
+        #         "currency2": "USD",                      # quote currency
+        #         "currency2Amount": "0.0250530000000000",  # order cost in quote currency
+        #         "rate": "250.53000000",
+        #         "commissionPaid": "0.00000000",   # net trade fee paid after using any available rebate balance
+        #         "commissionCurrency": "USD",
+        #         "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        #         "rebateCurrency": "USD",
+        #         "executionId": "23132"
+        #     }
+        #
+        id = self.safe_string_2(trade, 'executionId', 'matchNumber')
+        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
+        side = self.safe_string(trade, 'direction')
+        orderId = self.safe_string(trade, 'orderId')
+        feeCost = self.safe_float(trade, 'commissionPaid')
+        feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
+        feeCurrency = self.common_currency_code(feeCurrencyId)
+        rebatesApplied = self.safe_float(trade, 'rebatesApplied')
+        if rebatesApplied is not None:
+            rebatesApplied = -rebatesApplied
+        rebateCurrencyId = self.safe_string(trade, 'rebateCurrency')
+        rebateCurrency = self.common_currency_code(rebateCurrencyId)
+        price = self.safe_float_2(trade, 'price', 'rate')
+        amount = self.safe_float_2(trade, 'currency1Amount', 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        symbol = None
+        marketId = self.safe_string(trade, 'instrument')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId = self.safe_string(trade, 'currency1')
+                quoteId = self.safe_string(trade, 'currency2')
+                base = self.common_currency_code(baseId)
+                quote = self.common_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
+        result = {
             'info': trade,
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'id': id,
-            'order': id,
+            'symbol': symbol,
+            'order': orderId,
             'type': None,
-            'side': None,
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'side': side,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         }
+        if feeCost is not None:
+            if rebatesApplied is not None:
+                if feeCurrency == rebateCurrency:
+                    feeCost = self.sum(feeCost, rebatesApplied)
+                    result['fee'] = {
+                        'cost': feeCost,
+                        'currency': feeCurrency,
+                    }
+                else:
+                    result['fees'] = [
+                        {
+                            'cost': feeCost,
+                            'currency': feeCurrency,
+                        },
+                        {
+                            'cost': rebatesApplied,
+                            'currency': rebateCurrency,
+                        },
+                    ]
+            else:
+                result['fee'] = {
+                    'cost': feeCost,
+                    'currency': feeCurrency,
+                }
+        if not('fee' in list(result.keys())):
+            if not('fees' in list(result.keys())):
+                result['fee'] = None
+        return result
+
+    def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        self.load_markets()
+        walletId = self.safe_string(params, 'walletId')
+        if walletId is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a walletId parameter')
+        request = {
+            'walletId': walletId,
+        }
+        if limit is not None:
+            request['perPage'] = limit  # default 50, max 50
+        response = self.privateGetWalletsWalletIdFundingHistory(self.extend(request, params))
+        #     {bankName: 'USBC(usd)',
+        #         withdrawalId: 94740,
+        #         holdingPeriodCompletionDate: '2018-04-16T07:57:05.9606869',
+        #         time: '2018-04-16T07:57:05.9600000',
+        #         currency: 'USD',
+        #         transactionType: 'Withdrawal',
+        #         amount: '2186.72000000',
+        #         walletName: 'Wallet',
+        #         status: 'completed'},
+        #
+        #     {"time": "2018-01-02T19:52:22.4176503",
+        #     "amount": "0.50000000",
+        #     "status": "completed",
+        #     "txnHash": "1b6fff67ed83cb9e9a38ca4976981fc047322bc088430508fe764a127d3ace95",
+        #     "currency": "XBT",
+        #     "walletName": "Wallet",
+        #     "transactionType": "Deposit",
+        #     "destinationAddress": "3AAWTH9et4e8o51YKp9qPpmujrNXKwHWNX"}
+        items = response['fundingHistory']
+        result = []
+        for i in range(0, len(items)):
+            item = items[i]
+            time = self.safe_string(item, 'time')
+            timestamp = self.parse8601(time)
+            currency = self.safe_string(item, 'currency')
+            destinationAddress = self.safe_string(item, 'destinationAddress')
+            txnHash = self.safe_string(item, 'txnHash')
+            transactionType = self.safe_string(item, 'transactionType').lower()
+            transactionStatus = self.safe_string(item, 'status')
+            status = self.parse_transfer_status(transactionStatus)
+            result.append({
+                'id': self.safe_string(item, 'withdrawalId'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+                'currency': self.common_currency_code(currency),
+                'address': destinationAddress,
+                'tag': None,
+                'txid': txnHash,
+                'type': transactionType,
+                'status': status,
+                'amount': self.safe_float(item, 'amount'),
+                'fee': None,
+                'info': item,
+            })
+        return result
+
+    def parse_transfer_status(self, status):
+        options = {
+            'cancelled': 'canceled',
+            'completed': 'ok',
+        }
+        return self.safe_string(options, status, 'pending')
+
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
+        walletId = self.safe_string(params, 'walletId')
+        if walletId is None:
+            raise ExchangeError(self.id + ' fetchMyTrades requires a walletId parameter')
+        request = {
+            'walletId': walletId,
+        }
+        if since is not None:
+            request['rangeStart'] = self.ymdhms(since, 'T')
+        if limit is not None:
+            request['perPage'] = limit  # default 50, max 50
+        response = self.privateGetWalletsWalletIdTrades(self.extend(request, params))
+        #
+        #     {
+        #         "totalNumberOfRecords": "2",
+        #         "currentPageNumber": "1",
+        #         "latestExecutionId": "332",  # most recent execution at time of response
+        #         "recordsPerPage": "50",
+        #         "tradingHistory": [
+        #             {
+        #                 "orderId": "248ffda4-83a0-4033-a5bb-8929d523f59f",
+        #                 "timestamp": "2015-05-11T14:48:01.9870000Z",
+        #                 "instrument": "XBTUSD",
+        #                 "direction": "buy",                      # buy or sell
+        #                 "currency1": "XBT",                      # base currency
+        #                 "currency1Amount": "0.00010000",         # order amount in base currency
+        #                 "currency2": "USD",                      # quote currency
+        #                 "currency2Amount": "0.0250530000000000",  # order cost in quote currency
+        #                 "rate": "250.53000000",
+        #                 "commissionPaid": "0.00000000",   # net trade fee paid after using any available rebate balance
+        #                 "commissionCurrency": "USD",
+        #                 "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        #                 "rebateCurrency": "USD",
+        #                 "executionId": "23132"
+        #             },
+        #         ],
+        #     }
+        #
+        trades = self.safe_value(response, 'tradingHistory', [])
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetMarketsSymbolTrades(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        return self.parse_trades(response['recentTrades'], market, since, limit)
+        }
+        response = self.publicGetMarketsSymbolTrades(self.extend(request, params))
+        #
+        #     {
+        #         count: 3,
+        #         recentTrades: [
+        #             {
+        #                 timestamp: "2015-05-22T17:45:34.7570000Z",
+        #                 matchNumber: "5CR1JEUBBM8J",
+        #                 price: "351.45000000",
+        #                 amount: "0.00010000"
+        #             },
+        #         ]
+        #     }
+        #
+        trades = self.safe_value(response, 'recentTrades', [])
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_balance(self, params={}):
-        response = self.privateGetBalances()
-        balances = response['balances']
+        self.load_markets()
+        response = self.fetch_wallets(params)
+        balances = response[0]['balances']
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
-            account = {
-                'free': float(balance['availableBalance']),
-                'used': 0.0,
-                'total': float(balance['totalBalance']),
-            }
-            account['used'] = account['total'] - account['free']
-            result[currency] = account
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'availableBalance')
+            account['total'] = self.safe_float(balance, 'totalBalance')
+            result[code] = account
         return self.parse_balance(result)
 
-    def fetch_wallets(self):
-        return self.privateGetWallets()
+    def fetch_wallets(self, params={}):
+        if not self.uid:
+            raise AuthenticationError(self.id + ' fetchWallets requires uid API credential')
+        request = {
+            'userId': self.uid,
+        }
+        return self.privateGetWallets(self.extend(request, params))
+
+    def fetch_wallet(self, walletId, params={}):
+        request = {
+            'walletId': walletId,
+        }
+        return self.privateGetWalletsWalletId(self.extend(request, params))
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        request = {
+            'status': 'open',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        request = {
+            'status': 'filled',
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        walletIdInParams = ('walletId' in list(params.keys()))
+        if not walletIdInParams:
+            raise ExchangeError(self.id + ' fetchOrders requires a walletId parameter')
+        walletId = params['walletId']
+        request = {
+            'walletId': walletId,
+        }
+        response = self.privateGetWalletsWalletIdOrders(self.extend(request, params))
+        orders = self.parse_orders(response, None, since, limit)
+        return orders
+
+    def parse_order(self, order, market=None):
+        side = order['side']
+        type = order['type']
+        symbol = self.markets_by_id[order['instrument']]['symbol']
+        timestamp = self.parse8601(order['createdTime'])
+        amount = self.safe_float(order, 'amount')
+        filled = self.safe_float(order, 'amountFilled')
+        remaining = amount - filled
+        fee = None
+        price = self.safe_float(order, 'price')
+        average = self.safe_float(order, 'volumeWeightedAveragePrice')
+        cost = filled * average
+        return {
+            'id': order['id'],
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': order['status'],
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'average': average,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'fee': fee,
+            # 'trades': self.parse_trades(order['trades'], market),
+        }
 
     def nonce(self):
         return self.milliseconds()
@@ -165,47 +466,57 @@ class itbit (Exchange):
         amount = str(amount)
         price = str(price)
         market = self.market(symbol)
-        order = {
+        request = {
             'side': side,
             'type': type,
-            'currency': market['base'],
+            'currency': market['id'].replace(market['quote'], ''),
             'amount': amount,
             'display': amount,
             'price': price,
             'instrument': market['id'],
         }
-        response = self.privatePostTradeAdd(self.extend(order, params))
+        response = self.privatePostWalletsWalletIdOrders(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],
         }
 
+    def fetch_order(self, id, symbol=None, params={}):
+        walletIdInParams = ('walletId' in list(params.keys()))
+        if not walletIdInParams:
+            raise ExchangeError(self.id + ' fetchOrder requires a walletId parameter')
+        request = {
+            'id': id,
+        }
+        response = self.privateGetWalletsWalletIdOrdersId(self.extend(request, params))
+        return self.parse_order(response)
+
     def cancel_order(self, id, symbol=None, params={}):
         walletIdInParams = ('walletId' in list(params.keys()))
         if not walletIdInParams:
             raise ExchangeError(self.id + ' cancelOrder requires a walletId parameter')
-        return self.privateDeleteWalletsWalletIdOrdersId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        return self.privateDeleteWalletsWalletIdOrdersId(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        else:
+        if method == 'GET' and query:
+            url += '?' + self.urlencode(query)
+        if method == 'POST' and query:
+            body = self.json(query)
+        if api == 'private':
             self.check_required_credentials()
-            if query:
-                body = self.json(query)
-            else:
-                body = ''
             nonce = str(self.nonce())
             timestamp = nonce
-            auth = [method, url, body, nonce, timestamp]
-            message = nonce + self.json(auth)
+            authBody = body if (method == 'POST') else ''
+            auth = [method, url, authBody, nonce, timestamp]
+            message = nonce + self.json(auth).replace('\\/', '/')
             hash = self.hash(self.encode(message), 'sha256', 'binary')
-            binhash = self.binary_concat(url, hash)
+            binaryUrl = self.encode(url)
+            binhash = self.binary_concat(binaryUrl, hash)
             signature = self.hmac(binhash, self.encode(self.secret), hashlib.sha512, 'base64')
             headers = {
                 'Authorization': self.apiKey + ':' + signature,

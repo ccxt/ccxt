@@ -10,11 +10,11 @@ let printSupportedExchanges = function () {
 }
 
 let printUsage = function () {
-    log ('Usage: node', process.argv[1], 'exchange'.green, 'symbol'.yellow)
+    log ('Usage: node', process.argv[1], 'exchange'.green, 'symbol'.yellow, '[rateLimit]'.magenta)
     printSupportedExchanges ()
 }
 
-let printTicker = async (id, symbol) => {
+let printTicker = async (id, symbol, rateLimit = undefined) => {
 
     // check if the exchange is supported by ccxt
     let exchangeFound = ccxt.exchanges.indexOf (id) > -1
@@ -23,7 +23,12 @@ let printTicker = async (id, symbol) => {
         log ('Instantiating', id.green, 'exchange')
 
         // instantiate the exchange by id
-        let exchange = new ccxt[id] ({ enableRateLimit: true })
+        let exchange = new ccxt[id] ({ enableRateLimit: true,  })
+
+        exchange.rateLimit = rateLimit ? rateLimit : exchange.rateLimit
+        exchange.tokenBucket.refillRate = 1 / exchange.rateLimit
+
+        log.green ('Rate limit:', exchange.rateLimit.toString ().bright)
 
         // load all markets from the exchange
         let markets = await exchange.loadMarkets ()
@@ -58,7 +63,8 @@ let printTicker = async (id, symbol) => {
 
         const id = process.argv[2]
         const symbol = process.argv[3].toUpperCase ()
-        await printTicker (id, symbol)
+        const rateLimit = process.argv[4] ? parseInt (process.argv[4]) : undefined
+        await printTicker (id, symbol, rateLimit)
 
     } else {
 

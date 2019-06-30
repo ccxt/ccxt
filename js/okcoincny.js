@@ -11,7 +11,7 @@ module.exports = class okcoincny extends okcoinusd {
         return this.deepExtend (super.describe (), {
             'id': 'okcoincny',
             'name': 'OKCoin CNY',
-            'countries': 'CN',
+            'countries': [ 'CN' ],
             'has': {
                 'CORS': false,
             },
@@ -19,11 +19,12 @@ module.exports = class okcoincny extends okcoinusd {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766792-8be9157a-5ee5-11e7-926c-6d69b8d3378d.jpg',
                 'api': {
                     'web': 'https://www.okcoin.cn',
-                    'public': 'https://www.okcoin.cn/pai',
+                    'public': 'https://www.okcoin.cn/api',
                     'private': 'https://www.okcoin.cn/api',
                 },
                 'www': 'https://www.okcoin.cn',
                 'doc': 'https://www.okcoin.cn/rest_getStarted.html',
+                'referral': 'https://www.okcoin.cn',
             },
             'markets': {
                 'BTC/CNY': { 'id': 'btc_cny', 'symbol': 'BTC/CNY', 'base': 'BTC', 'quote': 'CNY', 'type': 'spot', 'spot': true, 'future': false },

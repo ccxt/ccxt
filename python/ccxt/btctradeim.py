@@ -10,19 +10,26 @@ from ccxt.base.errors import ExchangeError
 class btctradeim (coinegg):
 
     def describe(self):
-        return self.deep_extend(super(btctradeim, self).describe(), {
+        result = self.deep_extend(super(btctradeim, self).describe(), {
             'id': 'btctradeim',
             'name': 'BtcTrade.im',
-            'countries': 'HK',
+            'countries': ['HK'],
             'urls': {
+                'referral': 'https://m.baobi.com/invite?inv=1765b2',
                 'logo': 'https://user-images.githubusercontent.com/1294454/36770531-c2142444-1c5b-11e8-91e2-a4d90dc85fe8.jpg',
                 'api': {
-                    'web': 'https://www.btctrade.im/coin',
+                    'web': 'https://api.btctrade.im/coin',
                     'rest': 'https://api.btctrade.im/api/v1',
                 },
                 'www': 'https://www.btctrade.im',
                 'doc': 'https://www.btctrade.im/help.api.html',
                 'fees': 'https://www.btctrade.im/spend.price.html',
+            },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
             },
             'fees': {
                 'trading': {
@@ -35,7 +42,15 @@ class btctradeim (coinegg):
                     },
                 },
             },
+            # see the fix below
+            #     'options': {
+            #         'quoteIds': ['btc', 'eth', 'usc'],
+            #     },
         })
+        # a fix for PHP array_merge not overwriting "lists"(integer-indexed arrays)
+        # https://github.com/ccxt/ccxt/issues/3343
+        result['options']['quoteIds'] = ['btc', 'eth', 'usc']
+        return result
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)

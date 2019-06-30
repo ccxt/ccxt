@@ -63,7 +63,7 @@ class paymium (Exchange):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
+                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur'},
             },
             'fees': {
                 'trading': {
@@ -74,39 +74,44 @@ class paymium (Exchange):
         })
 
     def fetch_balance(self, params={}):
-        balances = self.privateGetUser()
-        result = {'info': balances}
+        self.load_markets()
+        response = self.privateGetUser(params)
+        result = {'info': response}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
-            currency = currencies[i]
-            lowercase = currency.lower()
-            account = self.account()
-            balance = 'balance_' + lowercase
-            locked = 'locked_' + lowercase
-            if balance in balances:
-                account['free'] = balances[balance]
-            if locked in balances:
-                account['used'] = balances[locked]
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            code = currencies[i]
+            currencyId = self.currencyId(code)
+            free = 'balance_' + currencyId
+            if free in response:
+                account = self.account()
+                used = 'locked_' + currencyId
+                account['free'] = self.safe_float(response, free)
+                account['used'] = self.safe_float(response, used)
+                result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        orderbook = self.publicGetDataIdDepth(self.extend({
+        self.load_markets()
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        result = self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        return result
+        }
+        response = self.publicGetDataIdDepth(self.extend(request, params))
+        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
-        ticker = self.publicGetDataIdTicker(self.extend({
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        timestamp = ticker['at'] * 1000
-        vwap = float(ticker['vwap'])
-        baseVolume = float(ticker['volume'])
-        quoteVolume = baseVolume * vwap
+        }
+        ticker = self.publicGetDataIdTicker(self.extend(request, params))
+        timestamp = self.safe_integer(ticker, 'at')
+        if timestamp is not None:
+            timestamp *= 1000
+        vwap = self.safe_float(ticker, 'vwap')
+        baseVolume = self.safe_float(ticker, 'volume')
+        quoteVolume = None
+        if baseVolume is not None and vwap is not None:
+            quoteVolume = baseVolume * vwap
+        last = self.safe_float(ticker, 'price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -114,12 +119,14 @@ class paymium (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': vwap,
             'open': self.safe_float(ticker, 'open'),
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'price'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': self.safe_float(ticker, 'variation'),
             'average': None,
@@ -129,47 +136,67 @@ class paymium (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = int(trade['created_at_int']) * 1000
-        volume = 'traded_' + market['base'].lower()
+        timestamp = self.safe_integer(trade, 'created_at_int')
+        if timestamp is not None:
+            timestamp *= 1000
+        id = self.safe_string(trade, 'uuid')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        side = self.safe_string(trade, 'side')
+        price = self.safe_float(trade, 'price')
+        amountField = 'traded_' + market['base'].lower()
+        amount = self.safe_float(trade, amountField)
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         return {
             'info': trade,
-            'id': trade['uuid'],
+            'id': id,
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
-            'side': trade['side'],
-            'price': trade['price'],
-            'amount': trade[volume],
+            'side': side,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetDataIdTrades(self.extend({
+        request = {
             'id': market['id'],
-        }, params))
+        }
+        response = self.publicGetDataIdTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
-    def create_order(self, market, type, side, amount, price=None, params={}):
-        order = {
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
+        self.load_markets()
+        request = {
             'type': self.capitalize(type) + 'Order',
-            'currency': self.market_id(market),
+            'currency': self.market_id(symbol),
             'direction': side,
             'amount': amount,
         }
-        if type == 'market':
-            order['price'] = price
-        response = self.privatePostUserOrders(self.extend(order, params))
+        if type != 'market':
+            request['price'] = price
+        response = self.privatePostUserOrders(self.extend(request, params))
         return {
             'info': response,
             'id': response['uuid'],
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelOrder(self.extend({
-            'orderNumber': id,
-        }, params))
+        request = {
+            'UUID': id,
+        }
+        return self.privateDeleteUserOrdersUUIDCancel(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
@@ -179,12 +206,15 @@ class paymium (Exchange):
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
-            body = self.json(params)
             nonce = str(self.nonce())
-            auth = nonce + url + body
+            auth = nonce + url
+            if method == 'POST':
+                if query:
+                    body = self.json(query)
+                    auth += body
             headers = {
                 'Api-Key': self.apiKey,
-                'Api-Signature': self.hmac(self.encode(auth), self.secret),
+                'Api-Signature': self.hmac(self.encode(auth), self.encode(self.secret)),
                 'Api-Nonce': nonce,
                 'Content-Type': 'application/json',
             }

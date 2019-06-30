@@ -11,7 +11,7 @@ module.exports = class surbitcoin extends foxbit {
         return this.deepExtend (super.describe (), {
             'id': 'surbitcoin',
             'name': 'SurBitcoin',
-            'countries': 'VE',
+            'countries': [ 'VE' ],
             'has': {
                 'CORS': false,
             },
@@ -23,6 +23,9 @@ module.exports = class surbitcoin extends foxbit {
                 },
                 'www': 'https://surbitcoin.com',
                 'doc': 'https://blinktrade.com/docs',
+            },
+            'options': {
+                'brokerId': '1', // https://blinktrade.com/docs/#brokers
             },
         });
     }

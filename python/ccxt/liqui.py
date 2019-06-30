@@ -12,13 +12,14 @@ try:
 except NameError:
     basestring = str  # Python 2
 import hashlib
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class liqui (Exchange):
@@ -27,7 +28,7 @@ class liqui (Exchange):
         return self.deep_extend(super(liqui, self).describe(), {
             'id': 'liqui',
             'name': 'Liqui',
-            'countries': 'UA',
+            'countries': ['UA'],
             'rateLimit': 3000,
             'version': '3',
             'userAgent': self.userAgents['chrome'],
@@ -52,6 +53,12 @@ class liqui (Exchange):
                 'www': 'https://liqui.io',
                 'doc': 'https://liqui.io/api',
                 'fees': 'https://liqui.io/fee',
+            },
+            'status': {
+                'status': 'shutdown',
+                'updated': None,
+                'eta': None,
+                'url': None,
             },
             'api': {
                 'public': {
@@ -89,15 +96,38 @@ class liqui (Exchange):
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH',
+            },
             'exceptions': {
-                '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
-                '804': InvalidOrder,  # "Count could not be more than 10000."(buying above maxAmount)
-                '805': InvalidOrder,  # "price could not be less than X."(minPrice violation on buy & sell)
-                '806': InvalidOrder,  # "price could not be more than X."(maxPrice violation on buy & sell)
-                '807': InvalidOrder,  # "cost could not be less than X."(minCost violation on buy & sell)
-                '831': InsufficientFunds,  # "Not enougth X to create buy order."(buying with balance.quote < order.cost)
-                '832': InsufficientFunds,  # "Not enougth X to create sell order."(selling with balance.base < order.amount)
-                '833': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                'exact': {
+                    '803': InvalidOrder,  # "Count could not be less than 0.001."(selling below minAmount)
+                    '804': InvalidOrder,  # "Count could not be more than 10000."(buying above maxAmount)
+                    '805': InvalidOrder,  # "price could not be less than X."(minPrice violation on buy & sell)
+                    '806': InvalidOrder,  # "price could not be more than X."(maxPrice violation on buy & sell)
+                    '807': InvalidOrder,  # "cost could not be less than X."(minCost violation on buy & sell)
+                    '831': InsufficientFunds,  # "Not enougth X to create buy order."(buying with balance.quote < order.cost)
+                    '832': InsufficientFunds,  # "Not enougth X to create sell order."(selling with balance.base < order.amount)
+                    '833': OrderNotFound,  # "Order with id X was not found."(cancelling non-existent, closed and cancelled order)
+                },
+                'broad': {
+                    'Invalid pair name': ExchangeError,  # {"success":0,"error":"Invalid pair name: btc_eth"}
+                    'invalid api key': AuthenticationError,
+                    'invalid sign': AuthenticationError,
+                    'api key dont have trade permission': AuthenticationError,
+                    'invalid parameter': InvalidOrder,
+                    'invalid order': InvalidOrder,
+                    'Requests too often': DDoSProtection,
+                    'not available': ExchangeNotAvailable,
+                    'data unavailable': ExchangeNotAvailable,
+                    'external service unavailable': ExchangeNotAvailable,
+                },
+            },
+            'options': {
+                'fetchOrderMethod': 'privatePostOrderInfo',
+                'fetchMyTradesMethod': 'privatePostTradeHistory',
+                'cancelOrderMethod': 'privatePostCancelOrder',
+                'fetchTickersMaxLength': 2048,
             },
         })
 
@@ -117,36 +147,19 @@ class liqui (Exchange):
             'cost': cost,
         }
 
-    def common_currency_code(self, currency):
-        if not self.substituteCommonCurrencyCodes:
-            return currency
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
-        if currency == 'DRK':
-            return 'DASH'
-        # they misspell DASH as dsh :/
-        if currency == 'DSH':
-            return 'DASH'
-        return currency
-
-    def get_base_quote_from_market_id(self, id):
-        uppercase = id.upper()
-        base, quote = uppercase.split('_')
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
-        return [base, quote]
-
-    def fetch_markets(self):
-        response = self.publicGetInfo()
+    def fetch_markets(self, params={}):
+        response = self.publicGetInfo(params)
         markets = response['pairs']
         keys = list(markets.keys())
         result = []
-        for p in range(0, len(keys)):
-            id = keys[p]
+        for i in range(0, len(keys)):
+            id = keys[i]
             market = markets[id]
-            base, quote = self.get_base_quote_from_market_id(id)
+            baseId, quoteId = id.split('_')
+            base = baseId.upper()
+            quote = quoteId.upper()
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -175,9 +188,10 @@ class liqui (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'taker': market['fee'] / 100,
-                'lot': amountLimits['min'],
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -186,10 +200,10 @@ class liqui (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetInfo()
-        balances = response['return']
+        response = self.privatePostGetInfo(params)
+        balances = self.safe_value(response, 'return')
         result = {'info': balances}
-        funds = balances['funds']
+        funds = self.safe_value(balances, 'funds')
         currencies = list(funds.keys())
         for c in range(0, len(currencies)):
             currency = currencies[c]
@@ -221,15 +235,12 @@ class liqui (Exchange):
         if not market_id_in_reponse:
             raise ExchangeError(self.id + ' ' + market['symbol'] + ' order book is empty or not available')
         orderbook = response[market['id']]
-        result = self.parse_order_book(orderbook)
-        result['bids'] = self.sort_by(result['bids'], 0, True)
-        result['asks'] = self.sort_by(result['asks'], 0)
-        return result
+        return self.parse_order_book(orderbook)
 
     def fetch_order_books(self, symbols=None, params={}):
         self.load_markets()
         ids = None
-        if not symbols:
+        if symbols is None:
             ids = '-'.join(self.ids)
             # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if len(ids) > 2048:
@@ -238,9 +249,10 @@ class liqui (Exchange):
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
-        response = self.publicGetDepthPair(self.extend({
+        request = {
             'pair': ids,
-        }, params))
+        }
+        response = self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())
         for i in range(0, len(ids)):
@@ -253,10 +265,24 @@ class liqui (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['updated'] * 1000
+        #
+        #   {   high: 0.03497582,
+        #         low: 0.03248474,
+        #         avg: 0.03373028,
+        #         vol: 120.11485715062999,
+        #     vol_cur: 3572.24914074,
+        #        last: 0.0337611,
+        #         buy: 0.0337442,
+        #        sell: 0.03377798,
+        #     updated: 1537522009          }
+        #
+        timestamp = self.safe_integer(ticker, 'updated')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
+        last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -264,12 +290,14 @@ class liqui (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'buy'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'sell'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': self.safe_float(ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': None,
             'change': None,
             'percentage': None,
             'average': self.safe_float(ticker, 'avg'),
@@ -280,19 +308,21 @@ class liqui (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        ids = None
-        if not symbols:
-            ids = '-'.join(self.ids)
-            # max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if len(ids) > 2048:
-                numIds = len(self.ids)
-                raise ExchangeError(self.id + ' has ' + str(numIds) + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers')
+        ids = self.ids
+        if symbols is None:
+            numIds = len(ids)
+            ids = '-'.join(ids)
+            maxLength = self.safe_integer(self.options, 'fetchTickersMaxLength', 2048)
+            # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+            if len(ids) > self.options['fetchTickersMaxLength']:
+                raise ArgumentsRequired(self.id + ' has ' + str(numIds) + ' markets exceeding max URL length for self endpoint(' + str(maxLength) + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers')
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
-        tickers = self.publicGetTickerPair(self.extend({
+        request = {
             'pair': ids,
-        }, params))
+        }
+        tickers = self.publicGetTickerPair(self.extend(request, params))
         result = {}
         keys = list(tickers.keys())
         for k in range(0, len(keys)):
@@ -311,33 +341,48 @@ class liqui (Exchange):
         return tickers[symbol]
 
     def parse_trade(self, trade, market=None):
-        timestamp = int(trade['timestamp']) * 1000
-        side = trade['type']
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        side = self.safe_string(trade, 'type')
         if side == 'ask':
             side = 'sell'
-        if side == 'bid':
+        elif side == 'bid':
             side = 'buy'
-        price = self.safe_float(trade, 'price')
-        if 'rate' in trade:
-            price = self.safe_float(trade, 'rate')
-        id = self.safe_string(trade, 'tid')
-        if 'trade_id' in trade:
-            id = self.safe_string(trade, 'trade_id')
+        price = self.safe_float_2(trade, 'rate', 'price')
+        id = self.safe_string_2(trade, 'trade_id', 'tid')
         order = self.safe_string(trade, self.get_order_id_key())
         if 'pair' in trade:
-            marketId = trade['pair']
-            market = self.markets_by_id[marketId]
+            marketId = self.safe_string(trade, 'pair')
+            market = self.safe_value(self.markets_by_id, marketId, market)
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
-        amount = trade['amount']
+        amount = self.safe_float(trade, 'amount')
         type = 'limit'  # all trades are still limit trades
+        takerOrMaker = None
+        fee = None
+        feeCost = self.safe_float(trade, 'commission')
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
+            feeCurrencyId = feeCurrencyId.upper()
+            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
+            feeCurrencyCode = None
+            if feeCurrency is not None:
+                feeCurrencyCode = feeCurrency['code']
+            else:
+                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            }
         isYourOrder = self.safe_value(trade, 'is_your_order')
-        takerOrMaker = 'taker'
         if isYourOrder is not None:
+            takerOrMaker = 'taker'
             if isYourOrder:
                 takerOrMaker = 'maker'
-        fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+            if fee is None:
+                fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
         return {
             'id': id,
             'order': order,
@@ -346,6 +391,7 @@ class liqui (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'fee': fee,
@@ -361,6 +407,10 @@ class liqui (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = self.publicGetTradesPair(self.extend(request, params))
+        if isinstance(response, list):
+            numElements = len(response)
+            if numElements == 0:
+                return []
         return self.parse_trades(response[market['id']], market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -374,21 +424,26 @@ class liqui (Exchange):
             'amount': self.amount_to_precision(symbol, amount),
             'rate': self.price_to_precision(symbol, price),
         }
-        response = self.privatePostTrade(self.extend(request, params))
-        id = self.safe_string(response['return'], self.get_order_id_key())
-        timestamp = self.milliseconds()
         price = float(price)
         amount = float(amount)
+        response = self.privatePostTrade(self.extend(request, params))
+        id = None
         status = 'open'
-        if id == '0':
-            id = self.safe_string(response['return'], 'init_order_id')
-            status = 'closed'
-        filled = self.safe_float(response['return'], 'received', 0.0)
-        remaining = self.safe_float(response['return'], 'remains', amount)
+        filled = 0.0
+        remaining = amount
+        if 'return' in response:
+            id = self.safe_string(response['return'], self.get_order_id_key())
+            if id == '0':
+                id = self.safe_string(response['return'], 'init_order_id')
+                status = 'closed'
+            filled = self.safe_float(response['return'], 'received', 0.0)
+            remaining = self.safe_float(response['return'], 'remains', amount)
+        timestamp = self.milliseconds()
         order = {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -409,40 +464,45 @@ class liqui (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = None
         request = {}
         idKey = self.get_order_id_key()
         request[idKey] = id
-        response = self.privatePostCancelOrder(self.extend(request, params))
+        method = self.options['cancelOrderMethod']
+        response = getattr(self, method)(self.extend(request, params))
         if id in self.orders:
             self.orders[id]['status'] = 'canceled'
         return response
 
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'canceled',  # or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
+        }
+        return self.safe_string(statuses, status, status)
+
     def parse_order(self, order, market=None):
-        id = str(order['id'])
-        status = self.safe_integer(order, 'status')
-        if status == 0:
-            status = 'open'
-        elif status == 1:
-            status = 'closed'
-        elif (status == 2) or (status == 3):
-            status = 'canceled'
-        timestamp = int(order['timestamp_created']) * 1000
+        id = self.safe_string(order, 'id')
+        status = self.parse_order_status(self.safe_string(order, 'status'))
+        timestamp = self.safe_integer(order, 'timestamp_created')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = None
-        if not market:
-            market = self.markets_by_id[order['pair']]
-        if market:
+        if market is None:
+            marketId = self.safe_string(order, 'pair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+        if market is not None:
             symbol = market['symbol']
-        remaining = None
+        remaining = self.safe_float(order, 'amount')
         amount = None
         price = self.safe_float(order, 'rate')
         filled = None
         cost = None
         if 'start_amount' in order:
             amount = self.safe_float(order, 'start_amount')
-            remaining = self.safe_float(order, 'amount')
         else:
-            remaining = self.safe_float(order, 'amount')
             if id in self.orders:
                 amount = self.orders[id]['amount']
         if amount is not None:
@@ -450,14 +510,17 @@ class liqui (Exchange):
                 filled = amount - remaining
                 cost = price * filled
         fee = None
+        type = 'limit'
+        side = self.safe_string(order, 'type')
         result = {
             'info': order,
             'id': id,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'type': 'limit',
-            'side': order['type'],
+            'lastTradeTimestamp': None,
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -468,21 +531,25 @@ class liqui (Exchange):
         }
         return result
 
-    def parse_orders(self, orders, market=None, since=None, limit=None):
-        ids = list(orders.keys())
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
         result = []
+        ids = list(orders.keys())
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         for i in range(0, len(ids)):
             id = ids[i]
-            order = orders[id]
-            extended = self.extend(order, {'id': id})
-            result.append(self.parse_order(extended, market))
-        return self.filter_by_since_limit(result, since, limit)
+            order = self.extend({'id': id}, orders[id])
+            result.append(self.extend(self.parse_order(order, market), params))
+        return self.filter_by_symbol_since_limit(result, symbol, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostOrderInfo(self.extend({
-            'order_id': int(id),
-        }, params))
+        request = {}
+        idKey = self.get_order_id_key()
+        request[idKey] = int(id)
+        method = self.options['fetchOrderMethod']
+        response = getattr(self, method)(self.extend(request, params))
         id = str(id)
         newOrder = self.parse_order(self.extend({'id': id}, response['return'][id]))
         oldOrder = self.orders[id] if (id in list(self.orders.keys())) else {}
@@ -491,78 +558,70 @@ class liqui (Exchange):
 
     def update_cached_orders(self, openOrders, symbol):
         # update local cache with open orders
+        # self will add unseen orders and overwrite existing ones
         for j in range(0, len(openOrders)):
             id = openOrders[j]['id']
             self.orders[id] = openOrders[j]
         openOrdersIndexedById = self.index_by(openOrders, 'id')
         cachedOrderIds = list(self.orders.keys())
-        result = []
         for k in range(0, len(cachedOrderIds)):
             # match each cached order to an order in the open orders array
             # possible reasons why a cached order may be missing in the open orders array:
             # - order was closed or canceled -> update cache
             # - symbol mismatch(e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            id = cachedOrderIds[k]
-            order = self.orders[id]
-            result.append(order)
-            if not(id in list(openOrdersIndexedById.keys())):
+            cachedOrderId = cachedOrderIds[k]
+            cachedOrder = self.orders[cachedOrderId]
+            if not(cachedOrderId in list(openOrdersIndexedById.keys())):
                 # cached order is not in open orders array
                 # if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if symbol is not None and symbol != order['symbol']:
+                if symbol is not None and symbol != cachedOrder['symbol']:
                     continue
-                # order is cached but not present in the list of open orders -> mark the cached order as closed
-                if order['status'] == 'open':
-                    order = self.extend(order, {
+                # cached order is absent from the list of open orders -> mark the cached order as closed
+                if cachedOrder['status'] == 'open':
+                    cachedOrder = self.extend(cachedOrder, {
                         'status': 'closed',  # likewise it might have been canceled externally(unnoticed by "us")
                         'cost': None,
-                        'filled': order['amount'],
+                        'filled': cachedOrder['amount'],
                         'remaining': 0.0,
                     })
-                    if order['cost'] is None:
-                        if order['filled'] is not None:
-                            order['cost'] = order['filled'] * order['price']
-                    self.orders[id] = order
-        return result
+                    if cachedOrder['cost'] is None:
+                        if cachedOrder['filled'] is not None:
+                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price']
+                    self.orders[cachedOrderId] = cachedOrder
+        return self.to_array(self.orders)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if 'fetchOrdersRequiresSymbol' in self.options:
             if self.options['fetchOrdersRequiresSymbol']:
                 if symbol is None:
-                    raise ExchangeError(self.id + ' fetchOrders requires a symbol argument')
+                    raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         request = {}
         market = None
-        if symbol:
+        if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
         response = self.privatePostActiveOrders(self.extend(request, params))
-        # liqui etc can only return 'open' orders(i.e. no way to fetch 'closed' orders)
+        # can only return 'open' orders(i.e. no way to fetch 'closed' orders)
         openOrders = []
         if 'return' in response:
             openOrders = self.parse_orders(response['return'], market)
         allOrders = self.update_cached_orders(openOrders, symbol)
-        result = self.filter_orders_by_symbol(allOrders, symbol)
+        result = self.filter_by_symbol(allOrders, symbol)
         return self.filter_by_since_limit(result, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(orders)):
-            if orders[i]['status'] == 'open':
-                result.append(orders[i])
-        return result
+        return self.filter_by(orders, 'status', 'open')
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         orders = self.fetch_orders(symbol, since, limit, params)
-        result = []
-        for i in range(0, len(orders)):
-            if orders[i]['status'] == 'closed':
-                result.append(orders[i])
-        return result
+        return self.filter_by(orders, 'status', 'closed')
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = None
+        # some derived classes use camelcase notation for request fields
         request = {
             # 'from': 123456789,  # trade ID, from which the display starts numerical 0(test result: liqui ignores self field)
             # 'count': 1000,  # the number of trades for display numerical, default = 1000
@@ -580,19 +639,26 @@ class liqui (Exchange):
             request['count'] = int(limit)
         if since is not None:
             request['since'] = int(since / 1000)
-        response = self.privatePostTradeHistory(self.extend(request, params))
+        method = self.options['fetchMyTradesMethod']
+        response = getattr(self, method)(self.extend(request, params))
         trades = []
         if 'return' in response:
             trades = response['return']
         return self.parse_trades(trades, market, since, limit)
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        self.check_address(address)
         self.load_markets()
-        response = self.privatePostWithdrawCoin(self.extend({
-            'coinName': currency,
+        currency = self.currency(code)
+        request = {
+            'coinName': currency['id'],
             'amount': float(amount),
             'address': address,
-        }, params))
+        }
+        # no docs on the tag, yet...
+        if tag is not None:
+            raise ExchangeError(self.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.')
+        response = self.privatePostWithdrawCoin(self.extend(request, params))
         return {
             'info': response,
             'id': response['return']['tId'],
@@ -604,10 +670,14 @@ class liqui (Exchange):
     def get_version_string(self):
         return '/' + self.version
 
+    def get_private_path(self, path, params):
+        return ''
+
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
+            url += self.get_private_path(path, params)
             self.check_required_credentials()
             nonce = self.nonce()
             body = self.urlencode(self.extend({
@@ -620,76 +690,70 @@ class liqui (Exchange):
                 'Key': self.apiKey,
                 'Sign': signature,
             }
-        else:
+        elif api == 'public':
             url += self.get_version_string() + '/' + self.implode_params(path, params)
             if query:
                 url += '?' + self.urlencode(query)
+        else:
+            url += '/' + self.implode_params(path, params)
+            if method == 'GET':
+                if query:
+                    url += '?' + self.urlencode(query)
+            else:
+                if query:
+                    body = self.json(query)
+                    headers = {
+                        'Content-Type': 'application/json',
+                    }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body):
-        if not isinstance(body, basestring):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            response = json.loads(body)
-            if 'success' in response:
-                #
-                # 1 - Liqui only returns the integer 'success' key from their private API
-                #
-                #     {"success": 1, ...} httpCode == 200
-                #     {"success": 0, ...} httpCode == 200
-                #
-                # 2 - However, exchanges derived from Liqui, can return non-integers
-                #
-                #     It can be a numeric string
-                #     {"sucesss": "1", ...}
-                #     {"sucesss": "0", ...}, httpCode >= 200(can be 403, 502, etc)
-                #
-                #     Or just a string
-                #     {"success": "true", ...}
-                #     {"success": "false", ...}, httpCode >= 200
-                #
-                #     Or a boolean
-                #     {"success": True, ...}
-                #     {"success": False, ...}, httpCode >= 200
-                #
-                # 3 - Oversimplified, Python PEP8 forbids comparison operator(==) of different types
-                #
-                # 4 - We do not want to copy-paste and duplicate the code of self handler to other exchanges derived from Liqui
-                #
-                # To cover points 1, 2, 3 and 4 combined self handler should work like self:
-                #
-                success = self.safe_value(response, 'success', False)
-                if isinstance(success, basestring):
-                    if (success == 'true') or (success == '1'):
-                        success = True
-                    else:
-                        success = False
-                if not success:
-                    code = self.safe_string(response, 'code')
-                    message = self.safe_string(response, 'error')
-                    feedback = self.id + ' ' + self.json(response)
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    # need a second error map for these messages, apparently...
-                    # in fact, we can use the same .exceptions with string-keys to save some loc here
-                    if message == 'invalid api key':
-                        raise AuthenticationError(feedback)
-                    elif message == 'api key dont have trade permission':
-                        raise AuthenticationError(feedback)
-                    elif message.find('invalid parameter') >= 0:  # errorCode 0, returned on buy(symbol, 0, 0)
-                        raise InvalidOrder(feedback)
-                    elif message == 'invalid order':
-                        raise InvalidOrder(feedback)
-                    elif message == 'Requests too often':
-                        raise DDoSProtection(feedback)
-                    elif message == 'not available':
-                        raise DDoSProtection(feedback)
-                    elif message == 'data unavailable':
-                        raise DDoSProtection(feedback)
-                    elif message == 'external service unavailable':
-                        raise DDoSProtection(feedback)
-                    else:
-                        raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
+        if 'success' in response:
+            #
+            # 1 - Liqui only returns the integer 'success' key from their private API
+            #
+            #     {"success": 1, ...} httpCode == 200
+            #     {"success": 0, ...} httpCode == 200
+            #
+            # 2 - However, exchanges derived from Liqui, can return non-integers
+            #
+            #     It can be a numeric string
+            #     {"sucesss": "1", ...}
+            #     {"sucesss": "0", ...}, httpCode >= 200(can be 403, 502, etc)
+            #
+            #     Or just a string
+            #     {"success": "true", ...}
+            #     {"success": "false", ...}, httpCode >= 200
+            #
+            #     Or a boolean
+            #     {"success": True, ...}
+            #     {"success": False, ...}, httpCode >= 200
+            #
+            # 3 - Oversimplified, Python PEP8 forbids comparison operator(==) of different types
+            #
+            # 4 - We do not want to copy-paste and duplicate the code of self handler to other exchanges derived from Liqui
+            #
+            # To cover points 1, 2, 3 and 4 combined self handler should work like self:
+            #
+            success = self.safe_value(response, 'success', False)
+            if isinstance(success, basestring):
+                if (success == 'true') or (success == '1'):
+                    success = True
+                else:
+                    success = False
+            if not success:
+                code = self.safe_string(response, 'code')
+                message = self.safe_string(response, 'error')
+                feedback = self.id + ' ' + self.json(response)
+                exact = self.exceptions['exact']
+                if code in exact:
+                    raise exact[code](feedback)
+                elif message in exact:
+                    raise exact[message](feedback)
+                broad = self.exceptions['broad']
+                broadKey = self.findBroadlyMatchedKey(broad, message)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+                raise ExchangeError(feedback)  # unknown message

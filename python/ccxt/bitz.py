@@ -4,12 +4,16 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class bitz (Exchange):
@@ -18,45 +22,70 @@ class bitz (Exchange):
         return self.deep_extend(super(bitz, self).describe(), {
             'id': 'bitz',
             'name': 'Bit-Z',
-            'countries': 'HK',
-            'rateLimit': 1000,
-            'version': 'v1',
+            'countries': ['HK'],
+            'rateLimit': 2000,
+            'version': 'v2',
+            'userAgent': self.userAgents['chrome'],
             'has': {
-                'fetchBalance': False,  # so far the only exchange that has createOrder but not fetchBalance %)
                 'fetchTickers': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
+                'fetchClosedOrders': True,
+                'fetchOrders': True,
+                'fetchOrder': True,
+                'createMarketOrder': False,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '1d': '1d',
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '60min',
+                '4h': '4hour',
+                '1d': '1day',
+                '5d': '5day',
+                '1w': '1week',
+                '1M': '1mon',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
-                'api': 'https://www.bit-z.com/api_v1',
+                'api': {
+                    'market': 'https://apiv2.bit-z.pro',
+                    'trade': 'https://apiv2.bit-z.pro',
+                    'assets': 'https://apiv2.bit-z.pro',
+                },
                 'www': 'https://www.bit-z.com',
-                'doc': 'https://www.bit-z.com/api.html',
-                'fees': 'https://www.bit-z.com/about/fee',
+                'doc': 'https://apidoc.bit-z.com/en/',
+                'fees': 'https://www.bit-z.com/fee?type=1',
+                'referral': 'https://u.bit-z.com/register?invite_code=1429193',
             },
             'api': {
-                'public': {
+                'market': {
                     'get': [
                         'ticker',
-                        'tickerall',
                         'depth',
-                        'orders',
+                        'order',  # trades
+                        'tickerall',
                         'kline',
+                        'symbolList',
+                        'currencyRate',
+                        'currencyCoinRate',
+                        'coinRate',
                     ],
                 },
-                'private': {
+                'trade': {
                     'post': [
-                        'tradeAdd',
-                        'tradeCancel',
-                        'openOrders',
+                        'addEntrustSheet',
+                        'cancelEntrustSheet',
+                        'cancelAllEntrustSheet',
+                        'getUserHistoryEntrustSheet',  # closed orders
+                        'getUserNowEntrustSheet',  # open orders
+                        'getEntrustSheetInfo',  # order
+                    ],
+                },
+                'assets': {
+                    'post': [
+                        'getUserAssets',
                     ],
                 },
             },
@@ -127,103 +156,415 @@ class bitz (Exchange):
                 'amount': 8,
                 'price': 8,
             },
+            'options': {
+                'fetchOHLCVVolume': True,
+                'fetchOHLCVWarning': True,
+                'lastNonceTimestamp': 0,
+            },
+            'commonCurrencies': {
+                # https://github.com/ccxt/ccxt/issues/3881
+                # https://support.bit-z.pro/hc/en-us/articles/360007500654-BOX-BOX-Token-
+                'BOX': 'BOX Token',
+                'XRB': 'NANO',
+                'PXC': 'Pixiecoin',
+            },
+            'exceptions': {
+                # '200': Success
+                '-102': ExchangeError,  # Invalid parameter
+                '-103': AuthenticationError,  # Verification failed
+                '-104': ExchangeNotAvailable,  # Network Error-1
+                '-105': AuthenticationError,  # Invalid api signature
+                '-106': ExchangeNotAvailable,  # Network Error-2
+                '-109': AuthenticationError,  # Invalid scretKey
+                '-110': DDoSProtection,  # The number of access requests exceeded
+                '-111': PermissionDenied,  # Current IP is not in the range of trusted IP
+                '-112': ExchangeNotAvailable,  # Service is under maintenance
+                '-100015': AuthenticationError,  # Trade password error
+                '-100044': ExchangeError,  # Fail to request data
+                '-100101': ExchangeError,  # Invalid symbol
+                '-100201': ExchangeError,  # Invalid symbol
+                '-100301': ExchangeError,  # Invalid symbol
+                '-100401': ExchangeError,  # Invalid symbol
+                '-100302': ExchangeError,  # Type of K-line error
+                '-100303': ExchangeError,  # Size of K-line error
+                '-200003': AuthenticationError,  # Please set trade password
+                '-200005': PermissionDenied,  # This account can not trade
+                '-200025': ExchangeNotAvailable,  # Temporary trading halt
+                '-200027': InvalidOrder,  # Price Error
+                '-200028': InvalidOrder,  # Amount must be greater than 0
+                '-200029': InvalidOrder,  # Number must be between %s and %d
+                '-200030': InvalidOrder,  # Over price range
+                '-200031': InsufficientFunds,  # Insufficient assets
+                '-200032': ExchangeError,  # System error. Please contact customer service
+                '-200033': ExchangeError,  # Fail to trade
+                '-200034': OrderNotFound,  # The order does not exist
+                '-200035': OrderNotFound,  # Cancellation error, order filled
+                '-200037': InvalidOrder,  # Trade direction error
+                '-200038': ExchangeError,  # Trading Market Error
+                '-200055': OrderNotFound,  # Order record does not exist
+                '-300069': AuthenticationError,  # api_key is illegal
+                '-300101': ExchangeError,  # Transaction type error
+                '-300102': InvalidOrder,  # Price or number cannot be less than 0
+                '-300103': AuthenticationError,  # Trade password error
+                '-301001': ExchangeNotAvailable,  # Network Error-3
+            },
         })
 
-    def fetch_markets(self):
-        response = self.publicGetTickerall()
-        markets = response['data']
+    def fetch_markets(self, params={}):
+        response = self.marketGetSymbolList(params)
+        #
+        #     {   status:    200,
+        #             msg:   "",
+        #            data: {  ltc_btc: {         id: "1",
+        #                                        name: "ltc_btc",
+        #                                    coinFrom: "ltc",
+        #                                      coinTo: "btc",
+        #                                 numberFloat: "4",
+        #                                  priceFloat: "8",
+        #                                      status: "1",
+        #                                    minTrade: "0.010",
+        #                                    maxTrade: "500000000.000"},
+        #                    qtum_usdt: {         id: "196",
+        #                                        name: "qtum_usdt",
+        #                                    coinFrom: "qtum",
+        #                                      coinTo: "usdt",
+        #                                 numberFloat: "4",
+        #                                  priceFloat: "2",
+        #                                      status: "1",
+        #                                    minTrade: "0.100",
+        #                                    maxTrade: "500000000.000"},  },
+        #            time:    1535969146,
+        #       microtime:   "0.66955600 1535969146",
+        #          source:   "api"                                           }
+        #
+        markets = self.safe_value(response, 'data')
         ids = list(markets.keys())
         result = []
         for i in range(0, len(ids)):
             id = ids[i]
             market = markets[id]
-            idUpper = id.upper()
-            base, quote = idUpper.split('_')
+            numericId = self.safe_string(market, 'id')
+            baseId = self.safe_string(market, 'coinFrom')
+            quoteId = self.safe_string(market, 'coinTo')
+            base = baseId.upper()
+            quote = quoteId.upper()
             base = self.common_currency_code(base)
             quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
+            precision = {
+                'amount': self.safe_integer(market, 'numberFloat'),
+                'price': self.safe_integer(market, 'priceFloat'),
+            }
             result.append({
+                'info': market,
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': True,
-                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(market, 'minTrade'),
+                        'max': self.safe_float(market, 'maxTrade'),
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             })
         return result
 
+    def fetch_balance(self, params={}):
+        self.load_markets()
+        response = self.assetsPostGetUserAssets(params)
+        #
+        #     {
+        #         status: 200,
+        #         msg: "",
+        #         data: {
+        #             cny: 0,
+        #             usd: 0,
+        #             btc_total: 0,
+        #             info: [{
+        #                 "name": "zpr",
+        #                 "num": "37.49067275",
+        #                 "over": "37.49067275",
+        #                 "lock": "0.00000000",
+        #                 "btc": "0.00000000",
+        #                 "usd": "0.00000000",
+        #                 "cny": "0.00000000",
+        #             }],
+        #         },
+        #         time: 1535983966,
+        #         microtime: "0.70400500 1535983966",
+        #         source: "api",
+        #     }
+        #
+        balances = self.safe_value(response['data'], 'info')
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'name')
+            code = currencyId.upper()
+            if currencyId in self.markets_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(code)
+            account = self.account()
+            account['used'] = self.safe_float(balance, 'lock')
+            account['total'] = self.safe_float(balance, 'num')
+            account['free'] = self.safe_float(balance, 'over')
+            result[code] = account
+        return self.parse_balance(result)
+
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['date'] * 1000
-        symbol = market['symbol']
+        #
+        #      {         symbol: "eth_btc",
+        #            quoteVolume: "3905.72",
+        #                 volume: "97058.21",
+        #            priceChange: "-1.72",
+        #         priceChange24h: "-1.65",
+        #               askPrice: "0.03971272",
+        #                 askQty: "0.0663",
+        #               bidPrice: "0.03961469",
+        #                 bidQty: "19.5451",
+        #                   open: "0.04036769",
+        #                   high: "0.04062988",
+        #                    low: "0.03956123",
+        #                    now: "0.03970100",
+        #                firstId:  115567767,
+        #                 lastId:  115795316,
+        #              dealCount:  14078,
+        #        numberPrecision:  4,
+        #         pricePrecision:  8,
+        #                    cny: "1959.05",
+        #                    usd: "287.10",
+        #                    krw: "318655.82"   }
+        #
+        timestamp = None
+        symbol = None
+        if market is None:
+            marketId = self.safe_string(ticker, 'symbol')
+            market = self.safe_value(self.markets_by_id, marketId)
+        if market is not None:
+            symbol = market['symbol']
+        last = self.safe_float(ticker, 'now')
+        open = self.safe_float(ticker, 'open')
+        change = None
+        average = None
+        if last is not None and open is not None:
+            change = last - open
+            average = self.sum(last, open) / 2
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high']),
-            'low': float(ticker['low']),
-            'bid': float(ticker['buy']),
-            'ask': float(ticker['sell']),
+            'high': self.safe_float(ticker, 'high'),
+            'low': self.safe_float(ticker, 'low'),
+            'bid': self.safe_float(ticker, 'bidPrice'),
+            'bidVolume': self.safe_float(ticker, 'bidQty'),
+            'ask': self.safe_float(ticker, 'askPrice'),
+            'askVolume': self.safe_float(ticker, 'askQty'),
             'vwap': None,
-            'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last']),
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': float(ticker['vol']),
-            'quoteVolume': None,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': change,
+            'percentage': self.safe_float(ticker, 'priceChange24h'),
+            'average': average,
+            'baseVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
             'info': ticker,
         }
+
+    def parse_microtime(self, microtime):
+        if microtime is None:
+            return microtime
+        parts = microtime.split(' ')
+        milliseconds = float(parts[0])
+        seconds = int(parts[1])
+        total = self.sum(seconds, milliseconds)
+        return int(total * 1000)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTicker(self.extend({
-            'coin': market['id'],
-        }, params))
-        return self.parse_ticker(response['data'], market)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.marketGetTicker(self.extend(request, params))
+        #
+        #     {   status:    200,
+        #             msg:   "",
+        #            data: {         symbol: "eth_btc",
+        #                        quoteVolume: "3905.72",
+        #                             volume: "97058.21",
+        #                        priceChange: "-1.72",
+        #                     priceChange24h: "-1.65",
+        #                           askPrice: "0.03971272",
+        #                             askQty: "0.0663",
+        #                           bidPrice: "0.03961469",
+        #                             bidQty: "19.5451",
+        #                               open: "0.04036769",
+        #                               high: "0.04062988",
+        #                                low: "0.03956123",
+        #                                now: "0.03970100",
+        #                            firstId:  115567767,
+        #                             lastId:  115795316,
+        #                          dealCount:  14078,
+        #                    numberPrecision:  4,
+        #                     pricePrecision:  8,
+        #                                cny: "1959.05",
+        #                                usd: "287.10",
+        #                                krw: "318655.82"   },
+        #            time:    1535970397,
+        #       microtime:   "0.76341900 1535970397",
+        #          source:   "api"                             }
+        #
+        ticker = self.parse_ticker(response['data'], market)
+        timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
+        return self.extend(ticker, {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetTickerall(params)
-        tickers = response['data']
+        request = {}
+        if symbols is not None:
+            ids = self.market_ids(symbols)
+            request['symbols'] = ','.join(ids)
+        response = self.marketGetTickerall(self.extend(request, params))
+        #
+        #     {   status:    200,
+        #             msg:   "",
+        #            data: {  ela_btc: {         symbol: "ela_btc",
+        #                                     quoteVolume: "0.00",
+        #                                          volume: "3.28",
+        #                                     priceChange: "0.00",
+        #                                  priceChange24h: "0.00",
+        #                                        askPrice: "0.00147984",
+        #                                          askQty: "5.4580",
+        #                                        bidPrice: "0.00120230",
+        #                                          bidQty: "12.5384",
+        #                                            open: "0.00149078",
+        #                                            high: "0.00149078",
+        #                                             low: "0.00149078",
+        #                                             now: "0.00149078",
+        #                                         firstId:  115581219,
+        #                                          lastId:  115581219,
+        #                                       dealCount:  1,
+        #                                 numberPrecision:  4,
+        #                                  pricePrecision:  8,
+        #                                             cny: "73.66",
+        #                                             usd: "10.79",
+        #                                             krw: "11995.03"    }     },
+        #            time:    1535971578,
+        #       microtime:   "0.39854200 1535971578",
+        #          source:   "api"                                                }
+        #
+        tickers = self.safe_value(response, 'data')
+        timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
         result = {}
         ids = list(tickers.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(tickers[id], market)
+            ticker = tickers[id]
+            market = None
+            if id in self.markets_by_id:
+                market = self.markets_by_id[id]
+            ticker = self.parse_ticker(tickers[id], market)
+            symbol = ticker['symbol']
+            if symbol is None:
+                if market is not None:
+                    symbol = market['symbol']
+                else:
+                    baseId, quoteId = id.split('_')
+                    base = baseId.upper()
+                    quote = quoteId.upper()
+                    base = self.common_currency_code(baseId)
+                    quote = self.common_currency_code(quoteId)
+                    symbol = base + '/' + quote
+            if symbol is not None:
+                result[symbol] = self.extend(ticker, {
+                    'timestamp': timestamp,
+                    'datetime': self.iso8601(timestamp),
+                })
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        response = self.publicGetDepth(self.extend({
-            'coin': self.market_id(symbol),
-        }, params))
-        orderbook = response['data']
-        timestamp = orderbook['date'] * 1000
+        request = {
+            'symbol': self.market_id(symbol),
+        }
+        response = self.marketGetDepth(self.extend(request, params))
+        #
+        #     {   status:    200,
+        #             msg:   "",
+        #            data: {    asks: [["10.00000000", "0.4426", "4.4260"],
+        #                                ["1.00000000", "0.8339", "0.8339"],
+        #                                ["0.91700000", "0.0500", "0.0458"],
+        #                                ["0.20000000", "0.1000", "0.0200"],
+        #                                ["0.03987120", "16.1262", "0.6429"],
+        #                                ["0.03986120", "9.7523", "0.3887"]   ],
+        #                        bids: [["0.03976145", "0.0359", "0.0014"],
+        #                                ["0.03973401", "20.9493", "0.8323"],
+        #                                ["0.03967970", "0.0328", "0.0013"],
+        #                                ["0.00000002", "10000.0000", "0.0002"],
+        #                                ["0.00000001", "231840.7500", "0.0023"]],
+        #                    coinPair:   "eth_btc"                                  },
+        #            time:    1535974778,
+        #       microtime:   "0.04017400 1535974778",
+        #          source:   "api"                                                     }
+        #
+        orderbook = self.safe_value(response, 'data')
+        timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
         return self.parse_order_book(orderbook, timestamp)
 
     def parse_trade(self, trade, market=None):
-        hkt = self.sum(self.milliseconds(), 28800000)
-        utcDate = self.iso8601(hkt)
-        utcDate = utcDate.split('T')
-        utcDate = utcDate[0] + ' ' + trade['t'] + '+08'
-        timestamp = self.parse8601(utcDate)
-        price = float(trade['p'])
-        amount = float(trade['n'])
-        symbol = market['symbol']
-        cost = self.price_to_precision(symbol, amount * price)
+        #
+        # fetchTrades(public)
+        #
+        #    {id:  115807453,
+        #       t: "19:36:24",
+        #       T:  1535974584,
+        #       p: "0.03983296",
+        #       n: "0.1000",
+        #       s: "buy"         },
+        #
+        id = self.safe_string(trade, 'id')
+        timestamp = self.safe_integer(trade, 'T')
+        if timestamp is not None:
+            timestamp = timestamp * 1000
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        price = self.safe_float(trade, 'p')
+        amount = self.safe_float(trade, 'n')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = self.price_to_precision(symbol, amount * price)
+        side = self.safe_string(trade, 's')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': None,
+            'id': id,
             'order': None,
             'type': 'limit',
-            'side': trade['s'],
+            'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -234,39 +575,171 @@ class bitz (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetOrders(self.extend({
-            'coin': market['id'],
-        }, params))
-        trades = response['data']['d']
-        return self.parse_trades(trades, market, since, limit)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.marketGetOrder(self.extend(request, params))
+        #
+        #     {   status:    200,
+        #             msg:   "",
+        #            data: [{id:  115807453,
+        #                       t: "19:36:24",
+        #                       T:  1535974584,
+        #                       p: "0.03983296",
+        #                       n: "0.1000",
+        #                       s: "buy"         },
+        #                    {id:  115806811,
+        #                       t: "19:33:19",
+        #                       T:  1535974399,
+        #                       p: "0.03981135",
+        #                       n: "9.4612",
+        #                       s: "sell"        }  ],
+        #            time:    1535974583,
+        #       microtime:   "0.57118100 1535974583",
+        #          source:   "api"                     }
+        #
+        return self.parse_trades(response['data'], market, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        #
+        #      {    time: "1535973420000",
+        #            open: "0.03975084",
+        #            high: "0.03975084",
+        #             low: "0.03967700",
+        #           close: "0.03967700",
+        #          volume: "12.4733",
+        #        datetime: "2018-09-03 19:17:00"}
+        #
+        return [
+            self.safe_integer(ohlcv, 'time'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
+        ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
+        duration = self.parse_timeframe(timeframe) * 1000
         market = self.market(symbol)
-        response = self.publicGetKline(self.extend({
-            'coin': market['id'],
-            'type': self.timeframes[timeframe],
-        }, params))
-        ohlcv = self.unjson(response['data']['datas']['data'])
-        return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
+        request = {
+            'symbol': market['id'],
+            'resolution': self.timeframes[timeframe],
+        }
+        if limit is not None:
+            request['size'] = min(limit, 300)  # 1-300
+            if since is not None:
+                request['to'] = self.sum(since, limit * duration * 1000)
+        else:
+            if since is not None:
+                raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
+        response = self.marketGetKline(self.extend(request, params))
+        #
+        #     {   status:    200,
+        #             msg:   "",
+        #            data: {      bars: [{    time: "1535973420000",
+        #                                        open: "0.03975084",
+        #                                        high: "0.03975084",
+        #                                         low: "0.03967700",
+        #                                       close: "0.03967700",
+        #                                      volume: "12.4733",
+        #                                    datetime: "2018-09-03 19:17:00"},
+        #                                  {    time: "1535955480000",
+        #                                        open: "0.04009900",
+        #                                        high: "0.04016745",
+        #                                         low: "0.04009900",
+        #                                       close: "0.04012074",
+        #                                      volume: "74.4803",
+        #                                    datetime: "2018-09-03 14:18:00"}  ],
+        #                    resolution:   "1min",
+        #                        symbol:   "eth_btc",
+        #                          from:   "1535973420000",
+        #                            to:   "1535955480000",
+        #                          size:    300                                    },
+        #            time:    1535973435,
+        #       microtime:   "0.56462100 1535973435",
+        #          source:   "api"                                                    }
+        #
+        bars = self.safe_value(response['data'], 'bars', None)
+        if bars is None:
+            return []
+        return self.parse_ohlcvs(bars, market, timeframe, since, limit)
 
-    def parse_order(self, order, market):
+    def parse_order_status(self, status):
+        statuses = {
+            '0': 'open',
+            '1': 'open',  # partially filled
+            '2': 'closed',  # filled
+            '3': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def parse_order(self, order, market=None):
+        #
+        # createOrder
+        #
+        #    {
+        #         "id": "693248739",   # order id
+        #         "uId": "2074056",    # uid
+        #         "price": "100",      # price
+        #         "number": "10",      # number
+        #         "numberOver": "10",  # undealed
+        #         "flag": "sale",      # flag
+        #         "status": "0",       # unfilled
+        #         "coinFrom": "vtc",
+        #         "coinTo": "dkkt",
+        #         "numberDeal": "0"    # dealed
+        #     }
+        #
+        id = self.safe_string(order, 'id')
         symbol = None
-        if market:
+        if market is None:
+            baseId = self.safe_string(order, 'coinFrom')
+            quoteId = self.safe_string(order, 'coinTo')
+            if (baseId is not None) and(quoteId is not None):
+                marketId = baseId + '_' + quoteId
+                if marketId in self.markets_by_id:
+                    market = self.safe_value(self.markets_by_id, marketId)
+                else:
+                    base = baseId.upper()
+                    quote = quoteId.upper()
+                    base = self.common_currency_code(base)
+                    quote = self.common_currency_code(quote)
+                    symbol = base + '/' + quote
+        if market is not None:
             symbol = market['symbol']
+        side = self.safe_string(order, 'flag')
+        if side is not None:
+            side = 'sell' if (side == 'sale') else 'buy'
+        price = self.safe_float(order, 'price')
+        amount = self.safe_float(order, 'number')
+        remaining = self.safe_float(order, 'numberOver')
+        filled = self.safe_float(order, 'numberDeal')
+        timestamp = self.safe_integer(order, 'timestamp')
+        if timestamp is None:
+            timestamp = self.safe_integer(order, 'created')
+            if timestamp is not None:
+                timestamp = timestamp * 1000
+        cost = self.safe_float(order, 'orderTotalPrice')
+        if price is not None:
+            if filled is not None:
+                cost = filled * price
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         return {
-            'id': order['id'],
-            'datetime': None,
-            'timestamp': None,
-            'status': 'open',
+            'id': id,
+            'datetime': self.iso8601(timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': None,
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
-            'side': order['type'],
-            'price': order['price'],
-            'cost': None,
-            'amount': order['number'],
-            'filled': None,
-            'remaining': None,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
             'trades': None,
             'fee': None,
             'info': order,
@@ -274,78 +747,284 @@ class bitz (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
+        if type != 'limit':
+            raise ExchangeError(self.id + ' createOrder allows limit orders only')
         market = self.market(symbol)
+        orderType = '1' if (side == 'buy') else '2'
+        if not self.password:
+            raise ExchangeError(self.id + ' createOrder() requires you to set exchange.password = "YOUR_TRADING_PASSWORD"(a trade password is NOT THE SAME as your login password)')
         request = {
-            'coin': market['id'],
-            'type': side,
+            'symbol': market['id'],
+            'type': orderType,
             'price': self.price_to_precision(symbol, price),
-            'number': self.amount_to_string(symbol, amount),
-            'tradepwd': self.password,
+            'number': self.amount_to_precision(symbol, amount),
+            'tradePwd': self.password,
         }
-        response = self.privatePostTradeAdd(self.extend(request, params))
-        id = response['data']['id']
-        order = self.parse_order({
-            'id': id,
-            'price': price,
-            'number': amount,
-            'type': side,
-        }, market)
-        self.orders[id] = order
-        return order
+        response = self.tradePostAddEntrustSheet(self.extend(request, params))
+        #
+        #     {
+        #         "status": 200,
+        #         "msg": "",
+        #         "data": {
+        #             "id": "693248739",   # order id
+        #             "uId": "2074056",    # uid
+        #             "price": "100",      # price
+        #             "number": "10",      # number
+        #             "numberOver": "10",  # undealed
+        #             "flag": "sale",      # flag
+        #             "status": "0",       # unfilled
+        #             "coinFrom": "vtc",
+        #             "coinTo": "dkkt",
+        #             "numberDeal": "0"    # dealed
+        #         },
+        #         "time": "1533035297",
+        #         "microtime": "0.41892000 1533035297",
+        #         "source": "api",
+        #     }
+        #
+        timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
+        order = self.extend({
+            'timestamp': timestamp,
+        }, response['data'])
+        return self.parse_order(order, market)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePostTradeCancel(self.extend({
-            'id': id,
-        }, params))
+        request = {
+            'entrustSheetId': id,
+        }
+        response = self.tradePostCancelEntrustSheet(self.extend(request, params))
+        #
+        #     {
+        #         "status":200,
+        #         "msg":"",
+        #         "data":{
+        #             "updateAssetsData":{
+        #                 "coin":"bz",
+        #                 "over":"1000.00000000",
+        #                 "lock":"-1000.00000000"
+        #             },
+        #             "assetsInfo":{
+        #                 "coin":"bz",
+        #                 "over":"9999.99999999",
+        #                 "lock":"9999.99999999"
+        #             }
+        #         },
+        #         "time":"1535464383",
+        #         "microtime":"0.91558000 1535464383",
+        #         "source":"api"
+        #     }
+        #
         return response
 
-    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    def cancel_orders(self, ids, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            'ids': ','.join(ids),
+        }
+        response = self.tradePostCancelEntrustSheet(self.extend(request, params))
+        #
+        #     {
+        #         "status":200,
+        #         "msg":"",
+        #         "data":{
+        #             "744173808":{
+        #                 "updateAssetsData":{
+        #                     "coin":"bz",
+        #                     "over":"100.00000000",
+        #                     "lock":"-100.00000000"
+        #                 },
+        #                 "assetsInfo":{
+        #                     "coin":"bz",
+        #                     "over":"899.99999999",
+        #                     "lock":"19099.99999999"
+        #                 }
+        #             },
+        #             "744173809":{
+        #                 "updateAssetsData":{
+        #                     "coin":"bz",
+        #                     "over":"100.00000000",
+        #                     "lock":"-100.00000000"
+        #                 },
+        #                 "assetsInfo":{
+        #                     "coin":"bz",
+        #                     "over":"999.99999999",
+        #                     "lock":"18999.99999999"
+        #                 }
+        #             }
+        #         },
+        #         "time":"1535525649",
+        #         "microtime":"0.05009400 1535525649",
+        #         "source":"api"
+        #     }
+        #
+        return response
+
+    def fetch_order(self, id, symbol=None, params={}):
+        self.load_markets()
+        request = {
+            'entrustSheetId': id,
+        }
+        response = self.tradePostGetEntrustSheetInfo(self.extend(request, params))
+        #
+        #     {
+        #         "status":200,
+        #         "msg":"",
+        #         "data":{
+        #             "id":"708279852",
+        #             "uId":"2074056",
+        #             "price":"100.00000000",
+        #             "number":"10.0000",
+        #             "total":"0.00000000",
+        #             "numberOver":"10.0000",
+        #             "numberDeal":"0.0000",
+        #             "flag":"sale",
+        #             "status":"0",  #0:unfilled, 1:partial deal, 2:all transactions, 3:already cancelled
+        #             "coinFrom":"bz",
+        #             "coinTo":"usdt",
+        #             "orderTotalPrice":"0",
+        #             "created":"1533279876"
+        #         },
+        #         "time":"1533280294",
+        #         "microtime":"0.36859200 1533280294",
+        #         "source":"api"
+        #     }
+        #
+        return self.parse_order(response['data'])
+
+    def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        response = self.privatePostOpenOrders(self.extend({
-            'coin': market['id'],
-        }, params))
-        return self.parse_orders(response['data'], market)
+        request = {
+            'coinFrom': market['baseId'],
+            'coinTo': market['quoteId'],
+            # 'type': 1,  # optional integer, 1 = buy, 2 = sell
+            # 'page': 1,  # optional integer
+            # 'pageSize': 100,  # optional integer, max 100
+            # 'startTime': 1510235730,  # optional integer timestamp in seconds
+            # 'endTime': 1510235730,  # optional integer timestamp in seconds
+        }
+        if limit is not None:
+            request['page'] = 1
+            request['pageSize'] = limit
+        if since is not None:
+            request['startTime'] = int(since / 1000)
+            # request['endTime'] = int(since / 1000)
+        response = getattr(self, method)(self.extend(request, params))
+        #
+        #     {
+        #         "status": 200,
+        #         "msg": "",
+        #         "data": {
+        #             "data": [
+        #                 {
+        #                     "id": "693248739",
+        #                     "uid": "2074056",
+        #                     "price": "100.00000000",
+        #                     "number": "10.0000",
+        #                     "total": "0.00000000",
+        #                     "numberOver": "0.0000",
+        #                     "numberDeal": "0.0000",
+        #                     "flag": "sale",
+        #                     "status": "3",  # 0:unfilled, 1:partial deal, 2:all transactions, 3:already cancelled
+        #                     "isNew": "N",
+        #                     "coinFrom": "vtc",
+        #                     "coinTo": "dkkt",
+        #                     "created": "1533035300",
+        #                 },
+        #                 {
+        #                     "id": "723086996",
+        #                     "uid": "2074056",
+        #                     "price": "100.00000000",
+        #                     "number": "10.0000",
+        #                     "total": "0.00000000",
+        #                     "numberOver": "0.0000",
+        #                     "numberDeal": "0.0000",
+        #                     "flag": "sale",
+        #                     "status": "3",
+        #                     "isNew": "N",
+        #                     "coinFrom": "bz",
+        #                     "coinTo": "usdt",
+        #                     "created": "1533523568",
+        #                 },
+        #             ],
+        #             "pageInfo": {
+        #                 "limit": "10",
+        #                 "offest": "0",
+        #                 "current_page": "1",
+        #                 "page_size": "10",
+        #                 "total_count": "17",
+        #                 "page_count": "2",
+        #             }
+        #         },
+        #         "time": "1533279329",
+        #         "microtime": "0.15305300 1533279329",
+        #         "source": "api"
+        #     }
+        #
+        orders = self.safe_value(response['data'], 'data', [])
+        return self.parse_orders(orders, None, since, limit)
+
+    def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_with_method('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params)
+
+    def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_with_method('tradePostGetUserNowEntrustSheet', symbol, since, limit, params)
+
+    def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        return self.fetch_orders_with_method('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params)
 
     def nonce(self):
-        milliseconds = self.milliseconds()
-        return(milliseconds % 1000000)
+        currentTimestamp = self.seconds()
+        if currentTimestamp > self.options['lastNonceTimestamp']:
+            self.options['lastNonceTimestamp'] = currentTimestamp
+            self.options['lastNonce'] = 100000
+        self.options['lastNonce'] = self.sum(self.options['lastNonce'], 1)
+        return self.options['lastNonce']
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + path
+    def sign(self, path, api='market', method='GET', params={}, headers=None, body=None):
+        url = self.urls['api'][api] + '/' + self.capitalize(api) + '/' + path
         query = None
-        if api == 'public':
+        if api == 'market':
             query = self.urlencode(params)
             if len(query):
                 url += '?' + query
         else:
             self.check_required_credentials()
-            body = self.urlencode(self.keysort(self.extend({
-                'api_key': self.apiKey,
-                'timestamp': self.seconds(),
+            body = self.rawencode(self.keysort(self.extend({
+                'apiKey': self.apiKey,
+                'timeStamp': self.seconds(),
                 'nonce': self.nonce(),
             }, params)))
             body += '&sign=' + self.hash(self.encode(body + self.secret))
             headers = {'Content-type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        response = self.fetch2(path, api, method, params, headers, body)
-        code = self.safe_string(response, 'code')
-        if code != '0':
-            ErrorClass = self.safe_value({
-                '103': AuthenticationError,
-                '104': AuthenticationError,
-                '200': AuthenticationError,
-                '202': AuthenticationError,
-                '401': AuthenticationError,
-                '406': AuthenticationError,
-                '203': InvalidNonce,
-                '201': OrderNotFound,
-                '408': InsufficientFunds,
-                '106': DDoSProtection,
-            }, code, ExchangeError)
-            message = self.safe_string(response, 'msg', 'Error')
-            raise ErrorClass(message)
-        return response
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+        if response is None:
+            return  # fallback to default error handler
+        status = self.safe_string(response, 'status')
+        if status is not None:
+            feedback = self.id + ' ' + body
+            exceptions = self.exceptions
+            #
+            #     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
+            #
+            if status == '200':
+                #
+                #     {"status":200,"msg":"","data":-200031,"time":1535999806,"microtime":"0.85476800 1535999806","source":"api"}
+                #
+                code = self.safe_integer(response, 'data')
+                if code is not None:
+                    if code in exceptions:
+                        raise exceptions[code](feedback)
+                    else:
+                        raise ExchangeError(feedback)
+                else:
+                    return  # no error
+            if status in exceptions:
+                raise exceptions[status](feedback)
+            else:
+                raise ExchangeError(feedback)

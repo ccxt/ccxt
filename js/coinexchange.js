@@ -17,6 +17,7 @@ module.exports = class coinexchange extends Exchange {
             // new metainfo interface
             'has': {
                 'privateAPI': false,
+                'fetchBalance': false,
                 'createOrder': false,
                 'createMarketOrder': false,
                 'createLimitOrder': false,
@@ -28,6 +29,7 @@ module.exports = class coinexchange extends Exchange {
                 'fetchTickers': true,
             },
             'urls': {
+                'referral': 'https://www.coinexchange.io/?r=a1669e56',
                 'logo': 'https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg',
                 'api': 'https://www.coinexchange.io/api/v1',
                 'www': 'https://www.coinexchange.io',
@@ -253,7 +255,7 @@ module.exports = class coinexchange extends Exchange {
                         'HC': 0.01,
                         'HEALTHY': 0.01,
                         'HIGH': 0.01,
-                        'HMC': 0.01,
+                        'HarmonyCoin': 0.01,
                         'HNC': 0.01,
                         'HOC': 0.01,
                         'HODL': 0.01,
@@ -537,40 +539,49 @@ module.exports = class coinexchange extends Exchange {
                 'amount': 8,
                 'price': 8,
             },
+            'commonCurrencies': {
+                'ACC': 'AdCoin',
+                'ANC': 'AnyChain',
+                'BON': 'BonPeKaO',
+                'BONPAY': 'BON',
+                'eNAU': 'ENAU',
+                'ETN': 'Ethernex',
+                'FRC': 'FireRoosterCoin',
+                'GET': 'GreenEnergyToken',
+                'GDC': 'GoldenCryptoCoin',
+                'GOLD': 'GoldenCoin',
+                'GTC': 'GlobalTourCoin',
+                'HMC': 'HarmonyCoin',
+                'HNC': 'Huncoin',
+                'IBC': 'RCoin',
+                'MARS': 'MarsBux',
+                'MER': 'TheMermaidCoin',
+                'OC': 'occnetwork',
+                'PUT': 'PutinCoin',
+                'RUB': 'RubbleCoin',
+                'UP': 'UpscaleToken',
+                'VULCANO': 'VULC',
+            },
         });
     }
 
-    commonCurrencyCode (currency) {
-        let substitutions = {
-            'BON': 'BonPeKaO',
-            'ETN': 'Ethernex',
-            'HNC': 'Huncoin',
-            'MARS': 'MarsBux',
-        };
-        if (currency in substitutions)
-            return substitutions[currency];
-        return currency;
-    }
-
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetGetcurrencies (params);
-        let currencies = response['result'];
-        let precision = this.precision['amount'];
-        let result = {};
+        const response = await this.publicGetGetcurrencies (params);
+        const currencies = this.safeValue (response, 'result');
+        const precision = this.precision['amount'];
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let id = currency['CurrencyID'];
-            let code = this.commonCurrencyCode (currency['TickerCode']);
-            let active = currency['WalletStatus'] === 'online';
-            let status = 'ok';
-            if (!active)
-                status = 'disabled';
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'CurrencyID');
+            const code = this.commonCurrencyCode (this.safeString (currency, 'TickerCode'));
+            const walletStatus = this.safeString (currency, 'WalletStatus');
+            const active = walletStatus === 'online';
+            const name = this.safeString (currency, 'Name');
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': currency['Name'],
+                'name': name,
                 'active': active,
-                'status': status,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -596,43 +607,49 @@ module.exports = class coinexchange extends Exchange {
         return result;
     }
 
-    async fetchMarkets () {
-        let response = await this.publicGetGetmarkets ();
-        let markets = response['result'];
-        let result = [];
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetGetmarkets (params);
+        const markets = response['result'];
+        const result = [];
         for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let id = market['MarketID'];
-            let base = this.commonCurrencyCode (market['MarketAssetCode']);
-            let quote = this.commonCurrencyCode (market['BaseCurrencyCode']);
-            let symbol = base + '/' + quote;
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': market['MarketAssetID'],
-                'quoteId': market['BaseCurrencyID'],
-                'active': market['Active'],
-                'lot': undefined,
-                'info': market,
-            });
+            const market = markets[i];
+            const id = market['MarketID'];
+            const baseId = this.safeString (market, 'MarketAssetCode');
+            const quoteId = this.safeString (market, 'BaseCurrencyCode');
+            if (baseId !== undefined && quoteId !== undefined) {
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                const symbol = base + '/' + quote;
+                result.push ({
+                    'id': id,
+                    'symbol': symbol,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': market['Active'],
+                    'info': market,
+                });
+            }
         }
         return result;
     }
 
     parseTicker (ticker, market = undefined) {
         let symbol = undefined;
-        if (!market) {
-            let marketId = ticker['MarketID'];
-            if (marketId in this.markets_by_id)
+        if (market === undefined) {
+            const marketId = this.safeString (ticker, 'MarketID');
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-            else
+            } else {
                 symbol = marketId;
+            }
         }
-        if (market)
+        if (market) {
             symbol = market['symbol'];
-        let timestamp = this.milliseconds ();
+        }
+        const timestamp = this.milliseconds ();
+        const last = this.safeFloat (ticker, 'LastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -640,14 +657,16 @@ module.exports = class coinexchange extends Exchange {
             'high': this.safeFloat (ticker, 'HighPrice'),
             'low': this.safeFloat (ticker, 'LowPrice'),
             'bid': this.safeFloat (ticker, 'BidPrice'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'AskPrice'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'LastPrice'),
-            'change': this.safeFloat (ticker, 'Change'),
-            'percentage': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeFloat (ticker, 'Change'),
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': this.safeFloat (ticker, 'Volume'),
@@ -657,21 +676,22 @@ module.exports = class coinexchange extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let ticker = await this.publicGetGetmarketsummary (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'market_id': market['id'],
-        }, params));
+        };
+        const ticker = await this.publicGetGetmarketsummary (this.extend (request, params));
         return this.parseTicker (ticker['result'], market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetGetmarketsummaries (params);
-        let tickers = response['result'];
-        let result = {};
+        const response = await this.publicGetGetmarketsummaries (params);
+        const tickers = response['result'];
+        const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            let ticker = this.parseTicker (tickers[i]);
-            let symbol = ticker['symbol'];
+            const ticker = this.parseTicker (tickers[i]);
+            const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
@@ -679,27 +699,28 @@ module.exports = class coinexchange extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetGetorderbook (this.extend ({
+        const request = {
             'market_id': this.marketId (symbol),
-        }, params));
+        };
+        const orderbook = await this.publicGetGetorderbook (this.extend (request, params));
         return this.parseOrderBook (orderbook['result'], undefined, 'BuyOrders', 'SellOrders', 'Price', 'Quantity');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + path;
         if (api === 'public') {
-            params = this.urlencode (params);
-            if (params.length)
-                url += '?' + params;
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        let success = this.safeInteger (response, 'success');
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        const success = this.safeInteger (response, 'success');
         if (success !== 1) {
-            let message = this.safeString (response, 'message', 'Error');
+            const message = this.safeString (response, 'message', 'Error');
             throw new ExchangeError (message);
         }
         return response;

@@ -12,6 +12,7 @@ Welcome to the ccxt wiki!
   - [Python](https://github.com/ccxt/ccxt/wiki/Install#python)
   - [PHP](https://github.com/ccxt/ccxt/wiki/Install#php)
   - [Web Browsers](https://github.com/ccxt/ccxt/wiki/Install#web-browsers)
+  - [Docker](https://github.com/ccxt/ccxt/wiki/Install#docker)
   - [Proxy](https://github.com/ccxt/ccxt/wiki/Install#proxy)
   - [CORS (Access-Control-Allow-Origin)](https://github.com/ccxt/ccxt/wiki/Install#cors-access-control-allow-origin)
 
@@ -30,6 +31,8 @@ Welcome to the ccxt wiki!
     - [Public/Private API](https://github.com/ccxt/ccxt/wiki/Manual#publicprivate-api)
     - [Synchronous vs Asynchronous Calls](https://github.com/ccxt/ccxt/wiki/Manual#synchronous-vs-asynchronous-calls)
     - [Unified API](https://github.com/ccxt/ccxt/wiki/Manual#unified-api)
+      - [Overriding Params](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params)
+      - [Pagination](https://github.com/ccxt/ccxt/wiki/Manual#pagination)
   - [Market Data](https://github.com/ccxt/ccxt/wiki/Manual#market-data)
     - [Order Book](https://github.com/ccxt/ccxt/wiki/Manual#order-book)
       - [Market Depth](https://github.com/ccxt/ccxt/wiki/Manual#market-depth)
@@ -57,13 +60,17 @@ Welcome to the ccxt wiki!
     - [Funding Your Account](https://github.com/ccxt/ccxt/wiki/Manual#funding-your-account)
       - [Deposit](https://github.com/ccxt/ccxt/wiki/Manual#deposit)
       - [Withdraw](https://github.com/ccxt/ccxt/wiki/Manual#withdraw)
-      - Transaction History (Ledger)
-    - Fees *(wip)*
-      - Maker / Taker Order Fees
-      - Deposit / Withdraw
+      - [Transactions](https://github.com/ccxt/ccxt/wiki/Manual#transactions)
+        - [Deposits](https://github.com/ccxt/ccxt/wiki/Manual#deposits)
+        - [Withdrawals](https://github.com/ccxt/ccxt/wiki/Manual#withdrawals)
+        - [All Transactions](https://github.com/ccxt/ccxt/wiki/Manual#all-transactions)
+    - [Fees](https://github.com/ccxt/ccxt/wiki/Manual#fees)
+      - [Trading Fees](https://github.com/ccxt/ccxt/wiki/Manual#trading-fees)
+      - [Funding Fees](https://github.com/ccxt/ccxt/wiki/Manual#funding-fees)
 
 ## Troubleshooting
 
+- [Frequently Asked Questions](https://github.com/ccxt/ccxt/wiki/FAQ)
 - [Overriding The Nonce](https://github.com/ccxt/ccxt/wiki/Manual#overriding-the-nonce)
 - [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling)
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
@@ -72,6 +79,11 @@ Welcome to the ccxt wiki!
 ## Examples
 
 - [Usage Examples](https://github.com/ccxt/ccxt/tree/master/examples) (work in progress)
+
+## New Exchanges
+
+- [Certification](https://github.com/ccxt/ccxt/wiki/Certification)
+- [Requirements](https://github.com/ccxt/ccxt/wiki/Requirements)
 
 ## API Reference
 

@@ -13,7 +13,7 @@ class huobi (Exchange):
         return self.deep_extend(super(huobi, self).describe(), {
             'id': 'huobi',
             'name': 'Huobi',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 2000,
             'version': 'v3',
             'has': {

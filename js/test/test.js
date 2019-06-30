@@ -14,7 +14,7 @@ const asTable   = require ('as-table')
     , ansi      = require ('ansicolor').nice
     , fs        = require ('fs')
     , ccxt      = require ('../../ccxt.js')
-    , countries = require ('../../countries.js')
+    , countries = require ('../../build/countries.js')
     , chai      = require ('chai')
     , expect    = chai.expect
     , assert    = chai.assert
@@ -44,12 +44,39 @@ let proxies = [
 
 const enableRateLimit = true
 
+const { Agent } = require ('https')
+
+const agent = new Agent ({
+    ecdhCurve: 'auto',
+})
+
 const exchange = new (ccxt)[exchangeId] ({
+    agent,
     verbose,
     enableRateLimit,
     debug,
     timeout: 20000,
 })
+
+//-----------------------------------------------------------------------------
+
+const tests = {}
+const properties = Object.keys (exchange.has)
+properties
+    .filter (property => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
+    .forEach (property => {
+        // eslint-disable-next-line import/no-dynamic-require
+        tests[property] = require (__dirname + '/Exchange/test.' + property + '.js')
+    })
+
+const errors = require ('../base/errors.js')
+
+Object.keys (errors)
+    .filter (error => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
+    .forEach (error => {
+        // eslint-disable-next-line import/no-dynamic-require
+        tests[error] = require (__dirname + '/errors/test.' + error + '.js')
+    })
 
 //-----------------------------------------------------------------------------
 
@@ -60,6 +87,16 @@ let keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 // eslint-disable-next-line import/no-dynamic-require
 let settings = require ('../../' + keysFile)[exchangeId]
 
+if (settings) {
+    const keys = Object.keys (settings)
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i]
+        if (settings[key]) {
+            settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key])
+        }
+    }
+}
+
 Object.assign (exchange, settings)
 
 if (settings && settings.skip) {
@@ -67,716 +104,48 @@ if (settings && settings.skip) {
     process.exit ()
 }
 
-const verboseList = []
-if (verboseList.indexOf (exchange.id) >= 0) {
-    exchange.verbose = true
-}
-
 //-----------------------------------------------------------------------------
 
 let countryName = function (code) {
-    return ((typeof countries[code] !== 'undefined') ? countries[code] : code)
-}
-
-//-----------------------------------------------------------------------------
-
-let human_value = function (price) {
-    return typeof price === 'undefined' ? 'N/A' : price
-}
-
-//-----------------------------------------------------------------------------
-
-let testTicker = async (exchange, symbol) => {
-
-    if (exchange.has.fetchTicker) {
-
-        // log (symbol.green, 'fetching ticker...')
-
-        let ticker = await exchange.fetchTicker (symbol)
-        const keys = [ 'datetime', 'timestamp', 'high', 'low', 'bid', 'ask', 'baseVolume', 'quoteVolume', 'vwap' ]
-
-        // log (ticker)
-
-        keys.forEach (key => assert (key in ticker))
-
-        const { high, low, vwap, baseVolume, quoteVolume } = ticker
-
-        // this assert breaks QuadrigaCX sometimes... still investigating
-        // if (vwap)
-        //     assert (vwap >= low && vwap <= high)
-
-        /*
-        if (baseVolume && quoteVolume && high && low) {
-            assert (quoteVolume >= baseVolume * low) // this assertion breaks therock
-            assert (quoteVolume <= baseVolume * high)
-        }
-        */
-
-        if (baseVolume && vwap)
-            assert (quoteVolume)
-
-        if (quoteVolume && vwap)
-            assert (baseVolume)
-
-        log (symbol.green, 'ticker',
-            ticker['datetime'],
-            ... (keys.map (key =>
-                key + ': ' + human_value (ticker[key]))))
-
-        if ((exchange.id !== 'coinmarketcap') && (exchange.id !== 'xbtce'))
-            if (ticker['bid'] && ticker['ask'])
-                assert (ticker['bid'] <= ticker['ask'])
-
-    } else {
-
-        log (symbol.green, 'fetchTicker () not supported')
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-const printOrderBookOneLiner = (orderbook, method, symbol) => {
-
-    const bids = orderbook.bids
-    const asks = orderbook.asks
-
-    log (symbol.toString ().green,
-        method,
-        orderbook['datetime'],
-        'bid: '       + ((bids.length > 0) ? human_value (bids[0][0]) : 'N/A'),
-        'bidVolume: ' + ((bids.length > 0) ? human_value (bids[0][1]) : 'N/A'),
-        'ask: '       + ((asks.length > 0) ? human_value (asks[0][0]) : 'N/A'),
-        'askVolume: ' + ((asks.length > 0) ? human_value (asks[0][1]) : 'N/A'))
-}
-
-//-----------------------------------------------------------------------------
-
-let testOrderBookProperties = (orderbook, method, symbol) => {
-
-    const format = {
-        'bids': [],
-        'asks': [],
-        'timestamp': 1234567890,
-        'datetime': '2017-09-01T00:00:00',
-    }
-
-    expect (orderbook).to.have.all.keys (format)
-
-    const bids = orderbook.bids
-    const asks = orderbook.asks
-
-    for (let i = 1; i < bids.length; i++) {
-        // debugger;
-        assert (bids[i][0] <= bids[i - 1][0])
-    }
-
-    for (let i = 1; i < asks.length; i++) {
-        assert (asks[i][0] >= asks[i - 1][0])
-    }
-
-    if (exchange.id !== 'xbtce')
-        if (bids.length && asks.length)
-            assert (bids[0][0] <= asks[0][0])
-
-
-    printOrderBookOneLiner (orderbook, method, symbol)
-}
-
-//-----------------------------------------------------------------------------
-
-let testOrderBook = async (exchange, symbol) => {
-
-    // log (symbol.green, 'fetching order book...')
-
-    const method = 'fetchOrderBook'
-
-    if (exchange.has[method]) {
-
-        let orderbook = await exchange[method] (symbol)
-        testOrderBookProperties (orderbook, method, symbol)
-        return orderbook
-
-    } else {
-
-        log (method + '() not supported')
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-let testOrderBooks = async (exchange) => {
-
-    const method = 'fetchOrderBooks'
-
-    if (exchange.has[method]) {
-
-        // log ('fetching order books...')
-
-        let orderbooks = await exchange[method] ()
-        log.green (orderbooks)
-
-        // Object.values (orderbooks).forEach (orderbook => {
-        //     testOrderBookProperties (orderbook, method) //, symbol)
-        // })
-        return orderbooks
-
-    } else {
-
-        log (method + '() not supported')
-    }
-}
-
-
-//-----------------------------------------------------------------------------
-
-let testL2OrderBook = async (exchange, symbol) => {
-
-    // log (symbol.green, 'fetching order book...')
-
-    const method = 'fetchL2OrderBook'
-
-    if (exchange.has[method]) {
-
-        let orderbook = await exchange[method] (symbol)
-        testOrderBookProperties (orderbook, method, symbol)
-        return orderbook
-
-    } else {
-
-        log (method + '() not supported')
-    }
-
-}
-
-//-----------------------------------------------------------------------------
-
-let testTradeProps = (trade, symbol, now) => {
-    assert.isOk (trade)
-    assert (typeof trade.id === 'undefined' || typeof trade.id === 'string')
-    assert (typeof trade.timestamp === 'number')
-    assert (trade.timestamp > 1230940800000) // 03 Jan 2009 - first block
-
-    //------------------------------------------------------------------
-    // console.log (exchange.iso8601 (trade.timestamp), exchange.iso8601 (now))
-
-    // The next assertion line breaks Kraken. They report trades that are
-    // approximately 500ms ahead of `now`. Tried synching system clock against
-    // different servers. Apparently, Kraken's own clock drifts by up to 10 (!) seconds.
-
-    const isExchangeTimeDrifting = [
-        'bitfinex',
-        'kraken', // override for kraken and possibly other exchanges as well
-    ].includes (exchange.id)
-
-    const adjustedNow = now + (isExchangeTimeDrifting ? 10000 : 0)
-
-    assert (trade.timestamp < adjustedNow, 'trade.timestamp is greater than or equal to current time: trade: ' + exchange.iso8601 (trade.timestamp) + ' now: ' + exchange.iso8601 (now))
-    //------------------------------------------------------------------
-
-    assert (trade.datetime === exchange.iso8601 (trade.timestamp))
-
-    const isExchangeLackingFilteringTradesBySymbol = [
-        'kraken', // override for kraken and possibly other exchanges as well, can't return private trades per symbol at all
-    ].includes (exchange.id)
-
-    if (!isExchangeLackingFilteringTradesBySymbol)
-        assert (trade.symbol === symbol, 'trade symbol is not equal to requested symbol: trade: ' + trade.symbol + ' reqeusted: ' + symbol)
-
-    assert (typeof trade.type  === 'undefined' || typeof trade.type === 'string')
-    assert (typeof trade.side  === 'undefined' || trade.side === 'buy' || trade.side === 'sell')
-    assert (typeof trade.order === 'undefined' || typeof trade.order === 'string')
-    assert (typeof trade.price === 'number', 'trade.price is not a number')
-    assert (trade.price > 0)
-    assert (typeof trade.amount === 'number', 'trade.amount is not a number')
-    assert (trade.amount >= 0)
-    assert.isOk (trade.info)
-}
-
-//-----------------------------------------------------------------------------
-
-let testTrades = async (exchange, symbol) => {
-
-    if (exchange.has.fetchTrades) {
-
-        // log (symbol.green, 'fetching trades...')
-
-        let trades = await exchange.fetchTrades (symbol)
-        assert (trades instanceof Array)
-        log (symbol.green, 'fetched', Object.values (trades).length.toString ().green, 'trades')
-        let now = Date.now ()
-        for (let i = 0; i < trades.length; i++) {
-            testTradeProps (trades[i], symbol, now)
-            if (i > 0)
-                assert (trades[i].timestamp <= trades[i - 1].timestamp)
-        }
-        // log (asTable (trades))
-
-    } else {
-
-        log (symbol.green, 'fetchTrades () not supported'.yellow)
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-let testTickers = async (exchange, symbol) => {
-
-    const skippedExchanges = [
-        'binance',
-    ]
-
-    if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, 'found in ignored exchanges, skipping fetch all tickers...')
-        return
-    }
-
-    if (exchange.has.fetchTickers) {
-
-        // log ('fetching all tickers at once...')
-
-        let tickers = undefined
-
-        try {
-
-            tickers = await exchange.fetchTickers ()
-            log ('fetched all', Object.keys (tickers).length.toString ().green, 'tickers')
-
-        } catch (e) {
-
-            log ('failed to fetch all tickers, fetching multiple tickers at once...')
-            tickers = await exchange.fetchTickers ([ symbol ])
-            log ('fetched', Object.keys (tickers).length.toString ().green, 'tickers')
-        }
-
-    } else {
-
-        log ('fetching all tickers at once not supported')
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-let testOHLCV = async (exchange, symbol) => {
-
-    if (exchange.has.fetchOHLCV) {
-
-        // log (symbol.green, 'fetching OHLCV...')
-        let ohlcv = await exchange.fetchOHLCV (symbol)
-        log (symbol.green, 'fetched', Object.keys (ohlcv).length.toString ().green, 'OHLCVs')
-
-    } else {
-
-        log ('fetching OHLCV not supported')
-    }
+    return ((countries[code] !== undefined) ? countries[code] : code)
 }
 
 //-----------------------------------------------------------------------------
 
 let testSymbol = async (exchange, symbol) => {
 
-    await testTicker  (exchange, symbol)
-    await testTickers (exchange, symbol)
-    await testOHLCV   (exchange, symbol)
-    await testTrades  (exchange, symbol)
+    if (exchange.id !== 'coinmarketcap') {
+        await tests['fetchMarkets']    (exchange)
+        await tests['fetchCurrencies'] (exchange)
+    }
+
+    await tests['fetchTicker']  (exchange, symbol)
+    await tests['fetchTickers'] (exchange, symbol)
+    await tests['fetchOHLCV']   (exchange, symbol)
+    await tests['fetchTrades']  (exchange, symbol)
 
     if (exchange.id === 'coinmarketcap') {
 
         log (await exchange.fetchTickers ())
         log (await exchange.fetchGlobal  ())
 
-    } else {
+    } else if (exchange.id === 'coinbase') {
 
-        await testOrderBook   (exchange, symbol)
-        await testL2OrderBook (exchange, symbol)
-        // await testOrderBooks  (exchange)
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-let testOrderProps = (order, symbol, now) => {
-    assert.isOk (order)
-    assert (typeof order.id === 'string')
-    assert (typeof order.timestamp === 'number')
-    assert (order.timestamp > 1230940800000) // 03 Jan 2009 - first block
-    assert (order.timestamp < now)
-    assert (order.datetime === exchange.iso8601 (order.timestamp))
-    assert (order.status === 'open' || order.status === 'closed' || order.status === 'canceled')
-    assert (order.symbol === symbol)
-    assert (typeof order.type === 'string')
-    assert (order.side === 'buy' || order.side === 'sell')
-    assert (typeof order.price === 'number')
-    assert (order.price > 0)
-    assert (typeof order.amount === 'number')
-    assert (order.amount >= 0)
-    if (order.filled) {
-        assert (typeof order.filled === 'number')
-        assert (order.filled >= 0 && order.filled <= order.amount)
-    }
-    if (order.remaining) {
-        assert (typeof order.remaining === 'number')
-        assert (order.remaining >= 0 && order.remaining <= order.amount)
-    }
-    if (order.trades) {
-        assert (order.trades instanceof Array)
-    }
-    if (order.fee) {
-        assert (typeof order.fee.cost === 'number')
-        if (order.fee.cost !== 0)
-            assert (typeof order.fee.currency === 'string')
-    }
-    assert.isOk (order.info)
-}
-
-//-----------------------------------------------------------------------------
-
-let testOrders = async (exchange, symbol) => {
-
-    if (exchange.has.fetchOrders) {
-
-        // log ('fetching orders...')
-        let orders = await exchange.fetchOrders (symbol)
-        log ('fetched', orders.length.toString ().green, 'orders, asserting each...')
-        assert (orders instanceof Array)
-        let now = Date.now ()
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i]
-            testOrderProps (order, symbol, now)
-        }
-        // log (asTable (orders))
+        // do nothing for now
 
     } else {
 
-        log ('fetching orders not supported')
+        await tests['fetchOrderBook']   (exchange, symbol)
+        await tests['fetchL2OrderBook'] (exchange, symbol)
+        await tests['fetchOrderBooks']  (exchange)
     }
-}
-
-//-----------------------------------------------------------------------------
-
-let testClosedOrders = async (exchange, symbol) => {
-
-    if (exchange.has.fetchClosedOrders) {
-
-        // log ('fetching closed orders...')
-        let orders = await exchange.fetchClosedOrders (symbol)
-        log ('fetched', orders.length.toString ().green, 'closed orders, testing each')
-        assert (orders instanceof Array)
-        let now = Date.now ()
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i]
-            testOrderProps (order, symbol, now)
-            assert (order.status === 'closed')
-        }
-        // log (asTable (orders))
-
-    } else {
-
-        log ('fetching closed orders not supported')
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-let testOpenOrders = async (exchange, symbol) => {
-
-    if (exchange.has.fetchOpenOrders) {
-
-        // log ('fetching open orders...')
-        let orders = await exchange.fetchOpenOrders (symbol)
-        assert (orders instanceof Array)
-        log ('fetched', orders.length.toString ().green, 'open orders')
-        let now = Date.now ()
-        for (let i = 0; i < orders.length; i++) {
-            let order = orders[i]
-            testOrderProps (order, symbol, now)
-            assert (order.status === 'open')
-        }
-
-        // log (asTable (orders))
-
-    } else {
-
-        log ('fetching open orders not supported')
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-let testMyTrades = async (exchange, symbol) => {
-
-    if (exchange.has.fetchMyTrades) {
-
-        // log ('fetching my trades...')
-        let trades = await exchange.fetchMyTrades (symbol, 0)
-        assert (trades instanceof Array)
-        log ('fetched', trades.length.toString ().green, 'trades')
-        let now = Date.now ()
-        for (let i = 0; i < trades.length; i++) {
-            testTradeProps (trades[i], symbol, now)
-            if (i > 0)
-                assert (trades[i].timestamp <= trades[i - 1].timestamp)
-        }
-        // trades.forEach (trade => log.dim ('-'.repeat (80), "\n", trade))
-        // log (asTable (trades))
-
-    } else {
-        log ('fetching my trades not supported')
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-let testFetchCurrencies = async (exchange, symbol) => {
-
-    if (exchange.has.fetchCurrencies) {
-
-        // log ('fetching currencies...')
-        let currencies = await exchange.fetchCurrencies ()
-        log ('fetched', currencies.length.toString ().green, 'currencies')
-        // log (asTable (currencies))
-
-    } else {
-
-        log ('fetching currencies not supported')
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-let testInvalidOrder = async (exchange, symbol) => {
-
-    if (!exchange.has.createOrder) {
-        log ('createOrder not supported')
-        return
-    }
-
-    try {
-        await exchange.createLimitBuyOrder (symbol, 0, 0)
-        assert.fail ()
-    } catch (e) {
-        if (e instanceof ccxt.InvalidOrder) {
-            log ('InvalidOrder thrown as expected')
-            return
-        } else {
-            log ('InvalidOrder failed, exception follows:')
-            throw e
-        }
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-// will try to place a buy order at the minimum price level on minimum amount possible
-// will skip if balance is positive or market limits are not set
-let testInsufficientFunds = async (exchange, symbol, balance) => {
-
-    if (!exchange.has.createOrder) {
-        log ('createOrder not supported')
-        return
-    }
-
-    const markets = await exchange.loadMarkets ()
-    const market = markets[symbol]
-    if (market.limits === undefined) {
-        log ('market.limits property is not set, will not test order creation')
-        return
-    }
-
-    const { price, amount, cost } = market.limits
-
-    if (price === undefined || amount === undefined || cost === undefined) {
-        log ('market.limits.[price|amount|cost] property is not set, will not test order creation')
-        return
-    }
-
-    let minPrice = price.min
-    let minAmount = amount.min // will be adjusted co cover minCost if needed
-    const minCost = cost.min
-
-    if (minPrice === undefined || minAmount === undefined || minCost === undefined) {
-        log ('min limits are not set, will not test order creation')
-        return
-    }
-
-    if (minCost > minPrice * minAmount) {
-        minAmount = minCost / minPrice
-    }
-
-    minPrice = exchange.priceToPrecision (symbol, minPrice)
-    minAmount = exchange.amountToPrecision (symbol, minAmount)
-
-    if (balance === undefined) {
-        log ('balance is not set, cannot ensure safety, will not test order creation')
-        return
-    }
-
-    const { base, quote } = market
-    if (balance[quote].total > 0) {
-        log ('balance is not empty, will not test order creation')
-        return
-    }
-
-    try {
-        log ('creating limit buy order...', symbol, minAmount, minPrice)
-        let order = await exchange.createLimitBuyOrder (symbol, minAmount, minPrice)
-        log ('order created although it should not had to - cleaning up')
-        log (order)
-        await exchange.cancelOrder (order.id, symbol)
-        assert.fail ()
-    } catch (e) {
-        if (e instanceof ccxt.InsufficientFunds) {
-            log ('InsufficientFunds thrown as expected')
-        } else {
-            log ('InsufficientFunds failed, exception follows:')
-            throw e
-        }
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-let testNonExistentOrderNotFound = async (exchange, symbol) => {
-
-    if (!exchange.has.createOrder) {
-        log ('createOrder not supported -> test skipped')
-        return
-    }
-
-    let id = 1
-
-    try {
-
-        await exchange.cancelOrder (id, symbol)
-        log ('test failed')
-        assert.fail ()
-    } catch (e) {
-        if (e instanceof ccxt.OrderNotFound) {
-            log ('OrderNotFound thrown as expected')
-        } else {
-            log ('OrderNotFound test failed')
-            throw e
-        }
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-let testBalance = async (exchange, symbol) => {
-
-    if (!(exchange.has.fetchBalance)) {
-        log (exchange.id.green, ' does not have fetchBalance')
-        return
-    }
-
-    log ('fetching balance...')
-
-    let balance = await exchange.fetchBalance ()
-
-    let currencies = [
-        'USD',
-        'CNY',
-        'EUR',
-        'BTC',
-        'ETH',
-        'JPY',
-        'LTC',
-        'DASH',
-        'DOGE',
-        'UAH',
-        'RUB',
-    ]
-
-    // log.yellow (balance)
-
-    if ('info' in balance) {
-
-        let result = currencies
-            .filter (currency => (currency in balance) &&
-                (typeof balance[currency]['total'] !== 'undefined'))
-
-        if (result.length > 0) {
-            result = result.map (currency => currency + ': ' + human_value (balance[currency]['total']))
-            if (exchange.currencies.length > result.length)
-                result = result.join (', ') + ' + more...'
-            else
-                result = result.join (', ')
-
-        } else {
-
-            result = 'zero balance'
-        }
-
-        log (result)
-
-    } else {
-
-        log (exchange.omit (balance, 'info'))
-    }
-    return balance
-}
-
-//-----------------------------------------------------------------------------
-
-let testBadNonce = async (exchange, symbol) => {
-
-    log.green ('AuthenticationError (bad nonce) test...')
-
-    const hasFetchBalance  = exchange.has.fetchBalance
-    const hasFetchMyTrades = exchange.has.fetchMyTrades
-    const hasFetchOrders   = exchange.has.fetchOrders
-
-    if (hasFetchBalance || hasFetchMyTrades || hasFetchOrders) {
-
-        // save the nonce temporarily and replace it with a fake one
-        const nonce = exchange.nonce
-        exchange.nonce = () => 1
-
-        try {
-
-            // check if handleErrors() throws AuthenticationError if an exchange
-            // responds with an error on a bad nonce
-            // (still, some exchanges that require nonce silently eat bad nonce w/o an error)
-
-            if (hasFetchBalance)
-                await exchange.fetchBalance ()
-            else if (hasFetchMyTrades)
-                await exchange.fetchMyTrades (symbol, 0)
-            else
-                await exchange.fetchOrders (symbol)
-
-            // restore the nonce so the caller may proceed in case bad nonce was accepted by an exchange
-            exchange.nonce = nonce
-            log.warn (exchange.id + ': AuthenticationError: bad nonce swallowed')
-
-        } catch (e) {
-
-            // restore the nonce so the caller may proceed in case the test failed
-            exchange.nonce = nonce
-            if (e instanceof ccxt.AuthenticationError || e instanceof ccxt.InvalidNonce) {
-
-                // it has thrown the exception as expected
-                log.green ('AuthenticationError test passed')
-
-            } else {
-
-                // rethrow an unexpected error if any
-                throw e
-            }
-        }
-
-    } else {
-
-        log (exchange.id + ' has no means of testing for bad nonce')
-
-    }
-
 }
 
 //-----------------------------------------------------------------------------
 
 let loadExchange = async exchange => {
 
-    let markets  = await exchange.loadMarkets ()
+    let markets = await exchange.loadMarkets ()
 
     assert (typeof exchange.markets === 'object', '.markets is not an object')
     assert (Array.isArray (exchange.symbols), '.symbols is not an array')
@@ -787,6 +156,7 @@ let loadExchange = async exchange => {
     let symbols = [
         'BTC/CNY',
         'BTC/USD',
+        'BTC/USDT',
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
@@ -820,18 +190,59 @@ let loadExchange = async exchange => {
 
 let testExchange = async exchange => {
 
+    const codes = [
+        'BTC',
+        'ETH',
+        'XRP',
+        'LTC',
+        'BCH',
+        'EOS',
+        'BNB',
+        'BSV',
+        'USDT',
+        'ATOM',
+        'BAT',
+        'BTG',
+        'DASH',
+        'DOGE',
+        'ETC',
+        'IOTA',
+        'LSK',
+        'MKR',
+        'NEO',
+        'PAX',
+        'QTUM',
+        'TRX',
+        'TUSD',
+        'USD',
+        'USDC',
+        'WAVES',
+        'XEM',
+        'XMR',
+        'ZEC',
+        'ZRX',
+    ]
+    let code = codes[0]
+    for (let c in codes) {
+        if (c in exchange.currencies) {
+            code = c
+        }
+    }
+
     await loadExchange (exchange)
 
     let delay = exchange.rateLimit
     let symbol = exchange.symbols[0]
-    let symbols = [
+    const symbols = [
         'BTC/USD',
+        'BTC/USDT',
         'BTC/CNY',
         'BTC/EUR',
         'BTC/ETH',
         'ETH/BTC',
         'BTC/JPY',
         'LTC/BTC',
+        'ZRX/WETH',
     ]
     for (let s in symbols) {
         if (exchange.symbols.includes (symbols[s])) {
@@ -852,27 +263,41 @@ let testExchange = async exchange => {
         await testSymbol (exchange, symbol)
     }
 
-    if (!exchange.apiKey || (exchange.apiKey.length < 1))
+    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1)))
         return true
 
-    // move to testnet/sandbox if possible before accessing the balance if possible
-    if (exchange.urls['test'])
-        exchange.urls['api'] = exchange.urls['test']
+    exchange.checkRequiredCredentials ()
 
-    let balance = await testBalance (exchange)
+    // move to testnet/sandbox if possible before accessing the balance
+    // if (exchange.urls['test'])
+    //    exchange.urls['api'] = exchange.urls['test']
 
-    await testOrders       (exchange, symbol)
-    await testOpenOrders   (exchange, symbol)
-    await testClosedOrders (exchange, symbol)
-    await testMyTrades     (exchange, symbol)
+    let balance = await tests['fetchBalance'] (exchange)
+
+    await tests['fetchFundingFees']  (exchange)
+    await tests['fetchTradingFees']  (exchange)
+    await tests['fetchStatus'] (exchange)
+
+    await tests['fetchOrders']       (exchange, symbol)
+    await tests['fetchOpenOrders']   (exchange, symbol)
+    await tests['fetchClosedOrders'] (exchange, symbol)
+    await tests['fetchMyTrades']     (exchange, symbol)
+
+    if ('fetchLedger' in tests) {
+        await tests['fetchLedger'] (exchange, code)
+    }
+
+    // const code = exchange.markets[symbol]['quote']
+    // await tests['fetchTransactions'] (exchange, code)
+    // await tests['fetchDeposits']     (exchange, code)
+    // await tests['fetchWithdrawals']  (exchange, code)
 
     if (exchange.extendedTest) {
-        await testBadNonce        (exchange, symbol)
-        await testNonExistentOrderNotFound (exchange, symbol)
-        await testInvalidOrder (exchange, symbol)
 
-        // danger zone - won't execute with non-empty balance
-        await testInsufficientFunds (exchange, symbol, balance)
+        await tests['InvalidNonce']      (exchange, symbol)
+        await tests['OrderNotFound']     (exchange, symbol)
+        await tests['InvalidOrder']      (exchange, symbol)
+        await tests['InsufficientFunds'] (exchange, symbol, balance) // danger zone - won't execute with non-empty balance
     }
 
     // try {
@@ -949,6 +374,11 @@ let tryAllProxies = async function (exchange, proxies) {
         try {
 
             exchange.proxy = proxies[currentProxy]
+
+            // add random origin for proxies
+            if (exchange.proxy.length > 0)
+                exchange.origin = exchange.uuid ()
+
             await testExchange (exchange)
             break
 
@@ -981,12 +411,11 @@ let tryAllProxies = async function (exchange, proxies) {
     if (exchangeSymbol) {
 
         await loadExchange (exchange)
-        await (exchangeSymbol === 'balance') ?
-            testBalance (exchange) :
-            testSymbol (exchange, exchangeSymbol)
+        await testSymbol (exchange, exchangeSymbol)
 
     } else {
 
         await tryAllProxies (exchange, proxies)
     }
+
 }) ()

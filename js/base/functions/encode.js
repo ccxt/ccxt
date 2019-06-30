@@ -2,8 +2,8 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const CryptoJS = require ('crypto-js')
-const qs       = require ('qs') // querystring (TODO: get rid of that dependency)
+const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
+const qs       = require ('../../static_dependencies/qs/index')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -22,7 +22,7 @@ module.exports =
     , utf16ToBase64:  string => CryptoJS.enc.Utf16 .parse (string).toString (CryptoJS.enc.Base64)
     , base64ToBinary: string => CryptoJS.enc.Base64.parse (string)
     , base64ToString: string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
-    , binaryToString: string => string
+    , binaryToBase64: binary => binary.toString (CryptoJS.enc.Base64)
 
     , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
 

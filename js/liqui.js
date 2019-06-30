@@ -1,14 +1,14 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 module.exports = class liqui extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'liqui',
             'name': 'Liqui',
-            'countries': 'UA',
+            'countries': [ 'UA' ],
             'rateLimit': 3000,
             'version': '3',
             'userAgent': this.userAgents['chrome'],
@@ -33,6 +33,12 @@ module.exports = class liqui extends Exchange {
                 'www': 'https://liqui.io',
                 'doc': 'https://liqui.io/api',
                 'fees': 'https://liqui.io/fee',
+            },
+            'status': {
+                'status': 'shutdown',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
             },
             'api': {
                 'public': {
@@ -70,23 +76,46 @@ module.exports = class liqui extends Exchange {
                     'deposit': {},
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH',
+            },
             'exceptions': {
-                '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
-                '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
-                '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
-                '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
-                '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
-                '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
-                '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
-                '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                'exact': {
+                    '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
+                    '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
+                    '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
+                    '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
+                    '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
+                    '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
+                    '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
+                    '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
+                },
+                'broad': {
+                    'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
+                    'invalid api key': AuthenticationError,
+                    'invalid sign': AuthenticationError,
+                    'api key dont have trade permission': AuthenticationError,
+                    'invalid parameter': InvalidOrder,
+                    'invalid order': InvalidOrder,
+                    'Requests too often': DDoSProtection,
+                    'not available': ExchangeNotAvailable,
+                    'data unavailable': ExchangeNotAvailable,
+                    'external service unavailable': ExchangeNotAvailable,
+                },
+            },
+            'options': {
+                'fetchOrderMethod': 'privatePostOrderInfo',
+                'fetchMyTradesMethod': 'privatePostTradeHistory',
+                'cancelOrderMethod': 'privatePostCancelOrder',
+                'fetchTickersMaxLength': 2048,
             },
         });
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
+        const market = this.markets[symbol];
         let key = 'quote';
-        let rate = market[takerOrMaker];
+        const rate = market[takerOrMaker];
         let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
         if (side === 'sell') {
             cost *= price;
@@ -101,69 +130,51 @@ module.exports = class liqui extends Exchange {
         };
     }
 
-    commonCurrencyCode (currency) {
-        if (!this.substituteCommonCurrencyCodes)
-            return currency;
-        if (currency === 'XBT')
-            return 'BTC';
-        if (currency === 'BCC')
-            return 'BCH';
-        if (currency === 'DRK')
-            return 'DASH';
-        // they misspell DASH as dsh :/
-        if (currency === 'DSH')
-            return 'DASH';
-        return currency;
-    }
-
-    getBaseQuoteFromMarketId (id) {
-        let uppercase = id.toUpperCase ();
-        let [ base, quote ] = uppercase.split ('_');
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
-        return [ base, quote ];
-    }
-
-    async fetchMarkets () {
-        let response = await this.publicGetInfo ();
-        let markets = response['pairs'];
-        let keys = Object.keys (markets);
-        let result = [];
-        for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
-            let market = markets[id];
-            let [ base, quote ] = this.getBaseQuoteFromMarketId (id);
-            let symbol = base + '/' + quote;
-            let precision = {
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetInfo (params);
+        const markets = response['pairs'];
+        const keys = Object.keys (markets);
+        const result = [];
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const market = markets[id];
+            const [ baseId, quoteId ] = id.split ('_');
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            quote = this.commonCurrencyCode (quote);
+            const symbol = base + '/' + quote;
+            const precision = {
                 'amount': this.safeInteger (market, 'decimal_places'),
                 'price': this.safeInteger (market, 'decimal_places'),
             };
-            let amountLimits = {
+            const amountLimits = {
                 'min': this.safeFloat (market, 'min_amount'),
                 'max': this.safeFloat (market, 'max_amount'),
             };
-            let priceLimits = {
+            const priceLimits = {
                 'min': this.safeFloat (market, 'min_price'),
                 'max': this.safeFloat (market, 'max_price'),
             };
-            let costLimits = {
+            const costLimits = {
                 'min': this.safeFloat (market, 'min_total'),
             };
-            let limits = {
+            const limits = {
                 'amount': amountLimits,
                 'price': priceLimits,
                 'cost': costLimits,
             };
-            let hidden = this.safeInteger (market, 'hidden');
-            let active = (hidden === 0);
+            const hidden = this.safeInteger (market, 'hidden');
+            const active = (hidden === 0);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': active,
                 'taker': market['fee'] / 100,
-                'lot': amountLimits['min'],
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -174,13 +185,13 @@ module.exports = class liqui extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetInfo ();
-        let balances = response['return'];
-        let result = { 'info': balances };
-        let funds = balances['funds'];
-        let currencies = Object.keys (funds);
+        const response = await this.privatePostGetInfo (params);
+        const balances = this.safeValue (response, 'return');
+        const result = { 'info': balances };
+        const funds = this.safeValue (balances, 'funds');
+        const currencies = Object.keys (funds);
         for (let c = 0; c < currencies.length; c++) {
-            let currency = currencies[c];
+            const currency = currencies[c];
             let uppercase = currency.toUpperCase ();
             uppercase = this.commonCurrencyCode (uppercase);
             let total = undefined;
@@ -189,7 +200,7 @@ module.exports = class liqui extends Exchange {
                 total = funds[currency];
                 used = 0.0;
             }
-            let account = {
+            const account = {
                 'free': funds[currency],
                 'used': used,
                 'total': total,
@@ -201,47 +212,47 @@ module.exports = class liqui extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined) {
             request['limit'] = limit; // default = 150, max = 2000
-        let response = await this.publicGetDepthPair (this.extend (request, params));
-        let market_id_in_reponse = (market['id'] in response);
-        if (!market_id_in_reponse)
+        }
+        const response = await this.publicGetDepthPair (this.extend (request, params));
+        const market_id_in_reponse = (market['id'] in response);
+        if (!market_id_in_reponse) {
             throw new ExchangeError (this.id + ' ' + market['symbol'] + ' order book is empty or not available');
-        let orderbook = response[market['id']];
-        let result = this.parseOrderBook (orderbook);
-        result['bids'] = this.sortBy (result['bids'], 0, true);
-        result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        }
+        const orderbook = response[market['id']];
+        return this.parseOrderBook (orderbook);
     }
 
     async fetchOrderBooks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         let ids = undefined;
-        if (!symbols) {
+        if (symbols === undefined) {
             ids = this.ids.join ('-');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
-                let numIds = this.ids.length;
+                const numIds = this.ids.length;
                 throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
             }
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join ('-');
         }
-        let response = await this.publicGetDepthPair (this.extend ({
+        const request = {
             'pair': ids,
-        }, params));
-        let result = {};
+        };
+        const response = await this.publicGetDepthPair (this.extend (request, params));
+        const result = {};
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
+            const id = ids[i];
             let symbol = id;
             if (id in this.markets_by_id) {
-                let market = this.markets_by_id[id];
+                const market = this.markets_by_id[id];
                 symbol = market['symbol'];
             }
             result[symbol] = this.parseOrderBook (response[id]);
@@ -250,10 +261,26 @@ module.exports = class liqui extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['updated'] * 1000;
+        //
+        //   {    high: 0.03497582,
+        //         low: 0.03248474,
+        //         avg: 0.03373028,
+        //         vol: 120.11485715062999,
+        //     vol_cur: 3572.24914074,
+        //        last: 0.0337611,
+        //         buy: 0.0337442,
+        //        sell: 0.03377798,
+        //     updated: 1537522009          }
+        //
+        let timestamp = this.safeInteger (ticker, 'updated');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -261,12 +288,14 @@ module.exports = class liqui extends Exchange {
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'buy'),
+            'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'sell'),
+            'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
-            'first': undefined,
-            'last': this.safeFloat (ticker, 'last'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': this.safeFloat (ticker, 'avg'),
@@ -278,26 +307,28 @@ module.exports = class liqui extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let ids = undefined;
-        if (!symbols) {
-            ids = this.ids.join ('-');
-            // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
-            if (ids.length > 2048) {
-                let numIds = this.ids.length;
-                throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchTickers');
+        let ids = this.ids;
+        if (symbols === undefined) {
+            const numIds = ids.length;
+            ids = ids.join ('-');
+            const maxLength = this.safeInteger (this.options, 'fetchTickersMaxLength', 2048);
+            // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+            if (ids.length > this.options['fetchTickersMaxLength']) {
+                throw new ArgumentsRequired (this.id + ' has ' + numIds.toString () + ' markets exceeding max URL length for this endpoint (' + maxLength.toString () + ' characters), please, specify a list of symbols of interest in the first argument to fetchTickers');
             }
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join ('-');
         }
-        let tickers = await this.publicGetTickerPair (this.extend ({
+        const request = {
             'pair': ids,
-        }, params));
-        let result = {};
-        let keys = Object.keys (tickers);
+        };
+        const tickers = await this.publicGetTickerPair (this.extend (request, params));
+        const result = {};
+        const keys = Object.keys (tickers);
         for (let k = 0; k < keys.length; k++) {
-            let id = keys[k];
-            let ticker = tickers[id];
+            const id = keys[k];
+            const ticker = tickers[id];
             let symbol = id;
             let market = undefined;
             if (id in this.markets_by_id) {
@@ -310,39 +341,62 @@ module.exports = class liqui extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        let tickers = await this.fetchTickers ([ symbol ], params);
+        const tickers = await this.fetchTickers ([ symbol ], params);
         return tickers[symbol];
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = parseInt (trade['timestamp']) * 1000;
-        let side = trade['type'];
-        if (side === 'ask')
+        let timestamp = this.safeInteger (trade, 'timestamp');
+        if (timestamp !== undefined) {
+            timestamp = timestamp * 1000;
+        }
+        let side = this.safeString (trade, 'type');
+        if (side === 'ask') {
             side = 'sell';
-        if (side === 'bid')
+        } else if (side === 'bid') {
             side = 'buy';
-        let price = this.safeFloat (trade, 'price');
-        if ('rate' in trade)
-            price = this.safeFloat (trade, 'rate');
-        let id = this.safeString (trade, 'tid');
-        if ('trade_id' in trade)
-            id = this.safeString (trade, 'trade_id');
-        let order = this.safeString (trade, this.getOrderIdKey ());
+        }
+        const price = this.safeFloat2 (trade, 'rate', 'price');
+        const id = this.safeString2 (trade, 'trade_id', 'tid');
+        const order = this.safeString (trade, this.getOrderIdKey ());
         if ('pair' in trade) {
-            let marketId = trade['pair'];
-            market = this.markets_by_id[marketId];
+            const marketId = this.safeString (trade, 'pair');
+            market = this.safeValue (this.markets_by_id, marketId, market);
         }
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let amount = trade['amount'];
-        let type = 'limit'; // all trades are still limit trades
-        let isYourOrder = this.safeValue (trade, 'is_your_order');
-        let takerOrMaker = 'taker';
-        if (typeof isYourOrder !== 'undefined')
-            if (isYourOrder)
+        }
+        const amount = this.safeFloat (trade, 'amount');
+        const type = 'limit'; // all trades are still limit trades
+        let takerOrMaker = undefined;
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'commission');
+        if (feeCost !== undefined) {
+            let feeCurrencyId = this.safeString (trade, 'commissionCurrency');
+            feeCurrencyId = feeCurrencyId.toUpperCase ();
+            const feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
+            let feeCurrencyCode = undefined;
+            if (feeCurrency !== undefined) {
+                feeCurrencyCode = feeCurrency['code'];
+            } else {
+                feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
+            }
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        const isYourOrder = this.safeValue (trade, 'is_your_order');
+        if (isYourOrder !== undefined) {
+            takerOrMaker = 'taker';
+            if (isYourOrder) {
                 takerOrMaker = 'maker';
-        let fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
+            }
+            if (fee === undefined) {
+                fee = this.calculateFee (symbol, type, side, amount, price, takerOrMaker);
+            }
+        }
         return {
             'id': id,
             'order': order,
@@ -351,6 +405,7 @@ module.exports = class liqui extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'fee': fee,
@@ -360,43 +415,57 @@ module.exports = class liqui extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
         };
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined) {
             request['limit'] = limit;
-        let response = await this.publicGetTradesPair (this.extend (request, params));
+        }
+        const response = await this.publicGetTradesPair (this.extend (request, params));
+        if (Array.isArray (response)) {
+            const numElements = response.length;
+            if (numElements === 0) {
+                return [];
+            }
+        }
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === 'market')
+        if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
             'type': side,
             'amount': this.amountToPrecision (symbol, amount),
             'rate': this.priceToPrecision (symbol, price),
         };
-        let response = await this.privatePostTrade (this.extend (request, params));
-        let id = this.safeString (response['return'], this.getOrderIdKey ());
-        let timestamp = this.milliseconds ();
         price = parseFloat (price);
         amount = parseFloat (amount);
+        const response = await this.privatePostTrade (this.extend (request, params));
+        let id = undefined;
         let status = 'open';
-        if (id === '0') {
-            id = this.safeString (response['return'], 'init_order_id');
-            status = 'closed';
+        let filled = 0.0;
+        let remaining = amount;
+        if ('return' in response) {
+            id = this.safeString (response['return'], this.getOrderIdKey ());
+            if (id === '0') {
+                id = this.safeString (response['return'], 'init_order_id');
+                status = 'closed';
+            }
+            filled = this.safeFloat (response['return'], 'received', 0.0);
+            remaining = this.safeFloat (response['return'], 'remains', amount);
         }
-        let filled = this.safeFloat (response['return'], 'received', 0.0);
-        let remaining = this.safeFloat (response['return'], 'remains', amount);
-        let order = {
+        const timestamp = this.milliseconds ();
+        const order = {
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
             'status': status,
             'symbol': symbol,
             'type': type,
@@ -419,60 +488,74 @@ module.exports = class liqui extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
-        let request = {};
-        let idKey = this.getOrderIdKey ();
+        const request = {};
+        const idKey = this.getOrderIdKey ();
         request[idKey] = id;
-        response = await this.privatePostCancelOrder (this.extend (request, params));
-        if (id in this.orders)
+        const method = this.options['cancelOrderMethod'];
+        const response = await this[method] (this.extend (request, params));
+        if (id in this.orders) {
             this.orders[id]['status'] = 'canceled';
+        }
         return response;
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            '0': 'open',
+            '1': 'closed',
+            '2': 'canceled',
+            '3': 'canceled', // or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
-        let id = order['id'].toString ();
-        let status = this.safeInteger (order, 'status');
-        if (status === 0) {
-            status = 'open';
-        } else if (status === 1) {
-            status = 'closed';
-        } else if ((status === 2) || (status === 3)) {
-            status = 'canceled';
+        const id = this.safeString (order, 'id');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        let timestamp = this.safeInteger (order, 'timestamp_created');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
         }
-        let timestamp = parseInt (order['timestamp_created']) * 1000;
         let symbol = undefined;
-        if (!market)
-            market = this.markets_by_id[order['pair']];
-        if (market)
+        if (market === undefined) {
+            const marketId = this.safeString (order, 'pair');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            }
+        }
+        if (market !== undefined) {
             symbol = market['symbol'];
-        let remaining = undefined;
+        }
+        const remaining = this.safeFloat (order, 'amount');
         let amount = undefined;
-        let price = this.safeFloat (order, 'rate');
+        const price = this.safeFloat (order, 'rate');
         let filled = undefined;
         let cost = undefined;
         if ('start_amount' in order) {
             amount = this.safeFloat (order, 'start_amount');
-            remaining = this.safeFloat (order, 'amount');
         } else {
-            remaining = this.safeFloat (order, 'amount');
-            if (id in this.orders)
+            if (id in this.orders) {
                 amount = this.orders[id]['amount'];
+            }
         }
-        if (typeof amount !== 'undefined') {
-            if (typeof remaining !== 'undefined') {
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
                 filled = amount - remaining;
                 cost = price * filled;
             }
         }
-        let fee = undefined;
-        let result = {
+        const fee = undefined;
+        const type = 'limit';
+        const side = this.safeString (order, 'type');
+        const result = {
             'info': order,
             'id': id,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'type': 'limit',
-            'side': order['type'],
+            'lastTradeTimestamp': undefined,
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -484,117 +567,118 @@ module.exports = class liqui extends Exchange {
         return result;
     }
 
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
-        let ids = Object.keys (orders);
-        let result = [];
-        for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let order = orders[id];
-            let extended = this.extend (order, { 'id': id });
-            result.push (this.parseOrder (extended, market));
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        const result = [];
+        const ids = Object.keys (orders);
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
         }
-        return this.filterBySinceLimit (result, since, limit);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const order = this.extend ({ 'id': id }, orders[id]);
+            result.push (this.extend (this.parseOrder (order, market), params));
+        }
+        return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostOrderInfo (this.extend ({
-            'order_id': parseInt (id),
-        }, params));
+        const request = {};
+        const idKey = this.getOrderIdKey ();
+        request[idKey] = parseInt (id);
+        const method = this.options['fetchOrderMethod'];
+        const response = await this[method] (this.extend (request, params));
         id = id.toString ();
-        let newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
-        let oldOrder = (id in this.orders) ? this.orders[id] : {};
+        const newOrder = this.parseOrder (this.extend ({ 'id': id }, response['return'][id]));
+        const oldOrder = (id in this.orders) ? this.orders[id] : {};
         this.orders[id] = this.extend (oldOrder, newOrder);
         return this.orders[id];
     }
 
     updateCachedOrders (openOrders, symbol) {
         // update local cache with open orders
+        // this will add unseen orders and overwrite existing ones
         for (let j = 0; j < openOrders.length; j++) {
             const id = openOrders[j]['id'];
             this.orders[id] = openOrders[j];
         }
-        let openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        let cachedOrderIds = Object.keys (this.orders);
-        let result = [];
+        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
+        const cachedOrderIds = Object.keys (this.orders);
         for (let k = 0; k < cachedOrderIds.length; k++) {
             // match each cached order to an order in the open orders array
             // possible reasons why a cached order may be missing in the open orders array:
             // - order was closed or canceled -> update cache
             // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            let id = cachedOrderIds[k];
-            let order = this.orders[id];
-            result.push (order);
-            if (!(id in openOrdersIndexedById)) {
+            const cachedOrderId = cachedOrderIds[k];
+            let cachedOrder = this.orders[cachedOrderId];
+            if (!(cachedOrderId in openOrdersIndexedById)) {
                 // cached order is not in open orders array
                 // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (typeof symbol !== 'undefined' && symbol !== order['symbol'])
+                if (symbol !== undefined && symbol !== cachedOrder['symbol']) {
                     continue;
-                // order is cached but not present in the list of open orders -> mark the cached order as closed
-                if (order['status'] === 'open') {
-                    order = this.extend (order, {
+                }
+                // cached order is absent from the list of open orders -> mark the cached order as closed
+                if (cachedOrder['status'] === 'open') {
+                    cachedOrder = this.extend (cachedOrder, {
                         'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
                         'cost': undefined,
-                        'filled': order['amount'],
+                        'filled': cachedOrder['amount'],
                         'remaining': 0.0,
                     });
-                    if (typeof order['cost'] === 'undefined') {
-                        if (typeof order['filled'] !== 'undefined')
-                            order['cost'] = order['filled'] * order['price'];
+                    if (cachedOrder['cost'] === undefined) {
+                        if (cachedOrder['filled'] !== undefined) {
+                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price'];
+                        }
                     }
-                    this.orders[id] = order;
+                    this.orders[cachedOrderId] = cachedOrder;
                 }
             }
         }
-        return result;
+        return this.toArray (this.orders);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if ('fetchOrdersRequiresSymbol' in this.options)
-            if (this.options['fetchOrdersRequiresSymbol'])
-                if (typeof symbol === 'undefined')
-                    throw new ExchangeError (this.id + ' fetchOrders requires a symbol argument');
+        if ('fetchOrdersRequiresSymbol' in this.options) {
+            if (this.options['fetchOrdersRequiresSymbol']) {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
+                }
+            }
+        }
         await this.loadMarkets ();
-        let request = {};
-        let market = undefined;
-        if (symbol) {
-            let market = this.market (symbol);
+        const request = {};
+        const market = undefined;
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        let response = await this.privatePostActiveOrders (this.extend (request, params));
-        // liqui etc can only return 'open' orders (i.e. no way to fetch 'closed' orders)
+        const response = await this.privatePostActiveOrders (this.extend (request, params));
+        // can only return 'open' orders (i.e. no way to fetch 'closed' orders)
         let openOrders = [];
-        if ('return' in response)
+        if ('return' in response) {
             openOrders = this.parseOrders (response['return'], market);
-        let allOrders = this.updateCachedOrders (openOrders, symbol);
-        let result = this.filterOrdersBySymbol (allOrders, symbol);
+        }
+        const allOrders = this.updateCachedOrders (openOrders, symbol);
+        const result = this.filterBySymbol (allOrders, symbol);
         return this.filterBySinceLimit (result, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === 'open')
-                result.push (orders[i]);
-        }
-        return result;
+        const orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'open');
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let orders = await this.fetchOrders (symbol, since, limit, params);
-        let result = [];
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i]['status'] === 'closed')
-                result.push (orders[i]);
-        }
-        return result;
+        const orders = await this.fetchOrders (symbol, since, limit, params);
+        return this.filterBy (orders, 'status', 'closed');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        let request = {
+        // some derived classes use camelcase notation for request fields
+        const request = {
             // 'from': 123456789, // trade ID, from which the display starts numerical 0 (test result: liqui ignores this field)
             // 'count': 1000, // the number of trades for display numerical, default = 1000
             // 'from_id': trade ID, from which the display starts numerical 0
@@ -604,28 +688,39 @@ module.exports = class liqui extends Exchange {
             // 'end': 1234567890, // UTC end time, default = ∞ (test result: liqui ignores this field)
             // 'pair': 'eth_btc', // default = all markets
         };
-        if (typeof symbol !== 'undefined') {
+        if (symbol !== undefined) {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        if (typeof limit !== 'undefined')
+        if (limit !== undefined) {
             request['count'] = parseInt (limit);
-        if (typeof since !== 'undefined')
+        }
+        if (since !== undefined) {
             request['since'] = parseInt (since / 1000);
-        let response = await this.privatePostTradeHistory (this.extend (request, params));
+        }
+        const method = this.options['fetchMyTradesMethod'];
+        const response = await this[method] (this.extend (request, params));
         let trades = [];
-        if ('return' in response)
+        if ('return' in response) {
             trades = response['return'];
+        }
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async withdraw (currency, amount, address, tag = undefined, params = {}) {
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        this.checkAddress (address);
         await this.loadMarkets ();
-        let response = await this.privatePostWithdrawCoin (this.extend ({
-            'coinName': currency,
+        const currency = this.currency (code);
+        const request = {
+            'coinName': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-        }, params));
+        };
+        // no docs on the tag, yet...
+        if (tag !== undefined) {
+            throw new ExchangeError (this.id + ' withdraw() does not support the tag argument yet due to a lack of docs on withdrawing with tag/memo on behalf of the exchange.');
+        }
+        const response = await this.privatePostWithdrawCoin (this.extend (request, params));
         return {
             'info': response,
             'id': response['return']['tId'],
@@ -640,101 +735,105 @@ module.exports = class liqui extends Exchange {
         return '/' + this.version;
     }
 
+    getPrivatePath (path, params) {
+        return '';
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
+            url += this.getPrivatePath (path, params);
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            const nonce = this.nonce ();
             body = this.urlencode (this.extend ({
                 'nonce': nonce,
                 'method': path,
             }, query));
-            let signature = this.signBodyWithSecret (body);
+            const signature = this.signBodyWithSecret (body);
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
                 'Sign': signature,
             };
-        } else {
+        } else if (api === 'public') {
             url += this.getVersionString () + '/' + this.implodeParams (path, params);
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
+        } else {
+            url += '/' + this.implodeParams (path, params);
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else {
+                if (Object.keys (query).length) {
+                    body = this.json (query);
+                    headers = {
+                        'Content-Type': 'application/json',
+                    };
+                }
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body) {
-        if (typeof body !== 'string')
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (response === undefined) {
             return; // fallback to default error handler
-        if (body.length < 2)
-            return; // fallback to default error handler
-        if ((body[0] === '{') || (body[0] === '[')) {
-            let response = JSON.parse (body);
-            if ('success' in response) {
-                //
-                // 1 - Liqui only returns the integer 'success' key from their private API
-                //
-                //     { "success": 1, ... } httpCode === 200
-                //     { "success": 0, ... } httpCode === 200
-                //
-                // 2 - However, exchanges derived from Liqui, can return non-integers
-                //
-                //     It can be a numeric string
-                //     { "sucesss": "1", ... }
-                //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
-                //
-                //     Or just a string
-                //     { "success": "true", ... }
-                //     { "success": "false", ... }, httpCode >= 200
-                //
-                //     Or a boolean
-                //     { "success": true, ... }
-                //     { "success": false, ... }, httpCode >= 200
-                //
-                // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
-                //
-                // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
-                //
-                // To cover points 1, 2, 3 and 4 combined this handler should work like this:
-                //
-                let success = this.safeValue (response, 'success', false);
-                if (typeof success === 'string') {
-                    if ((success === 'true') || (success === '1'))
-                        success = true;
-                    else
-                        success = false;
+        }
+        if ('success' in response) {
+            //
+            // 1 - Liqui only returns the integer 'success' key from their private API
+            //
+            //     { "success": 1, ... } httpCode === 200
+            //     { "success": 0, ... } httpCode === 200
+            //
+            // 2 - However, exchanges derived from Liqui, can return non-integers
+            //
+            //     It can be a numeric string
+            //     { "sucesss": "1", ... }
+            //     { "sucesss": "0", ... }, httpCode >= 200 (can be 403, 502, etc)
+            //
+            //     Or just a string
+            //     { "success": "true", ... }
+            //     { "success": "false", ... }, httpCode >= 200
+            //
+            //     Or a boolean
+            //     { "success": true, ... }
+            //     { "success": false, ... }, httpCode >= 200
+            //
+            // 3 - Oversimplified, Python PEP8 forbids comparison operator (===) of different types
+            //
+            // 4 - We do not want to copy-paste and duplicate the code of this handler to other exchanges derived from Liqui
+            //
+            // To cover points 1, 2, 3 and 4 combined this handler should work like this:
+            //
+            let success = this.safeValue (response, 'success', false);
+            if (typeof success === 'string') {
+                if ((success === 'true') || (success === '1')) {
+                    success = true;
+                } else {
+                    success = false;
                 }
-                if (!success) {
-                    const code = this.safeString (response, 'code');
-                    const message = this.safeString (response, 'error');
-                    const feedback = this.id + ' ' + this.json (response);
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
-                    }
-                    // need a second error map for these messages, apparently...
-                    // in fact, we can use the same .exceptions with string-keys to save some loc here
-                    if (message === 'invalid api key') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message === 'api key dont have trade permission') {
-                        throw new AuthenticationError (feedback);
-                    } else if (message.indexOf ('invalid parameter') >= 0) { // errorCode 0, returned on buy(symbol, 0, 0)
-                        throw new InvalidOrder (feedback);
-                    } else if (message === 'invalid order') {
-                        throw new InvalidOrder (feedback);
-                    } else if (message === 'Requests too often') {
-                        throw new DDoSProtection (feedback);
-                    } else if (message === 'not available') {
-                        throw new DDoSProtection (feedback);
-                    } else if (message === 'data unavailable') {
-                        throw new DDoSProtection (feedback);
-                    } else if (message === 'external service unavailable') {
-                        throw new DDoSProtection (feedback);
-                    } else {
-                        throw new ExchangeError (this.id + ' unknown "error" value: ' + this.json (response));
-                    }
+            }
+            if (!success) {
+                const code = this.safeString (response, 'code');
+                const message = this.safeString (response, 'error');
+                const feedback = this.id + ' ' + this.json (response);
+                const exact = this.exceptions['exact'];
+                if (code in exact) {
+                    throw new exact[code] (feedback);
+                } else if (message in exact) {
+                    throw new exact[message] (feedback);
                 }
+                const broad = this.exceptions['broad'];
+                const broadKey = this.findBroadlyMatchedKey (broad, message);
+                if (broadKey !== undefined) {
+                    throw new broad[broadKey] (feedback);
+                }
+                throw new ExchangeError (feedback); // unknown message
             }
         }
     }

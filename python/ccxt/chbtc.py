@@ -13,7 +13,7 @@ class chbtc (zb):
         return self.deep_extend(super(chbtc, self).describe(), {
             'id': 'chbtc',
             'name': 'CHBTC',
-            'countries': 'CN',
+            'countries': ['CN'],
             'rateLimit': 1000,
             'version': 'v1',
             'has': {

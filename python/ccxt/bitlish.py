@@ -22,6 +22,9 @@ class bitlish (Exchange):
                 'fetchOHLCV': True,
                 'withdraw': True,
             },
+            'timeframes': {
+                '1h': 3600,
+            },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766275-dcfc6c30-5ed3-11e7-839d-00a846385d0b.jpg',
                 'api': 'https://bitlish.com/api',
@@ -113,40 +116,32 @@ class bitlish (Exchange):
                     ],
                 },
             },
+            'commonCurrencies': {
+                'DSH': 'DASH',
+                'XDG': 'DOGE',
+            },
         })
 
-    def common_currency_code(self, currency):
-        if not self.substituteCommonCurrencyCodes:
-            return currency
-        if currency == 'XBT':
-            return 'BTC'
-        if currency == 'BCC':
-            return 'BCH'
-        if currency == 'DRK':
-            return 'DASH'
-        if currency == 'DSH':
-            currency = 'DASH'
-        if currency == 'XDG':
-            currency = 'DOGE'
-        return currency
-
-    def fetch_markets(self):
-        markets = self.publicGetPairs()
+    def fetch_markets(self, params={}):
+        response = self.publicGetPairs(params)
         result = []
-        keys = list(markets.keys())
-        for p in range(0, len(keys)):
-            market = markets[keys[p]]
-            id = market['id']
-            symbol = market['name']
-            base, quote = symbol.split('/')
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+        keys = list(response.keys())
+        for i in range(0, len(keys)):
+            key = keys[i]
+            market = response[key]
+            id = self.safe_string(market, 'id')
+            name = self.safe_string(market, 'name')
+            baseId, quoteId = name.split('/')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             })
         return result
@@ -154,7 +149,7 @@ class bitlish (Exchange):
     def parse_ticker(self, ticker, market):
         timestamp = self.milliseconds()
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {
@@ -163,8 +158,10 @@ class bitlish (Exchange):
             'symbol': symbol,
             'high': self.safe_float(ticker, 'max'),
             'low': self.safe_float(ticker, 'min'),
-            'bid': None,
-            'ask': None,
+            'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': self.safe_float(ticker, 'first'),
             'close': last,
@@ -185,8 +182,18 @@ class bitlish (Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
+            market = self.safe_value(self.markets_by_id, id)
+            symbol = None
+            if market is not None:
+                symbol = market['symbol']
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
+                base = baseId.upper()
+                quote = quoteId.upper()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
+                symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
         return result
@@ -194,37 +201,49 @@ class bitlish (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        tickers = self.publicGetTickers(params)
-        ticker = tickers[market['id']]
-        return self.parse_ticker(ticker, market)
+        response = self.publicGetTickers(params)
+        marketId = market['id']
+        return self.parse_ticker(response[marketId], market)
 
-    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         self.load_markets()
         # market = self.market(symbol)
         now = self.seconds()
         start = now - 86400 * 30  # last 30 days
+        if since is not None:
+            start = int(since / 1000)
         interval = [str(start), None]
-        return self.publicPostOhlcv(self.extend({
+        request = {
             'time_range': interval,
-        }, params))
+        }
+        return self.publicPostOhlcv(self.extend(request, params))
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetTradesDepth(self.extend({
+        request = {
             'pair_id': self.market_id(symbol),
-        }, params))
+        }
+        response = self.publicGetTradesDepth(self.extend(request, params))
         timestamp = None
-        last = self.safe_integer(orderbook, 'last')
-        if last:
+        last = self.safe_integer(response, 'last')
+        if last is not None:
             timestamp = int(last / 1000)
-        return self.parse_order_book(orderbook, timestamp, 'bid', 'ask', 'price', 'volume')
+        return self.parse_order_book(response, timestamp, 'bid', 'ask', 'price', 'volume')
 
     def parse_trade(self, trade, market=None):
         side = 'buy' if (trade['dir'] == 'bid') else 'sell'
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
-        timestamp = int(trade['created'] / 1000)
+        timestamp = self.safe_integer(trade, 'created')
+        if timestamp is not None:
+            timestamp = int(timestamp / 1000)
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = price * amount
         return {
             'id': None,
             'info': trade,
@@ -234,8 +253,11 @@ class bitlish (Exchange):
             'order': None,
             'type': None,
             'side': side,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -248,67 +270,67 @@ class bitlish (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostBalance()
+        response = self.privatePostBalance(params)
         result = {'info': response}
-        currencies = list(response.keys())
-        balance = {}
-        for c in range(0, len(currencies)):
-            currency = currencies[c]
-            account = response[currency]
-            currency = currency.upper()
-            # issue  #4 bitlish names Dash as DSH, instead of DASH
-            if currency == 'DSH':
-                currency = 'DASH'
-            if currency == 'XDG':
-                currency = 'DOGE'
-            balance[currency] = account
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
+        currencyIds = list(response.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId.upper())
             account = self.account()
-            if currency in balance:
-                account['free'] = float(balance[currency]['funds'])
-                account['used'] = float(balance[currency]['holded'])
-                account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            balance = self.safe_value(response, currencyId, {})
+            account['free'] = self.safe_float(balance, 'funds')
+            account['used'] = self.safe_float(balance, 'holded')
+            result[code] = account
         return self.parse_balance(result)
 
-    def sign_in(self):
-        return self.privatePostSignin({
+    def sign_in(self, params={}):
+        request = {
             'login': self.login,
             'passwd': self.password,
-        })
+        }
+        return self.privatePostSignin(self.extend(request, params))
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        order = {
+        request = {
             'pair_id': self.market_id(symbol),
             'dir': 'bid' if (side == 'buy') else 'ask',
             'amount': amount,
         }
         if type == 'limit':
-            order['price'] = price
-        result = self.privatePostCreateTrade(self.extend(order, params))
+            request['price'] = price
+        response = self.privatePostCreateTrade(self.extend(request, params))
+        id = self.safe_string(response, 'id')
         return {
-            'info': result,
-            'id': result['id'],
+            'info': response,
+            'id': id,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelTrade({'id': id})
+        request = {
+            'id': id,
+        }
+        return self.privatePostCancelTrade(self.extend(request, params))
 
-    def withdraw(self, currency, amount, address, tag=None, params={}):
-        self.load_markets()
-        if currency != 'BTC':
+    def withdraw(self, code, amount, address, tag=None, params={}):
+        if code != 'BTC':
             # they did not document other types...
             raise NotSupported(self.id + ' currently supports BTC withdrawals only, until they document other currencies...')
-        response = self.privatePostWithdraw(self.extend({
+        self.check_address(address)
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
             'currency': currency.lower(),
             'amount': float(amount),
             'account': address,
             'payment_method': 'bitcoin',  # they did not document other types...
-        }, params))
+        }
+        response = self.privatePostWithdraw(self.extend(request, params))
         return {
             'info': response,
             'id': response['message_id'],

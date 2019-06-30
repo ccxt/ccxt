@@ -8,17 +8,17 @@ const { sleep
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
-    
+
     throttle: function throttle (cfg) {
 
         let   lastTimestamp = now ()
-            , numTokens     = (typeof cfg.numTokens !== 'undefined') ? cfg.numTokens : cfg.capacity
+            , numTokens     = (cfg.numTokens !== undefined) ? cfg.numTokens : cfg.capacity
             , running       = false
             , counter       = 0
 
         const queue = []
 
-        return Object.assign (cost => {
+        return Object.assign ((cost) => {
 
             if (queue.length > cfg.maxCapacity)
                 throw new Error ('Backlog is over max capacity of ' + cfg.maxCapacity)

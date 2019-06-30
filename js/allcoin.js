@@ -11,7 +11,7 @@ module.exports = class allcoin extends okcoinusd {
         return this.deepExtend (super.describe (), {
             'id': 'allcoin',
             'name': 'Allcoin',
-            'countries': 'CA',
+            'countries': [ 'CA' ],
             'has': {
                 'CORS': false,
             },
@@ -24,7 +24,14 @@ module.exports = class allcoin extends okcoinusd {
                     'private': 'https://api.allcoin.com/api',
                 },
                 'www': 'https://www.allcoin.com',
-                'doc': 'https://www.allcoin.com/About/APIReference',
+                'doc': 'https://www.allcoin.com/api_market/market',
+                'referral': 'https://www.allcoin.com',
+            },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
             },
             'api': {
                 'web': {
@@ -54,30 +61,57 @@ module.exports = class allcoin extends okcoinusd {
                     ],
                 },
             },
-            'markets': undefined,
         });
     }
 
-    async fetchMarkets () {
-        let result = [];
-        let response = await this.webGetHomeMarketOverViewDetail ();
-        let coins = response['marketCoins'];
+    async fetchMarkets (params = {}) {
+        const result = [];
+        const response = await this.webGetHomeMarketOverViewDetail (params);
+        const coins = response['marketCoins'];
         for (let j = 0; j < coins.length; j++) {
-            let markets = coins[j]['Markets'];
+            const markets = coins[j]['Markets'];
             for (let k = 0; k < markets.length; k++) {
-                let market = markets[k]['Market'];
-                let base = market['Primary'];
-                let quote = market['Secondary'];
-                let id = base.toLowerCase () + '_' + quote.toLowerCase ();
-                let symbol = base + '/' + quote;
+                const market = markets[k]['Market'];
+                let base = this.safeString (market, 'Primary');
+                let quote = this.safeString (market, 'Secondary');
+                const baseId = base.toLowerCase ();
+                const quoteId = quote.toLowerCase ();
+                base = this.commonCurrencyCode (base);
+                quote = this.commonCurrencyCode (quote);
+                const id = baseId + '_' + quoteId;
+                const symbol = base + '/' + quote;
+                const active = market['TradeEnabled'] && market['BuyEnabled'] && market['SellEnabled'];
                 result.push ({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': active,
                     'type': 'spot',
                     'spot': true,
                     'future': false,
+                    'maker': this.safeFloat (market, 'AskFeeRate'), // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'taker': this.safeFloat (market, 'AskFeeRate'), // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'precision': {
+                        'amount': this.safeInteger (market, 'PrimaryDigits'),
+                        'price': this.safeInteger (market, 'SecondaryDigits'),
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': this.safeFloat (market, 'MinTradeAmount'),
+                            'max': this.safeFloat (market, 'MaxTradeAmount'),
+                        },
+                        'price': {
+                            'min': this.safeFloat (market, 'MinOrderPrice'),
+                            'max': this.safeFloat (market, 'MaxOrderPrice'),
+                        },
+                        'cost': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
                     'info': market,
                 });
             }
@@ -86,17 +120,14 @@ module.exports = class allcoin extends okcoinusd {
     }
 
     parseOrderStatus (status) {
-        if (status === -1)
-            return 'canceled';
-        if (status === 0)
-            return 'open';
-        if (status === 1)
-            return 'open'; // partially filled
-        if (status === 2)
-            return 'closed';
-        if (status === 10)
-            return 'canceled';
-        return status;
+        const statuses = {
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '10': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     getCreateDateField () {

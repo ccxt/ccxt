@@ -12,7 +12,7 @@ class allcoin (okcoinusd):
         return self.deep_extend(super(allcoin, self).describe(), {
             'id': 'allcoin',
             'name': 'Allcoin',
-            'countries': 'CA',
+            'countries': ['CA'],
             'has': {
                 'CORS': False,
             },
@@ -25,7 +25,14 @@ class allcoin (okcoinusd):
                     'private': 'https://api.allcoin.com/api',
                 },
                 'www': 'https://www.allcoin.com',
-                'doc': 'https://www.allcoin.com/About/APIReference',
+                'doc': 'https://www.allcoin.com/api_market/market',
+                'referral': 'https://www.allcoin.com',
+            },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
             },
             'api': {
                 'web': {
@@ -55,45 +62,69 @@ class allcoin (okcoinusd):
                     ],
                 },
             },
-            'markets': None,
         })
 
-    def fetch_markets(self):
+    def fetch_markets(self, params={}):
         result = []
-        response = self.webGetHomeMarketOverViewDetail()
+        response = self.webGetHomeMarketOverViewDetail(params)
         coins = response['marketCoins']
         for j in range(0, len(coins)):
             markets = coins[j]['Markets']
             for k in range(0, len(markets)):
                 market = markets[k]['Market']
-                base = market['Primary']
-                quote = market['Secondary']
-                id = base.lower() + '_' + quote.lower()
+                base = self.safe_string(market, 'Primary')
+                quote = self.safe_string(market, 'Secondary')
+                baseId = base.lower()
+                quoteId = quote.lower()
+                base = self.common_currency_code(base)
+                quote = self.common_currency_code(quote)
+                id = baseId + '_' + quoteId
                 symbol = base + '/' + quote
+                active = market['TradeEnabled'] and market['BuyEnabled'] and market['SellEnabled']
                 result.append({
                     'id': id,
                     'symbol': symbol,
                     'base': base,
                     'quote': quote,
+                    'baseId': baseId,
+                    'quoteId': quoteId,
+                    'active': active,
                     'type': 'spot',
                     'spot': True,
                     'future': False,
+                    'maker': self.safe_float(market, 'AskFeeRate'),  # BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'taker': self.safe_float(market, 'AskFeeRate'),  # BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'precision': {
+                        'amount': self.safe_integer(market, 'PrimaryDigits'),
+                        'price': self.safe_integer(market, 'SecondaryDigits'),
+                    },
+                    'limits': {
+                        'amount': {
+                            'min': self.safe_float(market, 'MinTradeAmount'),
+                            'max': self.safe_float(market, 'MaxTradeAmount'),
+                        },
+                        'price': {
+                            'min': self.safe_float(market, 'MinOrderPrice'),
+                            'max': self.safe_float(market, 'MaxOrderPrice'),
+                        },
+                        'cost': {
+                            'min': None,
+                            'max': None,
+                        },
+                    },
                     'info': market,
                 })
         return result
 
     def parse_order_status(self, status):
-        if status == -1:
-            return 'canceled'
-        if status == 0:
-            return 'open'
-        if status == 1:
-            return 'open'  # partially filled
-        if status == 2:
-            return 'closed'
-        if status == 10:
-            return 'canceled'
-        return status
+        statuses = {
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+            '10': 'canceled',
+        }
+        return self.safe_string(statuses, status, status)
 
     def get_create_date_field(self):
         # allcoin typo create_data instead of create_date

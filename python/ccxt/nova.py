@@ -14,12 +14,14 @@ class nova (Exchange):
         return self.deep_extend(super(nova, self).describe(), {
             'id': 'nova',
             'name': 'Novaexchange',
-            'countries': 'TZ',  # Tanzania
+            'countries': ['TZ'],  # Tanzania
             'rateLimit': 2000,
             'version': 'v2',
             'has': {
                 'CORS': False,
                 'createMarketOrder': False,
+                'createDepositAddress': True,
+                'fetchDepositAddress': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
@@ -63,99 +65,134 @@ class nova (Exchange):
             },
         })
 
-    def fetch_markets(self):
-        response = self.publicGetMarkets()
+    def fetch_markets(self, params={}):
+        response = self.publicGetMarkets(params)
         markets = response['markets']
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            if not market['disabled']:
-                id = market['marketname']
-                quote, base = id.split('_')
-                symbol = base + '/' + quote
-                result.append({
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'info': market,
-                })
+            id = self.safe_string(market, 'marketname')
+            quoteId, baseId = id.split('_')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
+            disabled = self.safe_value(market, 'disabled', False)
+            active = not disabled
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'info': market,
+            })
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        orderbook = self.publicGetMarketOpenordersPairBoth(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
-        return self.parse_order_book(orderbook, None, 'buyorders', 'sellorders', 'price', 'amount')
+        }
+        response = self.publicGetMarketOpenordersPairBoth(self.extend(request, params))
+        return self.parse_order_book(response, None, 'buyorders', 'sellorders', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        response = self.publicGetMarketInfoPair(self.extend({
+        request = {
             'pair': self.market_id(symbol),
-        }, params))
+        }
+        response = self.publicGetMarketInfoPair(self.extend(request, params))
         ticker = response['markets'][0]
         timestamp = self.milliseconds()
+        last = self.safe_float(ticker, 'last_price')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(ticker['high24h']),
-            'low': float(ticker['low24h']),
+            'high': self.safe_float(ticker, 'high24h'),
+            'low': self.safe_float(ticker, 'low24h'),
             'bid': self.safe_float(ticker, 'bid'),
+            'bidVolume': None,
             'ask': self.safe_float(ticker, 'ask'),
+            'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': None,
-            'first': None,
-            'last': float(ticker['last_price']),
-            'change': float(ticker['change24h']),
-            'percentage': None,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': None,
+            'percentage': self.safe_float(ticker, 'change24h'),
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['volume24h']),
+            'quoteVolume': self.safe_float(ticker, 'volume24h'),
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = trade['unix_t_datestamp'] * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_integer(trade, 'unix_t_datestamp')
+        if timestamp is not None:
+            timestamp *= 1000
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        type = None
+        side = self.safe_string(trade, 'tradetype')
+        if side is not None:
+            side = side.lower()
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         return {
+            'id': None,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'id': None,
+            'symbol': symbol,
             'order': None,
-            'type': None,
-            'side': trade['tradetype'].lower(),
-            'price': float(trade['price']),
-            'amount': float(trade['amount']),
+            'type': type,
+            'side': side,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetMarketOrderhistoryPair(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = self.publicGetMarketOrderhistoryPair(self.extend(request, params))
         return self.parse_trades(response['items'], market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetbalances()
-        balances = response['balances']
+        response = self.privatePostGetbalances(params)
+        balances = self.safe_value(response, 'balances')
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
-            lockbox = float(balance['amount_lockbox'])
-            trades = float(balance['amount_trades'])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
+            lockbox = self.safe_float(balance, 'amount_lockbox')
+            trades = self.safe_float(balance, 'amount_trades')
             account = {
-                'free': float(balance['amount']),
+                'free': self.safe_float(balance, 'amount'),
                 'used': self.sum(lockbox, trades),
-                'total': float(balance['amount_total']),
+                'total': self.safe_float(balance, 'amount_total'),
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -165,23 +202,62 @@ class nova (Exchange):
         amount = str(amount)
         price = str(price)
         market = self.market(symbol)
-        order = {
+        request = {
             'tradetype': side.upper(),
             'tradeamount': amount,
             'tradeprice': price,
             'tradebase': 1,
             'pair': market['id'],
         }
-        response = self.privatePostTradePair(self.extend(order, params))
+        response = self.privatePostTradePair(self.extend(request, params))
+        tradeItems = self.safe_value(response, 'tradeitems', [])
+        tradeItemsByType = self.index_by(tradeItems, 'type')
+        created = self.safe_value(tradeItemsByType, 'created', {})
+        orderId = self.safe_string(created, 'orderid')
         return {
             'info': response,
-            'id': None,
+            'id': orderId,
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        return self.privatePostCancelorder(self.extend({
+        request = {
             'orderid': id,
-        }, params))
+        }
+        return self.privatePostCancelorder(self.extend(request, params))
+
+    def create_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostGetnewdepositaddressCurrency(self.extend(request, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
+        tag = self.safe_string(response, 'tag')
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
+
+    def fetch_deposit_address(self, code, params={}):
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privatePostGetdepositaddressCurrency(self.extend(request, params))
+        address = self.safe_string(response, 'address')
+        self.check_address(address)
+        tag = self.safe_string(response, 'tag')
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'

@@ -3,6 +3,7 @@
 module.exports = {
   "env": {
     "node": true,
+    "mocha": true
   },
   "parserOptions": {
     "ecmaVersion": 2017,
@@ -15,7 +16,7 @@ module.exports = {
       "quotes": ["off", "single"],
       "func-call-spacing": ["error", "always"],
       "one-var": "off",
-      "indent": "error",
+      "indent": ["error", 4],
       "comma-style": "off",
       "no-multi-spaces": "off",
       "comma-dangle": "off",
