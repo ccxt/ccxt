@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.851'
+__version__ = '1.18.854'
 
 # -----------------------------------------------------------------------------
 
@@ -50,7 +50,6 @@ from ccxt.async_support._1btcxe import _1btcxe                            # noqa
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.allcoin import allcoin                            # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
-from ccxt.async_support.anybits import anybits                            # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
@@ -69,7 +68,6 @@ from ccxt.async_support.bitkk import bitkk                                # noqa
 from ccxt.async_support.bitlish import bitlish                            # noqa: F401
 from ccxt.async_support.bitmarket import bitmarket                        # noqa: F401
 from ccxt.async_support.bitmex import bitmex                              # noqa: F401
-from ccxt.async_support.bitsane import bitsane                            # noqa: F401
 from ccxt.async_support.bitso import bitso                                # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                          # noqa: F401
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
@@ -181,7 +179,6 @@ exchanges = [
     'acx',
     'allcoin',
     'anxpro',
-    'anybits',
     'bcex',
     'bequant',
     'bibox',
@@ -200,7 +197,6 @@ exchanges = [
     'bitlish',
     'bitmarket',
     'bitmex',
-    'bitsane',
     'bitso',
     'bitstamp',
     'bitstamp1',
