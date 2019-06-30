@@ -1440,12 +1440,14 @@ module.exports = class kucoin extends Exchange {
         const type = this.parseLedgerEntryType (typeId);
         const contextString = this.safeString (item, 'context');
         let id = undefined;
+        let referenceId = undefined;
         if (this.isJsonEncodedObject (contextString)) {
             const context = this.parseJson (contextString);
             if (type === 'trade') {
-                id = this.safeString (context, 'tradeId');
+                id = this.safeString (context, 'orderId');
+                referenceId = this.safeString (context, 'tradeId');
             } else if (type === 'transaction') {
-                id = this.safeString (context, 'txId');
+                referenceId = this.safeString (context, 'txId');
             }
         }
         return {
@@ -1453,7 +1455,7 @@ module.exports = class kucoin extends Exchange {
             'currency': code,
             'account': undefined,
             'referenceAccount': undefined,
-            'referenceId': undefined,
+            'referenceId': referenceId,
             'status': undefined,
             'amount': amount,
             'before': before,
