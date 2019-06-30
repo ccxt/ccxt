@@ -85,7 +85,6 @@ class Exchange {
         'acx',
         'allcoin',
         'anxpro',
-        'anybits',
         'bcex',
         'bequant',
         'bibox',
