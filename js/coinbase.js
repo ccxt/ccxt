@@ -162,9 +162,114 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
-        await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
-        return this.safeValue (response, 'data');
+        // {
+        //     "id": "XLM",
+        //     "name": "XLM Wallet",
+        //     "primary": false,
+        //     "type": "wallet",
+        //     "currency": {
+        //     "code": "XLM",
+        //         "name": "Stellar Lumens",
+        //         "color": "#000000",
+        //         "sort_index": 127,
+        //         "exponent": 7,
+        //         "type": "crypto",
+        //         "address_regex": "^G[A-Z2-7]{55}$",
+        //         "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //         "destination_tag_name": "XLM Memo ID",
+        //         "destination_tag_regex": "^[ -~]{1,28}$"
+        // },
+        //     "balance": {
+        //     "amount": "0.0000000",
+        //         "currency": "XLM"
+        // },
+        //     "created_at": null,
+        //     "updated_at": null,
+        //     "resource": "account",
+        //     "resource_path": "/v2/accounts/XLM",
+        //     "allow_deposits": true,
+        //     "allow_withdrawals": true
+        // }
+        const data = response['data'];
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const currencyId = account['currency']['code'];
+            const code = this.commonCurrencyCode (currencyId);
+            result.push ({
+                'id': this.safeString (account, 'id'),
+                'type': this.safeString (account, 'type'),
+                'code': code,
+                'info': account,
+            });
+        }
+        return result;
+    }
+
+    async createDepositAddress (code, params = {}) {
+        let accountId = this.safeString (params, 'accountId');
+        params = this.omit (params, 'accountId');
+        if (accountId === undefined) {
+            await this.loadAccounts ();
+            for (let i = 0; i < this.accounts.length; i++) {
+                const account = this.accounts[i];
+                if (account['code'] === code && account['type'] === 'wallet') {
+                    accountId = account['id'];
+                    break;
+                }
+            }
+        }
+        if (accountId === undefined) {
+            throw new ExchangeError (this.id + ' account with matching code not found in this.accounts');
+        }
+        const request = {
+            'account_id': accountId,
+        };
+        const response = await this.privatePostAccountsAccountIdAddresses (this.extend (request, params));
+        // {
+        //    "data": {
+        //       "id": "05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
+        //       "address": "coinbasebase",
+        //       "address_info": {
+        //         "address": "coinbasebase",
+        //         "destination_tag": "287594668"
+        //       },
+        //       "name": null,
+        //       "created_at": "2019-07-01T14:39:29Z",
+        //       "updated_at": "2019-07-01T14:39:29Z",
+        //       "network": "eosio",
+        //       "uri_scheme": "eosio",
+        //       "resource": "address",
+        //       "resource_path": "/v2/accounts/14cfc769-e852-52f3-b831-711c104d194c/addresses/05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
+        //       "warnings": [
+        //         {
+        //           "title": "Only send EOS (EOS) to this address",
+        //           "details": "Sending any other cryptocurrency will result in permanent loss.",
+        //           "image_url": "https://dynamic-assets.coinbase.com/deaca3d47b10ed4a91a872e9618706eec34081127762d88f2476ac8e99ada4b48525a9565cf2206d18c04053f278f693434af4d4629ca084a9d01b7a286a7e26/asset_icons/1f8489bb280fb0a0fd643c1161312ba49655040e9aaaced5f9ad3eeaf868eadc.png"
+        //         },
+        //         {
+        //           "title": "Both an address and EOS memo are required to receive EOS",
+        //           "details": "If you send funds without an EOS memo or with an incorrect EOS memo, your funds cannot be credited to your account.",
+        //           "image_url": "https://www.coinbase.com/assets/receive-warning-2f3269d83547a7748fb39d6e0c1c393aee26669bfea6b9f12718094a1abff155.png"
+        //         }
+        //       ],
+        //       "warning_title": "Only send EOS (EOS) to this address",
+        //       "warning_details": "Sending any other cryptocurrency will result in permanent loss.",
+        //       "destination_tag": "287594668",
+        //       "deposit_uri": "eosio:coinbasebase?dt=287594668",
+        //       "callback_url": null
+        //     }
+        // }
+        const data = response['data'];
+        const tag = this.safeString (data, 'destination_tag');
+        const address = this.safeString (data, 'address');
+        return {
+            'currency': code,
+            'tag': tag,
+            'address': address,
+            'info': response,
+        };
     }
 
     async fetchMySells (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -522,6 +627,9 @@ module.exports = class coinbase extends Exchange {
         }
         return this.parseBalance (result);
     }
+
+
+
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
