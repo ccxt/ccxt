@@ -628,9 +628,6 @@ module.exports = class coinbase extends Exchange {
         return this.parseBalance (result);
     }
 
-
-
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
