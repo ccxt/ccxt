@@ -12,20 +12,23 @@ module.exports = class stex extends Exchange {
             'countries': [ 'EE' ],
             'rateLimit': 1000,
             'has': {
+                'createOrder': true,
                 'createMarketOrder': false,
                 'createLimitOrder': false,
                 'createDepositAddress': true,
                 'deposit': true,
-                'fetchDepositAddress': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchBalance': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCanceledOrders': true,
                 'fetchMyTrades': true,
-                'fetchTransactions': true,
                 'withdraw': true,
+                'fetchTransactions': true,
+                'fetchDepositAddress': true,
             },
             'timeframes': {
                 '1d': '1D',
@@ -54,7 +57,7 @@ module.exports = class stex extends Exchange {
                         'prices',
                         'trades',
                         'orderbook',
-                        'grafic_public',
+                        'graficPublic',
                     ],
                 },
                 'private': {
@@ -93,18 +96,20 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetMarkets ();
-        let markets = response;
-        let result = [];
-        for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let id = market['market_name'];
-            let baseId = market['currency'];
-            let quoteId = market['partner'];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let active = market['active'];
+        const response = await this.publicGetMarkets ();
+        const markets = response;
+        const result = [];
+        const keys = Object.keys (markets);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const market = markets[key];
+            const id = market['market_name'];
+            const baseId = market['currency'];
+            const quoteId = market['partner'];
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const active = market['active'];
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -122,12 +127,10 @@ module.exports = class stex extends Exchange {
     parseTicker (ticker, market = undefined) {
         let timestamp = this.safeFloat (ticker, 'updated_time');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp * 1000);
+            timestamp *= 1000;
         }
-        let symbol = undefined;
-        if (market !== undefined)
-            symbol = market['symbol'];
-        let last = this.safeFloat (ticker, 'last');
+        const symbol = market['symbol'];
+        const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -154,28 +157,25 @@ module.exports = class stex extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const tickers = await this.fetchTickers (undefined, params); // Cannot find a public method of retriving specific ticker on STEX, fetching all instead.
-        const ticker = this.safeValue (tickers, symbol);
-        if (ticker === undefined) {
-            throw new ExchangeError (this.id + ' ' + symbol + ' ticker not found');
-        }
-        return ticker;
+        const symbols = { symbol };
+        return await this.fetchTickers (symbols, params);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let tickers = await this.publicGetTicker (params);
-        let result = {};
-        for (let i = 0; i < tickers.length; i++) {
+        const tickers = await this.publicGetTicker (params);
+        const ids = Object.keys (tickers);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
             let market = undefined;
-            let ticker = tickers[i];
-            let symbol = undefined;
-            let id = this.safeString (ticker, 'market_name');
+            let symbol = id;
+            const ticker = tickers[id];
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
                 symbol = market['symbol'];
             } else {
-                let symbolParts = id.split ('_');
+                const symbolParts = ticker['market_name'].split ('_');
                 let base = symbolParts[0].toUpperCase ();
                 let quote = symbolParts[1].toUpperCase ();
                 base = this.commonCurrencyCode (base);
@@ -184,48 +184,74 @@ module.exports = class stex extends Exchange {
             }
             result[symbol] = this.parseTicker (ticker, market);
         }
+        if (symbols !== undefined) {
+            const symresult = {};
+            const lenght = symbols.length;
+            for (let i = 0; i < lenght; i++) {
+                const ticker = this.safeValue (result, symbols[i]);
+                if (ticker !== undefined) {
+                    if (lenght === 1) {
+                        return ticker;
+                    } else {
+                        symresult[symbols[i]] = ticker;
+                    }
+                }
+            }
+            return symresult;
+        }
         return result;
     }
 
-    checkforRates (trade) {
-        let rate = undefined;
-        if ('rates' in trade) {
-            rate = Object.keys (trade['rates']);
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 20; // default
         }
-        if (rate !== undefined)
-            return this.safeFloat (rate, 0);
-        return rate;
+        const request = {
+            'pair': this.marketId (symbol),
+            'limit': limit.toString (),
+        };
+        const response = await this.publicGetOrderbook (this.extend (request, params));
+        return this.parseOrderBook (response['result'], undefined, 'buy', 'sell', 'Rate', 'Quantity');
     }
 
     parseTrade (trade, market = undefined) {
         // this method parses both public and private trades
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp * 1000);
-        }
-        let tradeId = this.safeString (trade, 'id');
-        let orderId = undefined;
+        const timestamp = this.safeInteger (trade, 'timestamp') * 1000;
+        const tradeId = this.safeString (trade, 'id');
+        const orderId = undefined;
         let price = this.safeFloat (trade, 'price');
         let amount = this.safeFloat (trade, 'quantity');
         let symbol = this.safeString (trade, 'pair');
-        if (price === undefined)
-            price = this.checkforRates (trade);
-        if (amount === undefined)
+        if (price === undefined) {
+            let rate = undefined;
+            if ('rates' in trade) {
+                rate = Object.keys (trade['rates']);
+            }
+            if (rate !== undefined) {
+                price = this.safeFloat (rate, 0);
+            }
+        }
+        if (amount === undefined) {
             amount = this.safeFloat (trade, 'original_amount');
-        if (market !== undefined)
+        }
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         let side = this.safeString (trade, 'type');
-        let cost = parseFloat (this.costToPrecision (symbol, price * amount));
-        if (side === 'BUY')
+        const cost = parseFloat (price * amount);
+        if (side === 'BUY') {
             side = 'buy';
-        else if (side === 'SELL')
+        } else if (side === 'SELL') {
             side = 'sell';
-        let myorder = this.safeString (trade, 'is_your_order');
+        }
+        const myorder = this.safeString (trade, 'is_your_order');
         let takerOrMaker = undefined;
-        if (myorder === '1' && side === 'buy')
+        if (myorder === '1' && side === 'buy') {
             takerOrMaker = 'maker';
-        else if (myorder === '1' && side === 'sell')
+        } else if (myorder === '1' && side === 'sell') {
             takerOrMaker = 'taker';
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -245,14 +271,15 @@ module.exports = class stex extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (limit === undefined)
+        const market = this.market (symbol);
+        if (limit === undefined) {
             limit = 20; // default
-        let response = await this.publicGetTrades (this.extend ({
+        }
+        const response = await this.publicGetTrades (this.extend ({
             'pair': market['id'],
             'limit': limit,
         }, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseTrades (this.getdatafromresponse (response), market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
@@ -268,29 +295,31 @@ module.exports = class stex extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (limit !== undefined) {
-            params['count'] = limit;
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100;
         }
         if (since !== undefined) {
             params['since'] = since;
         }
-        params = this.extend ({
+        const response = await this.privatePostGrafic (this.extend ({
             'pair': market['id'],
             'interval': this.timeframes[timeframe],
             'page': 1,
-        }, params);
-        let response = await this.publicGetGraficPublic (params);
-        return this.parseOHLCVs (response['graf'], market, timeframe, since, limit);
+            'count': limit,
+        }, params));
+        const data = this.getdatafromresponse (response);
+        return this.parseOHLCVs (this.getdatafromresponse (data), market, timeframe, since, limit);
     }
 
     async createDepositAddress (code, params = {}) {
-        let response = await this.privatePostGenerateWallets (this.extend ({
+        const response = await this.privatePostGenerateWallets (this.extend ({
             'currency': code,
         }, params));
+        const data = this.getdatafromresponse (response);
         let address = undefined;
-        if (response !== undefined) {
-            let address = this.safeString (response, 'address');
+        if (data !== undefined) {
+            address = this.safeString (data, 'address');
             this.checkAddress (address);
         }
         return {
@@ -302,108 +331,103 @@ module.exports = class stex extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
-        let response = await this.privatePostGetInfo ();
+        const response = await this.privatePostGetInfo ();
+        const data = this.getdatafromresponse (response);
         let address = undefined;
         let tag = undefined;
-        if ('wallets_addresses' in response) {
-            if (code in response['wallets_addresses'])
-                address = response['wallets_addresses'][code];
+        if ('wallets_addresses' in data) {
+            if (code in data['wallets_addresses']) {
+                address = data['wallets_addresses'][code];
+                this.checkAddress (address);
+            }
         }
-        if ('publick_key' in response) {
-            if (code in response['publick_key'])
-                tag = response['publick_key'][code];
-        }
-        if (address !== undefined) {
-            this.checkAddress (address);
+        if ('publick_key' in data) {
+            if (code in data['publick_key']) {
+                tag = data['publick_key'][code];
+            }
         }
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'info': response,
+            'info': address,
         };
     }
 
-    processTransactionHelper (response = undefined, txtype = undefined) {
-        let result = {};
-        let ids = Object.keys (response[txtype]);
+    processTransactionHelper (data = undefined, txtype = undefined) {
+        const result = {};
+        const ids = Object.keys (data[txtype]);
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            result.push (this.extend ({ 'id': id, 'type': txtype.toLowerCase () }, response[txtype][id]));
+            const id = ids[i];
+            result.push (this.extend ({ 'id': id, 'type': txtype.toLowerCase () }, data[txtype][id]));
         }
         return result;
     }
 
-    async fetchTransHistory (request, type = undefined) {
-        if (type === 'extended') {
-            let response1 = await this.privatePostTransHistory (this.extend ({ 'status': 'FINISHED' }, request));
-            let response2 = await this.privatePostTransHistory (this.extend ({ 'status': 'AWAITING_CONFIRMATIONS' }, request));
-            let response3 = await this.privatePostTransHistory (this.extend ({ 'status': 'EMAIL_SENT' }, request));
-            let response4 = await this.privatePostTransHistory (this.extend ({ 'status': 'CANCELED_BY_USER' }, request));
-            let response5 = await this.privatePostTransHistory (this.extend ({ 'status': 'AWAITING_APPROVAL' }, request));
-            let response6 = await this.privatePostTransHistory (this.extend ({ 'status': 'APPROVED' }, request));
-            let response7 = await this.privatePostTransHistory (this.extend ({ 'status': 'PROCESSING' }, request));
-            let response8 = await this.privatePostTransHistory (this.extend ({ 'status': 'WITHDRAWAL_ERROR' }, request));
-            let response9 = await this.privatePostTransHistory (this.extend ({ 'status': 'CANCELED_BY_ADMIN' }, request));
-            return this.extend (response1, response2, response3, response4, response5, response6, response7, response8, response9);
-        } else if (type === 'closed' || type === undefined) {
-            let response = await this.privatePostTransHistory (this.extend ({ 'status': 'FINISHED' }, request));
-            return response;
-        } else if (type === 'open') {
-            let response = await this.privatePostTransHistory (this.extend ({ 'status': 'AWAITING_CONFIRMATIONS' }, request));
-            return response;
-        }
-    }
-
     async fetchTransactionsHelper (code = undefined, since = undefined, limit = undefined, only = undefined, params = {}) {
-        if (code === undefined || code === 'ALL') {
-            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument');
-        }
         await this.loadMarkets ();
         if (limit === undefined) {
             limit = 50;
         }
+        if (code === undefined || code === 'ALL') {
+            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument');
+        }
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'].toUpperCase (),
             'count': limit,
         };
-        if (since !== undefined)
+        if (since !== undefined) {
             request['since'] = since;
-        let data = await this.fetchTransHistory (this.extend (request, params));
+        }
+        const status = this.safeString (params, 'status');
+        let data = undefined;
+        if (status === undefined) {
+            data = await this.privatePostTransHistory (this.extend ({ 'status': 'FINISHED' }, request));
+        } else {
+            data = await this.privatePostTransHistory (this.extend ({ 'status': status }, request));
+        }
+        data = this.getdatafromresponse (data);
         let deposits = {};
         let withdrawals = {};
-        if ('DEPOSIT' in data)
-            if (only === undefined || only === 'deposits')
+        if ('DEPOSIT' in data) {
+            if (only === undefined || only === 'deposits') {
                 deposits = this.processTransactionHelper (data, 'DEPOSIT');
-        if ('WITHDRAWAL' in data)
-            if (only === undefined || only === 'withdrawals')
+            }
+        }
+        if ('WITHDRAWAL' in data) {
+            if (only === undefined || only === 'withdrawals') {
                 withdrawals = this.processTransactionHelper (data, 'WITHDRAWAL');
+            }
+        }
         return this.arrayConcat (deposits, withdrawals);
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.fetchTransactionsHelper (code, since, limit, undefined, params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, undefined, params);
         let currency = undefined;
-        if (code !== undefined)
+        if (code !== undefined) {
             currency = this.currency (code);
+        }
         return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.fetchTransactionsHelper (code, since, limit, 'withdrawals', params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, 'withdrawals', params);
         let currency = undefined;
-        if (code !== undefined)
+        if (code !== undefined) {
             currency = this.currency (code);
+        }
         return this.parseTransactions (response, currency, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
-        let response = await this.fetchTransactionsHelper (code, since, limit, 'deposits', params);
+        const response = await this.fetchTransactionsHelper (code, since, limit, 'deposits', params);
         let currency = undefined;
-        if (code !== undefined)
+        if (code !== undefined) {
             currency = this.currency (code);
+        }
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -413,14 +437,16 @@ module.exports = class stex extends Exchange {
             timestamp = parseInt (timestamp * 1000);
         }
         let code = this.safeString (transaction, 'Currency');
-        if (code !== undefined)
+        if (code !== undefined) {
             code = currency['id'];
+        }
         const type = this.safeString (transaction, 'type'); // DEPOSIT or WITHDRAWAL
         const status = this.parseTransactionStatus (this.safeString (transaction, 'Status'));
-        let getfee = transaction['Deposit_fee'].split (code);
+        const getfee = transaction['Deposit_fee'].split (code);
         let fee = undefined;
-        if (getfee[0] !== undefined)
+        if (getfee[0] !== undefined) {
             fee = getfee[0];
+        }
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
@@ -443,7 +469,7 @@ module.exports = class stex extends Exchange {
     }
 
     parseTransactionStatus (status) {
-        let statuses = {
+        const statuses = {
             'pending': 'pending',
             'failed': 'failed',
             'Finished': 'ok',
@@ -452,35 +478,65 @@ module.exports = class stex extends Exchange {
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'wait': 'open',
             'closed': 'closed',
             'cancel': 'canceled',
         };
-        if (status in statuses)
+        if (status in statuses) {
             return statuses[status];
+        }
         return status;
     }
 
-    parseOrder (order, market = undefined) {
-        let timestamp = this.safeInteger (order, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp * 1000);
+    parseOrderStatusRe (status) {
+        const statuses = {
+            'open': 'wait',
+            'closed': 'closed',
+            'canceled': 'cancel',
+        };
+        if (status in statuses) {
+            return statuses[status];
         }
+        return status;
+    }
+
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined) {
+        const result = [];
+        const ids = Object.keys (orders);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const order = this.extend ({ 'id': id }, orders[id]);
+            result.push (this.parseOrder (order, market));
+        }
+        return this.filterBySinceLimit (result, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        const timestamp = this.safeInteger (order, 'timestamp') * 1000;
         let price = this.safeString (order, 'rate');
         if (price === undefined) {
-            let keys = Object.keys (order['rates']);
+            const keys = Object.keys (order['rates']);
             for (let i = 0; i < keys.length; i++) {
                 price = keys[i];
             }
         }
         let amount = this.safeFloat (order, 'amount');
-        if (amount === undefined)
+        if (amount === undefined) {
             amount = this.safeFloat (order, 'original_amount');
-        let marketId = this.safeString (order, 'pair');
+        }
+        let filled = undefined;
+        const buy_amount = this.safeFloat (order, 'buy_amount');
+        const sell_amount = this.safeFloat (order, 'sell_amount');
+        if (buy_amount !== undefined) {
+            filled = buy_amount;
+        } else if (sell_amount !== undefined) {
+            filled = sell_amount;
+        }
+        const marketId = this.safeString (order, 'pair');
         market = this.safeValue (this.markets_by_id, marketId);
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let type = this.safeString (order, 'type');
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const type = this.safeString (order, 'type');
         return {
             'id': this.safeString (order, 'id'),
             'datetime': this.iso8601 (timestamp),
@@ -494,7 +550,7 @@ module.exports = class stex extends Exchange {
             'cost': undefined,
             'average': undefined,
             'amount': amount,
-            'filled': undefined,
+            'filled': filled,
             'remaining': undefined,
             'trades': undefined,
             'fee': {
@@ -505,61 +561,27 @@ module.exports = class stex extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (limit === undefined)
-            limit = 20; // default
-        const request = {
-            'pair': this.marketId (symbol),
-            'limit': limit.toString (),
-        };
-        let response = await this.publicGetOrderbook (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, undefined, undefined, 'Rate', 'Quantity');
-    }
-
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.extend ({
+        const market = this.market (symbol);
+        const request = this.extend ({
             'pair': market['id'],
             'from_id': id,
             'to_id': id,
             'type': 'ALL',
             'owner': 'ALL',
         }, params);
-        let data = await this.privatePostActiveOrders (request);
-        if (id in data) {
-            return this.parseOrder (data[id], market);
-        } else {
-            let pending = await this.fetchTradeHistory (symbol, undefined, undefined, 1, params);
-            let peids = Object.keys (pending);
-            for (let i = 0; i < peids.length; i++) {
-                let thisid = this.safeString (pending[i], 'id');
-                if (thisid === id)
-                    return pending[i];
-            }
-            let processing = await this.fetchTradeHistory (symbol, undefined, undefined, 2, params);
-            let prids = Object.keys (processing);
-            for (let i = 0; i < prids.length; i++) {
-                let thisid = this.safeString (processing[i], 'id');
-                if (thisid === id)
-                    return processing[i];
-            }
-            let finish = await this.fetchTradeHistory (symbol, undefined, undefined, 3, params);
-            let fids = Object.keys (finish);
-            for (let i = 0; i < fids.length; i++) {
-                let thisid = this.safeString (finish[i], 'id');
-                if (thisid === id)
-                    return finish[i];
-            }
-            let canceled = await this.fetchTradeHistory (symbol, undefined, undefined, 4, params);
-            let cids = Object.keys (canceled);
-            for (let i = 0; i < cids.length; i++) {
-                let thisid = this.safeString (canceled[i], 'id');
-                if (thisid === id)
-                    return canceled[i];
+        let result = [];
+        const response = await this.privatePostActiveOrders (request);
+        const data = this.getdatafromresponse (response);
+        const orders = this.parseOrders (data, market);
+        for (let i = 0; i < orders.length; i++) {
+            const thisid = this.safeString (orders[i], 'id');
+            if (thisid === id) {
+                result = orders[i];
             }
         }
+        return result;
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -571,9 +593,7 @@ module.exports = class stex extends Exchange {
         let response = {};
         if (status !== undefined) {
             if (status === 'wait') {
-                let res1 = await this.fetchTradeHistory (symbol, since, limit, 1, params);
-                let res2 = await this.fetchTradeHistory (symbol, since, limit, 2, params);
-                response = this.extend (res1, res2);
+                response = await this.fetchTradeHistory (symbol, since, limit, 1, params);
             } else if (status === 'closed') {
                 response = await this.fetchTradeHistory (symbol, since, limit, 3, params);
             } else if (status === 'canceled') {
@@ -591,69 +611,82 @@ module.exports = class stex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        let res1 = await this.fetchTradeHistory (symbol, since, limit, 1, params);
-        let res2 = await this.fetchTradeHistory (symbol, since, limit, 2, params);
-        let res3 = await this.fetchTradeHistory (symbol, since, limit, 3, params);
-        let res4 = await this.fetchTradeHistory (symbol, since, limit, 4, params);
-        let response = this.extend (res1, res2, res3, res4);
+        const response = await this.fetchTradeHistory (symbol, since, limit, 1, params);
         return this.parseOrders (response, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let pending = await this.fetchTradeHistory (symbol, since, limit, 1, params);
-        let processing = await this.fetchTradeHistory (symbol, since, limit, 2, params);
-        let combined = this.extend (pending, processing);
+        await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        return this.parseOrders (combined, market, since, limit);
+        const response = await this.fetchTradeHistory (symbol, since, limit, 1, params);
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.fetchTradeHistory (symbol, since, limit, 4, params);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let finish = await this.fetchTradeHistory (symbol, since, limit, 3, params);
-        let canceled = await this.fetchTradeHistory (symbol, since, limit, 4, params);
-        let combined = this.extend (finish, canceled);
+        await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        return this.parseOrders (combined, market, since, limit);
+        const response = await this.fetchTradeHistory (symbol, since, limit, 3, params);
+        return this.parseOrders (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let method = 'privatePostTrade';
-        let market = this.market (symbol);
-        if (price === undefined)
+        const market = this.market (symbol);
+        if (price === undefined) {
             price = 0.0;
-        let request = {
+        }
+        const request = {
             'type': side.toUpperCase (),
             'pair': this.safeString (market, 'id'),
             'amount': this.amountToPrecision (symbol, amount),
             'rate': price,
         };
-        let response = await this[method] (this.extend (request, params));
-        let id = this.safeString (response, 'order_id');
-        let order = await this.fetchOrder (id, symbol);
-        return order;
+        const response = await this.privatePostTrade (this.extend (request, params));
+        const data = this.getdatafromresponse (response);
+        const id = this.safeString (data, 'order_id');
+        return {
+            'id': id,
+            'info': data,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.privatePostCancelOrder (this.extend ({
+        const response = await this.privatePostCancelOrder (this.extend ({
             'order_id': id,
         }, params));
-        return this.fetchOrder (id, symbol);
+        const data = this.getdatafromresponse (response);
+        return {
+            'id': id,
+            'info': data,
+        };
     }
 
     async fetchTradeHistory (symbol = undefined, since = undefined, limit = undefined, status = undefined, params = {}) {
         await this.loadMarkets ();
-        if (status === undefined)
+        if (status === undefined) {
             status = 3;
-        if (limit === undefined)
+        }
+        if (limit === undefined) {
             limit = 50;
-        let request = {
+        }
+        const request = {
             'count': limit,
             'status': status,
         };
@@ -662,20 +695,22 @@ module.exports = class stex extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        if (since !== undefined)
+        if (since !== undefined) {
             request['since'] = market['id'];
-        let result = {};
-        let response = await this.privatePostTradeHistory (this.extend (request, params));
-        let ids = Object.keys (response);
+        }
+        const result = {};
+        const tradehist = await this.privatePostTradeHistory (this.extend (request, params));
+        const data = this.getdatafromresponse (tradehist);
+        const ids = Object.keys (data);
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            result.push (this.extend ({ 'id': id, 'status': this.parseTradeHistoryStatus (status) }, response[id]));
+            const id = ids[i];
+            result.push (this.extend ({ 'id': id, 'status': this.parseTradeHistoryStatus (status) }, data[id]));
         }
         return result;
     }
 
     parseTradeHistoryStatus (status) {
-        let statuses = {
+        const statuses = {
             '1': 'wait',
             '2': 'wait',
             '3': 'closed',
@@ -689,26 +724,48 @@ module.exports = class stex extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let market = undefined;
-        if (symbol !== undefined)
+        if (symbol !== undefined) {
             market = this.market (symbol);
+        }
         params = this.extend ({ 'owner': 'OWN' }, params);
-        let finish = await this.fetchTradeHistory (symbol, since, limit, 3, params);
+        const finish = await this.fetchTradeHistory (symbol, since, limit, 3, params);
         return this.parseTrades (finish, market, since, limit);
+    }
+
+    getdatafromresponse (response) {
+        if ('data' in response) {
+            return response['data'];
+        } else if ('result' in response) {
+            return response['result'];
+        } else if ('graf' in response) {
+            return response['graf'];
+        } else {
+            return response;
+        }
+    }
+
+    checkforstatus (status, array) {
+        if (status in array) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetInfo ();
-        let funds = response['funds'];
-        let holdfunds = response['hold_funds'];
-        let fkeys = Object.keys (funds);
-        let result = { 'info': response };
+        const response = await this.privatePostGetInfo ();
+        const data = this.getdatafromresponse (response);
+        const funds = data['funds'];
+        const holdfunds = data['hold_funds'];
+        const fkeys = Object.keys (funds);
+        const result = { 'info': data };
         for (let i = 0; i < fkeys.length; i++) {
-            let id = fkeys[i];
-            let currency = this.commonCurrencyCode (id);
-            let account = this.account ();
-            let free = this.safeFloat (funds, id);
-            let used = this.safeFloat (holdfunds, id);
+            const id = fkeys[i];
+            const currency = this.commonCurrencyCode (id);
+            const account = this.account ();
+            const free = this.safeFloat (funds, id);
+            const used = this.safeFloat (holdfunds, id);
             account['free'] = free;
             account['used'] = used;
             account['total'] = this.sum (free, used);
@@ -720,22 +777,25 @@ module.exports = class stex extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
             'address': address,
             'amount': amount,
         };
-        if (tag !== undefined)
+        if (tag !== undefined) {
             request['paymentid'] = tag;
-        let response = await this.privatePostWithdraw (this.extend (request, params));
-        let msg = this.safeString (response, 'message');
+        }
+        const response = await this.privatePostWithdraw (this.extend (request, params));
+        const data = this.getdatafromresponse (response);
+        const msg = this.safeString (data, 'message');
         if (msg !== undefined) {
-            if (msg === 'This method is currently disabled')
+            if (msg === 'This method is currently disabled') {
                 throw new ExchangeError (msg);
+            }
         }
         return {
-            'info': response,
+            'info': data,
             'id': undefined,
         };
     }
@@ -745,42 +805,39 @@ module.exports = class stex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = '/' + path;
+        let url = '/';
         if (api === 'public') {
-            if (Object.keys (params).length)
+            url += path;
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else if (api === 'private') {
-            url = '/';
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            const nonce = this.nonce ().toString ();
             body = this.urlencode (this.extend ({ 'nonce': nonce, 'method': path }, params));
-            let signature = this.hmac (body, this.secret, 'sha512');
+            const signature = this.hmac (body, this.secret, 'sha512');
             headers = {
                 'Key': this.apiKey,
                 'Sign': this.decode (signature),
             };
+        } else {
+            url += path;
         }
         url = this.urls['api'][api] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+        const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('success' in response) {
             if (this.safeInteger (response, 'success') === 0) {
-                let error = this.safeString (response, 'error');
+                const error = this.safeString (response, 'error');
                 if (error === 'No data found') {
                     return response;
                 } else if (error === 'Login from this IP is forbidden') {
                     throw new PermissionDenied (error);
                 } else {
                     throw new ExchangeError (error);
-                }
-            } else {
-                if ('data' in response) {
-                    return response['data'];
-                } else if ('result' in response) {
-                    return response['result'];
                 }
             }
         }
