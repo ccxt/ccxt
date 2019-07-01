@@ -1437,15 +1437,14 @@ module.exports = class kucoin extends Exchange {
             before = this.sum (after, direction === 'out' ? amount : -amount);
         }
         const timestamp = this.safeInteger (item, 'createdAt');
-        const typeId = this.safeString (item, 'bizType');
-        const type = this.parseLedgerEntryType (typeId);
+        const type = this.parseLedgerEntryType (this.safeString (item, 'bizType'));
         const contextString = this.safeString (item, 'context');
         let id = undefined;
         let referenceId = undefined;
         if (this.isJsonEncodedObject (contextString)) {
             const context = this.parseJson (contextString);
+            id = this.safeString (context, 'orderId');
             if (type === 'trade') {
-                id = this.safeString (context, 'orderId');
                 referenceId = this.safeString (context, 'tradeId');
             } else if (type === 'transaction') {
                 referenceId = this.safeString (context, 'txId');
