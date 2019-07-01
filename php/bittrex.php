@@ -1167,7 +1167,7 @@ class bittrex extends Exchange {
             $request['pageSize'] = $limit;
         }
         if ($since !== null) {
-            $request['startDate'] = $this->ymdhms ($since) . 'Z';
+            $request['startDate'] = $this->ymdhms ($since, 'T') . 'Z';
         }
         $market = null;
         if ($symbol !== null) {
