@@ -752,7 +752,7 @@ module.exports = class graviex extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response) {
         let msg = 'Unknown error';
-        if (code === 503) {
+        if (code === 503 || code === 502) {
             throw new ExchangeError ('Exchange Overloaded');
         }
         if ('error' in response) {
