@@ -208,8 +208,8 @@ module.exports = class coinbase extends Exchange {
     }
 
     async createDepositAddress (code, params = {}) {
-        let accountId = this.safeString (params, 'accountId');
-        params = this.omit (params, 'accountId');
+        let accountId = this.safeString (params, 'account_id');
+        params = this.omit (params, 'account_id');
         if (accountId === undefined) {
             await this.loadAccounts ();
             for (let i = 0; i < this.accounts.length; i++) {
