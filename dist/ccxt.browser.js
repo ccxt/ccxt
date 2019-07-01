@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.857'
+const version = '1.18.858'
 
 Exchange.ccxtVersion = version
 
@@ -62127,6 +62127,11 @@ module.exports = class mixcoins extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         if ('status' in response) {
+            //
+            // todo add a unified standard handleErrors with this.exceptions in describe()
+            //
+            //     {"status":503,"message":"Maintenancing, try again later","result":null}
+            //
             if (response['status'] === 200) {
                 return response;
             }
@@ -64074,7 +64079,7 @@ module.exports = class okcoinusd extends Exchange {
                     'baseNumericId': baseNumericId,
                     'quoteNumericId': quoteNumericId,
                     'info': market,
-                    'type': 'spot',
+                    'type': type,
                     'spot': spot,
                     'future': future,
                     'active': active,
