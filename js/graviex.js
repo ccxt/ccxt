@@ -451,7 +451,7 @@ module.exports = class graviex extends Exchange {
             'info': response,
         };
     }
-    
+
     async createDepositAddress (code, params = {}) {
         const response = await this.privateGetGenDepositAddress (this.extend ({
             'currency': code.toLowerCase (),
