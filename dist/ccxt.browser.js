@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.861'
+const version = '1.18.862'
 
 Exchange.ccxtVersion = version
 
@@ -84349,6 +84349,7 @@ module.exports = class therock extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        headers = (headers === undefined) ? {} : headers;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             if (Object.keys (query).length) {
@@ -84364,11 +84365,9 @@ module.exports = class therock extends Exchange {
             }
             const nonce = this.nonce ().toString ();
             const auth = nonce + url;
-            headers = {
-                'X-TRT-KEY': this.apiKey,
-                'X-TRT-NONCE': nonce,
-                'X-TRT-SIGN': this.hmac (this.encode (auth), this.encode (this.secret), 'sha512'),
-            };
+            headers['X-TRT-KEY'] = this.apiKey;
+            headers['X-TRT-NONCE'] = nonce;
+            headers['X-TRT-SIGN'] = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
         } else if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.rawencode (query);

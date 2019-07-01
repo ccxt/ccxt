@@ -1122,6 +1122,7 @@ class therock (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        headers = {} if (headers is None) else headers
         if api == 'private':
             self.check_required_credentials()
             if query:
@@ -1134,11 +1135,9 @@ class therock (Exchange):
                         url += '?' + queryString
             nonce = str(self.nonce())
             auth = nonce + url
-            headers = {
-                'X-TRT-KEY': self.apiKey,
-                'X-TRT-NONCE': nonce,
-                'X-TRT-SIGN': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512),
-            }
+            headers['X-TRT-KEY'] = self.apiKey
+            headers['X-TRT-NONCE'] = nonce
+            headers['X-TRT-SIGN'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
         elif api == 'public':
             if query:
                 url += '?' + self.rawencode(query)
