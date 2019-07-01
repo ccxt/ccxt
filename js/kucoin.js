@@ -1434,7 +1434,8 @@ module.exports = class kucoin extends Exchange {
         const direction = this.safeString (item, 'direction');
         let before = undefined;
         if (after !== undefined && amount !== undefined) {
-            before = this.sum (after, direction === 'out' ? amount : -amount);
+            const difference = (direction === 'out') ? amount : -amount;
+            before = this.sum (after, difference);
         }
         const timestamp = this.safeInteger (item, 'createdAt');
         const type = this.parseLedgerEntryType (this.safeString (item, 'bizType'));
