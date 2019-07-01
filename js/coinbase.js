@@ -22,7 +22,7 @@ module.exports = class coinbase extends Exchange {
             'has': {
                 'CORS': true,
                 'cancelOrder': false,
-                'createDepositAddress': false,
+                'createDepositAddress': true,
                 'createOrder': false,
                 'deposit': false,
                 'fetchBalance': true,
