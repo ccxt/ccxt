@@ -478,7 +478,7 @@ class okcoinusd extends Exchange {
                     'baseNumericId' => $baseNumericId,
                     'quoteNumericId' => $quoteNumericId,
                     'info' => $market,
-                    'type' => 'spot',
+                    'type' => $type,
                     'spot' => $spot,
                     'future' => $future,
                     'active' => $active,

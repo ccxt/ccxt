@@ -201,6 +201,11 @@ class mixcoins (Exchange):
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'status' in response:
+            #
+            # todo add a unified standard handleErrors with self.exceptions in describe()
+            #
+            #     {"status":503,"message":"Maintenancing, try again later","result":null}
+            #
             if response['status'] == 200:
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))
