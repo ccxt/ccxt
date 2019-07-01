@@ -163,7 +163,7 @@ module.exports = class coinbase extends Exchange {
 
     async fetchAccounts (params = {}) {
         const response = await this.privateGetAccounts (params);
-        // {
+        //  {
         //     "id": "XLM",
         //     "name": "XLM Wallet",
         //     "primary": false,
@@ -179,18 +179,18 @@ module.exports = class coinbase extends Exchange {
         //         "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
         //         "destination_tag_name": "XLM Memo ID",
         //         "destination_tag_regex": "^[ -~]{1,28}$"
-        // },
+        //  },
         //     "balance": {
         //     "amount": "0.0000000",
         //         "currency": "XLM"
-        // },
+        //  },
         //     "created_at": null,
         //     "updated_at": null,
         //     "resource": "account",
         //     "resource_path": "/v2/accounts/XLM",
         //     "allow_deposits": true,
         //     "allow_withdrawals": true
-        // }
+        //  }
         const data = response['data'];
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -227,7 +227,8 @@ module.exports = class coinbase extends Exchange {
             'account_id': accountId,
         };
         const response = await this.privatePostAccountsAccountIdAddresses (this.extend (request, params));
-        // {
+        //
+        //  {
         //    "data": {
         //       "id": "05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
         //       "address": "coinbasebase",
@@ -260,7 +261,7 @@ module.exports = class coinbase extends Exchange {
         //       "deposit_uri": "eosio:coinbasebase?dt=287594668",
         //       "callback_url": null
         //     }
-        // }
+        //  }
         const data = response['data'];
         const tag = this.safeString (data, 'destination_tag');
         const address = this.safeString (data, 'address');
