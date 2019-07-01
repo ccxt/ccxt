@@ -1192,7 +1192,7 @@ module.exports = class huobipro extends Exchange {
         if (type === 'withdraw') {
             type = 'withdrawal';
         }
-        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const tag = this.safeString (transaction, 'address-tag');
         let feeCost = this.safeFloat (transaction, 'fee');
         if (feeCost !== undefined) {
