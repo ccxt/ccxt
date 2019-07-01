@@ -1084,7 +1084,7 @@ class huobipro (Exchange):
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'
-        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         tag = self.safe_string(transaction, 'address-tag')
         feeCost = self.safe_float(transaction, 'fee')
         if feeCost is not None:

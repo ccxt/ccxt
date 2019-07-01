@@ -40,6 +40,7 @@ class kucoin extends Exchange {
                 'fetchAccounts' => true,
                 'fetchFundingFee' => true,
                 'fetchOHLCV' => true,
+                'fetchLedger' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
@@ -1328,6 +1329,156 @@ class kucoin extends Exchange {
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
+    }
+
+    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+        if ($code === null) {
+            throw new ArgumentsRequired($this->id . ' fetchLedger requires a $code param');
+        }
+        $this->load_markets();
+        $this->loadAccounts ();
+        $currency = $this->currency ($code);
+        $accountId = $this->safe_string($params, 'accountId');
+        if ($accountId === null) {
+            for ($i = 0; $i < count ($this->accounts); $i++) {
+                $account = $this->accounts[$i];
+                if ($account['currency'] === $code && $account['type'] === 'main') {
+                    $accountId = $account['id'];
+                    break;
+                }
+            }
+        }
+        if ($accountId === null) {
+            throw new ExchangeError($this->id . ' ' . $code . 'main $account is not loaded in loadAccounts');
+        }
+        $request = array (
+            'accountId' => $accountId,
+        );
+        if ($since !== null) {
+            $request['startAt'] = (int) floor($since / 1000);
+        }
+        $response = $this->privateGetAccountsAccountIdLedgers (array_merge ($request, $params));
+        //
+        //     {
+        //         $code => '200000',
+        //         data => {
+        //             totalNum => 1,
+        //             totalPage => 1,
+        //             pageSize => 50,
+        //             currentPage => 1,
+        //             $items => array (
+        //                 {
+        //                     createdAt => 1561897880000,
+        //                     amount => '0.0111123',
+        //                     bizType => 'Exchange',
+        //                     balance => '0.13224427',
+        //                     fee => '0.0000111',
+        //                     context => 'array("symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806")',
+        //                     $currency => 'ETH',
+        //                     direction => 'out'
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $items = $response['data']['items'];
+        return $this->parse_ledger($items, $currency, $since, $limit);
+    }
+
+    public function parse_ledger_entry ($item, $currency = null) {
+        //
+        // trade
+        //
+        //     {
+        //         createdAt => 1561897880000,
+        //         $amount => '0.0111123',
+        //         bizType => 'Exchange',
+        //         balance => '0.13224427',
+        //         $fee => '0.0000111',
+        //         $context => 'array("symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806")',
+        //         $currency => 'ETH',
+        //         $direction => 'out'
+        //     }
+        //
+        // withdrawal
+        //
+        //     {
+        //         createdAt => 1561900264000,
+        //         $amount => '0.14333217',
+        //         bizType => 'Withdrawal',
+        //         balance => '0',
+        //         $fee => '0.01',
+        //         $context => 'array("orderId":"5d18b4e687111437cf1c48b9","txId":"0x1d136ee065c5c4c5caa293faa90d43e213c953d7cdd575c89ed0b54eb87228b8")',
+        //         $currency => 'ETH',
+        //         $direction => 'out'
+        //     }
+        //
+        $currencyId = $this->safe_string($item, 'currency');
+        $code = null;
+        if ($currencyId !== null) {
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
+        } else {
+            if ($currency !== null) {
+                $code = $currency['code'];
+            }
+        }
+        $fee = array (
+            'cost' => $this->safe_float($item, 'fee'),
+            'code' => $code,
+        );
+        $amount = $this->safe_float($item, 'amount');
+        $after = $this->safe_float($item, 'balance');
+        $direction = $this->safe_string($item, 'direction');
+        $before = null;
+        if ($after !== null && $amount !== null) {
+            $difference = ($direction === 'out') ? $amount : -$amount;
+            $before = $this->sum ($after, $difference);
+        }
+        $timestamp = $this->safe_integer($item, 'createdAt');
+        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'bizType'));
+        $contextString = $this->safe_string($item, 'context');
+        $id = null;
+        $referenceId = null;
+        if ($this->is_json_encoded_object($contextString)) {
+            $context = $this->parse_json($contextString);
+            $id = $this->safe_string($context, 'orderId');
+            if ($type === 'trade') {
+                $referenceId = $this->safe_string($context, 'tradeId');
+            } else if ($type === 'transaction') {
+                $referenceId = $this->safe_string($context, 'txId');
+            }
+        }
+        return array (
+            'id' => $id,
+            'currency' => $code,
+            'account' => null,
+            'referenceAccount' => null,
+            'referenceId' => $referenceId,
+            'status' => null,
+            'amount' => $amount,
+            'before' => $before,
+            'after' => $after,
+            'fee' => $fee,
+            'direction' => $direction,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'type' => $type,
+            'info' => $item,
+        );
+    }
+
+    public function parse_ledger_entry_type ($type) {
+        $types = array (
+            'Exchange' => 'trade',
+            'Withdrawal' => 'transaction',
+            'Deposit' => 'transaction',
+            'Transfer' => 'transfer',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
