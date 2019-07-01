@@ -3150,7 +3150,7 @@ Some exchanges don't allow to fetch all ledger entries for all assets at once, t
 
 ```JavaScript
 {
-    'id': 'string-id',                      // id of the ledger entry, a string
+    'id': 'hqfl-f125f9l2c9',                // string id of the ledger entry, e.g. an order id
     'direction': 'out',                     // or 'in'
     'account': '06d4ab58-dfcd-468a',        // string id of the account if any
     'referenceId': 'bf7a-d4441fb3fd31',     // string id of the trade, transaction, etc...

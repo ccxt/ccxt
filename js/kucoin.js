@@ -39,6 +39,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchAccounts': true,
                 'fetchFundingFee': true,
                 'fetchOHLCV': true,
+                'fetchLedger': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
@@ -1327,6 +1328,156 @@ module.exports = class kucoin extends Exchange {
             result[code] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchLedger requires a code param');
+        }
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const currency = this.currency (code);
+        let accountId = this.safeString (params, 'accountId');
+        if (accountId === undefined) {
+            for (let i = 0; i < this.accounts.length; i++) {
+                const account = this.accounts[i];
+                if (account['currency'] === code && account['type'] === 'main') {
+                    accountId = account['id'];
+                    break;
+                }
+            }
+        }
+        if (accountId === undefined) {
+            throw new ExchangeError (this.id + ' ' + code + 'main account is not loaded in loadAccounts');
+        }
+        const request = {
+            'accountId': accountId,
+        };
+        if (since !== undefined) {
+            request['startAt'] = Math.floor (since / 1000);
+        }
+        const response = await this.privateGetAccountsAccountIdLedgers (this.extend (request, params));
+        //
+        //     {
+        //         code: '200000',
+        //         data: {
+        //             totalNum: 1,
+        //             totalPage: 1,
+        //             pageSize: 50,
+        //             currentPage: 1,
+        //             items: [
+        //                 {
+        //                     createdAt: 1561897880000,
+        //                     amount: '0.0111123',
+        //                     bizType: 'Exchange',
+        //                     balance: '0.13224427',
+        //                     fee: '0.0000111',
+        //                     context: '{"symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806"}',
+        //                     currency: 'ETH',
+        //                     direction: 'out'
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const items = response['data']['items'];
+        return this.parseLedger (items, currency, since, limit);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        // trade
+        //
+        //     {
+        //         createdAt: 1561897880000,
+        //         amount: '0.0111123',
+        //         bizType: 'Exchange',
+        //         balance: '0.13224427',
+        //         fee: '0.0000111',
+        //         context: '{"symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806"}',
+        //         currency: 'ETH',
+        //         direction: 'out'
+        //     }
+        //
+        // withdrawal
+        //
+        //     {
+        //         createdAt: 1561900264000,
+        //         amount: '0.14333217',
+        //         bizType: 'Withdrawal',
+        //         balance: '0',
+        //         fee: '0.01',
+        //         context: '{"orderId":"5d18b4e687111437cf1c48b9","txId":"0x1d136ee065c5c4c5caa293faa90d43e213c953d7cdd575c89ed0b54eb87228b8"}',
+        //         currency: 'ETH',
+        //         direction: 'out'
+        //     }
+        //
+        const currencyId = this.safeString (item, 'currency');
+        let code = undefined;
+        if (currencyId !== undefined) {
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+        } else {
+            if (currency !== undefined) {
+                code = currency['code'];
+            }
+        }
+        const fee = {
+            'cost': this.safeFloat (item, 'fee'),
+            'code': code,
+        };
+        const amount = this.safeFloat (item, 'amount');
+        const after = this.safeFloat (item, 'balance');
+        const direction = this.safeString (item, 'direction');
+        let before = undefined;
+        if (after !== undefined && amount !== undefined) {
+            const difference = (direction === 'out') ? amount : -amount;
+            before = this.sum (after, difference);
+        }
+        const timestamp = this.safeInteger (item, 'createdAt');
+        const type = this.parseLedgerEntryType (this.safeString (item, 'bizType'));
+        const contextString = this.safeString (item, 'context');
+        let id = undefined;
+        let referenceId = undefined;
+        if (this.isJsonEncodedObject (contextString)) {
+            const context = this.parseJson (contextString);
+            id = this.safeString (context, 'orderId');
+            if (type === 'trade') {
+                referenceId = this.safeString (context, 'tradeId');
+            } else if (type === 'transaction') {
+                referenceId = this.safeString (context, 'txId');
+            }
+        }
+        return {
+            'id': id,
+            'currency': code,
+            'account': undefined,
+            'referenceAccount': undefined,
+            'referenceId': referenceId,
+            'status': undefined,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'fee': fee,
+            'direction': direction,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'type': type,
+            'info': item,
+        };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'Exchange': 'trade',
+            'Withdrawal': 'transaction',
+            'Deposit': 'transaction',
+            'Transfer': 'transfer',
+        };
+        return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
