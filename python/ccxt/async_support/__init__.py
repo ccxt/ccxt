@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.838'
+__version__ = '1.18.854'
 
 # -----------------------------------------------------------------------------
 
@@ -50,7 +50,6 @@ from ccxt.async_support._1btcxe import _1btcxe                            # noqa
 from ccxt.async_support.acx import acx                                    # noqa: F401
 from ccxt.async_support.allcoin import allcoin                            # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
-from ccxt.async_support.anybits import anybits                            # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
 from ccxt.async_support.bequant import bequant                            # noqa: F401
 from ccxt.async_support.bibox import bibox                                # noqa: F401
@@ -69,7 +68,6 @@ from ccxt.async_support.bitkk import bitkk                                # noqa
 from ccxt.async_support.bitlish import bitlish                            # noqa: F401
 from ccxt.async_support.bitmarket import bitmarket                        # noqa: F401
 from ccxt.async_support.bitmex import bitmex                              # noqa: F401
-from ccxt.async_support.bitsane import bitsane                            # noqa: F401
 from ccxt.async_support.bitso import bitso                                # noqa: F401
 from ccxt.async_support.bitstamp import bitstamp                          # noqa: F401
 from ccxt.async_support.bitstamp1 import bitstamp1                        # noqa: F401
@@ -123,7 +121,6 @@ from ccxt.async_support.fcoinjp import fcoinjp                            # noqa
 from ccxt.async_support.flowbtc import flowbtc                            # noqa: F401
 from ccxt.async_support.foxbit import foxbit                              # noqa: F401
 from ccxt.async_support.fybse import fybse                                # noqa: F401
-from ccxt.async_support.fybsg import fybsg                                # noqa: F401
 from ccxt.async_support.gateio import gateio                              # noqa: F401
 from ccxt.async_support.gdax import gdax                                  # noqa: F401
 from ccxt.async_support.gemini import gemini                              # noqa: F401
@@ -169,7 +166,6 @@ from ccxt.async_support.therock import therock                            # noqa
 from ccxt.async_support.tidebit import tidebit                            # noqa: F401
 from ccxt.async_support.tidex import tidex                                # noqa: F401
 from ccxt.async_support.upbit import upbit                                # noqa: F401
-from ccxt.async_support.urdubit import urdubit                            # noqa: F401
 from ccxt.async_support.vaultoro import vaultoro                          # noqa: F401
 from ccxt.async_support.vbtc import vbtc                                  # noqa: F401
 from ccxt.async_support.virwox import virwox                              # noqa: F401
@@ -183,7 +179,6 @@ exchanges = [
     'acx',
     'allcoin',
     'anxpro',
-    'anybits',
     'bcex',
     'bequant',
     'bibox',
@@ -202,7 +197,6 @@ exchanges = [
     'bitlish',
     'bitmarket',
     'bitmex',
-    'bitsane',
     'bitso',
     'bitstamp',
     'bitstamp1',
@@ -256,7 +250,6 @@ exchanges = [
     'flowbtc',
     'foxbit',
     'fybse',
-    'fybsg',
     'gateio',
     'gdax',
     'gemini',
@@ -302,7 +295,6 @@ exchanges = [
     'tidebit',
     'tidex',
     'upbit',
-    'urdubit',
     'vaultoro',
     'vbtc',
     'virwox',

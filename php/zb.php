@@ -78,7 +78,6 @@ class zb extends Exchange {
                 'www' => 'https://www.zb.com',
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
-                'referral' => 'https://vip.zb.com/user/register?recommendCode=bn070u',
             ),
             'api' => array (
                 'public' => array (
