@@ -1181,7 +1181,7 @@ module.exports = class therock extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        headers = this.extend ({}, headers);
+        headers = (headers === undefined) ? {} : headers;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             if (Object.keys (query).length) {
