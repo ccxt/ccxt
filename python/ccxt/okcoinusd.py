@@ -1022,7 +1022,7 @@ class okcoinusd (Exchange):
             return self.deep_extend({
                 'symbol': market['lowercaseId'],
                 'contract_type': market['contractType'],
-            })
+            }, params)
         return self.deep_extend({
             'symbol': market['id'],
         }, params)
