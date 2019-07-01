@@ -1,14 +1,14 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InsufficientFunds, AuthenticationError } = require ('./base/errors');
 
 module.exports = class graviex extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'graviex',
             'name': 'Graviex',
-            'version': 'v2',
+            'version': 'v3',
             'countries': [ 'MT', 'RU' ],
             'rateLimit': 1000,
             'has': {
@@ -17,13 +17,17 @@ module.exports = class graviex extends Exchange {
                 'createLimitOrder': false,
                 'createDepositAddress': true,
                 'deposit': true,
+                'fetchDepositAddress': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchMyTrades': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
+                'fetchTransactions': false,
                 'withdraw': false,
             },
             'timeframes': {
@@ -41,13 +45,13 @@ module.exports = class graviex extends Exchange {
                 '1w': '10080',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
+                'logo': '',
                 'api': {
-                    'public': 'https://graviex.net',
-                    'private': 'https://graviex.net',
+                    'public': 'https://graviex.net/api',
+                    'private': 'https://graviex.net/api',
                 },
                 'www': 'https://graviex.net',
-                'doc': 'https://graviex.net/documents/api_v2?lang=en',
+                'doc': 'https://graviex.net/documents/api_v3',
                 'fees': 'https://graviex.net/documents/fees-and-discounts',
             },
             'api': {
@@ -58,25 +62,48 @@ module.exports = class graviex extends Exchange {
                         'order_book',
                         'depth',
                         'trades',
+                        'trades_simple',
                         'k',
                         'k_with_pending_trades',
+                        'currency/info',
+                        'timestamp',
                     ],
                 },
                 'private': {
                     'get': [
+                        'account/history',
                         'members/me',
                         'deposits',
                         'deposit',
                         'deposit_address',
+                        'fund_sources',
+                        'gen_deposit_address',
+                        'withdraws',
                         'orders',
+                        'orders/history',
                         'order',
                         'trades/my',
+                        'trades/history',
+                        'settings/get',
+                        'strategies/list',
+                        'strategies/my',
                     ],
                     'post': [
+                        'create_fund_source',
+                        'remove_fund_source',
+                        'members/me/register_device',
+                        'members/me/update_preferences',
                         'orders',
                         'orders/multi',
                         'orders/clear',
                         'order/delete',
+                        'create_withdraw',
+                        'settings/store',
+                        'strategy/cancel',
+                        'strategy/create',
+                        'strategy/update',
+                        'strategy/activate',
+                        'strategy/deactivate',
                     ],
                 },
             },
@@ -124,44 +151,126 @@ module.exports = class graviex extends Exchange {
         });
     }
 
+    async fetchCurrency (code, params = {}) {
+        await this.loadMarkets ();
+        // CHK - Might need a better solution.
+        const currency = this.currency (code);
+        const currencyId = this.safeString (currency, 'code');
+        return await this.fetchCurrencyById (currencyId.toLowerCase (), params);
+    }
+
+    async fetchCurrencyById (id, params = {}) {
+        const request = {
+            'currency': id,
+        };
+        const response = await this.publicGetCurrencyInfo (this.extend (request, params));
+        const delisting = this.safeValue (response, 'delisting');
+        const state = this.safeString (response, 'state');
+        const name = this.safeString (response, 'key');
+        const withdraw = this.safeValue (response, 'withdraw');
+        const fee = this.safeFloat (withdraw, 'fee');
+        const inuse = this.safeValue (withdraw, 'inuse');
+        let active = true;
+        if (state === 'offline') {
+            active = false;
+        } else if (delisting === true) {
+            active = false;
+        } else if (!inuse) {
+            active = false;
+        }
+        const maxWithdrawLimit = this.safeFloat (withdraw, 'max');
+        const precision = undefined;
+        const currencyId = this.safeString (response, 'code');
+        const code = this.commonCurrencyCode (currencyId);
+        return {
+            'info': response,
+            'id': currencyId,
+            'code': code,
+            'name': name,
+            'active': active,
+            'fee': fee,
+            'precision': precision,
+            'funding': {
+                'withdraw': {
+                    'active': inuse,
+                    'fee': fee,
+                },
+                'deposit': {
+                    'active': active,
+                    'fee': 0,
+                },
+            },
+            'limits': {
+                'withdraw': {
+                    'min': undefined,
+                    'max': maxWithdrawLimit,
+                },
+            },
+        };
+    }
+
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetMarkets ();
-        let result = [];
-        for (let i = 0; i < markets.length; i++) {
-            let market = markets[i];
-            let symbolParts = market['name'].split ('/');
-            let baseId = symbolParts[0];
-            let quoteId = symbolParts[1];
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let symbol = base + '/' + quote;
-            let active = true;
-            result.push ({
-                'id': this.safeString (market, 'id'),
+        // let markets = await this.publicGetMarkets ();
+        // Using tickers instead, much more detailed and ability to decide if market is active.
+        const response = await this.publicGetTickers (params);
+        const ids = Object.keys (response);
+        const result = [];
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const market = response[id];
+            const api = this.safeValue (market, 'api');
+            const wstatus = this.safeString (market, 'wstatus');
+            let active = false;
+            if (api === true && wstatus === 'on') {
+                active = true;
+            }
+            const minamount = this.safeFloat (market, 'base_min');
+            const baseId = this.safeString (market, 'base_unit').toUpperCase ();
+            const quoteId = this.safeString (market, 'quote_unit').toUpperCase ();
+            const base = this.commonCurrencyCode (baseId);
+            const quote = this.commonCurrencyCode (quoteId);
+            const symbol = this.safeString (market, 'name');
+            result.push (this.extend (this.fees['trading'], {
+                'info': market,
+                'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'info': market,
-            });
+                'taker': undefined,
+                'maker': undefined,
+                'limits': {
+                    'amount': {
+                        'min': minamount,
+                        'max': undefined,
+                    },
+                },
+            }));
         }
         return result;
     }
 
     parseTicker (ticker, market = undefined) {
-        let symbol = this.safeString (market, 'symbol');
+        const symbol = this.safeString (market, 'symbol');
         let timestamp = this.safeInteger (ticker, 'at');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
         }
         const info = ticker;
-        ticker = this.safeValue (ticker, 'ticker');
-        if (ticker === undefined) {
-            throw new ExchangeError (this.id + ' ' + symbol + ' ticker not found');
-        }
         const last = this.safeFloat (ticker, 'last');
+        const open = this.safeFloat (ticker, 'open');
+        let percentage = undefined;
+        let average = undefined;
+        let change = undefined;
+        if ((last !== undefined) && (open !== undefined)) {
+            change = last - open;
+            if (open > 0 && change > 0) {
+                percentage = (change / open) * 100;
+            }
+            average = this.sum (open, last) / 2;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -173,40 +282,50 @@ module.exports = class graviex extends Exchange {
             'ask': this.safeFloat (ticker, 'sell'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': undefined,
+            'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': this.safeFloat (ticker, 'change'),
-            'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'vol'),
-            'quoteVolume': this.safeFloat (ticker, 'volbtc'),
+            'change': change,
+            'percentage': percentage,
+            'average': average,
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'volume2'),
             'info': info,
         };
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const tickers = await this.fetchTickers (undefined, params);
-        const ticker = this.safeValue (tickers, symbol);
-        if (ticker === undefined) {
-            throw new ExchangeError (this.id + ' ' + symbol + ' ticker not found');
-        }
-        return ticker;
+        const symbols = { symbol };
+        return await this.fetchTickers (symbols, params);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetTickers (params);
-        let data = response;
-        let ids = Object.keys (data);
-        let result = {};
+        const response = await this.publicGetTickers (params);
+        const ids = Object.keys (response);
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
+            const id = ids[i];
+            const market = this.markets_by_id[id];
+            const symbol = market['symbol'];
             result[symbol] = this.parseTicker (response[id], market);
+        }
+        if (symbols !== undefined) {
+            const symresult = {};
+            const lenght = symbols.length;
+            for (let i = 0; i < lenght; i++) {
+                const ticker = this.safeValue (result, symbols[i]);
+                if (ticker !== undefined) {
+                    if (lenght === 1) {
+                        return ticker;
+                    } else {
+                        symresult[symbols[i]] = ticker;
+                    }
+                }
+            }
+            return symresult;
         }
         return result;
     }
@@ -220,7 +339,7 @@ module.exports = class graviex extends Exchange {
             'market': this.marketId (symbol),
             'limit': limit,
         };
-        let response = await this.publicGetDepth (this.extend (request, params));
+        const response = await this.publicGetDepth (this.extend (request, params));
         return this.parseOrderBook (response);
     }
 
@@ -230,15 +349,15 @@ module.exports = class graviex extends Exchange {
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp * 1000);
         }
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'volume');
-        let marketId = this.safeString (trade, 'market');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'volume');
+        const marketId = this.safeString (trade, 'market');
         market = this.safeValue (this.markets_by_id, marketId, market);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let cost = parseFloat (this.costToPrecision (symbol, price * amount));
+        const cost = parseFloat (this.costToPrecision (symbol, price * amount));
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -258,13 +377,34 @@ module.exports = class graviex extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        if (limit === undefined)
+        const market = this.market (symbol);
+        if (limit === undefined) {
             limit = 20; // default
-        let response = await this.publicGetTrades (this.extend ({
+        }
+        const response = await this.publicGetTrades (this.extend ({
             'market': market['id'],
             'limit': limit,
         }, params));
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'limit': limit,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['since'] = market['id'];
+        }
+        const response = await this.privateGetTradesMy (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -272,40 +412,48 @@ module.exports = class graviex extends Exchange {
         return [
             ohlcv[0] * 1000,
             parseFloat (ohlcv[1]),
+            parseFloat (ohlcv[2]),
             parseFloat (ohlcv[3]),
             parseFloat (ohlcv[4]),
-            parseFloat (ohlcv[2]),
             parseFloat (ohlcv[5]),
         ];
     }
 
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetK (this.extend ({
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
             'market': market['id'],
-            'type': this.timeframes[timeframe],
-        }, params));
+            'period': this.timeframes[timeframe],
+            'limit': limit,
+        };
+        if (since !== undefined) {
+            request['timestamp'] = since;
+        }
+        const response = await this.publicGetK (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    async createDepositAddress (code, params = {}) {
-        let response = await this.privateGetDepositAddress (this.extend ({
-            'currency': code.toLowerCase (),
-        }, params));
-        let address = JSON.parse (response);
-        address = JSON.parse (address);
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'tag': undefined,
-            'info': response,
-        };
-    }
-
     async fetchDepositAddress (code, params = {}) {
-        let response = await this.privateGetDepositAddress (this.extend ({
+        const response = await this.privateGetDepositAddress (this.extend ({
+            'currency': code.toLowerCase (),
+        }, params));
+        let address = JSON.parse (response);
+        address = JSON.parse (address);
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'info': response,
+        };
+    }
+    
+    async createDepositAddress (code, params = {}) {
+        const response = await this.privateGetGenDepositAddress (this.extend ({
             'currency': code.toLowerCase (),
         }, params));
         let address = JSON.parse (response);
@@ -319,79 +467,110 @@ module.exports = class graviex extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency code argument');
-        }
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
-            'currency': currency['id'].toLowerCase (),
-        };
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'].toLowerCase ();
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privatePostHistoryMovements (this.extend (request, params));
+        const response = await this.privateGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'].toLowerCase ();
+        } else {
+            throw new ExchangeError ('Currency required for withdrawal information');
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetWithdraws (this.extend (request, params));
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseTransactions (transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
+        const result = {};
+        for (let i = 0; i < transactions.length; i++) {
+            const trx = this.parseTransaction (transactions[i], currency);
+            result.push (trx);
+        }
+        return this.sortBy (result, 'id', true);
     }
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeFloat (transaction, 'done_at');
         if (timestamp !== undefined && timestamp !== 'NULL') {
             timestamp = parseInt (timestamp * 1000);
+        } else {
+            timestamp = this.parse8601 (transaction['created_at']);
         }
-        let updated = this.safeFloat (transaction, 'timestamp');
+        let updated = this.safeFloat (transaction, 'done_at');
         if (updated !== undefined) {
             updated = parseInt (updated * 1000);
         }
         let code = undefined;
         if (currency === undefined) {
-            let currencyId = this.safeString (transaction, 'currency');
+            const currencyId = this.safeString (transaction, 'currency');
             if (currencyId in this.currencies_by_id) {
                 currency = this.currencies_by_id[currencyId];
             } else {
                 code = this.commonCurrencyCode (currencyId);
             }
         } else {
-            code = currency['code'].toLowerCase ();
+            code = currency['code'];
         }
-        let type = 'deposit'; // DEPOSIT or WITHDRAWAL
-        let feeCost = this.safeFloat (transaction, 'fee');
-        if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
+        const type = ('provider' in transaction) ? 'withdrawal' : 'deposit';
+        const feeCost = this.safeFloat (transaction, 'fee');
+        const amount = this.safeFloat (transaction, 'amount');
+        let feeRate = undefined;
+        if (feeCost > 0 && amount > 0) {
+            feeRate = feeCost / amount;
         }
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': timestamp,
-            'datetime': this.iso8601 (this.safeString (transaction, 'created_at')),
+            'datetime': this.iso8601 (timestamp),
             'address': undefined,
             'tag': undefined, // refix it properly for the tag from description
             'type': type,
-            'amount': this.safeFloat (transaction, 'amount'),
+            'amount': amount,
             'currency': code,
             'status': this.parseTransactionStatus (this.safeString (transaction, 'state')),
             'updated': updated,
             'fee': {
                 'currency': code,
                 'cost': feeCost,
-                'rate': undefined,
+                'rate': feeRate,
             },
         };
     }
 
     parseTransactionStatus (status) {
-        let statuses = {
-            'COMPLETED': 'accepted',
+        const statuses = {
+            'accepted': 'ok',
+            'done': 'ok',
+            'submitted': 'pending',
         };
         return (status in statuses) ? statuses[status] : status;
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'wait': 'open',
-            'closed': 'closed',
+            'done': 'closed',
             'cancel': 'canceled',
         };
         if (status in statuses) {
@@ -401,9 +580,9 @@ module.exports = class graviex extends Exchange {
     }
 
     parseOrderStatusRe (status) {
-        let statuses = {
+        const statuses = {
             'open': 'wait',
-            'closed': 'closed',
+            'closed': 'done',
             'canceled': 'cancel',
         };
         if (status in statuses) {
@@ -418,7 +597,7 @@ module.exports = class graviex extends Exchange {
             timestamp = parseInt (timestamp * 1000);
         }
         let symbol = undefined;
-        let marketId = this.safeString (order, 'market');
+        const marketId = this.safeString (order, 'market');
         market = this.safeValue (this.markets_by_id, marketId);
         let feeCurrency = undefined;
         if (market !== undefined) {
@@ -451,11 +630,48 @@ module.exports = class graviex extends Exchange {
         };
     }
 
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const response = await this.privateGetOrder (this.extend ({
+            'id': id,
+        }, params));
+        return this.parseOrder (response, market);
+    }
+
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const pstatus = this.parseOrderStatusRe (status);
+        if (limit === undefined) {
+            limit = 100;
+        }
+        const request = {
+            'page': 1,
+            'limit': limit,
+            'state': pstatus,
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['market'] = market['id'];
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let method = 'privatePostOrders';
-        let market = this.market (symbol);
-        let request = {
+        const method = 'privatePostOrders';
+        const market = this.market (symbol);
+        const request = {
             'market': market['id'],
             'volume': this.amountToPrecision (symbol, amount),
             'side': side,
@@ -466,9 +682,9 @@ module.exports = class graviex extends Exchange {
         if (type !== 'NULL' || type !== undefined) {
             request['ord_type'] = type;
         }
-        let response = await this[method] (this.extend (request, params));
-        let order = this.parseOrder (response, market);
-        let id = this.safeString (order, 'id');
+        const response = await this[method] (this.extend (request, params));
+        const order = this.parseOrder (response, market);
+        const id = this.safeString (order, 'id');
         this.orders[id] = order;
         return order;
     }
@@ -481,65 +697,30 @@ module.exports = class graviex extends Exchange {
         return this.fetchOrder (id, symbol);
     }
 
-    async fetchOrder (id, symbol = undefined, params = {}) {
+    async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetOrder (this.extend ({
-            'id': id,
-        }, params));
-        return this.parseOrder (response, market);
-    }
-
-    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (limit === undefined) {
-            limit = 100;
+        const response = await this.privateGetMembersMe ();
+        const result = { 'info': response };
+        const balances = response['accounts_filtered'];
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency').toUpperCase ();
+            let currency = undefined;
+            if (currencyId in this.currencies_by_id) {
+                currency = this.currencies_by_id[currencyId]['code'];
+            } else {
+                currency = this.commonCurrencyCode (currencyId);
+            }
+            const free = this.safeFloat (balance, 'balance');
+            const used = this.safeFloat (balance, 'locked');
+            const total = this.sum (free, used);
+            result[currency] = {
+                'free': free,
+                'used': used,
+                'total': total,
+            };
         }
-        let request = {
-            'page': 1,
-            'limit': limit,
-        };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
-        if (status !== undefined) {
-            let status = this.parseOrderStatusRe ('closed');
-            request['state'] = status;
-        }
-        let response = await this.privateGetOrders (this.extend (request, params));
-        return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let status = this.parseOrderStatusRe ('open');
-        return await this.fetchOrdersByStatus (status, symbol, since, limit, params);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let status = this.parseOrderStatusRe ('closed');
-        return await this.fetchOrdersByStatus (status, symbol, since, limit, params);
-    }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (limit === undefined) {
-            limit = 100;
-        }
-        let request = {
-            'limit': limit,
-        };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
-        if (since !== undefined) {
-            request['since'] = market['id'];
-        }
-        let response = await this.privateGetTradesMy (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        return this.parseBalance (result);
     }
 
     nonce () {
@@ -547,21 +728,20 @@ module.exports = class graviex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let host = this.urls['api'][api];
-        path = '/' + 'api' + '/' + this.version + '/' + path;
-        let tonce = this.nonce ();
+        const host = this.urls['api'][api];
+        let url = host + '/' + this.version + '/' + path;
+        const tonce = this.nonce ();
         params['tonce'] = tonce;
         if (this.apiKey !== undefined) {
             params['access_key'] = this.apiKey;
         }
-        let url = host + path;
-        let sorted = this.keysort (params);
+        const sorted = this.keysort (params);
         if (api !== 'public') {
-            let sign_str = method + '|' + path + '|' + this.urlencode (sorted);
-            let signature = this.hmac (sign_str, this.secret, 'sha256');
+            const sign_str = method + '|' + path + '|' + this.urlencode (sorted);
+            const signature = this.hmac (this.encode (sign_str), this.encode (this.secret), 'sha256');
             sorted['signature'] = signature;
         }
-        let paramencoded = this.urlencode (sorted);
+        const paramencoded = this.urlencode (sorted);
         if (method === 'POST') {
             body = paramencoded;
         } else {
@@ -571,23 +751,31 @@ module.exports = class graviex extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response) {
+        let msg = 'Unknown error';
+        if (code === 503) {
+            throw new ExchangeError ('Exchange Overloaded');
+        }
         if ('error' in response) {
-            let code = this.safeInteger (response['error'], 'code');
-            if (code !== undefined) {
-                const msg = this.safeString (response['error'], 'message');
-                if (code === 2002) {
+            const errorcode = this.safeInteger (response['error'], 'code');
+            if (errorcode !== undefined) {
+                msg = this.safeString (response['error'], 'message');
+                if (errorcode === 2002) {
                     throw new InsufficientFunds (msg);
-                } else if (code === 2005 || code === 2007) {
+                } else if (errorcode === 2005 || errorcode === 2007) {
                     throw new AuthenticationError (msg);
-                } else {
+                } else if (errorcode === 1001) {
                     throw new ExchangeError (msg);
                 }
             }
         }
+        if (code !== 200) {
+            throw new ExchangeError ('Invalid response from exchange: ' + msg);
+        }
+        return response;
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
+        const response = await this.fetch2 (path, api, method, params, headers, body);
         return response;
     }
 };
