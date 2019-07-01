@@ -1082,7 +1082,7 @@ class bittrex (Exchange):
         if limit is not None:
             request['pageSize'] = limit
         if since is not None:
-            request['startDate'] = self.ymdhms(since) + 'Z'
+            request['startDate'] = self.ymdhms(since, 'T') + 'Z'
         market = None
         if symbol is not None:
             market = self.market(symbol)

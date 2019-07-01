@@ -1095,7 +1095,7 @@ class okcoinusd extends Exchange {
             return array_replace_recursive (array (
                 'symbol' => $market['lowercaseId'],
                 'contract_type' => $market['contractType'],
-            ));
+            ), $params);
         }
         return array_replace_recursive (array (
             'symbol' => $market['id'],

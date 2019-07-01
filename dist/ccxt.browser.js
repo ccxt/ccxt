@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.859'
+const version = '1.18.861'
 
 Exchange.ccxtVersion = version
 
@@ -19420,7 +19420,7 @@ module.exports = class bittrex extends Exchange {
             request['pageSize'] = limit;
         }
         if (since !== undefined) {
-            request['startDate'] = this.ymdhms (since) + 'Z';
+            request['startDate'] = this.ymdhms (since, 'T') + 'Z';
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -64696,7 +64696,7 @@ module.exports = class okcoinusd extends Exchange {
             return this.deepExtend ({
                 'symbol': market['lowercaseId'],
                 'contract_type': market['contractType'],
-            });
+            }, params);
         }
         return this.deepExtend ({
             'symbol': market['id'],
