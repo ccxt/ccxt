@@ -169,7 +169,7 @@ module.exports = class bitmax extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': -1 * Math.log10 (precision['amount']),
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
@@ -298,9 +298,9 @@ module.exports = class bitmax extends Exchange {
         return [
             ohlcv['t'],
             parseFloat (ohlcv['o']),
-            parseFloat (ohlcv['c']),
             parseFloat (ohlcv['h']),
             parseFloat (ohlcv['l']),
+            parseFloat (ohlcv['c']),
             parseFloat (ohlcv['v']),
         ];
     }
