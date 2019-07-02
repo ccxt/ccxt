@@ -1695,15 +1695,16 @@ class Exchange {
         return $this->parse_orders($orders, $market, $since, $limit, $params);
     }
 
-    public function safe_currency_code($data, $key, $currency = null) {
+    public function safe_currency_code($currency_id, $currency = null) {
         $code = null;
-        $currency_id = $this->safe_string($data, $key);
-        if (is_array($this->currencies_by_id) && array_key_exists($currency_id, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currency_id];
-        } else {
-            $code = $this->common_currency_code($currency_id);
+        if ($currency_id !== null) {
+            if (is_array($this->currencies_by_id) && array_key_exists($currency_id, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currency_id]['code'];
+            } else {
+                $code = $this->common_currency_code($currency_id);
+            }
         }
-        if ($currency !== null) {
+        if ($code === null && $currency !== null) {
             $code = $currency['code'];
         }
         return $code;
