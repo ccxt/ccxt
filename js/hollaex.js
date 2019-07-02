@@ -615,10 +615,10 @@ module.exports = class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a code argument');
         }
         await this.loadMarkets ();
-        this.currency (code);
+        let curr = await this.currency (code);
+        let currency = this.safeString (curr, 'name').toLowerCase ();
         let response = await this.privateGetUser ();
         let info = this.safeValue (response, 'crypto_wallet');
-        let currency = this.safeString (this.fullCurrencies, code);
         let address = this.safeString (info, currency);
         return {
             'currency': code,
