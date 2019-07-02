@@ -20,10 +20,10 @@ module.exports = class bitmax extends Exchange {
             'has': {
                 'fetchDepositAddress': true,
                 'CORS': false,
-                'fetchBidsAsks': true,
-                'fetchTickers': true,
+                'fetchBidsAsks': false,
+                'fetchTickers': false,
                 'fetchOHLCV': true,
-                'fetchMyTrades': true,
+                'fetchMyTrades': false,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -267,18 +267,6 @@ module.exports = class bitmax extends Exchange {
         };
     }
 
-    async fetchStatus (params = {}) {
-        const systemStatus = await this.wapiGetSystemStatus ();
-        const status = this.safeValue (systemStatus, 'status');
-        if (status !== undefined) {
-            this.status = this.extend (this.status, {
-                'status': status === 0 ? 'ok' : 'maintenance',
-                'updated': this.milliseconds (),
-            });
-        }
-        return this.status;
-    }
-
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -287,27 +275,6 @@ module.exports = class bitmax extends Exchange {
         };
         const response = await this.publicGetTicker24hr (this.extend (request, params));
         return this.parseTicker (response, market);
-    }
-
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
-    }
-
-    async fetchBidsAsks (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.publicGetTickerBookTicker (params);
-        return this.parseTickers (response, symbols);
-    }
-
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const method = this.options['fetchTickersMethod'];
-        const response = await this[method] (params);
-        return this.parseTickers (response, symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
