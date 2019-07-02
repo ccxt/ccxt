@@ -433,10 +433,12 @@ module.exports = class bibox extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        const type = this.safeString (params, 'type', 'assets');
+        params = params.omit ('type');
         const request = {
-            'cmd': 'transfer/mainAssets',
+            'cmd': 'transfer/' + type, // assets, mainAssets
             'body': this.extend ({
-                'select': 1,
+                'select': 1, // return full info
             }, params),
         };
         const response = await this.privatePostTransfer (request);
