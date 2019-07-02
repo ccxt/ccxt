@@ -46467,12 +46467,6 @@ module.exports = class hollaex extends Exchange {
                 '500': NetworkError,
                 '503': NetworkError,
             },
-            'fullCurrencies': {
-                'BTC': 'bitcoin',
-                'ETH': 'ethereum',
-                'BCH': 'bitcoincash',
-                'XRP': 'ripple',
-            },
         });
     }
 
