@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.867'
+const version = '1.18.868'
 
 Exchange.ccxtVersion = version
 
@@ -3511,7 +3511,7 @@ module.exports = class Exchange {
     safeCurrencyCode (currencyId, currency = undefined) {
         let code = undefined
         if (currencyId !== undefined) {
-            if (currencyId in this.currencies_by_id) {
+            if (this.currencies_by_id !== undefined && currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code']
             } else {
                 code = this.commonCurrencyCode (currencyId)
