@@ -1202,7 +1202,7 @@ module.exports = class Exchange {
     safeCurrencyCode (currencyId, currency = undefined) {
         let code = undefined
         if (currencyId !== undefined) {
-            if (currencyId in this.currencies_by_id) {
+            if (this.currencies_by_id !== undefined && currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code']
             } else {
                 code = this.commonCurrencyCode (currencyId)

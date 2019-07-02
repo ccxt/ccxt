@@ -1698,7 +1698,7 @@ class Exchange {
     public function safe_currency_code($currency_id, $currency = null) {
         $code = null;
         if ($currency_id !== null) {
-            if (is_array($this->currencies_by_id) && array_key_exists($currency_id, $this->currencies_by_id)) {
+            if ($this->currencies_by_id !== null && array_key_exists($currency_id, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currency_id]['code'];
             } else {
                 $code = $this->common_currency_code($currency_id);
