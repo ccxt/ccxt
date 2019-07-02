@@ -868,7 +868,7 @@ class binance (Exchange):
         #             fromAsset: "ADA"                  },
         orderId = self.safe_string(trade, 'tranId')
         timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
-        tradedCurrency = self.safeCurrencyCode(trade, 'fromAsset')
+        tradedCurrency = self.safeCurrencyCode(self.safe_string(trade, 'fromAsset'))
         earnedCurrency = self.currency('BNB')['code']
         applicantSymbol = earnedCurrency + '/' + tradedCurrency
         tradedCurrencyIsQuote = False

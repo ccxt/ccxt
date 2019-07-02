@@ -1080,7 +1080,7 @@ class huobipro (Exchange):
         #
         timestamp = self.safe_integer(transaction, 'created-at')
         updated = self.safe_integer(transaction, 'updated-at')
-        code = self.safeCurrencyCode(transaction, 'currency')
+        code = self.safeCurrencyCode(self.safe_string(transaction, 'currency'))
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'
