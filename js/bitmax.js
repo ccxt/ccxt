@@ -33,6 +33,7 @@ module.exports = class bitmax extends Exchange {
                 'fetchDeposits': false,
                 'fetchWithdrawals': false,
                 'fetchTransactions': false,
+                'fetchCurrencies': false,
             },
             'timeframes': {
                 '1m': 1,
