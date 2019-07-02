@@ -566,16 +566,14 @@ class okex3 extends Exchange {
             'amount' => $amountPrecision,
             'price' => $pricePrecision,
         );
-        $minAmount = $this->safe_float($market, 'base_min_size');
+        $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');
         $minPrice = $this->safe_float($market, 'tick_size');
         if ($precision['price'] !== null) {
             $minPrice = pow(10, -$precision['price']);
         }
-        $minCost = $this->safe_float($market, 'min_size');
-        if ($minCost === null) {
-            if ($minAmount !== null && $minPrice !== null) {
-                $minCost = $minAmount * $minPrice;
-            }
+        $minCost = null;
+        if ($minAmount !== null && $minPrice !== null) {
+            $minCost = $minAmount * $minPrice;
         }
         $active = true;
         $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
