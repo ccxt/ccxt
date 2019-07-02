@@ -1187,7 +1187,7 @@ module.exports = class huobipro extends Exchange {
         //
         const timestamp = this.safeInteger (transaction, 'created-at');
         const updated = this.safeInteger (transaction, 'updated-at');
-        const code = this.safeCurrencyCode (transaction, 'currency');
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
         let type = this.safeString (transaction, 'type');
         if (type === 'withdraw') {
             type = 'withdrawal';

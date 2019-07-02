@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.861'
+__version__ = '1.18.866'
 
 # -----------------------------------------------------------------------------
 
@@ -1484,14 +1484,14 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
-    def safe_currency_code(self, data, key, currency=None):
+    def safe_currency_code(self, currency_id, currency=None):
         code = None
-        currency_id = self.safe_string(data, key)
-        if currency_id in self.currencies_by_id:
-            currency = self.currencies_by_id[currency_id]
-        else:
-            code = self.common_currency_code(currency_id)
-        if currency is not None:
+        if currency_id is not None:
+            if currency_id in self.currencies_by_id:
+                code = self.currencies_by_id[currency_id]['code']
+            else:
+                code = self.common_currency_code(currency_id)
+        if code is None and currency is not None:
             code = currency['code']
         return code
 

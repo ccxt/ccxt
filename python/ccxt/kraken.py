@@ -572,7 +572,7 @@ class kraken (Exchange):
         referenceId = self.safe_string(item, 'refid')
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        code = self.safeCurrencyCode(item, 'asset', currency)
+        code = self.safeCurrencyCode(self.safe_string(item, 'asset'), currency)
         amount = self.safe_float(item, 'amount')
         if amount < 0:
             direction = 'out'

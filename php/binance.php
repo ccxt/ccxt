@@ -944,7 +944,7 @@ class binance extends Exchange {
         //             fromAsset => "ADA"                  ),
         $orderId = $this->safe_string($trade, 'tranId');
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'operateTime'));
-        $tradedCurrency = $this->safeCurrencyCode ($trade, 'fromAsset');
+        $tradedCurrency = $this->safeCurrencyCode ($this->safe_string($trade, 'fromAsset'));
         $earnedCurrency = $this->currency ('BNB')['code'];
         $applicantSymbol = $earnedCurrency . '/' . $tradedCurrency;
         $tradedCurrencyIsQuote = false;

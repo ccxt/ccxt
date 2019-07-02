@@ -590,7 +590,7 @@ class kraken extends Exchange {
         $referenceId = $this->safe_string($item, 'refid');
         $referenceAccount = null;
         $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
-        $code = $this->safeCurrencyCode ($item, 'asset', $currency);
+        $code = $this->safeCurrencyCode ($this->safe_string($item, 'asset'), $currency);
         $amount = $this->safe_float($item, 'amount');
         if ($amount < 0) {
             $direction = 'out';

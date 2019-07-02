@@ -1188,7 +1188,7 @@ class huobipro extends Exchange {
         //
         $timestamp = $this->safe_integer($transaction, 'created-at');
         $updated = $this->safe_integer($transaction, 'updated-at');
-        $code = $this->safeCurrencyCode ($transaction, 'currency');
+        $code = $this->safeCurrencyCode ($this->safe_string($transaction, 'currency'));
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'withdraw') {
             $type = 'withdrawal';
