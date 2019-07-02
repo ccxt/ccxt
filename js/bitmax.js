@@ -21,7 +21,7 @@ module.exports = class bitmax extends Exchange {
                 'fetchDepositAddress': true,
                 'CORS': false,
                 'fetchBidsAsks': false,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
@@ -268,6 +268,14 @@ module.exports = class bitmax extends Exchange {
         };
     }
 
+    parseTickers (rawTickers, symbols = undefined) {
+        const tickers = [];
+        for (let i = 0; i < rawTickers.length; i++) {
+            tickers.push (this.parseTicker (rawTickers[i]));
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
+    }
+
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -276,6 +284,14 @@ module.exports = class bitmax extends Exchange {
         };
         const response = await this.publicGetTicker24hr (this.extend (request, params));
         return this.parseTicker (response, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+        };
+        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        return this.parseTickers (response, symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
