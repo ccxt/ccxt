@@ -82,6 +82,7 @@ class tidex (Exchange):
                 },
                 'private': {
                     'post': [
+                        'getInfoExt',
                         'getInfo',
                         'Trade',
                         'ActiveOrders',
@@ -260,7 +261,7 @@ class tidex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetInfo(params)
+        response = self.privatePostGetInfoExt(params)
         balances = self.safe_value(response, 'return')
         result = {'info': balances}
         funds = self.safe_value(balances, 'funds', {})
@@ -272,16 +273,10 @@ class tidex (Exchange):
                 code = self.currencies_by_id[currencyId]['code']
             else:
                 code = self.common_currency_code(currencyId.upper())
-            total = None
-            used = None
-            if balances['open_orders'] == 0:
-                total = funds[currencyId]
-                used = 0.0
-            account = {
-                'free': funds[currencyId],
-                'used': used,
-                'total': total,
-            }
+            balance = self.safe_value(funds, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'value')
+            account['used'] = self.safe_float(balance, 'inOrders')
             result[code] = account
         return self.parse_balance(result)
 
