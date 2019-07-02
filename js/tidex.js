@@ -261,7 +261,7 @@ module.exports = class tidex extends Exchange {
             } else {
                 code = this.commonCurrencyCode (currencyId.toUpperCase ());
             }
-            const balance = this.safeValue (funds, currencyId, {})
+            const balance = this.safeValue (funds, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'value');
             account['used'] = this.safeFloat (balance, 'inOrders');
