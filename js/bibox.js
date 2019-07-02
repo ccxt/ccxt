@@ -434,7 +434,7 @@ module.exports = class bibox extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const type = this.safeString (params, 'type', 'assets');
-        params = params.omit ('type');
+        params = this.omit (params, 'type');
         const request = {
             'cmd': 'transfer/' + type, // assets, mainAssets
             'body': this.extend ({
