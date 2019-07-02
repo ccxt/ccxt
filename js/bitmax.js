@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -480,7 +480,7 @@ module.exports = class bitmax extends Exchange {
             'coid': this.coid (),
             'time': this.nonce (),
             'symbol': market['id'],
-            'orderPrice': String (price),
+            'orderPrice': this.priceToPrecision (symbol, price),
             'orderQty': this.amountToPrecision (symbol, amount),
             'orderType': type,
             'side': side,
@@ -583,7 +583,7 @@ module.exports = class bitmax extends Exchange {
             if ('time' in params) {
                 timestamp = params['time'];
             }
-            timestamp = String (timestamp);
+            timestamp = this.decimalToPrecision (timestamp, 13);
             let query = timestamp + '+' + path;
             if (method !== 'GET') {
                 query += '+' + coid;
@@ -611,25 +611,16 @@ module.exports = class bitmax extends Exchange {
         if (response === undefined) {
             return;
         }
-        if (code >= 400) {
+        code = this.safeInteger (response, 'code', 0);
+        if (code !== 0) {
             const feedback = this.id + ' ' + body;
-            // {"code":504,"message":"Gateway Timeout","description":""}
-            if ((code === 503) || (code === 504)) {
-                throw new ExchangeNotAvailable (feedback);
+            const exceptions = this.exceptions;
+            if (code in exceptions) {
+                throw new exceptions[code] (feedback);
             }
-            // {"error":{"code":20002,"message":"Order not found","description":""}}
-            if (body[0] === '{') {
-                if ('error' in response) {
-                    const code = this.safeString (response['error'], 'code');
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
-                    }
-                    const message = this.safeString (response['error'], 'message');
-                    if (message === 'Duplicate clientOrderId') {
-                        throw new InvalidOrder (feedback);
-                    }
-                }
+            const message = this.safeString (response, 'message');
+            if (message === 'Duplicate clientOrderId') {
+                throw new InvalidOrder (feedback);
             }
             throw new ExchangeError (feedback);
         }
