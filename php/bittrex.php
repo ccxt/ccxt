@@ -250,6 +250,7 @@ class bittrex extends Exchange {
                 'subaccountId' => null,
                 // see the implementation of fetchClosedOrdersV3 below
                 'fetchClosedOrdersMethod' => 'fetch_closed_orders_v3',
+                'fetchClosedOrdersFilterBySince' => true,
             ),
             'commonCurrencies' => array (
                 'BITS' => 'SWIFT',
@@ -844,6 +845,14 @@ class bittrex extends Exchange {
             return $this->parse_order_v3 ($order, $market);
         } else {
             return $this->parse_order_v2 ($order, $market);
+        }
+    }
+
+    public function parse_orders ($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+        if ($this->options['fetchClosedOrdersFilterBySince']) {
+            return parent::parse_orders($orders, $market, $since, $limit, $params);
+        } else {
+            return parent::parse_orders($orders, $market, null, $limit, $params);
         }
     }
 

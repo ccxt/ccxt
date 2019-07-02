@@ -269,6 +269,7 @@ class bittrex (Exchange):
                 'subaccountId': None,
                 # see the implementation of fetchClosedOrdersV3 below
                 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
+                'fetchClosedOrdersFilterBySince': True,
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -808,6 +809,12 @@ class bittrex (Exchange):
             return self.parse_order_v3(order, market)
         else:
             return self.parse_order_v2(order, market)
+
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
+        if self.options['fetchClosedOrdersFilterBySince']:
+            return super(bittrex, self).parse_orders(orders, market, since, limit, params)
+        else:
+            return super(bittrex, self).parse_orders(orders, market, None, limit, params)
 
     def parse_order_status(self, status):
         statuses = {
