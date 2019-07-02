@@ -261,14 +261,10 @@ module.exports = class tidex extends Exchange {
             } else {
                 code = this.commonCurrencyCode (currencyId.toUpperCase ());
             }
-            let total = undefined;
-            let free = funds[currencyId]['value'];
-            let used = funds[currencyId]['inOrders'];
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const balance = this.safeValue (funds, currencyId, {})
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'value');
+            account['used'] = this.safeFloat (balance, 'inOrders');
             result[code] = account;
         }
         return this.parseBalance (result);
