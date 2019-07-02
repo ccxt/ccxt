@@ -851,18 +851,9 @@ module.exports = class bittrex extends Exchange {
     parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.options['fetchClosedOrdersFilterBySince']) {
             return super.parseOrders (orders, market, since, limit, params);
+        } else {
+            return super.parseOrders (orders, market, undefined, limit, params);
         }
-        const filtered = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = orders[i];
-            const parsed = this.extend (this.parseOrder (order, market));
-            if (parsed['lastTradeTimestamp'] >= since) {
-                filtered.push (parsed);
-            }
-        }
-        const result = this.sortBy (filtered, 'timestamp');
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit (result, symbol, undefined, limit);
     }
 
     parseOrderStatus (status) {
