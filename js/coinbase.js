@@ -163,34 +163,36 @@ module.exports = class coinbase extends Exchange {
 
     async fetchAccounts (params = {}) {
         const response = await this.privateGetAccounts (params);
-        //  {
-        //     "id": "XLM",
-        //     "name": "XLM Wallet",
-        //     "primary": false,
-        //     "type": "wallet",
-        //     "currency": {
-        //     "code": "XLM",
-        //         "name": "Stellar Lumens",
-        //         "color": "#000000",
-        //         "sort_index": 127,
-        //         "exponent": 7,
-        //         "type": "crypto",
-        //         "address_regex": "^G[A-Z2-7]{55}$",
-        //         "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
-        //         "destination_tag_name": "XLM Memo ID",
-        //         "destination_tag_regex": "^[ -~]{1,28}$"
-        //  },
-        //     "balance": {
-        //     "amount": "0.0000000",
-        //         "currency": "XLM"
-        //  },
-        //     "created_at": null,
-        //     "updated_at": null,
-        //     "resource": "account",
-        //     "resource_path": "/v2/accounts/XLM",
-        //     "allow_deposits": true,
-        //     "allow_withdrawals": true
-        //  }
+        //
+        //     {
+        //         "id": "XLM",
+        //         "name": "XLM Wallet",
+        //         "primary": false,
+        //         "type": "wallet",
+        //         "currency": {
+        //             "code": "XLM",
+        //             "name": "Stellar Lumens",
+        //             "color": "#000000",
+        //             "sort_index": 127,
+        //             "exponent": 7,
+        //             "type": "crypto",
+        //             "address_regex": "^G[A-Z2-7]{55}$",
+        //             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //             "destination_tag_name": "XLM Memo ID",
+        //             "destination_tag_regex": "^[ -~]{1,28}$"
+        //         },
+        //         "balance": {
+        //             "amount": "0.0000000",
+        //             "currency": "XLM"
+        //         },
+        //         "created_at": null,
+        //         "updated_at": null,
+        //         "resource": "account",
+        //         "resource_path": "/v2/accounts/XLM",
+        //         "allow_deposits": true,
+        //         "allow_withdrawals": true
+        //     }
+        //
         const data = response['data'];
         const result = [];
         for (let i = 0; i < data.length; i++) {
