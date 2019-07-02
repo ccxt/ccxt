@@ -1486,7 +1486,7 @@ class Exchange(object):
 
     def safe_currency_code(self, currency_id, currency=None):
         code = None
-        if currency_id is not None:
+        if currency_id is not None and self.currencies_by_id is not None:
             if currency_id in self.currencies_by_id:
                 code = self.currencies_by_id[currency_id]['code']
             else:
