@@ -1121,8 +1121,8 @@ module.exports = class Exchange {
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined)
             array = Object.values (array).filter (entry =>
-                ((valueIsDefined ? (entry[field] === value)   : true) &&
-                    (sinceIsDefined ? (entry.timestamp >= since || entry.lastTradeTimestamp >= since) : true)))
+                (valueIsDefined ? (entry[field] === value) : true) &&
+                (sinceIsDefined ? (entry.timestamp >= since || entry.lastTradeTimestamp >= since) : true))
 
         if (limit !== undefined && limit !== null)
             array = Object.values (array).slice (0, limit)
