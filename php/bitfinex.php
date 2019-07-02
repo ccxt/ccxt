@@ -276,6 +276,7 @@ class bitfinex extends Exchange {
             'commonCurrencies' => array (
                 'ABS' => 'ABYSS',
                 'AIO' => 'AION',
+                'AMP' => 'AMPL',
                 'ATM' => 'ATMI',
                 'ATO' => 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
                 'BAB' => 'BCH',

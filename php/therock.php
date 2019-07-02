@@ -1182,6 +1182,7 @@ class therock extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
+        $headers = ($headers === null) ? array() : $headers;
         if ($api === 'private') {
             $this->check_required_credentials();
             if ($query) {
@@ -1197,11 +1198,9 @@ class therock extends Exchange {
             }
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $url;
-            $headers = array (
-                'X-TRT-KEY' => $this->apiKey,
-                'X-TRT-NONCE' => $nonce,
-                'X-TRT-SIGN' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512'),
-            );
+            $headers['X-TRT-KEY'] = $this->apiKey;
+            $headers['X-TRT-NONCE'] = $nonce;
+            $headers['X-TRT-SIGN'] = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
         } else if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->rawencode ($query);

@@ -482,7 +482,7 @@ class okcoinusd (Exchange):
                     'baseNumericId': baseNumericId,
                     'quoteNumericId': quoteNumericId,
                     'info': market,
-                    'type': 'spot',
+                    'type': type,
                     'spot': spot,
                     'future': future,
                     'active': active,
@@ -748,19 +748,26 @@ class okcoinusd (Exchange):
         orderPrice = self.safe_float(params, 'cost') if isMarketBuy else price
         request = self.create_request(market, {
             'type': orderSide,
-            'amount': amount,
-            'price': orderPrice,
         })
         if market['future']:
             request['match_price'] = 0  # match best counter party price? 0 or 1, ignores price if 1
             request['lever_rate'] = 10  # leverage rate value: 10 or 20(10 by default)
-        elif type == 'market' and side == 'buy' and not request['price']:
-            if self.options['marketBuyPrice']:
-                # eslint-disable-next-line quotes
-                raise ExchangeError(self.id + " market buy orders require a price argument(the amount you want to spend or the cost of the order) when self.options['marketBuyPrice'] is True.")
+        elif type == 'market':
+            if side == 'buy':
+                if not orderPrice:
+                    if self.options['marketBuyPrice']:
+                        # eslint-disable-next-line quotes
+                        raise ExchangeError(self.id + " market buy orders require a price argument(the amount you want to spend or the cost of the order) when self.options['marketBuyPrice'] is True.")
+                    else:
+                        # eslint-disable-next-line quotes
+                        raise ExchangeError(self.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order(the amount you want to spend) in the price argument(the default " + self.id + " behaviour), set self.options['marketBuyPrice'] = True. It will effectively suppress self warning exception as well.")
+                else:
+                    request['price'] = orderPrice
             else:
-                # eslint-disable-next-line quotes
-                raise ExchangeError(self.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order(the amount you want to spend) in the price argument(the default " + self.id + " behaviour), set self.options['marketBuyPrice'] = True. It will effectively suppress self warning exception as well.")
+                request['amount'] = amount
+        if type != 'market':
+            request['price'] = orderPrice
+            request['amount'] = amount
         params = self.omit(params, 'cost')
         response = getattr(self, method)(self.extend(request, params))
         timestamp = self.milliseconds()
@@ -1015,7 +1022,7 @@ class okcoinusd (Exchange):
             return self.deep_extend({
                 'symbol': market['lowercaseId'],
                 'contract_type': market['contractType'],
-            })
+            }, params)
         return self.deep_extend({
             'symbol': market['id'],
         }, params)

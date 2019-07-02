@@ -477,7 +477,7 @@ module.exports = class okcoinusd extends Exchange {
                     'baseNumericId': baseNumericId,
                     'quoteNumericId': quoteNumericId,
                     'info': market,
-                    'type': 'spot',
+                    'type': type,
                     'spot': spot,
                     'future': future,
                     'active': active,
@@ -778,20 +778,30 @@ module.exports = class okcoinusd extends Exchange {
         const orderPrice = isMarketBuy ? this.safeFloat (params, 'cost') : price;
         const request = this.createRequest (market, {
             'type': orderSide,
-            'amount': amount,
-            'price': orderPrice,
         });
         if (market['future']) {
             request['match_price'] = 0; // match best counter party price? 0 or 1, ignores price if 1
             request['lever_rate'] = 10; // leverage rate value: 10 or 20 (10 by default)
-        } else if (type === 'market' && side === 'buy' && !request['price']) {
-            if (this.options['marketBuyPrice']) {
-                // eslint-disable-next-line quotes
-                throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
+        } else if (type === 'market') {
+            if (side === 'buy') {
+                if (!orderPrice) {
+                    if (this.options['marketBuyPrice']) {
+                        // eslint-disable-next-line quotes
+                        throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
+                    } else {
+                        // eslint-disable-next-line quotes
+                        throw new ExchangeError (this.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order (the amount you want to spend) in the price argument (the default " + this.id + " behaviour), set this.options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
+                    }
+                } else {
+                    request['price'] = orderPrice;
+                }
             } else {
-                // eslint-disable-next-line quotes
-                throw new ExchangeError (this.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order (the amount you want to spend) in the price argument (the default " + this.id + " behaviour), set this.options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
+                request['amount'] = amount;
             }
+        }
+        if (type !== 'market') {
+            request['price'] = orderPrice;
+            request['amount'] = amount;
         }
         params = this.omit (params, 'cost');
         const response = await this[method] (this.extend (request, params));
@@ -1084,7 +1094,7 @@ module.exports = class okcoinusd extends Exchange {
             return this.deepExtend ({
                 'symbol': market['lowercaseId'],
                 'contract_type': market['contractType'],
-            });
+            }, params);
         }
         return this.deepExtend ({
             'symbol': market['id'],
