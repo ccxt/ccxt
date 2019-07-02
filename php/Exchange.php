@@ -1734,7 +1734,8 @@ class Exchange {
         $sinceIsSet = isset($since);
         $array = array_filter($array, function ($element) use ($valueIsSet, $value, $sinceIsSet, $since, $field) {
             return ($valueIsSet ? ($element[$field] === $value) : true) &&
-                    ($sinceIsSet ? ($element['timestamp'] >= $since) : true);
+                    ($sinceIsSet ? ($element['timestamp'] >= $since ||
+                        (array_key_exists ('lastTradeTimestamp', $element) && $element['lastTradeTimestamp'] >= $since)) : true);
         });
         return array_slice($array, 0, isset($limit) ? $limit : count($array));
     }

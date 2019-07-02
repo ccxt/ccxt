@@ -1500,7 +1500,8 @@ class Exchange(object):
         if value:
             array = [entry for entry in array if entry[field] == value]
         if since:
-            array = [entry for entry in array if entry['timestamp'] >= since]
+            array = [entry for entry in array if entry['timestamp'] >= since
+                     or entry.get('lastTradeTimestamp', -1) >= since]
         if limit:
             array = array[0:limit]
         return array
