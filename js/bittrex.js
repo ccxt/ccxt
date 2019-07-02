@@ -250,6 +250,7 @@ module.exports = class bittrex extends Exchange {
                 'subaccountId': undefined,
                 // see the implementation of fetchClosedOrdersV3 below
                 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
+                'fetchClosedOrdersFilterBySince': true,
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -845,6 +846,23 @@ module.exports = class bittrex extends Exchange {
         } else {
             return this.parseOrderV2 (order, market);
         }
+    }
+
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
+        if (this.options['fetchClosedOrdersFilterBySince']) {
+            return super.parseOrders (orders, market, since, limit, params);
+        }
+        const filtered = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const parsed = this.extend (this.parseOrder (order, market));
+            if (parsed['lastTradeTimestamp'] >= since) {
+                filtered.push (parsed);
+            }
+        }
+        const result = this.sortBy (filtered, 'timestamp');
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        return this.filterBySymbolSinceLimit (result, symbol, undefined, limit);
     }
 
     parseOrderStatus (status) {
