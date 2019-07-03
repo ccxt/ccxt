@@ -505,8 +505,10 @@ class bitmex extends Exchange {
         }
         $status = $this->parse_transaction_status ($this->safe_string($item, 'transactStatus'));
         return array (
-            'info' => $item,
             'id' => $id,
+            'info' => $item,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
             'direction' => $direction,
             'account' => $account,
             'referenceId' => $referenceId,
@@ -517,8 +519,6 @@ class bitmex extends Exchange {
             'before' => $before,
             'after' => $after,
             'status' => $status,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
             'fee' => $fee,
         );
     }

@@ -480,8 +480,10 @@ class bitmex (Exchange):
             direction = 'in'
         status = self.parse_transaction_status(self.safe_string(item, 'transactStatus'))
         return {
-            'info': item,
             'id': id,
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'direction': direction,
             'account': account,
             'referenceId': referenceId,
@@ -492,8 +494,6 @@ class bitmex (Exchange):
             'before': before,
             'after': after,
             'status': status,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
             'fee': fee,
         }
 
