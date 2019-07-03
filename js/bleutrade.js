@@ -382,11 +382,7 @@ module.exports = class bleutrade extends bittrex {
         //         CoinName: 'Dogecoin'
         //     }
         //
-        const currencyId = this.safeString (item, 'CoinSymbol');
-        let code = undefined;
-        if (currencyId !== undefined) {
-            code = this.commonCurrencyCode (currencyId.toUpperCase ());
-        }
+        const code = this.safeCurrencyCode (this.safeString (item, 'CoinSymbol'), currency);
         const description = item['Description'];
         const type = this.parseLedgerEntryType (this.safeString (item, 'Type'));
         let referenceId = undefined;
