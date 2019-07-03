@@ -34,7 +34,11 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
+<<<<<<< HEAD
 $version = '1.18.869';
+=======
+$version = '1.18.871';
+>>>>>>> bc9752204d973fd40387486bfae4e642b775ecc6
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +55,11 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
+<<<<<<< HEAD
     const VERSION = '1.18.869';
+=======
+    const VERSION = '1.18.871';
+>>>>>>> bc9752204d973fd40387486bfae4e642b775ecc6
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1701,7 +1709,11 @@ class Exchange {
             if ($this->currencies_by_id !== null && array_key_exists($currency_id, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currency_id]['code'];
             } else {
+<<<<<<< HEAD
                 $code = $this->common_currency_code($currency_id);
+=======
+                $code = $this->common_currency_code(mb_strtoupper($currency_id));
+>>>>>>> bc9752204d973fd40387486bfae4e642b775ecc6
             }
         }
         if ($code === null && $currency !== null) {
@@ -1947,7 +1959,11 @@ class Exchange {
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> bc9752204d973fd40387486bfae4e642b775ecc6
     public function fetchStatus($params = array()) {
         return $this->fetch_status($params);
     }

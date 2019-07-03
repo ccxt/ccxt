@@ -366,14 +366,23 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
+<<<<<<< HEAD
 -  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.869/dist/ccxt.browser.js
 -  unpkg: https://unpkg.com/ccxt@1.18.869/dist/ccxt.browser.js
+=======
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.871/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.871/dist/ccxt.browser.js
+>>>>>>> bc9752204d973fd40387486bfae4e642b775ecc6
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
+<<<<<<< HEAD
    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.869/dist/ccxt.browser.js"></script>
+=======
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.871/dist/ccxt.browser.js"></script>
+>>>>>>> bc9752204d973fd40387486bfae4e642b775ecc6
 
 Creates a global ``ccxt`` object:
 
