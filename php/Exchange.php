@@ -1701,7 +1701,7 @@ class Exchange {
             if ($this->currencies_by_id !== null && array_key_exists($currency_id, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currency_id]['code'];
             } else {
-                $code = $this->common_currency_code($currency_id);
+                $code = $this->common_currency_code(mb_strtoupper($currency_id));
             }
         }
         if ($code === null && $currency !== null) {
@@ -1947,7 +1947,7 @@ class Exchange {
         $trades = $this->fetch_trades($symbol, $since, $limit, $params);
         return $this->build_ohlcv($trades, $timeframe, $since, $limit);
     }
-    
+
     public function fetchStatus($params = array()) {
         return $this->fetch_status($params);
     }

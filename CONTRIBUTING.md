@@ -337,7 +337,7 @@ When sending requests to the exchange unified symbols have to be _"converted"_ t
 - https://github.com/ccxt/ccxt/wiki/Manual#markets
 - https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
 
-**NEVER DO THIS BAD CODE:**:
+**NEVER DO THIS:**:
 
 ```JavaScript
 parseTrade (trade, market = undefined) {
@@ -350,7 +350,7 @@ parseTrade (trade, market = undefined) {
 }
 ```
 
-**DO NOT DO THIS, ALSO AN EXAMPLE OF BAD CODE:**
+**DO NOT DO THIS EITHER**
 
 ```JavaScript
 parseTrade (trade, market = undefined) {
@@ -379,8 +379,8 @@ parseTrade (trade, market = undefined) {
       } else {
          // try to parse it somehow, if the format is known
          const [ baseId, quoteId ] = marketId.split ('/');
-         const base = this.commonCurrencyCode (baseId); // unified
-         const quote = this.commonCurrencyCode (quoteId);
+         const base = this.safeCurrencyCode (baseId); // unified
+         const quote = this.safeCurrencyCode (quoteId);
          symbol = base + '/' + quote;
       }
    }

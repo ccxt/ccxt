@@ -1490,7 +1490,7 @@ class Exchange(object):
             if self.currencies_by_id is not None and currency_id in self.currencies_by_id:
                 code = self.currencies_by_id[currency_id]['code']
             else:
-                code = self.common_currency_code(currency_id)
+                code = self.common_currency_code(currency_id.upper())
         if code is None and currency is not None:
             code = currency['code']
         return code
