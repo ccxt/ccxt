@@ -110,8 +110,8 @@ class bitso (Exchange):
             baseId, quoteId = id.split('_')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safeCurrencyCode(base)
+            quote = self.safeCurrencyCode(quote)
             symbol = base + '/' + quote
             limits = {
                 'amount': {
@@ -152,11 +152,7 @@ class bitso (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = currencyId.upper()
+            code = self.safeCurrencyCode(currencyId)
             account = {
                 'free': self.safe_float(balance, 'available'),
                 'used': self.safe_float(balance, 'locked'),
@@ -228,10 +224,8 @@ class bitso (Exchange):
         fee = None
         feeCost = self.safe_float(trade, 'fees_amount')
         if feeCost is not None:
-            feeCurrency = self.safe_string(trade, 'fees_currency')
-            if feeCurrency is not None:
-                if feeCurrency in self.currencies_by_id:
-                    feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            feeCurrencyId = self.safe_string(trade, 'fees_currency')
+            feeCurrency = self.safeCurrencyCode(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -334,8 +328,8 @@ class bitso (Exchange):
                 market = self.markets_by_id[marketId]
             else:
                 baseId, quoteId = marketId.split('_')
-                base = self.common_currency_code(baseId.upper())
-                quote = self.common_currency_code(quoteId.upper())
+                base = self.safeCurrencyCode(baseId)
+                quote = self.safeCurrencyCode(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:

@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.874'
+const version = '1.18.875'
 
 Exchange.ccxtVersion = version
 
@@ -14079,8 +14079,8 @@ module.exports = class bitlish extends Exchange {
             const id = this.safeString (market, 'id');
             const name = this.safeString (market, 'name');
             const [ baseId, quoteId ] = name.split ('/');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -14140,10 +14140,8 @@ module.exports = class bitlish extends Exchange {
             } else {
                 const baseId = id.slice (0, 3);
                 const quoteId = id.slice (3, 6);
-                let base = baseId.toUpperCase ();
-                let quote = quoteId.toUpperCase ();
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
             const ticker = tickers[id];
@@ -14240,12 +14238,7 @@ module.exports = class bitlish extends Exchange {
         const currencyIds = Object.keys (response);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const balance = this.safeValue (response, currencyId, {});
             account['free'] = this.safeFloat (balance, 'funds');
@@ -14536,8 +14529,8 @@ module.exports = class bitmarket extends Exchange {
             }
             const baseId = id.slice (0, 3);
             const quoteId = id.slice (3, 6);
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -14582,15 +14575,8 @@ module.exports = class bitmarket extends Exchange {
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
-        let code = undefined;
         const currencyId = this.safeString (item, 'currency');
-        if (currencyId !== undefined) {
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         let type = undefined;
         if ('withdraw_type' in item) {
             type = 'withdrawal';
@@ -15069,8 +15055,8 @@ module.exports = class bitmex extends Exchange {
             const baseId = market['underlying'];
             const quoteId = market['quoteCurrency'];
             const basequote = baseId + quoteId;
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const swap = (id === basequote);
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
             // so let's take the quote currency first and then adjust if needed
@@ -15078,7 +15064,7 @@ module.exports = class bitmex extends Exchange {
             let type = undefined;
             let future = false;
             let prediction = false;
-            const position = this.commonCurrencyCode (positionId);
+            const position = this.safeCurrencyCode (positionId);
             let symbol = id;
             if (swap) {
                 type = 'swap';
@@ -15154,12 +15140,7 @@ module.exports = class bitmex extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'availableMargin');
             account['total'] = this.safeFloat (balance, 'marginBalance');
@@ -15373,12 +15354,8 @@ module.exports = class bitmex extends Exchange {
         const referenceId = this.safeString (item, 'tx');
         const referenceAccount = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
-        let currencyId = this.safeString (item, 'currency');
-        let code = undefined;
-        if (currencyId !== undefined) {
-            currencyId = currencyId.toUpperCase ();
-            code = this.commonCurrencyCode (currencyId);
-        }
+        const currencyId = this.safeString (item, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
         let amount = this.safeFloat (item, 'amount');
         if (amount !== undefined) {
             amount = amount * 1e-8;
@@ -15875,9 +15852,8 @@ module.exports = class bitmex extends Exchange {
         if ('execComm' in trade) {
             let feeCost = this.safeFloat (trade, 'execComm');
             feeCost = feeCost / 100000000;
-            let currencyId = this.safeString (trade, 'settlCurrency');
-            currencyId = currencyId.toUpperCase ();
-            const feeCurrency = this.commonCurrencyCode (currencyId);
+            const currencyId = this.safeString (trade, 'settlCurrency');
+            const feeCurrency = this.safeCurrencyCode (currencyId);
             const feeRate = this.safeFloat (trade, 'commission');
             fee = {
                 'cost': feeCost,
@@ -16296,8 +16272,8 @@ module.exports = class bitso extends Exchange {
             const [ baseId, quoteId ] = id.split ('_');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
             const limits = {
                 'amount': {
@@ -16340,12 +16316,7 @@ module.exports = class bitso extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = currencyId.toUpperCase ();
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = {
                 'free': this.safeFloat (balance, 'available'),
                 'used': this.safeFloat (balance, 'locked'),
@@ -16426,12 +16397,8 @@ module.exports = class bitso extends Exchange {
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'fees_amount');
         if (feeCost !== undefined) {
-            let feeCurrency = this.safeString (trade, 'fees_currency');
-            if (feeCurrency !== undefined) {
-                if (feeCurrency in this.currencies_by_id) {
-                    feeCurrency = this.currencies_by_id[feeCurrency]['code'];
-                }
-            }
+            const feeCurrencyId = this.safeString (trade, 'fees_currency');
+            const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
@@ -16545,8 +16512,8 @@ module.exports = class bitso extends Exchange {
                 market = this.markets_by_id[marketId];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.commonCurrencyCode (baseId.toUpperCase ());
-                const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
@@ -16944,8 +16911,8 @@ module.exports = class bitstamp extends Exchange {
             let [ base, quote ] = name.split ('/');
             const baseId = base.toLowerCase ();
             const quoteId = quote.toLowerCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
             const symbolId = baseId + '_' + quoteId;
             const id = this.safeString (market, 'url_symbol');
@@ -17490,22 +17457,15 @@ module.exports = class bitstamp extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
-        let code = undefined;
         const id = this.safeString (transaction, 'id');
         const currencyId = this.getCurrencyIdFromTransaction (transaction);
-        if (currencyId in this.currencies_by_id) {
-            currency = this.currencies_by_id[currencyId];
-        } else if (currencyId !== undefined) {
-            code = currencyId.toUpperCase ();
-            code = this.commonCurrencyCode (code);
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeFloat (transaction, 'fee');
         let feeCurrency = undefined;
         let amount = undefined;
         if (currency !== undefined) {
             amount = this.safeFloat (transaction, currency['id'], amount);
             feeCurrency = currency['code'];
-            code = currency['code'];
         } else if ((code !== undefined) && (currencyId !== undefined)) {
             amount = this.safeFloat (transaction, currencyId, amount);
             feeCurrency = code;
@@ -18955,14 +18915,8 @@ module.exports = class bittrex extends Exchange {
         const opened = this.parse8601 (this.safeString (transaction, 'Opened'));
         const timestamp = opened ? opened : updated;
         const type = (opened === undefined) ? 'deposit' : 'withdrawal';
-        let code = undefined;
         const currencyId = this.safeString (transaction, 'Currency');
-        currency = this.safeValue (this.currencies_by_id, currencyId);
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         let status = 'pending';
         if (type === 'deposit') {
             if (currency !== undefined) {
@@ -19228,11 +19182,7 @@ module.exports = class bittrex extends Exchange {
             } else if (symbol !== undefined) {
                 const currencyIds = symbol.split ('/');
                 const quoteCurrencyId = currencyIds[1];
-                if (quoteCurrencyId in this.currencies_by_id) {
-                    fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
-                } else {
-                    fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
-                }
+                fee['currency'] = this.safeCurrencyCode (quoteCurrencyId);
             }
         }
         let price = this.safeFloat (order, 'Limit');

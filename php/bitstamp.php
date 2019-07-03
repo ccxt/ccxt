@@ -180,8 +180,8 @@ class bitstamp extends Exchange {
             list($base, $quote) = explode('/', $name);
             $baseId = strtolower($base);
             $quoteId = strtolower($quote);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safeCurrencyCode ($base);
+            $quote = $this->safeCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
             $symbolId = $baseId . '_' . $quoteId;
             $id = $this->safe_string($market, 'url_symbol');
@@ -726,22 +726,15 @@ class bitstamp extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'datetime'));
-        $code = null;
         $id = $this->safe_string($transaction, 'id');
         $currencyId = $this->get_currency_id_from_transaction ($transaction);
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currencyId];
-        } else if ($currencyId !== null) {
-            $code = strtoupper($currencyId);
-            $code = $this->common_currency_code($code);
-        }
+        $code = $this->safeCurrencyCode ($currencyId, $currency);
         $feeCost = $this->safe_float($transaction, 'fee');
         $feeCurrency = null;
         $amount = null;
         if ($currency !== null) {
             $amount = $this->safe_float($transaction, $currency['id'], $amount);
             $feeCurrency = $currency['code'];
-            $code = $currency['code'];
         } else if (($code !== null) && ($currencyId !== null)) {
             $amount = $this->safe_float($transaction, $currencyId, $amount);
             $feeCurrency = $code;

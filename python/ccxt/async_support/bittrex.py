@@ -741,13 +741,8 @@ class bittrex (Exchange):
         opened = self.parse8601(self.safe_string(transaction, 'Opened'))
         timestamp = opened if opened else updated
         type = 'deposit' if (opened is None) else 'withdrawal'
-        code = None
         currencyId = self.safe_string(transaction, 'Currency')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safeCurrencyCode(currencyId, currency)
         status = 'pending'
         if type == 'deposit':
             if currency is not None:
@@ -979,10 +974,7 @@ class bittrex (Exchange):
             elif symbol is not None:
                 currencyIds = symbol.split('/')
                 quoteCurrencyId = currencyIds[1]
-                if quoteCurrencyId in self.currencies_by_id:
-                    fee['currency'] = self.currencies_by_id[quoteCurrencyId]['code']
-                else:
-                    fee['currency'] = self.common_currency_code(quoteCurrencyId)
+                fee['currency'] = self.safeCurrencyCode(quoteCurrencyId)
         price = self.safe_float(order, 'Limit')
         cost = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Quantity')

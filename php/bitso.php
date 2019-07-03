@@ -101,8 +101,8 @@ class bitso extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safeCurrencyCode ($base);
+            $quote = $this->safeCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
             $limits = array (
                 'amount' => array (
@@ -145,12 +145,7 @@ class bitso extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = strtoupper($currencyId);
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $this->safe_float($balance, 'locked'),
@@ -231,12 +226,8 @@ class bitso extends Exchange {
         $fee = null;
         $feeCost = $this->safe_float($trade, 'fees_amount');
         if ($feeCost !== null) {
-            $feeCurrency = $this->safe_string($trade, 'fees_currency');
-            if ($feeCurrency !== null) {
-                if (is_array($this->currencies_by_id) && array_key_exists($feeCurrency, $this->currencies_by_id)) {
-                    $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
-                }
-            }
+            $feeCurrencyId = $this->safe_string($trade, 'fees_currency');
+            $feeCurrency = $this->safeCurrencyCode ($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
@@ -350,8 +341,8 @@ class bitso extends Exchange {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code(strtoupper($baseId));
-                $quote = $this->common_currency_code(strtoupper($quoteId));
+                $base = $this->safeCurrencyCode ($baseId);
+                $quote = $this->safeCurrencyCode ($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }

@@ -133,8 +133,8 @@ class bitlish extends Exchange {
             $id = $this->safe_string($market, 'id');
             $name = $this->safe_string($market, 'name');
             list($baseId, $quoteId) = explode('/', $name);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -194,10 +194,8 @@ class bitlish extends Exchange {
             } else {
                 $baseId = mb_substr($id, 0, 3 - 0);
                 $quoteId = mb_substr($id, 3, 6 - 3);
-                $base = strtoupper($baseId);
-                $quote = strtoupper($quoteId);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safeCurrencyCode ($baseId);
+                $quote = $this->safeCurrencyCode ($quoteId);
                 $symbol = $base . '/' . $quote;
             }
             $ticker = $tickers[$id];
@@ -294,12 +292,7 @@ class bitlish extends Exchange {
         $currencyIds = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
             $account = $this->account ();
             $balance = $this->safe_value($response, $currencyId, array());
             $account['free'] = $this->safe_float($balance, 'funds');
