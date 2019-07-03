@@ -1701,7 +1701,7 @@ class Exchange {
             if ($this->currencies_by_id !== null && array_key_exists($currency_id, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currency_id]['code'];
             } else {
-                $code = $this->common_currency_code(strtoupper($currency_id));
+                $code = $this->common_currency_code(mb_strtoupper($currency_id));
             }
         }
         if ($code === null && $currency !== null) {
