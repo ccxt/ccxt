@@ -270,13 +270,10 @@ module.exports = class bitfinex2 extends bitfinex {
             const total = balance[2];
             const available = balance[4];
             if (accountType === balanceType) {
-                let code = undefined;
                 if (currency[0] === 't') {
                     currency = currency.slice (1);
-                    code = this.safeCurrencyCode (currency);
-                } else {
-                    code = this.safeCurrencyCode (currency);
                 }
+                const code = this.safeCurrencyCode (currency);
                 const account = this.account ();
                 account['total'] = total;
                 if (!available) {
