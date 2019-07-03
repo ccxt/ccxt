@@ -22,7 +22,7 @@ module.exports = class coinbase extends Exchange {
             'has': {
                 'CORS': true,
                 'cancelOrder': false,
-                'createDepositAddress': false,
+                'createDepositAddress': true,
                 'createOrder': false,
                 'deposit': false,
                 'fetchBalance': true,
@@ -162,9 +162,119 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchAccounts (params = {}) {
-        await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
-        return this.safeValue (response, 'data');
+        //
+        //     {
+        //         "id": "XLM",
+        //         "name": "XLM Wallet",
+        //         "primary": false,
+        //         "type": "wallet",
+        //         "currency": {
+        //             "code": "XLM",
+        //             "name": "Stellar Lumens",
+        //             "color": "#000000",
+        //             "sort_index": 127,
+        //             "exponent": 7,
+        //             "type": "crypto",
+        //             "address_regex": "^G[A-Z2-7]{55}$",
+        //             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //             "destination_tag_name": "XLM Memo ID",
+        //             "destination_tag_regex": "^[ -~]{1,28}$"
+        //         },
+        //         "balance": {
+        //             "amount": "0.0000000",
+        //             "currency": "XLM"
+        //         },
+        //         "created_at": null,
+        //         "updated_at": null,
+        //         "resource": "account",
+        //         "resource_path": "/v2/accounts/XLM",
+        //         "allow_deposits": true,
+        //         "allow_withdrawals": true
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const account = data[i];
+            const currency = this.safeValue (account, 'currency', {});
+            const currencyId = this.safeString (currency, 'code');
+            const code = this.commonCurrencyCode (currencyId);
+            result.push ({
+                'id': this.safeString (account, 'id'),
+                'type': this.safeString (account, 'type'),
+                'code': code,
+                'info': account,
+            });
+        }
+        return result;
+    }
+
+    async createDepositAddress (code, params = {}) {
+        let accountId = this.safeString (params, 'account_id');
+        params = this.omit (params, 'account_id');
+        if (accountId === undefined) {
+            await this.loadAccounts ();
+            for (let i = 0; i < this.accounts.length; i++) {
+                const account = this.accounts[i];
+                if (account['code'] === code && account['type'] === 'wallet') {
+                    accountId = account['id'];
+                    break;
+                }
+            }
+        }
+        if (accountId === undefined) {
+            throw new ExchangeError (this.id + ' createDepositAddress could not find the account with matching currency code, specify an `account_id` extra param');
+        }
+        const request = {
+            'account_id': accountId,
+        };
+        const response = await this.privatePostAccountsAccountIdAddresses (this.extend (request, params));
+        //
+        //     {
+        //         "data": {
+        //             "id": "05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
+        //             "address": "coinbasebase",
+        //             "address_info": {
+        //                 "address": "coinbasebase",
+        //                 "destination_tag": "287594668"
+        //             },
+        //             "name": null,
+        //             "created_at": "2019-07-01T14:39:29Z",
+        //             "updated_at": "2019-07-01T14:39:29Z",
+        //             "network": "eosio",
+        //             "uri_scheme": "eosio",
+        //             "resource": "address",
+        //             "resource_path": "/v2/accounts/14cfc769-e852-52f3-b831-711c104d194c/addresses/05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
+        //             "warnings": [
+        //                 {
+        //                     "title": "Only send EOS (EOS) to this address",
+        //                     "details": "Sending any other cryptocurrency will result in permanent loss.",
+        //                     "image_url": "https://dynamic-assets.coinbase.com/deaca3d47b10ed4a91a872e9618706eec34081127762d88f2476ac8e99ada4b48525a9565cf2206d18c04053f278f693434af4d4629ca084a9d01b7a286a7e26/asset_icons/1f8489bb280fb0a0fd643c1161312ba49655040e9aaaced5f9ad3eeaf868eadc.png"
+        //                 },
+        //                 {
+        //                     "title": "Both an address and EOS memo are required to receive EOS",
+        //                     "details": "If you send funds without an EOS memo or with an incorrect EOS memo, your funds cannot be credited to your account.",
+        //                     "image_url": "https://www.coinbase.com/assets/receive-warning-2f3269d83547a7748fb39d6e0c1c393aee26669bfea6b9f12718094a1abff155.png"
+        //                 }
+        //             ],
+        //             "warning_title": "Only send EOS (EOS) to this address",
+        //             "warning_details": "Sending any other cryptocurrency will result in permanent loss.",
+        //             "destination_tag": "287594668",
+        //             "deposit_uri": "eosio:coinbasebase?dt=287594668",
+        //             "callback_url": null
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const tag = this.safeString (data, 'destination_tag');
+        const address = this.safeString (data, 'address');
+        return {
+            'currency': code,
+            'tag': tag,
+            'address': address,
+            'info': response,
+        };
     }
 
     async fetchMySells (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -525,308 +635,6 @@ module.exports = class coinbase extends Exchange {
             }
         }
         return this.parseBalance (result);
-    }
-
-    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const accountId = this.safeString2 (params, 'account_id', 'accountId');
-        // todo: we could look up the account id if the code was specified
-        if (accountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchLedger requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.');
-        }
-        await this.loadMarkets ();
-        const query = this.omit (params, [ 'account_id', 'accountId' ]);
-        const request = {
-            'account_id': accountId,
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        // for pagination:
-        // use parameter 'starting_after'
-        // the value for the next page can be obtained from the result of the previous call, eg: instance.last_json_response.pagination.next_starting_after
-        const res = await this.privateGetAccountsAccountIdTransactions (this.extend (request, query));
-        const items = res.data;
-        return this.parseLedger (items, undefined, since, limit);
-    }
-
-    parseLedgerEntryStatus (status) {
-        const types = {
-            'completed': 'ok',
-        };
-        return this.safeString (types, status, status);
-    }
-
-    parseLedgerEntryType (type) {
-        const types = {
-            'buy': 'trade',
-            'sell': 'trade',
-            'fiat_deposit': 'transaction',
-            'fiat_withdrawal': 'transaction',
-            'exchange_deposit': 'transaction', // fiat withdrawal (from coinbase to coinbasepro)
-            'exchange_withdrawal': 'transaction', // fiat deposit (to coinbase from coinbasepro)
-            'send': 'transaction', // crypto deposit OR withdrawal
-            'pro_deposit': 'transaction', // crypto withdrawal (from coinbase to coinbasepro)
-            'pro_withdrawal': 'transaction', // crypto deposit (to coinbase from coinbasepro)
-        };
-        return this.safeString (types, type, type);
-    }
-
-    parseLedgerEntry (item, currency = undefined) {
-        //
-        // { id: '34e4816b-4c8c-5323-a01c-35a9fa26e490',
-        //     type: 'send',
-        //     status: 'completed',
-        //     amount: { amount: '28.31976528', currency: 'BCH' },
-        //     native_amount: { amount: '2799.65', currency: 'GBP' },
-        //     description: null,
-        //     created_at: '2019-02-28T12:35:20Z',
-        //     updated_at: '2019-02-28T12:43:24Z',
-        //     resource: 'transaction',
-        //     resource_path:
-        //     '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/34e4816b-4c8c-5323-a01c-35a9fa26e490',
-        //     instant_exchange: false,
-        //     network:
-        //     { status: 'confirmed',
-        //         hash:
-        //         '56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701',
-        //             transaction_url:
-        //         'https://bch.btc.com/56222d865dae83774fccb2efbd9829cf08c75c94ce135bfe4276f3fb46d49701' },
-        //     from: { resource: 'bitcoin_cash_network', currency: 'BCH' },
-        //     details:
-        //     { title: 'Received Bitcoin Cash',
-        //         subtitle: 'From Bitcoin Cash address' } }
-        //
-        // { id: '459aad99-2c41-5698-ac71-b6b81a05196c',
-        //     type: 'send',
-        //     status: 'completed',
-        //     amount: { amount: '-0.36775642', currency: 'BTC' },
-        //     native_amount: { amount: '-1111.65', currency: 'GBP' },
-        //     description: null,
-        //         created_at: '2019-03-20T08:37:07Z',
-        //     updated_at: '2019-03-20T08:49:33Z',
-        //     resource: 'transaction',
-        //     resource_path:
-        //     '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/459aad99-2c41-5698-ac71-b6b81a05196c',
-        //     instant_exchange: false,
-        //     network:
-        //     { status: 'confirmed',
-        //         hash:
-        //         '2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b',
-        //             transaction_url:
-        //         'https://blockchain.info/tx/2732bbcf35c69217c47b36dce64933d103895277fe25738ffb9284092701e05b',
-        //             transaction_fee: { amount: '0.00000000', currency: 'BTC' },
-        //         transaction_amount: { amount: '0.36775642', currency: 'BTC' },
-        //         confirmations: 15682 },
-        //     to:
-        //     { resource: 'bitcoin_address',
-        //         address: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        //         currency: 'BTC',
-        //         address_info: { address: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX' } },
-        //     idem: 'da0a2f14-a2af-4c5a-a37e-d4484caf582bsend',
-        //         application:
-        //     { id: '5756ab6e-836b-553b-8950-5e389451225d',
-        //         resource: 'application',
-        //         resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d' },
-        //     details: { title: 'Sent Bitcoin', subtitle: 'To Bitcoin address' } }
-        //
-        // { id: '5b1b9fb8-5007-5393-b923-02903b973fdc',
-        //     type: 'pro_deposit',
-        //     status: 'completed',
-        //     amount: { amount: '-0.00001111', currency: 'BCH' },
-        //     native_amount: { amount: '0.00', currency: 'GBP' },
-        //     description: null,
-        //     created_at: '2019-02-28T13:31:58Z',
-        //     updated_at: '2019-02-28T13:31:58Z',
-        //     resource: 'transaction',
-        //     resource_path:
-        //     '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/5b1b9fb8-5007-5393-b923-02903b973fdc',
-        //     instant_exchange: false,
-        //     application:
-        //     { id: '5756ab6e-836b-553b-8950-5e389451225d',
-        //         resource: 'application',
-        //         resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d' },
-        //     details:
-        //     { title: 'Transferred Bitcoin Cash',
-        //         subtitle: 'To Coinbase Pro' } }
-        //
-        // { id: 'badb7313-a9d3-5c07-abd0-00f8b44199b1',
-        //     type: 'exchange_deposit',
-        //     status: 'completed',
-        //     amount: { amount: '-0.43704149', currency: 'BCH' },
-        //     native_amount: { amount: '-51.90', currency: 'GBP' },
-        //     description: null,
-        //     created_at: '2019-03-19T10:30:40Z',
-        //     updated_at: '2019-03-19T10:30:40Z',
-        //     resource: 'transaction',
-        //     resource_path:
-        //     '/v2/accounts/c01d7364-edd7-5f3a-bd1d-de53d4cbb25e/transactions/badb7313-a9d3-5c07-abd0-00f8b44199b1',
-        //     instant_exchange: false,
-        //     details: { title: 'Transferred Bitcoin Cash', subtitle: 'To GDAX' } }
-        //
-        // { id: '9c4b642c-8688-58bf-8962-13cef64097de',
-        //     type: 'exchange_withdrawal',
-        //     status: 'completed',
-        //     amount: { amount: '0.57729420', currency: 'BTC' },
-        //     native_amount: { amount: '4418.72', currency: 'GBP' },
-        //     description: null,
-        //     created_at: '2018-02-17T11:33:33Z',
-        //     updated_at: '2018-02-17T11:33:33Z',
-        //     resource: 'transaction',
-        //     resource_path:
-        //     '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/9c4b642c-8688-58bf-8962-13cef64097de',
-        //     instant_exchange: false,
-        //     details: { title: 'Transferred Bitcoin', subtitle: 'From GDAX' } }
-        //
-        // { id: '8d6dd0b9-3416-568a-889d-8f112fae9e81',
-        //     type: 'pro_withdrawal',
-        //     status: 'completed',
-        //     amount: { amount: '0.40555386', currency: 'BTC' },
-        //     native_amount: { amount: '1140.27', currency: 'GBP' },
-        //     description: null,
-        //     created_at: '2019-03-04T19:41:58Z',
-        //     updated_at: '2019-03-04T19:41:58Z',
-        //     resource: 'transaction',
-        //     resource_path:
-        //     '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/8d6dd0b9-3416-568a-889d-8f112fae9e81',
-        //     instant_exchange: false,
-        //     application:
-        //     { id: '5756ab6e-836b-553b-8950-5e389451225d',
-        //         resource: 'application',
-        //         resource_path: '/v2/applications/5756ab6e-836b-553b-8950-5e389451225d' },
-        //     details:
-        //     { title: 'Transferred Bitcoin', subtitle: 'From Coinbase Pro' } }
-        //
-        // { id: 'a9409207-df64-585b-97ab-a50780d2149e',
-        //     type: 'sell',
-        //     status: 'completed',
-        //     amount: { amount: '-9.09922880', currency: 'BTC' },
-        //     native_amount: { amount: '-7285.73', currency: 'GBP' },
-        //     description: null,
-        //     created_at: '2017-03-27T15:38:34Z',
-        //     updated_at: '2017-03-27T15:38:34Z',
-        //     resource: 'transaction',
-        //     resource_path:
-        //     '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/transactions/a9409207-df64-585b-97ab-a50780d2149e',
-        //     instant_exchange: false,
-        //     sell:
-        //     { id: 'e3550b4d-8ae6-5de3-95fe-1fb01ba83051',
-        //         resource: 'sell',
-        //         resource_path:
-        //         '/v2/accounts/c6afbd34-4bd0-501e-8616-4862c193cd84/sells/e3550b4d-8ae6-5de3-95fe-1fb01ba83051' },
-        //     details:
-        //     { title: 'Sold Bitcoin',
-        //         subtitle: 'Using EUR Wallet',
-        //         payment_method_name: 'EUR Wallet' } }
-        //
-        // { id: '63eeed67-9396-5912-86e9-73c4f10fe147',
-        //     type: 'buy',
-        //     status: 'completed',
-        //     amount: { amount: '2.39605772', currency: 'ETH' },
-        //     native_amount: { amount: '98.31', currency: 'GBP' },
-        //     description: null,
-        //     created_at: '2017-03-27T09:07:56Z',
-        //     updated_at: '2017-03-27T09:07:57Z',
-        //     resource: 'transaction',
-        //     resource_path:
-        //     '/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/transactions/63eeed67-9396-5912-86e9-73c4f10fe147',
-        //     instant_exchange: false,
-        //     buy:
-        //     { id: '20b25b36-76c6-5353-aa57-b06a29a39d82',
-        //         resource: 'buy',
-        //         resource_path:
-        //         '/v2/accounts/8902f85d-4a69-5d74-82fe-8e390201bda7/buys/20b25b36-76c6-5353-aa57-b06a29a39d82' },
-        //     details:
-        //     { title: 'Bought Ethereum',
-        //         subtitle: 'Using EUR Wallet',
-        //         payment_method_name: 'EUR Wallet' } }
-        //
-        // { id: '04ed4113-3732-5b0c-af86-b1d2146977d0',
-        //     type: 'fiat_deposit',
-        //     status: 'completed',
-        //     amount: { amount: '114.02', currency: 'EUR' },
-        //     native_amount: { amount: '97.23', currency: 'GBP' },
-        //     description: null,
-        //     created_at: '2017-02-09T07:01:21Z',
-        //     updated_at: '2017-02-09T07:01:22Z',
-        //     resource: 'transaction',
-        //     resource_path:
-        //     '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86-b1d2146977d0',
-        //     instant_exchange: false,
-        //     fiat_deposit:
-        //     { id: 'f34c19f3-b730-5e3d-9f72-96520448677a',
-        //         resource: 'fiat_deposit',
-        //         resource_path:
-        //         '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72-96520448677a' },
-        //     details:
-        //     { title: 'Deposited funds',
-        //         subtitle:
-        //         'From SEPA Transfer (GB47 BARC 2081 2150, reference CBADVI)',
-        //             payment_method_name:
-        //         'SEPA Transfer (GB47 BARC 2081 2150, reference CBADVI)' } }
-        //
-        // { id: '957d98e2-f80e-5e2f-a28e-02945aa93079',
-        //     type: 'fiat_withdrawal',
-        //     status: 'completed',
-        //     amount: { amount: '-11000.00', currency: 'EUR' },
-        //     native_amount: { amount: '-9698.22', currency: 'GBP' },
-        //     description: null,
-        //     created_at: '2017-12-06T13:19:19Z',
-        //     updated_at: '2017-12-06T13:19:19Z',
-        //     resource: 'transaction',
-        //     resource_path:
-        //     '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/957d98e2-f80e-5e2f-a28e-02945aa93079',
-        //     instant_exchange: false,
-        //     fiat_withdrawal:
-        //     { id: 'f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7',
-        //         resource: 'fiat_withdrawal',
-        //         resource_path:
-        //         '/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/f4bf1fd9-ab3b-5de7-906d-ed3e23f7a4e7' },
-        //     details:
-        //     { title: 'Withdrew funds',
-        //         subtitle: 'To HSBC BANK PLC (GB74 MIDL 4005 1577)',
-        //         payment_method_name: 'HSBC BANK PLC (GB74 MIDL 4005 1577)' } }
-        //
-        let transactionAmount = this.safeFloat (item['amount'], 'amount');
-        const direction = transactionAmount < 0 ? 'out' : 'in';
-        const currencyId = this.safeString (item['amount'], 'currency');
-        const currencyCode = this.commonCurrencyCode (currencyId);
-        let fee = undefined;
-        let txid = undefined;
-        const network = item['network'];
-        if (network) {
-            txid = network['hash'];
-            if (network['transaction_fee']) {
-                const feeCurrencyId = this.safeString (network['transaction_fee'], 'currency');
-                const feeAmount = this.safeFloat (network['transaction_fee'], 'amount');
-                // maybe the fee should be a separate ledger entry
-                fee = {
-                    'cost': feeAmount,
-                    'currency': this.commonCurrencyCode (feeCurrencyId),
-                };
-            }
-            if (network['transaction_amount']) {
-                transactionAmount = this.safeFloat (network['transaction_amount'], 'amount');
-            }
-        }
-        let address = undefined;
-        if (item['to']) {
-            address = this.safeString (item['to'], 'address');
-        }
-        const createdAt = this.parse8601 (this.safeValue (item, 'created_at'));
-        return {
-            'id': this.safeString (item, 'id'),
-            'timestamp': createdAt,
-            'datetime': this.iso8601 (createdAt),
-            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
-            'direction': direction,
-            'amount': transactionAmount < 0 ? -transactionAmount : transactionAmount,
-            'currency': currencyCode,
-            'status': this.parseLedgerEntryStatus (this.safeString (item, 'status')),
-            'address': address,
-            'txid': txid,
-            'fee': fee,
-            'info': item,
-        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
