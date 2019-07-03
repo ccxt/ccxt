@@ -165,8 +165,8 @@ class buda extends Exchange {
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $baseInfo = $this->fetch_currency_info ($baseId, $currencies);
             $quoteInfo = $this->fetch_currency_info ($quoteId, $currencies);
             $symbol = $base . '/' . $quote;
@@ -214,7 +214,7 @@ class buda extends Exchange {
                 continue;
             }
             $id = $this->safe_string($currency, 'id');
-            $code = $this->common_currency_code($id);
+            $code = $this->safeCurrencyCode ($id);
             $precision = $this->safe_float($currency, 'input_decimals');
             $minimum = pow(10, -$precision);
             $result[$code] = array (
@@ -446,7 +446,7 @@ class buda extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'id');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safeCurrencyCode ($currencyId);
             $account = $this->account ();
             $account['free'] = floatval ($balance['available_amount'][0]);
             $account['total'] = floatval ($balance['amount'][0]);
@@ -661,17 +661,8 @@ class buda extends Exchange {
     public function parse_transaction ($transaction, $currency = null) {
         $id = $this->safe_string($transaction, 'id');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
-        $code = null;
-        $currencyId = null;
-        if ($currency === null) {
-            $currencyId = $this->safe_string($transaction, 'currency');
-            $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safeCurrencyCode ($currencyId, $currency);
         $amount = floatval ($transaction['amount'][0]);
         $fee = floatval ($transaction['fee'][0]);
         $feeCurrency = $transaction['fee'][1];

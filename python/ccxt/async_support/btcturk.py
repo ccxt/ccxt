@@ -69,8 +69,8 @@ class btcturk (Exchange):
             id = self.safe_string(market, 'pair')
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             baseId = baseId.lower()
             quoteId = quoteId.lower()
             symbol = base + '/' + quote

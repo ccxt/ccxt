@@ -167,8 +167,8 @@ class buda (Exchange):
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             baseInfo = self.fetch_currency_info(baseId, currencies)
             quoteInfo = self.fetch_currency_info(quoteId, currencies)
             symbol = base + '/' + quote
@@ -213,7 +213,7 @@ class buda (Exchange):
             if not currency['managed']:
                 continue
             id = self.safe_string(currency, 'id')
-            code = self.common_currency_code(id)
+            code = self.safeCurrencyCode(id)
             precision = self.safe_float(currency, 'input_decimals')
             minimum = math.pow(10, -precision)
             result[code] = {
@@ -426,7 +426,7 @@ class buda (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'id')
-            code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
             account['free'] = float(balance['available_amount'][0])
             account['total'] = float(balance['amount'][0])
@@ -614,15 +614,8 @@ class buda (Exchange):
     def parse_transaction(self, transaction, currency=None):
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
-        code = None
-        currencyId = None
-        if currency is None:
-            currencyId = self.safe_string(transaction, 'currency')
-            currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safeCurrencyCode(currencyId, currency)
         amount = float(transaction['amount'][0])
         fee = float(transaction['fee'][0])
         feeCurrency = transaction['fee'][1]

@@ -173,7 +173,7 @@ class btcmarkets extends Exchange {
         $fee = $this->safe_float($item, 'fee');
         $status = $this->parse_transaction_status ($this->safe_string($item, 'status'));
         $ccy = $this->safe_string($item, 'currency');
-        $code = $this->common_currency_code($ccy);
+        $code = $this->safeCurrencyCode ($ccy);
         // todo => this logic is duplicated below
         $amount = $this->safe_float($item, 'amount');
         if ($amount !== null) {
@@ -208,8 +208,8 @@ class btcmarkets extends Exchange {
             $baseId = $this->safe_string($market, 'instrument');
             $quoteId = $this->safe_string($market, 'currency');
             $id = $baseId . '/' . $quoteId;
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             // todo => refactor this
             $fee = ($quote === 'AUD') ? 0.0085 : 0.0022;
@@ -267,7 +267,7 @@ class btcmarkets extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safeCurrencyCode ($currencyId);
             $multiplier = 100000000;
             $total = $this->safe_float($balance, 'balance') / $multiplier;
             $used = $this->safe_float($balance, 'pendingFunds') / $multiplier;

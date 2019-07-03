@@ -208,8 +208,8 @@ class bleutrade (bittrex):
 
     def parse_symbol(self, id):
         base, quote = id.split(self.options['symbolSeparator'])
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
+        base = self.safeCurrencyCode(base)
+        quote = self.safeCurrencyCode(quote)
         return base + '/' + quote
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -509,10 +509,7 @@ class bleutrade (bittrex):
             elif symbol is not None:
                 currencyIds = symbol.split('/')
                 quoteCurrencyId = currencyIds[1]
-                if quoteCurrencyId in self.currencies_by_id:
-                    fee['currency'] = self.currencies_by_id[quoteCurrencyId]['code']
-                else:
-                    fee['currency'] = self.common_currency_code(quoteCurrencyId)
+                fee['currency'] = self.safeCurrencyCode(quoteCurrencyId)
         price = self.safe_float(order, 'Price')
         cost = None
         amount = self.safe_float(order, 'Quantity')
@@ -586,12 +583,7 @@ class bleutrade (bittrex):
             amount = abs(amount)
             type = 'withdrawal'
         currencyId = self.safe_string(transaction, 'Coin')
-        code = None
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safeCurrencyCode(currencyId, currency)
         label = self.safe_string(transaction, 'Label')
         timestamp = self.parse8601(self.safe_string(transaction, 'TimeStamp'))
         txid = self.safe_string(transaction, 'TransactionId')

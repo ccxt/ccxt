@@ -210,8 +210,8 @@ class bleutrade extends bittrex {
 
     public function parse_symbol ($id) {
         list($base, $quote) = explode($this->options['symbolSeparator'], $id);
-        $base = $this->common_currency_code($base);
-        $quote = $this->common_currency_code($quote);
+        $base = $this->safeCurrencyCode ($base);
+        $quote = $this->safeCurrencyCode ($quote);
         return $base . '/' . $quote;
     }
 
@@ -551,11 +551,7 @@ class bleutrade extends bittrex {
             } else if ($symbol !== null) {
                 $currencyIds = explode('/', $symbol);
                 $quoteCurrencyId = $currencyIds[1];
-                if (is_array($this->currencies_by_id) && array_key_exists($quoteCurrencyId, $this->currencies_by_id)) {
-                    $fee['currency'] = $this->currencies_by_id[$quoteCurrencyId]['code'];
-                } else {
-                    $fee['currency'] = $this->common_currency_code($quoteCurrencyId);
-                }
+                $fee['currency'] = $this->safeCurrencyCode ($quoteCurrencyId);
             }
         }
         $price = $this->safe_float($order, 'Price');
@@ -638,13 +634,7 @@ class bleutrade extends bittrex {
             $type = 'withdrawal';
         }
         $currencyId = $this->safe_string($transaction, 'Coin');
-        $code = null;
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safeCurrencyCode ($currencyId, $currency);
         $label = $this->safe_string($transaction, 'Label');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'TimeStamp'));
         $txid = $this->safe_string($transaction, 'TransactionId');

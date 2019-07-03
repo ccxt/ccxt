@@ -240,8 +240,8 @@ class bitz extends Exchange {
             $quoteId = $this->safe_string($market, 'coinTo');
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safeCurrencyCode ($base);
+            $quote = $this->safeCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'numberFloat'),
@@ -308,12 +308,7 @@ class bitz extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'name');
-            $code = strtoupper($currencyId);
-            if (is_array($this->markets_by_id) && array_key_exists($currencyId, $this->markets_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($code);
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
             $account = $this->account ();
             $account['used'] = $this->safe_float($balance, 'lock');
             $account['total'] = $this->safe_float($balance, 'num');
@@ -496,10 +491,8 @@ class bitz extends Exchange {
                     $symbol = $market['symbol'];
                 } else {
                     list($baseId, $quoteId) = explode('_', $id);
-                    $base = strtoupper($baseId);
-                    $quote = strtoupper($quoteId);
-                    $base = $this->common_currency_code($baseId);
-                    $quote = $this->common_currency_code($quoteId);
+                    $base = $this->safeCurrencyCode ($baseId);
+                    $quote = $this->safeCurrencyCode ($quoteId);
                     $symbol = $base . '/' . $quote;
                 }
             }
@@ -727,10 +720,8 @@ class bitz extends Exchange {
                 if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                     $market = $this->safe_value($this->markets_by_id, $marketId);
                 } else {
-                    $base = strtoupper($baseId);
-                    $quote = strtoupper($quoteId);
-                    $base = $this->common_currency_code($base);
-                    $quote = $this->common_currency_code($quote);
+                    $base = $this->safeCurrencyCode ($baseId);
+                    $quote = $this->safeCurrencyCode ($quoteId);
                     $symbol = $base . '/' . $quote;
                 }
             }
