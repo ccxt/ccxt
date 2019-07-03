@@ -49,7 +49,6 @@ module.exports = class bleutrade extends bittrex {
                 },
                 'www': 'https://bleutrade.com',
                 'doc': [
-                    'https://bleutrade.com/help/API',
                     'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
                 ],
                 'fees': 'https://bleutrade.com/help/fees_and_deadlines',
