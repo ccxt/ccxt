@@ -81,27 +81,31 @@ module.exports = class itbit extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend ({
+        const request = {
             'symbol': this.marketId (symbol),
-        }, params));
+        };
+        const orderbook = await this.publicGetMarketsSymbolOrderBook (this.extend (request, params));
         return this.parseOrderBook (orderbook);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let ticker = await this.publicGetMarketsSymbolTicker (this.extend ({
+        const request = {
             'symbol': this.marketId (symbol),
-        }, params));
-        let serverTimeUTC = this.safeString (ticker, 'serverTimeUTC');
-        if (!serverTimeUTC)
+        };
+        const ticker = await this.publicGetMarketsSymbolTicker (this.extend (request, params));
+        const serverTimeUTC = this.safeString (ticker, 'serverTimeUTC');
+        if (!serverTimeUTC) {
             throw new ExchangeError (this.id + ' fetchTicker returned a bad response: ' + this.json (ticker));
-        let timestamp = this.parse8601 (serverTimeUTC);
-        let vwap = this.safeFloat (ticker, 'vwap24h');
-        let baseVolume = this.safeFloat (ticker, 'volume24h');
+        }
+        const timestamp = this.parse8601 (serverTimeUTC);
+        const vwap = this.safeFloat (ticker, 'vwap24h');
+        const baseVolume = this.safeFloat (ticker, 'volume24h');
         let quoteVolume = undefined;
-        if (baseVolume !== undefined && vwap !== undefined)
+        if (baseVolume !== undefined && vwap !== undefined) {
             quoteVolume = baseVolume * vwap;
-        let last = this.safeFloat (ticker, 'lastPrice');
+        }
+        const last = this.safeFloat (ticker, 'lastPrice');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -204,6 +208,7 @@ module.exports = class itbit extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -233,6 +238,11 @@ module.exports = class itbit extends Exchange {
                     'cost': feeCost,
                     'currency': feeCurrency,
                 };
+            }
+        }
+        if (!('fee' in result)) {
+            if (!('fees' in result)) {
+                result['fee'] = undefined;
             }
         }
         return result;
@@ -389,55 +399,62 @@ module.exports = class itbit extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            const code = this.commonCurrencyCode (currencyId);
-            let account = {
-                'free': this.safeFloat (balance, 'availableBalance'),
-                'used': 0.0,
-                'total': this.safeFloat (balance, 'totalBalance'),
-            };
-            account['used'] = account['total'] - account['free'];
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'availableBalance');
+            account['total'] = this.safeFloat (balance, 'totalBalance');
             result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchWallets (params = {}) {
-        if (!this.uid)
+        if (!this.uid) {
             throw new AuthenticationError (this.id + ' fetchWallets requires uid API credential');
-        let request = {
+        }
+        const request = {
             'userId': this.uid,
         };
-        return this.privateGetWallets (this.extend (request, params));
+        return await this.privateGetWallets (this.extend (request, params));
     }
 
     async fetchWallet (walletId, params = {}) {
-        let wallet = {
+        const request = {
             'walletId': walletId,
         };
-        return this.privateGetWalletsWalletId (this.extend (wallet, params));
+        return await this.privateGetWalletsWalletId (this.extend (request, params));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({
+        const request = {
             'status': 'open',
-        }, params));
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        return this.fetchOrders (symbol, since, limit, this.extend ({
+        const request = {
             'status': 'filled',
-        }, params));
+        };
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        let walletIdInParams = ('walletId' in params);
-        if (!walletIdInParams)
+        const walletIdInParams = ('walletId' in params);
+        if (!walletIdInParams) {
             throw new ExchangeError (this.id + ' fetchOrders requires a walletId parameter');
-        let walletId = params['walletId'];
-        let response = await this.privateGetWalletsWalletIdOrders (this.extend ({
+        }
+        const walletId = params['walletId'];
+        const request = {
             'walletId': walletId,
-        }, params));
-        let orders = this.parseOrders (response, undefined, since, limit);
+        };
+        const response = await this.privateGetWalletsWalletIdOrders (this.extend (request, params));
+        const orders = this.parseOrders (response, undefined, since, limit);
         return orders;
     }
 
@@ -479,15 +496,17 @@ module.exports = class itbit extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type === 'market')
+        if (type === 'market') {
             throw new ExchangeError (this.id + ' allows limit orders only');
-        let walletIdInParams = ('walletId' in params);
-        if (!walletIdInParams)
+        }
+        const walletIdInParams = ('walletId' in params);
+        if (!walletIdInParams) {
             throw new ExchangeError (this.id + ' createOrder requires a walletId parameter');
+        }
         amount = amount.toString ();
         price = price.toString ();
-        let market = this.market (symbol);
-        let order = {
+        const market = this.market (symbol);
+        const request = {
             'side': side,
             'type': type,
             'currency': market['id'].replace (market['quote'], ''),
@@ -496,7 +515,7 @@ module.exports = class itbit extends Exchange {
             'price': price,
             'instrument': market['id'],
         };
-        let response = await this.privatePostWalletsWalletIdOrders (this.extend (order, params));
+        const response = await this.privatePostWalletsWalletIdOrders (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],
@@ -508,39 +527,44 @@ module.exports = class itbit extends Exchange {
         if (!walletIdInParams) {
             throw new ExchangeError (this.id + ' fetchOrder requires a walletId parameter');
         }
-        const request = { 'id': id };
+        const request = {
+            'id': id,
+        };
         const response = await this.privateGetWalletsWalletIdOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        let walletIdInParams = ('walletId' in params);
-        if (!walletIdInParams)
+        const walletIdInParams = ('walletId' in params);
+        if (!walletIdInParams) {
             throw new ExchangeError (this.id + ' cancelOrder requires a walletId parameter');
-        return await this.privateDeleteWalletsWalletIdOrdersId (this.extend ({
+        }
+        const request = {
             'id': id,
-        }, params));
+        };
+        return await this.privateDeleteWalletsWalletIdOrdersId (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.version + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        if (method === 'GET' && Object.keys (query).length)
+        const query = this.omit (params, this.extractParams (path));
+        if (method === 'GET' && Object.keys (query).length) {
             url += '?' + this.urlencode (query);
-        if (method === 'POST' && Object.keys (query).length)
+        }
+        if (method === 'POST' && Object.keys (query).length) {
             body = this.json (query);
-        else
-            body = '';
+        }
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
-            let timestamp = nonce;
-            let auth = [ method, url, body, nonce, timestamp ];
-            let message = nonce + this.json (auth).replace ('\\/', '/');
-            let hash = this.hash (this.encode (message), 'sha256', 'binary');
-            let binaryUrl = this.stringToBinary (this.encode (url));
-            let binhash = this.binaryConcat (binaryUrl, hash);
-            let signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
+            const nonce = this.nonce ().toString ();
+            const timestamp = nonce;
+            const authBody = (method === 'POST') ? body : '';
+            const auth = [ method, url, authBody, nonce, timestamp ];
+            const message = nonce + this.json (auth).replace ('\\/', '/');
+            const hash = this.hash (this.encode (message), 'sha256', 'binary');
+            const binaryUrl = this.stringToBinary (this.encode (url));
+            const binhash = this.binaryConcat (binaryUrl, hash);
+            const signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
             headers = {
                 'Authorization': this.apiKey + ':' + signature,
                 'Content-Type': 'application/json',
@@ -552,9 +576,10 @@ module.exports = class itbit extends Exchange {
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('code' in response)
+        const response = await this.fetch2 (path, api, method, params, headers, body);
+        if ('code' in response) {
             throw new ExchangeError (this.id + ' ' + this.json (response));
+        }
         return response;
     }
 };

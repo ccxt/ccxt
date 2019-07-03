@@ -27,7 +27,6 @@ class deribit extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchTickers' => false,
             ),
-            'timeframes' => array (),
             'urls' => array (
                 'test' => 'https://test.deribit.com',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
@@ -136,16 +135,16 @@ class deribit extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $marketsResponse = $this->publicGetGetinstruments ();
-        $markets = $marketsResponse['result'];
-        $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['instrumentName'];
-            $base = $market['baseCurrency'];
-            $quote = $market['currency'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+        $response = $this->publicGetGetinstruments ($params);
+        $markets = $this->safe_value($response, 'result');
+        $result = array();
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'instrumentName');
+            $baseId = $this->safe_string($market, 'baseCurrency');
+            $quoteId = $this->safe_string($market, 'currency');
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $id,
@@ -175,36 +174,36 @@ class deribit extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $account = $this->privateGetAccount ();
+        $response = $this->privateGetAccount ($params);
         $result = array (
             'BTC' => array (
-                'free' => $account['result']['availableFunds'],
-                'used' => $account['result']['maintenanceMargin'],
-                'total' => $account['result']['equity'],
+                'free' => $this->safe_float($response['result'], 'availableFunds'),
+                'used' => $this->safe_float($response['result'], 'maintenanceMargin'),
+                'total' => $this->safe_float($response['result'], 'equity'),
             ),
         );
         return $this->parse_balance($result);
     }
 
     public function fetch_deposit_address ($currency, $params = array ()) {
-        $account = $this->privateGetAccount ();
+        $response = $this->privateGetAccount ($params);
+        $address = $this->safe_string($response, 'depositAddress');
         return array (
-            'currency' => 'BTC',
-            'address' => $account['depositAddress'],
+            'currency' => $this->common_currency_code('BTC'),
+            'address' => $address,
             'tag' => null,
-            'info' => $account,
+            'info' => $response,
         );
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'created');
-        $iso8601 = ($timestamp === null) ? null : $this->iso8601 ($timestamp);
         $symbol = $this->find_symbol($this->safe_string($ticker, 'instrumentName'), $market);
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
-            'datetime' => $iso8601,
+            'datetime' => $this->iso8601 ($timestamp),
             'high' => $this->safe_float($ticker, 'high'),
             'low' => $this->safe_float($ticker, 'low'),
             'bid' => $this->safe_float($ticker, 'bidPrice'),
@@ -228,9 +227,10 @@ class deribit extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetGetsummary (array_merge (array (
+        $request = array (
             'instrument' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetGetsummary (array_merge ($request, $params));
         return $this->parse_ticker($response['result'], $market);
     }
 
@@ -275,8 +275,9 @@ class deribit extends Exchange {
         $id = $this->safe_string($trade, 'tradeId');
         $orderId = $this->safe_string($trade, 'orderId');
         $symbol = null;
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $timestamp = $this->safe_integer($trade, 'timeStamp');
         $side = $this->safe_string_2($trade, 'side', 'direction');
         $price = $this->safe_float($trade, 'price');
@@ -298,14 +299,15 @@ class deribit extends Exchange {
             );
         }
         return array (
-            'info' => $trade,
             'id' => $id,
+            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -349,15 +351,18 @@ class deribit extends Exchange {
         //         "message":""
         //     }
         //
-        $result = $this->safe_value($response, 'result', array ());
+        $result = $this->safe_value($response, 'result', array());
         return $this->parse_trades($result, $market, $since, $limit);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetGetorderbook (array ( 'instrument' => $market['id'] ));
-        $timestamp = intval ($response['usOut'] / 1000);
+        $request = array (
+            'instrument' => $market['id'],
+        );
+        $response = $this->publicGetGetorderbook (array_merge ($request, $params));
+        $timestamp = $this->safe_integer($response, 'usOut') / 1000;
         $orderbook = $this->parse_order_book($response['result'], $timestamp, 'bids', 'asks', 'price', 'quantity');
         return array_merge ($orderbook, array (
             'nonce' => $this->safe_integer($response, 'tstamp'),
@@ -370,10 +375,7 @@ class deribit extends Exchange {
             'cancelled' => 'canceled',
             'filled' => 'closed',
         );
-        if (is_array ($statuses) && array_key_exists ($status, $statuses)) {
-            return $statuses[$status];
-        }
-        return $status;
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
@@ -398,7 +400,7 @@ class deribit extends Exchange {
         //         "tstamp" => 1494492913288,     // $timestamp of the last $order state change, documented, but may be missing in the actual response
         //         "modified" => 1494492913289,   // $timestamp of the last db write operation, e.g. trade that doesn't change $order $status, documented, but may missing in the actual response
         //         "adv" => false                 // advanced $type (false, or "usd" or "implv")
-        //         "trades" => array (),                // not documented, injected from the outside of the parseOrder method into the $order
+        //         "trades" => array(),                // not documented, injected from the outside of the parseOrder method into the $order
         //     }
         //
         $timestamp = $this->safe_integer($order, 'created');
@@ -429,7 +431,7 @@ class deribit extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $side = $this->safe_string($order, 'direction');
         if ($side !== null) {
-            $side = strtolower ($side);
+            $side = strtolower($side);
         }
         $feeCost = $this->safe_float($order, 'commission');
         if ($feeCost !== null) {
@@ -440,13 +442,19 @@ class deribit extends Exchange {
             'currency' => 'BTC',
         );
         $type = $this->safe_string($order, 'type');
+        $marketId = $this->safe_string($order, 'instrument');
+        $symbol = null;
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+            $symbol = $market['symbol'];
+        }
         return array (
             'info' => $order,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $order['instrument'],
+            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
@@ -463,8 +471,15 @@ class deribit extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrderstate (array ( 'orderId' => $id ));
-        return $this->parse_order($response['result']);
+        $request = array (
+            'orderId' => $id,
+        );
+        $response = $this->privateGetOrderstate (array_merge ($request, $params));
+        $result = $this->safe_value($response, 'result');
+        if ($result === null) {
+            throw new OrderNotFound($this->id . ' fetchOrder() ' . $this->json ($response));
+        }
+        return $this->parse_order($result);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -492,21 +507,29 @@ class deribit extends Exchange {
         $request = array (
             'orderId' => $id,
         );
-        if ($amount !== null)
+        if ($amount !== null) {
             $request['quantity'] = $amount;
-        if ($price !== null)
+        }
+        if ($price !== null) {
             $request['price'] = $price;
+        }
         $response = $this->privatePostEdit (array_merge ($request, $params));
         return $this->parse_order($response['result']['order']);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostCancel (array_merge (array ( 'orderId' => $id ), $params));
+        $request = array (
+            'orderId' => $id,
+        );
+        $response = $this->privatePostCancel (array_merge ($request, $params));
         return $this->parse_order($response['result']['order']);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a `$symbol` argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -517,6 +540,9 @@ class deribit extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a `$symbol` argument');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
@@ -567,7 +593,7 @@ class deribit extends Exchange {
         //         "has_more":true
         //     }
         //
-        $trades = $this->safe_value($response, 'result', array ());
+        $trades = $this->safe_value($response, 'result', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -602,7 +628,7 @@ class deribit extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
             }
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -610,16 +636,16 @@ class deribit extends Exchange {
             return; // fallback to default $error handler
         }
         //
-        //     array ("usOut":1535877098645376,"usIn":1535877098643364,"usDiff":2012,"testnet":false,"success":false,"message":"order_not_found","$error":10004)
+        //     array("usOut":1535877098645376,"usIn":1535877098643364,"usDiff":2012,"testnet":false,"success":false,"message":"order_not_found","$error":10004)
         //
         $error = $this->safe_string($response, 'error');
         if (($error !== null) && ($error !== '0')) {
             $feedback = $this->id . ' ' . $body;
             $exceptions = $this->exceptions;
-            if (is_array ($exceptions) && array_key_exists ($error, $exceptions)) {
-                throw new $exceptions[$error] ($feedback);
+            if (is_array($exceptions) && array_key_exists($error, $exceptions)) {
+                throw new $exceptions[$error]($feedback);
             }
-            throw new ExchangeError ($feedback); // unknown message
+            throw new ExchangeError($feedback); // unknown message
         }
     }
 }

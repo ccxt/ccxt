@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.630'
+__version__ = '1.18.869'
 
 # -----------------------------------------------------------------------------
 
@@ -114,6 +114,7 @@ class Exchange(object):
     aiohttp_proxy = None
     aiohttp_trust_env = False
     session = None  # Session () by default
+    verify = True  # SSL verification
     logger = None  # logging.getLogger(__name__) by default
     userAgent = None
     userAgents = {
@@ -123,6 +124,7 @@ class Exchange(object):
     verbose = False
     markets = None
     symbols = None
+    timeframes = None
     fees = {
         'trading': {
             'percentage': True,  # subclasses should rarely have to redefine this
@@ -210,6 +212,13 @@ class Exchange(object):
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
 
+    status = {
+        'status': 'ok',
+        'updated': None,
+        'eta': None,
+        'url': None,
+    }
+
     requiredCredentials = {
         'apiKey': True,
         'secret': True,
@@ -250,8 +259,10 @@ class Exchange(object):
         'fetchOrderBook': True,
         'fetchOrderBooks': False,
         'fetchOrders': False,
+        'fetchStatus': 'emulated',
         'fetchTicker': True,
         'fetchTickers': False,
+        'fetchTime': False,
         'fetchTrades': True,
         'fetchTradingFee': False,
         'fetchTradingFees': False,
@@ -313,6 +324,7 @@ class Exchange(object):
         #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
         # }
 
+        self.origin = self.uuid()
         self.userAgent = default_user_agent()
 
         settings = self.deep_extend(self.describe(), config)
@@ -358,6 +370,12 @@ class Exchange(object):
     def __del__(self):
         if self.session:
             self.session.close()
+
+    def __repr__(self):
+        return 'ccxt.' + ('async_support.' if self.asyncio_loop else '') + self.id + '()'
+
+    def __str__(self):
+        return self.name
 
     def describe(self):
         return {}
@@ -502,7 +520,8 @@ class Exchange(object):
                 data=body,
                 headers=request_headers,
                 timeout=int(self.timeout / 1000),
-                proxies=self.proxies
+                proxies=self.proxies,
+                verify=self.verify
             )
             http_response = response.text
             json_response = self.parse_json(http_response) if self.is_json_encoded_object(http_response) else None
@@ -950,24 +969,20 @@ class Exchange(object):
         return result
 
     @staticmethod
-    def binary_to_string(s):
-        return s.decode('ascii')
-
-    @staticmethod
     def base64urlencode(s):
         return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
 
     @staticmethod
+    def binary_to_base64(s):
+        return Exchange.decode(base64.standard_b64encode(s))
+
+    @staticmethod
     def jwt(request, secret, alg='HS256'):
         algos = {
-            "RS256": hashes.SHA256(),
-            "RS384": hashes.SHA384(),
-            "RS512": hashes.SHA512(),
             'HS256': hashlib.sha256,
             'HS384': hashlib.sha384,
             'HS512': hashlib.sha512,
         }
-        algorithm = algos[alg]
         header = Exchange.encode(Exchange.json({
             'alg': alg,
             'typ': 'JWT',
@@ -976,12 +991,22 @@ class Exchange(object):
         encoded_data = Exchange.base64urlencode(Exchange.encode(Exchange.json(request)))
         token = encoded_header + '.' + encoded_data
         if alg[:2] == 'RS':
-            priv_key = load_pem_private_key(Exchange.encode(secret), None, backends.default_backend())
-            signature = priv_key.sign(Exchange.encode(token), padding.PKCS1v15(), algorithm)
+            signature = Exchange.rsa(token, secret, alg)
         else:
-            signature = Exchange.hmac(Exchange.encode(token), Exchange.encode(secret), algorithm, 'binary')
-        signature = Exchange.base64urlencode(signature)
-        return token + '.' + signature
+            algorithm = algos[alg]
+            signature = Exchange.hmac(Exchange.encode(token), secret, algorithm, 'binary')
+        return token + '.' + Exchange.base64urlencode(signature)
+
+    @staticmethod
+    def rsa(request, secret, alg='RS256'):
+        algorithms = {
+            "RS256": hashes.SHA256(),
+            "RS384": hashes.SHA384(),
+            "RS512": hashes.SHA512(),
+        }
+        algorithm = algorithms[alg]
+        priv_key = load_pem_private_key(secret, None, backends.default_backend())
+        return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
     def unjson(input):
@@ -1031,9 +1056,9 @@ class Exchange(object):
 
     def account(self):
         return {
-            'free': 0.0,
-            'used': 0.0,
-            'total': 0.0,
+            'free': None,
+            'used': None,
+            'total': None,
         }
 
     def common_currency_code(self, currency):
@@ -1269,6 +1294,24 @@ class Exchange(object):
 
     def parse_balance(self, balance):
         currencies = self.omit(balance, 'info').keys()
+
+        balance['free'] = {}
+        balance['used'] = {}
+        balance['total'] = {}
+
+        for currency in currencies:
+            if balance[currency].get('total') is None:
+                if balance[currency].get('free') is not None and balance[currency].get('used') is not None:
+                    balance[currency]['total'] = self.sum(balance[currency].get('free'), balance[currency].get('used'))
+
+            if balance[currency].get('free') is None:
+                if balance[currency].get('total') is not None and balance[currency].get('used') is not None:
+                    balance[currency]['free'] = self.sum(balance[currency]['total'], -balance[currency]['used'])
+
+            if balance[currency].get('used') is None:
+                if balance[currency].get('total') is not None and balance[currency].get('free') is not None:
+                    balance[currency]['used'] = self.sum(balance[currency]['total'], -balance[currency]['free'])
+
         for account in ['free', 'used', 'total']:
             balance[account] = {}
             for currency in currencies:
@@ -1320,6 +1363,12 @@ class Exchange(object):
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
+
+    def fetch_status(self, params={}):
+        if self.has['fetchTime']:
+            updated = self.fetch_time(params)
+            self.status['updated'] = updated
+        return self.status
 
     def fetchOHLCV(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         return self.fetch_ohlcv(symbol, timeframe, since, limit, params)
@@ -1435,14 +1484,14 @@ class Exchange(object):
         symbol = market['symbol'] if market else None
         return self.filter_by_symbol_since_limit(array, symbol, since, limit)
 
-    def safe_currency_code(self, data, key, currency=None):
+    def safe_currency_code(self, currency_id, currency=None):
         code = None
-        currency_id = self.safe_string(data, key)
-        if currency_id in self.currencies_by_id:
-            currency = self.currencies_by_id[currency_id]
-        else:
-            code = self.common_currency_code(currency_id)
-        if currency is not None:
+        if currency_id is not None:
+            if self.currencies_by_id is not None and currency_id in self.currencies_by_id:
+                code = self.currencies_by_id[currency_id]['code']
+            else:
+                code = self.common_currency_code(currency_id)
+        if code is None and currency is not None:
             code = currency['code']
         return code
 

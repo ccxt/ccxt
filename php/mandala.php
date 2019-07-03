@@ -184,19 +184,19 @@ class mandala extends Exchange {
             ),
             'exceptions' => array (
                 'exact' => array (
-                    'Failure_General' => '\\ccxt\\ExchangeError', // array ("Status":"Error","Message":"Failure_General","Data":"Cannot roll back TransBuyOrder. No transaction or savepoint of that name was found.")
-                    'Exception_Insufficient_Funds' => '\\ccxt\\InsufficientFunds', // array ("Status":"Error","Message":"Exception_Insufficient_Funds","Data":"Insufficient Funds.")
-                    'Exception_TimeStamp' => '\\ccxt\\BadRequest', // array ("status":"BadRequest","message":"Exception_TimeStamp","data":"Invalid timestamp.")
-                    'Exception_HMAC_Validation' => '\\ccxt\\AuthenticationError', // array ("status":"Error","message":"Exception_HMAC_Validation","data":"HMAC validation failed.")
-                    'Exception_General' => '\\ccxt\\BadRequest', // array ("status":"BadRequest","message":"Exception_General","data":"Our servers are experiencing some glitch, please try again later.")
-                    'Must provide the orderID param.' => '\\ccxt\\BadRequest', // array ("Status":"BadRequest","Message":"Must provide the orderID param.","Data":null)
-                    'Invalid Market_Currency pair!' => '\\ccxt\\ExchangeError', // array ("status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null)
-                    'Invalid volume parameter.' => '\\ccxt\\InvalidOrder', // array ("Status":"BadRequest","Message":"Invalid volume parameter.","Data":null)
-                    'Invalid rate parameter.' => '\\ccxt\\InvalidOrder', // array ("Status":"BadRequest","Message":"Invalid rate parameter.","Data":null)
-                    "Invalid parameter 'side', must be 'BUY' or 'SELL'." => '\\ccxt\\InvalidOrder', // array ("Status":"BadRequest","Message":"Invalid parameter 'side', must be 'BUY' or 'SELL'.","Data":null)
-                    'Invalid Type' => '\\ccxt\\BadRequest', // on fetchOrders with a wrong type array ("status":"Error","errorMessage":"Invalid Type","data":null)
-                    'Exception_Invalid_CurrencyName' => '\\ccxt\\BadRequest', // array ("status":"BadRequest","message":"Exception_Invalid_CurrencyName","data":"Invalid Currency name")
-                    'Exception_BadRequest' => '\\ccxt\\BadRequest', // array ("status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload")
+                    'Failure_General' => '\\ccxt\\ExchangeError', // array("Status":"Error","Message":"Failure_General","Data":"Cannot roll back TransBuyOrder. No transaction or savepoint of that name was found.")
+                    'Exception_Insufficient_Funds' => '\\ccxt\\InsufficientFunds', // array("Status":"Error","Message":"Exception_Insufficient_Funds","Data":"Insufficient Funds.")
+                    'Exception_TimeStamp' => '\\ccxt\\BadRequest', // array("status":"BadRequest","message":"Exception_TimeStamp","data":"Invalid timestamp.")
+                    'Exception_HMAC_Validation' => '\\ccxt\\AuthenticationError', // array("status":"Error","message":"Exception_HMAC_Validation","data":"HMAC validation failed.")
+                    'Exception_General' => '\\ccxt\\BadRequest', // array("status":"BadRequest","message":"Exception_General","data":"Our servers are experiencing some glitch, please try again later.")
+                    'Must provide the orderID param.' => '\\ccxt\\BadRequest', // array("Status":"BadRequest","Message":"Must provide the orderID param.","Data":null)
+                    'Invalid Market_Currency pair!' => '\\ccxt\\ExchangeError', // array("status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null)
+                    'Invalid volume parameter.' => '\\ccxt\\InvalidOrder', // array("Status":"BadRequest","Message":"Invalid volume parameter.","Data":null)
+                    'Invalid rate parameter.' => '\\ccxt\\InvalidOrder', // array("Status":"BadRequest","Message":"Invalid rate parameter.","Data":null)
+                    "Invalid parameter 'side', must be 'BUY' or 'SELL'." => '\\ccxt\\InvalidOrder', // array("Status":"BadRequest","Message":"Invalid parameter 'side', must be 'BUY' or 'SELL'.","Data":null)
+                    'Invalid Type' => '\\ccxt\\BadRequest', // on fetchOrders with a wrong type array("status":"Error","errorMessage":"Invalid Type","data":null)
+                    'Exception_Invalid_CurrencyName' => '\\ccxt\\BadRequest', // array("status":"BadRequest","message":"Exception_Invalid_CurrencyName","data":"Invalid Currency name")
+                    'Exception_BadRequest' => '\\ccxt\\BadRequest', // array("status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload")
                 ),
                 'broad' => array (
                 ),
@@ -220,7 +220,7 @@ class mandala extends Exchange {
 
     public function sign_in ($params = array ()) {
         if (!$this->login || !$this->password) {
-            throw new AuthenticationError ($this->id . ' signIn() requires $this->login (email) and $this->password credentials');
+            throw new AuthenticationError($this->id . ' signIn() requires $this->login (email) and $this->password credentials');
         }
         $authenticateRequest = array (
             'email' => $this->login,
@@ -238,7 +238,7 @@ class mandala extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($authenticateResponse, 'data', array ());
+        $data = $this->safe_value($authenticateResponse, 'data', array());
         $tempAuthToken = $this->safe_string($data, 'tempAuthToken');
         $otp = null;
         if ($this->twofa !== null) {
@@ -246,7 +246,7 @@ class mandala extends Exchange {
         }
         $otp = $this->safe_string($params, 'password', $otp);
         if ($otp === null) {
-            throw new AuthenticationError ($this->id . ' signIn() requires $this->twofa credential or a one-time 2FA "password" parameter');
+            throw new AuthenticationError($this->id . ' signIn() requires $this->twofa credential or a one-time 2FA "password" parameter');
         }
         $tokenRequest = array (
             'grant_type' => 'password',
@@ -273,7 +273,7 @@ class mandala extends Exchange {
     public function fetch_currencies_from_cache ($params = array ()) {
         // this method is $now redundant
         // currencies are $now fetched before markets
-        $options = $this->safe_value($this->options, 'fetchCurrencies', array ());
+        $options = $this->safe_value($this->options, 'fetchCurrencies', array());
         $timestamp = $this->safe_integer($options, 'timestamp');
         $expires = $this->safe_integer($options, 'expires', 1000);
         $now = $this->milliseconds ();
@@ -341,8 +341,8 @@ class mandala extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array ());
-        $result = array ();
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
         for ($i = 0; $i < count ($data); $i++) {
             $currency = $data[$i];
             $id = $this->safe_string($currency, 'shortName');
@@ -364,12 +364,12 @@ class mandala extends Exchange {
                 'fee' => $this->safe_float($currency, 'withdrawalServiceCharge') / 100,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision),
-                        'max' => pow (10, $precision),
+                        'min' => pow(10, -$precision),
+                        'max' => pow(10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -388,7 +388,7 @@ class mandala extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $currenciesResponse = $this->fetch_currencies_from_cache ($params);
-        $currencies = $this->safe_value($currenciesResponse, 'data', array ());
+        $currencies = $this->safe_value($currenciesResponse, 'data', array());
         $currenciesById = $this->index_by($currencies, 'shortName');
         $response = $this->marketGetGetMarketSummary ();
         //
@@ -419,18 +419,18 @@ class mandala extends Exchange {
         //         ),
         //     }
         //
-        $result = array ();
-        $data = $this->safe_value($response, 'data', array ());
-        $ids = is_array ($data) ? array_keys ($data) : array ();
+        $result = array();
+        $data = $this->safe_value($response, 'data', array());
+        $ids = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $data[$id];
-            list ($quoteId, $baseId) = explode ('_', $id);  // they have base/quote reversed with some endpoints
+            list($quoteId, $baseId) = explode('_', $id);  // they have base/quote reversed with some endpoints
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $baseCurrency = $this->safe_value($currenciesById, $baseId, array ());
-            $quoteCurrency = $this->safe_value($currenciesById, $quoteId, array ());
+            $baseCurrency = $this->safe_value($currenciesById, $baseId, array());
+            $quoteCurrency = $this->safe_value($currenciesById, $quoteId, array());
             $precision = array (
                 'amount' => $this->safe_integer($baseCurrency, 'decimalPrecision', 8),
                 'price' => $this->safe_integer($quoteCurrency, 'decimalPrecision', 8),
@@ -450,11 +450,11 @@ class mandala extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$precision['amount']),
+                        'min' => pow(10, -$precision['amount']),
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => pow (10, -$precision['price']),
+                        'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
                 ),
@@ -474,24 +474,26 @@ class mandala extends Exchange {
         //         Status => 'Success',
         //         Message => null,
         //         Data => array (
-        //             array ( currency => 'BCH', $balance => 0, balanceInTrade => 0 ),
-        //             array ( currency => 'BTC', $balance => 0, balanceInTrade => 0 ),
+        //             array( currency => 'BCH', $balance => 0, balanceInTrade => 0 ),
+        //             array( currency => 'BTC', $balance => 0, balanceInTrade => 0 ),
         //             ...,
         //         ),
         //     }
         //
-        $data = $this->safe_value($response, 'Data');
-        $result = array ( 'info' => $response );
+        $data = $this->safe_value($response, 'Data', array());
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count ($data); $i++) {
             $balance = $data[$i];
-            $code = $this->common_currency_code($this->safe_string($balance, 'currency'));
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
+            }
             $account = $this->account ();
-            $free = $this->safe_float($balance, 'balance', 0);
-            $used = $this->safe_float($balance, 'balanceInTrade', 0);
-            $total = $this->sum ($free, $used);
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $account['total'] = $total;
+            $account['free'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'balanceInTrade');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -515,17 +517,17 @@ class mandala extends Exchange {
         //         $data => array (
         //             lastUpdate => 1552825727108,
         //             bids => [
-        //                 [ "0.02880201", "0.05939008", array ()],
-        //                 [ "0.02880200", "0.30969842", array ()],
+        //                 [ "0.02880201", "0.05939008", array()],
+        //                 [ "0.02880200", "0.30969842", array()],
         //             ],
         //             'asks' => [
-        //                 [ "0.02877161", "0.00001779", array ()],
-        //                 [ "0.02881321", "0.47325696", array ()],
+        //                 [ "0.02877161", "0.00001779", array()],
+        //                 [ "0.02881321", "0.47325696", array()],
         //             ],
         //         ),
         //     }
         //
-        $data = $this->safe_value($response, 'data', array ());
+        $data = $this->safe_value($response, 'data', array());
         $timestamp = $this->safe_integer($data, 'lastUpdate');
         return $this->parse_order_book($data, $timestamp);
     }
@@ -549,7 +551,7 @@ class mandala extends Exchange {
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'Pair');
         if ($marketId !== null) {
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
             } else {
@@ -617,15 +619,15 @@ class mandala extends Exchange {
         //         ),
         //     }
         //
-        $data = $this->safe_value($response, 'data', array ());
-        $ids = is_array ($data) ? array_keys ($data) : array ();
-        $result = array ();
+        $data = $this->safe_value($response, 'data', array());
+        $ids = is_array($data) ? array_keys($data) : array();
+        $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $ticker = $data[$id];
             $market = null;
             $symbol = $id;
-            if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
                 $symbol = $market['symbol'];
             } else {
@@ -694,7 +696,7 @@ class mandala extends Exchange {
         $timestamp = $this->parse8601 ($this->safe_string_2($trade, 'Date', 'date'));
         $side = $this->safe_string_2($trade, 'Type', 'side');
         if ($side !== null) {
-            $side = strtolower ($side);
+            $side = strtolower($side);
         }
         $id = $this->safe_string($trade, 'TradeID');
         $symbol = null;
@@ -722,15 +724,15 @@ class mandala extends Exchange {
             );
         }
         return array (
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
             'order' => $orderId,
             'type' => null,
-            'takerOrMaker' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -851,8 +853,8 @@ class mandala extends Exchange {
         $request = array (
             'market' => $market['quoteId'],
             'trade' => $market['baseId'],
-            'type' => strtoupper ($type), // MARKET, LIMIT, STOPLIMIT
-            'side' => strtoupper ($side), // BUY, SELL
+            'type' => strtoupper($type), // MARKET, LIMIT, STOPLIMIT
+            'side' => strtoupper($side), // BUY, SELL
             // Here GTC should be default for LIMIT, MARKET & STOP LIMIT Orders.
             // IOC,FOK, DO must be passed only with a LIMIT $order->
             // GTC (Good till cancelled), IOC (Immediate or cancel), FOK (Fill or Kill), Do (Day only)
@@ -874,7 +876,7 @@ class mandala extends Exchange {
         //         ),
         //     }
         //
-        $data = $this->safe_value($response, 'Data', array ());
+        $data = $this->safe_value($response, 'Data', array());
         $order = $this->parse_order($data, $market);
         return array_merge ($order, array (
             'symbol' => $symbol,
@@ -890,13 +892,13 @@ class mandala extends Exchange {
         $this->load_markets();
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired ($this->id . ' cancelOrder() requires an order `$side` extra parameter');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires an order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
         $id = (string) $id;
         $request = array (
             'orderId' => $id,
-            'side' => strtoupper ($side),
+            'side' => strtoupper($side),
         );
         $response = $this->orderPostCancelMyOrder (array_merge ($request, $params));
         //
@@ -909,7 +911,7 @@ class mandala extends Exchange {
         return $this->parse_order($response, array (
             'id' => $id,
             'symbol' => $symbol,
-            'side' => strtolower ($side),
+            'side' => strtolower($side),
             'status' => 'canceled',
         ));
     }
@@ -917,27 +919,27 @@ class mandala extends Exchange {
     public function cancel_all_orders ($symbols = null, $params = array ()) {
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired ($this->id . ' cancelAllOrders() requires an order `$side` extra parameter');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires an order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
         if ($symbols === null) {
-            throw new ArgumentsRequired ($this->id . ' cancelAllOrders() requires a `$symbols` argument (a list containing one $symbol)');
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a `$symbols` argument (a list containing one $symbol)');
         } else {
             $numSymbols = is_array ($symbols) ? count ($symbols) : 0;
             if ($numSymbols !== 1) {
-                throw new ArgumentsRequired ($this->id . ' cancelAllOrders() requires a `$symbols` argument (a list containing one $symbol)');
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a `$symbols` argument (a list containing one $symbol)');
             }
         }
         $symbol = $symbols[0];
         $request = array (
-            'side' => strtoupper ($side),
+            'side' => strtoupper($side),
             'pair' => $this->market_id($symbol),
         );
         return $this->orderPostCancelAllMyOrders (array_merge ($request, $params));
     }
 
     public function parse_symbol ($id) {
-        list ($quote, $base) = explode ($this->options['symbolSeparator'], $id);
+        list($quote, $base) = explode($this->options['symbolSeparator'], $id);
         $base = $this->common_currency_code($base);
         $quote = $this->common_currency_code($quote);
         return $base . '/' . $quote;
@@ -1007,8 +1009,9 @@ class mandala extends Exchange {
             }
         }
         if (!$price) {
-            if ($cost && $filled)
+            if ($cost && $filled) {
                 $price = $cost / $filled;
+            }
         }
         $status = $this->safe_value_2($order, 'orderStatus', 'Status');
         $status = $status ? 'closed' : 'open';
@@ -1053,12 +1056,12 @@ class mandala extends Exchange {
         $this->load_markets();
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrders() requires an order `$side` extra parameter');
+            throw new ArgumentsRequired($this->id . ' fetchOrders() requires an order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
         $request = array (
             'key' => $this->apiKey,
-            'side' => strtoupper ($side),
+            'side' => strtoupper($side),
             // 'orderId' => id,
         );
         $response = $this->orderGetMyOrderHistoryKeySide (array_merge ($request, $params));
@@ -1096,10 +1099,10 @@ class mandala extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array ());
+        $data = $this->safe_value($response, 'data', array());
         $market = ($symbol !== null) ? $this->market ($symbol) : null;
         return $this->parse_orders($data, $market, $since, $limit, array (
-            'side' => strtolower ($side),
+            'side' => strtolower($side),
         ));
     }
 
@@ -1114,7 +1117,7 @@ class mandala extends Exchange {
             $pair = $market['baseId'] . '-' . $market['quoteId'];
         }
         $request = array (
-            'side' => strtoupper ($side),
+            'side' => strtoupper($side),
             'pair' => $pair,
         );
         $response = $this->apiGetGetPendingOrders (array_merge ($request, $params));
@@ -1152,13 +1155,13 @@ class mandala extends Exchange {
         $this->load_markets();
         $side = $this->safe_string($params, 'side');
         if ($side === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrder() requires an order `$side` extra parameter');
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires an order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
         $id = (string) $id;
         $request = array (
             'key' => $this->apiKey,
-            'side' => strtoupper ($side),
+            'side' => strtoupper($side),
             'orderId' => $id,
         );
         $response = $this->orderGetMyOrderStatusKeySideOrderId (array_merge ($request, $params));
@@ -1177,7 +1180,7 @@ class mandala extends Exchange {
         $data = $this->safe_value($response, 'data');
         return array_merge ($this->parse_order($data), array (
             'id' => $id,
-            'side' => strtolower ($side),
+            'side' => strtolower($side),
         ));
     }
 
@@ -1192,7 +1195,7 @@ class mandala extends Exchange {
             $pair = $market['id'];
         }
         $request = array (
-            'side' => strtoupper ($side),
+            'side' => strtoupper($side),
             'pair' => $pair,
             'orderID' => -1,
             'apiKey' => $this->apiKey,
@@ -1268,8 +1271,8 @@ class mandala extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array ());
-        $deposits = $this->safe_value($data, 'deposits', array ());
+        $data = $this->safe_value($response, 'data', array());
+        $deposits = $this->safe_value($data, 'deposits', array());
         return $this->parseTransactions ($deposits, $currency, $since, $limit);
     }
 
@@ -1304,8 +1307,8 @@ class mandala extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array ());
-        $withdrawals = $this->safe_value($data, 'withdrawals', array ());
+        $data = $this->safe_value($response, 'data', array());
+        $withdrawals = $this->safe_value($data, 'withdrawals', array());
         return $this->parseTransactions ($withdrawals, $currency, $since, $limit);
     }
 
@@ -1343,7 +1346,7 @@ class mandala extends Exchange {
         $txid = $this->safe_string($transaction, 'txnHash');
         $updated = $this->parse8601 ($this->safe_value($transaction, 'withdrawalConfirmDate'));
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'withdrawalReqDate', $updated));
-        $type = (is_array ($transaction) && array_key_exists ('withdrawalReqDate', $transaction)) ? 'withdrawal' : 'deposit';
+        $type = (is_array($transaction) && array_key_exists('withdrawalReqDate', $transaction)) ? 'withdrawal' : 'deposit';
         $code = null;
         $currencyId = $this->safe_string($transaction, 'withdrawalType');
         $currency = $this->safe_value($this->currencies_by_id, $currencyId);
@@ -1383,12 +1386,12 @@ class mandala extends Exchange {
     }
 
     public function parse_deposit_addresses ($addresses) {
-        $result = array ();
-        $ids = is_array ($addresses) ? array_keys ($addresses) : array ();
+        $result = array();
+        $ids = is_array($addresses) ? array_keys($addresses) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $address = $addresses[$id];
-            $currencyId = strtoupper ($id);
+            $currencyId = strtoupper($id);
             $currency = $this->safe_value($this->currencies_by_id, $currencyId);
             $result[] = $this->parse_deposit_address ($address, $currency);
         }
@@ -1419,7 +1422,7 @@ class mandala extends Exchange {
         //     "eth" => "0x8143c11ed6b100e5a96419994846c890598647cf",
         //     "xrp" => "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
         //
-        $parts = explode (':', $depositAddress);
+        $parts = explode(':', $depositAddress);
         $address = $parts[0];
         $this->check_address($address);
         $tag = null;
@@ -1456,7 +1459,7 @@ class mandala extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array ());
+        $data = $this->safe_value($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         return $this->parse_deposit_address ($address, $currency);
     }
@@ -1477,7 +1480,7 @@ class mandala extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array ());
+        $data = $this->safe_value($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         return $this->parse_deposit_address ($address, $currency);
     }
@@ -1505,7 +1508,7 @@ class mandala extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($withdrawalResponse, 'data', array ());
+        $data = $this->safe_value($withdrawalResponse, 'data', array());
         $id = $this->safe_string($data, 'withdrawalId');
         $otp = null;
         if ($this->twofa !== null) {
@@ -1513,7 +1516,7 @@ class mandala extends Exchange {
         }
         $otp = $this->safe_string($params, 'emailToken', $otp);
         if ($otp === null) {
-            throw new AuthenticationError ($this->id . ' signIn() requires $this->twofa credential or a one-time 2FA "emailToken" parameter');
+            throw new AuthenticationError($this->id . ' signIn() requires $this->twofa credential or a one-time 2FA "emailToken" parameter');
         }
         $confirmationRequest = array (
             'EmailToken' => $otp,
@@ -1576,17 +1579,17 @@ class mandala extends Exchange {
             $secret = ($api === 'api') ? $this->options['secret'] : $this->secret;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($secret), 'sha512');
             $headers = array (
-                'HMAC' => strtoupper ($signature),
+                'HMAC' => strtoupper($signature),
             );
             if ($api === 'api') {
                 $token = $this->safe_string($this->options, 'accessToken');
                 if ($token === null) {
-                    throw new AuthenticationError ($this->id . ' ' . $path . ' endpoint requires an `accessToken` option or a prior call to signIn() method');
+                    throw new AuthenticationError($this->id . ' ' . $path . ' endpoint requires an `accessToken` option or a prior call to signIn() method');
                 }
                 $expires = $this->safe_integer($this->options, 'expires');
                 if ($expires !== null) {
                     if ($this->milliseconds () >= $expires) {
-                        throw new AuthenticationError ($this->id . ' accessToken expired, supply a new `accessToken` or call signIn() method');
+                        throw new AuthenticationError($this->id . ' accessToken expired, supply a new `accessToken` or call signIn() method');
                     }
                 }
                 $tokenType = $this->safe_string($this->options, 'tokenType', 'bearer');
@@ -1602,7 +1605,7 @@ class mandala extends Exchange {
                 }
             }
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -1610,9 +1613,9 @@ class mandala extends Exchange {
             return; // fallback to default error handler
         }
         //
-        //     array ("Status":"Error","Message":"Exception_Insufficient_Funds","Data":"Insufficient Funds.")
-        //     array ("$status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null)
-        //     array ("$status":"BadRequest","$message":"Exception_BadRequest","data":"Invalid Payload")
+        //     array("Status":"Error","Message":"Exception_Insufficient_Funds","Data":"Insufficient Funds.")
+        //     array("$status":"Error","errorMessage":"Invalid Market_Currency pair!","data":null)
+        //     array("$status":"BadRequest","$message":"Exception_BadRequest","data":"Invalid Payload")
         //
         //
         $status = $this->safe_string_2($response, 'status', 'Status');
@@ -1621,15 +1624,15 @@ class mandala extends Exchange {
             $message = $this->safe_string($response, 'message', $message);
             $feedback = $this->id . ' ' . $this->json ($response);
             $exact = $this->exceptions['exact'];
-            if (is_array ($exact) && array_key_exists ($message, $exact)) {
-                throw new $exact[$message] ($feedback);
+            if (is_array($exact) && array_key_exists($message, $exact)) {
+                throw new $exact[$message]($feedback);
             }
             $broad = $this->exceptions['broad'];
             $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
             if ($broadKey !== null) {
-                throw new $broad[$broadKey] ($feedback);
+                throw new $broad[$broadKey]($feedback);
             }
-            throw new ExchangeError ($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown $message
         }
     }
 }

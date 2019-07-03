@@ -57,7 +57,6 @@
     "huobicny":      { "skip": true },
     "ice3x":         { "skip": true },
     "indodax":       { "skip": true },
-    "itbit":         { "skip": true },
     "jubi":          { "skip": true },
     "kucoin":        { "skip": true },
     "kuna":          { "skip": true },
@@ -65,6 +64,7 @@
     "lbank":         { "skip": true },
     "livecoin":      { "skip": true },
     "luno":          { "skip": true },
+    "mixcoins":      { "skip": true },
     "nova":          { "skip": true },
     "okcoincny":     { "skip": true },
     "okcoinusd":     { "skip": true },
@@ -90,5 +90,6 @@
     "xbtce":         { "skip": true },
     "yobit":         { "skip": true },
     "yunbi":         { "skip": true },
+    "zaif":          { "skip": true },
     "zb":            { "skip": true }
 }

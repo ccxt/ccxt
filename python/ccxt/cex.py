@@ -350,34 +350,40 @@ class cex (Exchange):
         return self.safe_string(self.options['order']['status'], status, status)
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetCurrencyLimits()
+        response = self.publicGetCurrencyLimits(params)
         result = []
-        for p in range(0, len(markets['data']['pairs'])):
-            market = markets['data']['pairs'][p]
-            id = market['symbol1'] + '/' + market['symbol2']
-            symbol = id
-            base, quote = symbol.split('/')
+        markets = self.safe_value(response['data'], 'pairs')
+        for i in range(0, len(markets)):
+            market = markets[i]
+            baseId = self.safe_string(market, 'symbol1')
+            quoteId = self.safe_string(market, 'symbol2')
+            id = baseId + '/' + quoteId
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'precision': {
                     'price': self.precision_from_string(self.safe_string(market, 'minPrice')),
                     'amount': self.precision_from_string(self.safe_string(market, 'minLotSize')),
                 },
                 'limits': {
                     'amount': {
-                        'min': market['minLotSize'],
-                        'max': market['maxLotSize'],
+                        'min': self.safe_float(market, 'minLotSize'),
+                        'max': self.safe_float(market, 'maxLotSize'),
                     },
                     'price': {
                         'min': self.safe_float(market, 'minPrice'),
                         'max': self.safe_float(market, 'maxPrice'),
                     },
                     'cost': {
-                        'min': market['minLotSizeS2'],
+                        'min': self.safe_float(market, 'minLotSizeS2'),
                         'max': None,
                     },
                 },
@@ -386,21 +392,19 @@ class cex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostBalance()
+        response = self.privatePostBalance(params)
         result = {'info': response}
         ommited = ['username', 'timestamp']
         balances = self.omit(response, ommited)
-        currencies = list(balances.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            if currency in balances:
-                account = {
-                    'free': self.safe_float(balances[currency], 'available', 0.0),
-                    'used': self.safe_float(balances[currency], 'orders', 0.0),
-                    'total': 0.0,
-                }
-                account['total'] = self.sum(account['free'], account['used'])
-                result[currency] = account
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            balance = self.safe_value(balances, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'orders')
+            code = self.common_currency_code(currencyId)
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -410,9 +414,9 @@ class cex (Exchange):
         }
         if limit is not None:
             request['depth'] = limit
-        orderbook = self.publicGetOrderBookPair(self.extend(request, params))
-        timestamp = orderbook['timestamp'] * 1000
-        return self.parse_order_book(orderbook, timestamp)
+        response = self.publicGetOrderBookPair(self.extend(request, params))
+        timestamp = response['timestamp'] * 1000
+        return self.parse_order_book(response, timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -487,9 +491,10 @@ class cex (Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         currencies = list(self.currencies.keys())
-        response = self.publicGetTickersCurrencies(self.extend({
+        request = {
             'currencies': '/'.join(currencies),
-        }, params))
+        }
+        response = self.publicGetTickersCurrencies(self.extend(request, params))
         tickers = response['data']
         result = {}
         for t in range(0, len(tickers)):
@@ -502,31 +507,51 @@ class cex (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.publicGetTickerPair(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        ticker = self.publicGetTickerPair(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = int(trade['date']) * 1000
+        timestamp = self.safe_integer(trade, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
+        id = self.safe_string(trade, 'tid')
+        type = None
+        side = self.safe_string(trade, 'type')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
-            'id': trade['tid'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'type': None,
-            'side': trade['type'],
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTradeHistoryPair(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = self.publicGetTradeHistoryPair(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -556,7 +581,10 @@ class cex (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelOrder({'id': id})
+        request = {
+            'id': id,
+        }
+        return self.privatePostCancelOrder(self.extend(request, params))
 
     def parse_order(self, order, market=None):
         # Depending on the call, 'time' can be a unix int, unix string or ISO string
@@ -570,23 +598,21 @@ class cex (Exchange):
             timestamp = int(timestamp)
         symbol = None
         if market is None:
-            symbol = order['symbol1'] + '/' + order['symbol2']
+            baseId = self.safe_string(order, 'symbol1')
+            quoteId = self.safe_string(order, 'symbol2')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
+            symbol = base + '/' + quote
             if symbol in self.markets:
                 market = self.market(symbol)
-        status = order['status']
-        if status == 'a':
-            status = 'open'  # the unified status
-        elif status == 'cd':
-            status = 'canceled'
-        elif status == 'c':
-            status = 'canceled'
-        elif status == 'd':
-            status = 'closed'
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
-        remaining = self.safe_float(order, 'pending')
-        if not remaining:
-            remaining = self.safe_float(order, 'remains')
+        # sell orders can have a negative amount
+        # https://github.com/ccxt/ccxt/issues/5338
+        if amount is not None:
+            amount = abs(amount)
+        remaining = self.safe_float_2(order, 'pending', 'remains')
         filled = amount - remaining
         fee = None
         cost = None
@@ -605,18 +631,14 @@ class cex (Exchange):
             if feeRate:
                 feeRate /= 100.0  # convert to mathematically-correct percentage coefficients: 1.0 = 100%
             if (baseFee in list(order.keys())) or (baseTakerFee in list(order.keys())):
-                baseFeeCost = self.safe_float(order, baseFee)
-                if baseFeeCost is None:
-                    baseFeeCost = self.safe_float(order, baseTakerFee)
+                baseFeeCost = self.safe_float_2(order, baseFee, baseTakerFee)
                 fee = {
                     'currency': market['base'],
                     'rate': feeRate,
                     'cost': baseFeeCost,
                 }
             elif (quoteFee in list(order.keys())) or (quoteTakerFee in list(order.keys())):
-                quoteFeeCost = self.safe_float(order, quoteFee)
-                if quoteFeeCost is None:
-                    quoteFeeCost = self.safe_float(order, quoteTakerFee)
+                quoteFeeCost = self.safe_float_2(order, quoteFee, quoteTakerFee)
                 fee = {
                     'currency': market['quote'],
                     'rate': feeRate,
@@ -833,6 +855,8 @@ class cex (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
+        if isinstance(response, list):
+            return response  # public endpoints may return []-arrays
         if not response:
             raise NullResponse(self.id + ' returned ' + self.json(response))
         elif response is True or response == 'true':

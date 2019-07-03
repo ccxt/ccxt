@@ -4,18 +4,12 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import base64
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
@@ -147,14 +141,14 @@ class fcoin (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetSymbols()
+        response = await self.publicGetSymbols(params)
         result = []
-        markets = response['data']
+        markets = self.safe_value(response, 'data')
         for i in range(0, len(markets)):
             market = markets[i]
-            id = market['name']
-            baseId = market['base_currency']
-            quoteId = market['quote_currency']
+            id = self.safe_string(market, 'name')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'quote_currency')
             base = baseId.upper()
             base = self.common_currency_code(base)
             quote = quoteId.upper()
@@ -191,7 +185,7 @@ class fcoin (Exchange):
         await self.load_markets()
         response = await self.privateGetAccountsBalance(params)
         result = {'info': response}
-        balances = response['data']
+        balances = self.safe_value(response, 'data')
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = balance['currency']
@@ -231,20 +225,21 @@ class fcoin (Exchange):
                 raise ExchangeError(self.id + ' fetchOrderBook supports limit of 20 or 150. Other values are not accepted')
         else:
             limit = 'L20'
-        request = self.extend({
+        request = {
             'symbol': self.market_id(symbol),
             'level': limit,  # L20, L150
-        }, params)
-        response = await self.marketGetDepthLevelSymbol(request)
-        orderbook = response['data']
+        }
+        response = await self.marketGetDepthLevelSymbol(self.extend(request, params))
+        orderbook = self.safe_value(response, 'data')
         return self.parse_order_book(orderbook, orderbook['ts'], 'bids', 'asks', 0, 1)
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.marketGetTickerSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        ticker = await self.marketGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker['data'], market)
 
     def parse_ticker(self, ticker, market=None):
@@ -258,19 +253,19 @@ class fcoin (Exchange):
                 if id in self.markets_by_id:
                     market = self.markets_by_id[id]
         values = ticker['ticker']
-        last = values[0]
+        last = float(values[0])
         if market is not None:
             symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': values[7],
-            'low': values[8],
-            'bid': values[2],
-            'bidVolume': values[3],
-            'ask': values[4],
-            'askVolume': values[5],
+            'high': float(values[7]),
+            'low': float(values[8]),
+            'bid': float(values[2]),
+            'bidVolume': float(values[3]),
+            'ask': float(values[4]),
+            'askVolume': float(values[5]),
             'vwap': None,
             'open': None,
             'close': last,
@@ -279,8 +274,8 @@ class fcoin (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': values[9],
-            'quoteVolume': values[10],
+            'baseVolume': float(values[9]),
+            'quoteVolume': float(values[10]),
             'info': ticker,
         }
 
@@ -288,22 +283,28 @@ class fcoin (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        timestamp = int(trade['ts'])
-        side = trade['side'].lower()
-        orderId = self.safe_string(trade, 'id')
+        timestamp = self.safe_integer(trade, 'ts')
+        side = self.safe_string(trade, 'side')
+        if side is not None:
+            side = side.lower()
+        id = self.safe_string(trade, 'id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        cost = price * amount
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         fee = None
         return {
-            'id': orderId,
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
-            'order': orderId,
+            'order': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -341,17 +342,18 @@ class fcoin (Exchange):
         }
         if type == 'limit':
             request['price'] = self.price_to_precision(symbol, price)
-        result = await self.privatePostOrders(self.extend(request, params))
+        response = await self.privatePostOrders(self.extend(request, params))
         return {
-            'info': result,
-            'id': result['data'],
+            'info': response,
+            'id': response['data'],
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privatePostOrdersOrderIdSubmitCancel(self.extend({
+        request = {
             'order_id': id,
-        }, params))
+        }
+        response = await self.privatePostOrdersOrderIdSubmitCancel(self.extend(request, params))
         order = self.parse_order(response)
         return self.extend(order, {
             'id': id,
@@ -367,9 +369,7 @@ class fcoin (Exchange):
             'filled': 'closed',
             'pending_cancel': 'canceled',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
@@ -400,7 +400,7 @@ class fcoin (Exchange):
             symbol = market['symbol']
             feeCurrency = market['base'] if (side == 'buy') else market['quote']
         feeCost = self.safe_float(order, 'fill_fees')
-        result = {
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -422,25 +422,26 @@ class fcoin (Exchange):
             },
             'trades': None,
         }
-        return result
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = self.extend({
+        request = {
             'order_id': id,
-        }, params)
-        response = await self.privateGetOrdersOrderId(request)
+        }
+        response = await self.privateGetOrdersOrderId(self.extend(request, params))
         return self.parse_order(response['data'])
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = await self.fetch_orders(symbol, since, limit, {'states': 'submitted,partial_filled'})
-        return result
+        request = {'states': 'submitted,partial_filled'}
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        result = await self.fetch_orders(symbol, since, limit, {'states': 'filled'})
-        return result
+        request = {'states': 'filled'}
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -467,12 +468,12 @@ class fcoin (Exchange):
         if limit is None:
             raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument')
         market = self.market(symbol)
-        request = self.extend({
+        request = {
             'symbol': market['id'],
             'timeframe': self.timeframes[timeframe],
             'limit': limit,
-        }, params)
-        response = await self.marketGetCandlesTimeframeSymbol(request)
+        }
+        response = await self.marketGetCandlesTimeframeSymbol(self.extend(request, params))
         return self.parse_ohlcvs(response['data'], market, timeframe, since, limit)
 
     def nonce(self):
@@ -515,15 +516,12 @@ class fcoin (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            status = self.safe_string(response, 'status')
-            if status != '0':
-                feedback = self.id + ' ' + body
-                if status in self.exceptions:
-                    exceptions = self.exceptions
-                    raise exceptions[status](feedback)
-                raise ExchangeError(feedback)
+        status = self.safe_string(response, 'status')
+        if status != '0':
+            feedback = self.id + ' ' + body
+            if status in self.exceptions:
+                exceptions = self.exceptions
+                raise exceptions[status](feedback)
+            raise ExchangeError(feedback)

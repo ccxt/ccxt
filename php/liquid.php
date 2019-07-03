@@ -126,7 +126,7 @@ class liquid extends Exchange {
         //         ),
         //     )
         //
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'currency');
@@ -145,12 +145,12 @@ class liquid extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow (10, -$amountPrecision),
-                        'max' => pow (10, $amountPrecision),
+                        'min' => pow(10, -$amountPrecision),
+                        'max' => pow(10, $amountPrecision),
                     ),
                     'price' => array (
-                        'min' => pow (10, -$pricePrecision),
-                        'max' => pow (10, $pricePrecision),
+                        'min' => pow(10, -$pricePrecision),
+                        'max' => pow(10, $pricePrecision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -200,7 +200,7 @@ class liquid extends Exchange {
         //
         $currencies = $this->fetch_currencies();
         $currenciesByCode = $this->index_by($currencies, 'code');
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = (string) $market['id'];
@@ -226,7 +226,7 @@ class liquid extends Exchange {
             $minPrice = null;
             if ($quoteCurrency !== null) {
                 $precision['price'] = $this->safe_integer($quoteCurrency['info'], 'display_precision');
-                $minPrice = pow (10, -$precision['price']);
+                $minPrice = pow(10, -$precision['price']);
             }
             $minCost = null;
             if ($minPrice !== null) {
@@ -268,19 +268,28 @@ class liquid extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetAccountsBalance ($params);
-        $result = array ( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currencyId = $balance['currency'];
+        $response = $this->privateGetAccountsBalance ($params);
+        //
+        //     array (
+        //         array("currency":"USD","$balance":"0.0"),
+        //         array("currency":"BTC","$balance":"0.0"),
+        //         array("currency":"ETH","$balance":"0.1651354")
+        //     )
+        //
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count ($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
             $code = $currencyId;
-            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
             }
-            $total = floatval ($balance['balance']);
+            $total = $this->safe_float($balance, 'balance');
             $account = array (
                 'free' => $total,
-                'used' => null,
+                'used' => 0.0,
                 'total' => $total,
             );
             $result[$code] = $account;
@@ -290,39 +299,42 @@ class liquid extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetProductsIdPriceLevels (array_merge (array (
+        $request = array (
             'id' => $this->market_id($symbol),
-        ), $params));
-        return $this->parse_order_book($orderbook, null, 'buy_price_levels', 'sell_price_levels');
+        );
+        $response = $this->publicGetProductsIdPriceLevels (array_merge ($request, $params));
+        return $this->parse_order_book($response, null, 'buy_price_levels', 'sell_price_levels');
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         $last = null;
-        if (is_array ($ticker) && array_key_exists ('last_traded_price', $ticker)) {
+        if (is_array($ticker) && array_key_exists('last_traded_price', $ticker)) {
             if ($ticker['last_traded_price']) {
                 $length = is_array ($ticker['last_traded_price']) ? count ($ticker['last_traded_price']) : 0;
-                if ($length > 0)
+                if ($length > 0) {
                     $last = $this->safe_float($ticker, 'last_traded_price');
+                }
             }
         }
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($ticker, 'id');
-            if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 $baseId = $this->safe_string($ticker, 'base_currency');
                 $quoteId = $this->safe_string($ticker, 'quoted_currency');
-                if (is_array ($this->markets) && array_key_exists ($symbol, $this->markets)) {
+                if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                     $market = $this->markets[$symbol];
                 } else {
                     $symbol = $this->common_currency_code($baseId) . '/' . $this->common_currency_code($quoteId);
                 }
             }
         }
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $change = null;
         $percentage = null;
         $average = null;
@@ -360,10 +372,10 @@ class liquid extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGetProducts ($params);
-        $result = array ();
-        for ($t = 0; $t < count ($tickers); $t++) {
-            $ticker = $this->parse_ticker($tickers[$t]);
+        $response = $this->publicGetProducts ($params);
+        $result = array();
+        for ($i = 0; $i < count ($response); $i++) {
+            $ticker = $this->parse_ticker($response[$i]);
             $symbol = $ticker['symbol'];
             $result[$symbol] = $ticker;
         }
@@ -373,20 +385,21 @@ class liquid extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetProductsId (array_merge (array (
+        $request = array (
             'id' => $market['id'],
-        ), $params));
-        return $this->parse_ticker($ticker, $market);
+        );
+        $response = $this->publicGetProductsId (array_merge ($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_trade ($trade, $market) {
-        // {             id =>  12345,
+        // {             $id =>  12345,
         //         quantity => "6.789",
         //            $price => "98765.4321",
         //       taker_side => "sell",
         //       created_at =>  1512345678,
         //          my_side => "buy"           }
-        $timestamp = $trade['created_at'] * 1000;
+        $timestamp = $this->safe_integer($trade, 'created_at') * 1000;
         $orderId = $this->safe_string($trade, 'order_id');
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         $takerSide = $this->safe_string($trade, 'taker_side');
@@ -394,8 +407,9 @@ class liquid extends Exchange {
         $mySide = $this->safe_string($trade, 'my_side');
         $side = ($mySide !== null) ? $mySide : $takerSide;
         $takerOrMaker = null;
-        if ($mySide !== null)
+        if ($mySide !== null) {
             $takerOrMaker = ($takerSide === $mySide) ? 'taker' : 'maker';
+        }
         $cost = null;
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'quantity');
@@ -404,9 +418,10 @@ class liquid extends Exchange {
                 $cost = $price * $amount;
             }
         }
+        $id = $this->safe_string($trade, 'id');
         return array (
             'info' => $trade,
-            'id' => (string) $trade['id'],
+            'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -427,8 +442,9 @@ class liquid extends Exchange {
         $request = array (
             'product_id' => $market['id'],
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['limit'] = $limit;
+        }
         if ($since !== null) {
             // timestamp should be in seconds, whereas we use milliseconds in $since and everywhere
             $request['timestamp'] = intval ($since / 1000);
@@ -446,8 +462,9 @@ class liquid extends Exchange {
             'product_id' => $market['id'],
             'with_details' => true,
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['limit'] = $limit;
+        }
         $response = $this->privateGetExecutionsMe (array_merge ($request, $params));
         return $this->parse_trades($response['models'], $market, $since, $limit);
     }
@@ -498,7 +515,7 @@ class liquid extends Exchange {
         $order = $this->parse_order($response);
         if ($order['status'] === 'closed') {
             if ($this->options['cancelOrderException']) {
-                throw new OrderNotFound ($this->id . ' $order closed already => ' . $this->json ($response));
+                throw new OrderNotFound($this->id . ' $order closed already => ' . $this->json ($response));
             }
         }
         return $order;
@@ -507,7 +524,7 @@ class liquid extends Exchange {
     public function edit_order ($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         if ($price === null) {
-            throw new ArgumentsRequired ($this->id . ' editOrder requires the $price argument');
+            throw new ArgumentsRequired($this->id . ' editOrder requires the $price argument');
         }
         $request = array (
             'order' => array (
@@ -604,11 +621,11 @@ class liquid extends Exchange {
             $symbol = $market['symbol'];
             $feeCurrency = $market['quote'];
         }
-        $type = $order['order_type'];
+        $type = $this->safe_string($order, 'order_type');
         $tradeCost = 0;
         $tradeFilled = 0;
         $average = $this->safe_float($order, 'average_price');
-        $trades = $this->parse_trades($this->safe_value($order, 'executions', array ()), $market, null, null, array (
+        $trades = $this->parse_trades($this->safe_value($order, 'executions', array()), $market, null, null, array (
             'order' => $orderId,
             'type' => $type,
         ));
@@ -714,24 +731,24 @@ class liquid extends Exchange {
         //                 "funding_currency" => "USD",
         //                 "currency_pair_code" => "BTCUSD",
         //                 "order_fee" => "0.0",
-        //                 "executions" => array (), // optional
+        //                 "executions" => array(), // optional
         //             }
         //         ),
         //         "current_page" => 1,
         //         "total_pages" => 1
         //     }
         //
-        $orders = $this->safe_value($response, 'models', array ());
+        $orders = $this->safe_value($response, 'models', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array ( 'status' => 'live' );
+        $request = array( 'status' => 'live' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array ( 'status' => 'filled' );
+        $request = array( 'status' => 'filled' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
@@ -749,8 +766,9 @@ class liquid extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             if ($method === 'GET') {
-                if ($query)
+                if ($query) {
                     $url .= '?' . $this->urlencode ($query);
+                }
             } else if ($query) {
                 $body = $this->json ($query);
             }
@@ -759,31 +777,33 @@ class liquid extends Exchange {
                 'path' => $url,
                 'nonce' => $nonce,
                 'token_id' => $this->apiKey,
-                'iat' => (int) floor ($nonce / 1000), // issued at
+                'iat' => (int) floor($nonce / 1000), // issued at
             );
-            $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->secret);
+            $headers['X-Quoine-Auth'] = $this->jwt ($request, $this->encode ($this->secret));
         } else {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         }
         $url = $this->urls['api'] . $url;
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if ($code >= 200 && $code < 300)
+        if ($code >= 200 && $code < 300) {
             return;
+        }
         $exceptions = $this->exceptions;
         if ($code === 401) {
             // expected non-json $response
-            if (is_array ($exceptions) && array_key_exists ($body, $exceptions)) {
-                throw new $exceptions[$body] ($this->id . ' ' . $body);
+            if (is_array($exceptions) && array_key_exists($body, $exceptions)) {
+                throw new $exceptions[$body]($this->id . ' ' . $body);
             } else {
                 return;
             }
         }
         if ($code === 429) {
-            throw new DDoSProtection ($this->id . ' ' . $body);
+            throw new DDoSProtection($this->id . ' ' . $body);
         }
         if ($response === null) {
             return;
@@ -793,29 +813,30 @@ class liquid extends Exchange {
         $errors = $this->safe_value($response, 'errors');
         if ($message !== null) {
             //
-            //  array ( "$message" => "Order not found" )
+            //  array( "$message" => "Order not found" )
             //
-            if (is_array ($exceptions) && array_key_exists ($message, $exceptions)) {
-                throw new $exceptions[$message] ($feedback);
+            if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
+                throw new $exceptions[$message]($feedback);
             }
         } else if ($errors !== null) {
             //
-            //  array ( "$errors" => { "user" => ["not_enough_free_balance"] )}
-            //  array ( "$errors" => { "quantity" => ["less_than_order_size"] )}
-            //  array ( "$errors" => { "order" => ["Can not update partially filled order"] )}
+            //  array( "$errors" => { "user" => ["not_enough_free_balance"] )}
+            //  array( "$errors" => { "quantity" => ["less_than_order_size"] )}
+            //  array( "$errors" => { "order" => ["Can not update partially filled order"] )}
             //
-            $types = is_array ($errors) ? array_keys ($errors) : array ();
+            $types = is_array($errors) ? array_keys($errors) : array();
             for ($i = 0; $i < count ($types); $i++) {
                 $type = $types[$i];
                 $errorMessages = $errors[$type];
                 for ($j = 0; $j < count ($errorMessages); $j++) {
                     $message = $errorMessages[$j];
-                    if (is_array ($exceptions) && array_key_exists ($message, $exceptions))
-                        throw new $exceptions[$message] ($feedback);
+                    if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
+                        throw new $exceptions[$message]($feedback);
+                    }
                 }
             }
         } else {
-            throw new ExchangeError ($feedback);
+            throw new ExchangeError($feedback);
         }
     }
 }

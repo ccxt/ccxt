@@ -78,6 +78,7 @@ class bitfinex2 (bitfinex):
                 },
                 'public': {
                     'get': [
+                        'conf/pub:map:currency:label',
                         'platform/status',
                         'tickers',
                         'ticker/{symbol}',
@@ -210,11 +211,12 @@ class bitfinex2 (bitfinex):
         return 'f' + code
 
     async def fetch_markets(self, params={}):
-        markets = await self.v1GetSymbolsDetails()
+        response = await self.v1GetSymbolsDetails(params)
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['pair'].upper()
+        for i in range(0, len(response)):
+            market = response[i]
+            id = self.safe_string(market, 'pair')
+            id = id.upper()
             baseId = id[0:3]
             quoteId = id[3:6]
             base = self.common_currency_code(baseId)
@@ -224,8 +226,8 @@ class bitfinex2 (bitfinex):
             baseId = self.get_currency_id(baseId)
             quoteId = self.get_currency_id(quoteId)
             precision = {
-                'price': market['price_precision'],
-                'amount': market['price_precision'],
+                'price': self.safe_integer(market, 'price_precision'),
+                'amount': self.safe_integer(market, 'price_precision'),
             }
             limits = {
                 'amount': {
@@ -258,7 +260,7 @@ class bitfinex2 (bitfinex):
     async def fetch_balance(self, params={}):
         # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
         await self.load_markets()
-        response = await self.privatePostAuthRWallets()
+        response = await self.privatePostAuthRWallets(params)
         balanceType = self.safe_string(params, 'type', 'exchange')
         result = {'info': response}
         for b in range(0, len(response)):
@@ -310,7 +312,7 @@ class bitfinex2 (bitfinex):
             'datetime': self.iso8601(timestamp),
             'nonce': None,
         }
-        priceIndex = 1 if (fullRequest['precision'] == precision) else 0
+        priceIndex = 1 if (fullRequest['precision'] == 'R0') else 0
         for i in range(0, len(orderbook)):
             order = orderbook[i]
             price = order[priceIndex]
@@ -324,7 +326,7 @@ class bitfinex2 (bitfinex):
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         length = len(ticker)
         last = ticker[length - 4]
@@ -373,9 +375,10 @@ class bitfinex2 (bitfinex):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetTickerSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        ticker = await self.publicGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):

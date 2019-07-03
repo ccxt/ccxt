@@ -54,6 +54,12 @@ class liqui (Exchange):
                 'doc': 'https://liqui.io/api',
                 'fees': 'https://liqui.io/fee',
             },
+            'status': {
+                'status': 'shutdown',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -142,7 +148,7 @@ class liqui (Exchange):
         }
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetInfo()
+        response = await self.publicGetInfo(params)
         markets = response['pairs']
         keys = list(markets.keys())
         result = []
@@ -194,10 +200,10 @@ class liqui (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostGetInfo()
-        balances = response['return']
+        response = await self.privatePostGetInfo(params)
+        balances = self.safe_value(response, 'return')
         result = {'info': balances}
-        funds = balances['funds']
+        funds = self.safe_value(balances, 'funds')
         currencies = list(funds.keys())
         for c in range(0, len(currencies)):
             currency = currencies[c]
@@ -243,9 +249,10 @@ class liqui (Exchange):
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
-        response = await self.publicGetDepthPair(self.extend({
+        request = {
             'pair': ids,
-        }, params))
+        }
+        response = await self.publicGetDepthPair(self.extend(request, params))
         result = {}
         ids = list(response.keys())
         for i in range(0, len(ids)):
@@ -269,7 +276,9 @@ class liqui (Exchange):
         #        sell: 0.03377798,
         #     updated: 1537522009          }
         #
-        timestamp = ticker['updated'] * 1000
+        timestamp = self.safe_integer(ticker, 'updated')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -310,9 +319,10 @@ class liqui (Exchange):
         else:
             ids = self.market_ids(symbols)
             ids = '-'.join(ids)
-        tickers = await self.publicGetTickerPair(self.extend({
+        request = {
             'pair': ids,
-        }, params))
+        }
+        tickers = await self.publicGetTickerPair(self.extend(request, params))
         result = {}
         keys = list(tickers.keys())
         for k in range(0, len(keys)):
@@ -470,29 +480,29 @@ class liqui (Exchange):
             '2': 'canceled',
             '3': 'canceled',  # or partially-filled and still open? https://github.com/ccxt/ccxt/issues/1594
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        id = str(order['id'])
+        id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        timestamp = int(order['timestamp_created']) * 1000
+        timestamp = self.safe_integer(order, 'timestamp_created')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = None
         if market is None:
-            market = self.markets_by_id[order['pair']]
+            marketId = self.safe_string(order, 'pair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        remaining = None
+        remaining = self.safe_float(order, 'amount')
         amount = None
         price = self.safe_float(order, 'rate')
         filled = None
         cost = None
         if 'start_amount' in order:
             amount = self.safe_float(order, 'start_amount')
-            remaining = self.safe_float(order, 'amount')
         else:
-            remaining = self.safe_float(order, 'amount')
             if id in self.orders:
                 amount = self.orders[id]['amount']
         if amount is not None:
@@ -500,6 +510,8 @@ class liqui (Exchange):
                 filled = amount - remaining
                 cost = price * filled
         fee = None
+        type = 'limit'
+        side = self.safe_string(order, 'type')
         result = {
             'info': order,
             'id': id,
@@ -507,8 +519,8 @@ class liqui (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
-            'type': 'limit',
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -590,7 +602,7 @@ class liqui (Exchange):
             market = self.market(symbol)
             request['pair'] = market['id']
         response = await self.privatePostActiveOrders(self.extend(request, params))
-        # liqui etc can only return 'open' orders(i.e. no way to fetch 'closed' orders)
+        # can only return 'open' orders(i.e. no way to fetch 'closed' orders)
         openOrders = []
         if 'return' in response:
             openOrders = self.parse_orders(response['return'], market)
@@ -696,7 +708,7 @@ class liqui (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not self.is_json_encoded_object(body):
+        if response is None:
             return  # fallback to default error handler
         if 'success' in response:
             #

@@ -101,13 +101,18 @@ class bitso (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetAvailableBooks()
+        response = await self.publicGetAvailableBooks(params)
+        markets = self.safe_value(response, 'payload')
         result = []
-        for i in range(0, len(markets['payload'])):
-            market = markets['payload'][i]
-            id = market['book']
-            symbol = id.upper().replace('_', '/')
-            base, quote = symbol.split('/')
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'book')
+            baseId, quoteId = id.split('_')
+            base = baseId.upper()
+            quote = quoteId.upper()
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
+            symbol = base + '/' + quote
             limits = {
                 'amount': {
                     'min': self.safe_float(market, 'minimum_amount'),
@@ -131,6 +136,8 @@ class bitso (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
                 'limits': limits,
                 'precision': precision,
@@ -139,36 +146,43 @@ class bitso (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetBalance()
-        balances = response['payload']['balances']
+        response = await self.privateGetBalance(params)
+        balances = self.safe_value(response['payload'], 'balances')
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency'].upper()
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = currencyId.upper()
             account = {
-                'free': float(balance['available']),
-                'used': float(balance['locked']),
-                'total': float(balance['total']),
+                'free': self.safe_float(balance, 'available'),
+                'used': self.safe_float(balance, 'locked'),
+                'total': self.safe_float(balance, 'total'),
             }
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        response = await self.publicGetOrderBook(self.extend({
+        request = {
             'book': self.market_id(symbol),
-        }, params))
-        orderbook = response['payload']
-        timestamp = self.parse8601(orderbook['updated_at'])
+        }
+        response = await self.publicGetOrderBook(self.extend(request, params))
+        orderbook = self.safe_value(response, 'payload')
+        timestamp = self.parse8601(self.safe_string(orderbook, 'updated_at'))
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
-        response = await self.publicGetTicker(self.extend({
+        request = {
             'book': self.market_id(symbol),
-        }, params))
-        ticker = response['payload']
-        timestamp = self.parse8601(ticker['created_at'])
+        }
+        response = await self.publicGetTicker(self.extend(request, params))
+        ticker = self.safe_value(response, 'payload')
+        timestamp = self.parse8601(self.safe_string(ticker, 'created_at'))
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None
@@ -199,7 +213,7 @@ class bitso (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['created_at'])
+        timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         symbol = None
         if market is None:
             marketId = self.safe_string(trade, 'book')
@@ -207,12 +221,8 @@ class bitso (Exchange):
                 market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        side = self.safe_string(trade, 'side')
-        if side is None:
-            side = self.safe_string(trade, 'maker_side')
-        amount = self.safe_float(trade, 'amount')
-        if amount is None:
-            amount = self.safe_float(trade, 'major')
+        side = self.safe_string_2(trade, 'side', 'maker_side')
+        amount = self.safe_float_2(trade, 'amount', 'major')
         if amount is not None:
             amount = abs(amount)
         fee = None
@@ -231,8 +241,9 @@ class bitso (Exchange):
             cost = abs(cost)
         price = self.safe_float(trade, 'price')
         orderId = self.safe_string(trade, 'oid')
+        id = self.safe_string(trade, 'tid')
         return {
-            'id': str(trade['tid']),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -240,6 +251,7 @@ class bitso (Exchange):
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -249,9 +261,10 @@ class bitso (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetTrades(self.extend({
+        request = {
             'book': market['id'],
-        }, params))
+        }
+        response = await self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response['payload'], market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=25, params={}):
@@ -281,32 +294,34 @@ class bitso (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        order = {
+        request = {
             'book': self.market_id(symbol),
             'side': side,
             'type': type,
             'major': self.amount_to_precision(symbol, amount),
         }
         if type == 'limit':
-            order['price'] = self.price_to_precision(symbol, price)
-        response = await self.privatePostOrders(self.extend(order, params))
+            request['price'] = self.price_to_precision(symbol, price)
+        response = await self.privatePostOrders(self.extend(request, params))
+        id = self.safe_string(response['payload'], 'oid')
         return {
             'info': response,
-            'id': response['payload']['oid'],
+            'id': id,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privateDeleteOrdersOid({'oid': id})
+        request = {
+            'oid': id,
+        }
+        return await self.privateDeleteOrdersOid(self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
             'partial-fill': 'open',  # self is a common substitution in ccxt
             'completed': 'closed',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'oid')
@@ -393,9 +408,10 @@ class bitso (Exchange):
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privateGetOrderTradesOid({
+        request = {
             'oid': id,
-        })
+        }
+        response = await self.privateGetOrderTradesOid(self.extend(request, params))
         return self.parse_trades(response['payload'], market)
 
     async def fetch_deposit_address(self, code, params={}):
@@ -468,32 +484,29 @@ class bitso (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            if 'success' in response:
-                #
-                #     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
-                #
-                success = self.safe_value(response, 'success', False)
-                if isinstance(success, basestring):
-                    if (success == 'true') or (success == '1'):
-                        success = True
-                    else:
-                        success = False
-                if not success:
-                    feedback = self.id + ' ' + self.json(response)
-                    error = self.safe_value(response, 'error')
-                    if error is None:
-                        raise ExchangeError(feedback)
-                    code = self.safe_string(error, 'code')
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        raise exceptions[code](feedback)
-                    else:
-                        raise ExchangeError(feedback)
+        if 'success' in response:
+            #
+            #     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
+            #
+            success = self.safe_value(response, 'success', False)
+            if isinstance(success, basestring):
+                if (success == 'true') or (success == '1'):
+                    success = True
+                else:
+                    success = False
+            if not success:
+                feedback = self.id + ' ' + self.json(response)
+                error = self.safe_value(response, 'error')
+                if error is None:
+                    raise ExchangeError(feedback)
+                code = self.safe_string(error, 'code')
+                exceptions = self.exceptions
+                if code in exceptions:
+                    raise exceptions[code](feedback)
+                else:
+                    raise ExchangeError(feedback)
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)

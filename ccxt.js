@@ -26,8 +26,6 @@ SOFTWARE.
 
 */
 
-"use strict";
-
 //-----------------------------------------------------------------------------
 
 const Exchange  = require ('./js/base/Exchange')
@@ -37,7 +35,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.630'
+const version = '1.18.869'
 
 Exchange.ccxtVersion = version
 
@@ -48,7 +46,6 @@ const exchanges = {
     'acx':                     require ('./js/acx.js'),
     'allcoin':                 require ('./js/allcoin.js'),
     'anxpro':                  require ('./js/anxpro.js'),
-    'anybits':                 require ('./js/anybits.js'),
     'bcex':                    require ('./js/bcex.js'),
     'bequant':                 require ('./js/bequant.js'),
     'bibox':                   require ('./js/bibox.js'),
@@ -63,12 +60,10 @@ const exchanges = {
     'bitflyer':                require ('./js/bitflyer.js'),
     'bitforex':                require ('./js/bitforex.js'),
     'bithumb':                 require ('./js/bithumb.js'),
-    'bitibu':                  require ('./js/bitibu.js'),
     'bitkk':                   require ('./js/bitkk.js'),
     'bitlish':                 require ('./js/bitlish.js'),
     'bitmarket':               require ('./js/bitmarket.js'),
     'bitmex':                  require ('./js/bitmex.js'),
-    'bitsane':                 require ('./js/bitsane.js'),
     'bitso':                   require ('./js/bitso.js'),
     'bitstamp':                require ('./js/bitstamp.js'),
     'bitstamp1':               require ('./js/bitstamp1.js'),
@@ -87,7 +82,6 @@ const exchanges = {
     'btcturk':                 require ('./js/btcturk.js'),
     'buda':                    require ('./js/buda.js'),
     'bxinth':                  require ('./js/bxinth.js'),
-    'ccex':                    require ('./js/ccex.js'),
     'cex':                     require ('./js/cex.js'),
     'chbtc':                   require ('./js/chbtc.js'),
     'chilebit':                require ('./js/chilebit.js'),
@@ -123,11 +117,9 @@ const exchanges = {
     'flowbtc':                 require ('./js/flowbtc.js'),
     'foxbit':                  require ('./js/foxbit.js'),
     'fybse':                   require ('./js/fybse.js'),
-    'fybsg':                   require ('./js/fybsg.js'),
     'gateio':                  require ('./js/gateio.js'),
     'gdax':                    require ('./js/gdax.js'),
     'gemini':                  require ('./js/gemini.js'),
-    'getbtc':                  require ('./js/getbtc.js'),
     'hadax':                   require ('./js/hadax.js'),
     'hitbtc':                  require ('./js/hitbtc.js'),
     'hitbtc2':                 require ('./js/hitbtc2.js'),
@@ -138,7 +130,6 @@ const exchanges = {
     'independentreserve':      require ('./js/independentreserve.js'),
     'indodax':                 require ('./js/indodax.js'),
     'itbit':                   require ('./js/itbit.js'),
-    'jubi':                    require ('./js/jubi.js'),
     'kkex':                    require ('./js/kkex.js'),
     'kraken':                  require ('./js/kraken.js'),
     'kucoin':                  require ('./js/kucoin.js'),
@@ -163,7 +154,6 @@ const exchanges = {
     'okex3':                   require ('./js/okex3.js'),
     'paymium':                 require ('./js/paymium.js'),
     'poloniex':                require ('./js/poloniex.js'),
-    'quadrigacx':              require ('./js/quadrigacx.js'),
     'rightbtc':                require ('./js/rightbtc.js'),
     'southxchange':            require ('./js/southxchange.js'),
     'stronghold':              require ('./js/stronghold.js'),
@@ -172,9 +162,7 @@ const exchanges = {
     'therock':                 require ('./js/therock.js'),
     'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
-    'uex':                     require ('./js/uex.js'),
     'upbit':                   require ('./js/upbit.js'),
-    'urdubit':                 require ('./js/urdubit.js'),
     'vaultoro':                require ('./js/vaultoro.js'),
     'vbtc':                    require ('./js/vbtc.js'),
     'virwox':                  require ('./js/virwox.js'),

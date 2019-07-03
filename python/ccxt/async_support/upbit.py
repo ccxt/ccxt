@@ -28,7 +28,7 @@ class upbit (Exchange):
             'has': {
                 'CORS': True,
                 'createDepositAddress': True,
-                'createMarketOrder': False,
+                'createMarketOrder': True,
                 'fetchDepositAddress': True,
                 'fetchClosedOrders': True,
                 'fetchMyTrades': False,
@@ -132,13 +132,17 @@ class upbit (Exchange):
                     'thirdparty_agreement_required': PermissionDenied,
                     'out_of_scope': PermissionDenied,
                     'order_not_found': OrderNotFound,
-                    'insufficient_funds_ask': InsufficientFunds,
-                    'insufficient_funds_bid': InsufficientFunds,
+                    'insufficient_funds': InsufficientFunds,
                     'invalid_access_key': AuthenticationError,
                     'jwt_verification': AuthenticationError,
+                    'create_ask_error': ExchangeError,
+                    'create_bid_error': ExchangeError,
+                    'volume_too_large': InvalidOrder,
+                    'invalid_funds': InvalidOrder,
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': True,
                 'fetchTickersMaxLength': 4096,  # 2048,
                 'fetchOrderBooksMaxLength': 4096,  # 2048,
                 'symbolSeparator': '-',
@@ -412,20 +416,18 @@ class upbit (Exchange):
         #                  modified:  False    }   ]
         #
         result = {'info': response}
-        indexed = self.index_by(response, 'currency')
-        ids = list(indexed.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            currency = self.common_currency_code(id)
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             account = self.account()
-            balance = indexed[id]
-            free = self.safe_float(balance, 'balance')
-            used = self.safe_float(balance, 'locked')
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
-            result[currency] = account
+            account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'locked')
+            result[code] = account
         return self.parse_balance(result)
 
     def get_symbol_from_market_id(self, marketId, market=None):
@@ -629,7 +631,7 @@ class upbit (Exchange):
         #                    ask_bid: "ASK",
         #              sequential_id:  15428949259430000}
         #
-        # fetchOrder
+        # fetchOrder trades
         #
         #         {
         #             "market": "KRW-BTC",
@@ -692,6 +694,7 @@ class upbit (Exchange):
             'symbol': symbol,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -800,8 +803,14 @@ class upbit (Exchange):
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise InvalidOrder(self.id + ' createOrder allows limit orders onlynot ')
+        if type == 'market':
+            # for market buy it requires the amount of quote currency to spend
+            if side == 'buy':
+                if self.options['createMarketBuyOrderRequiresPrice']:
+                    if price is None:
+                        raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
+                    else:
+                        amount = amount * price
         orderSide = None
         if side == 'buy':
             orderSide = 'bid'
@@ -814,10 +823,18 @@ class upbit (Exchange):
         request = {
             'market': market['id'],
             'side': orderSide,
-            'volume': self.amount_to_precision(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
-            'ord_type': type,
         }
+        if type == 'limit':
+            request['volume'] = self.amount_to_precision(symbol, amount)
+            request['price'] = self.price_to_precision(symbol, price)
+            request['ord_type'] = type
+        elif type == 'market':
+            if side == 'buy':
+                request['ord_type'] = 'price'
+                request['price'] = self.price_to_precision(symbol, amount)
+            elif side == 'sell':
+                request['ord_type'] = type
+                request['volume'] = self.amount_to_precision(symbol, amount)
         response = await self.privatePostOrders(self.extend(request, params))
         #
         #     {
@@ -1058,9 +1075,9 @@ class upbit (Exchange):
         #                 "price": "101000.0",
         #                 "volume": "0.22631677",
         #                 "funds": "22857.99377",
-        #                 "ask_fee": "34.286990655",
-        #                 "bid_fee": "34.286990655",
-        #                 "created_at": "2018-04-05T14:09:15+09:00",
+        #                 "ask_fee": "34.286990655",  # missing in market orders
+        #                 "bid_fee": "34.286990655",  # missing in market orders
+        #                 "created_at": "2018-04-05T14:09:15+09:00",  # missing in market orders
         #                 "side": "bid",
         #             },
         #         ],
@@ -1081,14 +1098,11 @@ class upbit (Exchange):
         remaining = self.safe_float(order, 'remaining_volume')
         filled = self.safe_float(order, 'executed_volume')
         cost = None
-        average = price  # they support limit orders only for now
-        if cost is None:
-            if (price is not None) and(filled is not None):
-                cost = price * filled
-        orderTrades = self.safe_value(order, 'trades')
-        trades = None
-        if orderTrades is not None:
-            trades = self.parse_trades(orderTrades)
+        if type == 'price':
+            type = 'market'
+            cost = price
+            price = None
+        average = None
         fee = None
         feeCost = self.safe_float(order, 'paid_fee')
         feeCurrency = None
@@ -1104,19 +1118,26 @@ class upbit (Exchange):
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             feeCurrency = quote
-        if trades is not None:
-            numTrades = len(trades)
-            if numTrades > 0:
-                if lastTradeTimestamp is None:
-                    lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-                if feeCost is None:
-                    for i in range(0, numTrades):
-                        tradeFee = self.safe_value(trades[i], 'fee', {})
-                        tradeFeeCost = self.safe_float(tradeFee, 'cost')
-                        if tradeFeeCost is not None:
-                            if feeCost is None:
-                                feeCost = 0
-                            feeCost = self.sum(feeCost, tradeFeeCost)
+        trades = self.safe_value(order, 'trades', [])
+        trades = self.parse_trades(trades, market, None, None, {'order': id})
+        numTrades = len(trades)
+        if numTrades > 0:
+            # the timestamp in fetchOrder trades is missing
+            lastTradeTimestamp = trades[numTrades - 1]['timestamp']
+            getFeesFromTrades = False
+            if feeCost is None:
+                getFeesFromTrades = True
+                feeCost = 0
+            cost = 0
+            for i in range(0, numTrades):
+                trade = trades[i]
+                cost = self.sum(cost, trade['cost'])
+                if getFeesFromTrades:
+                    tradeFee = self.safe_value(trades[i], 'fee', {})
+                    tradeFeeCost = self.safe_float(tradeFee, 'cost')
+                    if tradeFeeCost is not None:
+                        feeCost = self.sum(feeCost, tradeFeeCost)
+            average = cost / filled
         if feeCost is not None:
             fee = {
                 'currency': feeCurrency,
@@ -1386,7 +1407,7 @@ class upbit (Exchange):
             }
             if query:
                 request['query'] = self.urlencode(query)
-            jwt = self.jwt(request, self.secret)
+            jwt = self.jwt(request, self.encode(self.secret))
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             }

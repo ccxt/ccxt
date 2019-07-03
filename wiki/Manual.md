@@ -21,8 +21,8 @@ The structure of the library can be outlined as follows:
     |       fetchTickers           .            fetchOrders       |
     |       fetchOrderBook         .        fetchOpenOrders       |
     |       fetchOHLCV             .      fetchClosedOrders       |
-    |       fetchTrades            .          fetchMyTrades       |
-    |                              .                deposit       |
+    |       fetchStatus            .          fetchMyTrades       |
+    |       fetchTrades            .                deposit       |
     |                              .               withdraw       |
     │                              .                              |
     +=============================================================+
@@ -364,6 +364,7 @@ Here's an overview of base exchange properties with values added for example:
         'fetchOrder': false,
         'fetchOrderBook': true,
         'fetchOrders': false,
+        'fetchStatus': 'emulated',
         'fetchTicker': true,
         'fetchTickers': false,
         'fetchBidsAsks': false,
@@ -453,6 +454,8 @@ Below is a detailed description of each of the base exchange properties:
 
 - `options`: An exchange-specific associative dictionary containing special keys and options that are accepted by the underlying exchange and supported in CCXT.
 
+- `precisionMode`: The exchange decimal precision counting mode, read more about [Precision And Limits](#precision-and-limits)
+
 See this section on [Overriding exchange properties](https://github.com/ccxt/ccxt/wiki/Manual#overriding-exchange-properties-upon-instantiation).
 
 #### Exchange Metadata
@@ -484,6 +487,7 @@ See this section on [Overriding exchange properties](https://github.com/ccxt/ccx
         'fetchOrder': false,
         'fetchOrderBook': true,
         'fetchOrders': false,
+        'fetchStatus': 'emulated',
         'fetchTicker': true,
         'fetchTickers': false,
         'fetchBidsAsks': false,
@@ -598,13 +602,15 @@ In terms of the ccxt library, every exchange offers multiple markets within itse
 
 ```JavaScript
 {
-    'id':     'btcusd',   // string literal for referencing within an exchange
-    'symbol': 'BTC/USD',  // uppercase string literal of a pair of currencies
-    'base':   'BTC',      // uppercase string, base currency, 3 or more letters
-    'quote':  'USD',      // uppercase string, quote currency, 3 or more letters
+    'id':     ' btcusd',  // string literal for referencing within an exchange
+    'symbol':  'BTC/USD', // uppercase string literal of a pair of currencies
+    'base':    'BTC',     // uppercase string, unified base currency code, 3 or more letters
+    'quote':   'USD',     // uppercase string, unified quote currency code, 3 or more letters
+    'baseId':  'btc',     // any string, exchange-specific base currency id
+    'quoteId': 'usd',     // any string, exchange-specific quote currency id
     'active': true,       // boolean, market status
     'precision': {        // number of decimal digits "after the dot"
-        'price': 8,       // integer, might be missing if not supplied by the exchange
+        'price': 8,       // integer or float for TICK_SIZE roundingMode, might be missing if not supplied by the exchange
         'amount': 8,      // integer, might be missing if not supplied by the exchange
         'cost': 8,        // integer, very few exchanges actually have it
     },
@@ -624,8 +630,10 @@ Each market is an associative array (aka dictionary) with the following keys:
 
 - `id`. The string or numeric ID of the market or trade instrument within the exchange. Market ids are used inside exchanges internally to identify trading pairs during the request/response process.
 - `symbol`. An uppercase string code representation of a particular trading pair or instrument. This is usually written as `BaseCurrency/QuoteCurrency` with a slash as in `BTC/USD`, `LTC/CNY` or `ETH/EUR`, etc. Symbols are used to reference markets within the ccxt library (explained below).
-- `base`. An uppercase string code of base fiat or crypto currency.
-- `quote`. An uppercase string code of quoted fiat or crypto currency.
+- `base`. A unified uppercase string code of base fiat or crypto currency. This is the standardized currency code that is used to refer to that currency or token throughout CCXT and throughout the Unified CCXT API, it's the language that CCXT understands.
+- `quote`. A unified uppercase string code of quoted fiat or crypto currency.
+- `baseId`. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
+- `quoteId`. An exchange-specific id of the quote currency, not unified.
 - `active`. A boolean indicating whether or not trading this market is currently possible. Often, when a market is inactive, all corresponding tickers, orderbooks and other related endpoints return empty responses, all zeroes, no data or outdated data for that market. The user should check if the market is active and [reload market cache periodically, as explained below](#market-cache-force-reload).
 - `info`. An associative array of non-common market properties, including fees, rates, limits and other general market information. The internal info array is different for each particular market, its contents depend on the exchange.
 - `precision`. The amounts of decimal digits accepted in order values by exchanges upon order placement for price, amount and cost.
@@ -699,6 +707,26 @@ The above values can be missing with some exchanges that don't provide info on l
 
 #### Methods For Formatting Decimals
 
+Each exchange has its own rounding, counting and padding modes.
+
+Supported rounding modes are:
+
+- `ROUND` – will round the last decimal digits to precision
+- `TRUNCATE`– will cut off the digits after certain precision
+
+The decimal precision counting mode is available in the `exchange.precisionMode` property.
+
+Supported counting modes are:
+
+- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode
+- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals
+- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` uses this mode)
+
+Supported padding modes are:
+
+- `NO_PADDING` – default for most cases
+- `PAD_WITH_ZERO` – appends zero characters up to precision
+
 The exchange base class contains the `decimalToPrecision` method to help format values to the required decimal precision with support for different rounding, counting and padding modes.
 
 ```JavaScript
@@ -716,21 +744,6 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 // PHP
 function decimalToPrecision ($x, $roundingMode = ROUND, $numPrecisionDigits = null, $countingMode = DECIMAL_PLACES, $paddingMode = NO_PADDING)
 ```
-
-Supported rounding modes are:
-
-- `ROUND` – will round the last decimal digits to precision
-- `TRUNCATE`– will cut off the digits after certain precision
-
-Supported counting modes are:
-
-- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode
-- `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals
-
-Supported padding modes are:
-
-- `NO_PADDING` – default for most cases
-- `PAD_WITH_ZERO` – appends zero characters up to precision
 
 For examples of how to use the `decimalToPrecision` to format strings and floats, please, see the following files:
 
@@ -764,11 +777,11 @@ print (okcoin.id, markets)
 
 ```PHP
 // PHP
-$id = 'huobi';
+$id = 'huobipro';
 $exchange = '\\ccxt\\' . $id;
-$huobi = new $exchange ();
-$markets = $huobi->load_markets ();
-var_dump ($huobi->id, $markets);
+$huobipro = new $exchange ();
+$markets = $huobipro->load_markets ();
+var_dump ($huobipro->id, $markets);
 ```
 
 ## Symbols And Market Ids
@@ -899,6 +912,18 @@ Each exchange has an associative array of substitutions for cryptocurrency symbo
 - If market cap of a particular coin is unknown or is not enough to determine the winner, we also take trading volumes and other factors into consideration.
 - When the winner is determined all other competing currencies get their code names properly remapped and substituted within conflicting exchanges via `.commonCurrencies`.
 - Unfortunately this is a work in progress, because new currencies get listed daily and new exchanges are added from time to time, so, in general this is a never-ending process of self-correction in a quickly changing environment, practically, in *"live mode"*. We are thankful for all reported conflicts and mismatches you may find.
+
+#### Questions On Naming Consistency
+
+**_Is it possible for symbols to change?_**
+
+In short, yes, sometimes, but rarely. Symbolic mappings can be changed if that is absolutely required and cannot be avoided. However, all previous symbolic changes were related to resolving conflicts or forks. So far, there was no precedent of a market cap of one coin overtaking another coin with the same symbolic code in CCXT.
+
+**_Can we rely on always listing the same crypto with the same symbol?_**
+
+More or less ) First, this library is a work in progress, and it is trying to adapt to the everchanging reality, so there may be conflicts that we will fix by changing some mappings in the future. Ultimately, the license says "no warranties, use at your own risk". However, we don't change symbolic mappings randomly all over the place, because we understand the consequences and we'd want to rely on the library as well and we don't like to break the backward-compatibility at all.
+
+If it so happens that a symbol of a major token is forked or has to be changed, then the control is still in the users' hands. The `exchange.commonCurrencies` property can be [overrided upon initialization or later](#overriding-exchange-properties-upon-instantiation), just like any other exchange property.  If a significant token is involved, we usually post instructions on how to retain the old behavior by adding a couple of lines to the constructor params.
 
 #### Consistency Of Base And Quote Currencies
 
@@ -1122,6 +1147,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchMarkets ()`: Fetches a list of all available markets from an exchange and returns an array of markets (objects with properties such as `symbol`, `base`, `quote` etc.). Some exchanges do not have means for obtaining a list of markets via their online API. For those, the list of markets is hardcoded.
 - `loadMarkets ([reload])`: Returns the list of markets as an object indexed by symbol and caches it with the exchange instance. Returns cached markets if loaded already, unless the `reload = true` flag is forced.
 - `fetchOrderBook (symbol[, limit = undefined[, params = {}]])`: Fetch L2/L3 order book for a particular market trading symbol.
+- `fetchStatus ([, params = {}])`: Returns information regarding the exchange status from either the info hardcoded in the exchange instance or the API, if available.
 - `fetchL2OrderBook (symbol[, limit = undefined[, params]])`: Level 2 (price-aggregated) order book for a particular symbol.
 - `fetchTrades (symbol[, since[, [limit, [params]]]])`: Fetch recent trades for a particular trading symbol.
 - `fetchTicker (symbol)`: Fetch latest ticker data by trading symbol.
@@ -1650,8 +1676,8 @@ To get historical prices and volumes use the unified [`fetchOHLCV`](https://gith
 
 Methods for fetching tickers:
 
-- `fetchTicker (symbol[, params = {}]) // symbol is required, params are optional`
-- `fetchTickers ([symbols = undefined[, params = {}]]) // both argument are optional (mostly)`
+- `fetchTicker (symbol[, params = {}])`, symbol is required, params are optional
+- `fetchTickers ([symbols = undefined[, params = {}]])`, both arguments optional
 
 ### Individually By Symbol
 
@@ -1915,6 +1941,13 @@ The second optional argument `since` reduces the array by timestamp, the third `
 
 If the user does not specify `since`, the `fetchTrades` method will return the default range of public trades from the exchange. The default set is exchange-specific, some exchanges will return trades starting from the date of listing a pair on the exchange, other exchanges will return a reduced set of trades (like, last 24 hours, last 100 trades, etc). If the user wants precise control over the timeframe, the user is responsible for specifying the `since` argument.
 
+Most of unified methods will return either a single object or a plain array (a list) of objects (trades). However, very few exchanges (if any at all) will return all trades at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
+
+To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
+
+In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently.
+
+On the other hand, **some exchanges don't support pagination for public trades at all**. In general the exchanges will provide just the most recent trades.
 
 The `fetchTrades ()` / `fetch_trades()` method also accepts an optional `params` (assoc-key array/dict, empty by default) as its fourth argument. You can use it to pass extra params to method calls or to override a particular default value (where supported by the exchange). See the API docs for your exchange for more details.
 
@@ -2391,12 +2424,16 @@ The exchange will close your market order for the best price available. You are 
 
 ```
 // camelCaseNotation
-exchange.createMarketBuyOrder (symbol, amount[, params])
 exchange.createMarketSellOrder (symbol, amount[, params])
+exchange.createMarketBuyOrder (symbol, amount[, params])
 
 // underscore_notation
-exchange.create_market_buy_order (symbol, amount[, params])
 exchange.create_market_sell_order (symbol, amount[, params])
+exchange.create_market_buy_order (symbol, amount[, params])
+
+// using general createOrder, type = 'market' and side = 'buy' or 'sell'
+exchange.createOrder (symbol, 'market', 'sell', amount, ...)
+exchange.create_order (symbol, 'market', 'buy', amount, ...)
 ```
 
 **Note, that some exchanges will not accept market orders (they allow limit orders only).** In order to detect programmatically if the exchange in question does support market orders or not, you can use the `.has['createMarketOrder']` exchange property:
@@ -2420,6 +2457,89 @@ if ($exchange->has['createMarketOrder']) {
     ...
 }
 ```
+
+##### Market Buys
+
+In general, when placing a `market buy` or `market sell` order the user has to specify just the amount of the base currency to buy or sell. However, with some exchanges market buy orders implement a different approach to calculating the value of the order.
+
+Suppose you're trading BTC/USD and the current market price for BTC is over 9000 USD. For a market buy or market sell you could specify an `amount` of 2 BTC and that would result in _plus or minus_ 18000 USD (more or less ;)) on your account, depending on the side of the order.
+
+**With market buys some exchanges require the total cost of the order in the quote currency!** The logic behind it is simple, instead of taking the amount of base currency to buy or sell some exchanges operate with _"how much quote currency you want to spend on buying in total"_.
+
+To place a market buy order with those exchanges you would not specify an amount of 2 BTC, instead you should somehow specify the total cost of the order, that is, 18000 USD in this example. The exchanges that treat `market buy` orders in this way have an exchange-specific option `createMarketBuyOrderRequiresPrice` that allows specifying the total cost of a `market buy` order in two ways.
+
+The first is the default and if you specify the `price` along with the `amount` the total cost of the order would be calculated inside the lib from those two values with a simple multiplication (`cost = amount * price`). The resulting `cost` would be the amount in USD quote currency that will be spent on this particular market buy order.
+
+```JavaScript
+// this example is oversimplified and doesn't show all the code that is
+// required to handle the errors and exchange metadata properly
+// it shows just the concept of placing a market buy order
+
+const exchange = new ccxt.cex ({
+    'apiKey': YOUR_API_KEY,
+    'secret': 'YOUR_SECRET',
+    'enableRateLimit': true,
+    // 'options': {
+    //     'createMarketBuyOrderRequiresPrice': true, // default
+    // },
+})
+
+;(async () => {
+
+    // when `createMarketBuyOrderRequiresPrice` is true, we can pass the price
+    // so that the total cost of the order would be calculated inside the library
+    // by multiplying the amount over price (amount * price)
+
+    const symbol = 'BTC/USD'
+    const amount = 2 // BTC
+    const price = 9000 // USD
+    // cost = amount * price = 2 * 9000 = 18000 (USD)
+
+    // note that we don't use createMarketBuyOrder here, instead we use createOrder
+    // createMarketBuyOrder will omit the price and will not work when
+    // exchange.options['createMarketBuyOrderRequiresPrice'] = true
+    const order = await exchange.createOrder (symbol, 'market', 'buy', amount, price)
+
+    console.log (order)
+})
+```
+
+The second alternative is useful in cases when the user wants to calculate and specify the resulting total cost of the order himself. That can be done by setting the `createMarketBuyOrderRequiresPrice` option to `false` to switch it off:
+
+```JavaScript
+const exchange = new ccxt.cex ({
+    'apiKey': YOUR_API_KEY,
+    'secret': 'YOUR_SECRET',
+    'enableRateLimit': true,
+    'options': {
+        'createMarketBuyOrderRequiresPrice': false, // switch off
+    },
+})
+
+// or, to switch it off later, after the exchange instantiation, you can do
+exchange.options['createMarketBuyOrderRequiresPrice'] = false
+
+;(async () => {
+
+    // when `createMarketBuyOrderRequiresPrice` is true, we can pass the price
+    // so that the total cost of the order would be calculated inside the library
+    // by multiplying the amount over price (amount * price)
+
+    const symbol = 'BTC/USD'
+    const amount = 2 // BTC
+    const price = 9000 // USD
+    cost = amount * price // ← instead of the amount cost goes ↓ here
+    const order = await exchange.createMarketBuyOrder (symbol, cost)
+    console.log (order)
+})
+```
+
+More about it:
+
+- https://github.com/ccxt/ccxt/issues/564#issuecomment-347458566
+- https://github.com/ccxt/ccxt/issues/4914#issuecomment-478199357
+- https://github.com/ccxt/ccxt/issues/4799#issuecomment-470966769
+- https://github.com/ccxt/ccxt/issues/5197#issuecomment-496270785
 
 ##### Emulating Market Orders With Limit Orders
 
@@ -2593,19 +2713,32 @@ A seller decides to place a sell limit order on the ask side for a price of 0.70
 
 As the price and amount of the incoming sell (ask) order cover more than one bid order (orders `b` and `i`), the following sequence of events usually happens within an exchange engine very quickly, but not immediately:
 
-1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for this filled part of the order the seller gets a better price than he asked for initially (0.8 instead of 0.7). Most conventional exchanges fill orders for the best price available.
+1. Order `b` is matched against the incoming sell because their prices intersect. Their volumes *"mutually annihilate"* each other, so, the bidder gets 100 for a price of 0.800. The seller (asker) will have his sell order partially filled by bid volume 100 for a price of 0.800. Note that for the filled part of the order the seller gets a better price than he asked for initially. He asked for 0.7 at least but got 0.8 instead which is even better for the seller. Most conventional exchanges fill orders for the best price available.
 
-2. A trade is generated for the order `b` against the incoming sell order. That trade *"fills"* the entire order `b` and most of the sell order. One trade is generated per each pair of matched orders, whether the amount was filled completely or partially. In this example the amount of 100 fills order `b` completely (closed the order `b`) and also fills the selling order partially (leaves it open in the orderbook).
+2. A trade is generated for the order `b` against the incoming sell order. That trade *"fills"* the entire order `b` and most of the sell order. One trade is generated per each pair of matched orders, whether the amount was filled completely or partially. In this example the seller amount (100) fills order `b` completely (closes the order `b`) and also fills the selling order partially (leaves it open in the orderbook).
 
-3. Order `b` now has a status of `closed` and a filled volume of 100. It contains one trade against the selling order. The selling order has `open` status and a filled volume of 100. It contains one trade against order `b`. Thus each order has just one fill-trade so far.
+3. Order `b` now has a status of `closed` and a filled volume of 100. It contains one trade against the selling order. The selling order has an `open` status and a filled volume of 100. It contains one trade against order `b`. Thus each order has just one fill-trade so far.
 
-3. The incoming sell order has a filled amount of 100 and has yet to fill the remaining amount of 50 from its initial amount of 150 in total.
+4. The incoming sell order has a filled amount of 100 and has yet to fill the remaining amount of 50 from its initial amount of 150 in total.
 
-4. Order `i` is matched against the remaining part of incoming sell, because their prices intersect. The amount of buying order `i` which is 200 completely annihilates the remaining sell amount of 50. The order `i` is filled partially by 50, but the rest of its volume, namely the remaining amount of 150 will stay in the orderbook. The selling order, however, is filled completely by this second match.
+The intermediate state of the orderbook is now (order `b` is `closed` and is not in the orderbook anymore):
 
-5. A trade is generated for the order `i` against the incoming sell order. That trade partially fills order `i`. And completes the filling of the sell order. Again, this is just one trade for a pair of matched orders.
+```
+    | price  | amount
+----|----------------  ↓
+  a |  1.200 | 200     ↓
+  s |  1.100 | 300     ↓
+  k |  0.900 | 100     ↓
+----|----------------  ↓ sell remaining 50 for 0.700
+  i |  0.700 | 200     -----------------------------
+  d |  0.500 | 100
+```
 
-6. Order `i` now has a status of `open`, a filled amount of 50, and a remaining amount of 150. It contains one filling trade against the selling order. The selling order has a `closed` status now, as it was completely filled its total initial amount of 150. However, it contains two trades, the first against order `b` and the second against order `i`. Thus each order can have one or more filling trades, depending on how their volumes were matched by the exchange engine.
+5. Order `i` is matched against the remaining part of incoming sell, because their prices intersect. The amount of buying order `i` which is 200 completely annihilates the remaining sell amount of 50. The order `i` is filled partially by 50, but the rest of its volume, namely the remaining amount of 150 will stay in the orderbook. The selling order, however, is fulfilled completely by this second match.
+
+6. A trade is generated for the order `i` against the incoming sell order. That trade partially fills order `i`. And completes the filling of the sell order. Again, this is just one trade for a pair of matched orders.
+
+7. Order `i` now has a status of `open`, a filled amount of 50, and a remaining amount of 150. It contains one filling trade against the selling order. The selling order has a `closed` status now and it has completely filled its total initial amount of 150. However, it contains two trades, the first against order `b` and the second against order `i`. Thus each order can have one or more filling trades, depending on how their volumes were matched by the exchange engine.
 
 After the above sequence takes place, the updated orderbook will look like this.
 
@@ -2623,7 +2756,13 @@ After the above sequence takes place, the updated orderbook will look like this.
 Notice that the order `b` has disappeared, the selling order also isn't there. All closed and fully-filled orders disappear from the orderbook. The order `i` which was filled partially and still has a remaining volume and an `open` status, is still there.
 
 
-### Recent Trades
+### Personal Trades
+
+Most of unified methods will return either a single object or a plain array (a list) of objects (trades). However, very few exchanges (if any at all) will return all trades at once. Most often their APIs `limit` output to a certain number of most recent objects. **YOU CANNOT GET ALL OBJECTS SINCE THE BEGINNING OF TIME TO THE PRESENT MOMENT IN JUST ONE CALL**. Practically, very few exchanges will tolerate or allow that.
+
+To fetch historical trades, the user will need to traverse the data in portions or "pages" of objects. Pagination often implies *"fetching portions of data one by one"* in a loop.
+
+In most cases users are **required to use at least some type of pagination** in order to get the expected results consistently.
 
 ```JavaScript
 // JavaScript
@@ -2665,7 +2804,7 @@ Returns ordered array `[]` of trades (most recent trade last).
     'order':        '12345-67890:09876/54321',  // string order id or undefined/None/null
     'type':         'limit',                    // order type, 'market', 'limit' or undefined/None/null
     'side':         'buy',                      // direction of the trade, 'buy' or 'sell'
-    'takerOrMaker': 'taker'                     // string, 'taker' or 'maker'
+    'takerOrMaker': 'taker',                    // string, 'taker' or 'maker'
     'price':        0.06917684,                 // float price in quote currency
     'amount':       1.5,                        // amount of base currency
     'cost':         0.10376526,                 // total cost (including fees), `price * amount`
@@ -2942,6 +3081,38 @@ Because this is still a work in progress, some or all of methods and info descri
 }
 ```
 
+### Exchange Status
+
+The exchange status describes the latest known information on the availability of the exchange API. This information is either hardcoded into the exchange class or fetched live directly from the exchange API. The `fetchStatus(params = {})` method can be used to get this information. The status returned by `fetchStatus` is one of:
+
+- Hardcoded into the exchange class, e.g. if the API has been broken or shutdown.
+- Updated using the exchange ping or `fetchTime` endpoint to see if its alive
+- Updated using the dedicated exchange API status endpoint.
+
+```Javascript
+fetchStatus(params = {})
+ ```
+
+#### Exchange Status Structure
+
+The `fetchStatus()` method will return a status structure like shown below:
+
+```Javascript
+{
+    'status': 'ok' // 'ok', 'shutdown', 'error', 'maintenance'
+    'updated': undefined // integer, last updated timestamp in milliseconds if updated via the API
+    'eta': undefined, // when the maintenance or outage is expected to end
+    'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
+}
+```
+
+The possible values in the `status` field are:
+
+- `'ok'` means the exchange API is fully operational
+- `'shutdown`' means the exchange was closed, and the `updated` field should contain the datetime of the shutdown
+- `'error'` means that either the exchange API is broken, or the implementation of the exchange in CCXT is broken
+- `'maintenance'` means regular maintenance, and the `eta` field should contain the datetime when the exchange is expected to be operational again
+
 ### Trading Fees
 
 Trading fees are properties of markets. Most often trading fees are loaded into the markets by the `fetchMarkets` call. Sometimes, however, the exchanges serve fees from different endpoints.
@@ -2990,7 +3161,7 @@ Some exchanges don't allow to fetch all ledger entries for all assets at once, t
 
 ```JavaScript
 {
-    'id': 'string-id',                      // id of the ledger entry, a string
+    'id': 'hqfl-f125f9l2c9',                // string id of the ledger entry, e.g. an order id
     'direction': 'out',                     // or 'in'
     'account': '06d4ab58-dfcd-468a',        // string id of the account if any
     'referenceId': 'bf7a-d4441fb3fd31',     // string id of the trade, transaction, etc...
@@ -3364,7 +3535,9 @@ In case you experience any difficulty connecting to a particular exchange, do th
   import logging
   logging.basicConfig(level=logging.DEBUG)
   ```
-- Check your API credentials. Try a fresh new keypair if possible.
+- Use verbose mode to make sure that the used API credentials correspond to the keys you intend to use. Make sure there's no confusion of keypairs.
+- **Try a fresh new keypair if possible.**
+- Check the permissions on the keypair with the exchange website!
 - If it is a Cloudflare protection error, try these examples:
   - https://github.com/ccxt/ccxt/blob/master/examples/js/bypass-cloudflare.js
   - https://github.com/ccxt/ccxt/blob/master/examples/py/bypass-cloudflare.py

@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -35,7 +36,6 @@ class deribit (Exchange):
                 'fetchMyTrades': True,
                 'fetchTickers': False,
             },
-            'timeframes': {},
             'urls': {
                 'test': 'https://test.deribit.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
@@ -143,16 +143,16 @@ class deribit (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        marketsResponse = await self.publicGetGetinstruments()
-        markets = marketsResponse['result']
+        response = await self.publicGetGetinstruments(params)
+        markets = self.safe_value(response, 'result')
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['instrumentName']
-            base = market['baseCurrency']
-            quote = market['currency']
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'instrumentName')
+            baseId = self.safe_string(market, 'baseCurrency')
+            quoteId = self.safe_string(market, 'currency')
+            base = self.common_currency_code(baseId)
+            quote = self.common_currency_code(quoteId)
             result.append({
                 'id': id,
                 'symbol': id,
@@ -180,34 +180,34 @@ class deribit (Exchange):
         return result
 
     async def fetch_balance(self, params={}):
-        account = await self.privateGetAccount()
+        response = await self.privateGetAccount(params)
         result = {
             'BTC': {
-                'free': account['result']['availableFunds'],
-                'used': account['result']['maintenanceMargin'],
-                'total': account['result']['equity'],
+                'free': self.safe_float(response['result'], 'availableFunds'),
+                'used': self.safe_float(response['result'], 'maintenanceMargin'),
+                'total': self.safe_float(response['result'], 'equity'),
             },
         }
         return self.parse_balance(result)
 
     async def fetch_deposit_address(self, currency, params={}):
-        account = await self.privateGetAccount()
+        response = await self.privateGetAccount(params)
+        address = self.safe_string(response, 'depositAddress')
         return {
-            'currency': 'BTC',
-            'address': account['depositAddress'],
+            'currency': self.common_currency_code('BTC'),
+            'address': address,
             'tag': None,
-            'info': account,
+            'info': response,
         }
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_integer(ticker, 'created')
-        iso8601 = None if (timestamp is None) else self.iso8601(timestamp)
         symbol = self.find_symbol(self.safe_string(ticker, 'instrumentName'), market)
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': iso8601,
+            'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(ticker, 'bidPrice'),
@@ -230,9 +230,10 @@ class deribit (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetGetsummary(self.extend({
+        request = {
             'instrument': market['id'],
-        }, params))
+        }
+        response = await self.publicGetGetsummary(self.extend(request, params))
         return self.parse_ticker(response['result'], market)
 
     def parse_trade(self, trade, market=None):
@@ -296,14 +297,15 @@ class deribit (Exchange):
                 'currency': feeCurrencyCode,
             }
         return {
-            'info': trade,
             'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -351,8 +353,11 @@ class deribit (Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.publicGetGetorderbook({'instrument': market['id']})
-        timestamp = int(response['usOut'] / 1000)
+        request = {
+            'instrument': market['id'],
+        }
+        response = await self.publicGetGetorderbook(self.extend(request, params))
+        timestamp = self.safe_integer(response, 'usOut') / 1000
         orderbook = self.parse_order_book(response['result'], timestamp, 'bids', 'asks', 'price', 'quantity')
         return self.extend(orderbook, {
             'nonce': self.safe_integer(response, 'tstamp'),
@@ -364,9 +369,7 @@ class deribit (Exchange):
             'cancelled': 'canceled',
             'filled': 'closed',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
@@ -424,13 +427,18 @@ class deribit (Exchange):
             'currency': 'BTC',
         }
         type = self.safe_string(order, 'type')
+        marketId = self.safe_string(order, 'instrument')
+        symbol = None
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+            symbol = market['symbol']
         return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': order['instrument'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
@@ -446,8 +454,14 @@ class deribit (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrderstate({'orderId': id})
-        return self.parse_order(response['result'])
+        request = {
+            'orderId': id,
+        }
+        response = await self.privateGetOrderstate(self.extend(request, params))
+        result = self.safe_value(response, 'result')
+        if result is None:
+            raise OrderNotFound(self.id + ' fetchOrder() ' + self.json(response))
+        return self.parse_order(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -480,10 +494,15 @@ class deribit (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privatePostCancel(self.extend({'orderId': id}, params))
+        request = {
+            'orderId': id,
+        }
+        response = await self.privatePostCancel(self.extend(request, params))
         return self.parse_order(response['result']['order'])
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -493,6 +512,8 @@ class deribit (Exchange):
         return self.parse_orders(response['result'], market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {

@@ -38,6 +38,7 @@ class dsx (liqui):
                 },
                 'www': 'https://dsx.uk',
                 'doc': [
+                    'https://dsx.uk/developers/publicApiV2',
                     'https://api.dsx.uk',
                     'https://dsx.uk/api_docs/public',
                     'https://dsx.uk/api_docs/private',
@@ -198,7 +199,7 @@ class dsx (liqui):
         }
 
     def fetch_markets(self, params={}):
-        response = self.publicGetInfo()
+        response = self.publicGetInfo(params)
         markets = response['pairs']
         keys = list(markets.keys())
         result = []
@@ -277,19 +278,17 @@ class dsx (liqui):
         #       }
         #     }
         #
-        balances = response['return']
-        result = {'info': balances}
-        funds = balances['funds']
-        ids = list(funds.keys())
-        for c in range(0, len(ids)):
-            id = ids[c]
-            code = self.common_currency_code(id)
-            account = {
-                'free': funds[id]['available'],
-                'used': 0.0,
-                'total': funds[id]['total'],
-            }
-            account['used'] = account['total'] - account['free']
+        balances = self.safe_value(response, 'return')
+        result = {'info': response}
+        funds = self.safe_value(balances, 'funds')
+        currencyIds = list(funds.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.common_currency_code(currencyId)
+            balance = self.safe_value(funds, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 

@@ -475,18 +475,19 @@ class mandala (Exchange):
         #         ],
         #     }
         #
-        data = self.safe_value(response, 'Data')
+        data = self.safe_value(response, 'Data', [])
         result = {'info': response}
         for i in range(0, len(data)):
             balance = data[i]
-            code = self.common_currency_code(self.safe_string(balance, 'currency'))
+            currencyId = self.safe_string(balance, 'currency')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
             account = self.account()
-            free = self.safe_float(balance, 'balance', 0)
-            used = self.safe_float(balance, 'balanceInTrade', 0)
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
+            account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'balanceInTrade')
             result[code] = account
         return self.parse_balance(result)
 
@@ -700,15 +701,15 @@ class mandala (Exchange):
                 'currency': quote,
             }
         return {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': None,
-            'takerOrMaker': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,

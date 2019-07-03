@@ -255,177 +255,178 @@ class okex3 extends Exchange {
                 // 404 Not Found
                 // 500 Internal Server Error — We had a problem with our server
                 'exact' => array (
-                    '1' => '\\ccxt\\ExchangeError', // array ( "code" => 1, "message" => "System error" )
+                    '1' => '\\ccxt\\ExchangeError', // array( "code" => 1, "message" => "System error" )
                     // undocumented
-                    'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeError', // array ( "message" => "failure to get a peer from the ring-balancer" )
-                    '4010' => '\\ccxt\\PermissionDenied', // array ( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
+                    'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeError', // array( "message" => "failure to get a peer from the ring-balancer" )
+                    '4010' => '\\ccxt\\PermissionDenied', // array( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
                     // common
-                    '30001' => '\\ccxt\\AuthenticationError', // array ( "code" => 30001, "message" => 'request header "OK_ACCESS_KEY" cannot be blank')
-                    '30002' => '\\ccxt\\AuthenticationError', // array ( "code" => 30002, "message" => 'request header "OK_ACCESS_SIGN" cannot be blank')
-                    '30003' => '\\ccxt\\AuthenticationError', // array ( "code" => 30003, "message" => 'request header "OK_ACCESS_TIMESTAMP" cannot be blank')
-                    '30004' => '\\ccxt\\AuthenticationError', // array ( "code" => 30004, "message" => 'request header "OK_ACCESS_PASSPHRASE" cannot be blank')
-                    '30005' => '\\ccxt\\InvalidNonce', // array ( "code" => 30005, "message" => "invalid OK_ACCESS_TIMESTAMP" )
-                    '30006' => '\\ccxt\\AuthenticationError', // array ( "code" => 30006, "message" => "invalid OK_ACCESS_KEY" )
-                    '30007' => '\\ccxt\\BadRequest', // array ( "code" => 30007, "message" => 'invalid Content_Type, please use "application/json" format')
-                    '30008' => '\\ccxt\\RequestTimeout', // array ( "code" => 30008, "message" => "timestamp request expired" )
-                    '30009' => '\\ccxt\\ExchangeError', // array ( "code" => 30009, "message" => "system error" )
-                    '30010' => '\\ccxt\\AuthenticationError', // array ( "code" => 30010, "message" => "API validation failed" )
-                    '30011' => '\\ccxt\\PermissionDenied', // array ( "code" => 30011, "message" => "invalid IP" )
-                    '30012' => '\\ccxt\\AuthenticationError', // array ( "code" => 30012, "message" => "invalid authorization" )
-                    '30013' => '\\ccxt\\AuthenticationError', // array ( "code" => 30013, "message" => "invalid sign" )
-                    '30014' => '\\ccxt\\DDoSProtection', // array ( "code" => 30014, "message" => "request too frequent" )
-                    '30015' => '\\ccxt\\AuthenticationError', // array ( "code" => 30015, "message" => 'request header "OK_ACCESS_PASSPHRASE" incorrect')
-                    '30016' => '\\ccxt\\ExchangeError', // array ( "code" => 30015, "message" => "you are using v1 apiKey, please use v1 endpoint. If you would like to use v3 endpoint, please subscribe to v3 apiKey" )
-                    '30017' => '\\ccxt\\ExchangeError', // array ( "code" => 30017, "message" => "apikey's broker id does not match" )
-                    '30018' => '\\ccxt\\ExchangeError', // array ( "code" => 30018, "message" => "apikey's domain does not match" )
-                    '30019' => '\\ccxt\\ExchangeNotAvailable', // array ( "code" => 30019, "message" => "Api is offline or unavailable" )
-                    '30020' => '\\ccxt\\BadRequest', // array ( "code" => 30020, "message" => "body cannot be blank" )
-                    '30021' => '\\ccxt\\BadRequest', // array ( "code" => 30021, "message" => "Json data format error" ), array ( "code" => 30021, "message" => "json data format error" )
-                    '30022' => '\\ccxt\\PermissionDenied', // array ( "code" => 30022, "message" => "Api has been frozen" )
-                    '30023' => '\\ccxt\\BadRequest', // array ( "code" => 30023, "message" => "{0} parameter cannot be blank" )
-                    '30024' => '\\ccxt\\BadRequest', // array ( "code" => 30024, "message" => "{0} parameter value error" )
-                    '30025' => '\\ccxt\\BadRequest', // array ( "code" => 30025, "message" => "{0} parameter category error" )
-                    '30026' => '\\ccxt\\DDoSProtection', // array ( "code" => 30026, "message" => "requested too frequent" )
-                    '30027' => '\\ccxt\\AuthenticationError', // array ( "code" => 30027, "message" => "login failure" )
-                    '30028' => '\\ccxt\\PermissionDenied', // array ( "code" => 30028, "message" => "unauthorized execution" )
-                    '30029' => '\\ccxt\\AccountSuspended', // array ( "code" => 30029, "message" => "account suspended" )
-                    '30030' => '\\ccxt\\ExchangeError', // array ( "code" => 30030, "message" => "endpoint request failed. Please try again" )
-                    '30031' => '\\ccxt\\BadRequest', // array ( "code" => 30031, "message" => "token does not exist" )
-                    '30032' => '\\ccxt\\ExchangeError', // array ( "code" => 30032, "message" => "pair does not exist" )
-                    '30033' => '\\ccxt\\BadRequest', // array ( "code" => 30033, "message" => "exchange domain does not exist" )
-                    '30034' => '\\ccxt\\ExchangeError', // array ( "code" => 30034, "message" => "exchange ID does not exist" )
-                    '30035' => '\\ccxt\\ExchangeError', // array ( "code" => 30035, "message" => "trading is not supported in this website" )
-                    '30036' => '\\ccxt\\ExchangeError', // array ( "code" => 30036, "message" => "no relevant data" )
-                    '30038' => '\\ccxt\\AuthenticationError', // array ( "code" => 30038, "message" => "user does not exist" )
-                    '30037' => '\\ccxt\\ExchangeNotAvailable', // array ( "code" => 30037, "message" => "endpoint is offline or unavailable" )
+                    '30001' => '\\ccxt\\AuthenticationError', // array( "code" => 30001, "message" => 'request header "OK_ACCESS_KEY" cannot be blank')
+                    '30002' => '\\ccxt\\AuthenticationError', // array( "code" => 30002, "message" => 'request header "OK_ACCESS_SIGN" cannot be blank')
+                    '30003' => '\\ccxt\\AuthenticationError', // array( "code" => 30003, "message" => 'request header "OK_ACCESS_TIMESTAMP" cannot be blank')
+                    '30004' => '\\ccxt\\AuthenticationError', // array( "code" => 30004, "message" => 'request header "OK_ACCESS_PASSPHRASE" cannot be blank')
+                    '30005' => '\\ccxt\\InvalidNonce', // array( "code" => 30005, "message" => "invalid OK_ACCESS_TIMESTAMP" )
+                    '30006' => '\\ccxt\\AuthenticationError', // array( "code" => 30006, "message" => "invalid OK_ACCESS_KEY" )
+                    '30007' => '\\ccxt\\BadRequest', // array( "code" => 30007, "message" => 'invalid Content_Type, please use "application/json" format')
+                    '30008' => '\\ccxt\\RequestTimeout', // array( "code" => 30008, "message" => "timestamp request expired" )
+                    '30009' => '\\ccxt\\ExchangeError', // array( "code" => 30009, "message" => "system error" )
+                    '30010' => '\\ccxt\\AuthenticationError', // array( "code" => 30010, "message" => "API validation failed" )
+                    '30011' => '\\ccxt\\PermissionDenied', // array( "code" => 30011, "message" => "invalid IP" )
+                    '30012' => '\\ccxt\\AuthenticationError', // array( "code" => 30012, "message" => "invalid authorization" )
+                    '30013' => '\\ccxt\\AuthenticationError', // array( "code" => 30013, "message" => "invalid sign" )
+                    '30014' => '\\ccxt\\DDoSProtection', // array( "code" => 30014, "message" => "request too frequent" )
+                    '30015' => '\\ccxt\\AuthenticationError', // array( "code" => 30015, "message" => 'request header "OK_ACCESS_PASSPHRASE" incorrect')
+                    '30016' => '\\ccxt\\ExchangeError', // array( "code" => 30015, "message" => "you are using v1 apiKey, please use v1 endpoint. If you would like to use v3 endpoint, please subscribe to v3 apiKey" )
+                    '30017' => '\\ccxt\\ExchangeError', // array( "code" => 30017, "message" => "apikey's broker id does not match" )
+                    '30018' => '\\ccxt\\ExchangeError', // array( "code" => 30018, "message" => "apikey's domain does not match" )
+                    '30019' => '\\ccxt\\ExchangeNotAvailable', // array( "code" => 30019, "message" => "Api is offline or unavailable" )
+                    '30020' => '\\ccxt\\BadRequest', // array( "code" => 30020, "message" => "body cannot be blank" )
+                    '30021' => '\\ccxt\\BadRequest', // array( "code" => 30021, "message" => "Json data format error" ), array( "code" => 30021, "message" => "json data format error" )
+                    '30022' => '\\ccxt\\PermissionDenied', // array( "code" => 30022, "message" => "Api has been frozen" )
+                    '30023' => '\\ccxt\\BadRequest', // array( "code" => 30023, "message" => "{0} parameter cannot be blank" )
+                    '30024' => '\\ccxt\\BadRequest', // array( "code" => 30024, "message" => "{0} parameter value error" )
+                    '30025' => '\\ccxt\\BadRequest', // array( "code" => 30025, "message" => "{0} parameter category error" )
+                    '30026' => '\\ccxt\\DDoSProtection', // array( "code" => 30026, "message" => "requested too frequent" )
+                    '30027' => '\\ccxt\\AuthenticationError', // array( "code" => 30027, "message" => "login failure" )
+                    '30028' => '\\ccxt\\PermissionDenied', // array( "code" => 30028, "message" => "unauthorized execution" )
+                    '30029' => '\\ccxt\\AccountSuspended', // array( "code" => 30029, "message" => "account suspended" )
+                    '30030' => '\\ccxt\\ExchangeError', // array( "code" => 30030, "message" => "endpoint request failed. Please try again" )
+                    '30031' => '\\ccxt\\BadRequest', // array( "code" => 30031, "message" => "token does not exist" )
+                    '30032' => '\\ccxt\\ExchangeError', // array( "code" => 30032, "message" => "pair does not exist" )
+                    '30033' => '\\ccxt\\BadRequest', // array( "code" => 30033, "message" => "exchange domain does not exist" )
+                    '30034' => '\\ccxt\\ExchangeError', // array( "code" => 30034, "message" => "exchange ID does not exist" )
+                    '30035' => '\\ccxt\\ExchangeError', // array( "code" => 30035, "message" => "trading is not supported in this website" )
+                    '30036' => '\\ccxt\\ExchangeError', // array( "code" => 30036, "message" => "no relevant data" )
+                    '30038' => '\\ccxt\\AuthenticationError', // array( "code" => 30038, "message" => "user does not exist" )
+                    '30037' => '\\ccxt\\ExchangeNotAvailable', // array( "code" => 30037, "message" => "endpoint is offline or unavailable" )
                     // futures
-                    '32001' => '\\ccxt\\AccountSuspended', // array ( "code" => 32001, "message" => "futures account suspended" )
-                    '32002' => '\\ccxt\\PermissionDenied', // array ( "code" => 32002, "message" => "futures account does not exist" )
-                    '32003' => '\\ccxt\\CancelPending', // array ( "code" => 32003, "message" => "canceling, please wait" )
-                    '32004' => '\\ccxt\\ExchangeError', // array ( "code" => 32004, "message" => "you have no unfilled orders" )
-                    '32005' => '\\ccxt\\InvalidOrder', // array ( "code" => 32005, "message" => "max order quantity" )
-                    '32006' => '\\ccxt\\InvalidOrder', // array ( "code" => 32006, "message" => "the order price or trigger price exceeds USD 1 million" )
-                    '32007' => '\\ccxt\\InvalidOrder', // array ( "code" => 32007, "message" => "leverage level must be the same for orders on the same side of the contract" )
-                    '32008' => '\\ccxt\\InvalidOrder', // array ( "code" => 32008, "message" => "Max. positions to open (cross margin)" )
-                    '32009' => '\\ccxt\\InvalidOrder', // array ( "code" => 32009, "message" => "Max. positions to open (fixed margin)" )
-                    '32010' => '\\ccxt\\ExchangeError', // array ( "code" => 32010, "message" => "leverage cannot be changed with open positions" )
-                    '32011' => '\\ccxt\\ExchangeError', // array ( "code" => 32011, "message" => "futures status error" )
-                    '32012' => '\\ccxt\\ExchangeError', // array ( "code" => 32012, "message" => "futures order update error" )
-                    '32013' => '\\ccxt\\ExchangeError', // array ( "code" => 32013, "message" => "token type is blank" )
-                    '32014' => '\\ccxt\\ExchangeError', // array ( "code" => 32014, "message" => "your number of contracts closing is larger than the number of contracts available" )
-                    '32015' => '\\ccxt\\ExchangeError', // array ( "code" => 32015, "message" => "margin ratio is lower than 100% before opening positions" )
-                    '32016' => '\\ccxt\\ExchangeError', // array ( "code" => 32016, "message" => "margin ratio is lower than 100% after opening position" )
-                    '32017' => '\\ccxt\\ExchangeError', // array ( "code" => 32017, "message" => "no BBO" )
-                    '32018' => '\\ccxt\\ExchangeError', // array ( "code" => 32018, "message" => "the order quantity is less than 1, please try again" )
-                    '32019' => '\\ccxt\\ExchangeError', // array ( "code" => 32019, "message" => "the order price deviates from the price of the previous minute by more than 3%" )
-                    '32020' => '\\ccxt\\ExchangeError', // array ( "code" => 32020, "message" => "the price is not in the range of the price limit" )
-                    '32021' => '\\ccxt\\ExchangeError', // array ( "code" => 32021, "message" => "leverage error" )
-                    '32022' => '\\ccxt\\ExchangeError', // array ( "code" => 32022, "message" => "this function is not supported in your country or region according to the regulations" )
-                    '32023' => '\\ccxt\\ExchangeError', // array ( "code" => 32023, "message" => "this account has outstanding loan" )
-                    '32024' => '\\ccxt\\ExchangeError', // array ( "code" => 32024, "message" => "order cannot be placed during delivery" )
-                    '32025' => '\\ccxt\\ExchangeError', // array ( "code" => 32025, "message" => "order cannot be placed during settlement" )
-                    '32026' => '\\ccxt\\ExchangeError', // array ( "code" => 32026, "message" => "your account is restricted from opening positions" )
-                    '32029' => '\\ccxt\\ExchangeError', // array ( "code" => 32029, "message" => "order info does not exist" )
-                    '32028' => '\\ccxt\\ExchangeError', // array ( "code" => 32028, "message" => "account is suspended and liquidated" )
-                    '32027' => '\\ccxt\\ExchangeError', // array ( "code" => 32027, "message" => "cancelled over 20 orders" )
-                    '32044' => '\\ccxt\\ExchangeError', // array ( "code" => 32044, "message" => "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." )
+                    '32001' => '\\ccxt\\AccountSuspended', // array( "code" => 32001, "message" => "futures account suspended" )
+                    '32002' => '\\ccxt\\PermissionDenied', // array( "code" => 32002, "message" => "futures account does not exist" )
+                    '32003' => '\\ccxt\\CancelPending', // array( "code" => 32003, "message" => "canceling, please wait" )
+                    '32004' => '\\ccxt\\ExchangeError', // array( "code" => 32004, "message" => "you have no unfilled orders" )
+                    '32005' => '\\ccxt\\InvalidOrder', // array( "code" => 32005, "message" => "max order quantity" )
+                    '32006' => '\\ccxt\\InvalidOrder', // array( "code" => 32006, "message" => "the order price or trigger price exceeds USD 1 million" )
+                    '32007' => '\\ccxt\\InvalidOrder', // array( "code" => 32007, "message" => "leverage level must be the same for orders on the same side of the contract" )
+                    '32008' => '\\ccxt\\InvalidOrder', // array( "code" => 32008, "message" => "Max. positions to open (cross margin)" )
+                    '32009' => '\\ccxt\\InvalidOrder', // array( "code" => 32009, "message" => "Max. positions to open (fixed margin)" )
+                    '32010' => '\\ccxt\\ExchangeError', // array( "code" => 32010, "message" => "leverage cannot be changed with open positions" )
+                    '32011' => '\\ccxt\\ExchangeError', // array( "code" => 32011, "message" => "futures status error" )
+                    '32012' => '\\ccxt\\ExchangeError', // array( "code" => 32012, "message" => "futures order update error" )
+                    '32013' => '\\ccxt\\ExchangeError', // array( "code" => 32013, "message" => "token type is blank" )
+                    '32014' => '\\ccxt\\ExchangeError', // array( "code" => 32014, "message" => "your number of contracts closing is larger than the number of contracts available" )
+                    '32015' => '\\ccxt\\ExchangeError', // array( "code" => 32015, "message" => "margin ratio is lower than 100% before opening positions" )
+                    '32016' => '\\ccxt\\ExchangeError', // array( "code" => 32016, "message" => "margin ratio is lower than 100% after opening position" )
+                    '32017' => '\\ccxt\\ExchangeError', // array( "code" => 32017, "message" => "no BBO" )
+                    '32018' => '\\ccxt\\ExchangeError', // array( "code" => 32018, "message" => "the order quantity is less than 1, please try again" )
+                    '32019' => '\\ccxt\\ExchangeError', // array( "code" => 32019, "message" => "the order price deviates from the price of the previous minute by more than 3%" )
+                    '32020' => '\\ccxt\\ExchangeError', // array( "code" => 32020, "message" => "the price is not in the range of the price limit" )
+                    '32021' => '\\ccxt\\ExchangeError', // array( "code" => 32021, "message" => "leverage error" )
+                    '32022' => '\\ccxt\\ExchangeError', // array( "code" => 32022, "message" => "this function is not supported in your country or region according to the regulations" )
+                    '32023' => '\\ccxt\\ExchangeError', // array( "code" => 32023, "message" => "this account has outstanding loan" )
+                    '32024' => '\\ccxt\\ExchangeError', // array( "code" => 32024, "message" => "order cannot be placed during delivery" )
+                    '32025' => '\\ccxt\\ExchangeError', // array( "code" => 32025, "message" => "order cannot be placed during settlement" )
+                    '32026' => '\\ccxt\\ExchangeError', // array( "code" => 32026, "message" => "your account is restricted from opening positions" )
+                    '32029' => '\\ccxt\\ExchangeError', // array( "code" => 32029, "message" => "order info does not exist" )
+                    '32028' => '\\ccxt\\ExchangeError', // array( "code" => 32028, "message" => "account is suspended and liquidated" )
+                    '32027' => '\\ccxt\\ExchangeError', // array( "code" => 32027, "message" => "cancelled over 20 orders" )
+                    '32044' => '\\ccxt\\ExchangeError', // array( "code" => 32044, "message" => "The margin ratio after submitting this order is lower than the minimum requirement ({0}) for your tier." )
                     // token and margin trading
-                    '33001' => '\\ccxt\\PermissionDenied', // array ( "code" => 33001, "message" => "margin account for this pair is not enabled yet" )
-                    '33002' => '\\ccxt\\AccountSuspended', // array ( "code" => 33002, "message" => "margin account for this pair is suspended" )
-                    '33003' => '\\ccxt\\InsufficientFunds', // array ( "code" => 33003, "message" => "no loan balance" )
-                    '33004' => '\\ccxt\\ExchangeError', // array ( "code" => 33004, "message" => "loan amount cannot be smaller than the minimum limit" )
-                    '33005' => '\\ccxt\\ExchangeError', // array ( "code" => 33005, "message" => "repayment amount must exceed 0" )
-                    '33006' => '\\ccxt\\ExchangeError', // array ( "code" => 33006, "message" => "loan order not found" )
-                    '33007' => '\\ccxt\\ExchangeError', // array ( "code" => 33007, "message" => "status not found" )
-                    '33008' => '\\ccxt\\ExchangeError', // array ( "code" => 33008, "message" => "loan amount cannot exceed the maximum limit" )
-                    '33009' => '\\ccxt\\ExchangeError', // array ( "code" => 33009, "message" => "user ID is blank" )
-                    '33010' => '\\ccxt\\ExchangeError', // array ( "code" => 33010, "message" => "you cannot cancel an order during session 2 of call auction" )
-                    '33011' => '\\ccxt\\ExchangeError', // array ( "code" => 33011, "message" => "no new market data" )
-                    '33012' => '\\ccxt\\ExchangeError', // array ( "code" => 33012, "message" => "order cancellation failed" )
-                    '33013' => '\\ccxt\\InvalidOrder', // array ( "code" => 33013, "message" => "order placement failed" )
-                    '33014' => '\\ccxt\\OrderNotFound', // array ( "code" => 33014, "message" => "order does not exist" )
-                    '33015' => '\\ccxt\\InvalidOrder', // array ( "code" => 33015, "message" => "exceeded maximum limit" )
-                    '33016' => '\\ccxt\\ExchangeError', // array ( "code" => 33016, "message" => "margin trading is not open for this token" )
-                    '33017' => '\\ccxt\\InsufficientFunds', // array ( "code" => 33017, "message" => "insufficient balance" )
-                    '33018' => '\\ccxt\\ExchangeError', // array ( "code" => 33018, "message" => "this parameter must be smaller than 1" )
-                    '33020' => '\\ccxt\\ExchangeError', // array ( "code" => 33020, "message" => "request not supported" )
-                    '33021' => '\\ccxt\\BadRequest', // array ( "code" => 33021, "message" => "token and the pair do not match" )
-                    '33022' => '\\ccxt\\InvalidOrder', // array ( "code" => 33022, "message" => "pair and the order do not match" )
-                    '33023' => '\\ccxt\\ExchangeError', // array ( "code" => 33023, "message" => "you can only place market orders during call auction" )
-                    '33024' => '\\ccxt\\InvalidOrder', // array ( "code" => 33024, "message" => "trading amount too small" )
-                    '33025' => '\\ccxt\\InvalidOrder', // array ( "code" => 33025, "message" => "base token amount is blank" )
-                    '33026' => '\\ccxt\\ExchangeError', // array ( "code" => 33026, "message" => "transaction completed" )
-                    '33027' => '\\ccxt\\InvalidOrder', // array ( "code" => 33027, "message" => "cancelled order or order cancelling" )
-                    '33028' => '\\ccxt\\InvalidOrder', // array ( "code" => 33028, "message" => "the decimal places of the trading price exceeded the limit" )
-                    '33029' => '\\ccxt\\InvalidOrder', // array ( "code" => 33029, "message" => "the decimal places of the trading size exceeded the limit" )
-                    '33034' => '\\ccxt\\ExchangeError', // array ( "code" => 33034, "message" => "You can only place limit order after Call Auction has started" )
-                    '33059' => '\\ccxt\\BadRequest', // array ( "code" => 33059, "message" => "client_oid or order_id is required" )
-                    '33060' => '\\ccxt\\BadRequest', // array ( "code" => 33060, "message" => "Only fill in either parameter client_oid or order_id" )
+                    '33001' => '\\ccxt\\PermissionDenied', // array( "code" => 33001, "message" => "margin account for this pair is not enabled yet" )
+                    '33002' => '\\ccxt\\AccountSuspended', // array( "code" => 33002, "message" => "margin account for this pair is suspended" )
+                    '33003' => '\\ccxt\\InsufficientFunds', // array( "code" => 33003, "message" => "no loan balance" )
+                    '33004' => '\\ccxt\\ExchangeError', // array( "code" => 33004, "message" => "loan amount cannot be smaller than the minimum limit" )
+                    '33005' => '\\ccxt\\ExchangeError', // array( "code" => 33005, "message" => "repayment amount must exceed 0" )
+                    '33006' => '\\ccxt\\ExchangeError', // array( "code" => 33006, "message" => "loan order not found" )
+                    '33007' => '\\ccxt\\ExchangeError', // array( "code" => 33007, "message" => "status not found" )
+                    '33008' => '\\ccxt\\ExchangeError', // array( "code" => 33008, "message" => "loan amount cannot exceed the maximum limit" )
+                    '33009' => '\\ccxt\\ExchangeError', // array( "code" => 33009, "message" => "user ID is blank" )
+                    '33010' => '\\ccxt\\ExchangeError', // array( "code" => 33010, "message" => "you cannot cancel an order during session 2 of call auction" )
+                    '33011' => '\\ccxt\\ExchangeError', // array( "code" => 33011, "message" => "no new market data" )
+                    '33012' => '\\ccxt\\ExchangeError', // array( "code" => 33012, "message" => "order cancellation failed" )
+                    '33013' => '\\ccxt\\InvalidOrder', // array( "code" => 33013, "message" => "order placement failed" )
+                    '33014' => '\\ccxt\\OrderNotFound', // array( "code" => 33014, "message" => "order does not exist" )
+                    '33015' => '\\ccxt\\InvalidOrder', // array( "code" => 33015, "message" => "exceeded maximum limit" )
+                    '33016' => '\\ccxt\\ExchangeError', // array( "code" => 33016, "message" => "margin trading is not open for this token" )
+                    '33017' => '\\ccxt\\InsufficientFunds', // array( "code" => 33017, "message" => "insufficient balance" )
+                    '33018' => '\\ccxt\\ExchangeError', // array( "code" => 33018, "message" => "this parameter must be smaller than 1" )
+                    '33020' => '\\ccxt\\ExchangeError', // array( "code" => 33020, "message" => "request not supported" )
+                    '33021' => '\\ccxt\\BadRequest', // array( "code" => 33021, "message" => "token and the pair do not match" )
+                    '33022' => '\\ccxt\\InvalidOrder', // array( "code" => 33022, "message" => "pair and the order do not match" )
+                    '33023' => '\\ccxt\\ExchangeError', // array( "code" => 33023, "message" => "you can only place market orders during call auction" )
+                    '33024' => '\\ccxt\\InvalidOrder', // array( "code" => 33024, "message" => "trading amount too small" )
+                    '33025' => '\\ccxt\\InvalidOrder', // array( "code" => 33025, "message" => "base token amount is blank" )
+                    '33026' => '\\ccxt\\ExchangeError', // array( "code" => 33026, "message" => "transaction completed" )
+                    '33027' => '\\ccxt\\InvalidOrder', // array( "code" => 33027, "message" => "cancelled order or order cancelling" )
+                    '33028' => '\\ccxt\\InvalidOrder', // array( "code" => 33028, "message" => "the decimal places of the trading price exceeded the limit" )
+                    '33029' => '\\ccxt\\InvalidOrder', // array( "code" => 33029, "message" => "the decimal places of the trading size exceeded the limit" )
+                    '33034' => '\\ccxt\\ExchangeError', // array( "code" => 33034, "message" => "You can only place limit order after Call Auction has started" )
+                    '33059' => '\\ccxt\\BadRequest', // array( "code" => 33059, "message" => "client_oid or order_id is required" )
+                    '33060' => '\\ccxt\\BadRequest', // array( "code" => 33060, "message" => "Only fill in either parameter client_oid or order_id" )
                     // account
-                    '34001' => '\\ccxt\\PermissionDenied', // array ( "code" => 34001, "message" => "withdrawal suspended" )
-                    '34002' => '\\ccxt\\InvalidAddress', // array ( "code" => 34002, "message" => "please add a withdrawal address" )
-                    '34003' => '\\ccxt\\ExchangeError', // array ( "code" => 34003, "message" => "sorry, this token cannot be withdrawn to xx at the moment" )
-                    '34004' => '\\ccxt\\ExchangeError', // array ( "code" => 34004, "message" => "withdrawal fee is smaller than minimum limit" )
-                    '34005' => '\\ccxt\\ExchangeError', // array ( "code" => 34005, "message" => "withdrawal fee exceeds the maximum limit" )
-                    '34006' => '\\ccxt\\ExchangeError', // array ( "code" => 34006, "message" => "withdrawal amount is lower than the minimum limit" )
-                    '34007' => '\\ccxt\\ExchangeError', // array ( "code" => 34007, "message" => "withdrawal amount exceeds the maximum limit" )
-                    '34008' => '\\ccxt\\InsufficientFunds', // array ( "code" => 34008, "message" => "insufficient balance" )
-                    '34009' => '\\ccxt\\ExchangeError', // array ( "code" => 34009, "message" => "your withdrawal amount exceeds the daily limit" )
-                    '34010' => '\\ccxt\\ExchangeError', // array ( "code" => 34010, "message" => "transfer amount must be larger than 0" )
-                    '34011' => '\\ccxt\\ExchangeError', // array ( "code" => 34011, "message" => "conditions not met" )
-                    '34012' => '\\ccxt\\ExchangeError', // array ( "code" => 34012, "message" => "the minimum withdrawal amount for NEO is 1, and the amount must be an integer" )
-                    '34013' => '\\ccxt\\ExchangeError', // array ( "code" => 34013, "message" => "please transfer" )
-                    '34014' => '\\ccxt\\ExchangeError', // array ( "code" => 34014, "message" => "transfer limited" )
-                    '34015' => '\\ccxt\\ExchangeError', // array ( "code" => 34015, "message" => "subaccount does not exist" )
-                    '34016' => '\\ccxt\\PermissionDenied', // array ( "code" => 34016, "message" => "transfer suspended" )
-                    '34017' => '\\ccxt\\AccountSuspended', // array ( "code" => 34017, "message" => "account suspended" )
-                    '34018' => '\\ccxt\\AuthenticationError', // array ( "code" => 34018, "message" => "incorrect trades password" )
-                    '34019' => '\\ccxt\\PermissionDenied', // array ( "code" => 34019, "message" => "please bind your email before withdrawal" )
-                    '34020' => '\\ccxt\\PermissionDenied', // array ( "code" => 34020, "message" => "please bind your funds password before withdrawal" )
-                    '34021' => '\\ccxt\\InvalidAddress', // array ( "code" => 34021, "message" => "Not verified address" )
-                    '34022' => '\\ccxt\\ExchangeError', // array ( "code" => 34022, "message" => "Withdrawals are not available for sub accounts" )
-                    '34023' => '\\ccxt\\PermissionDenied', // array ( "code" => 34023, "message" => "Please enable futures trading before transferring your funds" )
+                    '34001' => '\\ccxt\\PermissionDenied', // array( "code" => 34001, "message" => "withdrawal suspended" )
+                    '34002' => '\\ccxt\\InvalidAddress', // array( "code" => 34002, "message" => "please add a withdrawal address" )
+                    '34003' => '\\ccxt\\ExchangeError', // array( "code" => 34003, "message" => "sorry, this token cannot be withdrawn to xx at the moment" )
+                    '34004' => '\\ccxt\\ExchangeError', // array( "code" => 34004, "message" => "withdrawal fee is smaller than minimum limit" )
+                    '34005' => '\\ccxt\\ExchangeError', // array( "code" => 34005, "message" => "withdrawal fee exceeds the maximum limit" )
+                    '34006' => '\\ccxt\\ExchangeError', // array( "code" => 34006, "message" => "withdrawal amount is lower than the minimum limit" )
+                    '34007' => '\\ccxt\\ExchangeError', // array( "code" => 34007, "message" => "withdrawal amount exceeds the maximum limit" )
+                    '34008' => '\\ccxt\\InsufficientFunds', // array( "code" => 34008, "message" => "insufficient balance" )
+                    '34009' => '\\ccxt\\ExchangeError', // array( "code" => 34009, "message" => "your withdrawal amount exceeds the daily limit" )
+                    '34010' => '\\ccxt\\ExchangeError', // array( "code" => 34010, "message" => "transfer amount must be larger than 0" )
+                    '34011' => '\\ccxt\\ExchangeError', // array( "code" => 34011, "message" => "conditions not met" )
+                    '34012' => '\\ccxt\\ExchangeError', // array( "code" => 34012, "message" => "the minimum withdrawal amount for NEO is 1, and the amount must be an integer" )
+                    '34013' => '\\ccxt\\ExchangeError', // array( "code" => 34013, "message" => "please transfer" )
+                    '34014' => '\\ccxt\\ExchangeError', // array( "code" => 34014, "message" => "transfer limited" )
+                    '34015' => '\\ccxt\\ExchangeError', // array( "code" => 34015, "message" => "subaccount does not exist" )
+                    '34016' => '\\ccxt\\PermissionDenied', // array( "code" => 34016, "message" => "transfer suspended" )
+                    '34017' => '\\ccxt\\AccountSuspended', // array( "code" => 34017, "message" => "account suspended" )
+                    '34018' => '\\ccxt\\AuthenticationError', // array( "code" => 34018, "message" => "incorrect trades password" )
+                    '34019' => '\\ccxt\\PermissionDenied', // array( "code" => 34019, "message" => "please bind your email before withdrawal" )
+                    '34020' => '\\ccxt\\PermissionDenied', // array( "code" => 34020, "message" => "please bind your funds password before withdrawal" )
+                    '34021' => '\\ccxt\\InvalidAddress', // array( "code" => 34021, "message" => "Not verified address" )
+                    '34022' => '\\ccxt\\ExchangeError', // array( "code" => 34022, "message" => "Withdrawals are not available for sub accounts" )
+                    '34023' => '\\ccxt\\PermissionDenied', // array( "code" => 34023, "message" => "Please enable futures trading before transferring your funds" )
                     // swap
-                    '35001' => '\\ccxt\\ExchangeError', // array ( "code" => 35001, "message" => "Contract does not exist" )
-                    '35002' => '\\ccxt\\ExchangeError', // array ( "code" => 35002, "message" => "Contract settling" )
-                    '35003' => '\\ccxt\\ExchangeError', // array ( "code" => 35003, "message" => "Contract paused" )
-                    '35004' => '\\ccxt\\ExchangeError', // array ( "code" => 35004, "message" => "Contract pending settlement" )
-                    '35005' => '\\ccxt\\AuthenticationError', // array ( "code" => 35005, "message" => "User does not exist" )
-                    '35008' => '\\ccxt\\InvalidOrder', // array ( "code" => 35008, "message" => "Risk ratio too high" )
-                    '35010' => '\\ccxt\\InvalidOrder', // array ( "code" => 35010, "message" => "Position closing too large" )
-                    '35012' => '\\ccxt\\InvalidOrder', // array ( "code" => 35012, "message" => "Incorrect order size" )
-                    '35014' => '\\ccxt\\InvalidOrder', // array ( "code" => 35014, "message" => "Order price is not within limit" )
-                    '35015' => '\\ccxt\\InvalidOrder', // array ( "code" => 35015, "message" => "Invalid leverage level" )
-                    '35017' => '\\ccxt\\ExchangeError', // array ( "code" => 35017, "message" => "Open orders exist" )
-                    '35019' => '\\ccxt\\InvalidOrder', // array ( "code" => 35019, "message" => "Order size too large" )
-                    '35020' => '\\ccxt\\InvalidOrder', // array ( "code" => 35020, "message" => "Order price too high" )
-                    '35021' => '\\ccxt\\InvalidOrder', // array ( "code" => 35021, "message" => "Order size exceeded current tier limit" )
-                    '35022' => '\\ccxt\\ExchangeError', // array ( "code" => 35022, "message" => "Contract status error" )
-                    '35024' => '\\ccxt\\ExchangeError', // array ( "code" => 35024, "message" => "Contract not initialized" )
-                    '35025' => '\\ccxt\\InsufficientFunds', // array ( "code" => 35025, "message" => "No account balance" )
-                    '35026' => '\\ccxt\\ExchangeError', // array ( "code" => 35026, "message" => "Contract settings not initialized" )
-                    '35029' => '\\ccxt\\OrderNotFound', // array ( "code" => 35029, "message" => "Order does not exist" )
-                    '35030' => '\\ccxt\\InvalidOrder', // array ( "code" => 35030, "message" => "Order size too large" )
-                    '35031' => '\\ccxt\\InvalidOrder', // array ( "code" => 35031, "message" => "Cancel order size too large" )
-                    '35032' => '\\ccxt\\ExchangeError', // array ( "code" => 35032, "message" => "Invalid user status" )
-                    '35039' => '\\ccxt\\ExchangeError', // array ( "code" => 35039, "message" => "Open order quantity exceeds limit" )
-                    '35044' => '\\ccxt\\ExchangeError', // array ( "code" => 35044, "message" => "Invalid order status" )
-                    '35046' => '\\ccxt\\InsufficientFunds', // array ( "code" => 35046, "message" => "Negative account balance" )
-                    '35047' => '\\ccxt\\InsufficientFunds', // array ( "code" => 35047, "message" => "Insufficient account balance" )
-                    '35048' => '\\ccxt\\ExchangeError', // array ( "code" => 35048, "message" => "User contract is frozen and liquidating" )
-                    '35049' => '\\ccxt\\InvalidOrder', // array ( "code" => 35049, "message" => "Invalid order type" )
-                    '35050' => '\\ccxt\\InvalidOrder', // array ( "code" => 35050, "message" => "Position settings are blank" )
-                    '35052' => '\\ccxt\\InsufficientFunds', // array ( "code" => 35052, "message" => "Insufficient cross margin" )
-                    '35053' => '\\ccxt\\ExchangeError', // array ( "code" => 35053, "message" => "Account risk too high" )
-                    '35055' => '\\ccxt\\InsufficientFunds', // array ( "code" => 35055, "message" => "Insufficient account balance" )
-                    '35057' => '\\ccxt\\ExchangeError', // array ( "code" => 35057, "message" => "No last traded price" )
-                    '35058' => '\\ccxt\\ExchangeError', // array ( "code" => 35058, "message" => "No limit" )
-                    '35059' => '\\ccxt\\BadRequest', // array ( "code" => 35059, "message" => "client_oid or order_id is required" )
-                    '35060' => '\\ccxt\\BadRequest', // array ( "code" => 35060, "message" => "Only fill in either parameter client_oid or order_id" )
-                    '35061' => '\\ccxt\\BadRequest', // array ( "code" => 35061, "message" => "Invalid instrument_id" )
-                    '35062' => '\\ccxt\\InvalidOrder', // array ( "code" => 35062, "message" => "Invalid match_price" )
-                    '35063' => '\\ccxt\\InvalidOrder', // array ( "code" => 35063, "message" => "Invalid order_size" )
-                    '35064' => '\\ccxt\\InvalidOrder', // array ( "code" => 35064, "message" => "Invalid client_oid" )
+                    '35001' => '\\ccxt\\ExchangeError', // array( "code" => 35001, "message" => "Contract does not exist" )
+                    '35002' => '\\ccxt\\ExchangeError', // array( "code" => 35002, "message" => "Contract settling" )
+                    '35003' => '\\ccxt\\ExchangeError', // array( "code" => 35003, "message" => "Contract paused" )
+                    '35004' => '\\ccxt\\ExchangeError', // array( "code" => 35004, "message" => "Contract pending settlement" )
+                    '35005' => '\\ccxt\\AuthenticationError', // array( "code" => 35005, "message" => "User does not exist" )
+                    '35008' => '\\ccxt\\InvalidOrder', // array( "code" => 35008, "message" => "Risk ratio too high" )
+                    '35010' => '\\ccxt\\InvalidOrder', // array( "code" => 35010, "message" => "Position closing too large" )
+                    '35012' => '\\ccxt\\InvalidOrder', // array( "code" => 35012, "message" => "Incorrect order size" )
+                    '35014' => '\\ccxt\\InvalidOrder', // array( "code" => 35014, "message" => "Order price is not within limit" )
+                    '35015' => '\\ccxt\\InvalidOrder', // array( "code" => 35015, "message" => "Invalid leverage level" )
+                    '35017' => '\\ccxt\\ExchangeError', // array( "code" => 35017, "message" => "Open orders exist" )
+                    '35019' => '\\ccxt\\InvalidOrder', // array( "code" => 35019, "message" => "Order size too large" )
+                    '35020' => '\\ccxt\\InvalidOrder', // array( "code" => 35020, "message" => "Order price too high" )
+                    '35021' => '\\ccxt\\InvalidOrder', // array( "code" => 35021, "message" => "Order size exceeded current tier limit" )
+                    '35022' => '\\ccxt\\ExchangeError', // array( "code" => 35022, "message" => "Contract status error" )
+                    '35024' => '\\ccxt\\ExchangeError', // array( "code" => 35024, "message" => "Contract not initialized" )
+                    '35025' => '\\ccxt\\InsufficientFunds', // array( "code" => 35025, "message" => "No account balance" )
+                    '35026' => '\\ccxt\\ExchangeError', // array( "code" => 35026, "message" => "Contract settings not initialized" )
+                    '35029' => '\\ccxt\\OrderNotFound', // array( "code" => 35029, "message" => "Order does not exist" )
+                    '35030' => '\\ccxt\\InvalidOrder', // array( "code" => 35030, "message" => "Order size too large" )
+                    '35031' => '\\ccxt\\InvalidOrder', // array( "code" => 35031, "message" => "Cancel order size too large" )
+                    '35032' => '\\ccxt\\ExchangeError', // array( "code" => 35032, "message" => "Invalid user status" )
+                    '35039' => '\\ccxt\\ExchangeError', // array( "code" => 35039, "message" => "Open order quantity exceeds limit" )
+                    '35040' => '\\ccxt\\InvalidOrder', // array("error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1")
+                    '35044' => '\\ccxt\\ExchangeError', // array( "code" => 35044, "message" => "Invalid order status" )
+                    '35046' => '\\ccxt\\InsufficientFunds', // array( "code" => 35046, "message" => "Negative account balance" )
+                    '35047' => '\\ccxt\\InsufficientFunds', // array( "code" => 35047, "message" => "Insufficient account balance" )
+                    '35048' => '\\ccxt\\ExchangeError', // array( "code" => 35048, "message" => "User contract is frozen and liquidating" )
+                    '35049' => '\\ccxt\\InvalidOrder', // array( "code" => 35049, "message" => "Invalid order type" )
+                    '35050' => '\\ccxt\\InvalidOrder', // array( "code" => 35050, "message" => "Position settings are blank" )
+                    '35052' => '\\ccxt\\InsufficientFunds', // array( "code" => 35052, "message" => "Insufficient cross margin" )
+                    '35053' => '\\ccxt\\ExchangeError', // array( "code" => 35053, "message" => "Account risk too high" )
+                    '35055' => '\\ccxt\\InsufficientFunds', // array( "code" => 35055, "message" => "Insufficient account balance" )
+                    '35057' => '\\ccxt\\ExchangeError', // array( "code" => 35057, "message" => "No last traded price" )
+                    '35058' => '\\ccxt\\ExchangeError', // array( "code" => 35058, "message" => "No limit" )
+                    '35059' => '\\ccxt\\BadRequest', // array( "code" => 35059, "message" => "client_oid or order_id is required" )
+                    '35060' => '\\ccxt\\BadRequest', // array( "code" => 35060, "message" => "Only fill in either parameter client_oid or order_id" )
+                    '35061' => '\\ccxt\\BadRequest', // array( "code" => 35061, "message" => "Invalid instrument_id" )
+                    '35062' => '\\ccxt\\InvalidOrder', // array( "code" => 35062, "message" => "Invalid match_price" )
+                    '35063' => '\\ccxt\\InvalidOrder', // array( "code" => 35063, "message" => "Invalid order_size" )
+                    '35064' => '\\ccxt\\InvalidOrder', // array( "code" => 35064, "message" => "Invalid client_oid" )
                 ),
                 'broad' => array (
                 ),
@@ -467,7 +468,7 @@ class okex3 extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $types = $this->safe_value($this->options, 'fetchMarkets');
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($types); $i++) {
             $markets = $this->fetch_markets_by_type ($types[$i], $params);
             $result = $this->array_concat($result, $markets);
@@ -476,7 +477,7 @@ class okex3 extends Exchange {
     }
 
     public function parse_markets ($markets) {
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $result[] = $this->parse_market ($markets[$i]);
         }
@@ -565,19 +566,17 @@ class okex3 extends Exchange {
             'amount' => $amountPrecision,
             'price' => $pricePrecision,
         );
-        $minAmount = $this->safe_float($market, 'base_min_size');
+        $minAmount = $this->safe_float_2($market, 'min_size', 'base_min_size');
         $minPrice = $this->safe_float($market, 'tick_size');
         if ($precision['price'] !== null) {
-            $minPrice = pow (10, -$precision['price']);
+            $minPrice = pow(10, -$precision['price']);
         }
-        $minCost = $this->safe_float($market, 'min_size');
-        if ($minCost === null) {
-            if ($minAmount !== null && $minPrice !== null) {
-                $minCost = $minAmount * $minPrice;
-            }
+        $minCost = null;
+        if ($minAmount !== null && $minPrice !== null) {
+            $minCost = $minAmount * $minPrice;
         }
         $active = true;
-        $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array ());
+        $fees = $this->safe_value_2($this->fees, $marketType, 'trading', array());
         return array_merge ($fees, array (
             'id' => $id,
             'symbol' => $symbol,
@@ -657,7 +656,7 @@ class okex3 extends Exchange {
         // despite that their docs say these endpoints are public:
         //     https://www.okex.com/api/account/v3/withdrawal/fee
         //     https://www.okex.com/api/account/v3/currencies
-        // it will still reply with array ( "$code":30001, "message" => "OK-ACCESS-KEY header is required" )
+        // it will still reply with array( "$code":30001, "message" => "OK-ACCESS-KEY header is required" )
         // if you attempt to access it without authentication
         $response = $this->accountGetCurrencies ($params);
         //
@@ -671,7 +670,7 @@ class okex3 extends Exchange {
         //         ),
         //     )
         //
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'currency');
@@ -691,9 +690,9 @@ class okex3 extends Exchange {
                 'fee' => null, // todo => redesign
                 'precision' => $precision,
                 'limits' => array (
-                    'amount' => array ( 'min' => null, 'max' => null ),
-                    'price' => array ( 'min' => null, 'max' => null ),
-                    'cost' => array ( 'min' => null, 'max' => null ),
+                    'amount' => array( 'min' => null, 'max' => null ),
+                    'price' => array( 'min' => null, 'max' => null ),
+                    'cost' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array (
                         'min' => $this->safe_float($currency, 'min_withdrawal'),
                         'max' => null,
@@ -752,15 +751,15 @@ class okex3 extends Exchange {
         $timestamp = $this->parse8601 ($this->safe_string($ticker, 'timestamp'));
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'instrument_id');
-        if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
         } else if ($marketId !== null) {
-            $parts = explode ('-', $marketId);
+            $parts = explode('-', $marketId);
             $numParts = is_array ($parts) ? count ($parts) : 0;
             if ($numParts === 2) {
-                list ($baseId, $quoteId) = $parts;
-                $base = strtoupper ($baseId);
-                $quote = strtoupper ($quoteId);
+                list($baseId, $quoteId) = $parts;
+                $base = strtoupper($baseId);
+                $quote = strtoupper($quoteId);
                 $base = $this->common_currency_code($base);
                 $quote = $this->common_currency_code($quote);
                 $symbol = $base . '/' . $quote;
@@ -827,7 +826,7 @@ class okex3 extends Exchange {
         $this->load_markets();
         $method = $type . 'GetInstrumentsTicker';
         $response = $this->$method ($params);
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($response); $i++) {
             $ticker = $this->parse_ticker($response[$i]);
             $symbol = $ticker['symbol'];
@@ -1140,23 +1139,20 @@ class okex3 extends Exchange {
         //         }
         //     )
         //
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
-            $account = $this->account ();
-            $total = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'hold');
-            $free = $this->safe_float($balance, 'available');
-            if ($free === null) {
-                if (($total !== null) && ($used !== null)) {
-                    $free = $total - $used;
-                }
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
             }
-            $account['total'] = $total;
-            $account['used'] = $used;
-            $account['free'] = $free;
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'hold');
+            $account['free'] = $this->safe_float($balance, 'available');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -1193,14 +1189,14 @@ class okex3 extends Exchange {
         //         ),
         //     )
         //
-        $result = array ( 'info' => $response );
+        $result = array( 'info' => $response );
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $marketId = $this->safe_string($balance, 'instrument_id');
             $market = $this->safe_value($this->markets_by_id, $marketId);
             $symbol = null;
             if ($market === null) {
-                list ($baseId, $quoteId) = explode ('-', $marketId);
+                list($baseId, $quoteId) = explode('-', $marketId);
                 $base = $this->common_currency_code($baseId);
                 $quote = $this->common_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
@@ -1212,31 +1208,29 @@ class okex3 extends Exchange {
                 'liquidation_price',
                 'product_id',
                 'risk_rate',
+                'margin_ratio',
             ));
-            $keys = is_array ($omittedBalance) ? array_keys ($omittedBalance) : array ();
-            $accounts = array ();
+            $keys = is_array($omittedBalance) ? array_keys($omittedBalance) : array();
+            $accounts = array();
             for ($k = 0; $k < count ($keys); $k++) {
                 $key = $keys[$k];
                 $marketBalance = $balance[$key];
-                if (mb_strpos ($key, ':') !== false) {
-                    $parts = explode (':', $key);
+                if (mb_strpos($key, ':') !== false) {
+                    $parts = explode(':', $key);
                     $currencyId = $parts[1];
-                    $code = $this->common_currency_code($currencyId);
-                    $account = $this->account ();
-                    $total = $this->safe_float($marketBalance, 'balance');
-                    $used = $this->safe_float($marketBalance, 'hold');
-                    $free = $this->safe_float($marketBalance, 'available');
-                    if ($free === null) {
-                        if (($total !== null) && ($used !== null)) {
-                            $free = $total - $used;
-                        }
+                    $code = $currencyId;
+                    if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                        $code = $this->currencies_by_id[$currencyId]['code'];
+                    } else {
+                        $code = $this->common_currency_code($currencyId);
                     }
-                    $account['total'] = $total;
-                    $account['used'] = $used;
-                    $account['free'] = $free;
+                    $account = $this->account ();
+                    $account['total'] = $this->safe_float($marketBalance, 'balance');
+                    $account['used'] = $this->safe_float($marketBalance, 'hold');
+                    $account['free'] = $this->safe_float($marketBalance, 'available');
                     $accounts[$code] = $account;
                 } else {
-                    throw new NotSupported ($this->id . ' margin $balance $response format has changed!');
+                    throw new NotSupported($this->id . ' margin $balance $response format has changed!');
                 }
             }
             $result[$symbol] = $this->parse_balance($accounts);
@@ -1278,25 +1272,18 @@ class okex3 extends Exchange {
         //     }
         //
         // their root field name is "$info", so our $info will contain their $info
-        $result = array ( 'info' => $response );
-        $info = $this->safe_value($response, 'info', array ());
-        $lowercaseIds = is_array ($info) ? array_keys ($info) : array ();
+        $result = array( 'info' => $response );
+        $info = $this->safe_value($response, 'info', array());
+        $lowercaseIds = is_array($info) ? array_keys($info) : array();
         for ($i = 0; $i < count ($lowercaseIds); $i++) {
             $lowercaseId = $lowercaseIds[$i];
-            $id = strtoupper ($lowercaseId);
+            $id = strtoupper($lowercaseId);
             $code = $this->common_currency_code($id);
-            $balance = $this->safe_value($info, $lowercaseId, array ());
+            $balance = $this->safe_value($info, $lowercaseId, array());
             $account = $this->account ();
-            // it may be incorrect to use $total, $free and $used for swap accounts
-            $total = $this->safe_float($balance, 'equity');
-            $free = $this->safe_float($balance, 'total_avail_balance');
-            $used = null;
-            if (($total !== null) && ($free !== null)) {
-                $used = max (0, $total - $free);
-            }
-            $account['total'] = $total;
-            $account['used'] = $used;
-            $account['free'] = $free;
+            // it may be incorrect to use total, free and used for swap accounts
+            $account['total'] = $this->safe_float($balance, 'equity');
+            $account['free'] = $this->safe_float($balance, 'total_avail_balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -1323,26 +1310,20 @@ class okex3 extends Exchange {
         //     }
         //
         // their root field name is "$info", so our $info will contain their $info
-        $result = array ( 'info' => $response );
-        $info = $this->safe_value($response, 'info', array ());
-        $lowercaseIds = is_array ($info) ? array_keys ($info) : array ();
-        for ($i = 0; $i < count ($lowercaseIds); $i++) {
-            $lowercaseId = $lowercaseIds[$i];
-            $id = strtoupper ($lowercaseId);
-            $code = $this->common_currency_code($id);
-            $balance = $this->safe_value($info, $lowercaseId, array ());
-            $account = $this->account ();
-            // it may be incorrect to use $total, $free and $used for swap accounts
-            $total = $this->safe_float($balance, 'equity');
-            $free = $this->safe_float($balance, 'total_avail_balance');
-            $used = null;
-            if (($total !== null) && ($free !== null)) {
-                $used = max (0, $total - $free);
+        $result = array( 'info' => $response );
+        $info = $this->safe_value($response, 'info', array());
+        for ($i = 0; $i < count ($info); $i++) {
+            $balance = $info[$i];
+            $marketId = $this->safe_string($balance, 'instrument_id');
+            $symbol = $marketId;
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $symbol = $this->markets_by_id[$marketId]['symbol'];
             }
-            $account['total'] = $total;
-            $account['used'] = $used;
-            $account['free'] = $free;
-            $result[$code] = $account;
+            $account = $this->account ();
+            // it may be incorrect to use total, free and used for swap accounts
+            $account['total'] = $this->safe_float($balance, 'equity');
+            $account['free'] = $this->safe_float($balance, 'total_avail_balance');
+            $result[$symbol] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -1352,7 +1333,7 @@ class okex3 extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
-            throw new ArgumentsRequired ($this->id . " fetchBalance requires a $type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired($this->id . " fetchBalance requires a $type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap').");
         }
         $suffix = ($type === 'account') ? 'Wallet' : 'Accounts';
         $method = $type . 'Get' . $suffix;
@@ -1492,7 +1473,7 @@ class okex3 extends Exchange {
         } else if ($type === 'swap') {
             return $this->parse_swap_balance ($response);
         }
-        throw new NotSupported ($this->id . " fetchBalance does not support the '" . $type . "' $type (the $type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+        throw new NotSupported($this->id . " fetchBalance does not support the '" . $type . "' $type (the $type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1500,7 +1481,7 @@ class okex3 extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'instrument_id' => $market['id'],
-            // 'client_oid' => 'abcdef1234567890', // [a-z0-9]array (1,32)
+            // 'client_oid' => 'abcdef1234567890', // [a-z0-9]array(1,32)
             // 'order_type' => '0', // 0 => Normal limit order (Unfilled and 0 represent normal limit order) 1 => Post only 2 => Fill Or Kill 3 => Immediatel Or Cancel
         );
         $method = null;
@@ -1537,7 +1518,7 @@ class okex3 extends Exchange {
                                 $notional = $amount * $price;
                             }
                         } else if ($notional === null) {
-                            throw new InvalidOrder ($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'notional' extra parameter (the exchange-specific behaviour)");
+                            throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'notional' extra parameter (the exchange-specific behaviour)");
                         }
                     }
                     $request['notional'] = $this->cost_to_precision($symbol, $notional);
@@ -1581,14 +1562,14 @@ class okex3 extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
         $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
-            throw new ArgumentsRequired ($this->id . " cancelOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired($this->id . " cancelOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
         $method = $type . 'PostCancelOrder';
         $request = array (
@@ -1609,7 +1590,7 @@ class okex3 extends Exchange {
         }
         $query = $this->omit ($params, 'type');
         $response = $this->$method (array_merge ($request, $query));
-        $result = (is_array ($response) && array_key_exists ('result', $response)) ? $response : $this->safe_value($response, $market['id'], array ());
+        $result = (is_array($response) && array_key_exists('result', $response)) ? $response : $this->safe_value($response, $market['id'], array());
         //
         // spot, margin
         //
@@ -1734,7 +1715,7 @@ class okex3 extends Exchange {
             $side = $this->parse_order_side ($type);
         }
         if (($type !== 'limit') && ($type !== 'market')) {
-            if (is_array ($order) && array_key_exists ('pnl', $order)) {
+            if (is_array($order) && array_key_exists('pnl', $order)) {
                 $type = 'futures';
             } else {
                 $type = 'swap';
@@ -1742,7 +1723,7 @@ class okex3 extends Exchange {
         }
         $symbol = null;
         $marketId = $this->safe_string($order, 'instrument_id');
-        if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id)) {
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
         } else {
@@ -1809,20 +1790,20 @@ class okex3 extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrder requires a $symbol argument');
-        }
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        if ($type === null) {
-            throw new ArgumentsRequired ($this->id . " fetchOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired($this->id . ' fetchOrder requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
+        $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', $market['type']);
+        $type = $this->safe_string($params, 'type', $defaultType);
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . " fetchOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+        }
         $instrumentId = ($market['futures'] || $market['swap']) ? 'InstrumentId' : '';
         $method = $type . 'GetOrders' . $instrumentId;
         $request = array (
             'instrument_id' => $market['id'],
-            // 'client_oid' => 'abcdef12345', // optional, [a-z0-9]array (1,32)
+            // 'client_oid' => 'abcdef12345', // optional, [a-z0-9]array(1,32)
             // 'order_id' => $id,
         );
         $clientOid = $this->safe_string($params, 'client_oid');
@@ -1884,12 +1865,12 @@ class okex3 extends Exchange {
 
     public function fetch_orders_by_state ($state, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrdersByState requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersByState requires a $symbol argument');
         }
         $defaultType = $this->safe_string_2($this->options, 'fetchOrdersByState', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
-            throw new ArgumentsRequired ($this->id . " fetchOrdersByState requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired($this->id . " fetchOrdersByState requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -1974,12 +1955,12 @@ class okex3 extends Exchange {
         //
         $orders = null;
         if ($market['type'] === 'swap' || $market['type'] === 'futures') {
-            $orders = $this->safe_value($response, 'order_info', array ());
+            $orders = $this->safe_value($response, 'order_info', array());
         } else {
             $orders = $response;
             $responseLength = is_array ($response) ? count ($response) : 0;
             if ($responseLength < 1) {
-                return array ();
+                return array();
             }
             // in fact, this documented API $response does not correspond
             // to their actual API $response for spot markets
@@ -2021,7 +2002,7 @@ class okex3 extends Exchange {
     }
 
     public function parse_deposit_addresses ($addresses) {
-        $result = array ();
+        $result = array();
         for ($i = 0; $i < count ($addresses); $i++) {
             $result[] = $this->parse_deposit_address ($addresses[$i]);
         }
@@ -2041,10 +2022,11 @@ class okex3 extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'address');
         $tag = $this->safe_string_2($depositAddress, 'tag', 'payment_id');
+        $tag = $this->safe_string($depositAddress, 'memo', $tag);
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $code = null;
         if ($currencyId !== null) {
-            $code = $this->common_currency_code(strtoupper ($currencyId));
+            $code = $this->common_currency_code(strtoupper($currencyId));
         }
         $this->check_address($address);
         return array (
@@ -2073,7 +2055,7 @@ class okex3 extends Exchange {
         $addresses = $this->parse_deposit_addresses ($response);
         $numAddresses = is_array ($addresses) ? count ($addresses) : 0;
         if ($numAddresses < 1) {
-            throw new InvalidAddress ($this->id . ' fetchDepositAddress cannot return nonexistent $addresses, you should create withdrawal $addresses with the exchange website first');
+            throw new InvalidAddress($this->id . ' fetchDepositAddress cannot return nonexistent $addresses, you should create withdrawal $addresses with the exchange website first');
         }
         return $addresses[0];
     }
@@ -2087,7 +2069,7 @@ class okex3 extends Exchange {
         }
         $fee = $this->safe_string($params, 'fee');
         if ($fee === null) {
-            throw new ExchangeError ($this->id . " withdraw() requires a `$fee` string parameter, network transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires network transaction $fee->");
+            throw new ExchangeError($this->id . " withdraw() requires a `$fee` string parameter, network transaction $fee must be ≥ 0. Withdrawals to OKCoin or OKEx are $fee-free, please set '0'. Withdrawing to external digital asset $address requires network transaction $fee->");
         }
         $request = array (
             'currency' => $currency['id'],
@@ -2098,14 +2080,14 @@ class okex3 extends Exchange {
         );
         if ($this->password) {
             $request['trade_pwd'] = $this->password;
-        } else if (is_array ($params) && array_key_exists ('password', $params)) {
+        } else if (is_array($params) && array_key_exists('password', $params)) {
             $request['trade_pwd'] = $params['password'];
-        } else if (is_array ($params) && array_key_exists ('trade_pwd', $params)) {
+        } else if (is_array($params) && array_key_exists('trade_pwd', $params)) {
             $request['trade_pwd'] = $params['trade_pwd'];
         }
         $query = $this->omit ($params, array ( 'fee', 'password', 'trade_pwd' ));
-        if (!(is_array ($request) && array_key_exists ('trade_pwd', $request))) {
-            throw new ExchangeError ($this->id . ' withdraw() requires $this->password set on the exchange instance or a password / trade_pwd parameter');
+        if (!(is_array($request) && array_key_exists('trade_pwd', $request))) {
+            throw new ExchangeError($this->id . ' withdraw() requires $this->password set on the exchange instance or a password / trade_pwd parameter');
         }
         $response = $this->accountPostWithdrawal (array_merge ($request, $query));
         //
@@ -2124,7 +2106,7 @@ class okex3 extends Exchange {
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         $method = 'accountGetDepositHistory';
         $currency = null;
         if ($code !== null) {
@@ -2138,7 +2120,7 @@ class okex3 extends Exchange {
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         $method = 'accountGetWithdrawalHistory';
         $currency = null;
         if ($code !== null) {
@@ -2239,17 +2221,32 @@ class okex3 extends Exchange {
             $address = $addressFrom;
         }
         $currencyId = $this->safe_string($transaction, 'currency');
+        $code = null;
         if ($currencyId !== null) {
-            $currencyId = strtoupper ($currencyId);
+            $uppercaseId = $currencyId;
+            $currencyId = strtolower($currencyId);
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$currencyId];
+                $code = $currency['code'];
+            } else {
+                $code = $this->common_currency_code($uppercaseId);
+            }
         }
-        $code = $this->common_currency_code($currencyId);
         $amount = $this->safe_float($transaction, 'amount');
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'timestamp'));
-        $feeCost = $this->safe_float($transaction, 'fee');
+        $feeCost = null;
         if ($type === 'deposit') {
             $feeCost = 0;
+        } else {
+            if ($currencyId !== null) {
+                $feeWithCurrencyId = $this->safe_string($transaction, 'fee');
+                if ($feeWithCurrencyId !== null) {
+                    $feeWithoutCurrencyId = str_replace($currencyId, '', $feeWithCurrencyId);
+                    $feeCost = floatval ($feeWithoutCurrencyId);
+                }
+            }
         }
         // todo parse tags
         return array (
@@ -2276,7 +2273,7 @@ class okex3 extends Exchange {
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ArgumentsRequired ($this->id . ' fetchOrderTrades requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -2344,7 +2341,7 @@ class okex3 extends Exchange {
         } else {
             $responseLength = is_array ($response) ? count ($response) : 0;
             if ($responseLength < 1) {
-                return array ();
+                return array();
             }
             $trades = $response[0];
         }
@@ -2368,14 +2365,14 @@ class okex3 extends Exchange {
         $currency = null;
         if (($type === 'spot') || ($type === 'futures')) {
             if ($code === null) {
-                throw new ArgumentsRequired ($this->id . " fetchLedger requires a $currency $code $argument for '" . $type . "' markets");
+                throw new ArgumentsRequired($this->id . " fetchLedger requires a $currency $code $argument for '" . $type . "' markets");
             }
             $argument = 'Currency';
             $currency = $this->currency ($code);
             $request['currency'] = $currency['id'];
         } else if (($type === 'margin') || ($type === 'swap')) {
             if ($code === null) {
-                throw new ArgumentsRequired ($this->id . " fetchLedger requires a $code $argument (a $market symbol) for '" . $type . "' markets");
+                throw new ArgumentsRequired($this->id . " fetchLedger requires a $code $argument (a $market symbol) for '" . $type . "' markets");
             }
             $argument = 'InstrumentId';
             $market = $this->market ($code); // we intentionally put a $market inside here for the margin and swap ledgers
@@ -2438,7 +2435,7 @@ class okex3 extends Exchange {
             //     $request['type'] = 'number';
             //
         } else {
-            throw new NotSupported ($this->id . " fetchLedger does not support the '" . $type . "' $type (the $type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
+            throw new NotSupported($this->id . " fetchLedger does not support the '" . $type . "' $type (the $type must be one of 'account', 'spot', 'margin', 'futures', 'swap')");
         }
         $method = $type . 'Get' . $suffix . $argument . 'Ledger';
         $response = $this->$method (array_merge ($request, $query));
@@ -2637,11 +2634,11 @@ class okex3 extends Exchange {
         //
         $id = $this->safe_string($item, 'ledger_id');
         $account = null;
-        $details = $this->safe_value($item, 'details', array ());
+        $details = $this->safe_value($item, 'details', array());
         $referenceId = $this->safe_string($details, 'order_id');
         $referenceAccount = null;
         $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
-        $code = $this->safeCurrencyCode ($item, 'currency', $currency);
+        $code = $this->safeCurrencyCode ($this->safe_string($item, 'currency'), $currency);
         $amount = $this->safe_float($item, 'amount');
         $timestamp = $this->parse8601 ($this->safe_string($item, 'timestamp'));
         $fee = array (
@@ -2707,11 +2704,11 @@ class okex3 extends Exchange {
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha256', 'base64');
             $headers['OK-ACCESS-SIGN'] = $this->decode ($signature);
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function get_path_authentication_type ($path) {
-        $auth = $this->safe_value($this->options, 'auth', array ());
+        $auth = $this->safe_value($this->options, 'auth', array());
         $key = $this->findBroadlyMatchedKey ($auth, $path);
         return $this->safe_string($auth, $key, 'private');
     }
@@ -2719,24 +2716,24 @@ class okex3 extends Exchange {
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
-            throw new ExchangeError ($feedback);
+            throw new ExchangeError($feedback);
         }
         $exact = $this->exceptions['exact'];
         $message = $this->safe_string($response, 'message');
         $errorCode = $this->safe_string_2($response, 'code', 'error_code');
-        if (is_array ($exact) && array_key_exists ($errorCode, $exact)) {
-            throw new $exact[$errorCode] ($feedback);
+        if (is_array($exact) && array_key_exists($errorCode, $exact)) {
+            throw new $exact[$errorCode]($feedback);
         }
         if ($message !== null) {
-            if (is_array ($exact) && array_key_exists ($message, $exact)) {
-                throw new $exact[$message] ($feedback);
+            if (is_array($exact) && array_key_exists($message, $exact)) {
+                throw new $exact[$message]($feedback);
             }
             $broad = $this->exceptions['broad'];
             $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
             if ($broadKey !== null) {
-                throw new $broad[$broadKey] ($feedback);
+                throw new $broad[$broadKey]($feedback);
             }
-            throw new ExchangeError ($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown $message
         }
     }
 }

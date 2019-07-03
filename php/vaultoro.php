@@ -61,15 +61,15 @@ class vaultoro extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $result = array ();
-        $markets = $this->publicGetMarkets ();
-        $market = $markets['data'];
-        $baseId = $market['MarketCurrency'];
-        $quoteId = $market['BaseCurrency'];
+        $result = array();
+        $response = $this->publicGetMarkets ($params);
+        $market = $this->safe_value($response, 'data');
+        $baseId = $this->safe_string($market, 'MarketCurrency');
+        $quoteId = $this->safe_string($market, 'BaseCurrency');
         $base = $this->common_currency_code($baseId);
         $quote = $this->common_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
-        $id = $market['MarketName'];
+        $id = $this->safe_string($market, 'MarketName');
         $result[] = array (
             'id' => $id,
             'symbol' => $symbol,
@@ -84,23 +84,21 @@ class vaultoro extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetBalance ();
-        $balances = $response['data'];
-        $result = array ( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currencyId = strtoupper ($balance['currency_code']);
+        $response = $this->privateGetBalance ($params);
+        $balances = $this->safe_value($response, 'data');
+        $result = array( 'info' => $balances );
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency_code');
             $code = $currencyId;
-            if (is_array ($this->currencies_by_id[$currencyId]) && array_key_exists ($currencyId, $this->currencies_by_id[$currencyId]))
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
-            $free = $balance['cash'];
-            $used = $balance['reserved'];
-            $total = $this->sum ($free, $used);
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'cash');
+            $account['used'] = $this->safe_float($balance, 'reserved');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -123,7 +121,7 @@ class vaultoro extends Exchange {
         $bid = $quote['bids'][$bidsLength - 1];
         $ask = $quote['asks'][0];
         $response = $this->publicGetMarkets ($params);
-        $ticker = $response['data'];
+        $ticker = $this->safe_value($response, 'data');
         $timestamp = $this->milliseconds ();
         $last = $this->safe_float($ticker, 'LastPrice');
         return array (
@@ -150,19 +148,34 @@ class vaultoro extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $this->parse8601 ($trade['Time']);
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->parse8601 ($this->safe_string($trade, 'Time'));
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $price = $this->safe_float($trade, 'Gold_Price');
+        $amount = $this->safe_float($trade, 'Gold_Amount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $amount * $price;
+            }
+        }
         return array (
             'id' => null,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => null,
             'type' => null,
             'side' => null,
-            'price' => $trade['Gold_Price'],
-            'amount' => $trade['Gold_Amount'],
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 
@@ -177,12 +190,13 @@ class vaultoro extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $method = 'privatePost' . $this->capitalize ($side) . 'SymbolType';
-        $response = $this->$method (array_merge (array (
-            'symbol' => strtolower ($market['quoteId']),
+        $request = array (
+            'symbol' => strtolower($market['quoteId']),
             'type' => $type,
             'gld' => $amount,
             'price' => $price || 1,
-        ), $params));
+        );
+        $response = $this->$method (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['data']['Order_ID'],
@@ -191,9 +205,10 @@ class vaultoro extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        return $this->privatePostCancelId (array_merge (array (
+        $request = array (
             'id' => $id,
-        ), $params));
+        );
+        return $this->privatePostCancelId (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -214,6 +229,6 @@ class vaultoro extends Exchange {
                 'X-Signature' => $this->hmac ($this->encode ($url), $this->encode ($this->secret)),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

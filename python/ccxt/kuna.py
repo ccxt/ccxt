@@ -26,6 +26,7 @@ class kuna (acx):
                 'withdraw': False,
             },
             'urls': {
+                'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo': 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
                 'api': 'https://kuna.io',
                 'www': 'https://kuna.io',
@@ -117,16 +118,17 @@ class kuna (acx):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        orders = self.privateGetOrders(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        response = self.privateGetOrders(self.extend(request, params))
         # todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         # with order cache + fetchOpenOrders
         # as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return self.parse_orders(orders, market, since, limit)
+        return self.parse_orders(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(trade['created_at'])
+        timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         symbol = None
         if market:
             symbol = market['symbol']
@@ -137,28 +139,34 @@ class kuna (acx):
                 'bid': 'buy',
             }
             side = self.safe_string(sideMap, side)
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'volume')
         cost = self.safe_float(trade, 'funds')
-        order = self.safe_string(trade, 'order_id')
+        orderId = self.safe_string(trade, 'order_id')
+        id = self.safe_string(trade, 'id')
         return {
-            'id': str(trade['id']),
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'volume'),
+            'order': orderId,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
             'cost': cost,
-            'order': order,
-            'info': trade,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTrades(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        response = self.publicGetTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -166,5 +174,8 @@ class kuna (acx):
             raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        response = self.privateGetTradesMy({'market': market['id']})
+        request = {
+            'market': market['id'],
+        }
+        response = self.privateGetTradesMy(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)

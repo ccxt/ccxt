@@ -23,6 +23,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import CancelPending
+from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidNonce
@@ -258,7 +259,7 @@ class kraken (Exchange):
         parts = html.split('<td class="wysiwyg-text-align-right">')
         numParts = len(parts)
         if numParts < 3:
-            raise ExchangeError(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
+            raise NotSupported(self.id + ' fetchMinOrderAmounts HTML page markup has changed: https://support.kraken.com/hc/en-us/articles/205893708-What-is-the-minimum-order-size-')
         result = {}
         # skip the part before the header and the header itself
         for i in range(2, len(parts)):
@@ -275,13 +276,13 @@ class kraken (Exchange):
         return result
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetAssetPairs()
+        response = self.publicGetAssetPairs(params)
         limits = self.fetch_min_order_amounts()
-        keys = list(markets['result'].keys())
+        keys = list(response['result'].keys())
         result = []
         for i in range(0, len(keys)):
             id = keys[i]
-            market = markets['result'][id]
+            market = response['result'][id]
             baseId = market['base']
             quoteId = market['quote']
             base = baseId
@@ -516,9 +517,10 @@ class kraken (Exchange):
         if darkpool:
             raise ExchangeError(self.id + ' does not provide a ticker for darkpool symbol ' + symbol)
         market = self.market(symbol)
-        response = self.publicGetTicker(self.extend({
+        request = {
             'pair': market['id'],
-        }, params))
+        }
+        response = self.publicGetTicker(self.extend(request, params))
         ticker = response['result'][market['id']]
         return self.parse_ticker(ticker, market)
 
@@ -570,7 +572,7 @@ class kraken (Exchange):
         referenceId = self.safe_string(item, 'refid')
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        code = self.safeCurrencyCode(item, 'asset', currency)
+        code = self.safeCurrencyCode(self.safe_string(item, 'asset'), currency)
         amount = self.safe_float(item, 'amount')
         if amount < 0:
             direction = 'out'
@@ -721,6 +723,7 @@ class kraken (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': price * amount,
@@ -731,9 +734,10 @@ class kraken (Exchange):
         self.load_markets()
         market = self.market(symbol)
         id = market['id']
-        response = self.publicGetTrades(self.extend({
+        request = {
             'pair': id,
-        }, params))
+        }
+        response = self.publicGetTrades(self.extend(request, params))
         #
         #     {
         #         "error": [],
@@ -763,10 +767,10 @@ class kraken (Exchange):
         if balances is None:
             raise ExchangeNotAvailable(self.id + ' fetchBalance failed due to a malformed response ' + self.json(response))
         result = {'info': balances}
-        currencies = list(balances.keys())
-        for c in range(0, len(currencies)):
-            currency = currencies[c]
-            code = currency
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = currencyId
             if code in self.currencies_by_id:
                 code = self.currencies_by_id[code]['code']
             else:
@@ -776,7 +780,7 @@ class kraken (Exchange):
                 elif code[0] == 'Z':
                     code = code[1:]
                 code = self.common_currency_code(code)
-            balance = float(balances[currency])
+            balance = self.safe_float(balances, currencyId)
             account = {
                 'free': balance,
                 'used': 0.0,
@@ -788,7 +792,7 @@ class kraken (Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        order = {
+        request = {
             'pair': market['id'],
             'type': side,
             'ordertype': type,
@@ -799,8 +803,8 @@ class kraken (Exchange):
         limitOrder = (type == 'limit')
         shouldIncludePrice = limitOrder or (not marketOrder and priceIsDefined)
         if shouldIncludePrice:
-            order['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostAddOrder(self.extend(order, params))
+            request['price'] = self.price_to_precision(symbol, price)
+        response = self.privatePostAddOrder(self.extend(request, params))
         id = self.safe_value(response['result'], 'txid')
         if id is not None:
             if isinstance(id, list):
@@ -885,9 +889,9 @@ class kraken (Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        description = order['descr']
-        side = description['type']
-        type = description['ordertype']
+        description = self.safe_value(order, 'descr', {})
+        side = self.safe_string(description, 'type')
+        type = self.safe_string(description, 'ordertype')
         marketId = self.safe_string(description, 'pair')
         foundMarket = self.find_market_by_altname_or_id(marketId)
         symbol = None
@@ -896,7 +900,7 @@ class kraken (Exchange):
         elif marketId is not None:
             # delisted market ids go here
             market = self.get_delisted_market_by_id(marketId)
-        timestamp = int(order['opentm'] * 1000)
+        timestamp = self.safe_integer(order, 'opentm') * 1000
         amount = self.safe_float(order, 'vol')
         filled = self.safe_float(order, 'vol_exec')
         remaining = amount - filled
@@ -922,8 +926,9 @@ class kraken (Exchange):
                 elif flags.find('fcib') >= 0:
                     fee['currency'] = market['base']
         status = self.parse_order_status(self.safe_string(order, 'status'))
+        id = self.safe_string(order, 'id')
         return {
-            'id': order['id'],
+            'id': id,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1066,9 +1071,10 @@ class kraken (Exchange):
     def fetch_deposit_methods(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostDepositMethods(self.extend({
+        request = {
             'asset': currency['id'],
-        }, params))
+        }
+        response = self.privatePostDepositMethods(self.extend(request, params))
         return response['result']
 
     def parse_transaction_status(self, status):
@@ -1259,11 +1265,12 @@ class kraken (Exchange):
         if 'key' in params:
             self.load_markets()
             currency = self.currency(code)
-            response = self.privatePostWithdraw(self.extend({
+            request = {
                 'asset': currency['id'],
                 'amount': amount,
                 # 'address': address,  # they don't allow withdrawals to direct addresses
-            }, params))
+            }
+            response = self.privatePostWithdraw(self.extend(request, params))
             return {
                 'info': response,
                 'id': response['result'],
@@ -1301,6 +1308,7 @@ class kraken (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response):
         if code == 520:
             raise ExchangeNotAvailable(self.id + ' ' + str(code) + ' ' + reason)
+        # todo: rewrite self for "broad" exceptions matching
         if body.find('Invalid order') >= 0:
             raise InvalidOrder(self.id + ' ' + body)
         if body.find('Invalid nonce') >= 0:

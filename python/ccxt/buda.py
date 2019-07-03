@@ -47,6 +47,12 @@ class buda (Exchange):
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
             },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -143,7 +149,7 @@ class buda (Exchange):
     def fetch_currency_info(self, currency, currencies=None):
         if not currencies:
             response = self.publicGetCurrencies()
-            currencies = response['currencies']
+            currencies = self.safe_value(response, 'currencies')
         for i in range(0, len(currencies)):
             currencyInfo = currencies[i]
             if currencyInfo['id'] == currency:
@@ -151,16 +157,16 @@ class buda (Exchange):
         return None
 
     def fetch_markets(self, params={}):
-        marketsResponse = self.publicGetMarkets()
-        markets = marketsResponse['markets']
+        marketsResponse = self.publicGetMarkets(params)
+        markets = self.safe_value(marketsResponse, 'markets')
         currenciesResponse = self.publicGetCurrencies()
-        currencies = currenciesResponse['currencies']
+        currencies = self.safe_value(currenciesResponse, 'currencies')
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = market['id']
-            baseId = market['base_currency']
-            quoteId = market['quote_currency']
+            id = self.safe_string(market, 'id')
+            baseId = self.safe_string(market, 'base_currency')
+            quoteId = self.safe_string(market, 'quote_currency')
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             baseInfo = self.fetch_currency_info(baseId, currencies)
@@ -206,9 +212,9 @@ class buda (Exchange):
             currency = currencies[i]
             if not currency['managed']:
                 continue
-            id = currency['id']
+            id = self.safe_string(currency, 'id')
             code = self.common_currency_code(id)
-            precision = currency['input_decimals']
+            precision = self.safe_float(currency, 'input_decimals')
             minimum = math.pow(10, -precision)
             result[code] = {
                 'id': id,
@@ -284,10 +290,11 @@ class buda (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetMarketsMarketTicker(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
-        ticker = response['ticker']
+        }
+        response = self.publicGetMarketsMarketTicker(self.extend(request, params))
+        ticker = self.safe_value(response, 'ticker')
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
@@ -380,6 +387,7 @@ class buda (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -389,11 +397,12 @@ class buda (Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetMarketsMarketOrderBook(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
-        orderBook = response['order_book']
-        return self.parse_order_book(orderBook)
+        }
+        response = self.publicGetMarketsMarketOrderBook(self.extend(request, params))
+        orderbook = self.safe_value(response, 'order_book')
+        return self.parse_order_book(orderbook)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         self.load_markets()
@@ -411,29 +420,26 @@ class buda (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetBalances()
+        response = self.privateGetBalances(params)
         result = {'info': response}
-        balances = response['balances']
+        balances = self.safe_value(response, 'balances')
         for i in range(0, len(balances)):
             balance = balances[i]
-            id = balance['id']
-            currency = self.common_currency_code(id)
-            total = float(balance['amount'][0])
-            free = float(balance['available_amount'][0])
-            account = {
-                'free': free,
-                'used': total - free,
-                'total': total,
-            }
-            result[currency] = account
+            currencyId = self.safe_string(balance, 'id')
+            code = self.common_currency_code(currencyId)
+            account = self.account()
+            account['free'] = float(balance['available_amount'][0])
+            account['total'] = float(balance['amount'][0])
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privateGetOrdersId(self.extend({
+        request = {
             'id': int(id),
-        }, params))
-        order = response['order']
+        }
+        response = self.privateGetOrdersId(self.extend(request, params))
+        order = self.safe_value(response, 'order')
         return self.parse_order(order)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -441,24 +447,25 @@ class buda (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = self.privateGetMarketsMarketOrders(self.extend({
+        request = {
             'market': market['id'],
             'per': limit,
-        }, params))
-        orders = response['orders']
+        }
+        response = self.privateGetMarketsMarketOrders(self.extend(request, params))
+        orders = self.safe_value(response, 'orders')
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'state': 'pending',
-        }, params))
-        return orders
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        orders = self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'state': 'traded',
-        }, params))
-        return orders
+        }
+        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -472,16 +479,17 @@ class buda (Exchange):
         if type == 'limit':
             request['limit'] = self.price_to_precision(symbol, price)
         response = self.privatePostMarketsMarketOrders(self.extend(request, params))
-        order = response['order']
+        order = self.safe_value(response, 'order')
         return self.parse_order(order)
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.privatePutOrdersId(self.extend({
+        request = {
             'id': int(id),
             'state': 'canceling',
-        }, params))
-        order = response['order']
+        }
+        response = self.privatePutOrdersId(self.extend(request, params))
+        order = self.safe_value(response, 'order')
         return self.parse_order(order)
 
     def parse_order_status(self, status):
@@ -490,10 +498,10 @@ class buda (Exchange):
             'received': 'open',
             'canceling': 'canceled',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        id = order['id']
+        id = self.safe_string(order, 'id')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         symbol = None
         if market is None:
@@ -502,14 +510,16 @@ class buda (Exchange):
                 market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        type = order['price_type']
-        side = order['type'].lower()
+        type = self.safe_string(order, 'price_type')
+        side = self.safe_string(order, 'type')
+        if side is not None:
+            side = side.lower()
         status = self.parse_order_status(self.safe_string(order, 'state'))
         amount = float(order['original_amount'][0])
         remaining = float(order['amount'][0])
         filled = float(order['traded_amount'][0])
         cost = float(order['total_exchanged'][0])
-        price = order['limit']
+        price = self.safe_float(order, 'limit')
         if price is not None:
             price = float(price[0])
         if cost > 0 and filled > 0:
@@ -551,10 +561,11 @@ class buda (Exchange):
         currency = self.currency(code)
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fetchDepositAddress() for fiat ' + code + ' is not supported')
-        response = self.privateGetCurrenciesCurrencyReceiveAddresses(self.extend({
+        request = {
             'currency': currency['id'],
-        }, params))
-        receiveAddresses = response['receive_addresses']
+        }
+        response = self.privateGetCurrenciesCurrencyReceiveAddresses(self.extend(request, params))
+        receiveAddresses = self.safe_value(response, 'receive_addresses')
         addressPool = []
         for i in range(1, len(receiveAddresses)):
             receiveAddress = receiveAddresses[i]
@@ -578,9 +589,10 @@ class buda (Exchange):
         currency = self.currency(code)
         if self.is_fiat(code):
             raise NotSupported(self.id + ': fiat fetchDepositAddress() for ' + code + ' is not supported')
-        response = self.privatePostCurrenciesCurrencyReceiveAddresses(self.extend({
+        request = {
             'currency': currency['id'],
-        }, params))
+        }
+        response = self.privatePostCurrenciesCurrencyReceiveAddresses(self.extend(request, params))
         address = self.safe_string(response['receive_address'], 'address')  # the creation is async and returns a null address, returns only the id
         return {
             'currency': code,
@@ -597,7 +609,7 @@ class buda (Exchange):
             'retained': 'canceled',
             'pending_confirmation': 'pending',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return self.safe_string(statuses, status, status)
 
     def parse_transaction(self, transaction, currency=None):
         id = self.safe_string(transaction, 'id')
@@ -643,11 +655,12 @@ class buda (Exchange):
         if code is None:
             raise ExchangeError(self.id + ': fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
-        response = self.privateGetCurrenciesCurrencyDeposits(self.extend({
+        request = {
             'currency': currency['id'],
             'per': limit,
-        }, params))
-        deposits = response['deposits']
+        }
+        response = self.privateGetCurrenciesCurrencyDeposits(self.extend(request, params))
+        deposits = self.safe_value(response, 'deposits')
         return self.parseTransactions(deposits, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
@@ -655,25 +668,27 @@ class buda (Exchange):
         if code is None:
             raise ExchangeError(self.id + ': fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
-        response = self.privateGetCurrenciesCurrencyWithdrawals(self.extend({
+        request = {
             'currency': currency['id'],
             'per': limit,
-        }, params))
-        withdrawals = response['withdrawals']
+        }
+        response = self.privateGetCurrenciesCurrencyWithdrawals(self.extend(request, params))
+        withdrawals = self.safe_value(response, 'withdrawals')
         return self.parseTransactions(withdrawals, currency, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        response = self.privatePostCurrenciesCurrencyWithdrawals(self.extend({
+        request = {
             'currency': currency['id'],
             'amount': amount,
             'withdrawal_data': {
                 'target_address': address,
             },
-        }, params))
-        withdrawal = response['withdrawal']
+        }
+        response = self.privatePostCurrenciesCurrencyWithdrawals(self.extend(request, params))
+        withdrawal = self.safe_value(response, 'withdrawal')
         return self.parse_transaction(withdrawal)
 
     def nonce(self):
@@ -693,8 +708,8 @@ class buda (Exchange):
             nonce = str(self.nonce())
             components = [method, '/api/' + self.version + '/' + request]
             if body:
-                base64_body = base64.b64encode(self.encode(body))
-                components.append(self.decode(base64_body))
+                base64Body = base64.b64encode(self.encode(body))
+                components.append(self.decode(base64Body))
             components.append(nonce)
             message = ' '.join(components)
             signature = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha384)
@@ -707,7 +722,7 @@ class buda (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if not self.is_json_encoded_object(body):
+        if response is None:
             return  # fallback to default error handler
         if code >= 400:
             errorCode = self.safe_string(response, 'code')

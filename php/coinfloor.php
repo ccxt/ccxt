@@ -58,57 +58,64 @@ class coinfloor extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/GBP' => array ( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP' ),
-                'BTC/EUR' => array ( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR' ),
-                'BTC/USD' => array ( 'id' => 'XBT/USD', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'XBT', 'quoteId' => 'USD' ),
-                'BCH/GBP' => array ( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP', 'baseId' => 'BCH', 'quoteId' => 'GBP' ),
-                'ETH/GBP' => array ( 'id' => 'ETH/GBP', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP', 'baseId' => 'ETH', 'quoteId' => 'GBP' ),
+                'BTC/GBP' => array( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP' ),
+                'BTC/EUR' => array( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR' ),
+                'BCH/GBP' => array( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP', 'baseId' => 'BCH', 'quoteId' => 'GBP' ),
+                'ETH/GBP' => array( 'id' => 'ETH/GBP', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP', 'baseId' => 'ETH', 'quoteId' => 'GBP' ),
             ),
         ));
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets();
         $market = null;
-        if (is_array ($params) && array_key_exists ('symbol', $params))
+        if (is_array($params) && array_key_exists('symbol', $params)) {
             $market = $this->find_market($params['symbol']);
-        if (is_array ($params) && array_key_exists ('id', $params))
+        }
+        if (is_array($params) && array_key_exists('id', $params)) {
             $market = $this->find_market($params['id']);
-        if (!$market)
-            throw new NotSupported ($this->id . ' fetchBalance requires a symbol param');
-        $response = $this->privatePostIdBalance (array (
+        }
+        if (!$market) {
+            throw new NotSupported($this->id . ' fetchBalance requires a symbol param');
+        }
+        $request = array (
             'id' => $market['id'],
-        ));
+        );
+        $response = $this->privatePostIdBalance (array_merge ($request, $params));
         $result = array (
             'info' => $response,
         );
         // base/quote used for $keys e.g. "xbt_reserved"
-        $keys = strtolower (explode ('/', $market['id']));
+        $keys = strtolower(explode('/', $market['id']));
         $result[$market['base']] = array (
-            'free' => floatval ($response[$keys[0] . '_available']),
-            'used' => floatval ($response[$keys[0] . '_reserved']),
-            'total' => floatval ($response[$keys[0] . '_balance']),
+            'free' => $this->safe_float($response, $keys[0] . '_available'),
+            'used' => $this->safe_float($response, $keys[0] . '_reserved'),
+            'total' => $this->safe_float($response, $keys[0] . '_balance'),
         );
         $result[$market['quote']] = array (
-            'free' => floatval ($response[$keys[1] . '_available']),
-            'used' => floatval ($response[$keys[1] . '_reserved']),
-            'total' => floatval ($response[$keys[1] . '_balance']),
+            'free' => $this->safe_float($response, $keys[1] . '_available'),
+            'used' => $this->safe_float($response, $keys[1] . '_reserved'),
+            'total' => $this->safe_float($response, $keys[1] . '_balance'),
         );
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
-        $orderbook = $this->publicGetIdOrderBook (array_merge (array (
+        $this->load_markets();
+        $request = array (
             'id' => $this->market_id($symbol),
-        ), $params));
-        return $this->parse_order_book($orderbook);
+        );
+        $response = $this->publicGetIdOrderBook (array_merge ($request, $params));
+        return $this->parse_order_book($response);
     }
 
     public function parse_ticker ($ticker, $market = null) {
         // rewrite to get the $timestamp from HTTP headers
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;
@@ -141,69 +148,102 @@ class coinfloor extends Exchange {
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $ticker = $this->publicGetIdTicker (array_merge (array (
+        $request = array (
             'id' => $market['id'],
-        ), $params));
-        return $this->parse_ticker($ticker, $market);
+        );
+        $response = $this->publicGetIdTicker (array_merge ($request, $params));
+        return $this->parse_ticker($response, $market);
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $trade['date'] * 1000;
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->safe_integer($trade, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        $id = $this->safe_string($trade, 'tid');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'info' => $trade,
-            'id' => (string) $trade['tid'],
+            'id' => $id,
             'order' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetIdTransactions (array_merge (array (
+        $request = array (
             'id' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetIdTransactions (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $order = array ( 'id' => $this->market_id($symbol) );
+        $this->load_markets();
+        $request = array (
+            'id' => $this->market_id($symbol),
+        );
         $method = 'privatePostId' . $this->capitalize ($side);
         if ($type === 'market') {
-            $order['quantity'] = $amount;
+            $request['quantity'] = $amount;
             $method .= 'Market';
         } else {
-            $order['price'] = $price;
-            $order['amount'] = $amount;
+            $request['price'] = $price;
+            $request['amount'] = $amount;
         }
-        return $this->$method (array_merge ($order, $params));
+        return $this->$method (array_merge ($request, $params));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostIdCancelOrder (array ( 'id' => $id ));
+        return $this->privatePostIdCancelOrder (array( 'id' => $id ));
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse8601 ($order['datetime']);
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'datetime'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
-        $cost = $price * $amount;
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
         $side = null;
         $status = $this->safe_string($order, 'status');
-        if ($order['type'] === 0)
+        if ($order['type'] === 0) {
             $side = 'buy';
-        else if ($order['type'] === 1)
+        } else if ($order['type'] === 1) {
             $side = 'sell';
+        }
         $symbol = null;
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        $id = (string) $order['id'];
+        }
+        $id = $this->safe_string($order, 'id');
         return array (
             'info' => $order,
             'id' => $id,
@@ -224,18 +264,16 @@ class coinfloor extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null)
-            throw new NotSupported ($this->id . ' fetchOpenOrders requires a $symbol param');
+        if ($symbol === null) {
+            throw new NotSupported($this->id . ' fetchOpenOrders requires a $symbol param');
+        }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $orders = $this->privatePostIdOpenOrders (array (
+        $request = array (
             'id' => $market['id'],
-        ));
-        for ($i = 0; $i < count ($orders); $i++) {
-            // Coinfloor open $orders would always be $limit $orders
-            $orders[$i] = array_merge ($orders[$i], array ( 'status' => 'open' ));
-        }
-        return $this->parse_orders($orders, $market, $since, $limit);
+        );
+        $response = $this->privatePostIdOpenOrders (array_merge ($request, $params));
+        return $this->parse_orders($response, $market, $since, $limit, array( 'status' => 'open' ));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -243,12 +281,13 @@ class coinfloor extends Exchange {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
-            $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
+            $body = $this->urlencode (array_merge (array( 'nonce' => $nonce ), $query));
             $auth = $this->uid . '/' . $this->apiKey . ':' . $this->password;
             $signature = $this->decode (base64_encode ($this->encode ($auth)));
             $headers = array (
@@ -256,6 +295,6 @@ class coinfloor extends Exchange {
                 'Authorization' => 'Basic ' . $signature,
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

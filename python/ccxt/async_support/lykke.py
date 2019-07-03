@@ -134,6 +134,7 @@ class lykke (Exchange):
             'type': None,
             'order': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -155,19 +156,20 @@ class lykke (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetWallets()
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currency = balance['AssetId']
-            total = balance['Balance']
-            used = balance['Reserved']
-            free = total - used
-            result[currency] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+        response = await self.privateGetWallets(params)
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'AssetId')
+            code = currencyId
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'Balance')
+            account['used'] = self.safe_float(balance, 'Reserved')
+            result[code] = account
         return self.parse_balance(result)
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -215,15 +217,15 @@ class lykke (Exchange):
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = market['Id']
-            name = market['Name']
+            id = self.safe_string(market, 'Id')
+            name = self.safe_string(market, 'Name')
             baseId, quoteId = name.split('/')
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': market['Accuracy'],
-                'price': market['InvertedAccuracy'],
+                'amount': self.safe_integer(market, 'Accuracy'),
+                'price': self.safe_integer(market, 'InvertedAccuracy'),
             }
             result.append({
                 'id': id,
@@ -255,16 +257,16 @@ class lykke (Exchange):
         symbol = None
         if market:
             symbol = market['symbol']
-        close = float(ticker['lastPrice'])
+        close = self.safe_float(ticker, 'lastPrice')
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['bid']),
+            'bid': self.safe_float(ticker, 'bid'),
             'bidVolume': None,
-            'ask': float(ticker['ask']),
+            'ask': self.safe_float(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -275,16 +277,17 @@ class lykke (Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': None,
-            'quoteVolume': float(ticker['volume24H']),
+            'quoteVolume': self.safe_float(ticker, 'volume24H'),
             'info': ticker,
         }
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.mobileGetMarketMarket(self.extend({
+        request = {
             'market': market['id'],
-        }, params))
+        }
+        ticker = await self.mobileGetMarketMarket(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
     def parse_order_status(self, status):
@@ -316,9 +319,10 @@ class lykke (Exchange):
         remaining = self.safe_float(order, 'RemainingVolume')
         filled = amount - remaining
         cost = filled * price
-        result = {
+        id = self.safe_string(order, 'Id')
+        return {
             'info': order,
-            'id': order['Id'],
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -334,32 +338,34 @@ class lykke (Exchange):
             'status': status,
             'fee': None,
         }
-        return result
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrdersId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        response = await self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrders()
+        response = await self.privateGetOrders(params)
         return self.parse_orders(response, None, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrders(self.extend({
+        request = {
             'status': 'InOrderBook',
-        }, params))
+        }
+        response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, None, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrders(self.extend({
+        request = {
             'status': 'Matched',
-        }, params))
+        }
+        response = await self.privateGetOrders(self.extend(request, params))
         return self.parse_orders(response, None, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -384,8 +390,8 @@ class lykke (Exchange):
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'Price', 'Volume')
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
-        price = float(bidask[priceKey])
-        amount = float(bidask[amountKey])
+        price = self.safe_float(bidask, priceKey)
+        amount = self.safe_float(bidask, amountKey)
         if amount < 0:
             amount = -amount
         return [price, amount]

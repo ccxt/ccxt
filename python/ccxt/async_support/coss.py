@@ -584,18 +584,19 @@ class coss (Exchange):
             if price is not None:
                 cost = price * amount
         result = {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': None,
-            'takerOrMaker': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
-            'cost': cost,
             'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
         fee = self.parse_trade_fee(self.safe_string(trade, 'fee'))
         if fee is not None:
@@ -685,9 +686,10 @@ class coss (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.tradePostOrderDetails(self.extend({
+        request = {
             'order_id': id,
-        }, params))
+        }
+        response = await self.tradePostOrderDetails(self.extend(request, params))
         return self.parse_order(response)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
@@ -803,11 +805,12 @@ class coss (Exchange):
         market = self.market(symbol)
         request = {
             'order_symbol': market['id'],
-            'order_price': float(self.price_to_precision(symbol, price)),
-            'order_size': float(self.amount_to_precision(symbol, amount)),
+            'order_size': self.amount_to_precision(symbol, amount),
             'order_side': side.upper(),
             'type': type,
         }
+        if price is not None:
+            request['order_price'] = self.price_to_precision(symbol, price)
         response = await self.tradePostOrderAdd(self.extend(request, params))
         #
         #     {

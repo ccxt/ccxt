@@ -479,18 +479,20 @@ module.exports = class mandala extends Exchange {
         //         ],
         //     }
         //
-        const data = this.safeValue (response, 'Data');
+        const data = this.safeValue (response, 'Data', []);
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
-            const code = this.commonCurrencyCode (this.safeString (balance, 'currency'));
+            const currencyId = this.safeString (balance, 'currency');
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            } else {
+                code = this.commonCurrencyCode (currencyId);
+            }
             const account = this.account ();
-            const free = this.safeFloat (balance, 'balance', 0);
-            const used = this.safeFloat (balance, 'balanceInTrade', 0);
-            const total = this.sum (free, used);
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = total;
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'balanceInTrade');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -721,15 +723,15 @@ module.exports = class mandala extends Exchange {
             };
         }
         return {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': undefined,
-            'takerOrMaker': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -1006,8 +1008,9 @@ module.exports = class mandala extends Exchange {
             }
         }
         if (!price) {
-            if (cost && filled)
+            if (cost && filled) {
                 price = cost / filled;
+            }
         }
         let status = this.safeValue2 (order, 'orderStatus', 'Status');
         status = status ? 'closed' : 'open';
@@ -1149,7 +1152,7 @@ module.exports = class mandala extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let side = this.safeString (params, 'side');
+        const side = this.safeString (params, 'side');
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires an order `side` extra parameter');
         }
@@ -1344,7 +1347,7 @@ module.exports = class mandala extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'withdrawalReqDate', updated));
         const type = ('withdrawalReqDate' in transaction) ? 'withdrawal' : 'deposit';
         let code = undefined;
-        let currencyId = this.safeString (transaction, 'withdrawalType');
+        const currencyId = this.safeString (transaction, 'withdrawalType');
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
             code = currency['code'];

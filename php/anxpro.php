@@ -145,7 +145,7 @@ class anxpro extends Exchange {
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         if ($since !== null) {
             $request['from'] = $since;
         }
@@ -205,7 +205,7 @@ class anxpro extends Exchange {
         //         resultCode => 'OK'
         //     }
         //
-        $transactions = $this->safe_value($response, 'transactions', array ());
+        $transactions = $this->safe_value($response, 'transactions', array());
         $grouped = $this->group_by($transactions, 'transactionType');
         $depositsAndWithdrawals = $this->array_concat($grouped['DEPOSIT'], $grouped['WITHDRAWAL']);
         return $this->parseTransactions ($depositsAndWithdrawals, $currency, $since, $limit);
@@ -261,7 +261,7 @@ class anxpro extends Exchange {
         //         "coinTransactionId" => "0x33a3e5ea7c034dc5324a88aa313962df0a5d571ab4bcc3cb00b876b1bdfc54f7",
         //         "coinConfirmations" => 51,
         //         "coinConfirmationsRequired" => 45,
-        //         "subAccount" => array ("uuid" => "aba1de05-c7c6-49d7-84ab-a6aca0e827b6", "name" => "DEFAULT")
+        //         "subAccount" => array("uuid" => "aba1de05-c7c6-49d7-84ab-a6aca0e827b6", "name" => "DEFAULT")
         //     }
         //
         $timestamp = $this->safe_integer($transaction, 'received');
@@ -276,8 +276,8 @@ class anxpro extends Exchange {
             $amount = -$amount;
             if ($address) {
                 //  xrp => "coinAddress" => "rw2ciyaNshpHe7bCHo4bRWq6pqqynnWKQg?dt=3750180345",
-                if (mb_strpos ($address, '?dt=') !== false) {
-                    $parts = explode ('?dt=', $address);
+                if (mb_strpos($address, '?dt=') !== false) {
+                    $parts = explode('?dt=', $address);
                     $address = $parts[0];
                     $tag = $parts[1];
                 }
@@ -285,12 +285,12 @@ class anxpro extends Exchange {
         } else if ($transactionType === 'DEPOSIT') {
             if (!$address) {
                 $displayDescription = $this->safe_string($transaction, 'displayDescription');
-                $addressText = str_replace ('Deposit to => ', '', $displayDescription);
+                $addressText = str_replace('Deposit to => ', '', $displayDescription);
                 if (strlen ($addressText) > 0) {
                     //  eth => "$displayDescription" => "Deposit to => 0xf123aa44fadea913a7da99cc2ee202db684ce0e3",
                     //  xrp => "$displayDescription" => "Deposit to => rUjxty1WWLwX1evhKf3C2XNZDMcXEZ9ToJ?dt=504562345",
-                    if (mb_strpos ($addressText, '?dt=') !== false) {
-                        $parts = explode ('?dt=', $addressText);
+                    if (mb_strpos($addressText, '?dt=') !== false) {
+                        $parts = explode('?dt=', $addressText);
                         $address = $parts[0];
                         $tag = $parts[1];
                     } else {
@@ -399,13 +399,13 @@ class anxpro extends Exchange {
         //         resultCode => 'OK'
         //     }
         //
-        $request = array ();
+        $request = array();
         if ($limit !== null) {
             $request['max'] = $limit;
         }
         $method = $this->safe_string($this->options, 'fetchMyTradesMethod', 'private_post_money_trade_list');
         $response = $this->$method (array_merge ($request, $params));
-        $trades = $this->safe_value_2($response, 'trades', 'data', array ());
+        $trades = $this->safe_value_2($response, 'trades', 'data', array());
         $market = ($symbol === null) ? null : $this->market ($symbol);
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -446,7 +446,7 @@ class anxpro extends Exchange {
         $amount = $this->safe_float($trade, 'tradedCurrencyFillAmount');
         $cost = $this->safe_float($trade, 'settlementCurrencyFillAmount');
         $side = $this->safe_string($trade, 'side');
-        $side = ($side === null) ? null : strtolower ($side);
+        $side = ($side === null) ? null : strtolower($side);
         return array (
             'id' => $id,
             'order' => $orderId,
@@ -465,7 +465,7 @@ class anxpro extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->v3publicGetCurrencyStatic ($params);
-        $result = array ();
+        $result = array();
         $currencies = $response['currencyStatic']['currencies'];
         //       "$currencies" => array (
         //         "HKD" => array (
@@ -495,9 +495,9 @@ class anxpro extends Exchange {
         //           "maxOrderSize" => 1000000000.00000000,
         //           "$type" => "CRYPTO",
         //           "confirmationThresholds" => array (
-        //             array ( "confosRequired" => 30, "threshold" => 0.50000000 ),
-        //             array ( "confosRequired" => 45, "threshold" => 10.00000000 ),
-        //             array ( "confosRequired" => 70 )
+        //             array( "confosRequired" => 30, "threshold" => 0.50000000 ),
+        //             array( "confosRequired" => 45, "threshold" => 10.00000000 ),
+        //             array( "confosRequired" => 70 )
         //           ),
         //           "networkFee" => 0.00500000,
         //           "$engineSettings" => array (
@@ -515,7 +515,7 @@ class anxpro extends Exchange {
         //           "assetIcon" => "/images/currencies/crypto/ETH.svg"
         //         ),
         //       ),
-        $ids = is_array ($currencies) ? array_keys ($currencies) : array ();
+        $ids = is_array($currencies) ? array_keys($currencies) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $currency = $currencies[$id];
@@ -529,7 +529,7 @@ class anxpro extends Exchange {
             $fee = $this->safe_float($currency, 'networkFee');
             $type = $this->safe_string($currency, 'type');
             if ($type !== 'null') {
-                $type = strtolower ($type);
+                $type = strtolower($type);
             }
             $result[$code] = array (
                 'id' => $id,
@@ -596,9 +596,9 @@ class anxpro extends Exchange {
         //           "maxOrderSize" => 1000000000.00000000,
         //           "type" => "CRYPTO",
         //           "confirmationThresholds" => array (
-        //             array ( "confosRequired" => 30, "threshold" => 0.50000000 ),
-        //             array ( "confosRequired" => 45, "threshold" => 10.00000000 ),
-        //             array ( "confosRequired" => 70 )
+        //             array( "confosRequired" => 30, "threshold" => 0.50000000 ),
+        //             array( "confosRequired" => 45, "threshold" => 10.00000000 ),
+        //             array( "confosRequired" => 70 )
         //           ),
         //           "networkFee" => 0.00500000,
         //           "$engineSettings" => array (
@@ -642,11 +642,11 @@ class anxpro extends Exchange {
         //     "resultCode" => "OK"
         //   }
         //
-        $currencyStatic = $this->safe_value($response, 'currencyStatic', array ());
-        $currencies = $this->safe_value($currencyStatic, 'currencies', array ());
-        $currencyPairs = $this->safe_value($currencyStatic, 'currencyPairs', array ());
-        $result = array ();
-        $ids = is_array ($currencyPairs) ? array_keys ($currencyPairs) : array ();
+        $currencyStatic = $this->safe_value($response, 'currencyStatic', array());
+        $currencies = $this->safe_value($currencyStatic, 'currencies', array());
+        $currencyPairs = $this->safe_value($currencyStatic, 'currencyPairs', array());
+        $result = array();
+        $ids = is_array($currencyPairs) ? array_keys($currencyPairs) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $currencyPairs[$id];
@@ -676,8 +676,8 @@ class anxpro extends Exchange {
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $baseCurrency = $this->safe_value($currencies, $baseId, array ());
-            $quoteCurrency = $this->safe_value($currencies, $quoteId, array ());
+            $baseCurrency = $this->safe_value($currencies, $baseId, array());
+            $quoteCurrency = $this->safe_value($currencies, $quoteId, array());
             $precision = array (
                 'price' => $this->safe_integer($market, 'priceDecimals'),
                 'amount' => $this->safe_integer($baseCurrency, 'decimals'),
@@ -718,20 +718,22 @@ class anxpro extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostMoneyInfo ($params);
-        $balance = $this->safe_value($response, 'data', array ());
-        $wallets = $balance['Wallets'];
-        $currencies = is_array ($wallets) ? array_keys ($wallets) : array ();
-        $result = array ( 'info' => $balance );
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $currencyId = $currencies[$c];
-            $code = $this->common_currency_code($currencyId);
-            $account = $this->account ();
-            if (is_array ($wallets) && array_key_exists ($currencyId, $wallets)) {
-                $wallet = $wallets[$currencyId];
-                $account['free'] = $this->safe_float($wallet['Available_Balance'], 'value');
-                $account['total'] = $this->safe_float($wallet['Balance'], 'value');
-                $account['used'] = $account['total'] - $account['free'];
+        $balance = $this->safe_value($response, 'data', array());
+        $wallets = $this->safe_value($balance, 'Wallets', array());
+        $currencyIds = is_array($wallets) ? array_keys($wallets) : array();
+        $result = array( 'info' => $balance );
+        for ($c = 0; $c < count ($currencyIds); $c++) {
+            $currencyId = $currencyIds[$c];
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($currencyId);
             }
+            $account = $this->account ();
+            $wallet = $this->safe_value($wallets, $currencyId);
+            $account['free'] = $this->safe_float($wallet['Available_Balance'], 'value');
+            $account['total'] = $this->safe_float($wallet['Balance'], 'value');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -743,7 +745,7 @@ class anxpro extends Exchange {
             'currency_pair' => $this->market_id($symbol),
         );
         $response = $this->publicGetCurrencyPairMoneyDepthFull (array_merge ($request, $params));
-        $orderbook = $this->safe_value($response, 'data', array ());
+        $orderbook = $this->safe_value($response, 'data', array());
         $t = $this->safe_integer($orderbook, 'dataUpdateTime');
         $timestamp = ($t === null) ? $t : intval ($t / 1000);
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
@@ -755,7 +757,7 @@ class anxpro extends Exchange {
             'currency_pair' => $this->market_id($symbol),
         );
         $response = $this->publicGetCurrencyPairMoneyTicker (array_merge ($request, $params));
-        $ticker = $this->safe_value($response, 'data', array ());
+        $ticker = $this->safe_value($response, 'data', array());
         $t = $this->safe_integer($ticker, 'dataUpdateTime');
         $timestamp = ($t === null) ? $t : intval ($t / 1000);
         $bid = $this->safe_float($ticker['buy'], 'value');
@@ -787,17 +789,17 @@ class anxpro extends Exchange {
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported ($this->id . ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
+        throw new NotSupported($this->id . ' switched off the trades endpoint, see their docs at https://docs.anxv2.apiary.io');
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         if ($limit !== null) {
             $request['max'] = $limit;
         }
         $response = $this->v3privatePostOrderList (array_merge ($request, $params));
-        $orders = $this->safe_value($response, 'orders', array ());
+        $orders = $this->safe_value($response, 'orders', array());
         $market = ($symbol === null) ? null : $this->market ($symbol);
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -843,20 +845,21 @@ class anxpro extends Exchange {
         //                 "status" => "open",
         //                 "date" => 1393411075000,
         //                 "priority" => 1393411075000000,
-        //                 "actions" => array ()
+        //                 "actions" => array()
         //             ),
         //            ...
         //         )
         //     }
         //
-        return $this->parse_orders($this->safe_value($response, 'data', array ()), $market, $since, $limit);
+        return $this->parse_orders($this->safe_value($response, 'data', array()), $market, $since, $limit);
     }
 
     public function parse_order ($order, $market = null) {
-        if (is_array ($order) && array_key_exists ('orderId', $order))
+        if (is_array($order) && array_key_exists('orderId', $order)) {
             return $this->parse_order_v3 ($order, $market);
-        else
+        } else {
             return $this->parse_order_v2 ($order, $market);
+        }
     }
 
     public function parse_order_status ($status) {
@@ -917,15 +920,16 @@ class anxpro extends Exchange {
         $side = $buyTradedCurrency === 'true' ? 'buy' : 'sell';
         $timestamp = $this->safe_integer($order, 'timestamp');
         $lastTradeTimestamp = null;
-        $trades = array ();
+        $trades = array();
         $filled = 0;
-        $type = strtolower ($this->safe_string($order, 'orderType'));
+        $type = strtolower($this->safe_string($order, 'orderType'));
         for ($i = 0; $i < count ($order['trades']); $i++) {
             $trade = $order['trades'][$i];
             $tradeTimestamp = $this->safe_integer($trade, 'timestamp');
-            if (!$lastTradeTimestamp || $lastTradeTimestamp < $tradeTimestamp)
+            if (!$lastTradeTimestamp || $lastTradeTimestamp < $tradeTimestamp) {
                 $lastTradeTimestamp = $tradeTimestamp;
-            $parsedTrade = array_merge ($this->parse_trade($trade), array ( 'side' => $side, 'type' => $type ));
+            }
+            $parsedTrade = array_merge ($this->parse_trade($trade), array( 'side' => $side, 'type' => $type ));
             $trades[] = $parsedTrade;
             $filled = $this->sum ($filled, $parsedTrade['amount']);
         }
@@ -991,7 +995,7 @@ class anxpro extends Exchange {
         //         "$status" => "open",
         //         "date" => 1393411075000,
         //         "priority" => 1393411075000000,
-        //         "actions" => array ()
+        //         "actions" => array()
         //     }
         //
         $id = $this->safe_string($order, 'oid');
@@ -1005,9 +1009,9 @@ class anxpro extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $amount_info = $this->safe_value($order, 'amount', array ());
-        $effective_info = $this->safe_value($order, 'effective_amount', array ());
-        $price_info = $this->safe_value($order, 'price', array ());
+        $amount_info = $this->safe_value($order, 'amount', array());
+        $effective_info = $this->safe_value($order, 'effective_amount', array());
+        $price_info = $this->safe_value($order, 'price', array());
         $remaining = $this->safe_float($effective_info, 'value');
         $amount = $this->safe_float($amount_info, 'volume');
         $price = $this->safe_float($price_info, 'value');
@@ -1052,13 +1056,13 @@ class anxpro extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $amountMultiplier = pow (10, $market['precision']['amount']);
+        $amountMultiplier = pow(10, $market['precision']['amount']);
         $request = array (
             'currency_pair' => $market['id'],
             'amount_int' => intval ($amount * $amountMultiplier), // 10^8
         );
         if ($type === 'limit') {
-            $priceMultiplier = pow (10, $market['precision']['price']);
+            $priceMultiplier = pow(10, $market['precision']['price']);
             $request['price_int'] = intval ($price * $priceMultiplier); // 10^5 or 10^8
         }
         $request['type'] = ($side === 'buy') ? 'bid' : 'ask';
@@ -1070,7 +1074,7 @@ class anxpro extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCurrencyPairMoneyOrderCancel (array ( 'oid' => $id ));
+        return $this->privatePostCurrencyPairMoneyOrderCancel (array( 'oid' => $id ));
     }
 
     public function get_amount_multiplier ($code) {
@@ -1112,8 +1116,8 @@ class anxpro extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privatePostMoneyCurrencyAddress (array_merge ($request, $params));
-        $result = $response['data'];
-        $address = $this->safe_string($result, 'addr');
+        $data = $this->safe_value($response, 'data', array());
+        $address = $this->safe_string($data, 'addr');
         $this->check_address($address);
         return array (
             'currency' => $code,
@@ -1131,20 +1135,21 @@ class anxpro extends Exchange {
         $query = $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $request;
         if ($api === 'public' || $api === 'v3public') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
             $auth = null;
             $contentType = null;
             if ($api === 'v3private') {
-                $body = $this->json (array_merge (array ( 'tonce' => $nonce * 1000 ), $query));
-                $path = str_replace ('https://anxpro.com/', '', $url);
+                $body = $this->json (array_merge (array( 'tonce' => $nonce * 1000 ), $query));
+                $path = str_replace('https://anxpro.com/', '', $url);
                 $auth = $path . '\0' . $body;
                 $contentType = 'application/json';
             } else {
-                $body = $this->urlencode (array_merge (array ( 'nonce' => $nonce ), $query));
+                $body = $this->urlencode (array_merge (array( 'nonce' => $nonce ), $query));
                 // eslint-disable-next-line quotes
                 $auth = $request . "\0" . $body;
                 $contentType = 'application/x-www-form-urlencoded';
@@ -1157,7 +1162,7 @@ class anxpro extends Exchange {
                 'Rest-Sign' => $this->decode ($signature),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -1170,17 +1175,17 @@ class anxpro extends Exchange {
             $message = $this->safe_string($response, 'error');
             $feedback = $this->id . ' ' . $body;
             $exact = $this->exceptions['exact'];
-            if (is_array ($exact) && array_key_exists ($code, $exact)) {
-                throw new $exact[$code] ($feedback);
-            } else if (is_array ($exact) && array_key_exists ($message, $exact)) {
-                throw new $exact[$message] ($feedback);
+            if (is_array($exact) && array_key_exists($code, $exact)) {
+                throw new $exact[$code]($feedback);
+            } else if (is_array($exact) && array_key_exists($message, $exact)) {
+                throw new $exact[$message]($feedback);
             }
-            $broad = $this->safe_value($this->exceptions, 'broad', array ());
+            $broad = $this->safe_value($this->exceptions, 'broad', array());
             $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
             if ($broadKey !== null) {
-                throw new $broad[$broadKey] ($feedback);
+                throw new $broad[$broadKey]($feedback);
             }
-            throw new ExchangeError ($feedback); // unknown $message
+            throw new ExchangeError($feedback); // unknown $message
         }
     }
 }

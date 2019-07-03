@@ -290,6 +290,7 @@ class bitfinex (Exchange):
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
+                'AMP': 'AMPL',
                 'ATM': 'ATMI',
                 'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
                 'BAB': 'BCH',
@@ -539,25 +540,24 @@ class bitfinex (Exchange):
         await self.load_markets()
         balanceType = self.safe_string(params, 'type', 'exchange')
         query = self.omit(params, 'type')
-        balances = await self.privatePostBalances(query)
-        result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
+        response = await self.privatePostBalances(query)
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
             if balance['type'] == balanceType:
-                currency = balance['currency']
-                uppercase = currency.upper()
-                uppercase = self.common_currency_code(uppercase)
+                currencyId = self.safe_string(balance, 'currency')
+                code = currencyId.upper()
+                code = self.common_currency_code(code)
                 # bitfinex had BCH previously, now it's BAB, but the old
                 # BCH symbol is kept for backward-compatibility
                 # we need a workaround here so that the old BCH balance
                 # would not override the new BAB balance(BAB is unified to BCH)
                 # https://github.com/ccxt/ccxt/issues/4989
-                if not(uppercase in list(result.keys())):
+                if not(code in list(result.keys())):
                     account = self.account()
-                    account['free'] = float(balance['available'])
-                    account['total'] = float(balance['amount'])
-                    account['used'] = account['total'] - account['free']
-                    result[uppercase] = account
+                    account['free'] = self.safe_float(balance, 'available')
+                    account['total'] = self.safe_float(balance, 'amount')
+                    result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -568,15 +568,15 @@ class bitfinex (Exchange):
         if limit is not None:
             request['limit_bids'] = limit
             request['limit_asks'] = limit
-        orderbook = await self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
+        response = await self.publicGetBookSymbol(self.extend(request, params))
+        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        tickers = await self.publicGetTickers(params)
+        response = await self.publicGetTickers(params)
         result = {}
-        for i in range(0, len(tickers)):
-            ticker = self.parse_ticker(tickers[i])
+        for i in range(0, len(response)):
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return result
@@ -584,25 +584,28 @@ class bitfinex (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetPubtickerSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        ticker = await self.publicGetPubtickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_float(ticker, 'timestamp') * 1000
+        timestamp = self.safe_float(ticker, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = None
         if market is not None:
             symbol = market['symbol']
         elif 'pair' in ticker:
-            id = ticker['pair']
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
+            marketId = self.safe_string(ticker, 'pair')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
             if market is not None:
                 symbol = market['symbol']
             else:
-                baseId = id[0:3]
-                quoteId = id[3:6]
+                baseId = marketId[0:3]
+                quoteId = marketId[3:6]
                 base = self.common_currency_code(baseId)
                 quote = self.common_currency_code(quoteId)
                 symbol = base + '/' + quote
@@ -631,33 +634,44 @@ class bitfinex (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = int(float(trade['timestamp'])) * 1000
-        side = trade['type'].lower()
+        id = self.safe_string(trade, 'tid')
+        timestamp = self.safe_float(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp = int(timestamp) * 1000
+        type = None
+        side = self.safe_string(trade, 'type')
+        if side is not None:
+            side = side.lower()
         orderId = self.safe_string(trade, 'order_id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        cost = price * amount
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         fee = None
         if 'fee_amount' in trade:
             feeCost = -self.safe_float(trade, 'fee_amount')
-            feeCurrency = self.safe_string(trade, 'fee_currency')
-            if feeCurrency in self.currencies_by_id:
-                feeCurrency = self.currencies_by_id[feeCurrency]['code']
+            feeCurrencyId = self.safe_string(trade, 'fee_currency')
+            feeCurrencyCode = None
+            if feeCurrencyId in self.currencies_by_id:
+                feeCurrencyCode = self.currencies_by_id[feeCurrencyId]['code']
             else:
-                feeCurrency = self.common_currency_code(feeCurrency)
+                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
             }
         return {
-            'id': str(trade['tid']),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'type': None,
+            'type': type,
             'order': orderId,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -678,10 +692,12 @@ class bitfinex (Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {'symbol': market['id']}
+        request = {
+            'symbol': market['id'],
+        }
         if limit is not None:
             request['limit_trades'] = limit
         if since is not None:
@@ -691,7 +707,7 @@ class bitfinex (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        order = {
+        request = {
             'symbol': self.market_id(symbol),
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -701,11 +717,11 @@ class bitfinex (Exchange):
             'sell_price_oco': 0,
         }
         if type == 'market':
-            order['price'] = str(self.nonce())
+            request['price'] = str(self.nonce())
         else:
-            order['price'] = self.price_to_precision(symbol, price)
-        result = await self.privatePostOrderNew(self.extend(order, params))
-        return self.parse_order(result)
+            request['price'] = self.price_to_precision(symbol, price)
+        response = await self.privatePostOrderNew(self.extend(request, params))
+        return self.parse_order(response)
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
@@ -722,20 +738,23 @@ class bitfinex (Exchange):
             order['side'] = side
         if type is not None:
             order['type'] = self.safe_string(self.options['orderTypes'], type, type)
-        result = await self.privatePostOrderCancelReplace(self.extend(order, params))
-        return self.parse_order(result)
+        response = await self.privatePostOrderCancelReplace(self.extend(order, params))
+        return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.privatePostOrderCancel({'order_id': int(id)})
+        request = {
+            'order_id': int(id),
+        }
+        return await self.privatePostOrderCancel(self.extend(request, params))
 
     async def cancel_all_orders(self, symbol=None, params={}):
         return await self.privatePostOrderCancelAll(params)
 
     def parse_order(self, order, market=None):
-        side = order['side']
-        open = order['is_live']
-        canceled = order['is_cancelled']
+        side = self.safe_string(order, 'side')
+        open = self.safe_value(order, 'is_live')
+        canceled = self.safe_value(order, 'is_cancelled')
         status = None
         if open:
             status = 'open'
@@ -745,9 +764,11 @@ class bitfinex (Exchange):
             status = 'closed'
         symbol = None
         if market is None:
-            exchange = order['symbol'].upper()
-            if exchange in self.markets_by_id:
-                market = self.markets_by_id[exchange]
+            marketId = self.safe_string(order, 'symbol')
+            if marketId is not None:
+                marketId = marketId.upper()
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
         orderType = order['type']
@@ -755,10 +776,13 @@ class bitfinex (Exchange):
         if exchange:
             parts = order['type'].split(' ')
             orderType = parts[1]
-        timestamp = int(float(order['timestamp']) * 1000)
-        result = {
+        timestamp = self.safe_float(order, 'timestamp')
+        if timestamp is not None:
+            timestamp = int(timestamp) * 1000
+        id = self.safe_string(order, 'id')
+        return {
             'info': order,
-            'id': str(order['id']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -773,7 +797,6 @@ class bitfinex (Exchange):
             'status': status,
             'fee': None,
         }
-        return result
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -795,14 +818,15 @@ class bitfinex (Exchange):
         orders = self.parse_orders(response, None, since, limit)
         if symbol is not None:
             orders = self.filter_by(orders, 'symbol', symbol)
-        orders = self.filter_by(orders, 'status', 'closed')
+        orders = self.filter_by_array(orders, 'status', ['closed', 'canceled'], False)
         return orders
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.privatePostOrderStatus(self.extend({
+        request = {
             'order_id': int(id),
-        }, params))
+        }
+        response = await self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order(response)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -838,9 +862,11 @@ class bitfinex (Exchange):
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
 
     async def create_deposit_address(self, code, params={}):
-        response = await self.fetch_deposit_address(code, self.extend({
+        await self.load_markets()
+        request = {
             'renew': 1,
-        }, params))
+        }
+        response = await self.fetch_deposit_address(code, self.extend(request, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
         return {
@@ -851,6 +877,7 @@ class bitfinex (Exchange):
         }
 
     async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
         name = self.get_currency_name(code)
         request = {
             'method': name,
@@ -858,7 +885,7 @@ class bitfinex (Exchange):
             'renew': 0,  # a value of 1 will generate a new address
         }
         response = await self.privatePostDepositNew(self.extend(request, params))
-        address = response['address']
+        address = self.safe_value(response, 'address')
         tag = None
         if 'address_pool' in response:
             tag = address
@@ -873,7 +900,7 @@ class bitfinex (Exchange):
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         if code is None:
-            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchTransactions() requires a currency `code` argument')
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -903,6 +930,22 @@ class bitfinex (Exchange):
         return self.parseTransactions(response, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
+        #
+        #     {
+        #         "id": 12042490,
+        #         "fee": "-0.02",
+        #         "txid": "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
+        #         "type": "DEPOSIT",
+        #         "amount": "2099.849999",
+        #         "method": "RIPPLE",
+        #         "status": "COMPLETED",
+        #         "address": "2505189261",
+        #         "currency": "XRP",
+        #         "timestamp": "1551730524.0",
+        #         "description": "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
+        #         "timestamp_created": "1551730523.0"
+        #     }
+        #
         timestamp = self.safe_float(transaction, 'timestamp_created')
         if timestamp is not None:
             timestamp = int(timestamp * 1000)
@@ -931,7 +974,7 @@ class bitfinex (Exchange):
             'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'address': self.safe_string(transaction, 'address'),
+            'address': self.safe_string(transaction, 'address'),  # todo: self is actually the tag for XRP transfers(the address is missing)
             'tag': None,  # refix it properly for the tag from description
             'type': type,
             'amount': self.safe_float(transaction, 'amount'),
@@ -951,7 +994,7 @@ class bitfinex (Exchange):
             'ZEROCONFIRMED': 'failed',  # ZEROCONFIRMED happens e.g. in a double spend attempt(I had one in my movementsnot )
             'COMPLETED': 'ok',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return self.safe_string(statuses, status, status)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)
@@ -962,12 +1005,12 @@ class bitfinex (Exchange):
             'amount': str(amount),
             'address': address,
         }
-        if tag:
+        if tag is not None:
             request['payment_id'] = tag
         responses = await self.privatePostWithdraw(self.extend(request, params))
         response = responses[0]
-        id = response['withdrawal_id']
-        message = response['message']
+        id = self.safe_string(response, 'withdrawal_id')
+        message = self.safe_string(response, 'message')
         errorMessage = self.findBroadlyMatchedKey(self.exceptions['broad'], message)
         if id == 0:
             if errorMessage is not None:
@@ -1015,7 +1058,7 @@ class bitfinex (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if len(body) < 2:
+        if response is None:
             return
         if code >= 400:
             if body[0] == '{':
