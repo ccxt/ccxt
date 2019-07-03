@@ -209,8 +209,8 @@ module.exports = class bleutrade extends bittrex {
 
     parseSymbol (id) {
         let [ base, quote ] = id.split (this.options['symbolSeparator']);
-        base = this.commonCurrencyCode (base);
-        quote = this.commonCurrencyCode (quote);
+        base = this.safeCurrencyCode (base);
+        quote = this.safeCurrencyCode (quote);
         return base + '/' + quote;
     }
 
@@ -550,11 +550,7 @@ module.exports = class bleutrade extends bittrex {
             } else if (symbol !== undefined) {
                 const currencyIds = symbol.split ('/');
                 const quoteCurrencyId = currencyIds[1];
-                if (quoteCurrencyId in this.currencies_by_id) {
-                    fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
-                } else {
-                    fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
-                }
+                fee['currency'] = this.safeCurrencyCode (quoteCurrencyId);
             }
         }
         let price = this.safeFloat (order, 'Price');
@@ -637,13 +633,7 @@ module.exports = class bleutrade extends bittrex {
             type = 'withdrawal';
         }
         const currencyId = this.safeString (transaction, 'Coin');
-        let code = undefined;
-        currency = this.safeValue (this.currencies_by_id, currencyId);
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         const label = this.safeString (transaction, 'Label');
         const timestamp = this.parse8601 (this.safeString (transaction, 'TimeStamp'));
         let txid = this.safeString (transaction, 'TransactionId');

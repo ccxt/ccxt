@@ -172,7 +172,7 @@ module.exports = class btcmarkets extends Exchange {
         const fee = this.safeFloat (item, 'fee');
         const status = this.parseTransactionStatus (this.safeString (item, 'status'));
         const ccy = this.safeString (item, 'currency');
-        const code = this.commonCurrencyCode (ccy);
+        const code = this.safeCurrencyCode (ccy);
         // todo: this logic is duplicated below
         let amount = this.safeFloat (item, 'amount');
         if (amount !== undefined) {
@@ -207,8 +207,8 @@ module.exports = class btcmarkets extends Exchange {
             const baseId = this.safeString (market, 'instrument');
             const quoteId = this.safeString (market, 'currency');
             const id = baseId + '/' + quoteId;
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             // todo: refactor this
             const fee = (quote === 'AUD') ? 0.0085 : 0.0022;
@@ -266,7 +266,7 @@ module.exports = class btcmarkets extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const multiplier = 100000000;
             const total = this.safeFloat (balance, 'balance') / multiplier;
             const used = this.safeFloat (balance, 'pendingFunds') / multiplier;

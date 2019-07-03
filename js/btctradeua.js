@@ -96,7 +96,7 @@ module.exports = class btctradeua extends Exchange {
         for (let i = 0; i < accounts.length; i++) {
             const account = accounts[i];
             const currencyId = account['currency'];
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeFloat (account, 'balance');
             result[code] = {
                 'free': balance,
