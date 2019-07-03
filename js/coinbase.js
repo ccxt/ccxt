@@ -952,7 +952,7 @@ module.exports = class coinbase extends Exchange {
         let transactionAmount = this.safeFloat (item['amount'], 'amount');
         const direction = transactionAmount < 0 ? 'out' : 'in';
         const currencyId = this.safeString (item['amount'], 'currency');
-        const currencyCode = this.commonCurrencyCode (currencyId);
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         let fee = undefined;
         let txid = undefined;
         const network = item['network'];
@@ -964,7 +964,7 @@ module.exports = class coinbase extends Exchange {
                 // maybe the fee should be a separate ledger entry
                 fee = {
                     'cost': feeAmount,
-                    'currency': this.commonCurrencyCode (feeCurrencyId),
+                    'currency': this.safeCurrencyCode (feeCurrencyId, currency),
                 };
             }
             if (network['transaction_amount']) {
