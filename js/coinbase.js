@@ -915,9 +915,9 @@ module.exports = class coinbase extends Exchange {
         //                     {
         //                         title: 'Deposited funds',
         //                         subtitle:
-        //                             'From SEPA Transfer (GB47 BARC 2081 2150, reference CBADVI)',
+        //                             'From SEPA Transfer (GB47 BARC 20..., reference CBADVI)',
         //                         payment_method_name:
-        //                             'SEPA Transfer (GB47 BARC 2081 2150, reference CBADVI)'
+        //                             'SEPA Transfer (GB47 BARC 20..., reference CBADVI)'
         //                     }
         //             }
         //
@@ -944,8 +944,8 @@ module.exports = class coinbase extends Exchange {
         //                 details:
         //                     {
         //                         title: 'Withdrew funds',
-        //                         subtitle: 'To HSBC BANK PLC (GB74 MIDL 4005 1577)',
-        //                         payment_method_name: 'HSBC BANK PLC (GB74 MIDL 4005 1577)'
+        //                         subtitle: 'To HSBC BANK PLC (GB74 MIDL...)',
+        //                         payment_method_name: 'HSBC BANK PLC (GB74 MIDL...)'
         //                     }
         //             }
         //
