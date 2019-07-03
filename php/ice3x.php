@@ -90,12 +90,12 @@ class ice3x extends Exchange {
         $response = $this->publicGetCurrencyList ($params);
         $currencies = $response['response']['entities'];
         $precision = $this->precision['amount'];
-        $result = array();
+        $result = array ();
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'currency_id');
             $code = $this->safe_string($currency, 'iso');
-            $code = strtoupper($code);
+            $code = strtoupper ($code);
             $code = $this->common_currency_code($code);
             $result[$code] = array (
                 'id' => $id,
@@ -106,11 +106,11 @@ class ice3x extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => null,
-                        'max' => pow(10, $precision),
+                        'max' => pow (10, $precision),
                     ),
                     'price' => array (
-                        'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'min' => pow (10, -$precision),
+                        'max' => pow (10, $precision),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -128,9 +128,9 @@ class ice3x extends Exchange {
             $this->currencies = $this->fetch_currencies();
         }
         $this->currencies_by_id = $this->index_by($this->currencies, 'id');
-        $response = $this->publicGetPairList ($params);
-        $markets = $this->safe_value($response['response'], 'entities');
-        $result = array();
+        $response = $this->publicGetPairList ();
+        $markets = $response['response']['entities'];
+        $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'pair_id');
@@ -186,19 +186,17 @@ class ice3x extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $response = $this->publicGetStatsMarketdepthfull (array_merge (array (
             'pair_id' => $market['id'],
-        );
-        $response = $this->publicGetStatsMarketdepthfull (array_merge ($request, $params));
-        $ticker = $this->safe_value($response['response'], 'entity');
-        return $this->parse_ticker($ticker, $market);
+        ), $params));
+        return $this->parse_ticker($response['response']['entity'], $market);
     }
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $response = $this->publicGetStatsMarketdepthfull ($params);
-        $tickers = $this->safe_value($response['response'], 'entities');
-        $result = array();
+        $tickers = $response['response']['entities'];
+        $result = array ();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
             $marketId = $this->safe_string($ticker, 'pair_id');
@@ -220,88 +218,72 @@ class ice3x extends Exchange {
             $type = $this->safe_string($params, 'type');
             if (($type !== 'ask') && ($type !== 'bid')) {
                 // eslint-disable-next-line quotes
-                throw new ExchangeError($this->id . " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a $limit");
+                throw new ExchangeError ($this->id . " fetchOrderBook requires an exchange-specific extra 'type' param ('bid' or 'ask') when used with a $limit");
             } else {
                 $request['items_per_page'] = $limit;
             }
         }
         $response = $this->publicGetOrderbookInfo (array_merge ($request, $params));
-        $orderbook = $this->safe_value($response['response'], 'entities');
+        $orderbook = $response['response']['entities'];
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'created');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = intval ($trade['created']) * 1000;
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $price * $amount;
-            }
-        }
-        $fee = null;
-        $feeCost = $this->safe_float($trade, 'fee');
-        if ($feeCost !== null) {
+        $symbol = $market['symbol'];
+        $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
+        $fee = $this->safe_float($trade, 'fee');
+        if ($fee) {
             $fee = array (
-                'cost' => $feeCost,
+                'cost' => $fee,
                 'currency' => $market['quote'],
             );
         }
-        $type = 'limit';
-        $side = $this->safe_string($trade, 'type');
-        $id = $this->safe_string($trade, 'trade_id');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
         return array (
-            'id' => $id,
-            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
+            'id' => $this->safe_string($trade, 'trade_id'),
             'order' => null,
-            'type' => $type,
-            'side' => $side,
-            'takerOrMaker' => null,
+            'type' => 'limit',
+            'side' => $trade['type'],
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => $fee,
+            'info' => $trade,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $response = $this->publicGetTradeList (array_merge (array (
             'pair_id' => $market['id'],
-        );
-        $response = $this->publicGetTradeList (array_merge ($request, $params));
-        $trades = $this->safe_value($response['response'], 'entities');
+        ), $params));
+        $trades = $response['response']['entities'];
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalanceList ($params);
-        $result = array( 'info' => $response );
-        $balances = $this->safe_value($response['response'], 'entities', array());
+        $result = array ( 'info' => $response );
+        $balances = $response['response']['entities'];
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            // currency ids are numeric strings
-            $currencyId = $this->safe_string($balance, 'currency_id');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
+            $id = $balance['currency_id'];
+            if (is_array ($this->currencies_by_id) && array_key_exists ($id, $this->currencies_by_id)) {
+                $currency = $this->currencies_by_id[$id];
+                $code = $currency['code'];
+                $result[$code] = array (
+                    'free' => 0.0,
+                    'used' => 0.0,
+                    'total' => floatval ($balance['balance']),
+                );
             }
-            $account = $this->account ();
-            $account['total'] = $this->safe_float($balance, 'balance');
-            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -309,7 +291,7 @@ class ice3x extends Exchange {
     public function parse_order ($order, $market = null) {
         $pairId = $this->safe_integer($order, 'pair_id');
         $symbol = null;
-        if ($pairId && !$market && (is_array($this->marketsById) && array_key_exists($pairId, $this->marketsById))) {
+        if ($pairId && !$market && (is_array ($this->marketsById) && array_key_exists ($pairId, $this->marketsById))) {
             $market = $this->marketsById[$pairId];
             $symbol = $market['symbol'];
         }
@@ -326,15 +308,11 @@ class ice3x extends Exchange {
             $remaining = 0;
             $filled = $amount;
         }
-        $fee = null;
-        $feeCost = $this->safe_float($order, 'fee');
-        if ($feeCost !== null) {
-            $fee = array (
-                'cost' => $feeCost,
-            );
-            if ($market !== null) {
+        $fee = $this->safe_float($order, 'fee');
+        if ($fee) {
+            $fee = array ( 'cost' => $fee );
+            if ($market)
                 $fee['currency'] = $market['quote'];
-            }
         }
         return array (
             'id' => $this->safe_string($order, 'order_id'),
@@ -344,7 +322,7 @@ class ice3x extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => $this->safeStrin ($order, 'type'),
+            'side' => $order['type'],
             'price' => $price,
             'cost' => null,
             'amount' => $amount,
@@ -359,13 +337,12 @@ class ice3x extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $response = $this->privatePostOrderNew (array_merge (array (
             'pair_id' => $market['id'],
             'type' => $side,
             'amount' => $amount,
             'price' => $price,
-        );
-        $response = $this->privatePostOrderNew (array_merge ($request, $params));
+        ), $params));
         $order = $this->parse_order(array (
             'order_id' => $response['response']['entity']['order_id'],
             'created' => $this->seconds (),
@@ -382,26 +359,24 @@ class ice3x extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        $request = array (
+        $response = $this->privatePostOrderCancel (array_merge (array (
             'order_id' => $id,
-        );
-        return $this->privatePostOrderCancel (array_merge ($request, $params));
+        ), $params));
+        return $response;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $response = $this->privatePostOrderInfo (array_merge (array (
             'order _id' => $id,
-        );
-        $response = $this->privatePostOrderInfo (array_merge ($request, $params));
-        $order = $this->safe_value($response['response'], 'entity');
-        return $this->parse_order($order);
+        ), $params));
+        return $this->parse_order($response['response']['entity']);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrderList ($params);
-        $orders = $this->safe_value($response['response'], 'entities');
+        $response = $this->privatePostOrderList ();
+        $orders = $response['response']['entities'];
         return $this->parse_orders($orders, null, $since, $limit);
     }
 
@@ -411,25 +386,22 @@ class ice3x extends Exchange {
         $request = array (
             'pair_id' => $market['id'],
         );
-        if ($limit !== null) {
+        if ($limit !== null)
             $request['items_per_page'] = $limit;
-        }
-        if ($since !== null) {
+        if ($since !== null)
             $request['date_from'] = intval ($since / 1000);
-        }
         $response = $this->privatePostTradeList (array_merge ($request, $params));
-        $trades = $this->safe_value($response['response'], 'entities');
+        $trades = $response['response']['entities'];
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
+        $response = $this->privatePostBalanceInfo (array_merge (array (
             'currency_id' => $currency['id'],
-        );
-        $response = $this->privatePostBalanceInfo (array_merge ($request, $params));
-        $balance = $this->safe_value($response['response'], 'entity');
+        ), $params));
+        $balance = $response['response']['entity'];
         $address = $this->safe_string($balance, 'address');
         $status = $address ? 'ok' : 'none';
         return array (
@@ -444,9 +416,8 @@ class ice3x extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if ($params)
                 $url .= '?' . $this->urlencode ($params);
-            }
         } else {
             $this->check_required_credentials();
             $body = $this->urlencode (array_merge (array (
@@ -458,7 +429,7 @@ class ice3x extends Exchange {
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -470,15 +441,13 @@ class ice3x extends Exchange {
             for ($i = 0; $i < count ($authErrorKeys); $i++) {
                 $errorKey = $authErrorKeys[$i];
                 $errorMessage = $this->safe_string($errors, $errorKey);
-                if (!$errorMessage) {
+                if (!$errorMessage)
                     continue;
-                }
-                if ($errorKey === 'user_id' && mb_strpos($errorMessage, 'authorization') < 0) {
+                if ($errorKey === 'user_id' && mb_strpos ($errorMessage, 'authorization') < 0)
                     continue;
-                }
-                throw new AuthenticationError($errorMessage);
+                throw new AuthenticationError ($errorMessage);
             }
-            throw new ExchangeError($this->json ($errors));
+            throw new ExchangeError ($this->json ($errors));
         }
         return $response;
     }

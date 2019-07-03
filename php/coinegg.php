@@ -18,24 +18,24 @@ class coinegg extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrders' => true,
                 'fetchOpenOrders' => 'emulated',
-                'fetchMyTrades' => false,
-                'fetchTickers' => false,
+                'fetchMyTrades' => true,
+                'fetchTickers' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/36770310-adfa764e-1c5a-11e8-8e09-449daac3d2fb.jpg',
                 'api' => array (
-                    'web' => 'https://trade.coinegg.com/web',
+                    'web' => 'https://www.coinegg.com/coin',
                     'rest' => 'https://api.coinegg.com/api/v1',
                 ),
                 'www' => 'https://www.coinegg.com',
                 'doc' => 'https://www.coinegg.com/explain.api.html',
                 'fees' => 'https://www.coinegg.com/fee.html',
-                'referral' => 'https://www.coinegg.com/user/register?invite=523218',
+                'referral' => 'http://www.coinegg.com/user/register?invite=523218',
             ),
             'api' => array (
                 'web' => array (
                     'get' => array (
-                        'symbol/ticker?right_coin={quote}',
+                        '{quote}/allcoin',
                         '{quote}/trends',
                         '{quote}/{base}/order',
                         '{quote}/{base}/trades',
@@ -154,21 +154,26 @@ class coinegg extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $quoteIds = $this->options['quoteIds'];
-        $result = array();
+        $result = array ();
         for ($b = 0; $b < count ($quoteIds); $b++) {
             $quoteId = $quoteIds[$b];
-            $response = $this->webGetSymbolTickerRightCoinQuote (array (
+            $bases = $this->webGetQuoteAllcoin (array (
                 'quote' => $quoteId,
             ));
-            $tickers = $this->safe_value($response, 'data', array());
-            for ($i = 0; $i < count ($tickers); $i++) {
-                $ticker = $tickers[$i];
-                $id = $ticker['symbol'];
-                $baseId = explode('_', $id)[0];
-                $base = strtoupper($baseId);
-                $quote = strtoupper($quoteId);
+            if ($bases === null)
+                throw new ExchangeNotAvailable ($this->id . ' fetchMarkets() for "' . $quoteId . '" returned => "' . $this->json ($bases) . '"');
+            $baseIds = is_array ($bases) ? array_keys ($bases) : array ();
+            $numBaseIds = is_array ($baseIds) ? count ($baseIds) : 0;
+            if ($numBaseIds < 1)
+                throw new ExchangeNotAvailable ($this->id . ' fetchMarkets() for "' . $quoteId . '" returned => "' . $this->json ($bases) . '"');
+            for ($i = 0; $i < count ($baseIds); $i++) {
+                $baseId = $baseIds[$i];
+                $market = $bases[$baseId];
+                $base = strtoupper ($baseId);
+                $quote = strtoupper ($quoteId);
                 $base = $this->common_currency_code($base);
                 $quote = $this->common_currency_code($quote);
+                $id = $baseId . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $precision = array (
                     'amount' => 8,
@@ -185,19 +190,19 @@ class coinegg extends Exchange {
                     'precision' => $precision,
                     'limits' => array (
                         'amount' => array (
-                            'min' => pow(10, -$precision['amount']),
-                            'max' => pow(10, $precision['amount']),
+                            'min' => pow (10, -$precision['amount']),
+                            'max' => pow (10, $precision['amount']),
                         ),
                         'price' => array (
-                            'min' => pow(10, -$precision['price']),
-                            'max' => pow(10, $precision['price']),
+                            'min' => pow (10, -$precision['price']),
+                            'max' => pow (10, $precision['price']),
                         ),
                         'cost' => array (
                             'min' => null,
                             'max' => null,
                         ),
                     ),
-                    'info' => $ticker,
+                    'info' => $market,
                 );
             }
         }
@@ -245,110 +250,129 @@ class coinegg extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $ticker = $this->publicGetTickerRegionQuote (array_merge (array (
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
-        );
-        $response = $this->publicGetTickerRegionQuote (array_merge ($request, $params));
-        return $this->parse_ticker($response, $market);
+        ), $params));
+        return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_tickers ($symbols = null, $params = array ()) {
+        $this->load_markets();
+        $quoteIds = $this->options['quoteIds'];
+        $result = array ();
+        for ($b = 0; $b < count ($quoteIds); $b++) {
+            $quoteId = $quoteIds[$b];
+            $tickers = $this->webGetQuoteAllcoin (array (
+                'quote' => $quoteId,
+            ));
+            $baseIds = is_array ($tickers) ? array_keys ($tickers) : array ();
+            if (strlen (!$baseIds)) {
+                throw new ExchangeError ('fetchTickers failed');
+            }
+            for ($i = 0; $i < count ($baseIds); $i++) {
+                $baseId = $baseIds[$i];
+                $ticker = $tickers[$baseId];
+                $id = $baseId . $quoteId;
+                if (is_array ($this->markets_by_id) && array_key_exists ($id, $this->markets_by_id)) {
+                    $market = $this->marketsById[$id];
+                    $symbol = $market['symbol'];
+                    $result[$symbol] = $this->parse_ticker(array (
+                        'high' => $ticker[4],
+                        'low' => $ticker[5],
+                        'buy' => $ticker[2],
+                        'sell' => $ticker[3],
+                        'last' => $ticker[1],
+                        'change' => $ticker[8],
+                        'vol' => $ticker[6],
+                        'quoteVol' => $ticker[7],
+                    ), $market);
+                }
+            }
+        }
+        return $result;
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $orderbook = $this->publicGetDepthRegionQuote (array_merge (array (
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
-        );
-        $response = $this->publicGetDepthRegionQuote (array_merge ($request, $params));
-        return $this->parse_order_book($response);
+        ), $params));
+        return $this->parse_order_book($orderbook);
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = intval ($trade['date']) * 1000;
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $symbol = $market['symbol'];
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $this->cost_to_precision($symbol, $price * $amount);
-            }
-        }
-        $type = 'limit';
-        $side = $this->safe_string($trade, 'type');
-        $id = $this->safe_string($trade, 'tid');
+        $cost = $this->cost_to_precision($symbol, $price * $amount);
         return array (
-            'id' => $id,
-            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
+            'id' => $this->safe_string($trade, 'tid'),
             'order' => null,
-            'type' => $type,
-            'side' => $side,
-            'takerOrMaker' => null,
+            'type' => 'limit',
+            'side' => $trade['type'],
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => null,
+            'info' => $trade,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $trades = $this->publicGetOrdersRegionQuote (array_merge (array (
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
-        );
-        $response = $this->publicGetOrdersRegionQuote (array_merge ($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        ), $params));
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
-        $result = array( 'info' => $response );
-        $data = $this->safe_value($response, 'data', array());
-        $balances = $this->omit ($data, 'uid');
-        $keys = is_array($balances) ? array_keys($balances) : array();
+        $result = array ();
+        $balances = $this->omit ($response['data'], 'uid');
+        $keys = is_array ($balances) ? array_keys ($balances) : array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $key = $keys[$i];
-            list($currencyId, $accountType) = explode('_', $key);
+            list ($currencyId, $accountType) = explode ('_', $key);
             $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
             }
-            if (!(is_array($result) && array_key_exists($code, $result))) {
-                $result[$code] = $this->account ();
+            if (!(is_array ($result) && array_key_exists ($code, $result))) {
+                $result[$code] = array (
+                    'free' => null,
+                    'used' => null,
+                    'total' => null,
+                );
             }
-            $type = ($accountType === 'lock') ? 'used' : 'free';
-            $result[$code][$type] = $this->safe_float($balances, $key);
+            $accountType = ($accountType === 'lock') ? 'used' : 'free';
+            $result[$code][$accountType] = floatval ($balances[$key]);
         }
-        return $this->parse_balance($result);
+        $currencies = is_array ($result) ? array_keys ($result) : array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
+            $result[$currency]['total'] = $this->sum ($result[$currency]['free'], $result[$currency]['used']);
+        }
+        return $this->parse_balance(array_merge (array ( 'info' => $response ), $result));
     }
 
     public function parse_order ($order, $market = null) {
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $timestamp = $this->parse8601 ($this->safe_string($order, 'datetime'));
+        $symbol = $market['symbol'];
+        $timestamp = $this->parse8601 ($order['datetime']);
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount_original');
         $remaining = $this->safe_float($order, 'amount_outstanding');
-        $filled = null;
-        if ($amount !== null) {
-            if ($remaining !== null) {
-                $filled = $amount - $remaining;
-            }
-        }
+        $filled = $amount - $remaining;
         $status = $this->safe_string($order, 'status');
         if ($status === 'cancelled') {
             $status = 'canceled';
@@ -356,18 +380,15 @@ class coinegg extends Exchange {
             $status = $remaining ? 'open' : 'closed';
         }
         $info = $this->safe_value($order, 'info', $order);
-        $type = 'limit';
-        $side = $this->safe_string($order, 'type');
-        $id = $this->safe_string($order, 'id');
         return array (
-            'id' => $id,
+            'id' => $this->safe_string($order, 'id'),
             'datetime' => $this->iso8601 ($timestamp),
             'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
+            'type' => 'limit',
+            'side' => $order['type'],
             'price' => $price,
             'cost' => null,
             'amount' => $amount,
@@ -382,15 +403,14 @@ class coinegg extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $response = $this->privatePostTradeAddRegionQuote (array_merge (array (
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
             'type' => $side,
             'amount' => $amount,
             'price' => $price,
-        );
-        $response = $this->privatePostTradeAddRegionQuote (array_merge ($request, $params));
-        $id = $this->safe_string($response, 'id');
+        ), $params));
+        $id = (string) $response['id'];
         $order = $this->parse_order(array (
             'id' => $id,
             'datetime' => $this->ymdhms ($this->milliseconds ()),
@@ -407,23 +427,22 @@ class coinegg extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $response = $this->privatePostTradeCancelRegionQuote (array_merge (array (
             'id' => $id,
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
-        );
-        return $this->privatePostTradeCancelRegionQuote (array_merge ($request, $params));
+        ), $params));
+        return $response;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $response = $this->privatePostTradeViewRegionQuote (array_merge (array (
             'id' => $id,
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
-        );
-        $response = $this->privatePostTradeViewRegionQuote (array_merge ($request, $params));
+        ), $params));
         return $this->parse_order($response['data'], $market);
     }
 
@@ -434,18 +453,17 @@ class coinegg extends Exchange {
             'coin' => $market['baseId'],
             'quote' => $market['quoteId'],
         );
-        if ($since !== null) {
+        if ($since !== null)
             $request['since'] = $since / 1000;
-        }
-        $response = $this->privatePostTradeListRegionQuote (array_merge ($request, $params));
-        return $this->parse_orders($response['data'], $market, $since, $limit);
+        $orders = $this->privatePostTradeListRegionQuote (array_merge ($request, $params));
+        return $this->parse_orders($orders['data'], $market, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array (
+        $result = $this->fetch_orders($symbol, $since, $limit, array_merge (array (
             'type' => 'open',
-        );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
+        ), $params));
+        return $result;
     }
 
     public function nonce () {
@@ -460,9 +478,10 @@ class coinegg extends Exchange {
         $url = $this->urls['api'][$apiType] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public' || $api === 'web') {
-            if ($query) {
+            if ($api === 'web')
+                $query['t'] = $this->nonce ();
+            if ($query)
                 $url .= '?' . $this->urlencode ($query);
-            }
         } else {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge (array (
@@ -481,34 +500,36 @@ class coinegg extends Exchange {
                 $body = $query;
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
-        if ($response === null) {
+        // checks against error codes
+        if (gettype ($body) !== 'string')
             return;
-        }
+        if (strlen ($body) === 0)
+            return;
+        if ($body[0] !== '{')
+            return;
         // private endpoints return the following structure:
-        // array("$result":true,"data":{...)} - success
-        // array("$result":false,"$code":"103") - failure
-        // array("$code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000")}
+        // array ("$result":true,"data":{...)} - success
+        // array ("$result":false,"$code":"103") - failure
+        // array ("$code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000")}
         $result = $this->safe_value($response, 'result');
-        if ($result === null) {
+        if ($result === null)
             // public endpoint ← this comment left here by the contributor, in fact a missing $result does not necessarily mean a public endpoint...
             // we should just check the $code and don't rely on the $result at all here...
             return;
-        }
-        if ($result === true) {
+        if ($result === true)
             // success
             return;
-        }
         $errorCode = $this->safe_string($response, 'code');
         $errorMessages = $this->errorMessages;
         $message = $this->safe_string($errorMessages, $errorCode, 'Unknown Error');
-        if (is_array($this->exceptions) && array_key_exists($errorCode, $this->exceptions)) {
-            throw new $this->exceptions[$errorCode]($this->id . ' ' . $message);
+        if (is_array ($this->exceptions) && array_key_exists ($errorCode, $this->exceptions)) {
+            throw new $this->exceptions[$errorCode] ($this->id . ' ' . $message);
         } else {
-            throw new ExchangeError($this->id . ' ' . $message);
+            throw new ExchangeError ($this->id . ' ' . $message);
         }
     }
 }

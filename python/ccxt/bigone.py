@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -24,7 +31,7 @@ class bigone (Exchange):
                 'cancelAllOrders': True,
                 'createMarketOrder': False,
                 'fetchDepositAddress': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': True,
                 'fetchOHLCV': False,
                 'fetchOpenOrders': True,
                 'fetchTickers': True,
@@ -107,8 +114,8 @@ class bigone (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetMarkets(params)
-        markets = self.safe_value(response, 'data')
+        response = self.publicGetMarkets()
+        markets = response['data']
         result = []
         self.options['marketsByUuid'] = {}
         for i in range(0, len(markets)):
@@ -125,18 +132,16 @@ class bigone (Exchange):
             #                        name: "Bitcoin"                               }  }}
             #
             market = markets[i]
-            id = self.safe_string(market, 'name')
-            uuid = self.safe_string(market, 'uuid')
-            baseAsset = self.safe_value(market, 'baseAsset', {})
-            quoteAsset = self.safe_value(market, 'quoteAsset', {})
-            baseId = self.safe_string(baseAsset, 'symbol')
-            quoteId = self.safe_string(quoteAsset, 'symbol')
+            id = market['name']
+            uuid = market['uuid']
+            baseId = market['baseAsset']['symbol']
+            quoteId = market['quoteAsset']['symbol']
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': self.safe_integer(market, 'baseScale'),
-                'price': self.safe_integer(market, 'quoteScale'),
+                'amount': market['baseScale'],
+                'price': market['quoteScale'],
             }
             entry = {
                 'id': id,
@@ -200,18 +205,16 @@ class bigone (Exchange):
             symbol = market['symbol']
         timestamp = self.milliseconds()
         close = self.safe_float(ticker, 'close')
-        bid = self.safe_value(ticker, 'bid', {})
-        ask = self.safe_value(ticker, 'ask', {})
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(bid, 'price'),
-            'bidVolume': self.safe_float(bid, 'amount'),
-            'ask': self.safe_float(ask, 'price'),
-            'askVolume': self.safe_float(ask, 'amount'),
+            'bid': self.safe_float(ticker['bid'], 'price'),
+            'bidVolume': self.safe_float(ticker['bid'], 'amount'),
+            'ask': self.safe_float(ticker['ask'], 'price'),
+            'askVolume': self.safe_float(ticker['ask'], 'amount'),
             'vwap': None,
             'open': self.safe_float(ticker, 'open'),
             'close': close,
@@ -228,16 +231,15 @@ class bigone (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = self.publicGetMarketsSymbolTicker(self.extend({
             'symbol': market['id'],
-        }
-        response = self.publicGetMarketsSymbolTicker(self.extend(request, params))
+        }, params))
         return self.parse_ticker(response['data'], market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetTickers(params)
-        tickers = self.safe_value(response, 'data')
+        tickers = response['data']
         result = {}
         for i in range(0, len(tickers)):
             ticker = self.parse_ticker(tickers[i])
@@ -247,10 +249,9 @@ class bigone (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        request = {
+        response = self.publicGetMarketsSymbolDepth(self.extend({
             'symbol': self.market_id(symbol),
-        }
-        response = self.publicGetMarketsSymbolDepth(self.extend(request, params))
+        }, params))
         return self.parse_order_book(response['data'], None, 'bids', 'asks', 'price', 'amount')
 
     def parse_trade(self, trade, market=None):
@@ -264,8 +265,8 @@ class bigone (Exchange):
         #                      amount: "0.8800000000000000"                    },
         #       cursor:   "Y3Vyc29yOnYxOjE5OTEzMzA2"                              }
         #
-        node = self.safe_value(trade, 'node', {})
-        timestamp = self.parse8601(self.safe_string(node, 'inserted_at'))
+        node = trade['node']
+        timestamp = self.parse8601(node['inserted_at'])
         price = self.safe_float(node, 'price')
         amount = self.safe_float(node, 'amount')
         if market is None:
@@ -275,27 +276,20 @@ class bigone (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = self.cost_to_precision(symbol, price * amount)
-        # taker side is not related to buy/sell side
-        # the following code is probably a mistake
+        cost = self.cost_to_precision(symbol, price * amount)
         side = None
         if node['taker_side'] == 'ASK':
             side = 'sell'
         else:
             side = 'buy'
-        id = self.safe_string(node, 'id')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
+            'id': self.safe_string(node, 'id'),
             'order': None,
             'type': 'limit',
             'side': side,
-            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': float(cost),
@@ -362,10 +356,10 @@ class bigone (Exchange):
         #                       asset_id: "READ"                                  },
         #
         result = {'info': response}
-        balances = self.safe_value(response, 'data')
+        balances = response['data']
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = self.safe_string(balance, 'asset_id')
+            currencyId = balance['asset_id']
             code = self.common_currency_code(currencyId)
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
@@ -420,10 +414,6 @@ class bigone (Exchange):
             side = 'buy'
         else:
             side = 'sell'
-        cost = None
-        if filled is not None:
-            if price is not None:
-                cost = filled * price
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),
@@ -433,7 +423,7 @@ class bigone (Exchange):
             'type': None,
             'side': side,
             'price': price,
-            'cost': cost,
+            'cost': None,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
@@ -538,19 +528,19 @@ class bigone (Exchange):
         return self.parse_order(order)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        # NAME      DESCRIPTION                                           EXAMPLE         REQUIRED
+        # market_id market id                                             ETH-BTC         True
+        # after     ask for the server to return orders after the cursor  dGVzdGN1cmVzZQo False
+        # before    ask for the server to return orders before the cursor dGVzdGN1cmVzZQo False
+        # first     slicing count                                         20              False
+        # last      slicing count                                         20              False
+        # side      order side one of                                     "ASK"/"BID"     False
+        # state     order state one of                      "CANCELED"/"FILLED"/"PENDING" False
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         request = {
-            # NAME      DESCRIPTION                                           EXAMPLE         REQUIRED
-            # market_id market id                                             ETH-BTC         True
-            # after     ask for the server to return orders after the cursor  dGVzdGN1cmVzZQo False
-            # before    ask for the server to return orders before the cursor dGVzdGN1cmVzZQo False
-            # first     slicing count                                         20              False
-            # last      slicing count                                         20              False
-            # side      order side one of                                     "ASK"/"BID"     False
-            # state     order state one of                      "CANCELED"/"FILLED"/"PENDING" False
             'market_id': market['id'],
         }
         if limit is not None:
@@ -599,16 +589,14 @@ class bigone (Exchange):
         return self.safe_string(statuses, status)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        request = {
+        return self.fetch_orders(symbol, since, limit, self.extend({
             'state': 'PENDING',
-        }
-        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        }, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        request = {
+        return self.fetch_orders(symbol, since, limit, self.extend({
             'state': 'FILLED',
-        }
-        return self.fetch_orders(symbol, since, limit, self.extend(request, params))
+        }, params))
 
     def nonce(self):
         return self.microseconds() * 1000
@@ -627,7 +615,7 @@ class bigone (Exchange):
                 'sub': self.apiKey,
                 'nonce': nonce,
             }
-            jwt = self.jwt(request, self.encode(self.secret))
+            jwt = self.jwt(request, self.secret)
             headers = {
                 'Authorization': 'Bearer ' + jwt,
             }
@@ -640,28 +628,31 @@ class bigone (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if response is None:
+        if not isinstance(body, basestring):
             return  # fallback to default error handler
-        #
-        #      {"errors":{"detail":"Internal server error"}}
-        #      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}
-        #
-        error = self.safe_value(response, 'error')
-        errors = self.safe_value(response, 'errors')
-        data = self.safe_value(response, 'data')
-        if error is not None or errors is not None or data is None:
-            feedback = self.id + ' ' + self.json(response)
-            code = None
-            if error is not None:
-                code = self.safe_integer(error, 'code')
-            exceptions = self.exceptions['codes']
-            if errors is not None:
-                if isinstance(errors, list):
-                    code = self.safe_string(errors[0], 'code')
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            #
+            #      {"errors":{"detail":"Internal server error"}}
+            #      {"errors":[{"message":"invalid nonce, nonce should be a 19bits number","code":10030}],"data":null}
+            #
+            error = self.safe_value(response, 'error')
+            errors = self.safe_value(response, 'errors')
+            data = self.safe_value(response, 'data')
+            if error is not None or errors is not None or data is None:
+                feedback = self.id + ' ' + self.json(response)
+                code = None
+                if error is not None:
+                    code = self.safe_integer(error, 'code')
+                exceptions = self.exceptions['codes']
+                if errors is not None:
+                    if isinstance(errors, list):
+                        code = self.safe_string(errors[0], 'code')
+                    else:
+                        code = self.safe_string(errors, 'detail')
+                        exceptions = self.exceptions['detail']
+                if code in exceptions:
+                    raise exceptions[code](feedback)
                 else:
-                    code = self.safe_string(errors, 'detail')
-                    exceptions = self.exceptions['detail']
-            if code in exceptions:
-                raise exceptions[code](feedback)
-            else:
-                raise ExchangeError(feedback)
+                    raise ExchangeError(feedback)

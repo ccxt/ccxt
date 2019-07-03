@@ -60,32 +60,30 @@ class bl3p (Exchange):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
-                'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'LTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
+                'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
+                'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
             },
         })
 
     def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privatePostGENMKTMoneyInfo(params)
-        data = self.safe_value(response, 'data', {})
-        wallets = self.safe_value(data, 'wallets')
+        response = self.privatePostGENMKTMoneyInfo()
+        data = response['data']
+        balance = data['wallets']
         result = {'info': data}
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currency(code)
-            currencyId = currency['id']
-            wallet = self.safe_value(wallets, currencyId, {})
-            available = self.safe_value(wallet, 'available', {})
-            balance = self.safe_value(wallet, 'balance', {})
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
             account = self.account()
-            account['free'] = self.safe_float(available, 'value')
-            account['total'] = self.safe_float(balance, 'value')
+            if currency in balance:
+                if 'available' in balance[currency]:
+                    account['free'] = float(balance[currency]['available']['value'])
+            if currency in balance:
+                if 'balance' in balance[currency]:
+                    account['total'] = float(balance[currency]['balance']['value'])
             if account['total']:
                 if account['free']:
                     account['used'] = account['total'] - account['free']
-            result[code] = account
+            result[currency] = account
         return self.parse_balance(result)
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=0):
@@ -96,21 +94,17 @@ class bl3p (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         market = self.market(symbol)
-        request = {
+        response = self.publicGetMarketOrderbook(self.extend({
             'market': market['id'],
-        }
-        response = self.publicGetMarketOrderbook(self.extend(request, params))
-        orderbook = self.safe_value(response, 'data')
+        }, params))
+        orderbook = response['data']
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price_int', 'amount_int')
 
     def fetch_ticker(self, symbol, params={}):
-        request = {
+        ticker = self.publicGetMarketTicker(self.extend({
             'market': self.market_id(symbol),
-        }
-        ticker = self.publicGetMarketTicker(self.extend(request, params))
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        }, params))
+        timestamp = ticker['timestamp'] * 1000
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -130,41 +124,22 @@ class bl3p (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker['volume'], '24h'),
+            'baseVolume': float(ticker['volume']['24h']),
             'quoteVolume': None,
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market=None):
-        id = self.safe_string(trade, 'trade_id')
-        timestamp = self.safe_integer(trade, 'date')
-        price = self.safe_float(trade, 'price_int')
-        if price is not None:
-            price /= 100000.0
-        amount = self.safe_float(trade, 'amount_int')
-        if amount is not None:
-            amount /= 100000000.0
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+    def parse_trade(self, trade, market):
         return {
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'id': str(trade['trade_id']),
+            'timestamp': trade['date'],
+            'datetime': self.iso8601(trade['date']),
+            'symbol': market['symbol'],
             'type': None,
             'side': None,
-            'order': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'price': trade['price_int'] / 100000.0,
+            'amount': trade['amount_int'] / 100000000.0,
+            'info': trade,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -186,17 +161,13 @@ class bl3p (Exchange):
         if type == 'limit':
             order['price_int'] = int(price * 100000.0)
         response = self.privatePostMarketMoneyOrderAdd(self.extend(order, params))
-        orderId = self.safe_string(response['data'], 'order_id')
         return {
             'info': response,
-            'id': orderId,
+            'id': str(response['data']['order_id']),
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        request = {
-            'order_id': id,
-        }
-        return self.privatePostMarketMoneyOrderCancel(self.extend(request, params))
+        return self.privatePostMarketMoneyOrderCancel({'order_id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = self.implode_params(path, params)

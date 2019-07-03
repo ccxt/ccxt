@@ -27,13 +27,6 @@ class allcoin extends okcoinusd {
                 ),
                 'www' => 'https://www.allcoin.com',
                 'doc' => 'https://www.allcoin.com/api_market/market',
-                'referral' => 'https://www.allcoin.com',
-            ),
-            'status' => array (
-                'status' => 'error',
-                'updated' => null,
-                'eta' => null,
-                'url' => null,
             ),
             'api' => array (
                 'web' => array (
@@ -67,19 +60,17 @@ class allcoin extends okcoinusd {
     }
 
     public function fetch_markets ($params = array ()) {
-        $result = array();
-        $response = $this->webGetHomeMarketOverViewDetail ($params);
+        $result = array ();
+        $response = $this->webGetHomeMarketOverViewDetail ();
         $coins = $response['marketCoins'];
         for ($j = 0; $j < count ($coins); $j++) {
             $markets = $coins[$j]['Markets'];
             for ($k = 0; $k < count ($markets); $k++) {
                 $market = $markets[$k]['Market'];
-                $base = $this->safe_string($market, 'Primary');
-                $quote = $this->safe_string($market, 'Secondary');
-                $baseId = strtolower($base);
-                $quoteId = strtolower($quote);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $market['Primary'];
+                $quote = $market['Secondary'];
+                $baseId = strtolower ($base);
+                $quoteId = strtolower ($quote);
                 $id = $baseId . '_' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $active = $market['TradeEnabled'] && $market['BuyEnabled'] && $market['SellEnabled'];
@@ -94,20 +85,20 @@ class allcoin extends okcoinusd {
                     'type' => 'spot',
                     'spot' => true,
                     'future' => false,
-                    'maker' => $this->safe_float($market, 'AskFeeRate'), // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
-                    'taker' => $this->safe_float($market, 'AskFeeRate'), // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'maker' => $market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
+                    'taker' => $market['AskFeeRate'], // BidFeeRate 0, AskFeeRate 0.002, we use just the AskFeeRate here
                     'precision' => array (
-                        'amount' => $this->safe_integer($market, 'PrimaryDigits'),
-                        'price' => $this->safe_integer($market, 'SecondaryDigits'),
+                        'amount' => $market['PrimaryDigits'],
+                        'price' => $market['SecondaryDigits'],
                     ),
                     'limits' => array (
                         'amount' => array (
-                            'min' => $this->safe_float($market, 'MinTradeAmount'),
-                            'max' => $this->safe_float($market, 'MaxTradeAmount'),
+                            'min' => $market['MinTradeAmount'],
+                            'max' => $market['MaxTradeAmount'],
                         ),
                         'price' => array (
-                            'min' => $this->safe_float($market, 'MinOrderPrice'),
-                            'max' => $this->safe_float($market, 'MaxOrderPrice'),
+                            'min' => $market['MinOrderPrice'],
+                            'max' => $market['MaxOrderPrice'],
                         ),
                         'cost' => array (
                             'min' => null,

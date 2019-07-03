@@ -63,7 +63,7 @@ class paymium (Exchange):
                 },
             },
             'markets': {
-                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur'},
+                'BTC/EUR': {'id': 'eur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR'},
             },
             'fees': {
                 'trading': {
@@ -74,38 +74,34 @@ class paymium (Exchange):
         })
 
     async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetUser(params)
-        result = {'info': response}
+        balances = await self.privateGetUser()
+        result = {'info': balances}
         currencies = list(self.currencies.keys())
         for i in range(0, len(currencies)):
-            code = currencies[i]
-            currencyId = self.currencyId(code)
-            free = 'balance_' + currencyId
-            if free in response:
-                account = self.account()
-                used = 'locked_' + currencyId
-                account['free'] = self.safe_float(response, free)
-                account['used'] = self.safe_float(response, used)
-                result[code] = account
+            currency = currencies[i]
+            lowercase = currency.lower()
+            account = self.account()
+            balance = 'balance_' + lowercase
+            locked = 'locked_' + lowercase
+            if balance in balances:
+                account['free'] = balances[balance]
+            if locked in balances:
+                account['used'] = balances[locked]
+            account['total'] = self.sum(account['free'], account['used'])
+            result[currency] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
-        await self.load_markets()
-        request = {
+        orderbook = await self.publicGetDataIdDepth(self.extend({
             'id': self.market_id(symbol),
-        }
-        response = await self.publicGetDataIdDepth(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        }, params))
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
-        request = {
+        ticker = await self.publicGetDataIdTicker(self.extend({
             'id': self.market_id(symbol),
-        }
-        ticker = await self.publicGetDataIdTicker(self.extend(request, params))
-        timestamp = self.safe_integer(ticker, 'at')
-        if timestamp is not None:
-            timestamp *= 1000
+        }, params))
+        timestamp = ticker['at'] * 1000
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None
@@ -136,67 +132,47 @@ class paymium (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'created_at_int')
-        if timestamp is not None:
-            timestamp *= 1000
-        id = self.safe_string(trade, 'uuid')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        side = self.safe_string(trade, 'side')
-        price = self.safe_float(trade, 'price')
-        amountField = 'traded_' + market['base'].lower()
-        amount = self.safe_float(trade, amountField)
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        timestamp = int(trade['created_at_int']) * 1000
+        volume = 'traded_' + market['base'].lower()
         return {
             'info': trade,
-            'id': id,
+            'id': trade['uuid'],
             'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
-            'side': side,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'side': trade['side'],
+            'price': trade['price'],
+            'amount': trade[volume],
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        await self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = await self.publicGetDataIdTrades(self.extend({
             'id': market['id'],
-        }
-        response = await self.publicGetDataIdTrades(self.extend(request, params))
+        }, params))
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        await self.load_markets()
-        request = {
+        order = {
             'type': self.capitalize(type) + 'Order',
             'currency': self.market_id(symbol),
             'direction': side,
             'amount': amount,
         }
         if type != 'market':
-            request['price'] = price
-        response = await self.privatePostUserOrders(self.extend(request, params))
+            order['price'] = price
+        response = await self.privatePostUserOrders(self.extend(order, params))
         return {
             'info': response,
             'id': response['uuid'],
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        request = {
+        return await self.privateDeleteUserOrdersUUIDCancel(self.extend({
             'UUID': id,
-        }
-        return await self.privateDeleteUserOrdersUUIDCancel(self.extend(request, params))
+        }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)

@@ -36,7 +36,6 @@ class dsx extends liqui {
                 ),
                 'www' => 'https://dsx.uk',
                 'doc' => array (
-                    'https://dsx.uk/developers/publicApiV2',
                     'https://api.dsx.uk',
                     'https://dsx.uk/api_docs/public',
                     'https://dsx.uk/api_docs/private',
@@ -109,7 +108,7 @@ class dsx extends liqui {
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $currency = null;
-        $request = array();
+        $request = array ();
         if ($code !== null) {
             $currency = $this->currency ($code);
             $request['currency'] = $currency['id'];
@@ -139,7 +138,7 @@ class dsx extends liqui {
         //         )
         //     }
         //
-        $transactions = $this->safe_value($response, 'return', array());
+        $transactions = $this->safe_value($response, 'return', array ());
         return $this->parseTransactions ($transactions, $currency, $since, $limit);
     }
 
@@ -181,7 +180,7 @@ class dsx extends liqui {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = null;
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+        if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
             $ccy = $this->currencies_by_id[$currencyId];
             $code = $ccy['code'];
         } else {
@@ -208,10 +207,10 @@ class dsx extends liqui {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetInfo ($params);
+        $response = $this->publicGetInfo ();
         $markets = $response['pairs'];
-        $keys = is_array($markets) ? array_keys($markets) : array();
-        $result = array();
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
+        $result = array ();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
             $market = $markets[$id];
@@ -289,17 +288,19 @@ class dsx extends liqui {
         //       }
         //     }
         //
-        $balances = $this->safe_value($response, 'return');
-        $result = array( 'info' => $response );
-        $funds = $this->safe_value($balances, 'funds');
-        $currencyIds = is_array($funds) ? array_keys($funds) : array();
-        for ($i = 0; $i < count ($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $code = $this->common_currency_code($currencyId);
-            $balance = $this->safe_value($funds, $currencyId, array());
-            $account = $this->account ();
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['total'] = $this->safe_float($balance, 'total');
+        $balances = $response['return'];
+        $result = array ( 'info' => $balances );
+        $funds = $balances['funds'];
+        $ids = is_array ($funds) ? array_keys ($funds) : array ();
+        for ($c = 0; $c < count ($ids); $c++) {
+            $id = $ids[$c];
+            $code = $this->common_currency_code($id);
+            $account = array (
+                'free' => $funds[$id]['available'],
+                'used' => 0.0,
+                'total' => $funds[$id]['total'],
+            );
+            $account['used'] = $account['total'] - $account['free'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -320,7 +321,7 @@ class dsx extends liqui {
             'currency' => $currency['id'],
         );
         $response = $this->dwapiPostDepositCryptoaddress (array_merge ($request, $params));
-        $result = $this->safe_value($response, 'return', array());
+        $result = $this->safe_value($response, 'return', array ());
         $address = $this->safe_string($result, 'address');
         $this->check_address($address);
         return array (
@@ -404,7 +405,7 @@ class dsx extends liqui {
         $this->load_markets();
         $market = $this->market ($symbol);
         if ($type === 'market' && $price === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument even for $market orders, that is the worst $price that you agree to fill your order for');
+            throw new ArgumentsRequired ($this->id . ' createOrder requires a $price argument even for $market orders, that is the worst $price that you agree to fill your order for');
         }
         $request = array (
             'pair' => $market['id'],
@@ -527,7 +528,7 @@ class dsx extends liqui {
         $price = $this->safe_float_2($trade, 'rate', 'price');
         $id = $this->safe_string_2($trade, 'number', 'id');
         $orderId = $this->safe_string($trade, 'orderId');
-        if (is_array($trade) && array_key_exists('pair', $trade)) {
+        if (is_array ($trade) && array_key_exists ('pair', $trade)) {
             $marketId = $this->safe_string($trade, 'pair');
             $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         }
@@ -542,7 +543,7 @@ class dsx extends liqui {
         $feeCost = $this->safe_float($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
-            $feeCurrencyId = strtoupper($feeCurrencyId);
+            $feeCurrencyId = strtoupper ($feeCurrencyId);
             $feeCurrency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
             $feeCurrencyCode = null;
             if ($feeCurrency !== null) {
@@ -642,7 +643,7 @@ class dsx extends liqui {
         $orderType = $this->safe_string($order, 'orderType');
         $side = $this->safe_string($order, 'type');
         $fee = null;
-        $deals = $this->safe_value($order, 'deals', array());
+        $deals = $this->safe_value($order, 'deals', array ());
         $numDeals = is_array ($deals) ? count ($deals) : 0;
         $trades = null;
         $lastTradeTimestamp = null;
@@ -725,8 +726,8 @@ class dsx extends liqui {
     }
 
     public function parse_orders_by_id ($orders, $symbol = null, $since = null, $limit = null) {
-        $ids = is_array($orders) ? array_keys($orders) : array();
-        $result = array();
+        $ids = is_array ($orders) ? array_keys ($orders) : array ();
+        $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $order = $this->parse_order(array_merge (array (
@@ -763,7 +764,7 @@ class dsx extends liqui {
         //       }
         //     }
         //
-        return $this->parse_orders_by_id ($this->safe_value($response, 'return', array()), $symbol, $since, $limit);
+        return $this->parse_orders_by_id ($this->safe_value($response, 'return', array ()), $symbol, $since, $limit);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -792,21 +793,21 @@ class dsx extends liqui {
         //       }
         //     }
         //
-        return $this->parse_orders_by_id ($this->safe_value($response, 'return', array()), $symbol, $since, $limit);
+        return $this->parse_orders_by_id ($this->safe_value($response, 'return', array ()), $symbol, $since, $limit);
     }
 
-    public function parse_trades ($trades, $market = null, $since = null, $limit = null, $params = array ()) {
-        $result = array();
+    public function parse_trades ($trades, $market = null, $since = null, $limit = null) {
+        $result = array ();
         if (gettype ($trades) === 'array' && count (array_filter (array_keys ($trades), 'is_string')) == 0) {
             for ($i = 0; $i < count ($trades); $i++) {
                 $result[] = $this->parse_trade($trades[$i], $market);
             }
         } else {
-            $ids = is_array($trades) ? array_keys($trades) : array();
+            $ids = is_array ($trades) ? array_keys ($trades) : array ();
             for ($i = 0; $i < count ($ids); $i++) {
                 $id = $ids[$i];
                 $trade = $this->parse_trade($trades[$id], $market);
-                $result[] = array_merge ($trade, array( 'id' => $id ), $params);
+                $result[] = array_merge ($trade, array ( 'id' => $id ));
             }
         }
         $result = $this->sort_by($result, 'timestamp');
@@ -851,6 +852,6 @@ class dsx extends liqui {
                 }
             }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

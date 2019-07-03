@@ -24,7 +24,6 @@ class bequant extends hitbtc2 {
                 'fees' => array (
                     'https://bequant.io/fees-and-limits',
                 ),
-                'referral' => 'https://bequant.io',
             ),
         ));
     }

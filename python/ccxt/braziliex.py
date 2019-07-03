@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -265,7 +258,7 @@ class braziliex (Exchange):
             }
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': symbol.upper(),
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -291,10 +284,9 @@ class braziliex (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        timestamp = self.milliseconds()
+        symbol = market['symbol']
+        timestamp = ticker['date']
+        ticker = ticker['ticker']
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -322,95 +314,103 @@ class braziliex (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        ticker = self.publicGetTickerMarket(self.extend({
             'market': market['id'],
+        }, params))
+        ticker = {
+            'date': self.milliseconds(),
+            'ticker': ticker,
         }
-        response = self.publicGetTickerMarket(self.extend(request, params))
-        return self.parse_ticker(response, market)
+        return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetTicker(params)
+        tickers = self.publicGetTicker(params)
         result = {}
-        ids = list(response.keys())
+        timestamp = self.milliseconds()
+        ids = list(tickers.keys())
         for i in range(0, len(ids)):
-            marketId = ids[i]
-            market = self.markets_by_id[marketId]
+            id = ids[i]
+            market = self.markets_by_id[id]
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(response[marketId], market)
+            ticker = {
+                'date': timestamp,
+                'ticker': tickers[id],
+            }
+            result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        request = {
+        orderbook = self.publicGetOrderbookMarket(self.extend({
             'market': self.market_id(symbol),
-        }
-        response = self.publicGetOrderbookMarket(self.extend(request, params))
-        return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
+        }, params))
+        return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'amount')
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(self.safe_string_2(trade, 'date_exec', 'date'))
+        timestamp = None
+        if 'date_exec' in trade:
+            timestamp = self.parse8601(trade['date_exec'])
+        else:
+            timestamp = self.parse8601(trade['date'])
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        symbol = market['symbol']
         cost = self.safe_float(trade, 'total')
         orderId = self.safe_string(trade, 'order_number')
-        type = 'limit'
-        side = self.safe_string(trade, 'type')
-        id = self.safe_string(trade, '_id')
         return {
-            'id': id,
-            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
+            'id': self.safe_string(trade, '_id'),
             'order': orderId,
-            'type': type,
-            'side': side,
-            'takerOrMaker': None,
+            'type': 'limit',
+            'side': trade['type'],
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
+            'info': trade,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        trades = self.publicGetTradehistoryMarket(self.extend({
             'market': market['id'],
-        }
-        response = self.publicGetTradehistoryMarket(self.extend(request, params))
-        return self.parse_trades(response, market, since, limit)
+        }, params))
+        return self.parse_trades(trades, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
         balances = self.privatePostCompleteBalance(params)
         result = {'info': balances}
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            balance = balances[currencyId]
-            code = self.common_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['total'] = self.safe_float(balance, 'total')
-            result[code] = account
+        currencies = list(balances.keys())
+        for i in range(0, len(currencies)):
+            id = currencies[i]
+            balance = balances[id]
+            currency = self.common_currency_code(id)
+            account = {
+                'free': float(balance['available']),
+                'used': 0.0,
+                'total': float(balance['total']),
+            }
+            account['used'] = account['total'] - account['free']
+            result[currency] = account
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'market')
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
+            if marketId:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+        if market:
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'timestamp')
-        if timestamp is None:
-            timestamp = self.parse8601(self.safe_string(order, 'date'))
+        timestamp = self.safe_value(order, 'timestamp')
+        if not timestamp:
+            timestamp = self.parse8601(order['date'])
         price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'total', 0.0)
         amount = self.safe_float(order, 'amount')
@@ -420,10 +420,8 @@ class braziliex (Exchange):
         info = order
         if 'info' in info:
             info = order['info']
-        id = self.safe_string(order, 'order_number')
-        fee = self.safe_value(order, 'fee')  # propagated from createOrder
         return {
-            'id': id,
+            'id': order['order_number'],
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
@@ -437,7 +435,7 @@ class braziliex (Exchange):
             'filled': filled,
             'remaining': remaining,
             'trades': None,
-            'fee': fee,
+            'fee': self.safe_value(order, 'fee'),
             'info': info,
         }
 
@@ -445,14 +443,13 @@ class braziliex (Exchange):
         self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side)
-        request = {
+        response = getattr(self, method)(self.extend({
             'market': market['id'],
             # 'price': self.price_to_precision(symbol, price),
             # 'amount': self.amount_to_precision(symbol, amount),
             'price': price,
             'amount': amount,
-        }
-        response = getattr(self, method)(self.extend(request, params))
+        }, params))
         success = self.safe_integer(response, 'success')
         if success != 1:
             raise InvalidOrder(self.id + ' ' + self.json(response))
@@ -481,37 +478,34 @@ class braziliex (Exchange):
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        result = self.privatePostCancelOrder(self.extend({
             'order_number': id,
             'market': market['id'],
-        }
-        return self.privatePostCancelOrder(self.extend(request, params))
+        }, params))
+        return result
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        orders = self.privatePostOpenOrders(self.extend({
             'market': market['id'],
-        }
-        response = self.privatePostOpenOrders(self.extend(request, params))
-        return self.parse_orders(response['order_open'], market, since, limit)
+        }, params))
+        return self.parse_orders(orders['order_open'], market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        trades = self.privatePostTradeHistory(self.extend({
             'market': market['id'],
-        }
-        response = self.privatePostTradeHistory(self.extend(request, params))
-        return self.parse_trades(response['trade_history'], market, since, limit)
+        }, params))
+        return self.parse_trades(trades['trade_history'], market, since, limit)
 
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        response = self.privatePostDepositAddress(self.extend({
             'currency': currency['id'],
-        }
-        response = self.privatePostDepositAddress(self.extend(request, params))
+        }, params))
         address = self.safe_string(response, 'deposit_address')
         self.check_address(address)
         tag = self.safe_string(response, 'payment_id')
@@ -546,8 +540,6 @@ class braziliex (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        if (isinstance(response, basestring)) and len((response) < 1):
-            raise ExchangeError(self.id + ' returned empty response')
         if 'success' in response:
             success = self.safe_integer(response, 'success')
             if success == 0:

@@ -61,25 +61,24 @@ class bitstamp1 (Exchange):
                 },
             },
             'markets': {
-                'BTC/USD': {'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'btc', 'quoteId': 'usd', 'maker': 0.0025, 'taker': 0.0025},
-                'BTC/EUR': {'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'btc', 'quoteId': 'eur', 'maker': 0.0025, 'taker': 0.0025},
-                'EUR/USD': {'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD', 'baseId': 'eur', 'quoteId': 'usd', 'maker': 0.0025, 'taker': 0.0025},
-                'XRP/USD': {'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'baseId': 'xrp', 'quoteId': 'usd', 'maker': 0.0025, 'taker': 0.0025},
-                'XRP/EUR': {'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'baseId': 'xrp', 'quoteId': 'eur', 'maker': 0.0025, 'taker': 0.0025},
-                'XRP/BTC': {'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'baseId': 'xrp', 'quoteId': 'btc', 'maker': 0.0025, 'taker': 0.0025},
-                'LTC/USD': {'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'baseId': 'ltc', 'quoteId': 'usd', 'maker': 0.0025, 'taker': 0.0025},
-                'LTC/EUR': {'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'ltc', 'quoteId': 'eur', 'maker': 0.0025, 'taker': 0.0025},
-                'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'baseId': 'ltc', 'quoteId': 'btc', 'maker': 0.0025, 'taker': 0.0025},
-                'ETH/USD': {'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'eth', 'quoteId': 'usd', 'maker': 0.0025, 'taker': 0.0025},
-                'ETH/EUR': {'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'baseId': 'eth', 'quoteId': 'eur', 'maker': 0.0025, 'taker': 0.0025},
-                'ETH/BTC': {'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.0025, 'taker': 0.0025},
+                'BTC/USD': {'id': 'btcusd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
+                'BTC/EUR': {'id': 'btceur', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
+                'EUR/USD': {'id': 'eurusd', 'symbol': 'EUR/USD', 'base': 'EUR', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
+                'XRP/USD': {'id': 'xrpusd', 'symbol': 'XRP/USD', 'base': 'XRP', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
+                'XRP/EUR': {'id': 'xrpeur', 'symbol': 'XRP/EUR', 'base': 'XRP', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
+                'XRP/BTC': {'id': 'xrpbtc', 'symbol': 'XRP/BTC', 'base': 'XRP', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025},
+                'LTC/USD': {'id': 'ltcusd', 'symbol': 'LTC/USD', 'base': 'LTC', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
+                'LTC/EUR': {'id': 'ltceur', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
+                'LTC/BTC': {'id': 'ltcbtc', 'symbol': 'LTC/BTC', 'base': 'LTC', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025},
+                'ETH/USD': {'id': 'ethusd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'maker': 0.0025, 'taker': 0.0025},
+                'ETH/EUR': {'id': 'etheur', 'symbol': 'ETH/EUR', 'base': 'ETH', 'quote': 'EUR', 'maker': 0.0025, 'taker': 0.0025},
+                'ETH/BTC': {'id': 'ethbtc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.0025, 'taker': 0.0025},
             },
         })
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         if symbol != 'BTC/USD':
             raise ExchangeError(self.id + ' ' + self.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only')
-        self.load_markets()
         orderbook = self.publicGetOrderBook(params)
         timestamp = int(orderbook['timestamp']) * 1000
         return self.parse_order_book(orderbook, timestamp)
@@ -87,7 +86,6 @@ class bitstamp1 (Exchange):
     def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/USD':
             raise ExchangeError(self.id + ' ' + self.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only')
-        self.load_markets()
         ticker = self.publicGetTicker(params)
         timestamp = int(ticker['timestamp']) * 1000
         vwap = self.safe_float(ticker, 'vwap')
@@ -120,64 +118,56 @@ class bitstamp1 (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer_2(trade, 'date', 'datetime')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = None
+        if 'date' in trade:
+            timestamp = int(trade['date']) * 1000
+        elif 'datetime' in trade:
+            # timestamp = self.parse8601(trade['datetime'])
+            timestamp = int(trade['datetime']) * 1000
         side = 'buy' if (trade['type'] == 0) else 'sell'
-        orderId = self.safe_string(trade, 'order_id')
+        order = None
+        if 'order_id' in trade:
+            order = str(trade['order_id'])
         if 'currency_pair' in trade:
             if trade['currency_pair'] in self.markets_by_id:
                 market = self.markets_by_id[trade['currency_pair']]
-        id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
         return {
-            'id': id,
+            'id': str(trade['tid']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
-            'order': orderId,
+            'symbol': market['symbol'],
+            'order': order,
             'type': None,
             'side': side,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         if symbol != 'BTC/USD':
             raise ExchangeError(self.id + ' ' + self.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only')
-        self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = self.publicGetTransactions(self.extend({
             'time': 'minute',
-        }
-        response = self.publicGetTransactions(self.extend(request, params))
+        }, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
-        balance = self.privatePostBalance(params)
+        balance = self.privatePostBalance()
         result = {'info': balance}
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currency(code)
-            currencyId = currency['id']
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            lowercase = currency.lower()
+            total = lowercase + '_balance'
+            free = lowercase + '_available'
+            used = lowercase + '_reserved'
             account = self.account()
-            account['free'] = self.safe_float(balance, currencyId + '_available', 0.0)
-            account['used'] = self.safe_float(balance, currencyId + '_reserved', 0.0)
-            account['total'] = self.safe_float(balance, currencyId + '_balance', 0.0)
-            result[code] = account
+            account['free'] = self.safe_float(balance, free, 0.0)
+            account['used'] = self.safe_float(balance, used, 0.0)
+            account['total'] = self.safe_float(balance, total, 0.0)
+            result[currency] = account
         return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -185,17 +175,15 @@ class bitstamp1 (Exchange):
             raise ExchangeError(self.id + ' ' + self.version + ' accepts limit orders only')
         if symbol != 'BTC/USD':
             raise ExchangeError(self.id + ' v1 supports BTC/USD orders only')
-        self.load_markets()
         method = 'privatePost' + self.capitalize(side)
-        request = {
+        order = {
             'amount': amount,
             'price': price,
         }
-        response = getattr(self, method)(self.extend(request, params))
-        id = self.safe_string(response, 'id')
+        response = getattr(self, method)(self.extend(order, params))
         return {
             'info': response,
-            'id': id,
+            'id': response['id'],
         }
 
     def cancel_order(self, id, symbol=None, params={}):
@@ -208,13 +196,11 @@ class bitstamp1 (Exchange):
             'Finished': 'closed',
             'Canceled': 'canceled',
         }
-        return self.safe_string(statuses, status, status)
+        return statuses[status] if (status in list(statuses.keys())) else status
 
     def fetch_order_status(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
-            'id': id,
-        }
+        request = {'id': id}
         response = self.privatePostOrderStatus(self.extend(request, params))
         return self.parse_order_status(response)
 
@@ -224,10 +210,8 @@ class bitstamp1 (Exchange):
         if symbol is not None:
             market = self.market(symbol)
         pair = market['id'] if market else 'all'
-        request = {
-            'id': pair,
-        }
-        response = self.privatePostOpenOrdersId(self.extend(request, params))
+        request = self.extend({'id': pair}, params)
+        response = self.privatePostOpenOrdersId(request)
         return self.parse_trades(response, market, since, limit)
 
     def fetch_order(self, id, symbol=None, params={}):

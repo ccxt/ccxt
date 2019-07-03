@@ -13,20 +13,7 @@ from ccxt.base.errors import InvalidOrder
 class bleutrade (bittrex):
 
     def describe(self):
-        timeframes = {
-            '15m': '15m',
-            '20m': '20m',
-            '30m': '30m',
-            '1h': '1h',
-            '2h': '2h',
-            '3h': '3h',
-            '4h': '4h',
-            '6h': '6h',
-            '8h': '8h',
-            '12h': '12h',
-            '1d': '1d',
-        }
-        result = self.deep_extend(super(bleutrade, self).describe(), {
+        return self.deep_extend(super(bleutrade, self).describe(), {
             'id': 'bleutrade',
             'name': 'Bleutrade',
             'countries': ['BR'],  # Brazil
@@ -40,7 +27,19 @@ class bleutrade (bittrex):
                 'fetchClosedOrders': True,
                 'fetchOrderTrades': True,
             },
-            'timeframes': timeframes,
+            'timeframes': {
+                '15m': '15m',
+                '20m': '20m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '3h': '3h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+            },
             'hostname': 'bleutrade.com',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
@@ -146,9 +145,6 @@ class bleutrade (bittrex):
                 'symbolSeparator': '_',
             },
         })
-        # bittrex inheritance override
-        result['timeframes'] = timeframes
-        return result
 
     def parse_order_status(self, status):
         statuses = {
@@ -156,7 +152,10 @@ class bleutrade (bittrex):
             'OPEN': 'open',
             'CANCELED': 'canceled',
         }
-        return self.safe_string(statuses, status, status)
+        if status in statuses:
+            return statuses[status]
+        else:
+            return status
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         # Possible params
@@ -166,14 +165,11 @@ class bleutrade (bittrex):
         self.load_markets()
         market = None
         if symbol is not None:
+            self.load_markets()
             market = self.market(symbol)
         else:
             market = None
-        request = {
-            'market': 'ALL',
-            'orderstatus': 'ALL',
-        }
-        response = self.accountGetOrders(self.extend(request, params))
+        response = self.accountGetOrders(self.extend({'market': 'ALL', 'orderstatus': 'ALL'}, params))
         return self.parse_orders(response['result'], market, since, limit)
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -209,13 +205,15 @@ class bleutrade (bittrex):
         # Similarly, the correct 'side' for the trade is that of the order.
         # The trade fee can be set by the user, it is always 0.25% and is taken in the quote currency.
         self.load_markets()
-        request = {
-            'orderid': id,
-        }
-        response = self.accountGetOrderhistory(self.extend(request, params))
-        return self.parse_trades(response['result'], None, since, limit, {
-            'order': id,
-        })
+        response = self.accountGetOrderhistory({'orderid': id})
+        trades = self.parse_trades(response['result'], None, since, limit)
+        result = []
+        for i in range(0, len(trades)):
+            trade = self.extend(trades[i], {
+                'order': id,
+            })
+            result.append(trade)
+        return result
 
     def fetch_transactions_by_type(self, type, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -234,11 +232,11 @@ class bleutrade (bittrex):
         timestamp = self.parse8601(ohlcv['TimeStamp'] + '+00:00')
         return [
             timestamp,
-            self.safe_float(ohlcv, 'Open'),
-            self.safe_float(ohlcv, 'High'),
-            self.safe_float(ohlcv, 'Low'),
-            self.safe_float(ohlcv, 'Close'),
-            self.safe_float(ohlcv, 'Volume'),
+            ohlcv['Open'],
+            ohlcv['High'],
+            ohlcv['Low'],
+            ohlcv['Close'],
+            ohlcv['Volume'],
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
@@ -279,8 +277,6 @@ class bleutrade (bittrex):
             'symbol': symbol,
             'type': 'limit',
             'side': side,
-            'order': None,
-            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -307,16 +303,16 @@ class bleutrade (bittrex):
         if ('Status' in list(order.keys())) and self.options['parseOrderStatus']:
             status = self.parse_order_status(self.safe_string(order, 'Status'))
         symbol = None
-        marketId = self.safe_string(order, 'Exchange')
-        if marketId is None:
-            if market is not None:
-                symbol = market['symbol']
-        else:
+        if 'Exchange' in order:
+            marketId = order['Exchange']
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
             else:
                 symbol = self.parse_symbol(marketId)
+        else:
+            if market is not None:
+                symbol = market['symbol']
         timestamp = None
         if 'Opened' in order:
             timestamp = self.parse8601(order['Opened'] + '+00:00')
@@ -434,9 +430,9 @@ class bleutrade (bittrex):
         feeCost = None
         labelParts = label.split('')
         if len(labelParts) == 3:
-            amount = float(labelParts[0])
+            amount = labelParts[0]
             address = labelParts[1]
-            feeCost = float(labelParts[2])
+            feeCost = labelParts[2]
         else:
             address = label
         fee = None

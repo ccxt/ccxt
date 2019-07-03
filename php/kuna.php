@@ -19,13 +19,11 @@ class kuna extends acx {
             'has' => array (
                 'CORS' => false,
                 'fetchTickers' => true,
-                'fetchOHLCV' => false,
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
                 'withdraw' => false,
             ),
             'urls' => array (
-                'referral' => 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/31697638-912824fa-b3c1-11e7-8c36-cf9606eb94ac.jpg',
                 'api' => 'https://kuna.io',
                 'www' => 'https://kuna.io',
@@ -60,23 +58,21 @@ class kuna extends acx {
     }
 
     public function fetch_markets ($params = array ()) {
-        $quotes = array ( 'btc', 'eth', 'eurs', 'rub', 'uah', 'usd', 'usdt' );
+        $quotes = array ( 'btc', 'eth', 'eurs', 'gbg', 'uah' );
         $pricePrecisions = array (
             'UAH' => 0,
         );
-        $markets = array();
-        $response = $this->publicGetTickers ($params);
-        $ids = is_array($response) ? array_keys($response) : array();
+        $markets = array ();
+        $tickers = $this->publicGetTickers ();
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             for ($j = 0; $j < count ($quotes); $j++) {
                 $quoteId = $quotes[$j];
-                $index = mb_strpos($id, $quoteId);
-                $slice = mb_substr($id, $index);
-                if (($index > 0) && ($slice === $quoteId)) {
-                    $baseId = str_replace($quoteId, '', $id);
-                    $base = strtoupper($baseId);
-                    $quote = strtoupper($quoteId);
+                if (mb_strpos ($id, $quoteId) > 0) {
+                    $baseId = str_replace ($quoteId, '', $id);
+                    $base = strtoupper ($baseId);
+                    $quote = strtoupper ($quoteId);
                     $base = $this->common_currency_code($base);
                     $quote = $this->common_currency_code($quote);
                     $symbol = $base . '/' . $quote;
@@ -94,12 +90,12 @@ class kuna extends acx {
                         'precision' => $precision,
                         'limits' => array (
                             'amount' => array (
-                                'min' => pow(10, -$precision['amount']),
-                                'max' => pow(10, $precision['amount']),
+                                'min' => pow (10, -$precision['amount']),
+                                'max' => pow (10, $precision['amount']),
                             ),
                             'price' => array (
-                                'min' => pow(10, -$precision['price']),
-                                'max' => pow(10, $precision['price']),
+                                'min' => pow (10, -$precision['price']),
+                                'max' => pow (10, $precision['price']),
                             ),
                             'cost' => array (
                                 'min' => null,
@@ -119,27 +115,24 @@ class kuna extends acx {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
-        }
+        if ($symbol === null)
+            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $orders = $this->privateGetOrders (array_merge (array (
             'market' => $market['id'],
-        );
-        $response = $this->privateGetOrders (array_merge ($request, $params));
+        ), $params));
         // todo emulation of fetchClosedOrders, fetchOrders, fetchOrder
         // with order cache . fetchOpenOrders
         // as in BTC-e, Liqui, Yobit, DSX, Tidex, WEX
-        return $this->parse_orders($response, $market, $since, $limit);
+        return $this->parse_orders($orders, $market, $since, $limit);
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
+        $timestamp = $this->parse8601 ($trade['created_at']);
         $symbol = null;
-        if ($market) {
+        if ($market)
             $symbol = $market['symbol'];
-        }
         $side = $this->safe_string($trade, 'side');
         if ($side !== null) {
             $sideMap = array (
@@ -148,48 +141,38 @@ class kuna extends acx {
             );
             $side = $this->safe_string($sideMap, $side);
         }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'volume');
         $cost = $this->safe_float($trade, 'funds');
-        $orderId = $this->safe_string($trade, 'order_id');
-        $id = $this->safe_string($trade, 'id');
+        $order = $this->safe_string($trade, 'order_id');
         return array (
-            'id' => $id,
-            'info' => $trade,
+            'id' => (string) $trade['id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'order' => $orderId,
-            'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
+            'price' => $this->safe_float($trade, 'price'),
+            'amount' => $this->safe_float($trade, 'volume'),
             'cost' => $cost,
-            'fee' => null,
+            'order' => $order,
+            'info' => $trade,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $response = $this->publicGetTrades (array_merge (array (
             'market' => $market['id'],
-        );
-        $response = $this->publicGetTrades (array_merge ($request, $params));
+        ), $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders requires a $symbol argument');
-        }
+        if ($symbol === null)
+            throw new ArgumentsRequired ($this->id . ' fetchOpenOrders requires a $symbol argument');
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
-            'market' => $market['id'],
-        );
-        $response = $this->privateGetTradesMy (array_merge ($request, $params));
+        $response = $this->privateGetTradesMy (array ( 'market' => $market['id'] ));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 }

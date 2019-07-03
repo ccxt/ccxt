@@ -124,25 +124,22 @@ class bitlish extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetPairs ($params);
-        $result = array();
-        $keys = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
-            $key = $keys[$i];
-            $market = $response[$key];
-            $id = $this->safe_string($market, 'id');
-            $name = $this->safe_string($market, 'name');
-            list($baseId, $quoteId) = explode('/', $name);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+        $markets = $this->publicGetPairs ();
+        $result = array ();
+        $keys = is_array ($markets) ? array_keys ($markets) : array ();
+        for ($p = 0; $p < count ($keys); $p++) {
+            $market = $markets[$keys[$p]];
+            $id = $market['id'];
+            $symbol = $market['name'];
+            list ($base, $quote) = explode ('/', $symbol);
+            $base = $this->common_currency_code($base);
+            $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
                 'info' => $market,
             );
         }
@@ -152,9 +149,8 @@ class bitlish extends Exchange {
     public function parse_ticker ($ticker, $market) {
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market !== null) {
+        if ($market)
             $symbol = $market['symbol'];
-        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'timestamp' => $timestamp,
@@ -183,8 +179,8 @@ class bitlish extends Exchange {
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
         $tickers = $this->publicGetTickers ($params);
-        $ids = is_array($tickers) ? array_keys($tickers) : array();
-        $result = array();
+        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $result = array ();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $market = $this->safe_value($this->markets_by_id, $id);
@@ -192,10 +188,10 @@ class bitlish extends Exchange {
             if ($market !== null) {
                 $symbol = $market['symbol'];
             } else {
-                $baseId = mb_substr($id, 0, 3 - 0);
-                $quoteId = mb_substr($id, 3, 6 - 3);
-                $base = strtoupper($baseId);
-                $quote = strtoupper($quoteId);
+                $baseId = mb_substr ($id, 0, 3);
+                $quoteId = mb_substr ($id, 3, 6);
+                $base = strtoupper ($baseId);
+                $quote = strtoupper ($quoteId);
                 $base = $this->common_currency_code($base);
                 $quote = $this->common_currency_code($quote);
                 $symbol = $base . '/' . $quote;
@@ -209,9 +205,9 @@ class bitlish extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTickers ($params);
-        $marketId = $market['id'];
-        return $this->parse_ticker($response[$marketId], $market);
+        $tickers = $this->publicGetTickers ($params);
+        $ticker = $tickers[$market['id']];
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
@@ -219,48 +215,32 @@ class bitlish extends Exchange {
         // $market = $this->market ($symbol);
         $now = $this->seconds ();
         $start = $now - 86400 * 30; // last 30 days
-        if ($since !== null) {
+        if ($since !== null)
             $start = intval ($since / 1000);
-        }
         $interval = array ( (string) $start, null );
-        $request = array (
+        return $this->publicPostOhlcv (array_merge (array (
             'time_range' => $interval,
-        );
-        return $this->publicPostOhlcv (array_merge ($request, $params));
+        ), $params));
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $orderbook = $this->publicGetTradesDepth (array_merge (array (
             'pair_id' => $this->market_id($symbol),
-        );
-        $response = $this->publicGetTradesDepth (array_merge ($request, $params));
+        ), $params));
         $timestamp = null;
-        $last = $this->safe_integer($response, 'last');
-        if ($last !== null) {
+        $last = $this->safe_integer($orderbook, 'last');
+        if ($last)
             $timestamp = intval ($last / 1000);
-        }
-        return $this->parse_order_book($response, $timestamp, 'bid', 'ask', 'price', 'volume');
+        return $this->parse_order_book($orderbook, $timestamp, 'bid', 'ask', 'price', 'volume');
     }
 
     public function parse_trade ($trade, $market = null) {
         $side = ($trade['dir'] === 'bid') ? 'buy' : 'sell';
         $symbol = null;
-        if ($market !== null) {
+        if ($market)
             $symbol = $market['symbol'];
-        }
-        $timestamp = $this->safe_integer($trade, 'created');
-        if ($timestamp !== null) {
-            $timestamp = intval ($timestamp / 1000);
-        }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
+        $timestamp = intval ($trade['created'] / 1000);
         return array (
             'id' => null,
             'info' => $trade,
@@ -270,11 +250,8 @@ class bitlish extends Exchange {
             'order' => null,
             'type' => null,
             'side' => $side,
-            'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
-            'fee' => null,
+            'price' => $trade['price'],
+            'amount' => $trade['amount'],
         );
     }
 
@@ -289,75 +266,77 @@ class bitlish extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostBalance ($params);
-        $result = array( 'info' => $response );
-        $currencyIds = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count ($currencyIds); $i++) {
-            $currencyId = $currencyIds[$i];
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+        $response = $this->privatePostBalance ();
+        $result = array ( 'info' => $response );
+        $currencies = is_array ($response) ? array_keys ($response) : array ();
+        $balance = array ();
+        for ($c = 0; $c < count ($currencies); $c++) {
+            $currency = $currencies[$c];
+            $account = $response[$currency];
+            $currency = strtoupper ($currency);
+            // issue #4 bitlish names Dash as DSH, instead of DASH
+            if ($currency === 'DSH')
+                $currency = 'DASH';
+            if ($currency === 'XDG')
+                $currency = 'DOGE';
+            $balance[$currency] = $account;
+        }
+        $currencies = is_array ($this->currencies) ? array_keys ($this->currencies) : array ();
+        for ($i = 0; $i < count ($currencies); $i++) {
+            $currency = $currencies[$i];
             $account = $this->account ();
-            $balance = $this->safe_value($response, $currencyId, array());
-            $account['free'] = $this->safe_float($balance, 'funds');
-            $account['used'] = $this->safe_float($balance, 'holded');
-            $result[$code] = $account;
+            if (is_array ($balance) && array_key_exists ($currency, $balance)) {
+                $account['free'] = floatval ($balance[$currency]['funds']);
+                $account['used'] = floatval ($balance[$currency]['holded']);
+                $account['total'] = $this->sum ($account['free'], $account['used']);
+            }
+            $result[$currency] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function sign_in ($params = array ()) {
-        $request = array (
+        return $this->privatePostSignin (array_merge (array (
             'login' => $this->login,
             'passwd' => $this->password,
-        );
-        return $this->privatePostSignin (array_merge ($request, $params));
+        ), $params));
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $order = array (
             'pair_id' => $this->market_id($symbol),
             'dir' => ($side === 'buy') ? 'bid' : 'ask',
             'amount' => $amount,
         );
-        if ($type === 'limit') {
-            $request['price'] = $price;
-        }
-        $response = $this->privatePostCreateTrade (array_merge ($request, $params));
-        $id = $this->safe_string($response, 'id');
+        if ($type === 'limit')
+            $order['price'] = $price;
+        $result = $this->privatePostCreateTrade (array_merge ($order, $params));
         return array (
-            'info' => $response,
-            'id' => $id,
+            'info' => $result,
+            'id' => $result['id'],
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
-            'id' => $id,
-        );
-        return $this->privatePostCancelTrade (array_merge ($request, $params));
+        return $this->privatePostCancelTrade (array ( 'id' => $id ));
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
-        if ($code !== 'BTC') {
-            // they did not document other types...
-            throw new NotSupported($this->id . ' currently supports BTC withdrawals only, until they document other currencies...');
-        }
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $request = array (
-            'currency' => strtolower($currency),
+        if ($code !== 'BTC') {
+            // they did not document other types...
+            throw new NotSupported ($this->id . ' currently supports BTC withdrawals only, until they document other currencies...');
+        }
+        $response = $this->privatePostWithdraw (array_merge (array (
+            'currency' => strtolower ($currency),
             'amount' => floatval ($amount),
             'account' => $address,
             'payment_method' => 'bitcoin', // they did not document other types...
-        );
-        $response = $this->privatePostWithdraw (array_merge ($request, $params));
+        ), $params));
         return array (
             'info' => $response,
             'id' => $response['message_id'],
@@ -368,18 +347,17 @@ class bitlish extends Exchange {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         if ($api === 'public') {
             if ($method === 'GET') {
-                if ($params) {
+                if ($params)
                     $url .= '?' . $this->urlencode ($params);
-                }
             } else {
                 $body = $this->json ($params);
-                $headers = array( 'Content-Type' => 'application/json' );
+                $headers = array ( 'Content-Type' => 'application/json' );
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->json (array_merge (array( 'token' => $this->apiKey ), $params));
-            $headers = array( 'Content-Type' => 'application/json' );
+            $body = $this->json (array_merge (array ( 'token' => $this->apiKey ), $params));
+            $headers = array ( 'Content-Type' => 'application/json' );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

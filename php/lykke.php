@@ -19,7 +19,7 @@ class lykke extends Exchange {
             'has' => array (
                 'CORS' => false,
                 'fetchOHLCV' => false,
-                'fetchTrades' => true,
+                'fetchTrades' => false,
                 'fetchOpenOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrder' => true,
@@ -52,7 +52,6 @@ class lykke extends Exchange {
                 'mobile' => array (
                     'get' => array (
                         'Market/{market}',
-                        'Trades/{AssetPairId}',
                     ),
                 ),
                 'public' => array (
@@ -98,92 +97,27 @@ class lykke extends Exchange {
         ));
     }
 
-    public function parse_trade ($trade, $market) {
-        //
-        //  public fetchTrades
-        //
-        //   {
-        //     "$id" => "d5983ab8-e9ec-48c9-bdd0-1b18f8e80a71",
-        //     "assetPairId" => "BTCUSD",
-        //     "dateTime" => "2019-05-15T06:52:02.147Z",
-        //     "volume" => 0.00019681,
-        //     "index" => 0,
-        //     "$price" => 8023.333,
-        //     "action" => "Buy"
-        //   }
-        //
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'AssetPairId');
-            $market = $this->safe_value($this->markets_by_id, $marketId);
-        }
-        if ($market) {
-            $symbol = $market['symbol'];
-        }
-        $id = $this->safe_string($trade, 'id');
-        $timestamp = $this->parse8601 ($this->safe_string($trade, 'dateTime'));
-        $side = $this->safe_string($trade, 'action');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'volume');
-        $cost = $price * $amount;
-        return array (
-            'id' => $id,
-            'info' => $trade,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $symbol,
-            'type' => null,
-            'order' => null,
-            'side' => $side,
-            'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
-            'fee' => null,
-        );
-    }
-
-    public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
-        $this->load_markets();
-        $market = $this->market ($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        }
-        $request = array (
-            'AssetPairId' => $market['id'],
-            'skip' => 0,
-            'take' => $limit,
-        );
-        $response = $this->mobileGetTradesAssetPairId (array_merge ($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
-    }
-
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetWallets ($params);
-        $result = array( 'info' => $response );
-        for ($i = 0; $i < count ($response); $i++) {
-            $balance = $response[$i];
-            $currencyId = $this->safe_string($balance, 'AssetId');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
-            $account = $this->account ();
-            $account['total'] = $this->safe_float($balance, 'Balance');
-            $account['used'] = $this->safe_float($balance, 'Reserved');
-            $result[$code] = $account;
+        $balances = $this->privateGetWallets ();
+        $result = array ( 'info' => $balances );
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currency = $balance['AssetId'];
+            $total = $balance['Balance'];
+            $used = $balance['Reserved'];
+            $free = $total - $used;
+            $result[$currency] = array (
+                'free' => $free,
+                'used' => $used,
+                'total' => $total,
+            );
         }
         return $this->parse_balance($result);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostOrdersIdCancel (array( 'id' => $id ));
+        return $this->privatePostOrdersIdCancel (array ( 'id' => $id ));
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -227,18 +161,18 @@ class lykke extends Exchange {
         //                 MinVolume =>  0.4,
         //         MinInvertedVolume =>  0.001                                  } )
         //
-        $result = array();
+        $result = array ();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $id = $this->safe_string($market, 'Id');
-            $name = $this->safe_string($market, 'Name');
-            list($baseId, $quoteId) = explode('/', $name);
+            $id = $market['Id'];
+            $name = $market['Name'];
+            list ($baseId, $quoteId) = explode ('/', $name);
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => $this->safe_integer($market, 'Accuracy'),
-                'price' => $this->safe_integer($market, 'InvertedAccuracy'),
+                'amount' => $market['Accuracy'],
+                'price' => $market['InvertedAccuracy'],
             );
             $result[] = array (
                 'id' => $id,
@@ -250,12 +184,12 @@ class lykke extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow(10, -$precision['amount']),
-                        'max' => pow(10, $precision['amount']),
+                        'min' => pow (10, -$precision['amount']),
+                        'max' => pow (10, $precision['amount']),
                     ),
                     'price' => array (
-                        'min' => pow(10, -$precision['price']),
-                        'max' => pow(10, $precision['price']),
+                        'min' => pow (10, -$precision['price']),
+                        'max' => pow (10, $precision['price']),
                     ),
                     'cost' => array (
                         'min' => null,
@@ -270,19 +204,18 @@ class lykke extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market) {
+        if ($market)
             $symbol = $market['symbol'];
-        }
-        $close = $this->safe_float($ticker, 'lastPrice');
+        $close = floatval ($ticker['lastPrice']);
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => $this->safe_float($ticker, 'bid'),
+            'bid' => floatval ($ticker['bid']),
             'bidVolume' => null,
-            'ask' => $this->safe_float($ticker, 'ask'),
+            'ask' => floatval ($ticker['ask']),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -293,7 +226,7 @@ class lykke extends Exchange {
             'percentage' => null,
             'average' => null,
             'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, 'volume24H'),
+            'quoteVolume' => floatval ($ticker['volume24H']),
             'info' => $ticker,
         );
     }
@@ -301,10 +234,9 @@ class lykke extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $ticker = $this->mobileGetMarketMarket (array_merge (array (
             'market' => $market['id'],
-        );
-        $ticker = $this->mobileGetMarketMarket (array_merge ($request, $params));
+        ), $params));
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -326,14 +258,13 @@ class lykke extends Exchange {
             $marketId = $this->safe_string($order, 'AssetPairId');
             $market = $this->safe_value($this->markets_by_id, $marketId);
         }
-        if ($market) {
+        if ($market)
             $symbol = $market['symbol'];
-        }
         $lastTradeTimestamp = $this->parse8601 ($this->safe_string($order, 'LastMatchTime'));
         $timestamp = null;
-        if ((is_array($order) && array_key_exists('Registered', $order)) && ($order['Registered'])) {
+        if ((is_array ($order) && array_key_exists ('Registered', $order)) && ($order['Registered'])) {
             $timestamp = $this->parse8601 ($order['Registered']);
-        } else if ((is_array($order) && array_key_exists('CreatedAt', $order)) && ($order['CreatedAt'])) {
+        } else if ((is_array ($order) && array_key_exists ('CreatedAt', $order)) && ($order['CreatedAt'])) {
             $timestamp = $this->parse8601 ($order['CreatedAt']);
         }
         $price = $this->safe_float($order, 'Price');
@@ -341,10 +272,9 @@ class lykke extends Exchange {
         $remaining = $this->safe_float($order, 'RemainingVolume');
         $filled = $amount - $remaining;
         $cost = $filled * $price;
-        $id = $this->safe_string($order, 'Id');
-        return array (
+        $result = array (
             'info' => $order,
-            'id' => $id,
+            'id' => $order['Id'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
@@ -360,38 +290,36 @@ class lykke extends Exchange {
             'status' => $status,
             'fee' => null,
         );
+        return $result;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $response = $this->privateGetOrdersId (array_merge (array (
             'id' => $id,
-        );
-        $response = $this->privateGetOrdersId (array_merge ($request, $params));
+        ), $params));
         return $this->parse_order($response);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrders ($params);
+        $response = $this->privateGetOrders ();
         return $this->parse_orders($response, null, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $response = $this->privateGetOrders (array_merge (array (
             'status' => 'InOrderBook',
-        );
-        $response = $this->privateGetOrders (array_merge ($request, $params));
+        ), $params));
         return $this->parse_orders($response, null, $since, $limit);
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array (
+        $response = $this->privateGetOrders (array_merge (array (
             'status' => 'Matched',
-        );
-        $response = $this->privateGetOrders (array_merge ($request, $params));
+        ), $params));
         return $this->parse_orders($response, null, $since, $limit);
     }
 
@@ -402,8 +330,8 @@ class lykke extends Exchange {
         ), $params));
         $orderbook = array (
             'timestamp' => null,
-            'bids' => array(),
-            'asks' => array(),
+            'bids' => array (),
+            'asks' => array (),
         );
         $timestamp = null;
         for ($i = 0; $i < count ($response); $i++) {
@@ -420,43 +348,33 @@ class lykke extends Exchange {
     }
 
     public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {
-        $price = $this->safe_float($bidask, $priceKey);
-        $amount = $this->safe_float($bidask, $amountKey);
-        if ($amount < 0) {
+        $price = floatval ($bidask[$priceKey]);
+        $amount = floatval ($bidask[$amountKey]);
+        if ($amount < 0)
             $amount = -$amount;
-        }
         return array ( $price, $amount );
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($api === 'mobile') {
-            if ($query) {
+        if ($api === 'public') {
+            if ($query)
                 $url .= '?' . $this->urlencode ($query);
-            }
-        } else if ($api === 'public') {
-            if ($query) {
-                $url .= '?' . $this->urlencode ($query);
-            }
         } else if ($api === 'private') {
-            if ($method === 'GET') {
-                if ($query) {
+            if ($method === 'GET')
+                if ($query)
                     $url .= '?' . $this->urlencode ($query);
-                }
-            }
             $this->check_required_credentials();
             $headers = array (
                 'api-key' => $this->apiKey,
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             );
-            if ($method === 'POST') {
-                if ($params) {
+            if ($method === 'POST')
+                if ($params)
                     $body = $this->json ($params);
-                }
-            }
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

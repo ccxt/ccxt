@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -87,6 +94,7 @@ class zb (Exchange):
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
+                'referral': 'https://vip.zb.com/user/register?recommendCode=bn070u',
             },
             'api': {
                 'public': {
@@ -174,7 +182,7 @@ class zb (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        markets = self.publicGetMarkets(params)
+        markets = self.publicGetMarkets()
         keys = list(markets.keys())
         result = []
         for i in range(0, len(keys)):
@@ -220,7 +228,7 @@ class zb (Exchange):
         response = self.privateGetGetAccountInfo(params)
         # todo: use self somehow
         # permissions = response['result']['base']
-        balances = self.safe_value(response['result'], 'coins')
+        balances = response['result']['coins']
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -234,15 +242,15 @@ class zb (Exchange):
             #           available: "0.00000000",
             #                 key: "btc"         }
             account = self.account()
-            currencyId = self.safe_string(balance, 'key')
-            code = None
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
+            currency = balance['key']
+            if currency in self.currencies_by_id:
+                currency = self.currencies_by_id[currency]['code']
             else:
-                code = self.common_currency_code(self.safe_string(balance, 'enName'))
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'freez')
-            result[code] = account
+                currency = self.common_currency_code(balance['enName'])
+            account['free'] = float(balance['available'])
+            account['used'] = float(balance['freez'])
+            account['total'] = self.sum(account['free'], account['used'])
+            result[currency] = account
         return self.parse_balance(result)
 
     def get_market_field_name(self):
@@ -251,16 +259,15 @@ class zb (Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        response = self.privateGetGetUserAddress({
             'currency': currency['id'],
-        }
-        response = self.privateGetGetUserAddress(self.extend(request, params))
+        })
         address = response['message']['datas']['key']
         tag = None
         if address.find('_') >= 0:
-            parts = address.split('_')
-            address = parts[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
-            tag = parts[1]
+            arr = address.split('_')
+            address = arr[0]  # WARNING: MAY BE tag_address INSTEAD OF address_tag FOR SOME CURRENCIESnot !
+            tag = arr[1]
         return {
             'currency': code,
             'address': address,
@@ -274,8 +281,8 @@ class zb (Exchange):
         marketFieldName = self.get_market_field_name()
         request = {}
         request[marketFieldName] = market['id']
-        response = self.publicGetDepth(self.extend(request, params))
-        return self.parse_order_book(response)
+        orderbook = self.publicGetDepth(self.extend(request, params))
+        return self.parse_order_book(orderbook)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
@@ -348,35 +355,18 @@ class zb (Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
-        side = self.safe_string(trade, 'trade_type')
-        side = 'buy' if (side == 'bid') else 'sell'
-        id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        timestamp = trade['date'] * 1000
+        side = 'buy' if (trade['trade_type'] == 'bid') else 'sell'
         return {
             'info': trade,
-            'id': id,
+            'id': str(trade['tid']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'order': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -392,13 +382,13 @@ class zb (Exchange):
         if type != 'limit':
             raise InvalidOrder(self.id + ' allows limit orders only')
         self.load_markets()
-        request = {
+        order = {
             'price': self.price_to_precision(symbol, price),
             'amount': self.amount_to_precision(symbol, amount),
             'tradeType': '1' if (side == 'buy') else '0',
             'currency': self.market_id(symbol),
         }
-        response = self.privateGetOrder(self.extend(request, params))
+        response = self.privateGetOrder(self.extend(order, params))
         return {
             'info': response,
             'id': response['id'],
@@ -406,21 +396,23 @@ class zb (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
+        order = {
             'id': str(id),
             'currency': self.market_id(symbol),
         }
-        return self.privateGetCancelOrder(self.extend(request, params))
+        order = self.extend(order, params)
+        return self.privateGetCancelOrder(order)
 
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
-        request = {
+        order = {
             'id': str(id),
             'currency': self.market_id(symbol),
         }
-        response = self.privateGetGetOrder(self.extend(request, params))
+        order = self.extend(order, params)
+        response = self.privateGetGetOrder(order)
         #
         #     {
         #         'total_amount': 0.01,
@@ -498,36 +490,30 @@ class zb (Exchange):
         #         'currency': 'eth_usdt'
         #     }
         #
-        side = self.safe_integer(order, 'type')
-        side = 'buy' if (side == 1) else 'sell'
+        side = 'buy' if (order['type'] == 1) else 'sell'
         type = 'limit'  # market order is not availalbe in ZB
         timestamp = None
         createDateField = self.get_create_date_field()
         if createDateField in order:
             timestamp = order[createDateField]
         symbol = None
-        marketId = self.safe_string(order, 'currency')
-        if marketId in self.markets_by_id:
+        if 'currency' in order:
             # get symbol from currency
-            market = self.marketsById[marketId]
-        if market is not None:
+            market = self.marketsById[order['currency']]
+        if market:
             symbol = market['symbol']
-        price = self.safe_float(order, 'price')
-        filled = self.safe_float(order, 'trade_amount')
-        amount = self.safe_float(order, 'total_amount')
-        remaining = None
-        if amount is not None:
-            if filled is not None:
-                remaining = amount - filled
+        price = order['price']
+        filled = order['trade_amount']
+        amount = order['total_amount']
+        remaining = amount - filled
         cost = self.safe_float(order, 'trade_money')
         average = None
         status = self.parse_order_status(self.safe_string(order, 'status'))
         if (cost is not None) and(filled is not None) and(filled > 0):
             average = cost / filled
-        id = self.safe_string(order, 'id')
-        return {
+        result = {
             'info': order,
-            'id': id,
+            'id': order['id'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
@@ -543,6 +529,7 @@ class zb (Exchange):
             'status': status,
             'fee': None,
         }
+        return result
 
     def parse_order_status(self, status):
         statuses = {
@@ -551,7 +538,9 @@ class zb (Exchange):
             '2': 'closed',
             '3': 'open',  # partial
         }
-        return self.safe_string(statuses, status, status)
+        if status in statuses:
+            return statuses[status]
+        return status
 
     def get_create_date_field(self):
         return 'trade_date'
@@ -580,10 +569,12 @@ class zb (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if response is None:
+        if not isinstance(body, basestring):
+            return  # fallback to default error handler
+        if len(body) < 2:
             return  # fallback to default error handler
         if body[0] == '{':
-            feedback = self.id + ' ' + body
+            feedback = self.id + ' ' + self.json(response)
             if 'code' in response:
                 code = self.safe_string(response, 'code')
                 if code in self.exceptions:

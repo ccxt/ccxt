@@ -75,7 +75,7 @@ class coinnest extends Exchange {
 
     public function fetch_markets ($params = array ()) {
         $quote = 'KRW';
-        $quoteId = strtolower($quote);
+        $quoteId = strtolower ($quote);
         // todo => rewrite this for web endpoint
         $coins = array (
             'btc',
@@ -114,11 +114,11 @@ class coinnest extends Exchange {
             'spc',
             'put',
         );
-        $result = array();
+        $result = array ();
         for ($i = 0; $i < count ($coins); $i++) {
             $baseId = $coins[$i];
             $id = $baseId . '/' . $quoteId;
-            $base = $this->common_currency_code(strtoupper($baseId));
+            $base = $this->common_currency_code(strtoupper ($baseId));
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -135,7 +135,7 @@ class coinnest extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'time') * 1000;
+        $timestamp = $ticker['time'] * 1000;
         $symbol = $market['symbol'];
         $last = $this->safe_float($ticker, 'last');
         return array (
@@ -165,116 +165,95 @@ class coinnest extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $ticker = $this->publicGetPubTicker (array_merge (array (
             'coin' => $market['baseId'],
-        );
-        $response = $this->publicGetPubTicker (array_merge ($request, $params));
-        return $this->parse_ticker($response, $market);
+        ), $params));
+        return $this->parse_ticker($ticker, $market);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $orderbook = $this->publicGetPubDepth (array_merge (array (
             'coin' => $market['baseId'],
-        );
-        $response = $this->publicGetPubDepth (array_merge ($request, $params));
-        return $this->parse_order_book($response);
+        ), $params));
+        return $this->parse_order_book($orderbook);
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = intval ($trade['date']) * 1000;
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($price !== null) {
-            if ($amount !== null) {
-                $cost = $amount * $price;
-            }
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $type = 'limit';
-        $side = $this->safe_string($trade, 'type');
-        $id = $this->safe_string($trade, 'tid');
+        $symbol = $market['symbol'];
+        $cost = $this->price_to_precision($symbol, $amount * $price);
         return array (
-            'id' => $id,
-            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
+            'id' => $this->safe_string($trade, 'tid'),
             'order' => null,
-            'type' => $type,
-            'side' => $side,
-            'takerOrMaker' => null,
+            'type' => 'limit',
+            'side' => $trade['type'],
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => floatval ($cost),
             'fee' => null,
+            'info' => $trade,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $trades = $this->publicGetPubTrades (array_merge (array (
             'coin' => $market['baseId'],
-        );
-        $response = $this->publicGetPubTrades (array_merge ($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        ), $params));
+        return $this->parse_trades($trades, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostAccountBalance ($params);
-        $result = array( 'info' => $response );
-        $balancKeys = is_array($response) ? array_keys($response) : array();
+        $result = array ( 'info' => $response );
+        $balancKeys = is_array ($response) ? array_keys ($response) : array ();
         for ($i = 0; $i < count ($balancKeys); $i++) {
             $key = $balancKeys[$i];
-            $parts = explode('_', $key);
-            $numParts = is_array ($parts) ? count ($parts) : 0;
-            if ($numParts !== 2) {
+            $parts = explode ('_', $key);
+            if (strlen ($parts) !== 2)
                 continue;
-            }
             $type = $parts[1];
-            if ($type !== 'reserved' && $type !== 'balance') {
+            if ($type !== 'reserved' && $type !== 'balance')
                 continue;
-            }
-            $currencyId = $parts[0];
-            $uppercase = strtoupper($currencyId);
-            $code = $this->common_currency_code($uppercase);
-            if (!(is_array($result) && array_key_exists($code, $result))) {
-                $result[$code] = $this->account ();
+            $currency = strtoupper ($parts[0]);
+            $currency = $this->common_currency_code($currency);
+            if (!(is_array ($result) && array_key_exists ($currency, $result))) {
+                $result[$currency] = array (
+                    'free' => 0.0,
+                    'used' => 0.0,
+                    'total' => 0.0,
+                );
             }
             $type = ($type === 'reserved' ? 'used' : 'free');
-            $result[$code][$type] = $this->safe_float($response, $key);
+            $result[$currency][$type] = floatval ($response[$key]);
             $otherType = ($type === 'used' ? 'free' : 'used');
-            if (is_array($result[$code]) && array_key_exists($otherType, $result[$code])) {
-                $result[$code]['total'] = $this->sum ($result[$code]['free'], $result[$code]['used']);
-            }
+            if (is_array ($result[$currency]) && array_key_exists ($otherType, $result[$currency]))
+                $result[$currency]['total'] = $this->sum ($result[$currency]['free'], $result[$currency]['used']);
         }
         return $this->parse_balance($result);
     }
 
-    public function parse_order_status ($status) {
-        $statuses = array (
-            '1' => 'open',
-            '2' => 'open',
-            '3' => 'canceled',
-            '4' => 'closed',
-        );
-        return $this->safe_string($statuses, $status, $status);
-    }
-
     public function parse_order ($order, $market) {
         $symbol = $market['symbol'];
-        $timestamp = $this->safe_integer($order, 'time') * 1000;
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        $timestamp = intval ($order['time']) * 1000;
+        $status = intval ($order['status']);
+        // 1 => newly created, 2 => ready for dealing, 3 => canceled, 4 => completed.
+        if ($status === 4) {
+            $status = 'closed';
+        } else if ($status === 3) {
+            $status = 'canceled';
+        } else {
+            $status = 'open';
+        }
         $amount = $this->safe_float($order, 'amount_total');
         $remaining = $this->safe_float($order, 'amount_over');
         $filled = $this->safe_value($order, 'deals');
@@ -306,13 +285,12 @@ class coinnest extends Exchange {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $response = $this->privatePostTradeAdd (array_merge (array (
             'coin' => $market['baseId'],
             'type' => $side,
             'number' => $amount,
             'price' => $price,
-        );
-        $response = $this->privatePostTradeAdd (array_merge ($request, $params));
+        ), $params));
         $order = array (
             'id' => $response['id'],
             'time' => $this->seconds (),
@@ -330,22 +308,21 @@ class coinnest extends Exchange {
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $response = $this->privatePostTradeCancel (array_merge (array (
             'id' => $id,
             'coin' => $market['baseId'],
-        );
-        return $this->privatePostTradeCancel (array_merge ($request, $params));
+        ), $params));
+        return $response;
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array (
+        $order = $this->privatePostTradeFetchtrust (array_merge (array (
             'id' => $id,
             'coin' => $market['baseId'],
-        );
-        $response = $this->privatePostTradeFetchtrust (array_merge ($request, $params));
-        return $this->parse_order($response, $market);
+        ), $params));
+        return $this->parse_order($order, $market);
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -354,21 +331,18 @@ class coinnest extends Exchange {
         $request = array (
             'coin' => $market['baseId'],
         );
-        if ($since !== null) {
+        if ($since !== null)
             $request['since'] = intval ($since / 1000);
-        }
-        if ($limit !== null) {
+        if ($limit !== null)
             $request['limit'] = $limit;
-        }
         $response = $this->privatePostTradeTrust (array_merge ($request, $params));
         return $this->parse_orders($response, $market);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array (
+        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
             'type' => '1',
-        );
-        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
+        ), $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -376,9 +350,8 @@ class coinnest extends Exchange {
         $query = null;
         if ($api === 'public') {
             $query = $this->urlencode ($params);
-            if (strlen ($query)) {
+            if (strlen ($query))
                 $url .= '?' . $query;
-            }
         } else {
             $this->check_required_credentials();
             $body = $this->urlencode (array_merge ($params, array (
@@ -387,9 +360,9 @@ class coinnest extends Exchange {
             )));
             $secret = $this->hash ($this->secret);
             $body .= '&signature=' . $this->hmac ($this->encode ($body), $this->encode ($secret));
-            $headers = array( 'Content-type' => 'application/x-www-form-urlencoded' );
+            $headers = array ( 'Content-type' => 'application/x-www-form-urlencoded' );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -404,7 +377,7 @@ class coinnest extends Exchange {
                 '106' => '\\ccxt\\DDoSProtection',
             ), $status, '\\ccxt\\ExchangeError');
             $message = $this->safe_string($response, 'msg', $this->json ($response));
-            throw new $ErrorClass($message);
+            throw new $ErrorClass ($message);
         }
         return $response;
     }

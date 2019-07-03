@@ -67,11 +67,9 @@ class foxbit (Exchange):
         })
 
     def fetch_balance(self, params={}):
-        self.load_markets()
-        request = {
+        response = self.privatePostU2({
             'BalanceReqID': self.nonce(),
-        }
-        response = self.privatePostU2(self.extend(request, params))
+        })
         balances = self.safe_value(response['Responses'], self.options['brokerId'])
         result = {'info': response}
         if balances is not None:
@@ -86,27 +84,24 @@ class foxbit (Exchange):
                     account = self.account()
                     account['used'] = float(balances[currencyId + '_locked']) * 1e-8
                     account['total'] = float(balances[currencyId]) * 1e-8
+                    account['free'] = account['total'] - account['used']
                     result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        self.load_markets()
         market = self.market(symbol)
-        request = {
+        orderbook = self.publicGetCurrencyOrderbook(self.extend({
             'currency': market['quote'],
             'crypto_currency': market['base'],
-        }
-        response = self.publicGetCurrencyOrderbook(self.extend(request, params))
-        return self.parse_order_book(response)
+        }, params))
+        return self.parse_order_book(orderbook)
 
     def fetch_ticker(self, symbol, params={}):
-        self.load_markets()
         market = self.market(symbol)
-        request = {
+        ticker = self.publicGetCurrencyTicker(self.extend({
             'currency': market['quote'],
             'crypto_currency': market['base'],
-        }
-        ticker = self.publicGetCurrencyTicker(self.extend(request, params))
+        }, params))
         timestamp = self.milliseconds()
         lowercaseQuote = market['quote'].lower()
         quoteVolume = 'vol_' + lowercaseQuote
@@ -130,58 +125,38 @@ class foxbit (Exchange):
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_float(ticker, 'vol'),
-            'quoteVolume': self.safe_float(ticker, quoteVolume),
+            'quoteVolume': float(ticker[quoteVolume]),
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
-        id = self.safe_string(trade, 'tid')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        side = self.safe_string(trade, 'side')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
         return {
-            'id': id,
+            'id': self.safe_string(trade, 'tid'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
-            'side': side,
-            'order': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'side': trade['side'],
+            'price': trade['price'],
+            'amount': trade['amount'],
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = self.publicGetCurrencyTrades(self.extend({
             'currency': market['quote'],
             'crypto_currency': market['base'],
-        }
-        response = self.publicGetCurrencyTrades(self.extend(request, params))
+        }, params))
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
         market = self.market(symbol)
         orderSide = '1' if (side == 'buy') else '2'
-        request = {
+        order = {
             'ClOrdID': self.nonce(),
             'Symbol': market['id'],
             'Side': orderSide,
@@ -190,7 +165,7 @@ class foxbit (Exchange):
             'OrderQty': amount,
             'BrokerID': market['brokerId'],
         }
-        response = self.privatePostD(self.extend(request, params))
+        response = self.privatePostD(self.extend(order, params))
         indexed = self.index_by(response['Responses'], 'MsgType')
         execution = indexed['8']
         return {
@@ -199,7 +174,6 @@ class foxbit (Exchange):
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        self.load_markets()
         return self.privatePostF(self.extend({
             'ClOrdID': id,
         }, params))

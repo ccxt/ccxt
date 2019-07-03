@@ -17,7 +17,6 @@ class mixcoins (Exchange):
             'countries': ['GB', 'HK'],
             'rateLimit': 1500,
             'version': 'v1',
-            'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
             },
@@ -30,9 +29,9 @@ class mixcoins (Exchange):
             'api': {
                 'public': {
                     'get': [
-                        'ticker/',
-                        'trades/',
-                        'depth/',
+                        'ticker',
+                        'trades',
+                        'depth',
                     ],
                 },
                 'private': {
@@ -47,50 +46,42 @@ class mixcoins (Exchange):
                 },
             },
             'markets': {
-                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'btc', 'quoteId': 'usd', 'maker': 0.0015, 'taker': 0.0025},
-                'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'baseId': 'eth', 'quoteId': 'btc', 'maker': 0.001, 'taker': 0.0015},
-                'BCH/BTC': {'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'baseId': 'bch', 'quoteId': 'btc', 'maker': 0.001, 'taker': 0.0015},
-                'LSK/BTC': {'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'baseId': 'lsk', 'quoteId': 'btc', 'maker': 0.0015, 'taker': 0.0025},
-                'BCH/USD': {'id': 'bch_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'baseId': 'bch', 'quoteId': 'usd', 'maker': 0.001, 'taker': 0.0015},
-                'ETH/USD': {'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'eth', 'quoteId': 'usd', 'maker': 0.001, 'taker': 0.0015},
+                'BTC/USD': {'id': 'btc_usd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'maker': 0.0015, 'taker': 0.0025},
+                'ETH/BTC': {'id': 'eth_btc', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', 'maker': 0.001, 'taker': 0.0015},
+                'BCH/BTC': {'id': 'bch_btc', 'symbol': 'BCH/BTC', 'base': 'BCH', 'quote': 'BTC', 'maker': 0.001, 'taker': 0.0015},
+                'LSK/BTC': {'id': 'lsk_btc', 'symbol': 'LSK/BTC', 'base': 'LSK', 'quote': 'BTC', 'maker': 0.0015, 'taker': 0.0025},
+                'BCH/USD': {'id': 'bch_usd', 'symbol': 'BCH/USD', 'base': 'BCH', 'quote': 'USD', 'maker': 0.001, 'taker': 0.0015},
+                'ETH/USD': {'id': 'eth_usd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'maker': 0.001, 'taker': 0.0015},
             },
         })
 
     async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privatePostInfo(params)
-        balances = self.safe_value(response['result'], 'wallet')
-        result = {'info': response}
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
-            balance = self.safe_value(balances, currencyId, {})
+        response = await self.privatePostInfo()
+        balance = response['result']['wallet']
+        result = {'info': balance}
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            lowercase = currency.lower()
             account = self.account()
-            account['free'] = self.safe_float(balance, 'avail')
-            account['used'] = self.safe_float(balance, 'lock')
-            result[code] = account
+            if lowercase in balance:
+                account['free'] = float(balance[lowercase]['avail'])
+                account['used'] = float(balance[lowercase]['lock'])
+                account['total'] = self.sum(account['free'], account['used'])
+            result[currency] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
-        await self.load_markets()
-        request = {
+        response = await self.publicGetDepth(self.extend({
             'market': self.market_id(symbol),
-        }
-        response = await self.publicGetDepth(self.extend(request, params))
+        }, params))
         return self.parse_order_book(response['result'])
 
     async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        request = {
+        response = await self.publicGetTicker(self.extend({
             'market': self.market_id(symbol),
-        }
-        response = await self.publicGetTicker(self.extend(request, params))
-        ticker = self.safe_value(response, 'result')
+        }, params))
+        ticker = response['result']
         timestamp = self.milliseconds()
         last = self.safe_float(ticker, 'last')
         return {
@@ -116,69 +107,46 @@ class mixcoins (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        id = self.safe_string(trade, 'id')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
+    def parse_trade(self, trade, market):
+        timestamp = int(trade['date']) * 1000
         return {
-            'id': id,
+            'id': str(trade['id']),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': None,
-            'order': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        await self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = await self.publicGetTrades(self.extend({
             'market': market['id'],
-        }
-        response = await self.publicGetTrades(self.extend(request, params))
+        }, params))
         return self.parse_trades(response['result'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        await self.load_markets()
-        request = {
+        order = {
             'market': self.market_id(symbol),
             'op': side,
             'amount': amount,
         }
         if type == 'market':
-            request['order_type'] = 1
-            request['price'] = price
+            order['order_type'] = 1
+            order['price'] = price
         else:
-            request['order_type'] = 0
-        response = await self.privatePostTrade(self.extend(request, params))
+            order['order_type'] = 0
+        response = await self.privatePostTrade(self.extend(order, params))
         return {
             'info': response,
             'id': str(response['result']['id']),
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        await self.load_markets()
-        request = {
-            'id': id,
-        }
-        return await self.privatePostCancel(self.extend(request, params))
+        return await self.privatePostCancel({'id': id})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + path
@@ -201,11 +169,6 @@ class mixcoins (Exchange):
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
         if 'status' in response:
-            #
-            # todo add a unified standard handleErrors with self.exceptions in describe()
-            #
-            #     {"status":503,"message":"Maintenancing, try again later","result":null}
-            #
             if response['status'] == 200:
                 return response
         raise ExchangeError(self.id + ' ' + self.json(response))

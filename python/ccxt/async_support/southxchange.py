@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
+from ccxt.base.errors import ExchangeError
 
 
 class southxchange (Exchange):
@@ -65,10 +66,10 @@ class southxchange (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetMarkets(params)
+        markets = await self.publicGetMarkets()
         result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
+        for p in range(0, len(markets)):
+            market = markets[p]
             baseId = market[0]
             quoteId = market[1]
             base = self.common_currency_code(baseId)
@@ -89,31 +90,35 @@ class southxchange (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostListBalances(params)
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance, 'Currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
-            deposited = self.safe_float(balance, 'Deposited')
-            unconfirmed = self.safe_float(balance, 'Unconfirmed')
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'Available')
-            account['total'] = self.sum(deposited, unconfirmed)
+        balances = await self.privatePostListBalances()
+        if not balances:
+            raise ExchangeError(self.id + ' fetchBalance got an unrecognized response')
+        result = {'info': balances}
+        for b in range(0, len(balances)):
+            balance = balances[b]
+            currencyId = balance['Currency']
+            uppercase = currencyId.upper()
+            currency = self.currencies_by_id[uppercase]
+            code = currency['code']
+            free = float(balance['Available'])
+            deposited = float(balance['Deposited'])
+            unconfirmed = float(balance['Unconfirmed'])
+            total = self.sum(deposited, unconfirmed)
+            used = total - free
+            account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            }
             result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        request = {
+        orderbook = await self.publicGetBookSymbol(self.extend({
             'symbol': self.market_id(symbol),
-        }
-        response = await self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
+        }, params))
+        return self.parse_order_book(orderbook, None, 'BuyOrders', 'SellOrders', 'Price', 'Amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -164,58 +169,37 @@ class southxchange (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        ticker = await self.publicGetPriceSymbol(self.extend({
             'symbol': market['id'],
-        }
-        response = await self.publicGetPriceSymbol(self.extend(request, params))
-        return self.parse_ticker(response, market)
+        }, params))
+        return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'At')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
-        price = self.safe_float(trade, 'Price')
-        amount = self.safe_float(trade, 'Amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
-        side = self.safe_string(trade, 'Type')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        timestamp = trade['At'] * 1000
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': None,
             'order': None,
             'type': None,
-            'side': side,
-            'price': price,
-            'takerOrMaker': None,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'side': trade['Type'],
+            'price': trade['Price'],
+            'amount': trade['Amount'],
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = await self.publicGetTradesSymbol(self.extend({
             'symbol': market['id'],
-        }
-        response = await self.publicGetTradesSymbol(self.extend(request, params))
+        }, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_order(self, order, market=None):
         status = 'open'
-        baseId = self.safe_string(order, 'ListingCurrency')
-        quoteId = self.safe_string(order, 'ReferenceCurrency')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
-        symbol = base + '/' + quote
+        symbol = order['ListingCurrency'] + '/' + order['ReferenceCurrency']
         timestamp = None
         price = self.safe_float(order, 'LimitPrice')
         amount = self.safe_float(order, 'OriginalAmount')
@@ -226,20 +210,16 @@ class southxchange (Exchange):
             cost = price * amount
             if remaining is not None:
                 filled = amount - remaining
-        type = 'limit'
-        side = self.safe_string(order, 'Type')
-        if side is not None:
-            side = side.lower()
-        id = self.safe_string(order, 'Code')
+        orderType = order['Type'].lower()
         result = {
             'info': order,
-            'id': id,
+            'id': str(order['Code']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': symbol,
-            'type': type,
-            'side': side,
+            'type': 'limit',
+            'side': orderType,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -255,21 +235,21 @@ class southxchange (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.privatePostListOrders(params)
+        response = await self.privatePostListOrders()
         return self.parse_orders(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        order = {
             'listingCurrency': market['base'],
             'referenceCurrency': market['quote'],
             'type': side,
             'amount': amount,
         }
         if type == 'limit':
-            request['limitPrice'] = price
-        response = await self.privatePostPlaceOrder(self.extend(request, params))
+            order['limitPrice'] = price
+        response = await self.privatePostPlaceOrder(self.extend(order, params))
         return {
             'info': response,
             'id': str(response),
@@ -277,18 +257,16 @@ class southxchange (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
+        return await self.privatePostCancelOrder(self.extend({
             'orderCode': id,
-        }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        }, params))
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        response = await self.privatePostGeneratenewaddress(self.extend({
             'currency': currency['id'],
-        }
-        response = await self.privatePostGeneratenewaddress(self.extend(request, params))
+        }, params))
         parts = response.split('|')
         numParts = len(parts)
         address = parts[0]

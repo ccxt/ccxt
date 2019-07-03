@@ -61,12 +61,12 @@ class lakebtc (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetTicker(params)
+        markets = self.publicGetTicker()
         result = []
-        keys = list(response.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            market = response[id]
+        keys = list(markets.keys())
+        for k in range(0, len(keys)):
+            id = keys[k]
+            market = markets[id]
             baseId = id[0:3]
             quoteId = id[3:6]
             base = baseId.upper()
@@ -85,18 +85,17 @@ class lakebtc (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetAccountInfo(params)
-        balances = self.safe_value(response, 'balance', {})
+        response = self.privatePostGetAccountInfo()
+        balances = response['balance']
         result = {'info': response}
-        currencyIds = list(balances.keys())
-        for i in range(0, len(currencyIds)):
-            currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
-            balance = self.safe_float(balances, currencyId)
+        ids = list(balances.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = id
+            if id in self.currencies_by_id:
+                currency = self.currencies_by_id[id]
+                code = currency['code']
+            balance = float(balances[id])
             account = {
                 'free': balance,
                 'used': 0.0,
@@ -107,11 +106,10 @@ class lakebtc (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        request = {
+        orderbook = self.publicGetBcorderbook(self.extend({
             'symbol': self.market_id(symbol),
-        }
-        response = self.publicGetBcorderbook(self.extend(request, params))
-        return self.parse_order_book(response)
+        }, params))
+        return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -144,12 +142,12 @@ class lakebtc (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetTicker(params)
-        ids = list(response.keys())
+        tickers = self.publicGetTicker(params)
+        ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
             symbol = ids[i]
-            ticker = response[symbol]
+            ticker = tickers[symbol]
             market = None
             if symbol in self.markets_by_id:
                 market = self.markets_by_id[symbol]
@@ -163,43 +161,27 @@ class lakebtc (Exchange):
         tickers = self.publicGetTicker(params)
         return self.parse_ticker(tickers[market['id']], market)
 
-    def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
-        id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
         return {
-            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
+            'id': str(trade['tid']),
             'order': None,
             'type': None,
             'side': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'amount'),
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = self.publicGetBctrades(self.extend({
             'symbol': market['id'],
-        }
-        response = self.publicGetBctrades(self.extend(request, params))
+        }, params))
         return self.parse_trades(response, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
@@ -214,15 +196,14 @@ class lakebtc (Exchange):
         response = getattr(self, method)(self.extend(order, params))
         return {
             'info': response,
-            'id': self.safe_string(response, 'id'),
+            'id': str(response['id']),
         }
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        request = {
+        return self.privatePostCancelOrder({
             'params': [id],
-        }
-        return self.privatePostCancelOrder(self.extend(request, params))
+        })
 
     def nonce(self):
         return self.microseconds()

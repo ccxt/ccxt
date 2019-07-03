@@ -62,11 +62,11 @@ class btcturk (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetTicker(params)
+        response = self.publicGetTicker()
         result = []
         for i in range(0, len(response)):
             market = response[i]
-            id = self.safe_string(market, 'pair')
+            id = market['pair']
             baseId = id[0:3]
             quoteId = id[3:6]
             base = self.common_currency_code(baseId)
@@ -107,43 +107,36 @@ class btcturk (Exchange):
         return result
 
     def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetBalance(params)
+        response = self.privateGetBalance()
         result = {'info': response}
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currencies[code]
+            account = self.account()
             free = currency['id'] + '_available'
             total = currency['id'] + '_balance'
             used = currency['id'] + '_reserved'
             if free in response:
-                account = self.account()
                 account['free'] = self.safe_float(response, free)
                 account['total'] = self.safe_float(response, total)
                 account['used'] = self.safe_float(response, used)
-                result[code] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
-        self.load_markets()
         market = self.market(symbol)
-        request = {
+        orderbook = self.publicGetOrderbook(self.extend({
             'pairSymbol': market['id'],
-        }
-        response = self.publicGetOrderbook(self.extend(request, params))
-        timestamp = self.safe_integer(response, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
-        return self.parse_order_book(response, timestamp)
+        }, params))
+        timestamp = int(orderbook['timestamp'] * 1000)
+        return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         symbol = None
         if market:
             symbol = market['symbol']
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = int(ticker['timestamp']) * 1000
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -174,10 +167,9 @@ class btcturk (Exchange):
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
-            marketId = self.safe_string(ticker, 'pair')
-            symbol = marketId
+            symbol = ticker['pair']
             market = None
-            if marketId in self.markets_by_id:
+            if symbol in self.markets_by_id:
                 market = self.markets_by_id[symbol]
                 symbol = market['symbol']
             result[symbol] = self.parse_ticker(ticker, market)
@@ -185,59 +177,43 @@ class btcturk (Exchange):
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
-        market = self.market(symbol)
-        tickers = self.fetch_tickers(params)
-        return self.safe_value_2(tickers, market['id'], symbol)
+        tickers = self.fetch_tickers()
+        result = None
+        if symbol in tickers:
+            result = tickers[symbol]
+        return result
 
-    def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
-        id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+    def parse_trade(self, trade, market):
+        timestamp = trade['date'] * 1000
         return {
-            'id': id,
+            'id': trade['tid'],
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': None,
-            'order': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'price': trade['price'],
+            'amount': trade['amount'],
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
-        self.load_markets()
         market = self.market(symbol)
         # maxCount = 50
-        request = {
+        response = self.publicGetTrades(self.extend({
             'pairSymbol': market['id'],
-        }
-        response = self.publicGetTrades(self.extend(request, params))
+        }, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1d', since=None, limit=None):
-        timestamp = self.parse8601(self.safe_string(ohlcv, 'Time'))
+        timestamp = self.parse8601(ohlcv['Time'])
         return [
             timestamp,
-            self.safe_float(ohlcv, 'Open'),
-            self.safe_float(ohlcv, 'High'),
-            self.safe_float(ohlcv, 'Low'),
-            self.safe_float(ohlcv, 'Close'),
-            self.safe_float(ohlcv, 'Volume'),
+            ohlcv['Open'],
+            ohlcv['High'],
+            ohlcv['Low'],
+            ohlcv['Close'],
+            ohlcv['Volume'],
         ]
 
     def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
@@ -251,7 +227,7 @@ class btcturk (Exchange):
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
-        request = {
+        order = {
             'PairSymbol': self.market_id(symbol),
             'OrderType': 0 if (side == 'buy') else 1,
             'OrderMethod': 1 if (type == 'market') else 0,
@@ -260,20 +236,16 @@ class btcturk (Exchange):
             if not('Total' in list(params.keys())):
                 raise ExchangeError(self.id + ' createOrder requires the "Total" extra parameter for market orders(amount and price are both ignored)')
         else:
-            request['Price'] = price
-            request['Amount'] = amount
-        response = self.privatePostExchange(self.extend(request, params))
-        id = self.safe_string(response, 'id')
+            order['Price'] = price
+            order['Amount'] = amount
+        response = self.privatePostExchange(self.extend(order, params))
         return {
             'info': response,
-            'id': id,
+            'id': response['id'],
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        request = {
-            'id': id,
-        }
-        return self.privatePostCancelOrder(self.extend(request, params))
+        return self.privatePostCancelOrder({'id': id})
 
     def nonce(self):
         return self.milliseconds()

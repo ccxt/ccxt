@@ -35,7 +35,7 @@ class bitforex extends Exchange {
                 'www' => 'https://www.bitforex.com',
                 'doc' => 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees' => 'https://help.bitforex.com/en_us/?cat=13',
-                'referral' => 'https://www.bitforex.com/en/invitationRegister?inviterId=1867438',
+                'referral' => 'https://www.bitforex.com/registered?inviterId=1867438',
             ),
             'api' => array (
                 'public' => array (
@@ -52,7 +52,6 @@ class bitforex extends Exchange {
                         'api/v1/fund/mainAccount',
                         'api/v1/fund/allAccount',
                         'api/v1/trade/placeOrder',
-                        'api/v1/trade/placeMultiOrder',
                         'api/v1/trade/cancelOrder',
                         'api/v1/trade/orderInfo',
                         'api/v1/trade/orderInfos',
@@ -69,7 +68,7 @@ class bitforex extends Exchange {
                 'funding' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'deposit' => array(),
+                    'deposit' => array (),
                     'withdraw' => array (
                         'BTC' => 0.0005,
                         'ETH' => 0.01,
@@ -218,26 +217,28 @@ class bitforex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetApiV1MarketSymbols ($params);
+        $response = $this->publicGetApiV1MarketSymbols ();
         $data = $response['data'];
-        $result = array();
+        $result = array ();
         for ($i = 0; $i < count ($data); $i++) {
             $market = $data[$i];
-            $id = $this->safe_string($market, 'symbol');
-            $symbolParts = explode('-', $id);
+            $id = $market['symbol'];
+            $symbolParts = explode ('-', $id);
             $baseId = $symbolParts[2];
             $quoteId = $symbolParts[1];
-            $base = $this->common_currency_code(strtoupper($baseId));
-            $quote = $this->common_currency_code(strtoupper($quoteId));
+            $base = strtoupper ($baseId);
+            $quote = strtoupper ($quoteId);
+            $base = $this->common_currency_code($base);
+            $quote = $this->common_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $active = true;
             $precision = array (
-                'amount' => $this->safe_integer($market, 'amountPrecision'),
-                'price' => $this->safe_integer($market, 'pricePrecision'),
+                'amount' => $market['amountPrecision'],
+                'price' => $market['pricePrecision'],
             );
             $limits = array (
                 'amount' => array (
-                    'min' => $this->safe_float($market, 'minOrderAmount'),
+                    'min' => $market['minOrderAmount'],
                     'max' => null,
                 ),
                 'price' => array (
@@ -316,11 +317,16 @@ class bitforex extends Exchange {
         $this->load_markets();
         $response = $this->privatePostApiV1FundAllAccount ($params);
         $data = $response['data'];
-        $result = array( 'info' => $response );
+        $result = array ( 'info' => $response );
         for ($i = 0; $i < count ($data); $i++) {
             $current = $data[$i];
             $currencyId = $current['currency'];
-            $code = $this->common_currency_code(strtoupper($currencyId));
+            $code = strtoupper ($currencyId);
+            if (is_array ($this->currencies_by_id) && array_key_exists ($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code($code);
+            }
             $account = $this->account ();
             $result[$code] = $account;
             $result[$code]['used'] = $this->safe_float($current, 'frozen');
@@ -391,7 +397,7 @@ class bitforex extends Exchange {
             '3' => 'canceled',
             '4' => 'canceled',
         );
-        return (is_array($statuses) && array_key_exists($status, $statuses)) ? $statuses[$status] : $status;
+        return (is_array ($statuses) && array_key_exists ($status, $statuses)) ? $statuses[$status] : $status;
     }
 
     public function parse_side ($sideId) {
@@ -512,7 +518,7 @@ class bitforex extends Exchange {
         }
         $results = $this->privatePostApiV1TradeCancelOrder (array_merge ($request, $params));
         $success = $results['success'];
-        $returnVal = array( 'info' => $results, 'success' => $success );
+        $returnVal = array ( 'info' => $results, 'success' => $success );
         return $returnVal;
     }
 
@@ -525,7 +531,7 @@ class bitforex extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $payload = $this->urlencode (array( 'accessKey' => $this->apiKey ));
+            $payload = $this->urlencode (array ( 'accessKey' => $this->apiKey ));
             $query['nonce'] = $this->milliseconds ();
             if ($query) {
                 $payload .= '&' . $this->urlencode ($this->keysort ($query));
@@ -538,7 +544,7 @@ class bitforex extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
@@ -551,10 +557,10 @@ class bitforex extends Exchange {
             if ($success !== null) {
                 if (!$success) {
                     $code = $this->safe_string($response, 'code');
-                    if (is_array($this->exceptions) && array_key_exists($code, $this->exceptions)) {
-                        throw new $this->exceptions[$code]($feedback);
+                    if (is_array ($this->exceptions) && array_key_exists ($code, $this->exceptions)) {
+                        throw new $this->exceptions[$code] ($feedback);
                     } else {
-                        throw new ExchangeError($feedback);
+                        throw new ExchangeError ($feedback);
                     }
                 }
             }

@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.huobipro import huobipro
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -49,7 +56,7 @@ class cointiger (huobipro):
                     'v2': 'https://api.{hostname}/exchange/trading/api/v2',
                 },
                 'www': 'https://www.cointiger.pro',
-                'referral': 'https://www.cointiger.one/#/register?refCode=FfvDtt',
+                'referral': 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
                 'doc': 'https://github.com/cointiger/api-docs-en/wiki',
             },
             'api': {
@@ -132,7 +139,7 @@ class cointiger (huobipro):
         })
 
     def fetch_markets(self, params={}):
-        response = self.v2publicGetCurrencys(params)
+        response = self.v2publicGetCurrencys()
         #
         #     {
         #         code: '0',
@@ -177,7 +184,7 @@ class cointiger (huobipro):
                     'price': market['pricePrecision'],
                 }
                 active = True
-                result.append({
+                entry = {
                     'id': id,
                     'uppercaseId': uppercaseId,
                     'symbol': symbol,
@@ -202,7 +209,8 @@ class cointiger (huobipro):
                             'max': None,
                         },
                     },
-                })
+                }
+                result.append(entry)
         self.options['marketsByUppercaseId'] = self.index_by(result, 'uppercaseId')
         return result
 
@@ -239,11 +247,10 @@ class cointiger (huobipro):
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = self.publicGetDepth(self.extend({
             'symbol': market['id'],  # self endpoint requires a lowercase market id
             'type': 'step0',
-        }
-        response = self.publicGetDepth(self.extend(request, params))
+        }, params))
         data = response['data']['depth_data']
         if 'tick' in data:
             if not data['tick']:
@@ -357,15 +364,14 @@ class cointiger (huobipro):
         if market is not None:
             symbol = market['symbol']
         return {
-            'id': id,
             'info': trade,
+            'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -383,41 +389,19 @@ class cointiger (huobipro):
         response = self.publicGetHistoryTrade(self.extend(request, params))
         return self.parse_trades(response['data']['trade_data'], market, since, limit)
 
-    def fetch_my_trades_v1(self, symbol=None, since=None, limit=None, params={}):
+    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 100
-        request = {
+        response = self.privateGetOrderTrade(self.extend({
             'symbol': market['id'],
             'offset': 1,
             'limit': limit,
-        }
-        response = self.privateGetOrderTrade(self.extend(request, params))
+        }, params))
         return self.parse_trades(response['data']['list'], market, since, limit)
-
-    def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        week = 604800000  # milliseconds
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades requires a symbol argument')
-        if since is None:
-            since = self.milliseconds() - week  # week ago
-        self.load_markets()
-        market = self.market(symbol)
-        start = self.ymd(since)
-        end = self.ymd(self.sum(since, week))  # one week
-        if limit is None:
-            limit = 1000
-        request = {
-            'symbol': market['id'],
-            'start-date': start,
-            'end-date': end,
-            'size': limit,
-        }
-        response = self.v2GetOrderMatchResults(self.extend(request, params))
-        return self.parse_trades(response['data'], market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -459,19 +443,19 @@ class cointiger (huobipro):
         #         }]
         #     }
         #
-        balances = self.safe_value(response, 'data')
+        balances = response['data']
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = self.safe_string(balance, 'coin')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = currencyId.upper()
+            id = balance['coin']
+            code = id.upper()
+            code = self.common_currency_code(code)
+            if id in self.currencies_by_id:
+                code = self.currencies_by_id[id]['code']
             account = self.account()
-            account['used'] = self.safe_float(balance, 'lock')
-            account['free'] = self.safe_float(balance, 'normal')
+            account['used'] = float(balance['lock'])
+            account['free'] = float(balance['normal'])
+            account['total'] = self.sum(account['used'], account['free'])
             result[code] = account
         return self.parse_balance(result)
 
@@ -511,12 +495,11 @@ class cointiger (huobipro):
         if limit is None:
             limit = 100
         method = 'privateGetOrderNew' if (status == 'open') else 'privateGetOrderHistory'
-        request = {
+        response = getattr(self, method)(self.extend({
             'symbol': market['id'],
             'offset': 1,
             'limit': limit,
-        }
-        response = getattr(self, method)(self.extend(request, params))
+        }, params))
         orders = response['data']['list']
         result = []
         for i in range(0, len(orders)):
@@ -539,15 +522,14 @@ class cointiger (huobipro):
         market = self.market(symbol)
         if limit is None:
             limit = 50
-        request = {
+        response = self.v2GetOrderOrders(self.extend({
             'symbol': market['id'],
             # 'types': 'buy-market,sell-market,buy-limit,sell-limit',
             'states': states,  # 'new,part_filled,filled,canceled,expired'
             # 'from': '0',  # id
             'direct': 'next',  # or 'prev'
             'size': limit,
-        }
-        response = self.v2GetOrderOrders(self.extend(request, params))
+        }, params))
         return self.parse_orders(response['data'], market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -598,7 +580,9 @@ class cointiger (huobipro):
             '4': 'canceled',
             '6': 'error',
         }
-        return self.safe_string(statuses, status, status)
+        if status in statuses:
+            return statuses[status]
+        return status
 
     def parse_order(self, order, market=None):
         #
@@ -732,7 +716,7 @@ class cointiger (huobipro):
         self.check_required_credentials()
         market = self.market(symbol)
         orderType = 1 if (type == 'limit') else 2
-        request = {
+        order = {
             'symbol': market['id'],
             'side': side.upper(),
             'type': orderType,
@@ -742,15 +726,15 @@ class cointiger (huobipro):
         if (type == 'market') and(side == 'buy'):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules')
-            request['volume'] = self.amount_to_precision(symbol, float(amount) * float(price))
+            order['volume'] = self.amount_to_precision(symbol, float(amount) * float(price))
         if type == 'limit':
-            request['price'] = self.price_to_precision(symbol, price)
+            order['price'] = self.price_to_precision(symbol, price)
         else:
             if price is None:
-                request['price'] = self.price_to_precision(symbol, 0)
+                order['price'] = self.price_to_precision(symbol, 0)
             else:
-                request['price'] = self.price_to_precision(symbol, price)
-        response = self.v2PostOrder(self.extend(request, params))
+                order['price'] = self.price_to_precision(symbol, price)
+        response = self.v2PostOrder(self.extend(order, params))
         #
         #     {
         #         "code": "0",
@@ -785,11 +769,10 @@ class cointiger (huobipro):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         market = self.market(symbol)
-        request = {
+        response = self.privateDeleteOrder(self.extend({
             'symbol': market['id'],
             'order_id': id,
-        }
-        response = self.privateDeleteOrder(self.extend(request, params))
+        }, params))
         return {
             'id': id,
             'symbol': symbol,
@@ -850,52 +833,55 @@ class cointiger (huobipro):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if response is None:
+        if not isinstance(body, basestring):
             return  # fallback to default error handler
-        if 'code' in response:
-            #
-            #     {"code": "100005", "msg": "request sign illegal", "data": null}
-            #
-            code = self.safe_string(response, 'code')
-            if code is not None:
-                message = self.safe_string(response, 'msg')
-                feedback = self.id + ' ' + self.json(response)
-                if code != '0':
-                    exceptions = self.exceptions
-                    if code in exceptions:
-                        if code == '1':
-                            #
-                            #    {"code":"1","msg":"系统错误","data":null}
-                            #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
-                            #
-                            if message.find('Balance insufficient') >= 0:
-                                raise InsufficientFunds(feedback)
-                        elif code == '2':
-                            if message == 'offsetNot Null':
-                                raise ExchangeError(feedback)
-                            elif message == 'api_keyNot EXIST':
-                                raise AuthenticationError(feedback)
-                            elif message == 'price precision exceed the limit':
-                                raise InvalidOrder(feedback)
-                            elif message == 'Parameter error':
-                                raise BadRequest(feedback)
-                        raise exceptions[code](feedback)
-                    else:
-                        raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
-                else:
-                    #
-                    # Google Translate:
-                    # 订单状态不能取消,订单取消失败 = Order status cannot be canceled
-                    # 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
-                    #
-                    # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-code":"8"}]}}
-                    # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":32857050,"err-code":"2"},{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-code":"8"}]}}
-                    # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":98549677,"err-code":"2"},{"err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-code":"8"}]}}
-                    #
-                    if feedback.find('订单状态不能取消,订单取消失败') >= 0:
-                        if feedback.find('Parameter error') >= 0:
-                            raise OrderNotFound(feedback)
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            if 'code' in response:
+                #
+                #     {"code": "100005", "msg": "request sign illegal", "data": null}
+                #
+                code = self.safe_string(response, 'code')
+                if code is not None:
+                    message = self.safe_string(response, 'msg')
+                    feedback = self.id + ' ' + self.json(response)
+                    if code != '0':
+                        exceptions = self.exceptions
+                        if code in exceptions:
+                            if code == '1':
+                                #
+                                #    {"code":"1","msg":"系统错误","data":null}
+                                #    {“code”:“1",“msg”:“Balance insufficient,余额不足“,”data”:null}
+                                #
+                                if message.find('Balance insufficient') >= 0:
+                                    raise InsufficientFunds(feedback)
+                            elif code == '2':
+                                if message == 'offsetNot Null':
+                                    raise ExchangeError(feedback)
+                                elif message == 'api_keyNot EXIST':
+                                    raise AuthenticationError(feedback)
+                                elif message == 'price precision exceed the limit':
+                                    raise InvalidOrder(feedback)
+                                elif message == 'Parameter error':
+                                    raise BadRequest(feedback)
+                            raise exceptions[code](feedback)
                         else:
-                            raise InvalidOrder(feedback)
-                    elif feedback.find('根据订单号没有查询到订单,订单取消失败') >= 0:
-                        raise OrderNotFound(feedback)
+                            raise ExchangeError(self.id + ' unknown "error" value: ' + self.json(response))
+                    else:
+                        #
+                        # Google Translate:
+                        # 订单状态不能取消,订单取消失败 = Order status cannot be canceled
+                        # 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
+                        #
+                        # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-code":"8"}]}}
+                        # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":32857050,"err-code":"2"},{"err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-code":"8"}]}}
+                        # {"code":"0","msg":"suc","data":{"success":[],"failed":[{"err-msg":"Parameter error","order-id":98549677,"err-code":"2"},{"err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-code":"8"}]}}
+                        #
+                        if feedback.find('订单状态不能取消,订单取消失败') >= 0:
+                            if feedback.find('Parameter error') >= 0:
+                                raise OrderNotFound(feedback)
+                            else:
+                                raise InvalidOrder(feedback)
+                        elif feedback.find('根据订单号没有查询到订单,订单取消失败') >= 0:
+                            raise OrderNotFound(feedback)

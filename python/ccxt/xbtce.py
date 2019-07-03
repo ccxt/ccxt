@@ -23,10 +23,8 @@ class xbtce (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'createMarketOrder': False,
-                'fetchOHLCV': False,
             },
             'urls': {
-                'referral': 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
                 'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
                 'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
                 'www': 'https://www.xbtce.com',
@@ -107,21 +105,18 @@ class xbtce (Exchange):
                     ],
                 },
             },
-            'commonCurrencies': {
-                'DSH': 'DASH',
-            },
         })
 
     def fetch_markets(self, params={}):
-        response = self.privateGetSymbol(params)
+        markets = self.privateGetSymbol()
         result = []
-        for i in range(0, len(response)):
-            market = response[i]
-            id = self.safe_string(market, 'Symbol')
-            baseId = self.safe_string(market, 'MarginCurrency')
-            quoteId = self.safe_string(market, 'ProfitCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+        for p in range(0, len(markets)):
+            market = markets[p]
+            id = market['Symbol']
+            base = market['MarginCurrency']
+            quote = market['ProfitCurrency']
+            if base == 'DSH':
+                base = 'DASH'
             symbol = base + '/' + quote
             symbol = symbol if market['IsTradeAllowed'] else id
             result.append({
@@ -129,41 +124,37 @@ class xbtce (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
                 'info': market,
             })
         return result
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        balances = self.privateGetAsset(params)
+        balances = self.privateGetAsset()
         result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'Currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+        for b in range(0, len(balances)):
+            balance = balances[b]
+            currency = balance['Currency']
+            uppercase = currency.upper()
+            # xbtce names DASH incorrectly as DSH
+            if uppercase == 'DSH':
+                uppercase = 'DASH'
             account = {
-                'free': self.safe_float(balance, 'FreeAmount'),
-                'used': self.safe_float(balance, 'LockedAmount'),
-                'total': self.safe_float(balance, 'Amount'),
+                'free': balance['FreeAmount'],
+                'used': balance['LockedAmount'],
+                'total': balance['Amount'],
             }
-            result[code] = account
+            result[uppercase] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        orderbook = self.privateGetLevel2Filter(self.extend({
             'filter': market['id'],
-        }
-        response = self.privateGetLevel2Filter(self.extend(request, params))
-        orderbook = response[0]
-        timestamp = self.safe_integer(orderbook, 'Timestamp')
+        }, params))
+        orderbook = orderbook[0]
+        timestamp = orderbook['Timestamp']
         return self.parse_order_book(orderbook, timestamp, 'Bids', 'Asks', 'Price', 'Volume')
 
     def parse_ticker(self, ticker, market=None):
@@ -207,8 +198,8 @@ class xbtce (Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
-        response = self.publicGetTicker(params)
-        tickers = self.index_by(response, 'Symbol')
+        tickers = self.publicGetTicker(params)
+        tickers = self.index_by(tickers, 'Symbol')
         ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
@@ -219,10 +210,12 @@ class xbtce (Exchange):
                 market = self.markets_by_id[id]
                 symbol = market['symbol']
             else:
-                baseId = id[0:3]
-                quoteId = id[3:6]
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = id[0:3]
+                quote = id[3:6]
+                if base == 'DSH':
+                    base = 'DASH'
+                if quote == 'DSH':
+                    quote = 'DASH'
                 symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
@@ -231,14 +224,13 @@ class xbtce (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        tickers = self.publicGetTickerFilter(self.extend({
             'filter': market['id'],
-        }
-        response = self.publicGetTickerFilter(self.extend(request, params))
-        length = len(response)
+        }, params))
+        length = len(tickers)
         if length < 1:
             raise ExchangeError(self.id + ' fetchTicker returned empty response, xBTCe public API error')
-        tickers = self.index_by(response, 'Symbol')
+        tickers = self.index_by(tickers, 'Symbol')
         ticker = tickers[market['id']]
         return self.parse_ticker(ticker, market)
 
@@ -279,24 +271,22 @@ class xbtce (Exchange):
         self.load_markets()
         if type == 'market':
             raise ExchangeError(self.id + ' allows limit orders only')
-        request = {
+        response = self.privatePostTrade(self.extend({
             'pair': self.market_id(symbol),
             'type': side,
             'amount': amount,
             'rate': price,
-        }
-        response = self.privatePostTrade(self.extend(request, params))
+        }, params))
         return {
             'info': response,
             'id': str(response['Id']),
         }
 
     def cancel_order(self, id, symbol=None, params={}):
-        request = {
+        return self.privateDeleteTrade(self.extend({
             'Type': 'Cancel',
             'Id': id,
-        }
-        return self.privateDeleteTrade(self.extend(request, params))
+        }, params))
 
     def nonce(self):
         return self.milliseconds()
@@ -328,6 +318,6 @@ class xbtce (Exchange):
             if body:
                 auth += body
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
-            credentials = self.uid + ':' + self.apiKey + ':' + nonce + ':' + self.decode(signature)
+            credentials = self.uid + ':' + self.apiKey + ':' + nonce + ':' + self.binary_to_string(signature)
             headers['Authorization'] = 'HMAC ' + credentials
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

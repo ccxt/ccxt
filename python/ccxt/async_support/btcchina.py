@@ -88,51 +88,46 @@ class btcchina (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        request = {
+        markets = await self.publicGetTicker({
             'market': 'all',
-        }
-        markets = await self.publicGetTicker(self.extend(request, params))
+        })
         result = []
         keys = list(markets.keys())
-        for i in range(0, len(keys)):
-            key = keys[i]
+        for p in range(0, len(keys)):
+            key = keys[p]
             market = markets[key]
             parts = key.split('_')
             id = parts[1]
-            baseId = id[0:3]
-            quoteId = id[3:6]
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = id[0:3]
+            quote = id[3:6]
+            base = base.upper()
+            quote = quote.upper()
             symbol = base + '/' + quote
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
                 'info': market,
             })
         return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostGetAccountInfo(params)
-        balances = self.safe_value(response, 'result')
+        response = await self.privatePostGetAccountInfo()
+        balances = response['result']
         result = {'info': balances}
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            currency = self.currency(code)
+        currencies = list(self.currencies.keys())
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            lowercase = currency.lower()
             account = self.account()
-            currencyId = currency['id']
-            if currencyId in balances['balance']:
-                account['total'] = float(balances['balance'][currencyId]['amount'])
-            if currencyId in balances['frozen']:
-                account['used'] = float(balances['frozen'][currencyId]['amount'])
-            result[code] = account
+            if lowercase in balances['balance']:
+                account['total'] = float(balances['balance'][lowercase]['amount'])
+            if lowercase in balances['frozen']:
+                account['used'] = float(balances['frozen'][lowercase]['amount'])
+            account['free'] = account['total'] - account['used']
+            result[currency] = account
         return self.parse_balance(result)
 
     def create_market_request(self, market):
@@ -146,16 +141,12 @@ class btcchina (Exchange):
         market = self.market(symbol)
         method = market['api'] + 'GetOrderbook'
         request = self.create_market_request(market)
-        response = await getattr(self, method)(self.extend(request, params))
-        timestamp = self.safe_integer(response, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
-        return self.parse_order_book(response, timestamp)
+        orderbook = await getattr(self, method)(self.extend(request, params))
+        timestamp = orderbook['date'] * 1000
+        return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market):
-        timestamp = self.safe_integer(ticker, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = ticker['date'] * 1000
         last = self.safe_float(ticker, 'last')
         return {
             'timestamp': timestamp,
@@ -178,9 +169,9 @@ class btcchina (Exchange):
         }
 
     def parse_ticker_plus(self, ticker, market):
-        timestamp = self.safe_integer(ticker, 'Timestamp')
+        timestamp = ticker['Timestamp']
         symbol = None
-        if market is not None:
+        if market:
             symbol = market['symbol']
         return {
             'symbol': symbol,
@@ -206,47 +197,28 @@ class btcchina (Exchange):
         market = self.market(symbol)
         method = market['api'] + 'GetTicker'
         request = self.create_market_request(market)
-        response = await getattr(self, method)(self.extend(request, params))
-        ticker = self.safe_value(response, 'ticker')
+        tickers = await getattr(self, method)(self.extend(request, params))
+        ticker = tickers['ticker']
         if market['plus']:
             return self.parse_ticker_plus(ticker, market)
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
-        id = self.safe_string(trade, 'tid')
+        timestamp = int(trade['date']) * 1000
         return {
-            'id': id,
+            'id': trade['tid'],
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
             'side': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': trade['price'],
+            'amount': trade['amount'],
         }
 
     def parse_trade_plus(self, trade, market):
-        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'size')
-        cost = None
-        if amount is not None:
-            if price is not None:
-                cost = amount * price
-        side = self.safe_string(trade, 'side')
-        if side is not None:
-            side = side.lower()
+        timestamp = self.parse8601(trade['timestamp'])
         return {
             'id': None,
             'info': trade,
@@ -254,10 +226,9 @@ class btcchina (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
             'type': None,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'side': trade['side'].lower(),
+            'price': trade['price'],
+            'amount': trade['size'],
         }
 
     def parse_trades_plus(self, trades, market=None):
@@ -286,26 +257,24 @@ class btcchina (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side) + 'Order2'
-        request = {}
+        order = {}
         id = market['id'].upper()
         if type == 'market':
-            request['params'] = [None, amount, id]
+            order['params'] = [None, amount, id]
         else:
-            request['params'] = [price, amount, id]
-        response = await getattr(self, method)(self.extend(request, params))
-        orderId = self.safe_string(response, 'id')
+            order['params'] = [price, amount, id]
+        response = await getattr(self, method)(self.extend(order, params))
         return {
             'info': response,
-            'id': orderId,
+            'id': response['id'],
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         market = params['market']  # TODO fixme
-        request = {
+        return await self.privatePostCancelOrder(self.extend({
             'params': [id, market],
-        }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        }, params))
 
     def nonce(self):
         return self.microseconds()
@@ -325,14 +294,14 @@ class btcchina (Exchange):
             }
             p = ','.join(p)
             body = self.json(request)
-            query = '&'.join([
-                'tonce=' + nonce,
-                'accesskey=' + self.apiKey,
-                'requestmethod=' + method.lower(),
-                'id=' + nonce,
-                'method=' + path,
-                'params=' + p,
-            ])
+            query = (
+                'tonce=' + nonce +
+                '&accesskey=' + self.apiKey +
+                '&requestmethod=' + method.lower() +
+                '&id=' + nonce +
+                '&method=' + path +
+                '&params=' + p
+            )
             signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha1)
             auth = self.encode(self.apiKey + ':' + signature)
             headers = {

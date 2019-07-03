@@ -151,7 +151,7 @@ class crex24 (Exchange):
         return self.milliseconds()
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetInstruments(params)
+        response = await self.publicGetInstruments()
         #
         #     [{             symbol:   "$PAC-BTC",
         #                baseCurrency:   "$PAC",
@@ -175,18 +175,15 @@ class crex24 (Exchange):
         result = []
         for i in range(0, len(response)):
             market = response[i]
-            id = self.safe_string(market, 'symbol')
-            baseId = self.safe_string(market, 'baseCurrency')
-            quoteId = self.safe_string(market, 'quoteCurrency')
+            id = market['symbol']
+            baseId = market['baseCurrency']
+            quoteId = market['quoteCurrency']
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
             symbol = base + '/' + quote
-            tickSize = self.safe_value(market, 'tickSize')
-            minPrice = self.safe_value(market, 'minPrice')
-            minAmount = self.safe_float(market, 'minVolume')
             precision = {
-                'amount': self.precision_from_string(self.number_to_string(minAmount)),
-                'price': self.precision_from_string(self.number_to_string(tickSize)),
+                'amount': self.precision_from_string(self.truncate_to_string(market['tickSize'], 8)),
+                'price': self.precision_from_string(self.truncate_to_string(market['minPrice'], 8)),
             }
             active = (market['state'] == 'active')
             result.append({
@@ -201,11 +198,11 @@ class crex24 (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': minAmount,
+                        'min': self.safe_float(market, 'minVolume'),
                         'max': None,
                     },
                     'price': {
-                        'min': minPrice,
+                        'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
                     'cost': {
@@ -247,7 +244,7 @@ class crex24 (Exchange):
         result = {}
         for i in range(0, len(response)):
             currency = response[i]
-            id = self.safe_string(currency, 'symbol')
+            id = currency['symbol']
             code = self.common_currency_code(id)
             precision = self.safe_integer(currency, 'withdrawalPrecision')
             address = self.safe_value(currency, 'BaseAddress')
@@ -316,10 +313,14 @@ class crex24 (Exchange):
                 code = self.currencies_by_id[currencyId]['code']
             else:
                 code = self.common_currency_code(code)
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'reserved')
-            result[code] = account
+            free = self.safe_float(balance, 'available')
+            used = self.safe_float(balance, 'reserved')
+            total = self.sum(free, used)
+            result[code] = {
+                'free': free,
+                'used': used,
+                'total': total,
+            }
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -366,7 +367,7 @@ class crex24 (Exchange):
         #                   bid:  0.0007,
         #             timestamp: "2018-10-31T09:21:25Z"}   ]
         #
-        timestamp = self.parse8601(self.safe_string(ticker, 'timestamp'))
+        timestamp = self.parse8601(ticker['timestamp'])
         symbol = None
         marketId = self.safe_string(ticker, 'instrument')
         market = self.safe_value(self.markets_by_id, marketId, market)
@@ -491,7 +492,7 @@ class crex24 (Exchange):
         #         "feeCurrency": "ETH"
         #     }
         #
-        timestamp = self.parse8601(self.safe_string(trade, 'timestamp'))
+        timestamp = self.parse8601(trade['timestamp'])
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'volume')
         cost = None
@@ -625,7 +626,7 @@ class crex24 (Exchange):
                 average = cost / filled
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
-        return {
+        result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -644,6 +645,7 @@ class crex24 (Exchange):
             'fee': fee,
             'trades': trades,
         }
+        return result
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
@@ -865,12 +867,11 @@ class crex24 (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
+        response = await self.tradingPostCancelOrdersById(self.extend({
             'ids': [
                 int(id),
             ],
-        }
-        response = await self.tradingPostCancelOrdersById(self.extend(request, params))
+        }, params))
         #
         #     [
         #         465448358,
@@ -980,16 +981,14 @@ class crex24 (Exchange):
         return self.parseTransactions(response, currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
-        request = {
+        return self.fetch_transactions(code, since, limit, self.extend({
             'type': 'deposit',
-        }
-        return self.fetch_transactions(code, since, limit, self.extend(request, params))
+        }, params))
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
-        request = {
+        return self.fetch_transactions(code, since, limit, self.extend({
             'type': 'withdrawal',
-        }
-        return self.fetch_transactions(code, since, limit, self.extend(request, params))
+        }, params))
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -1118,7 +1117,7 @@ class crex24 (Exchange):
                 body = self.json(params)
                 auth += body
             signature = base64.b64encode(self.hmac(self.encode(auth), secret, hashlib.sha512, 'binary'))
-            headers['X-CREX24-API-SIGN'] = self.decode(signature)
+            headers['X-CREX24-API-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):

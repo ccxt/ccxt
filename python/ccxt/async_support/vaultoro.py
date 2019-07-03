@@ -60,14 +60,14 @@ class vaultoro (Exchange):
 
     async def fetch_markets(self, params={}):
         result = []
-        response = await self.publicGetMarkets(params)
-        market = self.safe_value(response, 'data')
-        baseId = self.safe_string(market, 'MarketCurrency')
-        quoteId = self.safe_string(market, 'BaseCurrency')
+        markets = await self.publicGetMarkets()
+        market = markets['data']
+        baseId = market['MarketCurrency']
+        quoteId = market['BaseCurrency']
         base = self.common_currency_code(baseId)
         quote = self.common_currency_code(quoteId)
         symbol = base + '/' + quote
-        id = self.safe_string(market, 'MarketName')
+        id = market['MarketName']
         result.append({
             'id': id,
             'symbol': symbol,
@@ -81,20 +81,23 @@ class vaultoro (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetBalance(params)
-        balances = self.safe_value(response, 'data')
+        response = await self.privateGetBalance()
+        balances = response['data']
         result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency_code')
+        for b in range(0, len(balances)):
+            balance = balances[b]
+            currencyId = balance['currency_code'].upper()
             code = currencyId
-            if currencyId in self.currencies_by_id:
+            if currencyId in self.currencies_by_id[currencyId]:
                 code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'cash')
-            account['used'] = self.safe_float(balance, 'reserved')
+            free = balance['cash']
+            used = balance['reserved']
+            total = self.sum(free, used)
+            account = {
+                'free': free,
+                'used': used,
+                'total': total,
+            }
             result[code] = account
         return self.parse_balance(result)
 
@@ -114,7 +117,7 @@ class vaultoro (Exchange):
         bid = quote['bids'][bidsLength - 1]
         ask = quote['asks'][0]
         response = await self.publicGetMarkets(params)
-        ticker = self.safe_value(response, 'data')
+        ticker = response['data']
         timestamp = self.milliseconds()
         last = self.safe_float(ticker, 'LastPrice')
         return {
@@ -140,31 +143,19 @@ class vaultoro (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(self.safe_string(trade, 'Time'))
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        price = self.safe_float(trade, 'Gold_Price')
-        amount = self.safe_float(trade, 'Gold_Amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+    def parse_trade(self, trade, market):
+        timestamp = self.parse8601(trade['Time'])
         return {
             'id': None,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': None,
             'type': None,
             'side': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'price': trade['Gold_Price'],
+            'amount': trade['Gold_Amount'],
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -177,13 +168,12 @@ class vaultoro (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side) + 'SymbolType'
-        request = {
+        response = await getattr(self, method)(self.extend({
             'symbol': market['quoteId'].lower(),
             'type': type,
             'gld': amount,
             'price': price or 1,
-        }
-        response = await getattr(self, method)(self.extend(request, params))
+        }, params))
         return {
             'info': response,
             'id': response['data']['Order_ID'],
@@ -191,10 +181,9 @@ class vaultoro (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
+        return await self.privatePostCancelId(self.extend({
             'id': id,
-        }
-        return await self.privatePostCancelId(self.extend(request, params))
+        }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

@@ -46,7 +46,7 @@ class bitforex (Exchange):
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
-                'referral': 'https://www.bitforex.com/en/invitationRegister?inviterId=1867438',
+                'referral': 'https://www.bitforex.com/registered?inviterId=1867438',
             },
             'api': {
                 'public': {
@@ -63,7 +63,6 @@ class bitforex (Exchange):
                         'api/v1/fund/mainAccount',
                         'api/v1/fund/allAccount',
                         'api/v1/trade/placeOrder',
-                        'api/v1/trade/placeMultiOrder',
                         'api/v1/trade/cancelOrder',
                         'api/v1/trade/orderInfo',
                         'api/v1/trade/orderInfos',
@@ -228,26 +227,28 @@ class bitforex (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetApiV1MarketSymbols(params)
+        response = await self.publicGetApiV1MarketSymbols()
         data = response['data']
         result = []
         for i in range(0, len(data)):
             market = data[i]
-            id = self.safe_string(market, 'symbol')
+            id = market['symbol']
             symbolParts = id.split('-')
             baseId = symbolParts[2]
             quoteId = symbolParts[1]
-            base = self.common_currency_code(baseId.upper())
-            quote = self.common_currency_code(quoteId.upper())
+            base = baseId.upper()
+            quote = quoteId.upper()
+            base = self.common_currency_code(base)
+            quote = self.common_currency_code(quote)
             symbol = base + '/' + quote
             active = True
             precision = {
-                'amount': self.safe_integer(market, 'amountPrecision'),
-                'price': self.safe_integer(market, 'pricePrecision'),
+                'amount': market['amountPrecision'],
+                'price': market['pricePrecision'],
             }
             limits = {
                 'amount': {
-                    'min': self.safe_float(market, 'minOrderAmount'),
+                    'min': market['minOrderAmount'],
                     'max': None,
                 },
                 'price': {
@@ -322,7 +323,11 @@ class bitforex (Exchange):
         for i in range(0, len(data)):
             current = data[i]
             currencyId = current['currency']
-            code = self.common_currency_code(currencyId.upper())
+            code = currencyId.upper()
+            if currencyId in self.currencies_by_id:
+                code = self.currencies_by_id[currencyId]['code']
+            else:
+                code = self.common_currency_code(code)
             account = self.account()
             result[code] = account
             result[code]['used'] = self.safe_float(current, 'frozen')

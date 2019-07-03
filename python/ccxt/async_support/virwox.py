@@ -82,55 +82,47 @@ class virwox (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetGetInstruments(params)
-        markets = self.safe_value(response, 'result')
-        keys = list(markets.keys())
+        markets = await self.publicGetGetInstruments()
+        keys = list(markets['result'].keys())
         result = []
-        for i in range(0, len(keys)):
-            key = keys[i]
-            market = self.safe_value(markets, key, {})
-            id = self.safe_string(market, 'instrumentID')
-            baseId = self.safe_string(market, 'longCurrency')
-            quoteId = self.safe_string(market, 'shortCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
-            symbol = base + '/' + quote
+        for p in range(0, len(keys)):
+            market = markets['result'][keys[p]]
+            id = market['instrumentID']
+            symbol = market['symbol']
+            base = market['longCurrency']
+            quote = market['shortCurrency']
             result.append({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
                 'info': market,
             })
         return result
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostGetBalances(params)
-        balances = self.safe_value(response['result'], 'accountList')
-        result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
-            total = self.safe_float(balance, 'balance')
+        response = await self.privatePostGetBalances()
+        balances = response['result']['accountList']
+        result = {'info': balances}
+        for b in range(0, len(balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            total = balance['balance']
             account = {
                 'free': total,
                 'used': 0.0,
                 'total': total,
             }
-            result[code] = account
+            result[currency] = account
         return self.parse_balance(result)
 
     async def fetch_market_price(self, symbol, params={}):
         await self.load_markets()
-        request = {
+        response = await self.publicPostGetBestPrices(self.extend({
             'symbols': [symbol],
-        }
-        response = await self.publicPostGetBestPrices(self.extend(request, params))
-        result = self.safe_value(response, 'result')
+        }, params))
+        result = response['result']
         return {
             'bid': self.safe_float(result[0], 'bestBuyPrice'),
             'ask': self.safe_float(result[0], 'bestSellPrice'),
@@ -152,18 +144,17 @@ class virwox (Exchange):
         await self.load_markets()
         end = self.milliseconds()
         start = end - 86400000
-        request = {
+        response = await self.publicGetGetTradedPriceVolume(self.extend({
             'instrument': symbol,
             'endDate': self.ymdhms(end),
             'startDate': self.ymdhms(start),
             'HLOC': 1,
-        }
-        response = await self.publicGetGetTradedPriceVolume(self.extend(request, params))
-        tickers = self.safe_value(response['result'], 'priceVolumeList')
+        }, params))
+        tickers = response['result']['priceVolumeList']
         keys = list(tickers.keys())
         length = len(keys)
         lastKey = keys[length - 1]
-        ticker = self.safe_value(tickers, lastKey)
+        ticker = tickers[lastKey]
         timestamp = self.milliseconds()
         close = self.safe_float(ticker, 'close')
         return {
@@ -189,32 +180,19 @@ class virwox (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'time')
-        if timestamp is not None:
-            timestamp *= 1000
-        id = self.safe_string(trade, 'tid')
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'vol')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+    def parse_trade(self, trade, symbol=None):
+        sec = self.safe_integer(trade, 'time')
+        timestamp = sec * 1000
         return {
-            'id': id,
+            'id': trade['tid'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': None,
             'symbol': symbol,
             'type': None,
             'side': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': self.safe_float(trade, 'price'),
+            'amount': self.safe_float(trade, 'vol'),
             'fee': None,
             'info': trade,
         }
@@ -222,36 +200,34 @@ class virwox (Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = await self.publicGetGetRawTradeData(self.extend({
             'instrument': symbol,
             'timespan': 3600,
-        }
-        response = await self.publicGetGetRawTradeData(self.extend(request, params))
+        }, params))
         result = self.safe_value(response, 'result', {})
         trades = self.safe_value(result, 'data', [])
-        return self.parse_trades(trades, market, since, limit)
+        return self.parse_trades(trades, market)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        order = {
             'instrument': market['symbol'],
             'orderType': side.upper(),
             'amount': amount,
         }
         if type == 'limit':
-            request['price'] = price
-        response = await self.privatePostPlaceOrder(self.extend(request, params))
+            order['price'] = price
+        response = await self.privatePostPlaceOrder(self.extend(order, params))
         return {
             'info': response,
-            'id': self.safe_string(response['result'], 'orderID'),
+            'id': str(response['result']['orderID']),
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
-        request = {
+        return await self.privatePostCancelOrder(self.extend({
             'orderID': id,
-        }
-        return await self.privatePostCancelOrder(self.extend(request, params))
+        }, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]

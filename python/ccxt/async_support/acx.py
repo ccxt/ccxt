@@ -101,10 +101,10 @@ class acx (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetMarkets(params)
+        markets = await self.publicGetMarkets()
         result = []
-        for i in range(0, len(markets)):
-            market = markets[i]
+        for p in range(0, len(markets)):
+            market = markets[p]
             id = market['id']
             symbol = market['name']
             baseId = self.safe_string(market, 'base_unit')
@@ -136,21 +136,20 @@ class acx (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetMembersMe(params)
-        balances = self.safe_value(response, 'accounts')
+        response = await self.privateGetMembersMe()
+        balances = response['accounts']
         result = {'info': balances}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
-            account = self.account()
-            account['free'] = self.safe_float(balance, 'balance')
-            account['used'] = self.safe_float(balance, 'locked')
-            result[code] = account
+        for b in range(0, len(balances)):
+            balance = balances[b]
+            currency = balance['currency']
+            uppercase = currency.upper()
+            account = {
+                'free': float(balance['balance']),
+                'used': float(balance['locked']),
+                'total': 0.0,
+            }
+            account['total'] = self.sum(account['free'], account['used'])
+            result[uppercase] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -162,15 +161,11 @@ class acx (Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 300
         orderbook = await self.publicGetDepth(self.extend(request, params))
-        timestamp = self.safe_integer(orderbook, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = orderbook['timestamp'] * 1000
         return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'at')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = ticker['at'] * 1000
         ticker = ticker['ticker']
         symbol = None
         if market:
@@ -201,8 +196,8 @@ class acx (Exchange):
 
     async def fetch_tickers(self, symbols=None, params={}):
         await self.load_markets()
-        response = await self.publicGetTickers(params)
-        ids = list(response.keys())
+        tickers = await self.publicGetTickers(params)
+        ids = list(tickers.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
@@ -219,47 +214,39 @@ class acx (Exchange):
                 base = self.common_currency_code(base)
                 quote = self.common_currency_code(quote)
                 symbol = base + '/' + quote
-            result[symbol] = self.parse_ticker(response[id], market)
+            ticker = tickers[id]
+            result[symbol] = self.parse_ticker(ticker, market)
         return result
 
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = await self.publicGetTickersMarket(self.extend({
             'market': market['id'],
-        }
-        response = await self.publicGetTickersMarket(self.extend(request, params))
+        }, params))
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        id = self.safe_string(trade, 'tid')
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        timestamp = self.parse8601(trade['created_at'])
         return {
-            'info': trade,
-            'id': id,
+            'id': str(trade['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': None,
-            'order': None,
-            'takerOrMaker': None,
             'price': self.safe_float(trade, 'price'),
             'amount': self.safe_float(trade, 'volume'),
             'cost': self.safe_float(trade, 'funds'),
-            'fee': None,
+            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = await self.publicGetTrades(self.extend({
             'market': market['id'],
-        }
-        response = await self.publicGetTrades(self.extend(request, params))
+        }, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -283,39 +270,35 @@ class acx (Exchange):
             'limit': limit,
         }
         if since is not None:
-            request['timestamp'] = int(since / 1000)
+            request['timestamp'] = since
         response = await self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
-
-    def parse_order_status(self, status):
-        statuses = {
-            'done': 'closed',
-            'wait': 'open',
-            'cancel': 'canceled',
-        }
-        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         symbol = None
         if market is not None:
             symbol = market['symbol']
         else:
-            marketId = self.safe_string(order, 'market')
+            marketId = order['market']
             symbol = self.markets_by_id[marketId]['symbol']
-        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        status = self.parse_order_status(self.safe_string(order, 'state'))
-        type = self.safe_string(order, 'type')
-        side = self.safe_string(order, 'side')
-        id = self.safe_string(order, 'id')
+        timestamp = self.parse8601(order['created_at'])
+        state = order['state']
+        status = None
+        if state == 'done':
+            status = 'closed'
+        elif state == 'wait':
+            status = 'open'
+        elif state == 'cancel':
+            status = 'canceled'
         return {
-            'id': id,
+            'id': str(order['id']),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': type,
-            'side': side,
+            'type': order['ord_type'],
+            'side': order['side'],
             'price': self.safe_float(order, 'price'),
             'amount': self.safe_float(order, 'volume'),
             'filled': self.safe_float(order, 'executed_volume'),
@@ -327,34 +310,29 @@ class acx (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
+        response = await self.privateGetOrder(self.extend({
             'id': int(id),
-        }
-        response = await self.privateGetOrder(self.extend(request, params))
+        }, params))
         return self.parse_order(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        request = {
+        order = {
             'market': self.market_id(symbol),
             'side': side,
             'volume': str(amount),
             'ord_type': type,
         }
         if type == 'limit':
-            request['price'] = str(price)
-        response = await self.privatePostOrders(self.extend(request, params))
-        marketId = self.safe_value(response, 'market')
-        market = self.safe_value(self.markets_by_id, marketId)
+            order['price'] = str(price)
+        response = await self.privatePostOrders(self.extend(order, params))
+        market = self.markets_by_id[response['market']]
         return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
-            'id': id,
-        }
-        response = await self.privatePostOrderDelete(self.extend(request, params))
-        order = self.parse_order(response)
+        result = await self.privatePostOrderDelete({'id': id})
+        order = self.parse_order(result)
         status = order['status']
         if status == 'closed' or status == 'canceled':
             raise OrderNotFound(self.id + ' ' + self.json(order))
@@ -370,10 +348,10 @@ class acx (Exchange):
             'sum': amount,
             'address': address,
         }
-        response = await self.privatePostWithdraw(self.extend(request, params))
+        result = await self.privatePostWithdraw(self.extend(request, params))
         # withdrawal response is undocumented
         return {
-            'info': response,
+            'info': result,
             'id': None,
         }
 
@@ -421,8 +399,6 @@ class acx (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if response is None:
-            return
         if code == 400:
             error = self.safe_value(response, 'error')
             errorCode = self.safe_string(error, 'code')

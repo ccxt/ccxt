@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -26,7 +33,7 @@ class coinbase (Exchange):
             'has': {
                 'CORS': True,
                 'cancelOrder': False,
-                'createDepositAddress': True,
+                'createDepositAddress': False,
                 'createOrder': False,
                 'deposit': False,
                 'fetchBalance': True,
@@ -158,119 +165,15 @@ class coinbase (Exchange):
             },
         })
 
-    async def fetch_time(self, params={}):
-        response = await self.publicGetTime(params)
-        data = self.safe_value(response, 'data', {})
-        return self.parse8601(self.safe_string(data, 'iso'))
+    async def fetch_time(self):
+        response = await self.publicGetTime()
+        data = response['data']
+        return self.parse8601(data['iso'])
 
     async def fetch_accounts(self, params={}):
+        await self.load_markets()
         response = await self.privateGetAccounts(params)
-        #
-        #     {
-        #         "id": "XLM",
-        #         "name": "XLM Wallet",
-        #         "primary": False,
-        #         "type": "wallet",
-        #         "currency": {
-        #             "code": "XLM",
-        #             "name": "Stellar Lumens",
-        #             "color": "#000000",
-        #             "sort_index": 127,
-        #             "exponent": 7,
-        #             "type": "crypto",
-        #             "address_regex": "^G[A-Z2-7]{55}$",
-        #             "asset_id": "13b83335-5ede-595b-821e-5bcdfa80560f",
-        #             "destination_tag_name": "XLM Memo ID",
-        #             "destination_tag_regex": "^[-~]{1,28}$"
-        #         },
-        #         "balance": {
-        #             "amount": "0.0000000",
-        #             "currency": "XLM"
-        #         },
-        #         "created_at": null,
-        #         "updated_at": null,
-        #         "resource": "account",
-        #         "resource_path": "/v2/accounts/XLM",
-        #         "allow_deposits": True,
-        #         "allow_withdrawals": True
-        #     }
-        #
-        data = self.safe_value(response, 'data', [])
-        result = []
-        for i in range(0, len(data)):
-            account = data[i]
-            currency = self.safe_value(account, 'currency', {})
-            currencyId = self.safe_string(currency, 'code')
-            code = self.common_currency_code(currencyId)
-            result.append({
-                'id': self.safe_string(account, 'id'),
-                'type': self.safe_string(account, 'type'),
-                'code': code,
-                'info': account,
-            })
-        return result
-
-    async def create_deposit_address(self, code, params={}):
-        accountId = self.safe_string(params, 'account_id')
-        params = self.omit(params, 'account_id')
-        if accountId is None:
-            await self.loadAccounts()
-            for i in range(0, len(self.accounts)):
-                account = self.accounts[i]
-                if account['code'] == code and account['type'] == 'wallet':
-                    accountId = account['id']
-                    break
-        if accountId is None:
-            raise ExchangeError(self.id + ' createDepositAddress could not find the account with matching currency code, specify an `account_id` extra param')
-        request = {
-            'account_id': accountId,
-        }
-        response = await self.privatePostAccountsAccountIdAddresses(self.extend(request, params))
-        #
-        #     {
-        #         "data": {
-        #             "id": "05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
-        #             "address": "coinbasebase",
-        #             "address_info": {
-        #                 "address": "coinbasebase",
-        #                 "destination_tag": "287594668"
-        #             },
-        #             "name": null,
-        #             "created_at": "2019-07-01T14:39:29Z",
-        #             "updated_at": "2019-07-01T14:39:29Z",
-        #             "network": "eosio",
-        #             "uri_scheme": "eosio",
-        #             "resource": "address",
-        #             "resource_path": "/v2/accounts/14cfc769-e852-52f3-b831-711c104d194c/addresses/05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
-        #             "warnings": [
-        #                 {
-        #                     "title": "Only send EOS(EOS) to self address",
-        #                     "details": "Sending any other cryptocurrency will result in permanent loss.",
-        #                     "image_url": "https://dynamic-assets.coinbase.com/deaca3d47b10ed4a91a872e9618706eec34081127762d88f2476ac8e99ada4b48525a9565cf2206d18c04053f278f693434af4d4629ca084a9d01b7a286a7e26/asset_icons/1f8489bb280fb0a0fd643c1161312ba49655040e9aaaced5f9ad3eeaf868eadc.png"
-        #                 },
-        #                 {
-        #                     "title": "Both an address and EOS memo are required to receive EOS",
-        #                     "details": "If you send funds without an EOS memo or with an incorrect EOS memo, your funds cannot be credited to your account.",
-        #                     "image_url": "https://www.coinbase.com/assets/receive-warning-2f3269d83547a7748fb39d6e0c1c393aee26669bfea6b9f12718094a1abff155.png"
-        #                 }
-        #             ],
-        #             "warning_title": "Only send EOS(EOS) to self address",
-        #             "warning_details": "Sending any other cryptocurrency will result in permanent loss.",
-        #             "destination_tag": "287594668",
-        #             "deposit_uri": "eosio:coinbasebase?dt=287594668",
-        #             "callback_url": null
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'data', {})
-        tag = self.safe_string(data, 'destination_tag')
-        address = self.safe_string(data, 'address')
-        return {
-            'currency': code,
-            'tag': tag,
-            'address': address,
-            'info': response,
-        }
+        return response['data']
 
     async def fetch_my_sells(self, symbol=None, since=None, limit=None, params={}):
         # they don't have an endpoint for all historical trades
@@ -380,6 +283,7 @@ class coinbase (Exchange):
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_value(transaction, 'created_at'))
         updated = self.parse8601(self.safe_value(transaction, 'updated_at'))
+        orderId = None
         type = self.safe_string(transaction, 'resource')
         amount = self.safe_float(amountObject, 'amount')
         currencyId = self.safe_string(amountObject, 'currency')
@@ -399,6 +303,7 @@ class coinbase (Exchange):
             'info': transaction,
             'id': id,
             'txid': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'address': None,
@@ -490,7 +395,6 @@ class coinbase (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -501,10 +405,10 @@ class coinbase (Exchange):
         response = await self.publicGetCurrencies(params)
         currencies = response['data']
         result = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            id = self.safe_string(currency, 'id')
-            name = self.safe_string(currency, 'name')
+        for c in range(0, len(currencies)):
+            currency = currencies[c]
+            id = currency['id']
+            name = currency['name']
             code = self.common_currency_code(id)
             minimum = self.safe_float(currency, 'min_size')
             result[code] = {
@@ -562,7 +466,7 @@ class coinbase (Exchange):
             'askVolume': None,
             'vwap': None,
             'open': None,
-            'close': last,
+            'close': None,
             'previousClose': None,
             'change': None,
             'percentage': None,
@@ -577,9 +481,8 @@ class coinbase (Exchange):
         }
 
     async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privateGetAccounts(params)
-        balances = self.safe_value(response, 'data')
+        response = await self.privateGetAccounts()
+        balances = response['data']
         accounts = self.safe_value(params, 'type', self.options['accounts'])
         result = {'info': response}
         for b in range(0, len(balances)):
@@ -593,8 +496,8 @@ class coinbase (Exchange):
                 free = total
                 used = None
                 if code in result:
-                    result[code]['free'] = self.sum(result[code]['free'], total)
-                    result[code]['total'] = self.sum(result[code]['total'], total)
+                    result[code]['free'] += total
+                    result[code]['total'] += total
                 else:
                     account = {
                         'free': free,
@@ -619,8 +522,8 @@ class coinbase (Exchange):
                 if query:
                     body = self.json(query)
                     payload = body
-            auth = nonce + method + '/' + self.version + request + payload
-            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            what = nonce + method + '/' + self.version + request + payload
+            signature = self.hmac(self.encode(what), self.encode(self.secret))
             headers = {
                 'CB-ACCESS-KEY': self.apiKey,
                 'CB-ACCESS-SIGN': signature,
@@ -630,41 +533,44 @@ class coinbase (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response):
-        if response is None:
+        if not isinstance(body, basestring):
             return  # fallback to default error handler
-        feedback = self.id + ' ' + body
-        #
-        #    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
-        #
-        # or
-        #
-        #    {
-        #      "errors": [
-        #        {
-        #          "id": "not_found",
-        #          "message": "Not found"
-        #        }
-        #      ]
-        #    }
-        #
-        exceptions = self.exceptions
-        errorCode = self.safe_string(response, 'error')
-        if errorCode is not None:
-            if errorCode in exceptions:
-                raise exceptions[errorCode](feedback)
-            else:
-                raise ExchangeError(feedback)
-        errors = self.safe_value(response, 'errors')
-        if errors is not None:
-            if isinstance(errors, list):
-                numErrors = len(errors)
-                if numErrors > 0:
-                    errorCode = self.safe_string(errors[0], 'id')
-                    if errorCode is not None:
-                        if errorCode in exceptions:
-                            raise exceptions[errorCode](feedback)
-                        else:
-                            raise ExchangeError(feedback)
-        data = self.safe_value(response, 'data')
-        if data is None:
-            raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))
+        if len(body) < 2:
+            return  # fallback to default error handler
+        if (body[0] == '{') or (body[0] == '['):
+            feedback = self.id + ' ' + body
+            #
+            #    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
+            #
+            # or
+            #
+            #    {
+            #      "errors": [
+            #        {
+            #          "id": "not_found",
+            #          "message": "Not found"
+            #        }
+            #      ]
+            #    }
+            #
+            exceptions = self.exceptions
+            errorCode = self.safe_string(response, 'error')
+            if errorCode is not None:
+                if errorCode in exceptions:
+                    raise exceptions[errorCode](feedback)
+                else:
+                    raise ExchangeError(feedback)
+            errors = self.safe_value(response, 'errors')
+            if errors is not None:
+                if isinstance(errors, list):
+                    numErrors = len(errors)
+                    if numErrors > 0:
+                        errorCode = self.safe_string(errors[0], 'id')
+                        if errorCode is not None:
+                            if errorCode in exceptions:
+                                raise exceptions[errorCode](feedback)
+                            else:
+                                raise ExchangeError(feedback)
+            data = self.safe_value(response, 'data')
+            if data is None:
+                raise ExchangeError(self.id + ' failed due to a malformed response ' + self.json(response))

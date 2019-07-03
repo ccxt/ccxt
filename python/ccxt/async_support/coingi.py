@@ -28,7 +28,6 @@ class coingi (Exchange):
                 'fetchTickers': True,
             },
             'urls': {
-                'referral': 'https://www.coingi.com/?r=XTPPMC',
                 'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api': {
                     'www': 'https://coingi.com',
@@ -99,7 +98,7 @@ class coingi (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.wwwGet(params)
+        response = await self.wwwGet()
         parts = response.split('do=currencyPairSelector-selectCurrencyPair" class="active">')
         currencyParts = parts[1].split('<div class="currency-pair-label">')
         result = []
@@ -107,14 +106,10 @@ class coingi (Exchange):
             currencyPart = currencyParts[i]
             idParts = currencyPart.split('</div>')
             id = idParts[0]
+            symbol = id
             id = id.replace('/', '-')
             id = id.lower()
-            baseId, quoteId = id.split('-')
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
-            symbol = base + '/' + quote
+            base, quote = symbol.split('/')
             precision = {
                 'amount': 8,
                 'price': 8,
@@ -124,8 +119,6 @@ class coingi (Exchange):
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
                 'info': id,
                 'active': True,
                 'precision': precision,
@@ -153,48 +146,48 @@ class coingi (Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             lowercaseCurrencies.append(currency.lower())
-        request = {
+        balances = await self.userPostBalance({
             'currencies': ','.join(lowercaseCurrencies),
-        }
-        response = await self.userPostBalance(self.extend(request, params))
-        result = {'info': response}
-        for i in range(0, len(response)):
-            balance = response[i]
-            currencyId = self.safe_string(balance['currency'], 'name')
-            code = currencyId.upper()
-            code = self.common_currency_code(code)
-            account = self.account()
-            account['free'] = balance['available']
-            account['used'] = balance['blocked'] + balance['inOrders'] + balance['withdrawing']
-            result[code] = account
+        })
+        result = {'info': balances}
+        for b in range(0, len(balances)):
+            balance = balances[b]
+            currency = balance['currency']['name']
+            currency = currency.upper()
+            account = {
+                'free': balance['available'],
+                'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
+                'total': 0.0,
+            }
+            account['total'] = self.sum(account['free'], account['used'])
+            result[currency] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=512, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        orderbook = await self.currentGetOrderBookPairAskCountBidCountDepth(self.extend({
             'pair': market['id'],
             'depth': 32,  # maximum number of depth range steps 1-32
             'askCount': limit,  # maximum returned number of asks 1-512
             'bidCount': limit,  # maximum returned number of bids 1-512
-        }
-        orderbook = await self.currentGetOrderBookPairAskCountBidCountDepth(self.extend(request, params))
+        }, params))
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'price', 'baseAmount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         symbol = None
-        if market is not None:
+        if market:
             symbol = market['symbol']
         return {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'high'),
-            'low': self.safe_float(ticker, 'low'),
-            'bid': self.safe_float(ticker, 'highestBid'),
+            'high': ticker['high'],
+            'low': ticker['low'],
+            'bid': ticker['highestBid'],
             'bidVolume': None,
-            'ask': self.safe_float(ticker, 'lowestAsk'),
+            'ask': ticker['lowestAsk'],
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -204,8 +197,8 @@ class coingi (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_float(ticker, 'counterVolume'),
+            'baseVolume': ticker['baseVolume'],
+            'quoteVolume': ticker['counterVolume'],
             'info': ticker,
         }
 
@@ -232,55 +225,38 @@ class coingi (Exchange):
         raise ExchangeError(self.id + ' return did not contain ' + symbol)
 
     def parse_trade(self, trade, market=None):
-        price = self.safe_float(trade, 'price')
-        amount = self.safe_float(trade, 'amount')
-        cost = None
-        if price is not None:
-            if amount is not None:
-                cost = price * amount
-        timestamp = self.safe_integer(trade, 'timestamp')
-        id = self.safe_string(trade, 'id')
-        marketId = self.safe_string(trade, 'currencyPair')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        if not market:
+            market = self.markets_by_id[trade['currencyPair']]
         return {
-            'id': id,
+            'id': trade['id'],
             'info': trade,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'timestamp': trade['timestamp'],
+            'datetime': self.iso8601(trade['timestamp']),
+            'symbol': market['symbol'],
             'type': None,
             'side': None,  # type
-            'order': None,
-            'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': None,
+            'price': trade['price'],
+            'amount': trade['amount'],
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        response = await self.currentGetTransactionsPairMaxCount(self.extend({
             'pair': market['id'],
             'maxCount': 128,
-        }
-        response = await self.currentGetTransactionsPairMaxCount(self.extend(request, params))
+        }, params))
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        request = {
+        order = {
             'currencyPair': self.market_id(symbol),
             'volume': amount,
             'price': price,
             'orderType': 0 if (side == 'buy') else 1,
         }
-        response = await self.userPostAddOrder(self.extend(request, params))
+        response = await self.userPostAddOrder(self.extend(order, params))
         return {
             'info': response,
             'id': response['result'],
@@ -288,10 +264,7 @@ class coingi (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        request = {
-            'orderId': id,
-        }
-        return await self.userPostCancelOrder(self.extend(request, params))
+        return await self.userPostCancelOrder({'orderId': id})
 
     def sign(self, path, api='current', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api]
