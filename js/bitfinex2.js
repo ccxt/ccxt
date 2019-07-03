@@ -217,8 +217,8 @@ module.exports = class bitfinex2 extends bitfinex {
             id = id.toUpperCase ();
             let baseId = id.slice (0, 3);
             let quoteId = id.slice (3, 6);
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             id = 't' + id;
             baseId = this.getCurrencyId (baseId);
@@ -270,16 +270,10 @@ module.exports = class bitfinex2 extends bitfinex {
             const total = balance[2];
             const available = balance[4];
             if (accountType === balanceType) {
-                let code = currency;
-                if (currency in this.currencies_by_id) {
-                    code = this.currencies_by_id[currency]['code'];
-                } else if (currency[0] === 't') {
+                if (currency[0] === 't') {
                     currency = currency.slice (1);
-                    code = currency.toUpperCase ();
-                    code = this.commonCurrencyCode (code);
-                } else {
-                    code = this.commonCurrencyCode (code);
                 }
+                const code = this.safeCurrencyCode (currency);
                 const account = this.account ();
                 account['total'] = total;
                 if (!available) {
@@ -454,7 +448,7 @@ module.exports = class bitfinex2 extends bitfinex {
             orderId = trade[3];
             takerOrMaker = (trade[8] === 1) ? 'maker' : 'taker';
             const feeCost = trade[9];
-            const feeCurrency = this.commonCurrencyCode (trade[10]);
+            const feeCurrency = this.safeCurrencyCode (trade[10]);
             if (feeCost !== undefined) {
                 fee = {
                     'cost': Math.abs (feeCost),
