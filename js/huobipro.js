@@ -96,8 +96,6 @@ module.exports = class huobipro extends Exchange {
                         'order/history', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
-                        'dw/deposit-virtual/addresses',
-                        'dw/deposit-virtual/sharedAddressWithTag', // https://github.com/ccxt/ccxt/issues/4851
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
