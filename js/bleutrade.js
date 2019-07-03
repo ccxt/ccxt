@@ -185,13 +185,13 @@ module.exports = class bleutrade extends bittrex {
         // depth (optional, default is 500, max is 20000)
         await this.loadMarkets ();
         let market = undefined;
+        let marketId = 'ALL';
         if (symbol !== undefined) {
             market = this.market (symbol);
-        } else {
-            market = undefined;
+            marketId = market['id'];
         }
         const request = {
-            'market': 'ALL',
+            'market': marketId,
             'orderstatus': 'ALL',
         };
         const response = await this.accountGetOrders (this.extend (request, params));
