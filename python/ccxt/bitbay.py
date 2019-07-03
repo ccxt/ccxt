@@ -179,8 +179,8 @@ class bitbay (Exchange):
             baseId = self.safe_string(first, 'currency')
             quoteId = self.safe_string(second, 'currency')
             id = baseId + quoteId
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(first, 'scale'),

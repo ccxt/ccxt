@@ -127,8 +127,8 @@ class bigone extends Exchange {
             $quoteAsset = $this->safe_value($market, 'quoteAsset', array());
             $baseId = $this->safe_string($baseAsset, 'symbol');
             $quoteId = $this->safe_string($quoteAsset, 'symbol');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'baseScale'),
@@ -381,10 +381,7 @@ class bigone extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset_id');
-            $code = $this->common_currency_code($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
             $total = $this->safe_float($balance, 'balance');
             $used = $this->safe_float($balance, 'locked_balance');
             $free = null;
