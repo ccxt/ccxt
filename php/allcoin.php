@@ -78,8 +78,8 @@ class allcoin extends okcoinusd {
                 $quote = $this->safe_string($market, 'Secondary');
                 $baseId = strtolower($base);
                 $quoteId = strtolower($quote);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safeCurrencyCode ($base);
+                $quote = $this->safeCurrencyCode ($quote);
                 $id = $baseId . '_' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $active = $market['TradeEnabled'] && $market['BuyEnabled'] && $market['SellEnabled'];

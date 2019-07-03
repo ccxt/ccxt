@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.871'
+const version = '1.18.872'
 
 Exchange.ccxtVersion = version
 
@@ -606,8 +606,8 @@ module.exports = class acx extends Exchange {
             }
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
             // todo: find out their undocumented precision and limits
             const precision = {
                 'amount': 8,
@@ -635,12 +635,7 @@ module.exports = class acx extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'balance');
             account['used'] = this.safeFloat (balance, 'locked');
@@ -718,8 +713,8 @@ module.exports = class acx extends Exchange {
                 let quote = id.slice (3, 6);
                 base = base.toUpperCase ();
                 quote = quote.toUpperCase ();
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
+                base = this.safeCurrencyCode (base);
+                quote = this.safeCurrencyCode (quote);
                 symbol = base + '/' + quote;
             }
             result[symbol] = this.parseTicker (response[id], market);
@@ -1048,8 +1043,8 @@ module.exports = class allcoin extends okcoinusd {
                 let quote = this.safeString (market, 'Secondary');
                 const baseId = base.toLowerCase ();
                 const quoteId = quote.toLowerCase ();
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
+                base = this.safeCurrencyCode (base);
+                quote = this.safeCurrencyCode (quote);
                 const id = baseId + '_' + quoteId;
                 const symbol = base + '/' + quote;
                 const active = market['TradeEnabled'] && market['BuyEnabled'] && market['SellEnabled'];
@@ -1416,7 +1411,7 @@ module.exports = class anxpro extends Exchange {
             type = 'deposit';
         }
         const currencyId = this.safeString (transaction, 'ccy');
-        const code = this.commonCurrencyCode (currencyId);
+        const code = this.safeCurrencyCode (currencyId);
         const transactionState = this.safeString (transaction, 'transactionState');
         const status = this.parseTransactionStatus (transactionState);
         const feeCost = this.safeFloat (transaction, 'fee');
@@ -1634,7 +1629,7 @@ module.exports = class anxpro extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = currencies[id];
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             const engineSettings = this.safeValue (currency, 'engineSettings');
             const depositsEnabled = this.safeValue (engineSettings, 'depositsEnabled');
             const withdrawalsEnabled = this.safeValue (engineSettings, 'withdrawalsEnabled');
@@ -1788,8 +1783,8 @@ module.exports = class anxpro extends Exchange {
             //
             const baseId = this.safeString (market, 'tradedCcy');
             const quoteId = this.safeString (market, 'settlementCcy');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const baseCurrency = this.safeValue (currencies, baseId, {});
             const quoteCurrency = this.safeValue (currencies, quoteId, {});
@@ -1839,12 +1834,7 @@ module.exports = class anxpro extends Exchange {
         const result = { 'info': balance };
         for (let c = 0; c < currencyIds.length; c++) {
             const currencyId = currencyIds[c];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const wallet = this.safeValue (wallets, currencyId);
             account['free'] = this.safeFloat (wallet['Available_Balance'], 'value');
@@ -5500,8 +5490,8 @@ module.exports = class bcex extends Exchange {
                 const quoteId = this.safeString (market, 'coin_to');
                 let base = baseId.toUpperCase ();
                 let quote = quoteId.toUpperCase ();
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
+                base = this.safeCurrencyCode (base);
+                quote = this.safeCurrencyCode (quote);
                 const id = baseId + '2' + quoteId;
                 const symbol = base + '/' + quote;
                 const active = true;
@@ -5605,12 +5595,7 @@ module.exports = class bcex extends Exchange {
             const parts = key.split ('_');
             const currencyId = parts[0];
             const lockOrOver = parts[1];
-            let code = currencyId.toUpperCase ();
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             if (!(code in result)) {
                 result[code] = this.account ();
             }
@@ -6093,8 +6078,8 @@ module.exports = class bibox extends Exchange {
             const numericId = this.safeInteger (market, 'id');
             const baseId = this.safeString (market, 'coin_symbol');
             const quoteId = this.safeString (market, 'currency_symbol');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const id = baseId + '_' + quoteId;
             const precision = {
@@ -6136,8 +6121,8 @@ module.exports = class bibox extends Exchange {
         } else {
             const baseId = this.safeString (ticker, 'coin_symbol');
             const quoteId = this.safeString (ticker, 'currency_symbol');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             symbol = base + '/' + quote;
         }
         const last = this.safeFloat (ticker, 'last');
@@ -6235,7 +6220,7 @@ module.exports = class bibox extends Exchange {
             if (feeCurrency in this.currencies_by_id) {
                 feeCurrency = this.currencies_by_id[feeCurrency]['code'];
             } else {
-                feeCurrency = this.commonCurrencyCode (feeCurrency);
+                feeCurrency = this.safeCurrencyCode (feeCurrency);
             }
         }
         const feeRate = undefined; // todo: deduce from market if market is defined
@@ -6337,7 +6322,7 @@ module.exports = class bibox extends Exchange {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
             const name = this.safeString (currency, 'name');
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             const precision = 8;
             const deposit = this.safeValue (currency, 'enable_deposit');
             const withdraw = this.safeValue (currency, 'enable_withdraw');
@@ -6500,16 +6485,8 @@ module.exports = class bibox extends Exchange {
         //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'to_address');
-        let code = undefined;
         const currencyId = this.safeString (transaction, 'coin_symbol');
-        if (currencyId in this.currencies_by_id) {
-            currency = this.currencies_by_id[currencyId];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeString (transaction, 'createdAt');
         let tag = this.safeString (transaction, 'addr_remark');
         const type = this.safeString (transaction, 'type');
