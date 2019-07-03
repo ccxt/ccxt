@@ -314,15 +314,7 @@ class binance (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = balance['asset']
-<<<<<<< HEAD
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
-=======
             code = self.safeCurrencyCode(currencyId)
->>>>>>> bc9752204d973fd40387486bfae4e642b775ecc6
             account = self.account()
             account['free'] = self.safe_float(balance, 'free')
             account['used'] = self.safe_float(balance, 'locked')

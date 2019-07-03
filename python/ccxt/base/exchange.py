@@ -4,11 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-<<<<<<< HEAD
-__version__ = '1.18.869'
-=======
 __version__ = '1.18.871'
->>>>>>> bc9752204d973fd40387486bfae4e642b775ecc6
 
 # -----------------------------------------------------------------------------
 
@@ -1494,11 +1490,7 @@ class Exchange(object):
             if self.currencies_by_id is not None and currency_id in self.currencies_by_id:
                 code = self.currencies_by_id[currency_id]['code']
             else:
-<<<<<<< HEAD
-                code = self.common_currency_code(currency_id)
-=======
                 code = self.common_currency_code(currency_id.upper())
->>>>>>> bc9752204d973fd40387486bfae4e642b775ecc6
         if code is None and currency is not None:
             code = currency['code']
         return code
