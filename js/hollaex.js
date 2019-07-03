@@ -105,15 +105,15 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.publicGetConstant ();
-        let markets = this.safeValue (response, 'pairs');
-        let pairs = Object.keys (markets);
-        let result = [];
+        const response = await this.publicGetConstant ();
+        const markets = this.safeValue (response, 'pairs');
+        const pairs = Object.keys (markets);
+        const result = [];
         for (let i = 0; i < pairs.length; i++) {
-            let market = markets[pairs[i]];
-            let id = this.safeString (market, 'name');
-            let baseId = this.safeString (market, 'pair_base');
-            let quoteId = this.safeString (market, 'pair_2');
+            const market = markets[pairs[i]];
+            const id = this.safeString (market, 'name');
+            const baseId = this.safeString (market, 'pair_base');
+            const quoteId = this.safeString (market, 'pair_2');
             let increment_price = this.safeFloat (market, 'increment_price');
             let pricePrecision = 0;
             for (let i = 1; i >= 0 && increment_price < 1; i++) {
@@ -126,7 +126,7 @@ module.exports = class hollaex extends Exchange {
                 increment_size = increment_size * 10;
                 amountPrecision = i;
             }
-            let precision = {
+            const precision = {
                 'cost': undefined,
                 'price': pricePrecision,
                 'amount': amountPrecision,
@@ -134,11 +134,11 @@ module.exports = class hollaex extends Exchange {
             if (quoteId === 'eur') {
                 precision['price'] = 4;
             }
-            let base = this.commonCurrencyCode (baseId).toUpperCase ();
-            let quote = this.commonCurrencyCode (quoteId).toUpperCase ();
-            let symbol = base + '/' + quote;
-            let active = this.safeValue (market, 'active');
-            let limits = {
+            const base = this.commonCurrencyCode (baseId).toUpperCase ();
+            const quote = this.commonCurrencyCode (quoteId).toUpperCase ();
+            const symbol = base + '/' + quote;
+            const active = this.safeValue (market, 'active');
+            const limits = {
                 'amount': {
                     'min': this.safeFloat (market, 'min_size'),
                     'max': this.safeFloat (market, 'max_size'),
@@ -149,8 +149,8 @@ module.exports = class hollaex extends Exchange {
                 },
                 'cost': undefined,
             };
-            let info = market;
-            let entry = {
+            const info = market;
+            const entry = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -168,24 +168,24 @@ module.exports = class hollaex extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetConstant ();
-        let coins = this.safeValue (response, 'coins');
-        let currencies = Object.keys (coins);
-        let result = {};
+        const response = await this.publicGetConstant ();
+        const coins = this.safeValue (response, 'coins');
+        const currencies = Object.keys (coins);
+        const result = {};
         for (let i = 0; i < currencies.length; i++) {
-            let currency = coins[currencies[i]];
-            let id = this.safeString (currency, 'symbol');
-            let code = id.toUpperCase ();
-            let name = this.safeString (currency, 'fullname');
-            let active = this.safeValue (currency, 'active');
-            let fee = this.safeValue (currency, 'fee');
+            const currency = coins[currencies[i]];
+            const id = this.safeString (currency, 'symbol');
+            const code = id.toUpperCase ();
+            const name = this.safeString (currency, 'fullname');
+            const active = this.safeValue (currency, 'active');
+            const fee = this.safeValue (currency, 'fee');
             let min = this.safeFloat (currency, 'min');
             let precision = 0;
             for (let i = 1; i >= 0 && min < 1; i++) {
                 min = min * 10;
                 precision = i;
             }
-            let limits = {
+            const limits = {
                 'amount': {
                     'min': min,
                     'max': this.safeFloat (currency, 'max'),
@@ -218,15 +218,15 @@ module.exports = class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
         };
         let response = await this.publicGetOrderbooks (this.extend (request, params));
         response = response[market['id']];
-        let datetime = this.safeString (response, 'timestamp');
-        let timestamp = this.parse8601 (datetime);
-        let result = {
+        const datetime = this.safeString (response, 'timestamp');
+        const timestamp = this.parse8601 (datetime);
+        const result = {
             'bids': response['bids'],
             'asks': response['asks'],
             'timestamp': timestamp,
@@ -241,23 +241,23 @@ module.exports = class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTicker requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
         };
-        let response = await this.publicGetTicker (this.extend (request, params));
+        const response = await this.publicGetTicker (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
     async fetchTickers (symbol = undefined, params = {}) {
-        let markets = await this.loadMarkets ();
-        let response = await this.publicGetTickerAll (this.extend (params));
+        const markets = await this.loadMarkets ();
+        const response = await this.publicGetTickerAll (this.extend (params));
         return this.parseTickers (response, markets);
     }
 
     parseTickers (response, markets) {
-        let result = [];
-        let keys = Object.keys (response);
+        const result = [];
+        const keys = Object.keys (response);
         for (let i = 0; i < keys.length; i++) {
             result.push (this.parseTicker (response[keys[i]], this.marketsById[keys[i]]));
         }
@@ -269,35 +269,35 @@ module.exports = class hollaex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let info = response;
-        let time = this.safeString (response, 'time');
+        const info = response;
+        const time = this.safeString (response, 'time');
         let datetime = undefined;
         if (time === undefined) {
             datetime = this.safeString (response, 'timestamp');
         } else {
             datetime = time;
         }
-        let timestamp = this.parse8601 (datetime);
-        let high = this.safeFloat (response, 'high');
-        let low = this.safeFloat (response, 'low');
-        let bid = undefined;
-        let bidVolume = undefined;
-        let ask = undefined;
-        let askVolume = undefined;
-        let vwap = undefined;
-        let open = this.safeFloat (response, 'open');
-        let close = this.safeFloat (response, 'close');
+        const timestamp = this.parse8601 (datetime);
+        const high = this.safeFloat (response, 'high');
+        const low = this.safeFloat (response, 'low');
+        const bid = undefined;
+        const bidVolume = undefined;
+        const ask = undefined;
+        const askVolume = undefined;
+        const vwap = undefined;
+        const open = this.safeFloat (response, 'open');
+        const close = this.safeFloat (response, 'close');
         let last = this.safeFloat (response, 'last');
         if (last === undefined) {
             last = close;
         }
-        let previousClose = undefined;
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        let baseVolume = this.safeFloat (response, 'volume');
-        let quoteVolume = undefined;
-        let result = {
+        const previousClose = undefined;
+        const change = undefined;
+        const percentage = undefined;
+        const average = undefined;
+        const baseVolume = this.safeFloat (response, 'volume');
+        const quoteVolume = undefined;
+        const result = {
             'symbol': symbol,
             'info': info,
             'timestamp': timestamp,
@@ -327,11 +327,11 @@ module.exports = class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchTrades requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
         };
-        let response = await this.publicGetTrades (this.extend (request, params));
+        const response = await this.publicGetTrades (this.extend (request, params));
         return this.parseTrades (response[market['id']], market);
     }
 
@@ -340,19 +340,19 @@ module.exports = class hollaex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let info = trade;
-        let id = undefined;
-        let datetime = this.safeString (trade, 'timestamp');
-        let timestamp = this.parse8601 (datetime);
-        let order = undefined;
-        let type = undefined;
-        let side = this.safeString (trade, 'side');
-        let takerOrMaker = undefined;
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'size');
-        let cost = parseFloat (this.amountToPrecision (symbol, price * amount));
-        let fee = undefined;
-        let result = {
+        const info = trade;
+        const id = undefined;
+        const datetime = this.safeString (trade, 'timestamp');
+        const timestamp = this.parse8601 (datetime);
+        const order = undefined;
+        const type = undefined;
+        const side = this.safeString (trade, 'side');
+        const takerOrMaker = undefined;
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'size');
+        const cost = parseFloat (this.amountToPrecision (symbol, price * amount));
+        const fee = undefined;
+        const result = {
             'info': info,
             'id': id,
             'timestamp': timestamp,
@@ -375,31 +375,31 @@ module.exports = class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let to = this.seconds ();
+        const market = this.market (symbol);
+        const to = this.seconds ();
         let fromTime = since;
         if (fromTime === undefined) {
             fromTime = to - 2592000; // default to a month
         } else {
             fromTime /= 1000;
         }
-        let request = {
+        const request = {
             'from': fromTime,
             'to': to,
             'symbol': market['id'],
             'resolution': this.timeframes[timeframe],
         };
-        let response = await this.publicGetChart (this.extend (request, params));
+        const response = await this.publicGetChart (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     parseOHLCV (response, market = undefined, timeframe = '1h', since = undefined, limit = undefined) {
-        let time = this.parse8601 (this.safeString (response, 'time'));
-        let open = this.safeFloat (response, 'open');
-        let high = this.safeFloat (response, 'high');
-        let low = this.safeFloat (response, 'low');
-        let close = this.safeFloat (response, 'close');
-        let volume = this.safeFloat (response, 'volume');
+        const time = this.parse8601 (this.safeString (response, 'time'));
+        const open = this.safeFloat (response, 'open');
+        const high = this.safeFloat (response, 'high');
+        const low = this.safeFloat (response, 'low');
+        const close = this.safeFloat (response, 'close');
+        const volume = this.safeFloat (response, 'volume');
         return [
             time,
             open,
@@ -412,20 +412,20 @@ module.exports = class hollaex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetUserBalance (params);
-        let result = {
+        const response = await this.privateGetUserBalance (params);
+        const result = {
             'info': response,
             'free': undefined,
             'used': undefined,
             'total': undefined,
         };
-        let free = {};
-        let used = {};
-        let total = {};
-        let currencyId = Object.keys (this.currencies_by_id);
+        const free = {};
+        const used = {};
+        const total = {};
+        const currencyId = Object.keys (this.currencies_by_id);
         for (let i = 0; i < currencyId.length; i++) {
-            let currency = this.currencies_by_id[currencyId[i]]['code'];
-            let responseCurr = currencyId[i];
+            const currency = this.currencies_by_id[currencyId[i]]['code'];
+            const responseCurr = currencyId[i];
             free[currency] = response[responseCurr + '_available'];
             total[currency] = response[responseCurr + '_balance'];
             used[currency] = parseFloat (this.currencyToPrecision (currency, total[currency] - free[currency]));
@@ -449,15 +449,15 @@ module.exports = class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let orderId = this.safeValue (params, 'orderId');
-        let request = {
+        const market = this.market (symbol);
+        const orderId = this.safeValue (params, 'orderId');
+        const request = {
             'orderId': orderId,
         };
         if (orderId === undefined) {
             request['orderId'] = id;
         }
-        let response = await this.privateGetUserOrdersOrderId (this.extend (request, params));
+        const response = await this.privateGetUserOrdersOrderId (this.extend (request, params));
         if (symbol !== this.markets_by_id[response['symbol']]['symbol']) {
             throw new BadRequest (this.id + ' symbol argument does not match order symbol');
         }
@@ -469,11 +469,11 @@ module.exports = class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
         };
-        let response = await this.privateGetUserOrders (this.extend (request, params));
+        const response = await this.privateGetUserOrders (this.extend (request, params));
         return this.parseOrders (response, market);
     }
 
@@ -486,16 +486,16 @@ module.exports = class hollaex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let id = this.safeString (order, 'id');
-        let datetime = this.safeString (order, 'created_at');
-        let timestamp = this.parse8601 (datetime);
-        let lastTradeTimestamp = undefined;
-        let type = this.safeString (order, 'type');
-        let side = this.safeString (order, 'side');
-        let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'size');
-        let filled = this.safeFloat (order, 'filled');
-        let remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
+        const id = this.safeString (order, 'id');
+        const datetime = this.safeString (order, 'created_at');
+        const timestamp = this.parse8601 (datetime);
+        const lastTradeTimestamp = undefined;
+        const type = this.safeString (order, 'type');
+        const side = this.safeString (order, 'side');
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'size');
+        const filled = this.safeFloat (order, 'filled');
+        const remaining = parseFloat (this.amountToPrecision (symbol, amount - filled));
         let cost = undefined;
         let status = 'open';
         if (type === 'market') {
@@ -503,10 +503,10 @@ module.exports = class hollaex extends Exchange {
         } else {
             cost = parseFloat (this.priceToPrecision (symbol, filled * price));
         }
-        let trades = undefined;
-        let fee = undefined;
-        let info = order;
-        let result = {
+        const trades = undefined;
+        const fee = undefined;
+        const info = order;
+        const result = {
             'id': id,
             'datetime': datetime,
             'timestamp': timestamp,
@@ -547,15 +547,15 @@ module.exports = class hollaex extends Exchange {
             throw new BadRequest (this.id + ' market createOrder does not require a price argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let order = {
+        const market = this.market (symbol);
+        const order = {
             'symbol': market['id'],
             'side': side,
             'size': amount,
             'type': type,
             'price': price,
         };
-        let response = await this.privatePostOrder (this.extend (order, params));
+        const response = await this.privatePostOrder (this.extend (order, params));
         response['created_at'] = this.iso8601 (this.milliseconds ());
         return this.parseOrder (response, market);
     }
@@ -580,10 +580,10 @@ module.exports = class hollaex extends Exchange {
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires an id argument');
         }
-        let request = {
+        const request = {
             'orderId': id,
         };
-        let response = await this.privateDeleteUserOrdersOrderId (this.extend (request, params));
+        const response = await this.privateDeleteUserOrdersOrderId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -592,14 +592,14 @@ module.exports = class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privateGetUserTrades (this.extend (request, params));
+        const response = await this.privateGetUserTrades (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
@@ -608,11 +608,11 @@ module.exports = class hollaex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires a code argument');
         }
         await this.loadMarkets ();
-        let curr = await this.currency (code);
-        let currency = this.safeString (curr, 'name').toLowerCase ();
-        let response = await this.privateGetUser ();
-        let info = this.safeValue (response, 'crypto_wallet');
-        let address = this.safeString (info, currency);
+        const curr = await this.currency (code);
+        const currency = this.safeString (curr, 'name').toLowerCase ();
+        const response = await this.privateGetUser ();
+        const info = this.safeValue (response, 'crypto_wallet');
+        const address = this.safeString (info, currency);
         return {
             'currency': code,
             'address': address,
@@ -623,51 +623,51 @@ module.exports = class hollaex extends Exchange {
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         if (code !== undefined) {
-            let currency = this.currency (code)['id'];
+            const currency = this.currency (code)['id'];
             request['currency'] = currency;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privateGetUserDeposits (this.extend (request, params));
+        const response = await this.privateGetUserDeposits (this.extend (request, params));
         return this.parseTransactions (response.data);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {};
+        const request = {};
         if (code !== undefined) {
-            let currency = this.currency (code)['id'];
+            const currency = this.currency (code)['id'];
             request['currency'] = currency;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privateGetUserWithdrawals (this.extend (request, params));
+        const response = await this.privateGetUserWithdrawals (this.extend (request, params));
         return this.parseTransactions (response.data);
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let id = this.safeFloat (transaction, 'id');
-        let txid = this.safeString (transaction, 'transaction_id');
-        let datetime = this.safeString (transaction, 'created_at');
-        let timestamp = this.parse8601 (datetime);
-        let addressFrom = undefined;
-        let address = undefined;
-        let addressTo = undefined;
-        let tagFrom = undefined;
-        let tag = undefined;
-        let tagTo = undefined;
-        let type = this.safeString (transaction, 'type');
-        let amount = this.safeFloat (transaction, 'amount');
-        let currencyId = this.safeString (transaction, 'currency');
+        const id = this.safeFloat (transaction, 'id');
+        const txid = this.safeString (transaction, 'transaction_id');
+        const datetime = this.safeString (transaction, 'created_at');
+        const timestamp = this.parse8601 (datetime);
+        const addressFrom = undefined;
+        const address = undefined;
+        const addressTo = undefined;
+        const tagFrom = undefined;
+        const tag = undefined;
+        const tagTo = undefined;
+        const type = this.safeString (transaction, 'type');
+        const amount = this.safeFloat (transaction, 'amount');
+        const currencyId = this.safeString (transaction, 'currency');
         currency = this.currencies_by_id[currencyId]['code'];
         let message = 'pending';
-        let status = transaction['status'];
-        let dismissed = transaction['dismissed'];
-        let rejected = transaction['rejected'];
+        const status = transaction['status'];
+        const dismissed = transaction['dismissed'];
+        const rejected = transaction['rejected'];
         if (status) {
             message = 'ok';
         } else if (dismissed) {
@@ -675,9 +675,9 @@ module.exports = class hollaex extends Exchange {
         } else if (rejected) {
             message = 'failed';
         }
-        let updated = undefined;
-        let comment = this.safeString (transaction, 'description');
-        let fee = {
+        const updated = undefined;
+        const comment = this.safeString (transaction, 'description');
+        const fee = {
             'currency': currency,
             'cost': this.safeFloat (transaction, 'fee'),
             'rate': undefined,
@@ -716,13 +716,13 @@ module.exports = class hollaex extends Exchange {
         }
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currencies[code]['id'];
-        let request = {
+        const currency = this.currencies[code]['id'];
+        const request = {
             'currency': currency,
             'amount': amount,
             'address': address,
         };
-        let response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
+        const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
@@ -744,7 +744,7 @@ module.exports = class hollaex extends Exchange {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-            let accessToken = 'Bearer ' + this.apiKey;
+            const accessToken = 'Bearer ' + this.apiKey;
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': accessToken,
@@ -767,7 +767,7 @@ module.exports = class hollaex extends Exchange {
                 const ExceptionClass = exceptions[message];
                 throw new ExceptionClass (this.id + ' ' + message);
             }
-            let status = code.toString ();
+            const status = code.toString ();
             if (keys.indexOf (status) !== -1) {
                 const ExceptionClass = exceptions[status];
                 throw new ExceptionClass (this.id + ' ' + message);
