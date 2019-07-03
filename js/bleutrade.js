@@ -445,9 +445,11 @@ module.exports = class bleutrade extends bittrex {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        // if (code === undefined) {
-        //     throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a `symbol` argument');
-        // }
+        //
+        //     if (code === undefined) {
+        //         throw new ExchangeError (this.id + ' fetchClosedOrders requires a `symbol` argument');
+        //     }
+        //
         await this.loadMarkets ();
         const request = {};
         //
