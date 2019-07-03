@@ -456,17 +456,22 @@ module.exports = class bleutrade extends bittrex {
     }
 
     parseOrder (order, market = undefined) {
-        //   from getorders
-        //   { OrderId: '107220258',
-        //     Exchange: 'LTC_BTC',
-        //     Type: 'SELL',
-        //     Quantity: '2.13040000',
-        //     QuantityRemaining: '0.00000000',
-        //     Price: '0.01332672',
-        //     Status: 'OK',
-        //     Created: '2018-06-30 04:55:50',
-        //     QuantityBaseTraded: '0.02839125',
-        //     Comments: '' }
+        //
+        // fetchOrders
+        //
+        //     {
+        //         OrderId: '107220258',
+        //         Exchange: 'LTC_BTC',
+        //         Type: 'SELL',
+        //         Quantity: '2.13040000',
+        //         QuantityRemaining: '0.00000000',
+        //         Price: '0.01332672',
+        //         Status: 'OK',
+        //         Created: '2018-06-30 04:55:50',
+        //         QuantityBaseTraded: '0.02839125',
+        //         Comments: ''
+        //     }
+        //
         let side = this.safeString2 (order, 'OrderType', 'Type');
         const isBuyOrder = (side === 'LIMIT_BUY') || (side === 'BUY');
         const isSellOrder = (side === 'LIMIT_SELL') || (side === 'SELL');
