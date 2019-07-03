@@ -35,6 +35,7 @@ module.exports = class bleutrade extends bittrex {
                 'fetchOrders': true,
                 'fetchClosedOrders': true,
                 'fetchOrderTrades': true,
+                'fetchLedger': true,
             },
             'timeframes': timeframes,
             'hostname': 'bleutrade.com',
