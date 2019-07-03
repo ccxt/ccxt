@@ -446,7 +446,7 @@ module.exports = class bleutrade extends bittrex {
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.v3PrivateGetGetmytransactions ();
+        const response = await this.v3PrivateGetGetmytransactions (params);
         return this.parseLedger (response['result'], code, since, limit);
     }
 
