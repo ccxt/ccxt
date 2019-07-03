@@ -317,6 +317,9 @@ class tidebit extends Exchange {
             $request['timestamp'] = 1800000;
         }
         $response = $this->publicGetK (array_merge ($request, $params));
+        if ($response === 'null') {
+            return array();
+        }
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 

@@ -1205,7 +1205,7 @@ module.exports = class Exchange {
             if (this.currencies_by_id !== undefined && currencyId in this.currencies_by_id) {
                 code = this.currencies_by_id[currencyId]['code']
             } else {
-                code = this.commonCurrencyCode (currencyId)
+                code = this.commonCurrencyCode (currencyId.toUpperCase ())
             }
         }
         if (code === undefined && currency !== undefined) {

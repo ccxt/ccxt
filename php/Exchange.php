@@ -42,7 +42,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.507';
+$version = '1.18.871';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 1;
 
 abstract class Exchange extends CcxtEventEmitter {
 
-    const VERSION = '1.18.507';
+    const VERSION = '1.18.871';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1622,11 +1622,12 @@ abstract class Exchange extends CcxtEventEmitter {
 
     public function safe_currency_code ($data, $key, $currency = null) {
         $code = null;
-        $currency_id = $this->safe_string($data, $key);
-        if (is_array ($this->currencies_by_id) && array_key_exists ($currency_id, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currency_id];
-        } else {
-            $code = $this->common_currency_code($currency_id);
+        if ($currency_id !== null) {
+            if ($this->currencies_by_id !== null && array_key_exists($currency_id, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currency_id]['code'];
+            } else {
+                $code = $this->common_currency_code(mb_strtoupper($currency_id));
+            }
         }
         if ($currency !== null) {
             $code = $currency['code'];
@@ -1857,8 +1858,17 @@ abstract class Exchange extends CcxtEventEmitter {
         return $this->fetch_ticker ($symbol, $params);
     }
 
-    public function fetchTrades ($symbol, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_trades ($symbol, $since, $limit, $params);
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array()) {
+        if (!$this->has['fetchTrades']) {
+            throw new NotSupported($this->$id . ' fetch_ohlcv() not supported yet');
+        }
+        $this->load_markets();
+        $trades = $this->fetch_trades($symbol, $since, $limit, $params);
+        return $this->build_ohlcv($trades, $timeframe, $since, $limit);
+    }
+
+    public function fetchStatus($params = array()) {
+        return $this->fetch_status($params);
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
