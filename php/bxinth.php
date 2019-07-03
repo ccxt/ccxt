@@ -72,20 +72,22 @@ class bxinth extends Exchange {
             'commonCurrencies' => array (
                 'DAS' => 'DASH',
                 'DOG' => 'DOGE',
+                'LEO' => 'LeoCoin',
             ),
         ));
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetPairing ();
-        $keys = is_array ($markets) ? array_keys ($markets) : array ();
-        $result = array ();
-        for ($p = 0; $p < count ($keys); $p++) {
-            $market = $markets[$keys[$p]];
-            $id = (string) $market['pairing_id'];
-            $baseId = $market['secondary_currency'];
-            $quoteId = $market['primary_currency'];
-            $active = $market['active'];
+        $response = $this->publicGetPairing ($params);
+        $keys = is_array($response) ? array_keys($response) : array();
+        $result = array();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $market = $response[$key];
+            $id = $this->safe_string($market, 'pairing_id');
+            $baseId = $this->safe_string($market, 'secondary_currency');
+            $quoteId = $this->safe_string($market, 'primary_currency');
+            $active = $this->safe_value($market, 'active');
             $base = $this->common_currency_code($baseId);
             $quote = $this->common_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
@@ -105,19 +107,17 @@ class bxinth extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostBalance ();
-        $balance = $response['balance'];
-        $result = array ( 'info' => $balance );
-        $currencies = is_array ($balance) ? array_keys ($balance) : array ();
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = $currencies[$c];
-            $code = $this->common_currency_code($currency);
-            $account = array (
-                'free' => floatval ($balance[$currency]['available']),
-                'used' => 0.0,
-                'total' => floatval ($balance[$currency]['total']),
-            );
-            $account['used'] = $account['total'] - $account['free'];
+        $response = $this->privatePostBalance ($params);
+        $balances = $this->safe_value($response, 'balance', array());
+        $result = array( 'info' => $balances );
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->common_currency_code($currencyId);
+            $balance = $this->safe_value($balances, $currencyId, array());
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['total'] = $this->safe_float($balance, 'total');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -125,17 +125,19 @@ class bxinth extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetOrderbook (array_merge (array (
+        $request = array (
             'pairing' => $this->market_id($symbol),
-        ), $params));
-        return $this->parse_order_book($orderbook);
+        );
+        $response = $this->publicGetOrderbook (array_merge ($request, $params));
+        return $this->parse_order_book($response);
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last_price');
         return array (
             'symbol' => $symbol,
@@ -143,9 +145,9 @@ class bxinth extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'high' => null,
             'low' => null,
-            'bid' => floatval ($ticker['orderbook']['bids']['highbid']),
+            'bid' => $this->safe_float($ticker['orderbook']['bids'], 'highbid'),
             'bidVolume' => null,
-            'ask' => floatval ($ticker['orderbook']['asks']['highbid']),
+            'ask' => $this->safe_float($ticker['orderbook']['asks'], 'highbid'),
             'askVolume' => null,
             'vwap' => null,
             'open' => null,
@@ -163,12 +165,12 @@ class bxinth extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGet ($params);
-        $result = array ();
-        $ids = is_array ($tickers) ? array_keys ($tickers) : array ();
+        $response = $this->publicGet ($params);
+        $result = array();
+        $ids = is_array($response) ? array_keys($response) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $ticker = $tickers[$id];
+            $ticker = $response[$id];
             $market = $this->markets_by_id[$id];
             $symbol = $market['symbol'];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -179,60 +181,88 @@ class bxinth extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $tickers = $this->publicGet (array_merge (array (
-            'pairing' => $market['id'],
-        ), $params));
-        $id = (string) $market['id'];
-        $ticker = $tickers[$id];
+        $id = $market['id'];
+        $request = array (
+            'pairing' => $id,
+        );
+        $response = $this->publicGet (array_merge ($request, $params));
+        $ticker = $this->safe_value($response, $id);
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $this->parse8601 ($trade['trade_date'] . '+07:00'); // Thailand UTC+7 offset
+    public function parse_trade ($trade, $market = null) {
+        $date = $this->safe_string($trade, 'trade_date');
+        $timestamp = null;
+        if ($date !== null) {
+            $timestamp = $this->parse8601 ($date . '+07:00'); // Thailand UTC+7 offset
+        }
+        $id = $this->safe_string($trade, 'trade_id');
+        $orderId = $this->safe_string($trade, 'order_id');
+        $type = null;
+        $side = $this->safe_string($trade, 'trade_type');
+        $price = $this->safe_float($trade, 'rate');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = null;
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $amount * $price;
+            }
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
-            'id' => $trade['trade_id'],
+            'id' => $id,
             'info' => $trade,
-            'order' => $trade['order_id'],
+            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'type' => null,
-            'side' => $trade['trade_type'],
-            'price' => $this->safe_float($trade, 'rate'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'price' => $price,
+            'takerOrMaker' => null,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTrade (array_merge (array (
+        $request = array (
             'pairing' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTrade (array_merge ($request, $params));
         return $this->parse_trades($response['trades'], $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrder (array_merge (array (
+        $request = array (
             'pairing' => $this->market_id($symbol),
             'type' => $side,
             'amount' => $amount,
             'rate' => $price,
-        ), $params));
+        );
+        $response = $this->privatePostOrder (array_merge ($request, $params));
+        $id = $this->safe_string($response, 'order_id');
         return array (
             'info' => $response,
-            'id' => (string) $response['order_id'],
+            'id' => $id,
         );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $pairing = null; // TODO fixme
-        return $this->privatePostCancel (array (
+        $request = array (
             'order_id' => $id,
             'pairing' => $pairing,
-        ));
+        );
+        return $this->privatePostCancel (array_merge ($request, $params));
     }
 
     public function parse_order ($order, $market = null) {
@@ -240,18 +270,26 @@ class bxinth extends Exchange {
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'pairing_id');
-            if ($marketId !== null)
-                if (is_array ($this->markets_by_id) && array_key_exists ($marketId, $this->markets_by_id))
-                    $market = $this->markets_by_id[$marketId];
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
         }
-        if ($market !== null)
+        if ($market !== null) {
             $symbol = $market['symbol'];
-        $timestamp = $this->parse8601 ($order['date']);
+        }
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'date'));
         $price = $this->safe_float($order, 'rate');
         $amount = $this->safe_float($order, 'amount');
+        $cost = null;
+        if ($amount !== null) {
+            if ($price !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        $id = $this->safe_string($order, 'order_id');
         return array (
             'info' => $order,
-            'id' => $order['order_id'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
@@ -259,12 +297,13 @@ class bxinth extends Exchange {
             'side' => $side,
             'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
         );
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $request = array ();
+        $request = array();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
@@ -277,10 +316,12 @@ class bxinth extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/';
-        if ($path)
+        if ($path) {
             $url .= $path . '/';
-        if ($params)
+        }
+        if ($params) {
             $url .= '?' . $this->urlencode ($params);
+        }
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = $this->nonce ();
@@ -296,16 +337,19 @@ class bxinth extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if ($api === 'public')
+        if ($api === 'public') {
             return $response;
-        if (is_array ($response) && array_key_exists ('success', $response))
-            if ($response['success'])
+        }
+        if (is_array($response) && array_key_exists('success', $response)) {
+            if ($response['success']) {
                 return $response;
-        throw new ExchangeError ($this->id . ' ' . $this->json ($response));
+            }
+        }
+        throw new ExchangeError($this->id . ' ' . $this->json ($response));
     }
 }

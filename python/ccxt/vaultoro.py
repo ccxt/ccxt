@@ -60,14 +60,14 @@ class vaultoro (Exchange):
 
     def fetch_markets(self, params={}):
         result = []
-        markets = self.publicGetMarkets()
-        market = markets['data']
-        baseId = market['MarketCurrency']
-        quoteId = market['BaseCurrency']
+        response = self.publicGetMarkets(params)
+        market = self.safe_value(response, 'data')
+        baseId = self.safe_string(market, 'MarketCurrency')
+        quoteId = self.safe_string(market, 'BaseCurrency')
         base = self.common_currency_code(baseId)
         quote = self.common_currency_code(quoteId)
         symbol = base + '/' + quote
-        id = market['MarketName']
+        id = self.safe_string(market, 'MarketName')
         result.append({
             'id': id,
             'symbol': symbol,
@@ -81,23 +81,20 @@ class vaultoro (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privateGetBalance()
-        balances = response['data']
+        response = self.privateGetBalance(params)
+        balances = self.safe_value(response, 'data')
         result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currencyId = balance['currency_code'].upper()
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency_code')
             code = currencyId
-            if currencyId in self.currencies_by_id[currencyId]:
+            if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
-            free = balance['cash']
-            used = balance['reserved']
-            total = self.sum(free, used)
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            else:
+                code = self.common_currency_code(currencyId.upper())
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'cash')
+            account['used'] = self.safe_float(balance, 'reserved')
             result[code] = account
         return self.parse_balance(result)
 
@@ -117,7 +114,7 @@ class vaultoro (Exchange):
         bid = quote['bids'][bidsLength - 1]
         ask = quote['asks'][0]
         response = self.publicGetMarkets(params)
-        ticker = response['data']
+        ticker = self.safe_value(response, 'data')
         timestamp = self.milliseconds()
         last = self.safe_float(ticker, 'LastPrice')
         return {
@@ -143,19 +140,31 @@ class vaultoro (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = self.parse8601(trade['Time'])
+    def parse_trade(self, trade, market=None):
+        timestamp = self.parse8601(self.safe_string(trade, 'Time'))
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        price = self.safe_float(trade, 'Gold_Price')
+        amount = self.safe_float(trade, 'Gold_Amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         return {
             'id': None,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': None,
             'type': None,
             'side': None,
-            'price': trade['Gold_Price'],
-            'amount': trade['Gold_Amount'],
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -168,12 +177,13 @@ class vaultoro (Exchange):
         self.load_markets()
         market = self.market(symbol)
         method = 'privatePost' + self.capitalize(side) + 'SymbolType'
-        response = getattr(self, method)(self.extend({
+        request = {
             'symbol': market['quoteId'].lower(),
             'type': type,
             'gld': amount,
             'price': price or 1,
-        }, params))
+        }
+        response = getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
             'id': response['data']['Order_ID'],
@@ -181,9 +191,10 @@ class vaultoro (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        return self.privatePostCancelId(self.extend({
+        request = {
             'id': id,
-        }, params))
+        }
+        return self.privatePostCancelId(self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/'

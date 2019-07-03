@@ -155,6 +155,27 @@ assert (decimal_to_precision ('0.098765', ROUND, 1, SIGNIFICANT_DIGITS, PAD_WITH
 assert (decimal_to_precision ('0', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
 assert (decimal_to_precision ('-0.123', ROUND, 0, SIGNIFICANT_DIGITS) === '0');
 
+// ----------------------------------------------------------------------------
+// testDecimalToPrecisionRoundingToTickSize
+
+assert (decimal_to_precision ('0.000123456700', ROUND, 0.00012, TICK_SIZE) === '0.00012');
+assert (decimal_to_precision ('0.0001234567', ROUND, 0.00013, TICK_SIZE) === '0.00013');
+assert (decimal_to_precision ('0.0001234567', TRUNCATE, 0.00013, TICK_SIZE) === '0');
+assert (decimal_to_precision ('101.000123456700', ROUND, 100, TICK_SIZE) === '100');
+assert (decimal_to_precision ('0.000123456700', ROUND, 100, TICK_SIZE) === '0');
+assert (decimal_to_precision ('165', TRUNCATE, 110, TICK_SIZE) === '110');
+assert (decimal_to_precision ('3210', TRUNCATE, 1110, TICK_SIZE) === '2220');
+assert (decimal_to_precision ('165', ROUND, 110, TICK_SIZE) === '220');
+assert (decimal_to_precision ('0.000123456789', ROUND, 0.00000012, TICK_SIZE) === '0.00012348');
+assert (decimal_to_precision ('0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) === '0.00012336');
+
+assert (decimal_to_precision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
+assert (decimal_to_precision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
+
+assert (decimal_to_precision ('-0.000123456789', ROUND, 0.00000012, TICK_SIZE) === '-0.00012348');
+assert (decimal_to_precision ('-0.000123456789', TRUNCATE, 0.00000012, TICK_SIZE) === '-0.00012336');
+assert (decimal_to_precision ('-165', TRUNCATE, 110, TICK_SIZE) === '-110');
+assert (decimal_to_precision ('-165', ROUND, 110, TICK_SIZE) === '-220');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionNegativeNumbers
@@ -211,3 +232,7 @@ assert (decimal_to_precision ('69.3', TRUNCATE, -2, SIGNIFICANT_DIGITS) === '0')
 // throws (() =>
 //     decimal_to_precision ('foo'),
 //         "invalid number (contains an illegal character 'f')")
+//
+// throws (() =>
+//     decimal_to_precision ('0.01', TRUNCATE, -1, TICK_SIZE),
+//         "TICK_SIZE cant be used with negative numPrecisionDigits")

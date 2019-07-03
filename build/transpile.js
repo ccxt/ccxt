@@ -92,7 +92,6 @@ const commonRegexes = [
     [ /\.filterBy\s/g, '.filter_by'],
     [ /\.groupBy\s/g, '.group_by'],
     [ /\.findMarket\s/g, '.find_market'],
-    [ /\.setMarkets\s/g, '.set_markets'],
     [ /\.findSymbol\s/g, '.find_symbol'],
     [ /\.marketIds\s/g, '.market_ids'],
     [ /\.marketId\s/g, '.market_id'],
@@ -176,6 +175,7 @@ const pythonRegexes = [
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
     [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
     [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
+    [ /\.shift\s*\(\)/g, '.pop(0)' ],
 
 // insert common regexes in the middle (critical)
 ].concat (commonRegexes).concat ([
@@ -192,7 +192,6 @@ const pythonRegexes = [
     [ /hash \(([^,]+)\, \'(sha[0-9])\'/g, "hash($1, '$2'" ],
     [ /hmac \(([^,]+)\, ([^,]+)\, \'(md5)\'/g, 'hmac($1, $2, hashlib.$3' ],
     [ /hmac \(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
-    [ /new ([\S]+) \((.*)\)/g, '$1($2)'],
     [ /throw new ([\S]+) \((.*)\)/g, 'raise $1($2)'],
     [ /throw ([\S]+)/g, 'raise $1'],
     [ /try {/g, 'try:'],
@@ -253,7 +252,6 @@ const pythonRegexes = [
     [ /([^\s]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
     [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
     [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
-    [ /delete\s/g, 'del ' ],
 ])
 
 // ----------------------------------------------------------------------------
@@ -293,6 +291,8 @@ const phpRegexes = [
     [ /this\.stringToBase64/g, 'base64_encode' ],
     [ /this\.base64ToBinary/g, 'base64_decode' ],
     [ /this\.deepExtend/g, 'array_replace_recursive'],
+    [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
+    [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
 
 // insert common regexes in the middle (critical)
 ].concat (commonRegexes).concat ([
@@ -300,18 +300,18 @@ const phpRegexes = [
     [ /this\./g, '$this->' ],
     [ / this;/g, ' $this;' ],
     [ /([^'])this_\./g, '$1$this_->' ],
-    [ /\{\}/g, 'array ()' ],
-    [ /\[\]/g, 'array ()' ],
-    [ /\{([^\n\}]+)\}/g, 'array ($1)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list ($2)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values (list ($2))' ],
+    [ /\{\}/g, 'array()' ],
+    [ /\[\]/g, 'array()' ],
+    [ /\{([^\n\}]+)\}/g, 'array($1)' ],
+    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
+    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
     [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
-    [ /Object\.keys\s*\((.*)\)/g, 'is_array ($1) ? array_keys ($1) : array ()' ],
+    [ /Object\.keys\s*\((.*)\)/g, 'is_array($1) ? array_keys($1) : array()' ],
     [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
     [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
-    [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)' ],
-    [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1 ($2)' ],
+    [ /throw new Error \((.*)\)/g, 'throw new \\Exception($1)' ],
+    [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1($2)' ],
     [ /throw ([\S]+)\;/g, 'throw $$$1;' ],
     [ '([^a-z]+) (' + Object.keys (errors).join ('|') + ')([^\\s])', "$1 '\\\\ccxt\\\\$2'$3" ],
     [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
@@ -326,40 +326,40 @@ const phpRegexes = [
 // add {}-array syntax conversions up to 20 levels deep
 ]).concat ([ ... Array (20) ].map (x => [ /\{([^\;\{]+?)\}([^\s])/g, 'array ($1)$2' ])).concat ([
 
-    [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode ($2, array ($1))" ],
+    [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode($2, array($1))" ],
 
 // add []-array syntax conversions up to 20 levels deep
 ]).concat ([ ... Array (20) ].map (x => [ /\[(\s[^\]]+?\s)\]/g, 'array ($1)' ])).concat ([
 
     [ /JSON\.stringify/g, 'json_encode' ],
-    [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode ($1, $$as_associative_array = true)' ],
-    [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
+    [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode($1, $$as_associative_array = true)' ],
+    [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, 'mb_strpos($1, $2)' ],
     // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
-    [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf ('%.$2f', $1)" ],
-    [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf ('%.' . $2 . 'f', $1)" ],
+    [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf('%.$2f', $1)" ],
+    [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf('%.' . $2 . 'f', $1)" ],
     [ /parseFloat\s/g, 'floatval '],
     [ /parseInt\s/g, 'intval '],
     [ / \+ /g, ' . ' ],
     [ / \+\= /g, ' .= ' ],
-    [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper ($1)' ],
-    [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower ($1)' ],
-    [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^\)]+)\)/g, 'str_replace ($2, $1)' ],
+    [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
+    [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
+    [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^\)]+)\)/g, 'str_replace($2, $1)' ],
     [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
-    [ /([^\s\(]+).slice \(([^\)\:]+)\)/g, 'mb_substr ($1, $2)' ],
-    [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr ($1, $2, $3)' ],
-    [ /([^\s\(]+).split \(('[^']*'|[^\,]+?)\)/g, 'explode ($2, $1)' ],
-    [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor ($1)' ],
+    [ /([^\s\(]+).slice \(([^\)\:,]+)\)/g, 'mb_substr($1, $2)' ],
+    [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr($1, $2, $3 - $2)' ],
+    [ /([^\s\(]+).split \(('[^']*'|[^\,]+?)\)/g, 'explode($2, $1)' ],
+    [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor($1)' ],
     [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs ($1)' ],
-    [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round ($1)' ],
-    [ /Math\.ceil\s*\(([^\)]+)\)/g, '(int) ceil ($1)' ],
-    [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow ($1)' ],
+    [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round($1)' ],
+    [ /Math\.ceil\s*\(([^\)]+)\)/g, '(int) ceil($1)' ],
+    [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow($1)' ],
     [ /Math\.log/g, 'log' ],
-    [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod ($1, $2)' ],
-    [ /\(([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos ($1, $2) !== false)' ],
-    [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
-    [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
-    [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array ($2) && array_key_exists ($1, $2))' ],
-    [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
+    [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod($1, $2)' ],
+    [ /\(([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos($1, $2) !== false)' ],
+    [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos($1, $2) !== false' ],
+    [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos($1, $2)' ],
+    [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array($2) && array_key_exists($1, $2))' ],
+    [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode($2, $1)' ],
     [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
     [ /Math\.(max|min)/g, '$1' ],
     [ /console\.log/g, 'var_dump'],
@@ -927,6 +927,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE              # noqa F401\n\
 from ccxt.base.decimal_to_precision import ROUND                 # noqa F401\n\
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa F401\n\
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401\n\
+from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa F401\n\
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401\n\
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401\n\
 from ccxt.base.decimal_to_precision import number_to_string      # noqa F401\n\

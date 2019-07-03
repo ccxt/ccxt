@@ -102,16 +102,16 @@ class zaif extends Exchange {
             'options' => array (
                 // zaif schedule defines several market-specific fees
                 'fees' => array (
-                    'BTC/JPY' => array ( 'maker' => 0, 'taker' => 0 ),
-                    'BCH/JPY' => array ( 'maker' => 0, 'taker' => 0.3 / 100 ),
-                    'BCH/BTC' => array ( 'maker' => 0, 'taker' => 0.3 / 100 ),
-                    'PEPECASH/JPY' => array ( 'maker' => 0, 'taker' => 0.01 / 100 ),
-                    'PEPECASH/BT' => array ( 'maker' => 0, 'taker' => 0.01 / 100 ),
+                    'BTC/JPY' => array( 'maker' => 0, 'taker' => 0 ),
+                    'BCH/JPY' => array( 'maker' => 0, 'taker' => 0.3 / 100 ),
+                    'BCH/BTC' => array( 'maker' => 0, 'taker' => 0.3 / 100 ),
+                    'PEPECASH/JPY' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),
+                    'PEPECASH/BT' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),
                 ),
             ),
             'exceptions' => array (
                 'exact' => array (
-                    'unsupported currency_pair' => '\\ccxt\\BadRequest', // array ("error" => "unsupported currency_pair")
+                    'unsupported currency_pair' => '\\ccxt\\BadRequest', // array("error" => "unsupported currency_pair")
                 ),
                 'broad' => array (
                 ),
@@ -120,13 +120,16 @@ class zaif extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetCurrencyPairsAll ();
-        $result = array ();
-        for ($p = 0; $p < count ($markets); $p++) {
-            $market = $markets[$p];
-            $id = $market['currency_pair'];
-            $symbol = $market['name'];
-            list ($base, $quote) = explode ('/', $symbol);
+        $markets = $this->publicGetCurrencyPairsAll ($params);
+        $result = array();
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'currency_pair');
+            $name = $this->safe_string($market, 'name');
+            list($baseId, $quoteId) = explode('/', $name);
+            $base = $this->common_currency_code($baseId);
+            $quote = $this->common_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => -log10 ($market['item_unit_step']),
                 'price' => $market['aux_unit_point'],
@@ -139,6 +142,8 @@ class zaif extends Exchange {
                 'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
                 'active' => true, // can trade or not
                 'precision' => $precision,
                 'taker' => $taker,
@@ -165,59 +170,68 @@ class zaif extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetInfo ();
-        $balances = $response['return'];
-        $result = array ( 'info' => $balances );
-        $currencies = is_array ($balances['funds']) ? array_keys ($balances['funds']) : array ();
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $currency = $currencies[$c];
-            $balance = $balances['funds'][$currency];
-            $uppercase = strtoupper ($currency);
+        $response = $this->privatePostGetInfo ($params);
+        $balances = $this->safe_value($response, 'return', array());
+        $result = array( 'info' => $response );
+        $funds = $this->safe_value($balances, 'funds', array());
+        $currencyIds = is_array($funds) ? array_keys($funds) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $balance = $this->safe_value($funds, $currencyId);
+            $code = $currencyId;
+            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+                $code = $this->currencies_by_id[$currencyId]['code'];
+            } else {
+                $code = $this->common_currency_code(strtoupper($currencyId));
+            }
             $account = array (
                 'free' => $balance,
                 'used' => 0.0,
                 'total' => $balance,
             );
-            if (is_array ($balances) && array_key_exists ('deposit', $balances)) {
-                if (is_array ($balances['deposit']) && array_key_exists ($currency, $balances['deposit'])) {
-                    $account['total'] = $balances['deposit'][$currency];
+            if (is_array($balances) && array_key_exists('deposit', $balances)) {
+                if (is_array($balances['deposit']) && array_key_exists($currencyId, $balances['deposit'])) {
+                    $account['total'] = $this->safe_float($balances['deposit'], $currencyId);
                     $account['used'] = $account['total'] - $account['free'];
                 }
             }
-            $result[$uppercase] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetDepthPair (array_merge (array (
+        $request = array (
             'pair' => $this->market_id($symbol),
-        ), $params));
-        return $this->parse_order_book($orderbook);
+        );
+        $response = $this->publicGetDepthPair (array_merge ($request, $params));
+        return $this->parse_order_book($response);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $ticker = $this->publicGetTickerPair (array_merge (array (
+        $request = array (
             'pair' => $this->market_id($symbol),
-        ), $params));
+        );
+        $ticker = $this->publicGetTickerPair (array_merge ($request, $params));
         $timestamp = $this->milliseconds ();
-        $vwap = $ticker['vwap'];
-        $baseVolume = $ticker['volume'];
+        $vwap = $this->safe_float($ticker, 'vwap');
+        $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null)
+        if ($baseVolume !== null && $vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
-        $last = $ticker['last'];
+        }
+        $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'high' => $ticker['high'],
-            'low' => $ticker['low'],
-            'bid' => $ticker['bid'],
+            'high' => $this->safe_float($ticker, 'high'),
+            'low' => $this->safe_float($ticker, 'low'),
+            'bid' => $this->safe_float($ticker, 'bid'),
             'bidVolume' => null,
-            'ask' => $ticker['ask'],
+            'ask' => $this->safe_float($ticker, 'ask'),
             'askVolume' => null,
             'vwap' => $vwap,
             'open' => null,
@@ -234,38 +248,60 @@ class zaif extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $side = ($trade['trade_type'] === 'bid') ? 'buy' : 'sell';
-        $timestamp = $trade['date'] * 1000;
-        $id = $this->safe_string($trade, 'id');
-        $id = $this->safe_string($trade, 'tid', $id);
+        $side = $this->safe_string($trade, 'trade_type');
+        $side = ($side === 'bid') ? 'buy' : 'sell';
+        $timestamp = $this->safe_integer($trade, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        $id = $this->safe_string_2($trade, 'id', 'tid');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
-        if (!$market)
-            $market = $this->markets_by_id[$trade['currency_pair']];
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $amount * $price;
+            }
+        }
+        if ($market === null) {
+            $marketId = $this->safe_string($trade, 'currency_pair');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
-            'id' => (string) $id,
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => $side,
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetTradesPair (array_merge (array (
+        $request = array (
             'pair' => $market['id'],
-        ), $params));
+        );
+        $response = $this->publicGetTradesPair (array_merge ($request, $params));
         $numTrades = is_array ($response) ? count ($response) : 0;
         if ($numTrades === 1) {
             $firstTrade = $response[0];
             if (!$firstTrade) {
-                $response = array ();
+                $response = array();
             }
         }
         return $this->parse_trades($response, $market, $since, $limit);
@@ -273,14 +309,16 @@ class zaif extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        if ($type === 'market')
-            throw new ExchangeError ($this->id . ' allows limit orders only');
-        $response = $this->privatePostTrade (array_merge (array (
+        if ($type !== 'limit') {
+            throw new ExchangeError($this->id . ' allows limit orders only');
+        }
+        $request = array (
             'currency_pair' => $this->market_id($symbol),
             'action' => ($side === 'buy') ? 'bid' : 'ask',
             'amount' => $amount,
             'price' => $price,
-        ), $params));
+        );
+        $response = $this->privatePostTrade (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => (string) $response['return']['order_id'],
@@ -288,29 +326,49 @@ class zaif extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostCancelOrder (array_merge (array (
+        $request = array (
             'order_id' => $id,
-        ), $params));
+        );
+        return $this->privatePostCancelOrder (array_merge ($request, $params));
     }
 
     public function parse_order ($order, $market = null) {
-        $side = ($order['action'] === 'bid') ? 'buy' : 'sell';
-        $timestamp = intval ($order['timestamp']) * 1000;
-        if (!$market)
-            $market = $this->markets_by_id[$order['currency_pair']];
-        $price = $order['price'];
-        $amount = $order['amount'];
+        $side = $this->safe_string($order, 'action');
+        $side = ($side === 'bid') ? 'buy' : 'sell';
+        $timestamp = $this->safe_integer($order, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        if (!$market) {
+            $marketId = $this->safe_string($order, 'currency_pair');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
+        }
+        $price = $this->safe_float($order, 'price');
+        $amount = $this->safe_float($order, 'amount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
+        $id = $this->safe_string($order, 'id');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
-            'id' => (string) $order['id'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'status' => 'open',
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
             'price' => $price,
-            'cost' => $price * $amount,
+            'cost' => $cost,
             'amount' => $amount,
             'filled' => null,
             'remaining' => null,
@@ -319,16 +377,19 @@ class zaif extends Exchange {
         );
     }
 
-    public function parse_orders ($orders, $market = null, $since = null, $limit = null) {
-        $ids = is_array ($orders) ? array_keys ($orders) : array ();
-        $result = array ();
+    public function parse_orders ($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+        $result = array();
+        $ids = is_array($orders) ? array_keys($orders) : array();
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $order = $orders[$id];
-            $extended = array_merge ($order, array ( 'id' => $id ));
-            $result[] = $this->parse_order($extended, $market);
+            $order = array_merge (array( 'id' => $id ), $orders[$id]);
+            $result[] = array_merge ($this->parse_order($order, $market), $params);
         }
-        return $this->filter_by_since_limit($result, $since, $limit);
+        return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -372,7 +433,7 @@ class zaif extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         if ($code === 'JPY') {
-            throw new ExchangeError ($this->id . ' withdraw() does not allow ' . $code . ' withdrawals');
+            throw new ExchangeError($this->id . ' withdraw() does not allow ' . $code . ' withdrawals');
         }
         $request = array (
             'currency' => $currency['id'],
@@ -394,7 +455,7 @@ class zaif extends Exchange {
 
     public function nonce () {
         $nonce = floatval ($this->milliseconds () / 1000);
-        return sprintf ('%.8f', $nonce);
+        return sprintf('%.8f', $nonce);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -423,7 +484,7 @@ class zaif extends Exchange {
                 'Sign' => $this->hmac ($this->encode ($body), $this->encode ($this->secret), 'sha512'),
             );
         }
-        return array ( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
@@ -431,25 +492,25 @@ class zaif extends Exchange {
             return;
         }
         //
-        //     array ("$error" => "unsupported currency_pair")
+        //     array("$error" => "unsupported currency_pair")
         //
         $feedback = $this->id . ' ' . $body;
         $error = $this->safe_string($response, 'error');
         if ($error !== null) {
             $exact = $this->exceptions['exact'];
-            if (is_array ($exact) && array_key_exists ($error, $exact)) {
-                throw new $exact[$error] ($feedback);
+            if (is_array($exact) && array_key_exists($error, $exact)) {
+                throw new $exact[$error]($feedback);
             }
             $broad = $this->exceptions['broad'];
             $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
             if ($broadKey !== null) {
-                throw new $broad[$broadKey] ($feedback);
+                throw new $broad[$broadKey]($feedback);
             }
-            throw new ExchangeError ($feedback); // unknown message
+            throw new ExchangeError($feedback); // unknown message
         }
         $success = $this->safe_value($response, 'success', true);
         if (!$success) {
-            throw new ExchangeError ($feedback);
+            throw new ExchangeError($feedback);
         }
     }
 }

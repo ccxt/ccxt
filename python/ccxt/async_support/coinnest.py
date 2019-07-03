@@ -134,7 +134,7 @@ class coinnest (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['time'] * 1000
+        timestamp = self.safe_integer(ticker, 'time') * 1000
         symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {
@@ -163,47 +163,61 @@ class coinnest (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetPubTicker(self.extend({
+        request = {
             'coin': market['baseId'],
-        }, params))
-        return self.parse_ticker(ticker, market)
+        }
+        response = await self.publicGetPubTicker(self.extend(request, params))
+        return self.parse_ticker(response, market)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        orderbook = await self.publicGetPubDepth(self.extend({
+        request = {
             'coin': market['baseId'],
-        }, params))
-        return self.parse_order_book(orderbook)
+        }
+        response = await self.publicGetPubDepth(self.extend(request, params))
+        return self.parse_order_book(response)
 
     def parse_trade(self, trade, market=None):
-        timestamp = int(trade['date']) * 1000
+        timestamp = self.safe_integer(trade, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        symbol = market['symbol']
-        cost = self.price_to_precision(symbol, amount * price)
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        type = 'limit'
+        side = self.safe_string(trade, 'type')
+        id = self.safe_string(trade, 'tid')
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'tid'),
             'order': None,
-            'type': 'limit',
-            'side': trade['type'],
+            'type': type,
+            'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
-            'cost': float(cost),
+            'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        trades = await self.publicGetPubTrades(self.extend({
+        request = {
             'coin': market['baseId'],
-        }, params))
-        return self.parse_trades(trades, market, since, limit)
+        }
+        response = await self.publicGetPubTrades(self.extend(request, params))
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
@@ -213,37 +227,37 @@ class coinnest (Exchange):
         for i in range(0, len(balancKeys)):
             key = balancKeys[i]
             parts = key.split('_')
-            if len(parts) != 2:
+            numParts = len(parts)
+            if numParts != 2:
                 continue
             type = parts[1]
             if type != 'reserved' and type != 'balance':
                 continue
-            currency = parts[0].upper()
-            currency = self.common_currency_code(currency)
-            if not(currency in list(result.keys())):
-                result[currency] = {
-                    'free': 0.0,
-                    'used': 0.0,
-                    'total': 0.0,
-                }
+            currencyId = parts[0]
+            uppercase = currencyId.upper()
+            code = self.common_currency_code(uppercase)
+            if not(code in list(result.keys())):
+                result[code] = self.account()
             type = (type == 'used' if 'reserved' else 'free')
-            result[currency][type] = float(response[key])
+            result[code][type] = self.safe_float(response, key)
             otherType = (type == 'free' if 'used' else 'used')
-            if otherType in result[currency]:
-                result[currency]['total'] = self.sum(result[currency]['free'], result[currency]['used'])
+            if otherType in result[code]:
+                result[code]['total'] = self.sum(result[code]['free'], result[code]['used'])
         return self.parse_balance(result)
+
+    def parse_order_status(self, status):
+        statuses = {
+            '1': 'open',
+            '2': 'open',
+            '3': 'canceled',
+            '4': 'closed',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market):
         symbol = market['symbol']
-        timestamp = int(order['time']) * 1000
-        status = int(order['status'])
-        # 1: newly created, 2: ready for dealing, 3: canceled, 4: completed.
-        if status == 4:
-            status = 'closed'
-        elif status == 3:
-            status = 'canceled'
-        else:
-            status = 'open'
+        timestamp = self.safe_integer(order, 'time') * 1000
+        status = self.parse_order_status(self.safe_string(order, 'status'))
         amount = self.safe_float(order, 'amount_total')
         remaining = self.safe_float(order, 'amount_over')
         filled = self.safe_value(order, 'deals')
@@ -273,12 +287,13 @@ class coinnest (Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostTradeAdd(self.extend({
+        request = {
             'coin': market['baseId'],
             'type': side,
             'number': amount,
             'price': price,
-        }, params))
+        }
+        response = await self.privatePostTradeAdd(self.extend(request, params))
         order = {
             'id': response['id'],
             'time': self.seconds(),
@@ -295,20 +310,21 @@ class coinnest (Exchange):
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        response = await self.privatePostTradeCancel(self.extend({
+        request = {
             'id': id,
             'coin': market['baseId'],
-        }, params))
-        return response
+        }
+        return await self.privatePostTradeCancel(self.extend(request, params))
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        order = await self.privatePostTradeFetchtrust(self.extend({
+        request = {
             'id': id,
             'coin': market['baseId'],
-        }, params))
-        return self.parse_order(order, market)
+        }
+        response = await self.privatePostTradeFetchtrust(self.extend(request, params))
+        return self.parse_order(response, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -324,9 +340,10 @@ class coinnest (Exchange):
         return self.parse_orders(response, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        return await self.fetch_orders(symbol, since, limit, self.extend({
+        request = {
             'type': '1',
-        }, params))
+        }
+        return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + path

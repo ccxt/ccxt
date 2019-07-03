@@ -31,6 +31,7 @@ class coinexchange (Exchange):
                 'fetchTickers': True,
             },
             'urls': {
+                'referral': 'https://www.coinexchange.io/?r=a1669e56',
                 'logo': 'https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg',
                 'api': 'https://www.coinexchange.io/api/v1',
                 'www': 'https://www.coinexchange.io',
@@ -567,18 +568,20 @@ class coinexchange (Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetGetcurrencies(params)
-        currencies = response['result']
+        currencies = self.safe_value(response, 'result')
         precision = self.precision['amount']
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            id = currency['CurrencyID']
-            code = self.common_currency_code(currency['TickerCode'])
-            active = currency['WalletStatus'] == 'online'
+            id = self.safe_string(currency, 'CurrencyID')
+            code = self.common_currency_code(self.safe_string(currency, 'TickerCode'))
+            walletStatus = self.safe_string(currency, 'WalletStatus')
+            active = walletStatus == 'online'
+            name = self.safe_string(currency, 'Name')
             result[code] = {
                 'id': id,
                 'code': code,
-                'name': currency['Name'],
+                'name': name,
                 'active': active,
                 'precision': precision,
                 'limits': {
@@ -604,7 +607,7 @@ class coinexchange (Exchange):
         return result
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetGetmarkets()
+        response = await self.publicGetGetmarkets(params)
         markets = response['result']
         result = []
         for i in range(0, len(markets)):
@@ -631,7 +634,7 @@ class coinexchange (Exchange):
     def parse_ticker(self, ticker, market=None):
         symbol = None
         if market is None:
-            marketId = ticker['MarketID']
+            marketId = self.safe_string(ticker, 'MarketID')
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
             else:
@@ -666,9 +669,10 @@ class coinexchange (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetGetmarketsummary(self.extend({
+        request = {
             'market_id': market['id'],
-        }, params))
+        }
+        ticker = await self.publicGetGetmarketsummary(self.extend(request, params))
         return self.parse_ticker(ticker['result'], market)
 
     async def fetch_tickers(self, symbols=None, params={}):
@@ -684,9 +688,10 @@ class coinexchange (Exchange):
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetGetorderbook(self.extend({
+        request = {
             'market_id': self.market_id(symbol),
-        }, params))
+        }
+        orderbook = await self.publicGetGetorderbook(self.extend(request, params))
         return self.parse_order_book(orderbook['result'], None, 'BuyOrders', 'SellOrders', 'Price', 'Quantity')
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
