@@ -769,14 +769,8 @@ module.exports = class bittrex extends Exchange {
         const opened = this.parse8601 (this.safeString (transaction, 'Opened'));
         const timestamp = opened ? opened : updated;
         const type = (opened === undefined) ? 'deposit' : 'withdrawal';
-        let code = undefined;
         const currencyId = this.safeString (transaction, 'Currency');
-        currency = this.safeValue (this.currencies_by_id, currencyId);
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         let status = 'pending';
         if (type === 'deposit') {
             if (currency !== undefined) {
@@ -1042,11 +1036,7 @@ module.exports = class bittrex extends Exchange {
             } else if (symbol !== undefined) {
                 const currencyIds = symbol.split ('/');
                 const quoteCurrencyId = currencyIds[1];
-                if (quoteCurrencyId in this.currencies_by_id) {
-                    fee['currency'] = this.currencies_by_id[quoteCurrencyId]['code'];
-                } else {
-                    fee['currency'] = this.commonCurrencyCode (quoteCurrencyId);
-                }
+                fee['currency'] = this.safeCurrencyCode (quoteCurrencyId);
             }
         }
         let price = this.safeFloat (order, 'Limit');

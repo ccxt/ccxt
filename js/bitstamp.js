@@ -179,8 +179,8 @@ module.exports = class bitstamp extends Exchange {
             let [ base, quote ] = name.split ('/');
             const baseId = base.toLowerCase ();
             const quoteId = quote.toLowerCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
             const symbolId = baseId + '_' + quoteId;
             const id = this.safeString (market, 'url_symbol');
@@ -725,22 +725,15 @@ module.exports = class bitstamp extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
-        let code = undefined;
         const id = this.safeString (transaction, 'id');
         const currencyId = this.getCurrencyIdFromTransaction (transaction);
-        if (currencyId in this.currencies_by_id) {
-            currency = this.currencies_by_id[currencyId];
-        } else if (currencyId !== undefined) {
-            code = currencyId.toUpperCase ();
-            code = this.commonCurrencyCode (code);
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         const feeCost = this.safeFloat (transaction, 'fee');
         let feeCurrency = undefined;
         let amount = undefined;
         if (currency !== undefined) {
             amount = this.safeFloat (transaction, currency['id'], amount);
             feeCurrency = currency['code'];
-            code = currency['code'];
         } else if ((code !== undefined) && (currencyId !== undefined)) {
             amount = this.safeFloat (transaction, currencyId, amount);
             feeCurrency = code;

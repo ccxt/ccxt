@@ -203,8 +203,8 @@ module.exports = class bitmarket extends Exchange {
             }
             const baseId = id.slice (0, 3);
             const quoteId = id.slice (3, 6);
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -249,15 +249,8 @@ module.exports = class bitmarket extends Exchange {
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
-        let code = undefined;
         const currencyId = this.safeString (item, 'currency');
-        if (currencyId !== undefined) {
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         let type = undefined;
         if ('withdraw_type' in item) {
             type = 'withdrawal';
