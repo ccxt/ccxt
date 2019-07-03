@@ -421,14 +421,15 @@ module.exports = class bleutrade extends bittrex {
                 }
             }
         }
-        const time = this.safeString (item, 'TimeStamp');
-        const timestamp = this.parse8601 (time);
-        const amount = this.safeFloat (item, 'Amount');
+        const timestamp = this.parse8601 (this.safeString (item, 'TimeStamp'));
+        let amount = this.safeFloat (item, 'Amount');
         let direction = undefined;
-        if (amount < 0) {
-            direction = 'out';
-        } else {
+        if (amount !== undefined) {
             direction = 'in';
+            if (amount < 0) {
+                direction = 'out';
+                amount = -amount;
+            }
         }
         return {
             'id': this.safeString (item, 'ID'),
@@ -437,7 +438,7 @@ module.exports = class bleutrade extends bittrex {
             'referenceId': referenceId,
             'referenceAccount': undefined,
             'currency': code,
-            'amount': amount < 0 ? -amount : amount,
+            'amount': amount,
             'direction': direction,
             'address': address,
             'before': undefined,
