@@ -383,43 +383,36 @@ module.exports = class bleutrade extends bittrex {
         //     }
         //
         const code = this.safeCurrencyCode (this.safeString (item, 'CoinSymbol'), currency);
-        const description = item['Description'];
+        const description = this.safeString (item, 'Description');
         const type = this.parseLedgerEntryType (this.safeString (item, 'Type'));
         let referenceId = undefined;
-        let address = undefined;
         let fee = undefined;
-        if (type === 'trade') {
-            const descParts = description.split (',');
-            for (let i = 0; i < descParts.length; i++) {
-                const part = descParts[i].trim ();
-                if (part.startsWith ('fee')) {
-                    const feeCost = this.safeFloat (part.replace ('fee ', '').trim ());
-                    fee = {
-                        'cost': feeCost < 0 ? -feeCost : feeCost,
-                        'currency': code,
-                    };
-                } else if (part.startsWith ('order id')) {
-                    referenceId = descParts[1].replace ('order id', '').trim ();
+        const delimiter = (type === 'trade') ? ', ' : '; ';
+        const parts = description.split (delimiter);
+        for (let i = 0; i < parts.length; i++) {
+            let part = parts[i];
+            if (part.indexOf ('fee') === 0) {
+                part = part.replace ('fee ', '');
+                let feeCost = parseFloat (part);
+                if (feeCost < 0) {
+                    feeCost = -feeCost;
                 }
+                fee = {
+                    'cost': feeCost,
+                    'currency': code,
+                };
+            } else if (part.indexOf ('order id') === 0) {
+                referenceId = part.replace ('order id', '');
             }
-        } else if (type === 'transaction') {
-            const descParts = description.split (';');
-            for (let i = 0; i < descParts.length; i++) {
-                const part = descParts[i].trim ();
-                if (part.startsWith ('fee')) {
-                    // todo: remove duplication from above
-                    const feeCost = this.safeFloat (part.replace ('fee ', '').trim ());
-                    fee = {
-                        'cost': feeCost < 0 ? -feeCost : feeCost,
-                        'currency': code,
-                    };
-                } else if (part.startsWith ('Withdraw')) {
-                    const moreDetail = part.split ('to address');
-                    if (moreDetail.length > 1) {
-                        address = moreDetail[1].trim ();
-                    }
-                }
-            }
+            //
+            // does not belong to Ledger, related to parseTransaction
+            //
+            //     if (part.indexOf ('Withdraw') === 0) {
+            //         const details = part.split (' to address ');
+            //         if (details.length > 1) {
+            //             address = details[1];
+            //     }
+            //
         }
         const timestamp = this.parse8601 (this.safeString (item, 'TimeStamp'));
         let amount = this.safeFloat (item, 'Amount');
@@ -431,21 +424,23 @@ module.exports = class bleutrade extends bittrex {
                 amount = -amount;
             }
         }
+        const id = this.safeString (item, 'ID');
         return {
-            'id': this.safeString (item, 'ID'),
+            'id': id,
+            'info': item,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'direction': direction,
+            'account': undefined,
             'referenceId': referenceId,
             'referenceAccount': undefined,
+            'type': type,
             'currency': code,
             'amount': amount,
-            'direction': direction,
-            'address': address,
             'before': undefined,
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-            'info': item,
         };
     }
 
