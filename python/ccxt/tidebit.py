@@ -317,6 +317,8 @@ class tidebit (Exchange):
         else:
             request['timestamp'] = 1800000
         response = self.publicGetK(self.extend(request, params))
+        if response == 'null':
+            return []
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):

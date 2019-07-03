@@ -66,6 +66,7 @@ class tidex extends Exchange {
                 ),
                 'private' => array (
                     'post' => array (
+                        'getInfoExt',
                         'getInfo',
                         'Trade',
                         'ActiveOrders',
@@ -252,7 +253,7 @@ class tidex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetInfo ($params);
+        $response = $this->privatePostGetInfoExt ($params);
         $balances = $this->safe_value($response, 'return');
         $result = array( 'info' => $balances );
         $funds = $this->safe_value($balances, 'funds', array());
@@ -265,17 +266,10 @@ class tidex extends Exchange {
             } else {
                 $code = $this->common_currency_code(strtoupper($currencyId));
             }
-            $total = null;
-            $used = null;
-            if ($balances['open_orders'] === 0) {
-                $total = $funds[$currencyId];
-                $used = 0.0;
-            }
-            $account = array (
-                'free' => $funds[$currencyId],
-                'used' => $used,
-                'total' => $total,
-            );
+            $balance = $this->safe_value($funds, $currencyId, array());
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'value');
+            $account['used'] = $this->safe_float($balance, 'inOrders');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

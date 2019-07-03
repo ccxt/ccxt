@@ -420,10 +420,12 @@ class bibox (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
+        type = self.safe_string(params, 'type', 'assets')
+        params = self.omit(params, 'type')
         request = {
-            'cmd': 'transfer/mainAssets',
+            'cmd': 'transfer/' + type,  # assets, mainAssets
             'body': self.extend({
-                'select': 1,
+                'select': 1,  # return full info
             }, params),
         }
         response = await self.privatePostTransfer(request)

@@ -61,6 +61,7 @@ module.exports = class tidex extends Exchange {
                 },
                 'private': {
                     'post': [
+                        'getInfoExt',
                         'getInfo',
                         'Trade',
                         'ActiveOrders',
@@ -247,7 +248,7 @@ module.exports = class tidex extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostGetInfo (params);
+        const response = await this.privatePostGetInfoExt (params);
         const balances = this.safeValue (response, 'return');
         const result = { 'info': balances };
         const funds = this.safeValue (balances, 'funds', {});
@@ -260,17 +261,10 @@ module.exports = class tidex extends Exchange {
             } else {
                 code = this.commonCurrencyCode (currencyId.toUpperCase ());
             }
-            let total = undefined;
-            let used = undefined;
-            if (balances['open_orders'] === 0) {
-                total = funds[currencyId];
-                used = 0.0;
-            }
-            const account = {
-                'free': funds[currencyId],
-                'used': used,
-                'total': total,
-            };
+            const balance = this.safeValue (funds, currencyId, {});
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'value');
+            account['used'] = this.safeFloat (balance, 'inOrders');
             result[code] = account;
         }
         return this.parseBalance (result);

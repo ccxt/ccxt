@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.866'
+__version__ = '1.18.871'
 
 # -----------------------------------------------------------------------------
 
@@ -1487,10 +1487,10 @@ class Exchange(object):
     def safe_currency_code(self, currency_id, currency=None):
         code = None
         if currency_id is not None:
-            if currency_id in self.currencies_by_id:
+            if self.currencies_by_id is not None and currency_id in self.currencies_by_id:
                 code = self.currencies_by_id[currency_id]['code']
             else:
-                code = self.common_currency_code(currency_id)
+                code = self.common_currency_code(currency_id.upper())
         if code is None and currency is not None:
             code = currency['code']
         return code
