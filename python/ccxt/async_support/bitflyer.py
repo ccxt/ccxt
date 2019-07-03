@@ -119,8 +119,8 @@ class bitflyer (Exchange):
             else:
                 baseId = currencies[1]
                 quoteId = currencies[2]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = (base + '/' + quote) if (numCurrencies == 2) else id
             result.append({
                 'id': id,
@@ -162,11 +162,7 @@ class bitflyer (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency_code')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
             account['total'] = self.safe_float(balance, 'amount')
             account['free'] = self.safe_float(balance, 'available')

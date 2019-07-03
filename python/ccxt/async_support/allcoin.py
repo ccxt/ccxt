@@ -76,8 +76,8 @@ class allcoin (okcoinusd):
                 quote = self.safe_string(market, 'Secondary')
                 baseId = base.lower()
                 quoteId = quote.lower()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safeCurrencyCode(base)
+                quote = self.safeCurrencyCode(quote)
                 id = baseId + '_' + quoteId
                 symbol = base + '/' + quote
                 active = market['TradeEnabled'] and market['BuyEnabled'] and market['SellEnabled']

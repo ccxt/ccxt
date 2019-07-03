@@ -300,7 +300,7 @@ module.exports = class anxpro extends Exchange {
             type = 'deposit';
         }
         const currencyId = this.safeString (transaction, 'ccy');
-        const code = this.commonCurrencyCode (currencyId);
+        const code = this.safeCurrencyCode (currencyId);
         const transactionState = this.safeString (transaction, 'transactionState');
         const status = this.parseTransactionStatus (transactionState);
         const feeCost = this.safeFloat (transaction, 'fee');
@@ -518,7 +518,7 @@ module.exports = class anxpro extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = currencies[id];
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             const engineSettings = this.safeValue (currency, 'engineSettings');
             const depositsEnabled = this.safeValue (engineSettings, 'depositsEnabled');
             const withdrawalsEnabled = this.safeValue (engineSettings, 'withdrawalsEnabled');
@@ -672,8 +672,8 @@ module.exports = class anxpro extends Exchange {
             //
             const baseId = this.safeString (market, 'tradedCcy');
             const quoteId = this.safeString (market, 'settlementCcy');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const baseCurrency = this.safeValue (currencies, baseId, {});
             const quoteCurrency = this.safeValue (currencies, quoteId, {});
@@ -723,12 +723,7 @@ module.exports = class anxpro extends Exchange {
         const result = { 'info': balance };
         for (let c = 0; c < currencyIds.length; c++) {
             const currencyId = currencyIds[c];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const wallet = this.safeValue (wallets, currencyId);
             account['free'] = this.safeFloat (wallet['Available_Balance'], 'value');

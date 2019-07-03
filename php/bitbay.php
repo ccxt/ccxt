@@ -175,8 +175,8 @@ class bitbay extends Exchange {
             $baseId = $this->safe_string($first, 'currency');
             $quoteId = $this->safe_string($second, 'currency');
             $id = $baseId . $quoteId;
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($first, 'scale'),
