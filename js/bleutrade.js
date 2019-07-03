@@ -338,8 +338,11 @@ module.exports = class bleutrade extends bittrex {
     }
 
     parseLedgerEntry (item, currency = undefined) {
-        //     trade (both sides)
-        //      { ID: 109660527,
+        //
+        // trade (both sides)
+        //
+        //     {
+        //         ID: 109660527,
         //         TimeStamp: '2018-11-14 15:12:57.140776',
         //         Asset: 'ETH',
         //         AssetName: 'Ethereum',
@@ -348,8 +351,11 @@ module.exports = class bleutrade extends bittrex {
         //         Description: 'Trade +, order id 133111123',
         //         Comments: '',
         //         CoinSymbol: 'ETH',
-        //         CoinName: 'Ethereum' },
-        //       { ID: 109660526,
+        //         CoinName: 'Ethereum'
+        //     }
+        //
+        //     {
+        //         ID: 109660526,
         //         TimeStamp: '2018-11-14 15:12:57.140776',
         //         Asset: 'BTC',
         //         AssetName: 'Bitcoin',
@@ -358,20 +364,23 @@ module.exports = class bleutrade extends bittrex {
         //         Description: 'Trade -, order id 133111123, fee -0.00000079',
         //         Comments: '',
         //         CoinSymbol: 'BTC',
-        //         CoinName: 'Bitcoin' },
+        //         CoinName: 'Bitcoin'
+        //     }
         //
-        //    withdrawal
-        //    { ID: 104672316,
-        //     TimeStamp: '2018-05-03 08:18:19.031831',
-        //     Asset: 'DOGE',
-        //     AssetName: 'Dogecoin',
-        //     Amount: -61893.87864686,
-        //     Type: 'WITHDRAW',
-        //     Description:
-        //     'Withdraw: 61883.87864686 to address DD8tgehNNyYB2iqVazi2W1paaztgcWXtF6; fee 10.00000000',
+        // withdrawal
+        //
+        //     {
+        //         ID: 104672316,
+        //         TimeStamp: '2018-05-03 08:18:19.031831',
+        //         Asset: 'DOGE',
+        //         AssetName: 'Dogecoin',
+        //         Amount: -61893.87864686,
+        //         Type: 'WITHDRAW',
+        //         Description: 'Withdraw: 61883.87864686 to address DD8tgehNNyYB2iqVazi2W1paaztgcWXtF6; fee 10.00000000',
         //         Comments: '',
-        //     CoinSymbol: 'DOGE',
-        //     CoinName: 'Dogecoin' }
+        //         CoinSymbol: 'DOGE',
+        //         CoinName: 'Dogecoin'
+        //     }
         //
         const currencyId = this.safeString (item, 'CoinSymbol');
         let code = undefined;
