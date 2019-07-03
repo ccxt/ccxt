@@ -506,7 +506,7 @@ module.exports = class binance extends Exchange {
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeFloat (trade, 'commission'),
-                'currency': this.safeCurrencyCode (trade['commissionAsset']),
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
         let takerOrMaker = undefined;
