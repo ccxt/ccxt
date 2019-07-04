@@ -133,10 +133,7 @@ module.exports = class coinone extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const balance = balances[id];
-            let code = id.toUpperCase ();
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
-            }
+            const code = this.safeCurrencyCode (id);
             const free = this.safeFloat (balance, 'avail');
             const total = this.safeFloat (balance, 'balance');
             const used = total - free;
