@@ -176,7 +176,7 @@ module.exports = class kucoin extends Exchange {
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
-                'fetchMyTradesMethod': 'privateGetFills',
+                'fetchMyTradesMethod': 'private_get_fills',
             },
         });
     }
@@ -801,17 +801,19 @@ module.exports = class kucoin extends Exchange {
             request['pageSize'] = limit;
         }
         const method = this.options['fetchMyTradesMethod'];
-        if (method === 'privateGetFills') {
+        let parseData = false;
+        if (method === 'private_get_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since !== undefined) {
                 // only returns trades up to one week after the since param
                 request['startAt'] = since;
             }
-        } else if (method === 'privateGetLimitFills') {
+        } else if (method === 'private_get_limit_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
-        } else if (method === 'privateGetHistOrders') {
+            parseData = true;
+        } else if (method === 'private_get_hist_orders') {
             // despite that this endpoint is called `HistOrders`
             // it returns historical trades instead of orders
             // returns trades earlier than 2019-02-18T00:00:00Z only
@@ -819,7 +821,7 @@ module.exports = class kucoin extends Exchange {
                 request['startAt'] = parseInt (since / 1000);
             }
         } else {
-            throw new ArgumentsRequired (this.id + ' invalid fetchClosedOrder method');
+            throw new ExchangeError (this.id + ' invalid fetchClosedOrder method');
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -864,7 +866,7 @@ module.exports = class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         let trades = undefined;
-        if (method === 'privateGetLimitFills') {
+        if (parseData) {
             trades = data;
         } else {
             trades = this.safeValue (data, 'items', []);
