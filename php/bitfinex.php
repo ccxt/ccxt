@@ -468,8 +468,16 @@ class bitfinex extends Exchange {
                 continue;
             }
             $id = strtoupper($id);
-            $baseId = mb_substr($id, 0, 3 - 0);
-            $quoteId = mb_substr($id, 3, 6 - 3);
+            $baseId = null;
+            $quoteId = null;
+            if (mb_strpos($id, ':') !== false) {
+                $parts = explode(':', $id);
+                $baseId = $parts[0];
+                $quoteId = $parts[1];
+            } else {
+                $baseId = mb_substr($id, 0, 3 - 0);
+                $quoteId = mb_substr($id, 3, 6 - 3);
+            }
             $base = $this->safeCurrencyCode ($baseId);
             $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
