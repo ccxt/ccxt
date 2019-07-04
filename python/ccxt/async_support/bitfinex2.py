@@ -219,8 +219,8 @@ class bitfinex2 (bitfinex):
             id = id.upper()
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             id = 't' + id
             baseId = self.get_currency_id(baseId)
@@ -270,15 +270,9 @@ class bitfinex2 (bitfinex):
             total = balance[2]
             available = balance[4]
             if accountType == balanceType:
-                code = currency
-                if currency in self.currencies_by_id:
-                    code = self.currencies_by_id[currency]['code']
-                elif currency[0] == 't':
+                if currency[0] == 't':
                     currency = currency[1:]
-                    code = currency.upper()
-                    code = self.common_currency_code(code)
-                else:
-                    code = self.common_currency_code(code)
+                code = self.safeCurrencyCode(currency)
                 account = self.account()
                 account['total'] = total
                 if not available:
@@ -436,7 +430,7 @@ class bitfinex2 (bitfinex):
             orderId = trade[3]
             takerOrMaker = 'maker' if (trade[8] == 1) else 'taker'
             feeCost = trade[9]
-            feeCurrency = self.common_currency_code(trade[10])
+            feeCurrency = self.safeCurrencyCode(trade[10])
             if feeCost is not None:
                 fee = {
                     'cost': abs(feeCost),

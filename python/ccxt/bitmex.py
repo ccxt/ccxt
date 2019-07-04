@@ -176,8 +176,8 @@ class bitmex (Exchange):
             baseId = market['underlying']
             quoteId = market['quoteCurrency']
             basequote = baseId + quoteId
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             swap = (id == basequote)
             # 'positionCurrency' may be empty("", as Bitmex currently returns for ETHUSD)
             # so let's take the quote currency first and then adjust if needed
@@ -185,7 +185,7 @@ class bitmex (Exchange):
             type = None
             future = False
             prediction = False
-            position = self.common_currency_code(positionId)
+            position = self.safeCurrencyCode(positionId)
             symbol = id
             if swap:
                 type = 'swap'
@@ -256,11 +256,7 @@ class bitmex (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'availableMargin')
             account['total'] = self.safe_float(balance, 'marginBalance')
@@ -453,10 +449,7 @@ class bitmex (Exchange):
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'transactType'))
         currencyId = self.safe_string(item, 'currency')
-        code = None
-        if currencyId is not None:
-            currencyId = currencyId.upper()
-            code = self.common_currency_code(currencyId)
+        code = self.safeCurrencyCode(currencyId, currency)
         amount = self.safe_float(item, 'amount')
         if amount is not None:
             amount = amount * 1e-8
@@ -480,8 +473,10 @@ class bitmex (Exchange):
             direction = 'in'
         status = self.parse_transaction_status(self.safe_string(item, 'transactStatus'))
         return {
-            'info': item,
             'id': id,
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'direction': direction,
             'account': account,
             'referenceId': referenceId,
@@ -492,8 +487,6 @@ class bitmex (Exchange):
             'before': before,
             'after': after,
             'status': status,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
             'fee': fee,
         }
 
@@ -921,8 +914,7 @@ class bitmex (Exchange):
             feeCost = self.safe_float(trade, 'execComm')
             feeCost = feeCost / 100000000
             currencyId = self.safe_string(trade, 'settlCurrency')
-            currencyId = currencyId.upper()
-            feeCurrency = self.common_currency_code(currencyId)
+            feeCurrency = self.safeCurrencyCode(currencyId)
             feeRate = self.safe_float(trade, 'commission')
             fee = {
                 'cost': feeCost,

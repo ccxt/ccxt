@@ -233,7 +233,7 @@ class upbit (Exchange):
             maxWithdrawLimit = maxDailyWithdrawal
         precision = None
         currencyId = self.safe_string(currencyInfo, 'code')
-        code = self.common_currency_code(currencyId)
+        code = self.safeCurrencyCode(currencyId)
         return {
             'info': response,
             'id': currencyId,
@@ -296,8 +296,8 @@ class upbit (Exchange):
         marketId = self.safe_string(marketInfo, 'id')
         baseId = self.safe_string(ask, 'currency')
         quoteId = self.safe_string(bid, 'currency')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safeCurrencyCode(baseId)
+        quote = self.safeCurrencyCode(quoteId)
         symbol = base + '/' + quote
         precision = {
             'amount': 8,
@@ -361,8 +361,8 @@ class upbit (Exchange):
             market = response[i]
             id = self.safe_string(market, 'market')
             quoteId, baseId = id.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -419,11 +419,7 @@ class upbit (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'balance')
             account['used'] = self.safe_float(balance, 'locked')
@@ -437,8 +433,8 @@ class upbit (Exchange):
         if market is not None:
             return market['symbol']
         baseId, quoteId = marketId.split(self.options['symbolSeparator'])
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safeCurrencyCode(baseId)
+        quote = self.safeCurrencyCode(quoteId)
         return base + '/' + quote
 
     async def fetch_order_books(self, symbols=None, params={}):
@@ -675,8 +671,8 @@ class upbit (Exchange):
             feeCurrency = market['quote']
         else:
             baseId, quoteId = marketId.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             feeCurrency = quote
         feeCost = self.safe_string(trade, askOrBid + '_fee')
@@ -1003,13 +999,8 @@ class upbit (Exchange):
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'
-        code = None
         currencyId = self.safe_string(transaction, 'currency')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safeCurrencyCode(currencyId)
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         feeCost = self.safe_float(transaction, 'fee')
         return {
@@ -1114,8 +1105,8 @@ class upbit (Exchange):
             feeCurrency = market['quote']
         else:
             baseId, quoteId = marketId.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             feeCurrency = quote
         trades = self.safe_value(order, 'trades', [])
@@ -1300,7 +1291,8 @@ class upbit (Exchange):
         #
         address = self.safe_string(depositAddress, 'deposit_address')
         tag = self.safe_string(depositAddress, 'secondary_address')
-        code = self.common_currency_code(self.safe_string(depositAddress, 'currency'))
+        currencyId = self.safe_string(depositAddress, 'currency')
+        code = self.safeCurrencyCode(currencyId)
         self.check_address(address)
         return {
             'currency': code,

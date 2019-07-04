@@ -36,18 +36,23 @@ class bleutrade extends bittrex {
                 'fetchOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchOrderTrades' => true,
+                'fetchLedger' => true,
             ),
             'timeframes' => $timeframes,
             'hostname' => 'bleutrade.com',
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30303000-b602dbe6-976d-11e7-956d-36c5049c01e7.jpg',
                 'api' => array (
-                    'public' => 'https://{hostname}/api',
-                    'account' => 'https://{hostname}/api',
-                    'market' => 'https://{hostname}/api',
+                    'public' => 'https://{hostname}/api/v2',
+                    'account' => 'https://{hostname}/api/v2',
+                    'market' => 'https://{hostname}/api/v2',
+                    'v3Private' => 'https://{hostname}/api/v3/private',
+                    'v3Public' => 'https://{hostname}/api/v3/public',
                 ),
                 'www' => 'https://bleutrade.com',
-                'doc' => 'https://bleutrade.com/help/API',
+                'doc' => array (
+                    'https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0',
+                ),
                 'fees' => 'https://bleutrade.com/help/fees_and_deadlines',
             ),
             'api' => array (
@@ -74,6 +79,23 @@ class bleutrade extends bittrex {
                         'marketsummary',
                         'orderbook',
                         'ticker',
+                    ),
+                ),
+                'v3Public' => array (
+                    'get' => array (
+                        'assets',
+                        'markets',
+                        'ticker',
+                        'marketsummary',
+                        'marketsummaries',
+                        'orderbook',
+                        'markethistory',
+                        'candles',
+                    ),
+                ),
+                'v3Private' => array (
+                    'get' => array (
+                        'getmytransactions',
                     ),
                 ),
             ),
@@ -164,13 +186,13 @@ class bleutrade extends bittrex {
         // depth (optional, default is 500, max is 20000)
         $this->load_markets();
         $market = null;
+        $marketId = 'ALL';
         if ($symbol !== null) {
             $market = $this->market ($symbol);
-        } else {
-            $market = null;
+            $marketId = $market['id'];
         }
         $request = array (
-            'market' => 'ALL',
+            'market' => $marketId,
             'orderstatus' => 'ALL',
         );
         $response = $this->accountGetOrders (array_merge ($request, $params));
@@ -188,8 +210,8 @@ class bleutrade extends bittrex {
 
     public function parse_symbol ($id) {
         list($base, $quote) = explode($this->options['symbolSeparator'], $id);
-        $base = $this->common_currency_code($base);
-        $quote = $this->common_currency_code($quote);
+        $base = $this->safeCurrencyCode ($base);
+        $quote = $this->safeCurrencyCode ($quote);
         return $base . '/' . $quote;
     }
 
@@ -307,7 +329,157 @@ class bleutrade extends bittrex {
         );
     }
 
+    public function parse_ledger_entry_type ($type) {
+        // deposits don't seem to appear in here
+        $types = array (
+            'TRADE' => 'trade',
+            'WITHDRAW' => 'transaction',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry ($item, $currency = null) {
+        //
+        // trade (both sides)
+        //
+        //     {
+        //         ID => 109660527,
+        //         TimeStamp => '2018-11-14 15:12:57.140776',
+        //         Asset => 'ETH',
+        //         AssetName => 'Ethereum',
+        //         Amount => 0.01,
+        //         Type => 'TRADE',
+        //         Description => 'Trade +, order $id 133111123',
+        //         Comments => '',
+        //         CoinSymbol => 'ETH',
+        //         CoinName => 'Ethereum'
+        //     }
+        //
+        //     {
+        //         ID => 109660526,
+        //         TimeStamp => '2018-11-14 15:12:57.140776',
+        //         Asset => 'BTC',
+        //         AssetName => 'Bitcoin',
+        //         Amount => -0.00031776,
+        //         Type => 'TRADE',
+        //         Description => 'Trade -, order $id 133111123, $fee -0.00000079',
+        //         Comments => '',
+        //         CoinSymbol => 'BTC',
+        //         CoinName => 'Bitcoin'
+        //     }
+        //
+        // withdrawal
+        //
+        //     {
+        //         ID => 104672316,
+        //         TimeStamp => '2018-05-03 08:18:19.031831',
+        //         Asset => 'DOGE',
+        //         AssetName => 'Dogecoin',
+        //         Amount => -61893.87864686,
+        //         Type => 'WITHDRAW',
+        //         Description => 'Withdraw => 61883.87864686 to address DD8tgehNNyYB2iqVazi2W1paaztgcWXtF6; $fee 10.00000000',
+        //         Comments => '',
+        //         CoinSymbol => 'DOGE',
+        //         CoinName => 'Dogecoin'
+        //     }
+        //
+        $code = $this->safeCurrencyCode ($this->safe_string($item, 'CoinSymbol'), $currency);
+        $description = $this->safe_string($item, 'Description');
+        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'Type'));
+        $referenceId = null;
+        $fee = null;
+        $delimiter = ($type === 'trade') ? ', ' : '; ';
+        $parts = explode($delimiter, $description);
+        for ($i = 0; $i < count ($parts); $i++) {
+            $part = $parts[$i];
+            if (mb_strpos($part, 'fee') === 0) {
+                $part = str_replace('fee ', '', $part);
+                $feeCost = floatval ($part);
+                if ($feeCost < 0) {
+                    $feeCost = -$feeCost;
+                }
+                $fee = array (
+                    'cost' => $feeCost,
+                    'currency' => $code,
+                );
+            } else if (mb_strpos($part, 'order id') === 0) {
+                $referenceId = str_replace('order id', '', $part);
+            }
+            //
+            // does not belong to Ledger, related to parseTransaction
+            //
+            //     if (mb_strpos($part, 'Withdraw') === 0) {
+            //         $details = explode(' to address ', $part);
+            //         if (strlen ($details) > 1) {
+            //             address = $details[1];
+            //     }
+            //
+        }
+        $timestamp = $this->parse8601 ($this->safe_string($item, 'TimeStamp'));
+        $amount = $this->safe_float($item, 'Amount');
+        $direction = null;
+        if ($amount !== null) {
+            $direction = 'in';
+            if ($amount < 0) {
+                $direction = 'out';
+                $amount = -$amount;
+            }
+        }
+        $id = $this->safe_string($item, 'ID');
+        return array (
+            'id' => $id,
+            'info' => $item,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'direction' => $direction,
+            'account' => null,
+            'referenceId' => $referenceId,
+            'referenceAccount' => null,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'before' => null,
+            'after' => null,
+            'status' => 'ok',
+            'fee' => $fee,
+        );
+    }
+
+    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+        //
+        //     if ($code === null) {
+        //         throw new ExchangeError($this->id . ' fetchClosedOrders requires a `symbol` argument');
+        //     }
+        //
+        $this->load_markets();
+        $request = array();
+        //
+        //     if ($code !== null) {
+        //         $currency = $this->market ($code);
+        //         $request['asset'] = $currency['id'];
+        //     }
+        //
+        $response = $this->v3PrivateGetGetmytransactions (array_merge ($request, $params));
+        return $this->parse_ledger($response['result'], $code, $since, $limit);
+    }
+
     public function parse_order ($order, $market = null) {
+        //
+        // fetchOrders
+        //
+        //     {
+        //         OrderId => '107220258',
+        //         Exchange => 'LTC_BTC',
+        //         Type => 'SELL',
+        //         Quantity => '2.13040000',
+        //         QuantityRemaining => '0.00000000',
+        //         Price => '0.01332672',
+        //         Status => 'OK',
+        //         Created => '2018-06-30 04:55:50',
+        //         QuantityBaseTraded => '0.02839125',
+        //         Comments => ''
+        //     }
+        //
         $side = $this->safe_string_2($order, 'OrderType', 'Type');
         $isBuyOrder = ($side === 'LIMIT_BUY') || ($side === 'BUY');
         $isSellOrder = ($side === 'LIMIT_SELL') || ($side === 'SELL');
@@ -379,11 +551,7 @@ class bleutrade extends bittrex {
             } else if ($symbol !== null) {
                 $currencyIds = explode('/', $symbol);
                 $quoteCurrencyId = $currencyIds[1];
-                if (is_array($this->currencies_by_id) && array_key_exists($quoteCurrencyId, $this->currencies_by_id)) {
-                    $fee['currency'] = $this->currencies_by_id[$quoteCurrencyId]['code'];
-                } else {
-                    $fee['currency'] = $this->common_currency_code($quoteCurrencyId);
-                }
+                $fee['currency'] = $this->safeCurrencyCode ($quoteCurrencyId);
             }
         }
         $price = $this->safe_float($order, 'Price');
@@ -466,13 +634,7 @@ class bleutrade extends bittrex {
             $type = 'withdrawal';
         }
         $currencyId = $this->safe_string($transaction, 'Coin');
-        $code = null;
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safeCurrencyCode ($currencyId, $currency);
         $label = $this->safe_string($transaction, 'Label');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'TimeStamp'));
         $txid = $this->safe_string($transaction, 'TransactionId');
@@ -513,5 +675,33 @@ class bleutrade extends bittrex {
             'txid' => $txid,
             'fee' => $fee,
         );
+    }
+
+    public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $url = $this->implode_params($this->urls['api'][$api], array (
+            'hostname' => $this->hostname,
+        )) . '/';
+        if ($api === 'v3Private' || $api === 'account') {
+            $this->check_required_credentials();
+            if ($api === 'account') {
+                $url .= $api . '/';
+            }
+            if ((($api === 'account') && ($path !== 'withdraw')) || ($path === 'openorders')) {
+                $url .= strtolower($method);
+            }
+            $request = array (
+                'apikey' => $this->apiKey,
+            );
+            $request['nonce'] = $this->nonce ();
+            $url .= $path . '?' . $this->urlencode (array_merge ($request, $params));
+            $signature = $this->hmac ($this->encode ($url), $this->encode ($this->secret), 'sha512');
+            $headers = array( 'apisign' => $signature );
+        } else {
+            $url .= $api . '/' . strtolower($method) . $path;
+            if ($params) {
+                $url .= '?' . $this->urlencode ($params);
+            }
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

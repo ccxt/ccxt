@@ -305,8 +305,8 @@ class bcex extends Exchange {
                 $quoteId = $this->safe_string($market, 'coin_to');
                 $base = strtoupper($baseId);
                 $quote = strtoupper($quoteId);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safeCurrencyCode ($base);
+                $quote = $this->safeCurrencyCode ($quote);
                 $id = $baseId . '2' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $active = true;
@@ -410,12 +410,7 @@ class bcex extends Exchange {
             $parts = explode('_', $key);
             $currencyId = $parts[0];
             $lockOrOver = $parts[1];
-            $code = strtoupper($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($code);
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
             if (!(is_array($result) && array_key_exists($code, $result))) {
                 $result[$code] = $this->account ();
             }

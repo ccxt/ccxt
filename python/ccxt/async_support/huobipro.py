@@ -31,7 +31,7 @@ class huobipro (Exchange):
             'has': {
                 'CORS': False,
                 'fetchTickers': True,
-                'fetchDepositAddress': True,
+                'fetchDepositAddress': False,
                 'fetchOHLCV': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -105,8 +105,6 @@ class huobipro (Exchange):
                         'order/history',  # 查询当前委托、历史委托
                         'order/matchresults',  # 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
-                        'dw/deposit-virtual/addresses',
-                        'dw/deposit-virtual/sharedAddressWithTag',  # https://github.com/ccxt/ccxt/issues/4851
                         'query/deposit-withdraw',
                         'margin/loan-orders',  # 借贷订单
                         'margin/accounts/balance',  # 借贷账户详情
@@ -859,58 +857,6 @@ class huobipro (Exchange):
             'id': id,
             'status': 'canceled',
         })
-
-    async def fetch_deposit_address(self, code, params={}):
-        await self.load_markets()
-        currency = self.currency(code)
-        # if code == 'EOS':
-        #     res = huobi.request('/dw/deposit-virtual/sharedAddressWithTag', 'private', 'GET', {'currency': 'eos', 'chain': 'eos1'})
-        #     address_info = res['data']
-        # else:
-        #     address_info = self.broker.fetch_deposit_address(code)
-        request = {
-            'currency': currency['id'].lower(),
-        }
-        # https://github.com/ccxt/ccxt/issues/4851
-        info = self.safe_value(currency, 'info', {})
-        currencyAddressWithTag = self.safe_value(info, 'currency-addr-with-tag')
-        method = 'privateGetDwDepositVirtualAddresses'
-        if currencyAddressWithTag:
-            method = 'privateGetDwDepositVirtualSharedAddressWithTag'
-        response = await getattr(self, method)(self.extend(request, params))
-        #
-        # privateGetDwDepositVirtualSharedAddressWithTag
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": {
-        #             "address": "huobideposit",
-        #             "tag": "1937002"
-        #         }
-        #     }
-        #
-        # privateGetDwDepositVirtualAddresses
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": "0xd7842ec9ba2bc20354e12f0e925a4e285a64187b"
-        #     }
-        #
-        data = self.safe_value(response, 'data')
-        address = None
-        tag = None
-        if currencyAddressWithTag:
-            address = self.safe_string(data, 'address')
-            tag = self.safe_string(data, 'tag')
-        else:
-            address = self.safe_string(response, 'data')
-        self.check_address(address)
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
-        }
 
     def currency_to_precision(self, currency, fee):
         return self.decimal_to_precision(fee, 0, self.currencies[currency]['precision'])

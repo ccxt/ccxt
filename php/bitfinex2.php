@@ -218,8 +218,8 @@ class bitfinex2 extends bitfinex {
             $id = strtoupper($id);
             $baseId = mb_substr($id, 0, 3 - 0);
             $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $id = 't' . $id;
             $baseId = $this->get_currency_id ($baseId);
@@ -271,16 +271,10 @@ class bitfinex2 extends bitfinex {
             $total = $balance[2];
             $available = $balance[4];
             if ($accountType === $balanceType) {
-                $code = $currency;
-                if (is_array($this->currencies_by_id) && array_key_exists($currency, $this->currencies_by_id)) {
-                    $code = $this->currencies_by_id[$currency]['code'];
-                } else if ($currency[0] === 't') {
+                if ($currency[0] === 't') {
                     $currency = mb_substr($currency, 1);
-                    $code = strtoupper($currency);
-                    $code = $this->common_currency_code($code);
-                } else {
-                    $code = $this->common_currency_code($code);
                 }
+                $code = $this->safeCurrencyCode ($currency);
                 $account = $this->account ();
                 $account['total'] = $total;
                 if (!$available) {
@@ -455,7 +449,7 @@ class bitfinex2 extends bitfinex {
             $orderId = $trade[3];
             $takerOrMaker = ($trade[8] === 1) ? 'maker' : 'taker';
             $feeCost = $trade[9];
-            $feeCurrency = $this->common_currency_code($trade[10]);
+            $feeCurrency = $this->safeCurrencyCode ($trade[10]);
             if ($feeCost !== null) {
                 $fee = array (
                     'cost' => abs ($feeCost),

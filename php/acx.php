@@ -116,8 +116,8 @@ class acx extends Exchange {
             }
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safeCurrencyCode ($base);
+            $quote = $this->safeCurrencyCode ($quote);
             // todo => find out their undocumented $precision and limits
             $precision = array (
                 'amount' => 8,
@@ -145,12 +145,7 @@ class acx extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'locked');
@@ -228,8 +223,8 @@ class acx extends Exchange {
                 $quote = mb_substr($id, 3, 6 - 3);
                 $base = strtoupper($base);
                 $quote = strtoupper($quote);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safeCurrencyCode ($base);
+                $quote = $this->safeCurrencyCode ($quote);
                 $symbol = $base . '/' . $quote;
             }
             $result[$symbol] = $this->parse_ticker($response[$id], $market);

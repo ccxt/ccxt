@@ -93,8 +93,8 @@ class virwox extends Exchange {
             $id = $this->safe_string($market, 'instrumentID');
             $baseId = $this->safe_string($market, 'longCurrency');
             $quoteId = $this->safe_string($market, 'shortCurrency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -117,7 +117,7 @@ class virwox extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safeCurrencyCode ($currencyId);
             $total = $this->safe_float($balance, 'balance');
             $account = array (
                 'free' => $total,

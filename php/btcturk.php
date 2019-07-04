@@ -67,8 +67,8 @@ class btcturk extends Exchange {
             $id = $this->safe_string($market, 'pair');
             $baseId = mb_substr($id, 0, 3 - 0);
             $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $baseId = strtolower($baseId);
             $quoteId = strtolower($quoteId);
             $symbol = $base . '/' . $quote;

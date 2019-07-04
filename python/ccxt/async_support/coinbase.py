@@ -302,9 +302,12 @@ class coinbase (Exchange):
             raise ArgumentsRequired(self.id + ' fetchTransactionsWithMethod requires an account_id or accountId extra parameter, use fetchAccounts or loadAccounts to get ids of all your accounts.')
         await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
-        response = await getattr(self, method)(self.extend({
+        request = {
             'account_id': accountId,
-        }, query))
+        }
+        if limit is not None:
+            request['limit'] = limit
+        response = await getattr(self, method)(self.extend(request, query))
         return self.parseTransactions(response['data'], None, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
@@ -605,12 +608,12 @@ class coinbase (Exchange):
         return self.parse_balance(result)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/' + self.implode_params(path, params)
+        fullPath = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET':
             if query:
-                request += '?' + self.urlencode(query)
-        url = self.urls['api'] + '/' + self.version + request
+                fullPath += '?' + self.urlencode(query)
+        url = self.urls['api'] + fullPath
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
@@ -619,7 +622,7 @@ class coinbase (Exchange):
                 if query:
                     body = self.json(query)
                     payload = body
-            auth = nonce + method + '/' + self.version + request + payload
+            auth = nonce + method + fullPath + payload
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
             headers = {
                 'CB-ACCESS-KEY': self.apiKey,

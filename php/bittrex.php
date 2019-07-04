@@ -769,14 +769,8 @@ class bittrex extends Exchange {
         $opened = $this->parse8601 ($this->safe_string($transaction, 'Opened'));
         $timestamp = $opened ? $opened : $updated;
         $type = ($opened === null) ? 'deposit' : 'withdrawal';
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'Currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safeCurrencyCode ($currencyId, $currency);
         $status = 'pending';
         if ($type === 'deposit') {
             if ($currency !== null) {
@@ -1042,11 +1036,7 @@ class bittrex extends Exchange {
             } else if ($symbol !== null) {
                 $currencyIds = explode('/', $symbol);
                 $quoteCurrencyId = $currencyIds[1];
-                if (is_array($this->currencies_by_id) && array_key_exists($quoteCurrencyId, $this->currencies_by_id)) {
-                    $fee['currency'] = $this->currencies_by_id[$quoteCurrencyId]['code'];
-                } else {
-                    $fee['currency'] = $this->common_currency_code($quoteCurrencyId);
-                }
+                $fee['currency'] = $this->safeCurrencyCode ($quoteCurrencyId);
             }
         }
         $price = $this->safe_float($order, 'Limit');

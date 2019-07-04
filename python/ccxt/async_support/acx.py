@@ -115,8 +115,8 @@ class acx (Exchange):
                 quoteId = ids[1].lower()
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safeCurrencyCode(base)
+            quote = self.safeCurrencyCode(quote)
             # todo: find out their undocumented precision and limits
             precision = {
                 'amount': 8,
@@ -142,11 +142,7 @@ class acx (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'balance')
             account['used'] = self.safe_float(balance, 'locked')
@@ -216,8 +212,8 @@ class acx (Exchange):
                 quote = id[3:6]
                 base = base.upper()
                 quote = quote.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safeCurrencyCode(base)
+                quote = self.safeCurrencyCode(quote)
                 symbol = base + '/' + quote
             result[symbol] = self.parse_ticker(response[id], market)
         return result

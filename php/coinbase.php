@@ -313,9 +313,13 @@ class coinbase extends Exchange {
         }
         $this->load_markets();
         $query = $this->omit ($params, array ( 'account_id', 'accountId' ));
-        $response = $this->$method (array_merge (array (
+        $request = array (
             'account_id' => $accountId,
-        ), $query));
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->$method (array_merge ($request, $query));
         return $this->parseTransactions ($response['data'], null, $since, $limit);
     }
 
@@ -635,14 +639,14 @@ class coinbase extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/' . $this->implode_params($path, $params);
+        $fullPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($method === 'GET') {
             if ($query) {
-                $request .= '?' . $this->urlencode ($query);
+                $fullPath .= '?' . $this->urlencode ($query);
             }
         }
-        $url = $this->urls['api'] . '/' . $this->version . $request;
+        $url = $this->urls['api'] . $fullPath;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
@@ -653,7 +657,7 @@ class coinbase extends Exchange {
                     $payload = $body;
                 }
             }
-            $auth = $nonce . $method . '/' . $this->version . $request . $payload;
+            $auth = $nonce . $method . $fullPath . $payload;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $headers = array (
                 'CB-ACCESS-KEY' => $this->apiKey,

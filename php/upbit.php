@@ -230,7 +230,7 @@ class upbit extends Exchange {
         }
         $precision = null;
         $currencyId = $this->safe_string($currencyInfo, 'code');
-        $code = $this->common_currency_code($currencyId);
+        $code = $this->safeCurrencyCode ($currencyId);
         return array (
             'info' => $response,
             'id' => $currencyId,
@@ -295,8 +295,8 @@ class upbit extends Exchange {
         $marketId = $this->safe_string($marketInfo, 'id');
         $baseId = $this->safe_string($ask, 'currency');
         $quoteId = $this->safe_string($bid, 'currency');
-        $base = $this->common_currency_code($baseId);
-        $quote = $this->common_currency_code($quoteId);
+        $base = $this->safeCurrencyCode ($baseId);
+        $quote = $this->safeCurrencyCode ($quoteId);
         $symbol = $base . '/' . $quote;
         $precision = array (
             'amount' => 8,
@@ -361,8 +361,8 @@ class upbit extends Exchange {
             $market = $response[$i];
             $id = $this->safe_string($market, 'market');
             list($quoteId, $baseId) = explode('-', $id);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -421,12 +421,7 @@ class upbit extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'locked');
@@ -444,8 +439,8 @@ class upbit extends Exchange {
             return $market['symbol'];
         }
         list($baseId, $quoteId) = explode($this->options['symbolSeparator'], $marketId);
-        $base = $this->common_currency_code($baseId);
-        $quote = $this->common_currency_code($quoteId);
+        $base = $this->safeCurrencyCode ($baseId);
+        $quote = $this->safeCurrencyCode ($quoteId);
         return $base . '/' . $quote;
     }
 
@@ -700,8 +695,8 @@ class upbit extends Exchange {
             $feeCurrency = $market['quote'];
         } else {
             list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
@@ -1054,14 +1049,8 @@ class upbit extends Exchange {
         if ($type === 'withdraw') {
             $type = 'withdrawal';
         }
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safeCurrencyCode ($currencyId);
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
         $feeCost = $this->safe_float($transaction, 'fee');
         return array (
@@ -1170,8 +1159,8 @@ class upbit extends Exchange {
             $feeCurrency = $market['quote'];
         } else {
             list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
@@ -1373,7 +1362,8 @@ class upbit extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'deposit_address');
         $tag = $this->safe_string($depositAddress, 'secondary_address');
-        $code = $this->common_currency_code($this->safe_string($depositAddress, 'currency'));
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $code = $this->safeCurrencyCode ($currencyId);
         $this->check_address($address);
         return array (
             'currency' => $code,

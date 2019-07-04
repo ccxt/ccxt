@@ -164,8 +164,7 @@ class braziliex (Exchange):
             id = ids[i]
             currency = response[id]
             precision = self.safe_integer(currency, 'decimal')
-            uppercase = id.upper()
-            code = self.common_currency_code(uppercase)
+            code = self.safeCurrencyCode(id)
             active = self.safe_integer(currency, 'active') == 1
             maintenance = self.safe_integer(currency, 'under_maintenance')
             if maintenance != 0:
@@ -246,8 +245,8 @@ class braziliex (Exchange):
             baseId, quoteId = id.split('_')
             uppercaseBaseId = baseId.upper()
             uppercaseQuoteId = quoteId.upper()
-            base = self.common_currency_code(uppercaseBaseId)
-            quote = self.common_currency_code(uppercaseQuoteId)
+            base = self.safeCurrencyCode(uppercaseBaseId)
+            quote = self.safeCurrencyCode(uppercaseQuoteId)
             symbol = base + '/' + quote
             baseCurrency = self.safe_value(currencies, baseId, {})
             quoteCurrency = self.safe_value(currencies, quoteId, {})
@@ -393,7 +392,7 @@ class braziliex (Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             balance = balances[currencyId]
-            code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
             account['total'] = self.safe_float(balance, 'total')

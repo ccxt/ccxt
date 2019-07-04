@@ -116,7 +116,7 @@ The ccxt library currently supports the following 127 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `bl3p <https://bl3p.eu>`__                                                                | bl3p               | `BL3P <https://bl3p.eu>`__                                                                 | 1   | `API <https://github.com/BitonicNL/bl3p-api/tree/master/docs>`__                                |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `bleutrade <https://bleutrade.com>`__                                                     | bleutrade          | `Bleutrade <https://bleutrade.com>`__                                                      | 2   | `API <https://bleutrade.com/help/API>`__                                                        |                                                                      |
+| `bleutrade <https://bleutrade.com>`__                                                     | bleutrade          | `Bleutrade <https://bleutrade.com>`__                                                      | 2   | `API <https://app.swaggerhub.com/apis-docs/bleu/white-label/3.0.0>`__                           |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `braziliex <https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465>`__               | braziliex          | `Braziliex <https://braziliex.com/?ref=5FE61AB6F6D67DA885BC98BA27223465>`__                | \*  | `API <https://braziliex.com/exchange/api.php>`__                                                |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -1701,11 +1701,6 @@ Notes On Order Book Structure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -  ``orderbook['timestamp']`` is the time when the exchange generated this orderbook response (before replying it back to you). This may be missing (``undefined/None/null``), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is the UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
--  ``exchange.last_response_headers['Date']`` is the date-time string of the last HTTP response received (from HTTP headers). The ‘Date’ parser should respect the timezone designated there. The precision of the date-time is 1 second, 1000 milliseconds. This date should be set by the exchange server when the message originated according to the following standards:
-
-   -  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
-   -  https://tools.ietf.org/html/rfc1123#section-5.2.14
-   -  https://tools.ietf.org/html/rfc822#section-5
 
 Market Depth
 ~~~~~~~~~~~~

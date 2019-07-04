@@ -273,7 +273,7 @@ Most of exchanges' API endpoints will require an exchange-specific market symbol
 - https://github.com/ccxt/ccxt/wiki/Manual#markets
 - https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
 
-**NEVER DO THIS BAD CODE:**
+**NEVER DO THIS:**
 
 ```JavaScript
 async fetchTicker (symbol, params = {}) {
@@ -285,7 +285,7 @@ async fetchTicker (symbol, params = {}) {
 }
 ```
 
-**DO NOT DO THIS, ALSO AN EXAMPLE OF BAD CODE:**
+**DO NOT DO THIS EITHER:**
 
 ```JavaScript
 async fetchTicker (symbol, params = {}) {

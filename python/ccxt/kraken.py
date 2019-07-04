@@ -558,14 +558,21 @@ class kraken (Exchange):
         return self.safe_string(types, type, type)
 
     def parse_ledger_entry(self, item, currency=None):
-        # {'LTFK7F-N2CUX-PNY4SX': {  refid: "TSJTGT-DT7WN-GPPQMJ",
-        #                               time:  1520102320.555,
-        #                               type: "trade",
-        #                             aclass: "currency",
-        #                              asset: "XETH",
-        #                             amount: "0.1087194600",
-        #                                fee: "0.0000000000",
-        #                            balance: "0.2855851000"         }, ...}
+        #
+        #     {
+        #         'LTFK7F-N2CUX-PNY4SX': {
+        #             refid: "TSJTGT-DT7WN-GPPQMJ",
+        #             time:  1520102320.555,
+        #             type: "trade",
+        #             aclass: "currency",
+        #             asset: "XETH",
+        #             amount: "0.1087194600",
+        #             fee: "0.0000000000",
+        #             balance: "0.2855851000"
+        #         },
+        #         ...
+        #     }
+        #
         id = self.safe_string(item, 'id')
         direction = None
         account = None

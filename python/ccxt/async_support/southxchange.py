@@ -71,8 +71,8 @@ class southxchange (Exchange):
             market = markets[i]
             baseId = market[0]
             quoteId = market[1]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             id = symbol
             result.append({
@@ -94,11 +94,7 @@ class southxchange (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'Currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safeCurrencyCode(currencyId)
             deposited = self.safe_float(balance, 'Deposited')
             unconfirmed = self.safe_float(balance, 'Unconfirmed')
             account = self.account()
@@ -213,8 +209,8 @@ class southxchange (Exchange):
         status = 'open'
         baseId = self.safe_string(order, 'ListingCurrency')
         quoteId = self.safe_string(order, 'ReferenceCurrency')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safeCurrencyCode(baseId)
+        quote = self.safeCurrencyCode(quoteId)
         symbol = base + '/' + quote
         timestamp = None
         price = self.safe_float(order, 'LimitPrice')

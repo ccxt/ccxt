@@ -237,8 +237,8 @@ class bitforex (Exchange):
             symbolParts = id.split('-')
             baseId = symbolParts[2]
             quoteId = symbolParts[1]
-            base = self.common_currency_code(baseId.upper())
-            quote = self.common_currency_code(quoteId.upper())
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             active = True
             precision = {
@@ -320,14 +320,14 @@ class bitforex (Exchange):
         data = response['data']
         result = {'info': response}
         for i in range(0, len(data)):
-            current = data[i]
-            currencyId = current['currency']
-            code = self.common_currency_code(currencyId.upper())
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
+            account['used'] = self.safe_float(balance, 'frozen')
+            account['free'] = self.safe_float(balance, 'active')
+            account['total'] = self.safe_float(balance, 'fix')
             result[code] = account
-            result[code]['used'] = self.safe_float(current, 'frozen')
-            result[code]['free'] = self.safe_float(current, 'active')
-            result[code]['total'] = self.safe_float(current, 'fix')
         return self.parse_balance(result)
 
     def fetch_ticker(self, symbol, params={}):

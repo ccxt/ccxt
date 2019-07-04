@@ -195,8 +195,8 @@ class bitstamp (Exchange):
             base, quote = name.split('/')
             baseId = base.lower()
             quoteId = quote.lower()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safeCurrencyCode(base)
+            quote = self.safeCurrencyCode(quote)
             symbol = base + '/' + quote
             symbolId = baseId + '_' + quoteId
             id = self.safe_string(market, 'url_symbol')
@@ -686,21 +686,15 @@ class bitstamp (Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string(transaction, 'datetime'))
-        code = None
         id = self.safe_string(transaction, 'id')
         currencyId = self.get_currency_id_from_transaction(transaction)
-        if currencyId in self.currencies_by_id:
-            currency = self.currencies_by_id[currencyId]
-        elif currencyId is not None:
-            code = currencyId.upper()
-            code = self.common_currency_code(code)
+        code = self.safeCurrencyCode(currencyId, currency)
         feeCost = self.safe_float(transaction, 'fee')
         feeCurrency = None
         amount = None
         if currency is not None:
             amount = self.safe_float(transaction, currency['id'], amount)
             feeCurrency = currency['code']
-            code = currency['code']
         elif (code is not None) and(currencyId is not None):
             amount = self.safe_float(transaction, currencyId, amount)
             feeCurrency = code
