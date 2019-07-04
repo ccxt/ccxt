@@ -1362,7 +1362,8 @@ class upbit extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'deposit_address');
         $tag = $this->safe_string($depositAddress, 'secondary_address');
-        $code = $this->common_currency_code($this->safe_string($depositAddress, 'currency'));
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $code = $this->safeCurrencyCode ($currencyId);
         $this->check_address($address);
         return array (
             'currency' => $code,

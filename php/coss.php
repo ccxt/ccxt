@@ -161,8 +161,8 @@ class coss extends Exchange {
             $market = $markets[$i];
             $marketId = $market['symbol'];
             list($baseId, $quoteId) = explode('_', $marketId);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'amount_limit_decimal'),
@@ -238,7 +238,7 @@ class coss extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $currency = $response[$i];
             $currencyId = $this->safe_string($currency, 'currency_code');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safeCurrencyCode ($currencyId);
             $name = $this->safe_string($currency, 'name');
             $allowBuy = $this->safe_value($currency, 'allow_buy');
             $allowSell = $this->safe_value($currency, 'allow_sell');
@@ -315,7 +315,7 @@ class coss extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safeCurrencyCode ($currencyId);
             $total = $this->safe_float($balance, 'total');
             $used = $this->safe_float($balance, 'in_order');
             $free = $this->safe_float($balance, 'available');
@@ -417,8 +417,8 @@ class coss extends Exchange {
         if ($market === null) {
             if ($marketId !== null) {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safeCurrencyCode ($baseId);
+                $quote = $this->safeCurrencyCode ($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -556,7 +556,7 @@ class coss extends Exchange {
         $cost = $parts[0];
         $code = null;
         if ($numParts > 1) {
-            $code = $this->common_currency_code($parts[1]);
+            $code = $this->safeCurrencyCode ($parts[1]);
         }
         return array (
             'cost' => $cost,
@@ -600,8 +600,8 @@ class coss extends Exchange {
             $market = $this->safe_value($this->markets_by_id, $marketId, $market);
             if ($market === null) {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safeCurrencyCode ($baseId);
+                $quote = $this->safeCurrencyCode ($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         } else if ($market !== null) {
@@ -806,8 +806,8 @@ class coss extends Exchange {
             $market = $this->safe_value($this->markets_by_id, $marketId, $market);
             if ($market === null) {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safeCurrencyCode ($baseId);
+                $quote = $this->safeCurrencyCode ($quoteId);
                 $symbol = $base . '/' . $quote;
             } else {
                 $symbol = $market['symbol'];

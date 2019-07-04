@@ -72,8 +72,8 @@ class southxchange extends Exchange {
             $market = $markets[$i];
             $baseId = $market[0];
             $quoteId = $market[1];
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $id = $symbol;
             $result[] = array (
@@ -97,12 +97,7 @@ class southxchange extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
             $deposited = $this->safe_float($balance, 'Deposited');
             $unconfirmed = $this->safe_float($balance, 'Unconfirmed');
             $account = $this->account ();
@@ -232,8 +227,8 @@ class southxchange extends Exchange {
         $status = 'open';
         $baseId = $this->safe_string($order, 'ListingCurrency');
         $quoteId = $this->safe_string($order, 'ReferenceCurrency');
-        $base = $this->common_currency_code($baseId);
-        $quote = $this->common_currency_code($quoteId);
+        $base = $this->safeCurrencyCode ($baseId);
+        $quote = $this->safeCurrencyCode ($quoteId);
         $symbol = $base . '/' . $quote;
         $timestamp = null;
         $price = $this->safe_float($order, 'LimitPrice');

@@ -477,8 +477,15 @@ class bitfinex (Exchange):
             if not self.in_array(id, ids):
                 continue
             id = id.upper()
-            baseId = id[0:3]
-            quoteId = id[3:6]
+            baseId = None
+            quoteId = None
+            if id.find(':') >= 0:
+                parts = id.split(':')
+                baseId = parts[0]
+                quoteId = parts[1]
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
             base = self.safeCurrencyCode(baseId)
             quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote

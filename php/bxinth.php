@@ -88,8 +88,8 @@ class bxinth extends Exchange {
             $baseId = $this->safe_string($market, 'secondary_currency');
             $quoteId = $this->safe_string($market, 'primary_currency');
             $active = $this->safe_value($market, 'active');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -113,7 +113,7 @@ class bxinth extends Exchange {
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safeCurrencyCode ($currencyId);
             $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');

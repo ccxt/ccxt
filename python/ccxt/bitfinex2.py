@@ -217,8 +217,15 @@ class bitfinex2 (bitfinex):
             market = response[i]
             id = self.safe_string(market, 'pair')
             id = id.upper()
-            baseId = id[0:3]
-            quoteId = id[3:6]
+            baseId = None
+            quoteId = None
+            if id.find(':') >= 0:
+                parts = id.split(':')
+                baseId = parts[0]
+                quoteId = parts[1]
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
             base = self.safeCurrencyCode(baseId)
             quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
@@ -254,6 +261,9 @@ class bitfinex2 (bitfinex):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'swap': False,
+                'spot': False,
+                'futures': False,
             })
         return result
 

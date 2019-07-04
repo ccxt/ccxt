@@ -128,8 +128,8 @@ class coinmate extends Exchange {
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'firstCurrency');
             $quoteId = $this->safe_string($market, 'secondCurrency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -171,7 +171,7 @@ class coinmate extends Exchange {
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safeCurrencyCode ($currencyId);
             $balance = $this->safe_value($balances, $currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
@@ -301,13 +301,8 @@ class coinmate extends Exchange {
         $txid = $this->safe_string($item, 'txid');
         $address = $this->safe_string($item, 'destination');
         $tag = $this->safe_string($item, 'destinationTag');
-        $code = null;
         $currencyId = $this->safe_string($item, 'amountCurrency');
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $code = $this->currencies_by_id[$currencyId]['code'];
-        } else {
-            $code = $this->commonCurrencyCide ($currencyId);
-        }
+        $code = $this->safeCurrencyCode ($currencyId, $currency);
         $type = $this->safe_string($item, 'transferType');
         if ($type !== null) {
             $type = strtolower($type);
@@ -386,8 +381,8 @@ class coinmate extends Exchange {
                 $quote = $market['quote'];
             } else {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safeCurrencyCode ($baseId);
+                $quote = $this->safeCurrencyCode ($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }

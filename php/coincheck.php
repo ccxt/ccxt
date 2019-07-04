@@ -186,8 +186,8 @@ class coincheck extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safeCurrencyCode ($baseId);
+                $quote = $this->safeCurrencyCode ($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -273,8 +273,8 @@ class coincheck extends Exchange {
                 $ids = explode('_', $marketId);
                 $baseId = $ids[0];
                 $quoteId = $ids[1];
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safeCurrencyCode ($baseId);
+                $quote = $this->safeCurrencyCode ($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }

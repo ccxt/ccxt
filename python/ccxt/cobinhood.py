@@ -205,7 +205,7 @@ class cobinhood (Exchange):
             currency = currencies[i]
             id = self.safe_string(currency, 'currency')
             name = self.safe_string(currency, 'name')
-            code = self.common_currency_code(id)
+            code = self.safeCurrencyCode(id)
             minUnit = self.safe_float(currency, 'min_unit')
             result[code] = {
                 'id': id,
@@ -252,8 +252,8 @@ class cobinhood (Exchange):
             market = markets[i]
             id = self.safe_string(market, 'id')
             baseId, quoteId = id.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -295,8 +295,8 @@ class cobinhood (Exchange):
                 market = self.markets_by_id[marketId]
             else:
                 baseId, quoteId = marketId.split('-')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safeCurrencyCode(baseId)
+                quote = self.safeCurrencyCode(quoteId)
                 symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
@@ -443,11 +443,7 @@ class cobinhood (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
             account['used'] = self.safe_float(balance, 'on_order')
             account['total'] = self.safe_float(balance, 'total')
@@ -728,15 +724,8 @@ class cobinhood (Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'created_at')
-        code = None
-        if currency is None:
-            currencyId = self.safe_string(transaction, 'currency')
-            if currencyId in self.currencies_by_id:
-                currency = self.currencies_by_id[currencyId]
-            else:
-                code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safeCurrencyCode(currencyId, currency)
         id = None
         withdrawalId = self.safe_string(transaction, 'withdrawal_id')
         depositId = self.safe_string(transaction, 'deposit_id')

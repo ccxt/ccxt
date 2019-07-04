@@ -173,8 +173,8 @@ class coinegg (Exchange):
                 baseId = id.split('_')[0]
                 base = baseId.upper()
                 quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safeCurrencyCode(base)
+                quote = self.safeCurrencyCode(quote)
                 symbol = base + '/' + quote
                 precision = {
                     'amount': 8,
@@ -313,11 +313,7 @@ class coinegg (Exchange):
         for i in range(0, len(keys)):
             key = keys[i]
             currencyId, accountType = key.split('_')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safeCurrencyCode(currencyId)
             if not(code in list(result.keys())):
                 result[code] = self.account()
             type = 'used' if (accountType == 'lock') else 'free'

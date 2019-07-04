@@ -138,8 +138,8 @@ class theocean (Exchange):
             quoteToken = self.safe_value(market, 'quoteToken', {})
             baseId = self.safe_string(baseToken, 'address')
             quoteId = self.safe_string(quoteToken, 'address')
-            base = self.common_currency_code(self.safe_string(baseToken, 'symbol'))
-            quote = self.common_currency_code(self.safe_string(quoteToken, 'symbol'))
+            base = self.safeCurrencyCode(self.safe_string(baseToken, 'symbol'))
+            quote = self.safeCurrencyCode(self.safe_string(quoteToken, 'symbol'))
             symbol = base + '/' + quote
             id = baseId + '/' + quoteId
             baseDecimals = self.safe_integer(baseToken, 'decimals')

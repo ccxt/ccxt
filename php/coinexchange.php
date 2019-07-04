@@ -574,7 +574,7 @@ class coinexchange extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'CurrencyID');
-            $code = $this->common_currency_code($this->safe_string($currency, 'TickerCode'));
+            $code = $this->safeCurrencyCode ($this->safe_string($currency, 'TickerCode'));
             $walletStatus = $this->safe_string($currency, 'WalletStatus');
             $active = $walletStatus === 'online';
             $name = $this->safe_string($currency, 'Name');
@@ -618,8 +618,8 @@ class coinexchange extends Exchange {
             $baseId = $this->safe_string($market, 'MarketAssetCode');
             $quoteId = $this->safe_string($market, 'BaseCurrencyCode');
             if ($baseId !== null && $quoteId !== null) {
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safeCurrencyCode ($baseId);
+                $quote = $this->safeCurrencyCode ($quoteId);
                 $symbol = $base . '/' . $quote;
                 $result[] = array (
                     'id' => $id,

@@ -177,8 +177,8 @@ class coincheck (Exchange):
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safeCurrencyCode(baseId)
+                quote = self.safeCurrencyCode(quoteId)
                 symbol = base + '/' + quote
         return {
             'id': id,
@@ -256,8 +256,8 @@ class coincheck (Exchange):
                 ids = marketId.split('_')
                 baseId = ids[0]
                 quoteId = ids[1]
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safeCurrencyCode(baseId)
+                quote = self.safeCurrencyCode(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:

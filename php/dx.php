@@ -180,8 +180,8 @@ class dx extends Exchange {
             if ($instrument['meQuantityMultiplier'] !== 0) {
                 $amountPrecision = log10 ($instrument['meQuantityMultiplier']);
             }
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safeCurrencyCode ($base);
+            $quote = $this->safeCurrencyCode ($quote);
             $baseId = $this->safe_string($asset, 'baseCurrencyId');
             $quoteId = $this->safe_string($asset, 'quotedCurrencyId');
             $baseNumericId = $this->safe_integer($asset, 'baseCurrencyId');
@@ -422,15 +422,13 @@ class dx extends Exchange {
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($balances, $currencyId, array());
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-                $account = array (
-                    'free' => $this->safe_float($balance, 'available'),
-                    'used' => $this->safe_float($balance, 'frozen'),
-                    'total' => $this->safe_float($balance, 'total'),
-                );
-                $result[$code] = $account;
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
+            $account = array (
+                'free' => $this->safe_float($balance, 'available'),
+                'used' => $this->safe_float($balance, 'frozen'),
+                'total' => $this->safe_float($balance, 'total'),
+            );
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

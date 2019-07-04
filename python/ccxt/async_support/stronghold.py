@@ -201,8 +201,8 @@ class stronghold (Exchange):
             quoteId = self.safe_string(entry, 'counterAssetId')
             baseAssetId = baseId.split('/')[0]
             quoteAssetId = quoteId.split('/')[0]
-            base = self.common_currency_code(baseAssetId)
-            quote = self.common_currency_code(quoteAssetId)
+            base = self.safeCurrencyCode(baseAssetId)
+            quote = self.safeCurrencyCode(quoteAssetId)
             symbol = base + '/' + quote
             limits = {
                 'amount': {
@@ -269,7 +269,7 @@ class stronghold (Exchange):
             entry = data[i]
             assetId = self.safe_string(entry, 'id')
             currencyId = self.safe_string(entry, 'code')
-            code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             precision = self.safe_integer(entry, 'displayDecimalsFull')
             result[code] = {
                 'code': code,
@@ -443,7 +443,7 @@ class stronghold (Exchange):
         code = None
         if assetId is not None:
             currencyId = assetId.split('/')[0]
-            code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
         else:
             if currency is not None:
                 code = currency['code']
@@ -589,11 +589,7 @@ class stronghold (Exchange):
             assetId = self.safe_string(balance, 'assetId')
             if assetId is not None:
                 currencyId = assetId.split('/')[0]
-                code = currencyId
-                if currencyId in self.currencies_by_id:
-                    code = self.currencies_by_id[currencyId]['code']
-                else:
-                    code = self.common_currency_code(currencyId)
+                code = self.safeCurrencyCode(currencyId)
                 account = {}
                 account['total'] = self.safe_float(balance, 'amount')
                 account['free'] = self.safe_float(balance, 'availableForTrade')

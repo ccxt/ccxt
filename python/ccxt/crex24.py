@@ -178,8 +178,8 @@ class crex24 (Exchange):
             id = self.safe_string(market, 'symbol')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             tickSize = self.safe_value(market, 'tickSize')
             minPrice = self.safe_value(market, 'minPrice')
@@ -248,7 +248,7 @@ class crex24 (Exchange):
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
-            code = self.common_currency_code(id)
+            code = self.safeCurrencyCode(id)
             precision = self.safe_integer(currency, 'withdrawalPrecision')
             address = self.safe_value(currency, 'BaseAddress')
             active = (currency['depositsAllowed'] and currency['withdrawalsAllowed'] and not currency['isDelisted'])
@@ -311,11 +311,7 @@ class crex24 (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'reserved')
@@ -374,8 +370,8 @@ class crex24 (Exchange):
             symbol = market['symbol']
         elif marketId is not None:
             baseId, quoteId = marketId.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
         last = self.safe_float(ticker, 'last')
         return {
@@ -508,12 +504,7 @@ class crex24 (Exchange):
             symbol = market['symbol']
         fee = None
         feeCurrencyId = self.safe_string(trade, 'feeCurrency')
-        feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
-        feeCode = None
-        if feeCurrency is not None:
-            feeCode = feeCurrency['code']
-        elif market is not None:
-            feeCode = market['quote']
+        feeCode = self.safeCurrencyCode(feeCurrencyId)
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
             fee = {
@@ -1022,14 +1013,8 @@ class crex24 (Exchange):
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'paymentId')
         txid = self.safe_value(transaction, 'txId')
-        code = None
         currencyId = self.safe_string(transaction, 'currency')
-        if currencyId in self.currencies_by_id:
-            currency = self.currencies_by_id[currencyId]
-        else:
-            code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        code = self.safeCurrencyCode(currencyId, currency)
         type = self.safe_string(transaction, 'type')
         timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
         updated = self.parse8601(self.safe_string(transaction, 'processedAt'))
