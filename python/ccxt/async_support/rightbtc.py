@@ -146,7 +146,7 @@ class rightbtc (Exchange):
     async def fetch_markets(self, params={}):
         response = await self.publicGetTradingPairs(params)
         # zh = await self.publicGetGetAssetsTradingPairsZh()
-        markets = self.extend(response['status']['message'])
+        markets = response['status']['message']
         marketIds = list(markets.keys())
         result = []
         for i in range(0, len(marketIds)):
@@ -154,8 +154,8 @@ class rightbtc (Exchange):
             market = markets[id]
             baseId = self.safe_string(market, 'bid_asset_symbol')
             quoteId = self.safe_string(market, 'ask_asset_symbol')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'bid_asset_decimals'),
@@ -390,11 +390,7 @@ class rightbtc (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
             # https://github.com/ccxt/ccxt/issues/3873
             account['free'] = self.divide_safe_float(balance, 'balance', 1e8)

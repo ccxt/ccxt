@@ -127,8 +127,8 @@ class theocean extends Exchange {
             $quoteToken = $this->safe_value($market, 'quoteToken', array());
             $baseId = $this->safe_string($baseToken, 'address');
             $quoteId = $this->safe_string($quoteToken, 'address');
-            $base = $this->common_currency_code($this->safe_string($baseToken, 'symbol'));
-            $quote = $this->common_currency_code($this->safe_string($quoteToken, 'symbol'));
+            $base = $this->safeCurrencyCode ($this->safe_string($baseToken, 'symbol'));
+            $quote = $this->safeCurrencyCode ($this->safe_string($quoteToken, 'symbol'));
             $symbol = $base . '/' . $quote;
             $id = $baseId . '/' . $quoteId;
             $baseDecimals = $this->safe_integer($baseToken, 'decimals');

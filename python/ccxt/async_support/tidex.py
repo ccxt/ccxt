@@ -145,8 +145,7 @@ class tidex (Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             precision = currency['amountPoint']
-            code = id.upper()
-            code = self.common_currency_code(code)
+            code = self.safeCurrencyCode(id)
             active = currency['visible'] is True
             canWithdraw = currency['withdrawEnable'] is True
             canDeposit = currency['depositEnable'] is True
@@ -220,10 +219,8 @@ class tidex (Exchange):
             id = keys[i]
             market = markets[id]
             baseId, quoteId = id.split('_')
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -268,11 +265,7 @@ class tidex (Exchange):
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safeCurrencyCode(currencyId)
             balance = self.safe_value(funds, currencyId, {})
             account = self.account()
             account['free'] = self.safe_float(balance, 'value')
@@ -419,13 +412,7 @@ class tidex (Exchange):
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
-            feeCurrencyId = feeCurrencyId.upper()
-            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
-            feeCurrencyCode = None
-            if feeCurrency is not None:
-                feeCurrencyCode = feeCurrency['code']
-            else:
-                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,

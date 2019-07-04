@@ -1291,7 +1291,8 @@ class upbit (Exchange):
         #
         address = self.safe_string(depositAddress, 'deposit_address')
         tag = self.safe_string(depositAddress, 'secondary_address')
-        code = self.common_currency_code(self.safe_string(depositAddress, 'currency'))
+        currencyId = self.safe_string(depositAddress, 'currency')
+        code = self.safeCurrencyCode(currencyId)
         self.check_address(address)
         return {
             'currency': code,
