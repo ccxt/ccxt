@@ -83,8 +83,8 @@ class bitbank extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => -0.05 / 100,
-                    'taker' => 0.15 / 100,
+                    'maker' => -0.02 / 100,
+                    'taker' => 0.12 / 100,
                 ),
                 'funding' => array (
                     'withdraw' => array (
