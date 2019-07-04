@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidArguemnts, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, DDoSProtection, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, DDoSProtection, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -819,7 +819,7 @@ module.exports = class kucoin extends Exchange {
                 request['startAt'] = parseInt (since / 1000);
             }
         } else {
-            throw new InvalidArguemnts (this.id + ' invalid fetchClosedOrder method');
+            throw new ArgumentsRequired (this.id + ' invalid fetchClosedOrder method');
         }
         const response = await this[method] (this.extend (request, params));
         //
