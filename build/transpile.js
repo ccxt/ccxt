@@ -142,6 +142,7 @@ const commonRegexes = [
     [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
     [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
     [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
+    [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
 ]
 
 // ----------------------------------------------------------------------------
