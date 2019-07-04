@@ -269,10 +269,7 @@ class coinex (Exchange):
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_asset')
-            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
-            feeCurrencyCode = None
-            if feeCurrency is not None:
-                feeCurrencyCode = feeCurrency['code']
+            feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -352,11 +349,7 @@ class coinex (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
@@ -409,11 +402,8 @@ class coinex (Exchange):
         symbol = None
         marketId = self.safe_string(order, 'market')
         market = self.safe_value(self.markets_by_id, marketId)
-        feeCurrency = None
         feeCurrencyId = self.safe_string(order, 'fee_asset')
-        currency = self.safe_value(self.currencies_by_id, feeCurrencyId)
-        if currency is not None:
-            feeCurrency = currency['code']
+        feeCurrency = self.safeCurrencyCode(feeCurrencyId)
         if market is not None:
             symbol = market['symbol']
             if feeCurrency is None:
@@ -655,14 +645,8 @@ class coinex (Exchange):
         if txid is not None:
             if len(txid) < 1:
                 txid = None
-        code = None
         currencyId = self.safe_string(transaction, 'coin_type')
-        if currencyId in self.currencies_by_id:
-            currency = self.currencies_by_id[currencyId]
-        else:
-            code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        code = self.safeCurrencyCode(currencyId, currency)
         timestamp = self.safe_integer(transaction, 'create_time')
         if timestamp is not None:
             timestamp = timestamp * 1000

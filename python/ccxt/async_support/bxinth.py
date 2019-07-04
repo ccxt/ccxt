@@ -87,8 +87,8 @@ class bxinth (Exchange):
             baseId = self.safe_string(market, 'secondary_currency')
             quoteId = self.safe_string(market, 'primary_currency')
             active = self.safe_value(market, 'active')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -110,7 +110,7 @@ class bxinth (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')

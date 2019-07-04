@@ -201,7 +201,7 @@ class coinbase (Exchange):
             account = data[i]
             currency = self.safe_value(account, 'currency', {})
             currencyId = self.safe_string(currency, 'code')
-            code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             result.append({
                 'id': self.safe_string(account, 'id'),
                 'type': self.safe_string(account, 'type'),
@@ -386,10 +386,10 @@ class coinbase (Exchange):
         type = self.safe_string(transaction, 'resource')
         amount = self.safe_float(amountObject, 'amount')
         currencyId = self.safe_string(amountObject, 'currency')
-        currency = self.common_currency_code(currencyId)
+        currency = self.safeCurrencyCode(currencyId)
         feeCost = self.safe_float(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
-        feeCurrency = self.common_currency_code(feeCurrencyId)
+        feeCurrency = self.safeCurrencyCode(feeCurrencyId)
         fee = {
             'cost': feeCost,
             'currency': feeCurrency,
@@ -465,8 +465,8 @@ class coinbase (Exchange):
             baseId = self.safe_string(totalObject, 'currency')
             quoteId = self.safe_string(amountObject, 'currency')
             if (baseId is not None) and(quoteId is not None):
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safeCurrencyCode(baseId)
+                quote = self.safeCurrencyCode(quoteId)
                 symbol = base + '/' + quote
         orderId = None
         side = self.safe_string(trade, 'resource')
@@ -479,7 +479,7 @@ class coinbase (Exchange):
                 price = cost / amount
         feeCost = self.safe_float(feeObject, 'amount')
         feeCurrencyId = self.safe_string(feeObject, 'currency')
-        feeCurrency = self.common_currency_code(feeCurrencyId)
+        feeCurrency = self.safeCurrencyCode(feeCurrencyId)
         fee = {
             'cost': feeCost,
             'currency': feeCurrency,
@@ -508,7 +508,7 @@ class coinbase (Exchange):
             currency = currencies[i]
             id = self.safe_string(currency, 'id')
             name = self.safe_string(currency, 'name')
-            code = self.common_currency_code(id)
+            code = self.safeCurrencyCode(id)
             minimum = self.safe_float(currency, 'min_size')
             result[code] = {
                 'id': id,
@@ -588,10 +588,8 @@ class coinbase (Exchange):
         for b in range(0, len(balances)):
             balance = balances[b]
             if self.in_array(balance['type'], accounts):
-                currencyId = balance['balance']['currency']
-                code = currencyId
-                if currencyId in self.currencies_by_id:
-                    code = self.currencies_by_id[currencyId]['code']
+                currencyId = self.safe_string(balance['balance'], 'currency')
+                code = self.safeCurrencyCode(currencyId)
                 total = self.safe_float(balance['balance'], 'amount')
                 free = total
                 used = None

@@ -167,8 +167,8 @@ class coinegg extends Exchange {
                 $baseId = explode('_', $id)[0];
                 $base = strtoupper($baseId);
                 $quote = strtoupper($quoteId);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safeCurrencyCode ($base);
+                $quote = $this->safeCurrencyCode ($quote);
                 $symbol = $base . '/' . $quote;
                 $precision = array (
                     'amount' => 8,
@@ -319,12 +319,7 @@ class coinegg extends Exchange {
         for ($i = 0; $i < count ($keys); $i++) {
             $key = $keys[$i];
             list($currencyId, $accountType) = explode('_', $key);
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
             if (!(is_array($result) && array_key_exists($code, $result))) {
                 $result[$code] = $this->account ();
             }
