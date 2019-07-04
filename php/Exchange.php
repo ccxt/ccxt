@@ -1710,8 +1710,8 @@ class Exchange {
         return $code;
     }
 
-    public function safeCurrencyCode($data, $key, $currency = null) {
-        return $this->safe_currency_code($data, $key, $currency);
+    public function safeCurrencyCode($currency_id, $currency = null) {
+        return $this->safe_currency_code($currency_id, $currency);
     }
 
     public function filter_by_symbol($array, $symbol = null) {
