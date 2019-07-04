@@ -142,8 +142,8 @@ module.exports = class deribit extends Exchange {
             const id = this.safeString (market, 'instrumentName');
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'currency');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             result.push ({
                 'id': id,
                 'symbol': id,
@@ -188,7 +188,7 @@ module.exports = class deribit extends Exchange {
         const response = await this.privateGetAccount (params);
         const address = this.safeString (response, 'depositAddress');
         return {
-            'currency': this.commonCurrencyCode ('BTC'),
+            'currency': this.safeCurrencyCode ('BTC'),
             'address': address,
             'tag': undefined,
             'info': response,
@@ -291,7 +291,7 @@ module.exports = class deribit extends Exchange {
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
-            const feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
