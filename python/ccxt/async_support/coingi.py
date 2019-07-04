@@ -112,8 +112,8 @@ class coingi (Exchange):
             baseId, quoteId = id.split('-')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safeCurrencyCode(base)
+            quote = self.safeCurrencyCode(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -161,8 +161,7 @@ class coingi (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance['currency'], 'name')
-            code = currencyId.upper()
-            code = self.common_currency_code(code)
+            code = self.safeCurrencyCode(currencyId)
             account = self.account()
             account['free'] = balance['available']
             account['used'] = balance['blocked'] + balance['inOrders'] + balance['withdrawing']

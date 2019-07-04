@@ -127,8 +127,8 @@ class coinmate (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'firstCurrency')
             quoteId = self.safe_string(market, 'secondCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -168,7 +168,7 @@ class coinmate (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             balance = self.safe_value(balances, currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
@@ -287,12 +287,8 @@ class coinmate (Exchange):
         txid = self.safe_string(item, 'txid')
         address = self.safe_string(item, 'destination')
         tag = self.safe_string(item, 'destinationTag')
-        code = None
         currencyId = self.safe_string(item, 'amountCurrency')
-        if currencyId in self.currencies_by_id:
-            code = self.currencies_by_id[currencyId]['code']
-        else:
-            code = self.commonCurrencyCide(currencyId)
+        code = self.safeCurrencyCode(currencyId, currency)
         type = self.safe_string(item, 'transferType')
         if type is not None:
             type = type.lower()
@@ -366,8 +362,8 @@ class coinmate (Exchange):
                 quote = market['quote']
             else:
                 baseId, quoteId = marketId.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safeCurrencyCode(baseId)
+                quote = self.safeCurrencyCode(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:
