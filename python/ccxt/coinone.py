@@ -139,9 +139,7 @@ class coinone (Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             balance = balances[id]
-            code = id.upper()
-            if id in self.currencies_by_id:
-                code = self.currencies_by_id[id]['code']
+            code = self.safeCurrencyCode(id)
             free = self.safe_float(balance, 'avail')
             total = self.safe_float(balance, 'balance')
             used = total - free

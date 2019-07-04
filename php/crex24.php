@@ -168,8 +168,8 @@ class crex24 extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $tickSize = $this->safe_value($market, 'tickSize');
             $minPrice = $this->safe_value($market, 'minPrice');
@@ -240,7 +240,7 @@ class crex24 extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
-            $code = $this->common_currency_code($id);
+            $code = $this->safeCurrencyCode ($id);
             $precision = $this->safe_integer($currency, 'withdrawalPrecision');
             $address = $this->safe_value($currency, 'BaseAddress');
             $active = ($currency['depositsAllowed'] && $currency['withdrawalsAllowed'] && !$currency['isDelisted']);
@@ -305,12 +305,7 @@ class crex24 extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($code);
-            }
+            $code = $this->safeCurrencyCode ($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'reserved');
@@ -373,8 +368,8 @@ class crex24 extends Exchange {
             $symbol = $market['symbol'];
         } else if ($marketId !== null) {
             list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
         }
         $last = $this->safe_float($ticker, 'last');
@@ -495,7 +490,7 @@ class crex24 extends Exchange {
         //         "$price" => 1.78882,
         //         "volume" => 0.027,
         //         "$fee" => 0.0000483,
-        //         "$feeCurrency" => "ETH"
+        //         "feeCurrency" => "ETH"
         //     }
         //
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'timestamp'));
@@ -518,13 +513,7 @@ class crex24 extends Exchange {
         }
         $fee = null;
         $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
-        $feeCurrency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
-        $feeCode = null;
-        if ($feeCurrency !== null) {
-            $feeCode = $feeCurrency['code'];
-        } else if ($market !== null) {
-            $feeCode = $market['quote'];
-        }
+        $feeCode = $this->safeCurrencyCode ($feeCurrencyId);
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
             $fee = array (
@@ -1077,16 +1066,8 @@ class crex24 extends Exchange {
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'paymentId');
         $txid = $this->safe_value($transaction, 'txId');
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currencyId];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $code = $this->safeCurrencyCode ($currencyId, $currency);
         $type = $this->safe_string($transaction, 'type');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'createdAt'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'processedAt'));

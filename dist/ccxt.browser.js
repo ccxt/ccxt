@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.884'
+const version = '1.18.885'
 
 Exchange.ccxtVersion = version
 
@@ -33819,10 +33819,7 @@ module.exports = class coinone extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const balance = balances[id];
-            let code = id.toUpperCase ();
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
-            }
+            const code = this.safeCurrencyCode (id);
             const free = this.safeFloat (balance, 'avail');
             const total = this.safeFloat (balance, 'balance');
             const used = total - free;
@@ -34283,8 +34280,7 @@ module.exports = class coinspot extends Exchange {
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const uppercase = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercase);
+            const code = this.safeCurrencyCode (currencyId);
             const total = this.safeFloat (balances, currencyId);
             const account = {
                 'free': total,
@@ -34546,10 +34542,8 @@ module.exports = class cointiger extends huobipro {
                 const market = partition[j];
                 const baseId = this.safeString (market, 'baseCurrency');
                 const quoteId = this.safeString (market, 'quoteCurrency');
-                let base = baseId.toUpperCase ();
-                let quote = quoteId.toUpperCase ();
-                base = this.commonCurrencyCode (base);
-                quote = this.commonCurrencyCode (quote);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 const id = baseId + quoteId;
                 const uppercaseId = id.toUpperCase ();
                 const symbol = base + '/' + quote;
@@ -35613,8 +35607,8 @@ module.exports = class coss extends Exchange {
             const market = markets[i];
             const marketId = market['symbol'];
             const [ baseId, quoteId ] = marketId.split ('_');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'amount_limit_decimal'),
@@ -35690,7 +35684,7 @@ module.exports = class coss extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const currencyId = this.safeString (currency, 'currency_code');
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const name = this.safeString (currency, 'name');
             const allowBuy = this.safeValue (currency, 'allow_buy');
             const allowSell = this.safeValue (currency, 'allow_sell');
@@ -35767,7 +35761,7 @@ module.exports = class coss extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency_code');
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const total = this.safeFloat (balance, 'total');
             const used = this.safeFloat (balance, 'in_order');
             const free = this.safeFloat (balance, 'available');
@@ -35869,8 +35863,8 @@ module.exports = class coss extends Exchange {
         if (market === undefined) {
             if (marketId !== undefined) {
                 const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
@@ -36008,7 +36002,7 @@ module.exports = class coss extends Exchange {
         const cost = parts[0];
         let code = undefined;
         if (numParts > 1) {
-            code = this.commonCurrencyCode (parts[1]);
+            code = this.safeCurrencyCode (parts[1]);
         }
         return {
             'cost': cost,
@@ -36052,8 +36046,8 @@ module.exports = class coss extends Exchange {
             market = this.safeValue (this.markets_by_id, marketId, market);
             if (market === undefined) {
                 const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         } else if (market !== undefined) {
@@ -36258,8 +36252,8 @@ module.exports = class coss extends Exchange {
             market = this.safeValue (this.markets_by_id, marketId, market);
             if (market === undefined) {
                 const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             } else {
                 symbol = market['symbol'];
@@ -36565,8 +36559,8 @@ module.exports = class crex24 extends Exchange {
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const tickSize = this.safeValue (market, 'tickSize');
             const minPrice = this.safeValue (market, 'minPrice');
@@ -36637,7 +36631,7 @@ module.exports = class crex24 extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'symbol');
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             const precision = this.safeInteger (currency, 'withdrawalPrecision');
             const address = this.safeValue (currency, 'BaseAddress');
             const active = (currency['depositsAllowed'] && currency['withdrawalsAllowed'] && !currency['isDelisted']);
@@ -36702,12 +36696,7 @@ module.exports = class crex24 extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
             account['used'] = this.safeFloat (balance, 'reserved');
@@ -36770,8 +36759,8 @@ module.exports = class crex24 extends Exchange {
             symbol = market['symbol'];
         } else if (marketId !== undefined) {
             const [ baseId, quoteId ] = marketId.split ('-');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             symbol = base + '/' + quote;
         }
         const last = this.safeFloat (ticker, 'last');
@@ -36915,13 +36904,7 @@ module.exports = class crex24 extends Exchange {
         }
         let fee = undefined;
         const feeCurrencyId = this.safeString (trade, 'feeCurrency');
-        const feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
-        let feeCode = undefined;
-        if (feeCurrency !== undefined) {
-            feeCode = feeCurrency['code'];
-        } else if (market !== undefined) {
-            feeCode = market['quote'];
-        }
+        const feeCode = this.safeCurrencyCode (feeCurrencyId);
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
             fee = {
@@ -37474,16 +37457,8 @@ module.exports = class crex24 extends Exchange {
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString (transaction, 'paymentId');
         const txid = this.safeValue (transaction, 'txId');
-        let code = undefined;
         const currencyId = this.safeString (transaction, 'currency');
-        if (currencyId in this.currencies_by_id) {
-            currency = this.currencies_by_id[currencyId];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.safeString (transaction, 'type');
         const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
         const updated = this.parse8601 (this.safeString (transaction, 'processedAt'));

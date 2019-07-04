@@ -134,10 +134,7 @@ class coinone extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $balance = $balances[$id];
-            $code = strtoupper($id);
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$id]['code'];
-            }
+            $code = $this->safeCurrencyCode ($id);
             $free = $this->safe_float($balance, 'avail');
             $total = $this->safe_float($balance, 'balance');
             $used = $total - $free;
