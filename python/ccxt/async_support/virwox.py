@@ -92,8 +92,8 @@ class virwox (Exchange):
             id = self.safe_string(market, 'instrumentID')
             baseId = self.safe_string(market, 'longCurrency')
             quoteId = self.safe_string(market, 'shortCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -114,7 +114,7 @@ class virwox (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = self.safeCurrencyCode(currencyId)
             total = self.safe_float(balance, 'balance')
             account = {
                 'free': total,
