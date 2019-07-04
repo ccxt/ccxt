@@ -179,13 +179,7 @@ module.exports = class dsx extends liqui {
             }
         }
         const currencyId = this.safeString (transaction, 'currency');
-        let code = undefined;
-        if (currencyId in this.currencies_by_id) {
-            const ccy = this.currencies_by_id[currencyId];
-            code = ccy['code'];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         return {
             'id': this.safeString (transaction, 'id'),
@@ -216,8 +210,8 @@ module.exports = class dsx extends liqui {
             const market = markets[id];
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quoted_currency');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'decimal_places'),
@@ -294,7 +288,7 @@ module.exports = class dsx extends liqui {
         const currencyIds = Object.keys (funds);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (funds, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
@@ -540,15 +534,8 @@ module.exports = class dsx extends liqui {
         let fee = undefined;
         const feeCost = this.safeFloat (trade, 'commission');
         if (feeCost !== undefined) {
-            let feeCurrencyId = this.safeString (trade, 'commissionCurrency');
-            feeCurrencyId = feeCurrencyId.toUpperCase ();
-            const feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
-            let feeCurrencyCode = undefined;
-            if (feeCurrency !== undefined) {
-                feeCurrencyCode = feeCurrency['code'];
-            } else {
-                feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
-            }
+            const feeCurrencyId = this.safeString (trade, 'commissionCurrency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,

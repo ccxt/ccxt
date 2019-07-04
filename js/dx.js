@@ -180,8 +180,8 @@ module.exports = class dx extends Exchange {
             if (instrument['meQuantityMultiplier'] !== 0) {
                 amountPrecision = Math.log10 (instrument['meQuantityMultiplier']);
             }
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
             const baseId = this.safeString (asset, 'baseCurrencyId');
             const quoteId = this.safeString (asset, 'quotedCurrencyId');
             const baseNumericId = this.safeInteger (asset, 'baseCurrencyId');
@@ -422,15 +422,13 @@ module.exports = class dx extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const balance = this.safeValue (balances, currencyId, {});
-            if (currencyId in this.currencies_by_id) {
-                const code = this.currencies_by_id[currencyId]['code'];
-                const account = {
-                    'free': this.safeFloat (balance, 'available'),
-                    'used': this.safeFloat (balance, 'frozen'),
-                    'total': this.safeFloat (balance, 'total'),
-                };
-                result[code] = account;
-            }
+            const code = this.safeCurrencyCode (currencyId);
+            const account = {
+                'free': this.safeFloat (balance, 'available'),
+                'used': this.safeFloat (balance, 'frozen'),
+                'total': this.safeFloat (balance, 'total'),
+            };
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
