@@ -215,7 +215,7 @@ class yobit extends Exchange {
         $currencyIds = is_array(array_merge ($free, $total)) ? array_keys(array_merge ($free, $total)) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->common_currency_code(strtoupper($currencyId));
+            $code = $this->safeCurrencyCode ($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['total'] = $this->safe_float($total, $currencyId);
@@ -235,8 +235,8 @@ class yobit extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safeCurrencyCode ($base);
+            $quote = $this->safeCurrencyCode ($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'decimal_places'),
@@ -441,14 +441,7 @@ class yobit extends Exchange {
         $feeCost = $this->safe_float($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
-            $feeCurrencyId = strtoupper($feeCurrencyId);
-            $feeCurrency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
-            $feeCurrencyCode = null;
-            if ($feeCurrency !== null) {
-                $feeCurrencyCode = $feeCurrency['code'];
-            } else {
-                $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
-            }
+            $feeCurrencyCode = $this->safeCurrencyCode ($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
