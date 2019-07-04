@@ -152,7 +152,7 @@ class kucoin extends Exchange {
                 '400006' => '\\ccxt\\AuthenticationError',
                 '400007' => '\\ccxt\\AuthenticationError',
                 '400008' => '\\ccxt\\NotSupported',
-                '400100' => '\\ccxt\\ArgumentsRequired',
+                '400100' => '\\ccxt\\BadRequest',
                 '411100' => '\\ccxt\\AccountSuspended',
                 '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
                 '500000' => '\\ccxt\\ExchangeError',
@@ -177,6 +177,7 @@ class kucoin extends Exchange {
             'options' => array (
                 'version' => 'v1',
                 'symbolSeparator' => '-',
+                'fetchMyTradesMethod' => 'private_get_fills',
             ),
         ));
     }
@@ -800,17 +801,28 @@ class kucoin extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $method = 'privateGetFills';
-        if ($since !== null) {
-            // if $since is earlier than 2019-02-18T00:00:00Z
-            if ($since < 1550448000000) {
-                $request['startAt'] = intval ($since / 1000);
-                // despite that this endpoint is called `HistOrders`
-                // it returns historical $trades instead of orders
-                $method = 'privateGetHistOrders';
-            } else {
+        $method = $this->options['fetchMyTradesMethod'];
+        $parseResponseData = false;
+        if ($method === 'private_get_fills') {
+            // does not return $trades earlier than 2019-02-18T00:00:00Z
+            if ($since !== null) {
+                // only returns $trades up to one week after the $since param
                 $request['startAt'] = $since;
             }
+        } else if ($method === 'private_get_limit_fills') {
+            // does not return $trades earlier than 2019-02-18T00:00:00Z
+            // takes no $params
+            // only returns first 1000 $trades (not only "in the last 24 hours" as stated in the docs)
+            $parseResponseData = true;
+        } else if ($method === 'private_get_hist_orders') {
+            // despite that this endpoint is called `HistOrders`
+            // it returns historical $trades instead of orders
+            // returns $trades earlier than 2019-02-18T00:00:00Z only
+            if ($since !== null) {
+                $request['startAt'] = intval ($since / 1000);
+            }
+        } else {
+            throw new ExchangeError($this->id . ' invalid fetchClosedOrder method');
         }
         $response = $this->$method (array_merge ($request, $params));
         //
@@ -854,7 +866,12 @@ class kucoin extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'items', array());
+        $trades = null;
+        if ($parseResponseData) {
+            $trades = $data;
+        } else {
+            $trades = $this->safe_value($data, 'items', array());
+        }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
