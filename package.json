@@ -34,7 +34,9 @@
     "pandoc-doc-install": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/install.rst ccxt.wiki/Install.md",
     "pandoc-doc-exchanges": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges.rst ccxt.wiki/Exchange-Markets.md",
     "pandoc-doc-exchanges-by-country": "pandoc --wrap=preserve --columns=10000 --from=markdown --to=rst --output=doc/exchanges-by-country.rst ccxt.wiki/Exchange-Markets-By-Country.md",
-    "postinstall": "opencollective postinstall && node postinstall.js"
+    "postinstall": "opencollective postinstall && node postinstall.js",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "types": "./ccxt.d.ts",
   "dependencies": {
@@ -42,7 +44,8 @@
     "crypto-js": "3.1.9-1",
     "fetch-ponyfill": "4.1.0",
     "opencollective": "1.0.3",
-    "qs": "6.5.1"
+    "qs": "6.5.1",
+    "snyk": "^1.189.0"
   },
   "devDependencies": {
     "ansicolor": "^1.1.71",
@@ -293,5 +296,6 @@
     "type": "opencollective",
     "url": "https://opencollective.com/ccxt",
     "logo": "https://opencollective.com/ccxt/logo.txt"
-  }
+  },
+  "snyk": true
 }
