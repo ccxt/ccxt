@@ -226,8 +226,8 @@ module.exports = class xbtce extends Exchange {
             } else {
                 const baseId = id.slice (0, 3);
                 const quoteId = id.slice (3, 6);
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
             const ticker = tickers[id];

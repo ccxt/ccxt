@@ -1361,7 +1361,8 @@ module.exports = class upbit extends Exchange {
         //
         const address = this.safeString (depositAddress, 'deposit_address');
         const tag = this.safeString (depositAddress, 'secondary_address');
-        const code = this.commonCurrencyCode (this.safeString (depositAddress, 'currency'));
+        const currencyId = this.safeString (depositAddress, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
         this.checkAddress (address);
         return {
             'currency': code,

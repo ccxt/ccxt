@@ -136,7 +136,7 @@ module.exports = class rightbtc extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetTradingPairs (params);
         // let zh = await this.publicGetGetAssetsTradingPairsZh ();
-        const markets = this.extend (response['status']['message']);
+        const markets = response['status']['message'];
         const marketIds = Object.keys (markets);
         const result = [];
         for (let i = 0; i < marketIds.length; i++) {
@@ -144,8 +144,8 @@ module.exports = class rightbtc extends Exchange {
             const market = markets[id];
             const baseId = this.safeString (market, 'bid_asset_symbol');
             const quoteId = this.safeString (market, 'ask_asset_symbol');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'bid_asset_decimals'),
@@ -404,12 +404,7 @@ module.exports = class rightbtc extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             // https://github.com/ccxt/ccxt/issues/3873
             account['free'] = this.divideSafeFloat (balance, 'balance', 1e8);
