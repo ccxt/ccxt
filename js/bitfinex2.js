@@ -218,7 +218,8 @@ module.exports = class bitfinex2 extends bitfinex {
             let baseId = id.slice (0, 3);
             let quoteId = id.slice (3, 6);
             if (quoteId === 'F0:') {
-                quoteId = id.slice (6, 9);
+                // drop futures markets for now
+                continue;
             }
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -244,7 +245,6 @@ module.exports = class bitfinex2 extends bitfinex {
                 'min': limits['amount']['min'] * limits['price']['min'],
                 'max': undefined,
             };
-            const margin = this.safeValue (market, 'margin');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -256,8 +256,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 'precision': precision,
                 'limits': limits,
                 'info': market,
-                'swap': margin,
-                'spot': !margin,
+                'swap': false,
+                'spot': false,
                 'futures': false,
             });
         }
