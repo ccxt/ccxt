@@ -801,7 +801,7 @@ module.exports = class kucoin extends Exchange {
             request['pageSize'] = limit;
         }
         const method = this.options['fetchMyTradesMethod'];
-        let parseData = false;
+        let parseResponseData = false;
         if (method === 'private_get_fills') {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             if (since !== undefined) {
@@ -812,7 +812,7 @@ module.exports = class kucoin extends Exchange {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
-            parseData = true;
+            parseResponseData = true;
         } else if (method === 'private_get_hist_orders') {
             // despite that this endpoint is called `HistOrders`
             // it returns historical trades instead of orders
@@ -866,7 +866,7 @@ module.exports = class kucoin extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         let trades = undefined;
-        if (parseData) {
+        if (parseResponseData) {
             trades = data;
         } else {
             trades = this.safeValue (data, 'items', []);
