@@ -80,8 +80,8 @@ class crypton (Exchange):
             market = markets[id]
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -122,7 +122,7 @@ class crypton (Exchange):
         keys = list(balances.keys())
         for i in range(0, len(keys)):
             id = keys[i]
-            currency = self.common_currency_code(id)
+            currency = self.safeCurrencyCode(id)
             account = self.account()
             balance = balances[id]
             account['total'] = self.safe_float(balance, 'total')
@@ -200,7 +200,7 @@ class crypton (Exchange):
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
-            feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -282,7 +282,7 @@ class crypton (Exchange):
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'feeCurrency')
-            feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -350,8 +350,8 @@ class crypton (Exchange):
 
     def parse_symbol(self, id):
         base, quote = id.split('-')
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
+        base = self.safeCurrencyCode(base)
+        quote = self.safeCurrencyCode(quote)
         return base + '/' + quote
 
     def fetch_deposit_address(self, code, params={}):

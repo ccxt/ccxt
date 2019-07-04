@@ -185,8 +185,8 @@ class dx (Exchange):
             amountPrecision = 0
             if instrument['meQuantityMultiplier'] != 0:
                 amountPrecision = math.log10(instrument['meQuantityMultiplier'])
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safeCurrencyCode(base)
+            quote = self.safeCurrencyCode(quote)
             baseId = self.safe_string(asset, 'baseCurrencyId')
             quoteId = self.safe_string(asset, 'quotedCurrencyId')
             baseNumericId = self.safe_integer(asset, 'baseCurrencyId')
@@ -408,14 +408,13 @@ class dx (Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             balance = self.safe_value(balances, currencyId, {})
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-                account = {
-                    'free': self.safe_float(balance, 'available'),
-                    'used': self.safe_float(balance, 'frozen'),
-                    'total': self.safe_float(balance, 'total'),
-                }
-                result[code] = account
+            code = self.safeCurrencyCode(currencyId)
+            account = {
+                'free': self.safe_float(balance, 'available'),
+                'used': self.safe_float(balance, 'frozen'),
+                'total': self.safe_float(balance, 'total'),
+            }
+            result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):

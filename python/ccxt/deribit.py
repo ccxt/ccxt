@@ -151,8 +151,8 @@ class deribit (Exchange):
             id = self.safe_string(market, 'instrumentName')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'currency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             result.append({
                 'id': id,
                 'symbol': id,
@@ -194,7 +194,7 @@ class deribit (Exchange):
         response = self.privateGetAccount(params)
         address = self.safe_string(response, 'depositAddress')
         return {
-            'currency': self.common_currency_code('BTC'),
+            'currency': self.safeCurrencyCode('BTC'),
             'address': address,
             'tag': None,
             'info': response,
@@ -291,7 +291,7 @@ class deribit (Exchange):
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
-            feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,

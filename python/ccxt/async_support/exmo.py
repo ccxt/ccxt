@@ -459,7 +459,7 @@ class exmo (Exchange):
         items = groupsByGroup['crypto']['items']
         for i in range(0, len(items)):
             item = items[i]
-            code = self.common_currency_code(self.safe_string(item, 'prov'))
+            code = self.safeCurrencyCode(self.safe_string(item, 'prov'))
             withdrawalFee = self.safe_string(item, 'wd')
             depositFee = self.safe_string(item, 'dep')
             if withdrawalFee is not None:
@@ -471,7 +471,7 @@ class exmo (Exchange):
         # sets fiat fees to None
         fiatGroups = self.to_array(self.omit(groupsByGroup, 'crypto'))
         for i in range(0, len(fiatGroups)):
-            code = self.common_currency_code(self.safe_string(fiatGroups[i], 'title'))
+            code = self.safeCurrencyCode(self.safe_string(fiatGroups[i], 'title'))
             withdraw[code] = None
             deposit[code] = None
         result = {
@@ -499,8 +499,8 @@ class exmo (Exchange):
             marketId = marketIds[i]
             limit = limitsByMarketId[marketId]
             baseId, quoteId = marketId.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             maxAmount = self.safe_float(limit, 'max_q')
             maxPrice = self.safe_float(limit, 'max_p')
             maxCost = self.safe_float(limit, 'max_a')
@@ -516,7 +516,7 @@ class exmo (Exchange):
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            code = self.common_currency_code(id)
+            code = self.safeCurrencyCode(id)
             fee = self.safe_value(fees['withdraw'], code)
             active = True
             result[code] = {
@@ -554,8 +554,8 @@ class exmo (Exchange):
             market = response[id]
             symbol = id.replace('_', '/')
             baseId, quoteId = symbol.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safeCurrencyCode(baseId)
+            quote = self.safeCurrencyCode(quoteId)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -1131,13 +1131,8 @@ class exmo (Exchange):
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
         type = self.safe_string(transaction, 'type')
-        code = self.safe_string(transaction, 'curr')
-        if currency is None:
-            currency = self.safe_value(self.currencies_by_id, code)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(code)
+        currencyId = self.safe_string(transaction, 'curr')
+        code = self.safeCurrencyCode(currencyId, currency)
         address = self.safe_string(transaction, 'account')
         if address is not None:
             parts = address.split(':')

@@ -143,8 +143,8 @@ class deribit extends Exchange {
             $id = $this->safe_string($market, 'instrumentName');
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'currency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $id,
@@ -189,7 +189,7 @@ class deribit extends Exchange {
         $response = $this->privateGetAccount ($params);
         $address = $this->safe_string($response, 'depositAddress');
         return array (
-            'currency' => $this->common_currency_code('BTC'),
+            'currency' => $this->safeCurrencyCode ('BTC'),
             'address' => $address,
             'tag' => null,
             'info' => $response,
@@ -292,7 +292,7 @@ class deribit extends Exchange {
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
-            $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
+            $feeCurrencyCode = $this->safeCurrencyCode ($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
