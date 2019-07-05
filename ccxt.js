@@ -51,6 +51,7 @@ const exchanges = {
     'bibox':                   require ('./js/bibox.js'),
     'bigone':                  require ('./js/bigone.js'),
     'binance':                 require ('./js/binance.js'),
+    'binancedex':              require ('./js/binancedex.js'),
     'binanceje':               require ('./js/binanceje.js'),
     'binanceus':               require ('./js/binanceus.js'),
     'bit2c':                   require ('./js/bit2c.js'),
