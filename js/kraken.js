@@ -198,15 +198,8 @@ module.exports = class kraken extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'XXBT': 'BTC',
+                'XBT': 'BTC',
                 'XDG': 'DOGE',
-                'XXRP': 'XRP',
-                'XETH': 'ETH',
-                'XETC': 'ETC',
-                'XREP': 'REP',
-                'FEE': 'KFEE',
-                'ZUSD': 'USD',
-                'ZGBP': 'GBP',
             },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': true, // will issue up to two calls in fetchDepositAddress
@@ -277,7 +270,7 @@ module.exports = class kraken extends Exchange {
             const baseId = market['base'];
             const quoteId = market['quote'];
             const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const darkpool = id.indexOf ('.d') >= 0;
             const symbol = darkpool ? market['altname'] : (base + '/' + quote);
             let maker = undefined;
@@ -325,6 +318,13 @@ module.exports = class kraken extends Exchange {
         result = this.appendInactiveMarkets (result);
         this.marketsByAltname = this.indexBy (result, 'altname');
         return result;
+    }
+
+    safeCurrencyCode (currencyId, currency = undefined) {
+        if ((currencyId.length > 3) && ((currencyId.indexOf ('X') === 0) || (currencyId.indexOf ('Z') === 0))) {
+            currencyId = currencyId.slice (1);
+        }
+        return super.safeCurrencyCode (currencyId, currency);
     }
 
     appendInactiveMarkets (result) {
