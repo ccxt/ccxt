@@ -1402,7 +1402,7 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const currencyId = this.safeString (item, 'currency');
-        let code = this.safeCurrencyCode (currencyId, currency);
+        const code = this.safeCurrencyCode (currencyId, currency);
         const fee = {
             'cost': this.safeFloat (item, 'fee'),
             'code': code,
