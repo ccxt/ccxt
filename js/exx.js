@@ -99,10 +99,8 @@ module.exports = class exx extends Exchange {
             const id = ids[i];
             const market = response[id];
             const [ baseId, quoteId ] = id.split ('_');
-            const upper = id.toUpperCase ();
-            let [ base, quote ] = upper.split ('_');
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = market['isOpen'] === true;
             const precision = {
@@ -264,7 +262,7 @@ module.exports = class exx extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currencyId = currencies[i];
             const balance = balances[currencyId];
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const account = {
                 'free': this.safeFloat (balance, 'balance'),
                 'used': this.safeFloat (balance, 'freeze'),
