@@ -167,13 +167,13 @@ class itbit extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $feeCost = $this->safe_float($trade, 'commissionPaid');
         $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
-        $feeCurrency = $this->common_currency_code($feeCurrencyId);
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $rebatesApplied = $this->safe_float($trade, 'rebatesApplied');
         if ($rebatesApplied !== null) {
             $rebatesApplied = -$rebatesApplied;
         }
         $rebateCurrencyId = $this->safe_string($trade, 'rebateCurrency');
-        $rebateCurrency = $this->common_currency_code($rebateCurrencyId);
+        $rebateCurrency = $this->safe_currency_code($rebateCurrencyId);
         $price = $this->safe_float_2($trade, 'price', 'rate');
         $amount = $this->safe_float_2($trade, 'currency1Amount', 'amount');
         $cost = null;
@@ -190,8 +190,8 @@ class itbit extends Exchange {
             } else {
                 $baseId = $this->safe_string($trade, 'currency1');
                 $quoteId = $this->safe_string($trade, 'currency2');
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -296,7 +296,7 @@ class itbit extends Exchange {
                 'id' => $this->safe_string($item, 'withdrawalId'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601 ($timestamp),
-                'currency' => $this->common_currency_code($currency),
+                'currency' => $this->safe_currency_code($currency),
                 'address' => $destinationAddress,
                 'tag' => null,
                 'txid' => $txnHash,
@@ -400,12 +400,7 @@ class itbit extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'availableBalance');
             $account['total'] = $this->safe_float($balance, 'totalBalance');
