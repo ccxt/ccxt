@@ -103,8 +103,8 @@ class exx (Exchange):
             id = ids[i]
             market = response[id]
             baseId, quoteId = id.split('_')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = market['isOpen'] is True
             precision = {
@@ -252,7 +252,7 @@ class exx (Exchange):
         for i in range(0, len(currencies)):
             currencyId = currencies[i]
             balance = balances[currencyId]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'balance'),
                 'used': self.safe_float(balance, 'freeze'),

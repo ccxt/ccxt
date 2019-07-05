@@ -156,8 +156,8 @@ class cointiger extends huobipro {
                 $market = $partition[$j];
                 $baseId = $this->safe_string($market, 'baseCurrency');
                 $quoteId = $this->safe_string($market, 'quoteCurrency');
-                $base = $this->safeCurrencyCode ($baseId);
-                $quote = $this->safeCurrencyCode ($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $id = $baseId . $quoteId;
                 $uppercaseId = strtoupper($id);
                 $symbol = $base . '/' . $quote;

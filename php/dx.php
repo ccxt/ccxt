@@ -180,8 +180,8 @@ class dx extends Exchange {
             if ($instrument['meQuantityMultiplier'] !== 0) {
                 $amountPrecision = log10 ($instrument['meQuantityMultiplier']);
             }
-            $base = $this->safeCurrencyCode ($base);
-            $quote = $this->safeCurrencyCode ($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $baseId = $this->safe_string($asset, 'baseCurrencyId');
             $quoteId = $this->safe_string($asset, 'quotedCurrencyId');
             $baseNumericId = $this->safe_integer($asset, 'baseCurrencyId');
@@ -422,7 +422,7 @@ class dx extends Exchange {
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($balances, $currencyId, array());
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $this->safe_float($balance, 'frozen'),

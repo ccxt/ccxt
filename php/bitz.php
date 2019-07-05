@@ -240,8 +240,8 @@ class bitz extends Exchange {
             $quoteId = $this->safe_string($market, 'coinTo');
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->safeCurrencyCode ($base);
-            $quote = $this->safeCurrencyCode ($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'numberFloat'),
@@ -308,7 +308,7 @@ class bitz extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'name');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['used'] = $this->safe_float($balance, 'lock');
             $account['total'] = $this->safe_float($balance, 'num');
@@ -491,8 +491,8 @@ class bitz extends Exchange {
                     $symbol = $market['symbol'];
                 } else {
                     list($baseId, $quoteId) = explode('_', $id);
-                    $base = $this->safeCurrencyCode ($baseId);
-                    $quote = $this->safeCurrencyCode ($quoteId);
+                    $base = $this->safe_currency_code($baseId);
+                    $quote = $this->safe_currency_code($quoteId);
                     $symbol = $base . '/' . $quote;
                 }
             }
@@ -720,8 +720,8 @@ class bitz extends Exchange {
                 if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                     $market = $this->safe_value($this->markets_by_id, $marketId);
                 } else {
-                    $base = $this->safeCurrencyCode ($baseId);
-                    $quote = $this->safeCurrencyCode ($quoteId);
+                    $base = $this->safe_currency_code($baseId);
+                    $quote = $this->safe_currency_code($quoteId);
                     $symbol = $base . '/' . $quote;
                 }
             }

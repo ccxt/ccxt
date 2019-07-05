@@ -208,8 +208,8 @@ class gemini (Exchange):
             pricePrecision = priceTickSizeAsString.split(' ')
             baseId = baseId.lower()
             quoteId = quoteId.lower()
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.precision_from_string(amountPrecision[0]),
@@ -251,8 +251,8 @@ class gemini (Exchange):
             market = id
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': None,
@@ -334,7 +334,7 @@ class gemini (Exchange):
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
         feeCurrencyId = self.safe_string(trade, 'fee_currency')
-        feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
+        feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
         fee = {
             'cost': self.safe_float(trade, 'fee_amount'),
             'currency': feeCurrencyCode,
@@ -384,7 +384,7 @@ class gemini (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
             account['total'] = self.safe_float(balance, 'amount')
@@ -531,7 +531,7 @@ class gemini (Exchange):
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'timestampms')
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'destination')
         type = self.safe_string(transaction, 'type')
         if type is not None:

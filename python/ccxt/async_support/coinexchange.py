@@ -574,7 +574,7 @@ class coinexchange (Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'CurrencyID')
-            code = self.safeCurrencyCode(self.safe_string(currency, 'TickerCode'))
+            code = self.safe_currency_code(self.safe_string(currency, 'TickerCode'))
             walletStatus = self.safe_string(currency, 'WalletStatus')
             active = walletStatus == 'online'
             name = self.safe_string(currency, 'Name')
@@ -616,8 +616,8 @@ class coinexchange (Exchange):
             baseId = self.safe_string(market, 'MarketAssetCode')
             quoteId = self.safe_string(market, 'BaseCurrencyCode')
             if baseId is not None and quoteId is not None:
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
                 result.append({
                     'id': id,

@@ -119,7 +119,7 @@ class coinnest (Exchange):
         for i in range(0, len(coins)):
             baseId = coins[i]
             id = baseId + '/' + quoteId
-            base = self.safeCurrencyCode(baseId)
+            base = self.safe_currency_code(baseId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -234,7 +234,7 @@ class coinnest (Exchange):
             if type != 'reserved' and type != 'balance':
                 continue
             currencyId = parts[0]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             if not(code in list(result.keys())):
                 result[code] = self.account()
             type = (type == 'used' if 'reserved' else 'free')

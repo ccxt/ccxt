@@ -156,7 +156,7 @@ class braziliex extends Exchange {
             $id = $ids[$i];
             $currency = $response[$id];
             $precision = $this->safe_integer($currency, 'decimal');
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $active = $this->safe_integer($currency, 'active') === 1;
             $maintenance = $this->safe_integer($currency, 'under_maintenance');
             if ($maintenance !== 0) {
@@ -241,8 +241,8 @@ class braziliex extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $uppercaseBaseId = strtoupper($baseId);
             $uppercaseQuoteId = strtoupper($quoteId);
-            $base = $this->safeCurrencyCode ($uppercaseBaseId);
-            $quote = $this->safeCurrencyCode ($uppercaseQuoteId);
+            $base = $this->safe_currency_code($uppercaseBaseId);
+            $quote = $this->safe_currency_code($uppercaseQuoteId);
             $symbol = $base . '/' . $quote;
             $baseCurrency = $this->safe_value($currencies, $baseId, array());
             $quoteCurrency = $this->safe_value($currencies, $quoteId, array());
@@ -400,7 +400,7 @@ class braziliex extends Exchange {
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $balance = $balances[$currencyId];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['total'] = $this->safe_float($balance, 'total');

@@ -200,7 +200,7 @@ class coinbase extends Exchange {
             $account = $data[$i];
             $currency = $this->safe_value($account, 'currency', array());
             $currencyId = $this->safe_string($currency, 'code');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $result[] = array (
                 'id' => $this->safe_string($account, 'id'),
                 'type' => $this->safe_string($account, 'type'),
@@ -402,10 +402,10 @@ class coinbase extends Exchange {
         $type = $this->safe_string($transaction, 'resource');
         $amount = $this->safe_float($amountObject, 'amount');
         $currencyId = $this->safe_string($amountObject, 'currency');
-        $currency = $this->safeCurrencyCode ($currencyId);
+        $currency = $this->safe_currency_code($currencyId);
         $feeCost = $this->safe_float($feeObject, 'amount');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
-        $feeCurrency = $this->safeCurrencyCode ($feeCurrencyId);
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $fee = array (
             'cost' => $feeCost,
             'currency' => $feeCurrency,
@@ -483,8 +483,8 @@ class coinbase extends Exchange {
             $baseId = $this->safe_string($totalObject, 'currency');
             $quoteId = $this->safe_string($amountObject, 'currency');
             if (($baseId !== null) && ($quoteId !== null)) {
-                $base = $this->safeCurrencyCode ($baseId);
-                $quote = $this->safeCurrencyCode ($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -501,7 +501,7 @@ class coinbase extends Exchange {
         }
         $feeCost = $this->safe_float($feeObject, 'amount');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
-        $feeCurrency = $this->safeCurrencyCode ($feeCurrencyId);
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $fee = array (
             'cost' => $feeCost,
             'currency' => $feeCurrency,
@@ -531,7 +531,7 @@ class coinbase extends Exchange {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'id');
             $name = $this->safe_string($currency, 'name');
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $minimum = $this->safe_float($currency, 'min_size');
             $result[$code] = array (
                 'id' => $id,
@@ -615,7 +615,7 @@ class coinbase extends Exchange {
             $balance = $balances[$b];
             if ($this->in_array($balance['type'], $accounts)) {
                 $currencyId = $this->safe_string($balance['balance'], 'currency');
-                $code = $this->safeCurrencyCode ($currencyId);
+                $code = $this->safe_currency_code($currencyId);
                 $total = $this->safe_float($balance['balance'], 'amount');
                 $free = $total;
                 $used = null;

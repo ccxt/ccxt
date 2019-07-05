@@ -161,7 +161,7 @@ class lykke (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'AssetId')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['total'] = self.safe_float(balance, 'Balance')
             account['used'] = self.safe_float(balance, 'Reserved')
@@ -216,8 +216,8 @@ class lykke (Exchange):
             id = self.safe_string(market, 'Id')
             name = self.safe_string(market, 'Name')
             baseId, quoteId = name.split('/')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'Accuracy'),

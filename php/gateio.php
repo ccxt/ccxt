@@ -173,8 +173,8 @@ class gateio extends Exchange {
                 $baseId = $parts[0] . '_' . $parts[1];
                 $quoteId = $parts[2];
             }
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -230,7 +230,7 @@ class gateio extends Exchange {
         $currencyIds = is_array($available) ? array_keys($available) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($available, $currencyId);
             $account['used'] = $this->safe_float($locked, $currencyId);
@@ -324,8 +324,8 @@ class gateio extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'baseVolume'),
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_float($ticker, 'quoteVolume'), // gateio has them reversed
+            'quoteVolume' => $this->safe_float($ticker, 'baseVolume'),
             'info' => $ticker,
         );
     }
@@ -364,8 +364,8 @@ class gateio extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->safeCurrencyCode ($base);
-            $quote = $this->safeCurrencyCode ($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $market = null;
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
@@ -506,7 +506,7 @@ class gateio extends Exchange {
         $remaining = $this->safe_float_2($order, 'leftAmount', 'left');
         $feeCost = $this->safe_float($order, 'feeValue');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
-        $feeCurrencyCode = $this->safeCurrencyCode ($feeCurrencyId);
+        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
         $feeRate = $this->safe_float($order, 'feePercentage');
         if ($feeRate !== null) {
             $feeRate = $feeRate / 100;
@@ -742,7 +742,7 @@ class gateio extends Exchange {
         //     }
         //
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $id = $this->safe_string($transaction, 'id');
         $txid = $this->safe_string($transaction, 'txid');
         $amount = $this->safe_float($transaction, 'amount');

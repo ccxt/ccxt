@@ -118,8 +118,8 @@ class xbtce extends Exchange {
             $id = $this->safe_string($market, 'Symbol');
             $baseId = $this->safe_string($market, 'MarginCurrency');
             $quoteId = $this->safe_string($market, 'ProfitCurrency');
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $symbol = $market['IsTradeAllowed'] ? $symbol : $id;
             $result[] = array (
@@ -142,7 +142,7 @@ class xbtce extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'FreeAmount'),
                 'used' => $this->safe_float($balance, 'LockedAmount'),
@@ -227,8 +227,8 @@ class xbtce extends Exchange {
             } else {
                 $baseId = mb_substr($id, 0, 3 - 0);
                 $quoteId = mb_substr($id, 3, 6 - 3);
-                $base = $this->safeCurrencyCode ($baseId);
-                $quote = $this->safeCurrencyCode ($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
             $ticker = $tickers[$id];

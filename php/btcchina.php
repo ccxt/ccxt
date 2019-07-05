@@ -103,8 +103,8 @@ class btcchina extends Exchange {
             $quoteId = mb_substr($id, 3, 6 - 3);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->safeCurrencyCode ($base);
-            $quote = $this->safeCurrencyCode ($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,

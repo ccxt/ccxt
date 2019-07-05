@@ -2638,7 +2638,7 @@ class okex3 extends Exchange {
         $referenceId = $this->safe_string($details, 'order_id');
         $referenceAccount = null;
         $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
-        $code = $this->safeCurrencyCode ($this->safe_string($item, 'currency'), $currency);
+        $code = $this->safe_currency_code($this->safe_string($item, 'currency'), $currency);
         $amount = $this->safe_float($item, 'amount');
         $timestamp = $this->parse8601 ($this->safe_string($item, 'timestamp'));
         $fee = array (

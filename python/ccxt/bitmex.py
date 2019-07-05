@@ -176,8 +176,8 @@ class bitmex (Exchange):
             baseId = market['underlying']
             quoteId = market['quoteCurrency']
             basequote = baseId + quoteId
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             swap = (id == basequote)
             # 'positionCurrency' may be empty("", as Bitmex currently returns for ETHUSD)
             # so let's take the quote currency first and then adjust if needed
@@ -185,7 +185,7 @@ class bitmex (Exchange):
             type = None
             future = False
             prediction = False
-            position = self.safeCurrencyCode(positionId)
+            position = self.safe_currency_code(positionId)
             symbol = id
             if swap:
                 type = 'swap'
@@ -256,7 +256,7 @@ class bitmex (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'availableMargin')
             account['total'] = self.safe_float(balance, 'marginBalance')
@@ -449,7 +449,7 @@ class bitmex (Exchange):
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'transactType'))
         currencyId = self.safe_string(item, 'currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         amount = self.safe_float(item, 'amount')
         if amount is not None:
             amount = amount * 1e-8
@@ -914,7 +914,7 @@ class bitmex (Exchange):
             feeCost = self.safe_float(trade, 'execComm')
             feeCost = feeCost / 100000000
             currencyId = self.safe_string(trade, 'settlCurrency')
-            feeCurrency = self.safeCurrencyCode(currencyId)
+            feeCurrency = self.safe_currency_code(currencyId)
             feeRate = self.safe_float(trade, 'commission')
             fee = {
                 'cost': feeCost,

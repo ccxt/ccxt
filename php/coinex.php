@@ -278,7 +278,7 @@ class coinex extends Exchange {
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_asset');
-            $feeCurrencyCode = $this->safeCurrencyCode ($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -363,7 +363,7 @@ class coinex extends Exchange {
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
@@ -421,7 +421,7 @@ class coinex extends Exchange {
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_value($this->markets_by_id, $marketId);
         $feeCurrencyId = $this->safe_string($order, 'fee_asset');
-        $feeCurrency = $this->safeCurrencyCode ($feeCurrencyId);
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         if ($market !== null) {
             $symbol = $market['symbol'];
             if ($feeCurrency === null) {
@@ -691,7 +691,7 @@ class coinex extends Exchange {
             }
         }
         $currencyId = $this->safe_string($transaction, 'coin_type');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_integer($transaction, 'create_time');
         if ($timestamp !== null) {
             $timestamp = $timestamp * 1000;

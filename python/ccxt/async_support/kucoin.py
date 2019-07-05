@@ -227,8 +227,8 @@ class kucoin (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = self.safe_value(market, 'enableTrading')
             baseMaxSize = self.safe_float(market, 'baseMaxSize')
@@ -284,7 +284,7 @@ class kucoin (Exchange):
             entry = responseData[i]
             id = self.safe_string(entry, 'name')
             name = self.safe_string(entry, 'fullName')
-            code = self.safeCurrencyCode(id)
+            code = self.safe_currency_code(id)
             precision = self.safe_integer(entry, 'precision')
             result[code] = {
                 'id': id,
@@ -319,7 +319,7 @@ class kucoin (Exchange):
             account = data[i]
             accountId = self.safe_string(account, 'id')
             currencyId = self.safe_string(account, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             type = self.safe_string(account, 'type')  # main or trade
             result.append({
                 'id': accountId,
@@ -371,8 +371,8 @@ class kucoin (Exchange):
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('-')
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:
@@ -709,8 +709,8 @@ class kucoin (Exchange):
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('-')
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             market = self.safe_value(self.markets_by_id, marketId)
         if symbol is None:
@@ -723,7 +723,7 @@ class kucoin (Exchange):
         price = self.safe_float(order, 'price')
         side = self.safe_string(order, 'side')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
-        feeCurrency = self.safeCurrencyCode(feeCurrencyId)
+        feeCurrency = self.safe_currency_code(feeCurrencyId)
         feeCost = self.safe_float(order, 'fee')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'dealSize')
@@ -935,8 +935,8 @@ class kucoin (Exchange):
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('-')
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:
@@ -961,7 +961,7 @@ class kucoin (Exchange):
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
-            feeCurrency = self.safeCurrencyCode(feeCurrencyId)
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
             if feeCurrency is None:
                 if market is not None:
                     feeCurrency = market['quote'] if (side == 'sell') else market['base']
@@ -1054,7 +1054,7 @@ class kucoin (Exchange):
         #     }
         #
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'address')
         amount = self.safe_float(transaction, 'amount')
         txid = self.safe_string(transaction, 'walletTxId')
@@ -1247,7 +1247,7 @@ class kucoin (Exchange):
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = {}
             account['total'] = self.safe_float(balance, 'balance')
             account['free'] = self.safe_float(balance, 'available')
@@ -1331,7 +1331,7 @@ class kucoin (Exchange):
         #     }
         #
         currencyId = self.safe_string(item, 'currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         fee = {
             'cost': self.safe_float(item, 'fee'),
             'code': code,

@@ -200,7 +200,7 @@ class cobinhood extends Exchange {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'currency');
             $name = $this->safe_string($currency, 'name');
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $minUnit = $this->safe_float($currency, 'min_unit');
             $result[$code] = array (
                 'id' => $id,
@@ -249,8 +249,8 @@ class cobinhood extends Exchange {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'id');
             list($baseId, $quoteId) = explode('-', $id);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -294,8 +294,8 @@ class cobinhood extends Exchange {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->safeCurrencyCode ($baseId);
-                $quote = $this->safeCurrencyCode ($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -459,7 +459,7 @@ class cobinhood extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['used'] = $this->safe_float($balance, 'on_order');
             $account['total'] = $this->safe_float($balance, 'total');
@@ -775,7 +775,7 @@ class cobinhood extends Exchange {
     public function parse_transaction ($transaction, $currency = null) {
         $timestamp = $this->safe_integer($transaction, 'created_at');
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $id = null;
         $withdrawalId = $this->safe_string($transaction, 'withdrawal_id');
         $depositId = $this->safe_string($transaction, 'deposit_id');

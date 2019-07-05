@@ -80,8 +80,8 @@ class crypton extends Exchange {
             $market = $markets[$id];
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -124,7 +124,7 @@ class crypton extends Exchange {
         $keys = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
-            $currency = $this->safeCurrencyCode ($id);
+            $currency = $this->safe_currency_code($id);
             $account = $this->account ();
             $balance = $balances[$id];
             $account['total'] = $this->safe_float($balance, 'total');
@@ -213,7 +213,7 @@ class crypton extends Exchange {
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
-            $feeCurrencyCode = $this->safeCurrencyCode ($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -304,7 +304,7 @@ class crypton extends Exchange {
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
-            $feeCurrencyCode = $this->safeCurrencyCode ($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -379,8 +379,8 @@ class crypton extends Exchange {
 
     public function parse_symbol ($id) {
         list($base, $quote) = explode('-', $id);
-        $base = $this->safeCurrencyCode ($base);
-        $quote = $this->safeCurrencyCode ($quote);
+        $base = $this->safe_currency_code($base);
+        $quote = $this->safe_currency_code($quote);
         return $base . '/' . $quote;
     }
 

@@ -129,8 +129,8 @@ class zaif (Exchange):
             id = self.safe_string(market, 'currency_pair')
             name = self.safe_string(market, 'name')
             baseId, quoteId = name.split('/')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': -math.log10(market['item_unit_step']),
@@ -177,7 +177,7 @@ class zaif (Exchange):
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_value(funds, currencyId)
             account = {
                 'free': balance,

@@ -131,8 +131,8 @@ class lbank (Exchange):
             else:
                 baseId = parts[0]
                 quoteId = parts[1]
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'quantityAccuracy'),
@@ -184,8 +184,8 @@ class lbank (Exchange):
                 else:
                     baseId = parts[0]
                     quoteId = parts[1]
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         timestamp = self.safe_integer(ticker, 'timestamp')
         info = ticker
@@ -364,7 +364,7 @@ class lbank (Exchange):
         currencyIds = list(free.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(free, currencyId)
             account['used'] = self.safe_float(freeze, currencyId)

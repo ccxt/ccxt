@@ -201,8 +201,8 @@ class gemini extends Exchange {
             $pricePrecision = explode(' ', $priceTickSizeAsString);
             $baseId = strtolower($baseId);
             $quoteId = strtolower($quoteId);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->precision_from_string($amountPrecision[0]),
@@ -246,8 +246,8 @@ class gemini extends Exchange {
             $market = $id;
             $baseId = mb_substr($id, 0, 3 - 0);
             $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => null,
@@ -334,7 +334,7 @@ class gemini extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
         $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
-        $feeCurrencyCode = $this->safeCurrencyCode ($feeCurrencyId);
+        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
         $fee = array (
             'cost' => $this->safe_float($trade, 'fee_amount'),
             'currency' => $feeCurrencyCode,
@@ -390,7 +390,7 @@ class gemini extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['total'] = $this->safe_float($balance, 'amount');
@@ -563,7 +563,7 @@ class gemini extends Exchange {
     public function parse_transaction ($transaction, $currency = null) {
         $timestamp = $this->safe_integer($transaction, 'timestampms');
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'destination');
         $type = $this->safe_string($transaction, 'type');
         if ($type !== null) {

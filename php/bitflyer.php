@@ -120,8 +120,8 @@ class bitflyer extends Exchange {
                 $baseId = $currencies[1];
                 $quoteId = $currencies[2];
             }
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = ($numCurrencies === 2) ? ($base . '/' . $quote) : $id;
             $result[] = array (
                 'id' => $id,
@@ -165,7 +165,7 @@ class bitflyer extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['total'] = $this->safe_float($balance, 'amount');
             $account['free'] = $this->safe_float($balance, 'available');

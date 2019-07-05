@@ -205,8 +205,8 @@ class bitmarket (Exchange):
                     continue
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -247,7 +247,7 @@ class bitmarket (Exchange):
         if timestamp is not None:
             timestamp *= 1000
         currencyId = self.safe_string(item, 'currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         type = None
         if 'withdraw_type' in item:
             type = 'withdrawal'

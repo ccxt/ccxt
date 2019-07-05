@@ -143,8 +143,8 @@ class livecoin extends Exchange {
             $market = $response[$i];
             $id = $this->safe_string($market, 'symbol');
             list($baseId, $quoteId) = explode('/', $id);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $coinRestrictions = $this->safe_value($restrictionsById, $symbol);
             $precision = array (
@@ -192,7 +192,7 @@ class livecoin extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
             $walletStatus = $this->safe_string($currency, 'walletStatus');
             $active = ($walletStatus === 'normal');
@@ -259,7 +259,7 @@ class livecoin extends Exchange {
         );
         $currencies[] = array (
             'id' => 'RUR',
-            'code' => $this->safeCurrencyCode ('RUR'),
+            'code' => $this->safe_currency_code('RUR'),
             'name' => 'Russian ruble',
         );
         for ($i = 0; $i < count ($currencies); $i++) {
@@ -277,7 +277,7 @@ class livecoin extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = null;
             if (is_array($result) && array_key_exists($code, $result)) {
                 $account = $result[$code];
@@ -770,7 +770,7 @@ class livecoin extends Exchange {
         $type = strtolower($this->safe_string($transaction, 'type'));
         $currencyId = $this->safe_string($transaction, 'fixedCurrency');
         $feeCost = $this->safe_float($transaction, 'fee');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         if ($type === 'withdrawal') {
             $txid = $this->safe_string($transaction, 'externalKey');
             $address = $this->safe_string($transaction, 'id');

@@ -233,7 +233,7 @@ class upbit (Exchange):
             maxWithdrawLimit = maxDailyWithdrawal
         precision = None
         currencyId = self.safe_string(currencyInfo, 'code')
-        code = self.safeCurrencyCode(currencyId)
+        code = self.safe_currency_code(currencyId)
         return {
             'info': response,
             'id': currencyId,
@@ -296,8 +296,8 @@ class upbit (Exchange):
         marketId = self.safe_string(marketInfo, 'id')
         baseId = self.safe_string(ask, 'currency')
         quoteId = self.safe_string(bid, 'currency')
-        base = self.safeCurrencyCode(baseId)
-        quote = self.safeCurrencyCode(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
         precision = {
             'amount': 8,
@@ -361,8 +361,8 @@ class upbit (Exchange):
             market = response[i]
             id = self.safe_string(market, 'market')
             quoteId, baseId = id.split('-')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -419,7 +419,7 @@ class upbit (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'balance')
             account['used'] = self.safe_float(balance, 'locked')
@@ -433,8 +433,8 @@ class upbit (Exchange):
         if market is not None:
             return market['symbol']
         baseId, quoteId = marketId.split(self.options['symbolSeparator'])
-        base = self.safeCurrencyCode(baseId)
-        quote = self.safeCurrencyCode(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         return base + '/' + quote
 
     def fetch_order_books(self, symbols=None, params={}):
@@ -671,8 +671,8 @@ class upbit (Exchange):
             feeCurrency = market['quote']
         else:
             baseId, quoteId = marketId.split('-')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             feeCurrency = quote
         feeCost = self.safe_string(trade, askOrBid + '_fee')
@@ -1000,7 +1000,7 @@ class upbit (Exchange):
         if type == 'withdraw':
             type = 'withdrawal'
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safeCurrencyCode(currencyId)
+        code = self.safe_currency_code(currencyId)
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
         feeCost = self.safe_float(transaction, 'fee')
         return {
@@ -1105,8 +1105,8 @@ class upbit (Exchange):
             feeCurrency = market['quote']
         else:
             baseId, quoteId = marketId.split('-')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             feeCurrency = quote
         trades = self.safe_value(order, 'trades', [])
@@ -1292,7 +1292,7 @@ class upbit (Exchange):
         address = self.safe_string(depositAddress, 'deposit_address')
         tag = self.safe_string(depositAddress, 'secondary_address')
         currencyId = self.safe_string(depositAddress, 'currency')
-        code = self.safeCurrencyCode(currencyId)
+        code = self.safe_currency_code(currencyId)
         self.check_address(address)
         return {
             'currency': code,

@@ -172,8 +172,8 @@ class gdax (Exchange):
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             priceLimits = {
                 'min': self.safe_float(market, 'quote_increment'),
@@ -239,7 +239,7 @@ class gdax (Exchange):
             account = response[i]
             accountId = self.safe_string(account, 'id')
             currencyId = self.safe_string(account, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             result.append({
                 'id': accountId,
                 'type': None,
@@ -255,7 +255,7 @@ class gdax (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'available'),
                 'used': self.safe_float(balance, 'hold'),
@@ -655,7 +655,7 @@ class gdax (Exchange):
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
         updated = self.parse8601(self.safe_string(transaction, 'processed_at'))
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         fee = None
         status = self.parse_transaction_status(transaction)
         amount = self.safe_float(transaction, 'amount')

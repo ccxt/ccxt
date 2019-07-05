@@ -148,8 +148,8 @@ class rightbtc extends Exchange {
             $market = $markets[$id];
             $baseId = $this->safe_string($market, 'bid_asset_symbol');
             $quoteId = $this->safe_string($market, 'ask_asset_symbol');
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'bid_asset_decimals'),
@@ -408,7 +408,7 @@ class rightbtc extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             // https://github.com/ccxt/ccxt/issues/3873
             $account['free'] = $this->divide_safe_float ($balance, 'balance', 1e8);

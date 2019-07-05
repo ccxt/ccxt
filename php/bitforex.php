@@ -227,8 +227,8 @@ class bitforex extends Exchange {
             $symbolParts = explode('-', $id);
             $baseId = $symbolParts[2];
             $quoteId = $symbolParts[1];
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = true;
             $precision = array (
@@ -320,7 +320,7 @@ class bitforex extends Exchange {
         for ($i = 0; $i < count ($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['used'] = $this->safe_float($balance, 'frozen');
             $account['free'] = $this->safe_float($balance, 'active');

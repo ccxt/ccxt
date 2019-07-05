@@ -242,8 +242,8 @@ class huobipro extends Exchange {
             $baseId = $this->safe_string($market, 'base-currency');
             $quoteId = $this->safe_string($market, 'quote-currency');
             $id = $baseId . $quoteId;
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $market['amount-precision'],
@@ -437,7 +437,7 @@ class huobipro extends Exchange {
         if ($filledPoints !== null) {
             if (($feeCost === null) || ($feeCost === 0.0)) {
                 $feeCost = $filledPoints;
-                $feeCurrency = $this->safeCurrencyCode ('HBPOINT');
+                $feeCurrency = $this->safe_currency_code('HBPOINT');
             }
         }
         if ($feeCost !== null) {
@@ -561,7 +561,7 @@ class huobipro extends Exchange {
             //
             $id = $this->safe_value($currency, 'name');
             $precision = $this->safe_integer($currency, 'withdraw-precision');
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $active = $currency['visible'] && $currency['deposit-enabled'] && $currency['withdraw-enabled'];
             $name = $this->safe_string($currency, 'display-name');
             $result[$code] = array (
@@ -616,7 +616,7 @@ class huobipro extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = null;
             if (is_array($result) && array_key_exists($code, $result)) {
                 $account = $result[$code];
@@ -1124,7 +1124,7 @@ class huobipro extends Exchange {
         //
         $timestamp = $this->safe_integer($transaction, 'created-at');
         $updated = $this->safe_integer($transaction, 'updated-at');
-        $code = $this->safeCurrencyCode ($this->safe_string($transaction, 'currency'));
+        $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'));
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'withdraw') {
             $type = 'withdrawal';

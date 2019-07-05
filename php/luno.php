@@ -92,8 +92,8 @@ class luno extends Exchange {
             $id = $market['pair'];
             $baseId = mb_substr($id, 0, 3 - 0);
             $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -116,7 +116,7 @@ class luno extends Exchange {
         for ($i = 0; $i < count ($wallets); $i++) {
             $wallet = $wallets[$i];
             $currencyId = $this->safe_string($wallet, 'asset');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $reserved = $this->safe_float($wallet, 'reserved');
             $unconfirmed = $this->safe_float($wallet, 'unconfirmed');
             $balance = $this->safe_float($wallet, 'balance');
