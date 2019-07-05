@@ -1,6 +1,6 @@
 "use strict";
 
-const ccxt = require ('../../ccxt.js')
+const ccxt = require ('ccxt')
 
 ;(async () => {
 
@@ -32,15 +32,12 @@ const ccxt = require ('../../ccxt.js')
                     tickers[exchangeId] = ticker
                 }
 
-                resolve (ticker)
-
             } catch (e) {
 
                 console.log (exchangeId, e.message.slice (0, 100))
-
-                resolve (undefined)
-
             }
+
+            resolve ()
 
         })
 
@@ -59,6 +56,5 @@ const ccxt = require ('../../ccxt.js')
             'volume': tickers[id][volumeField],
         }))
     )
-
 
 }) ()
