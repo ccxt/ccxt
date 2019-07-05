@@ -100,10 +100,8 @@ class exx extends Exchange {
             $id = $ids[$i];
             $market = $response[$id];
             list($baseId, $quoteId) = explode('_', $id);
-            $upper = strtoupper($id);
-            list($base, $quote) = explode('_', $upper);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safeCurrencyCode ($baseId);
+            $quote = $this->safeCurrencyCode ($quoteId);
             $symbol = $base . '/' . $quote;
             $active = $market['isOpen'] === true;
             $precision = array (
@@ -265,7 +263,7 @@ class exx extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currencyId = $currencies[$i];
             $balance = $balances[$currencyId];
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safeCurrencyCode ($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'balance'),
                 'used' => $this->safe_float($balance, 'freeze'),
