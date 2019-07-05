@@ -812,8 +812,8 @@ module.exports = class kraken extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeFloat (balances, currencyId);
             const account = {
-                'free': undefined,
-                'used': undefined,
+                'free': balance,
+                'used': 0,
                 'total': balance,
             };
             result[code] = account;
