@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.882';
+$version = '1.18.894';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.882';
+    const VERSION = '1.18.894';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1710,8 +1710,8 @@ class Exchange {
         return $code;
     }
 
-    public function safeCurrencyCode($data, $key, $currency = null) {
-        return $this->safe_currency_code($data, $key, $currency);
+    public function safeCurrencyCode($currency_id, $currency = null) {
+        return $this->safe_currency_code($currency_id, $currency);
     }
 
     public function filter_by_symbol($array, $symbol = null) {

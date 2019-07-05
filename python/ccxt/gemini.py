@@ -206,11 +206,11 @@ class gemini (Exchange):
             minAmount = minAmountAsString.split(' ')
             amountPrecision = amountTickSizeAsString.split(' ')
             pricePrecision = priceTickSizeAsString.split(' ')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
-            symbol = base + '/' + quote
             baseId = baseId.lower()
             quoteId = quoteId.lower()
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
             precision = {
                 'amount': self.precision_from_string(amountPrecision[0]),
                 'price': self.precision_from_string(pricePrecision[0]),
@@ -251,10 +251,8 @@ class gemini (Exchange):
             market = id
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': None,
@@ -335,17 +333,12 @@ class gemini (Exchange):
         timestamp = self.safe_integer(trade, 'timestampms')
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
-        fee = self.safe_float(trade, 'fee_amount')
-        if fee is not None:
-            currency = self.safe_string(trade, 'fee_currency')
-            if currency is not None:
-                if currency in self.currencies_by_id:
-                    currency = self.currencies_by_id[currency]['code']
-                currency = self.common_currency_code(currency)
-            fee = {
-                'cost': self.safe_float(trade, 'fee_amount'),
-                'currency': currency,
-            }
+        feeCurrencyId = self.safe_string(trade, 'fee_currency')
+        feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+        fee = {
+            'cost': self.safe_float(trade, 'fee_amount'),
+            'currency': feeCurrencyCode,
+        }
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -391,7 +384,7 @@ class gemini (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
             account['total'] = self.safe_float(balance, 'amount')
@@ -537,13 +530,8 @@ class gemini (Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'timestampms')
-        code = None
-        if currency is None:
-            currencyId = self.safe_string(transaction, 'currency')
-            if currencyId in self.currencies_by_id:
-                currency = self.currencies_by_id[currencyId]
-        if currency is not None:
-            code = currency['code']
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'destination')
         type = self.safe_string(transaction, 'type')
         if type is not None:

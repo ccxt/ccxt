@@ -161,8 +161,8 @@ class therock extends Exchange {
                 $id = $this->safe_string($market, 'id');
                 $baseId = $this->safe_string($market, 'trade_currency');
                 $quoteId = $this->safe_string($market, 'base_currency');
-                $base = $this->safeCurrencyCode ($baseId);
-                $quote = $this->safeCurrencyCode ($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
                 $buy_fee = $this->safe_float($market, 'buy_fee');
                 $sell_fee = $this->safe_float($market, 'sell_fee');
@@ -212,7 +212,7 @@ class therock extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'trading_balance');
             $account['total'] = $this->safe_float($balance, 'balance');
@@ -508,7 +508,7 @@ class therock extends Exchange {
             $referenceId = $this->safe_string($item, 'trade_id');
         }
         $currencyId = $this->safe_string($item, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId);
+        $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_float($item, 'price');
         $timestamp = $this->parse8601 ($this->safe_string($item, 'date'));
         $status = 'ok';
@@ -740,7 +740,7 @@ class therock extends Exchange {
             }
         }
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId);
+        $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_float($transaction, 'price');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'date'));
         $status = 'ok';

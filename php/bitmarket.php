@@ -204,8 +204,8 @@ class bitmarket extends Exchange {
             }
             $baseId = mb_substr($id, 0, 3 - 0);
             $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -251,7 +251,7 @@ class bitmarket extends Exchange {
             $timestamp *= 1000;
         }
         $currencyId = $this->safe_string($item, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $type = null;
         if (is_array($item) && array_key_exists('withdraw_type', $item)) {
             $type = 'withdrawal';

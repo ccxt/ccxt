@@ -165,8 +165,8 @@ class therock (Exchange):
                 id = self.safe_string(market, 'id')
                 baseId = self.safe_string(market, 'trade_currency')
                 quoteId = self.safe_string(market, 'base_currency')
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
                 buy_fee = self.safe_float(market, 'buy_fee')
                 sell_fee = self.safe_float(market, 'sell_fee')
@@ -213,7 +213,7 @@ class therock (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'trading_balance')
             account['total'] = self.safe_float(balance, 'balance')
@@ -490,7 +490,7 @@ class therock (Exchange):
         if type == 'trade' or type == 'fee':
             referenceId = self.safe_string(item, 'trade_id')
         currencyId = self.safe_string(item, 'currency')
-        code = self.safeCurrencyCode(currencyId)
+        code = self.safe_currency_code(currencyId)
         amount = self.safe_float(item, 'price')
         timestamp = self.parse8601(self.safe_string(item, 'date'))
         status = 'ok'
@@ -715,7 +715,7 @@ class therock (Exchange):
                 txid = self.safe_string(detail, 'id')
                 address = self.safe_string(detail, 'recipient')
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safeCurrencyCode(currencyId)
+        code = self.safe_currency_code(currencyId)
         amount = self.safe_float(transaction, 'price')
         timestamp = self.parse8601(self.safe_string(transaction, 'date'))
         status = 'ok'

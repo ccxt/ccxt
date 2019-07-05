@@ -120,8 +120,8 @@ class xbtce (Exchange):
             id = self.safe_string(market, 'Symbol')
             baseId = self.safe_string(market, 'MarginCurrency')
             quoteId = self.safe_string(market, 'ProfitCurrency')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             symbol = symbol if market['IsTradeAllowed'] else id
             result.append({
@@ -142,7 +142,7 @@ class xbtce (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'Currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'FreeAmount'),
                 'used': self.safe_float(balance, 'LockedAmount'),
@@ -217,8 +217,8 @@ class xbtce (Exchange):
             else:
                 baseId = id[0:3]
                 quoteId = id[3:6]
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)

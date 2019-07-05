@@ -180,8 +180,8 @@ class bitstamp extends Exchange {
             list($base, $quote) = explode('/', $name);
             $baseId = strtolower($base);
             $quoteId = strtolower($quote);
-            $base = $this->safeCurrencyCode ($base);
-            $quote = $this->safeCurrencyCode ($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $symbolId = $baseId . '_' . $quoteId;
             $id = $this->safe_string($market, 'url_symbol');
@@ -728,7 +728,7 @@ class bitstamp extends Exchange {
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'datetime'));
         $id = $this->safe_string($transaction, 'id');
         $currencyId = $this->get_currency_id_from_transaction ($transaction);
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $feeCost = $this->safe_float($transaction, 'fee');
         $feeCurrency = null;
         $amount = null;

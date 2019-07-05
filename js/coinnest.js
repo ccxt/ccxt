@@ -117,7 +117,7 @@ module.exports = class coinnest extends Exchange {
         for (let i = 0; i < coins.length; i++) {
             const baseId = coins[i];
             const id = baseId + '/' + quoteId;
-            const base = this.commonCurrencyCode (baseId.toUpperCase ());
+            const base = this.safeCurrencyCode (baseId);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -245,8 +245,7 @@ module.exports = class coinnest extends Exchange {
                 continue;
             }
             const currencyId = parts[0];
-            const uppercase = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercase);
+            const code = this.safeCurrencyCode (currencyId);
             if (!(code in result)) {
                 result[code] = this.account ();
             }

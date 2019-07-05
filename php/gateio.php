@@ -173,10 +173,8 @@ class gateio extends Exchange {
                 $baseId = $parts[0] . '_' . $parts[1];
                 $quoteId = $parts[2];
             }
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -232,7 +230,7 @@ class gateio extends Exchange {
         $currencyIds = is_array($available) ? array_keys($available) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->common_currency_code(strtoupper($currencyId));
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($available, $currencyId);
             $account['used'] = $this->safe_float($locked, $currencyId);
@@ -326,8 +324,8 @@ class gateio extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
-            'baseVolume' => $this->safe_float($ticker, 'baseVolume'),
-            'quoteVolume' => $this->safe_float($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_float($ticker, 'quoteVolume'), // gateio has them reversed
+            'quoteVolume' => $this->safe_float($ticker, 'baseVolume'),
             'info' => $ticker,
         );
     }
@@ -366,8 +364,8 @@ class gateio extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $market = null;
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
@@ -507,15 +505,11 @@ class gateio extends Exchange {
         // In the $order $status response, this field has a different name.
         $remaining = $this->safe_float_2($order, 'leftAmount', 'left');
         $feeCost = $this->safe_float($order, 'feeValue');
-        $feeCurrency = $this->safe_string($order, 'feeCurrency');
+        $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
+        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
         $feeRate = $this->safe_float($order, 'feePercentage');
         if ($feeRate !== null) {
             $feeRate = $feeRate / 100;
-        }
-        if ($feeCurrency !== null) {
-            if (is_array($this->currencies_by_id) && array_key_exists($feeCurrency, $this->currencies_by_id)) {
-                $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
-            }
         }
         return array (
             'id' => $id,
@@ -533,7 +527,7 @@ class gateio extends Exchange {
             'trades' => null,
             'fee' => array (
                 'cost' => $feeCost,
-                'currency' => $feeCurrency,
+                'currency' => $feeCurrencyCode,
                 'rate' => $feeRate,
             ),
             'info' => $order,
@@ -747,15 +741,8 @@ class gateio extends Exchange {
         //         'type' => 'withdrawal'
         //     }
         //
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency === null) {
-            $code = $this->common_currency_code($currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $id = $this->safe_string($transaction, 'id');
         $txid = $this->safe_string($transaction, 'txid');
         $amount = $this->safe_float($transaction, 'amount');

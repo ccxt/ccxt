@@ -223,8 +223,8 @@ class binance (Exchange):
                 continue
             baseId = market['baseAsset']
             quoteId = market['quoteAsset']
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             filters = self.index_by(market['filters'], 'filterType')
             precision = {
@@ -314,7 +314,7 @@ class binance (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = balance['asset']
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'free')
             account['used'] = self.safe_float(balance, 'locked')
@@ -486,7 +486,7 @@ class binance (Exchange):
         if 'commission' in trade:
             fee = {
                 'cost': self.safe_float(trade, 'commission'),
-                'currency': self.safeCurrencyCode(self.safe_string(trade, 'commissionAsset')),
+                'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         takerOrMaker = None
         if 'isMaker' in trade:
@@ -864,7 +864,7 @@ class binance (Exchange):
         #             fromAsset: "ADA"                  },
         orderId = self.safe_string(trade, 'tranId')
         timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
-        tradedCurrency = self.safeCurrencyCode(self.safe_string(trade, 'fromAsset'))
+        tradedCurrency = self.safe_currency_code(self.safe_string(trade, 'fromAsset'))
         earnedCurrency = self.currency('BNB')['code']
         applicantSymbol = earnedCurrency + '/' + tradedCurrency
         tradedCurrencyIsQuote = False
@@ -1024,7 +1024,7 @@ class binance (Exchange):
                 tag = None
         txid = self.safe_value(transaction, 'txId')
         currencyId = self.safe_string(transaction, 'asset')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         insertTime = self.safe_integer(transaction, 'insertTime')
         applyTime = self.safe_integer(transaction, 'applyTime')
@@ -1101,7 +1101,7 @@ class binance (Exchange):
         withdrawFees = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            code = self.safeCurrencyCode(id)
+            code = self.safe_currency_code(id)
             withdrawFees[code] = self.safe_float(detail[id], 'withdrawFee')
         return {
             'withdraw': withdrawFees,

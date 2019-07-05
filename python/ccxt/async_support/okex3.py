@@ -2528,7 +2528,7 @@ class okex3 (Exchange):
         referenceId = self.safe_string(details, 'order_id')
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        code = self.safeCurrencyCode(self.safe_string(item, 'currency'), currency)
+        code = self.safe_currency_code(self.safe_string(item, 'currency'), currency)
         amount = self.safe_float(item, 'amount')
         timestamp = self.parse8601(self.safe_string(item, 'timestamp'))
         fee = {

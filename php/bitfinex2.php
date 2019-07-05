@@ -216,10 +216,18 @@ class bitfinex2 extends bitfinex {
             $market = $response[$i];
             $id = $this->safe_string($market, 'pair');
             $id = strtoupper($id);
-            $baseId = mb_substr($id, 0, 3 - 0);
-            $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $baseId = null;
+            $quoteId = null;
+            if (mb_strpos($id, ':') !== false) {
+                $parts = explode(':', $id);
+                $baseId = $parts[0];
+                $quoteId = $parts[1];
+            } else {
+                $baseId = mb_substr($id, 0, 3 - 0);
+                $quoteId = mb_substr($id, 3, 6 - 3);
+            }
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $id = 't' . $id;
             $baseId = $this->get_currency_id ($baseId);
@@ -253,6 +261,9 @@ class bitfinex2 extends bitfinex {
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
+                'swap' => false,
+                'spot' => false,
+                'futures' => false,
             );
         }
         return $result;
@@ -274,7 +285,7 @@ class bitfinex2 extends bitfinex {
                 if ($currency[0] === 't') {
                     $currency = mb_substr($currency, 1);
                 }
-                $code = $this->safeCurrencyCode ($currency);
+                $code = $this->safe_currency_code($currency);
                 $account = $this->account ();
                 $account['total'] = $total;
                 if (!$available) {
@@ -449,7 +460,7 @@ class bitfinex2 extends bitfinex {
             $orderId = $trade[3];
             $takerOrMaker = ($trade[8] === 1) ? 'maker' : 'taker';
             $feeCost = $trade[9];
-            $feeCurrency = $this->safeCurrencyCode ($trade[10]);
+            $feeCurrency = $this->safe_currency_code($trade[10]);
             if ($feeCost !== null) {
                 $fee = array (
                     'cost' => abs ($feeCost),

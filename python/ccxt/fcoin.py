@@ -149,10 +149,8 @@ class fcoin (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
-            base = baseId.upper()
-            base = self.common_currency_code(base)
-            quote = quoteId.upper()
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_decimal'],
@@ -189,11 +187,7 @@ class fcoin (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = balance['currency']
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = float(balance['available'])
             account['total'] = float(balance['balance'])

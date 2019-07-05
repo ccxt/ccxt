@@ -230,7 +230,7 @@ class upbit extends Exchange {
         }
         $precision = null;
         $currencyId = $this->safe_string($currencyInfo, 'code');
-        $code = $this->safeCurrencyCode ($currencyId);
+        $code = $this->safe_currency_code($currencyId);
         return array (
             'info' => $response,
             'id' => $currencyId,
@@ -295,8 +295,8 @@ class upbit extends Exchange {
         $marketId = $this->safe_string($marketInfo, 'id');
         $baseId = $this->safe_string($ask, 'currency');
         $quoteId = $this->safe_string($bid, 'currency');
-        $base = $this->safeCurrencyCode ($baseId);
-        $quote = $this->safeCurrencyCode ($quoteId);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
         $precision = array (
             'amount' => 8,
@@ -361,8 +361,8 @@ class upbit extends Exchange {
             $market = $response[$i];
             $id = $this->safe_string($market, 'market');
             list($quoteId, $baseId) = explode('-', $id);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -421,7 +421,7 @@ class upbit extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'locked');
@@ -439,8 +439,8 @@ class upbit extends Exchange {
             return $market['symbol'];
         }
         list($baseId, $quoteId) = explode($this->options['symbolSeparator'], $marketId);
-        $base = $this->safeCurrencyCode ($baseId);
-        $quote = $this->safeCurrencyCode ($quoteId);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         return $base . '/' . $quote;
     }
 
@@ -695,8 +695,8 @@ class upbit extends Exchange {
             $feeCurrency = $market['quote'];
         } else {
             list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
@@ -1050,7 +1050,7 @@ class upbit extends Exchange {
             $type = 'withdrawal';
         }
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId);
+        $code = $this->safe_currency_code($currencyId);
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
         $feeCost = $this->safe_float($transaction, 'fee');
         return array (
@@ -1159,8 +1159,8 @@ class upbit extends Exchange {
             $feeCurrency = $market['quote'];
         } else {
             list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
@@ -1363,7 +1363,7 @@ class upbit extends Exchange {
         $address = $this->safe_string($depositAddress, 'deposit_address');
         $tag = $this->safe_string($depositAddress, 'secondary_address');
         $currencyId = $this->safe_string($depositAddress, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId);
+        $code = $this->safe_currency_code($currencyId);
         $this->check_address($address);
         return array (
             'currency' => $code,

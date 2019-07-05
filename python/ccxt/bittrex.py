@@ -742,7 +742,7 @@ class bittrex (Exchange):
         timestamp = opened if opened else updated
         type = 'deposit' if (opened is None) else 'withdrawal'
         currencyId = self.safe_string(transaction, 'Currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         status = 'pending'
         if type == 'deposit':
             if currency is not None:
@@ -974,7 +974,7 @@ class bittrex (Exchange):
             elif symbol is not None:
                 currencyIds = symbol.split('/')
                 quoteCurrencyId = currencyIds[1]
-                fee['currency'] = self.safeCurrencyCode(quoteCurrencyId)
+                fee['currency'] = self.safe_currency_code(quoteCurrencyId)
         price = self.safe_float(order, 'Limit')
         cost = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Quantity')
