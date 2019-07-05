@@ -122,6 +122,10 @@ module.exports = class ice3x extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        if (!Object.keys (this.currencies_by_id).length) {
+            this.currencies = await this.fetchCurrencies ();
+            this.currencies_by_id = this.indexBy (this.currencies, 'id');
+        }
         const response = await this.publicGetPairList (params);
         const markets = this.safeValue (response['response'], 'entities');
         const result = [];
@@ -130,8 +134,10 @@ module.exports = class ice3x extends Exchange {
             const id = this.safeString (market, 'pair_id');
             const baseId = this.safeString (market, 'currency_id_from');
             const quoteId = this.safeString (market, 'currency_id_to');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
+            const baseCurrency = this.currencies_by_id[baseId];
+            const quoteCurrency = this.currencies_by_id[quoteId];
+            const base = this.safeCurrencyCode (baseCurrency['code']);
+            const quote = this.safeCurrencyCode (quoteCurrency['code']);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -140,7 +146,7 @@ module.exports = class ice3x extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': undefined,
+                'active': true,
                 'info': market,
             });
         }
@@ -287,7 +293,10 @@ module.exports = class ice3x extends Exchange {
             const balance = balances[i];
             // currency ids are numeric strings
             const currencyId = this.safeString (balance, 'currency_id');
-            const code = this.safeCurrencyCode (currencyId);
+            let code = currencyId;
+            if (currencyId in this.currencies_by_id) {
+                code = this.currencies_by_id[currencyId]['code'];
+            }
             const account = this.account ();
             account['total'] = this.safeFloat (balance, 'balance');
             result[code] = account;
