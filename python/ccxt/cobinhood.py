@@ -205,7 +205,7 @@ class cobinhood (Exchange):
             currency = currencies[i]
             id = self.safe_string(currency, 'currency')
             name = self.safe_string(currency, 'name')
-            code = self.safeCurrencyCode(id)
+            code = self.safe_currency_code(id)
             minUnit = self.safe_float(currency, 'min_unit')
             result[code] = {
                 'id': id,
@@ -252,8 +252,8 @@ class cobinhood (Exchange):
             market = markets[i]
             id = self.safe_string(market, 'id')
             baseId, quoteId = id.split('-')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -295,8 +295,8 @@ class cobinhood (Exchange):
                 market = self.markets_by_id[marketId]
             else:
                 baseId, quoteId = marketId.split('-')
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
@@ -443,7 +443,7 @@ class cobinhood (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['used'] = self.safe_float(balance, 'on_order')
             account['total'] = self.safe_float(balance, 'total')
@@ -725,7 +725,7 @@ class cobinhood (Exchange):
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'created_at')
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         id = None
         withdrawalId = self.safe_string(transaction, 'withdrawal_id')
         depositId = self.safe_string(transaction, 'deposit_id')

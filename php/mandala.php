@@ -346,7 +346,7 @@ class mandala extends Exchange {
         for ($i = 0; $i < count ($data); $i++) {
             $currency = $data[$i];
             $id = $this->safe_string($currency, 'shortName');
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'fullName');
             $precision = $this->safe_integer($currency, 'decimalPrecision');
             $active = true;
@@ -426,8 +426,8 @@ class mandala extends Exchange {
             $id = $ids[$i];
             $market = $data[$id];
             list($quoteId, $baseId) = explode('_', $id);  // they have base/quote reversed with some endpoints
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $baseCurrency = $this->safe_value($currenciesById, $baseId, array());
             $quoteCurrency = $this->safe_value($currenciesById, $quoteId, array());
@@ -485,7 +485,7 @@ class mandala extends Exchange {
         for ($i = 0; $i < count ($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'balanceInTrade');
@@ -697,8 +697,8 @@ class mandala extends Exchange {
         $symbol = null;
         $baseId = $this->safe_string($trade, 'trade');
         $quoteId = $this->safe_string($trade, 'market');
-        $base = $this->safeCurrencyCode ($baseId);
-        $quote = $this->safeCurrencyCode ($quoteId);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         if ($base !== null && $quote !== null) {
             $symbol = $base . '/' . $quote;
         } else {
@@ -935,8 +935,8 @@ class mandala extends Exchange {
 
     public function parse_symbol ($id) {
         list($quote, $base) = explode($this->options['symbolSeparator'], $id);
-        $base = $this->safeCurrencyCode ($base);
-        $quote = $this->safeCurrencyCode ($quote);
+        $base = $this->safe_currency_code($base);
+        $quote = $this->safe_currency_code($quote);
         return $base . '/' . $quote;
     }
 
@@ -982,8 +982,8 @@ class mandala extends Exchange {
         $id = $this->safe_string($order, 'orderId');
         $baseId = $this->safe_string($order, 'trade');
         $quoteId = $this->safe_string($order, 'market');
-        $base = $this->safeCurrencyCode ($baseId);
-        $quote = $this->safeCurrencyCode ($quoteId);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         $symbol = null;
         if ($base !== null && $quote !== null) {
             $symbol = $base . '/' . $quote;
@@ -1343,7 +1343,7 @@ class mandala extends Exchange {
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'withdrawalReqDate', $updated));
         $type = (is_array($transaction) && array_key_exists('withdrawalReqDate', $transaction)) ? 'withdrawal' : 'deposit';
         $currencyId = $this->safe_string($transaction, 'withdrawalType');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'withdrawalStatus'));
         $feeCost = null;
         if ($type === 'deposit') {

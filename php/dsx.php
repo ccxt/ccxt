@@ -180,7 +180,7 @@ class dsx extends liqui {
             }
         }
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         return array (
             'id' => $this->safe_string($transaction, 'id'),
@@ -211,8 +211,8 @@ class dsx extends liqui {
             $market = $markets[$id];
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quoted_currency');
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'decimal_places'),
@@ -289,7 +289,7 @@ class dsx extends liqui {
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($funds, $currencyId, array());
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
@@ -536,7 +536,7 @@ class dsx extends liqui {
         $feeCost = $this->safe_float($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
-            $feeCurrencyCode = $this->safeCurrencyCode ($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,

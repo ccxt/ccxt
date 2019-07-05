@@ -105,8 +105,8 @@ class coingi extends Exchange {
             list($baseId, $quoteId) = explode('-', $id);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->safeCurrencyCode ($base);
-            $quote = $this->safeCurrencyCode ($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -157,7 +157,7 @@ class coingi extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance['currency'], 'name');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $balance['available'];
             $account['used'] = $balance['blocked'] . $balance['inOrders'] . $balance['withdrawing'];

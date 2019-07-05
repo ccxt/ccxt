@@ -93,8 +93,8 @@ class luno (Exchange):
             id = market['pair']
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -115,7 +115,7 @@ class luno (Exchange):
         for i in range(0, len(wallets)):
             wallet = wallets[i]
             currencyId = self.safe_string(wallet, 'asset')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             reserved = self.safe_float(wallet, 'reserved')
             unconfirmed = self.safe_float(wallet, 'unconfirmed')
             balance = self.safe_float(wallet, 'balance')

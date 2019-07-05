@@ -73,7 +73,7 @@ class coinspot (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             total = self.safe_float(balances, currencyId)
             account = {
                 'free': total,

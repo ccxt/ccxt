@@ -76,8 +76,8 @@ class coinfalcon (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             baseId, quoteId = market['name'].split('-')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'size_precision'),
@@ -237,7 +237,7 @@ class coinfalcon (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'available_balance'),
                 'used': self.safe_float(balance, 'hold_balance'),

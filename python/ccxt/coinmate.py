@@ -127,8 +127,8 @@ class coinmate (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'firstCurrency')
             quoteId = self.safe_string(market, 'secondCurrency')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -168,7 +168,7 @@ class coinmate (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_value(balances, currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
@@ -288,7 +288,7 @@ class coinmate (Exchange):
         address = self.safe_string(item, 'destination')
         tag = self.safe_string(item, 'destinationTag')
         currencyId = self.safe_string(item, 'amountCurrency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string(item, 'transferType')
         if type is not None:
             type = type.lower()
@@ -362,8 +362,8 @@ class coinmate (Exchange):
                 quote = market['quote']
             else:
                 baseId, quoteId = marketId.split('_')
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:

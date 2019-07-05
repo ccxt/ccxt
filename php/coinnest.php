@@ -118,7 +118,7 @@ class coinnest extends Exchange {
         for ($i = 0; $i < count ($coins); $i++) {
             $baseId = $coins[$i];
             $id = $baseId . '/' . $quoteId;
-            $base = $this->safeCurrencyCode ($baseId);
+            $base = $this->safe_currency_code($baseId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -246,7 +246,7 @@ class coinnest extends Exchange {
                 continue;
             }
             $currencyId = $parts[0];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             if (!(is_array($result) && array_key_exists($code, $result))) {
                 $result[$code] = $this->account ();
             }

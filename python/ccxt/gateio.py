@@ -185,8 +185,8 @@ class gateio (Exchange):
             if numParts > 2:
                 baseId = parts[0] + '_' + parts[1]
                 quoteId = parts[2]
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -239,7 +239,7 @@ class gateio (Exchange):
         currencyIds = list(available.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(available, currencyId)
             account['used'] = self.safe_float(locked, currencyId)
@@ -325,8 +325,8 @@ class gateio (Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_float(ticker, 'quoteVolume'),  # gateio has them reversed
+            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
             'info': ticker,
         }
 
@@ -358,8 +358,8 @@ class gateio (Exchange):
             baseId, quoteId = id.split('_')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.safeCurrencyCode(base)
-            quote = self.safeCurrencyCode(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             market = None
             if symbol in self.markets:
@@ -483,7 +483,7 @@ class gateio (Exchange):
         remaining = self.safe_float_2(order, 'leftAmount', 'left')
         feeCost = self.safe_float(order, 'feeValue')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
-        feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
+        feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
         feeRate = self.safe_float(order, 'feePercentage')
         if feeRate is not None:
             feeRate = feeRate / 100
@@ -690,7 +690,7 @@ class gateio (Exchange):
         #     }
         #
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         id = self.safe_string(transaction, 'id')
         txid = self.safe_string(transaction, 'txid')
         amount = self.safe_float(transaction, 'amount')

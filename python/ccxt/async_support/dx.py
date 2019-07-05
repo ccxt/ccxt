@@ -185,8 +185,8 @@ class dx (Exchange):
             amountPrecision = 0
             if instrument['meQuantityMultiplier'] != 0:
                 amountPrecision = math.log10(instrument['meQuantityMultiplier'])
-            base = self.safeCurrencyCode(base)
-            quote = self.safeCurrencyCode(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             baseId = self.safe_string(asset, 'baseCurrencyId')
             quoteId = self.safe_string(asset, 'quotedCurrencyId')
             baseNumericId = self.safe_integer(asset, 'baseCurrencyId')
@@ -408,7 +408,7 @@ class dx (Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             balance = self.safe_value(balances, currencyId, {})
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'available'),
                 'used': self.safe_float(balance, 'frozen'),

@@ -174,7 +174,7 @@ class btcmarkets (Exchange):
         fee = self.safe_float(item, 'fee')
         status = self.parse_transaction_status(self.safe_string(item, 'status'))
         ccy = self.safe_string(item, 'currency')
-        code = self.safeCurrencyCode(ccy)
+        code = self.safe_currency_code(ccy)
         # todo: self logic is duplicated below
         amount = self.safe_float(item, 'amount')
         if amount is not None:
@@ -207,8 +207,8 @@ class btcmarkets (Exchange):
             baseId = self.safe_string(market, 'instrument')
             quoteId = self.safe_string(market, 'currency')
             id = baseId + '/' + quoteId
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             # todo: refactor self
             fee = 0.0085 if (quote == 'AUD') else 0.0022
@@ -262,7 +262,7 @@ class btcmarkets (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             multiplier = 100000000
             total = self.safe_float(balance, 'balance') / multiplier
             used = self.safe_float(balance, 'pendingFunds') / multiplier

@@ -75,8 +75,8 @@ class kuna (acx):
                 slice = id[index:]
                 if (index > 0) and(slice == quoteId):
                     baseId = id.replace(quoteId, '')
-                    base = self.safeCurrencyCode(baseId)
-                    quote = self.safeCurrencyCode(quoteId)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
                     precision = {
                         'amount': 6,

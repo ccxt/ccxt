@@ -301,7 +301,7 @@ class anxpro extends Exchange {
             $type = 'deposit';
         }
         $currencyId = $this->safe_string($transaction, 'ccy');
-        $code = $this->safeCurrencyCode ($currencyId);
+        $code = $this->safe_currency_code($currencyId);
         $transactionState = $this->safe_string($transaction, 'transactionState');
         $status = $this->parse_transaction_status ($transactionState);
         $feeCost = $this->safe_float($transaction, 'fee');
@@ -519,7 +519,7 @@ class anxpro extends Exchange {
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $currency = $currencies[$id];
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $engineSettings = $this->safe_value($currency, 'engineSettings');
             $depositsEnabled = $this->safe_value($engineSettings, 'depositsEnabled');
             $withdrawalsEnabled = $this->safe_value($engineSettings, 'withdrawalsEnabled');
@@ -673,8 +673,8 @@ class anxpro extends Exchange {
             //
             $baseId = $this->safe_string($market, 'tradedCcy');
             $quoteId = $this->safe_string($market, 'settlementCcy');
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $baseCurrency = $this->safe_value($currencies, $baseId, array());
             $quoteCurrency = $this->safe_value($currencies, $quoteId, array());
@@ -724,7 +724,7 @@ class anxpro extends Exchange {
         $result = array( 'info' => $balance );
         for ($c = 0; $c < count ($currencyIds); $c++) {
             $currencyId = $currencyIds[$c];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $wallet = $this->safe_value($wallets, $currencyId);
             $account['free'] = $this->safe_float($wallet['Available_Balance'], 'value');

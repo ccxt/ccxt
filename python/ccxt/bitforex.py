@@ -237,8 +237,8 @@ class bitforex (Exchange):
             symbolParts = id.split('-')
             baseId = symbolParts[2]
             quoteId = symbolParts[1]
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = True
             precision = {
@@ -322,7 +322,7 @@ class bitforex (Exchange):
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['used'] = self.safe_float(balance, 'frozen')
             account['free'] = self.safe_float(balance, 'active')

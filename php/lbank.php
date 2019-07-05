@@ -129,8 +129,8 @@ class lbank extends Exchange {
                 $baseId = $parts[0];
                 $quoteId = $parts[1];
             }
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'quantityAccuracy'),
@@ -185,8 +185,8 @@ class lbank extends Exchange {
                     $baseId = $parts[0];
                     $quoteId = $parts[1];
                 }
-                $base = $this->safeCurrencyCode ($baseId);
-                $quote = $this->safeCurrencyCode ($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -388,7 +388,7 @@ class lbank extends Exchange {
         $currencyIds = is_array($free) ? array_keys($free) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['used'] = $this->safe_float($freeze, $currencyId);

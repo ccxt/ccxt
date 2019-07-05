@@ -514,8 +514,8 @@ class hitbtc extends Exchange {
             $quoteId = $this->safe_string($market, 'currency');
             $lot = $this->safe_float($market, 'lot');
             $step = $this->safe_float($market, 'step');
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'info' => $market,
@@ -564,7 +564,7 @@ class hitbtc extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float_2($balance, 'cash', 'balance');
             $account['used'] = $this->safe_float($balance, 'reserved');

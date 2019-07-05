@@ -168,8 +168,8 @@ class crex24 extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $tickSize = $this->safe_value($market, 'tickSize');
             $minPrice = $this->safe_value($market, 'minPrice');
@@ -240,7 +240,7 @@ class crex24 extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $precision = $this->safe_integer($currency, 'withdrawalPrecision');
             $address = $this->safe_value($currency, 'BaseAddress');
             $active = ($currency['depositsAllowed'] && $currency['withdrawalsAllowed'] && !$currency['isDelisted']);
@@ -305,7 +305,7 @@ class crex24 extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'reserved');
@@ -368,8 +368,8 @@ class crex24 extends Exchange {
             $symbol = $market['symbol'];
         } else if ($marketId !== null) {
             list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
         }
         $last = $this->safe_float($ticker, 'last');
@@ -513,7 +513,7 @@ class crex24 extends Exchange {
         }
         $fee = null;
         $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
-        $feeCode = $this->safeCurrencyCode ($feeCurrencyId);
+        $feeCode = $this->safe_currency_code($feeCurrencyId);
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
             $fee = array (
@@ -1067,7 +1067,7 @@ class crex24 extends Exchange {
         $tag = $this->safe_string($transaction, 'paymentId');
         $txid = $this->safe_value($transaction, 'txId');
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $type = $this->safe_string($transaction, 'type');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'createdAt'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'processedAt'));

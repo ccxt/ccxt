@@ -230,7 +230,7 @@ class yobit (Exchange):
         currencyIds = list(self.extend(free, total).keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(free, currencyId)
             account['total'] = self.safe_float(total, currencyId)
@@ -248,8 +248,8 @@ class yobit (Exchange):
             baseId, quoteId = id.split('_')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.safeCurrencyCode(base)
-            quote = self.safeCurrencyCode(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -431,7 +431,7 @@ class yobit (Exchange):
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
-            feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,

@@ -154,8 +154,8 @@ class rightbtc (Exchange):
             market = markets[id]
             baseId = self.safe_string(market, 'bid_asset_symbol')
             quoteId = self.safe_string(market, 'ask_asset_symbol')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'bid_asset_decimals'),
@@ -390,7 +390,7 @@ class rightbtc (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             # https://github.com/ccxt/ccxt/issues/3873
             account['free'] = self.divide_safe_float(balance, 'balance', 1e8)

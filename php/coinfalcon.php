@@ -73,8 +73,8 @@ class coinfalcon extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             list($baseId, $quoteId) = explode('-', $market['name']);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'size_precision'),
@@ -253,7 +253,7 @@ class coinfalcon extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'available_balance'),
                 'used' => $this->safe_float($balance, 'hold_balance'),

@@ -127,8 +127,8 @@ class zaif extends Exchange {
             $id = $this->safe_string($market, 'currency_pair');
             $name = $this->safe_string($market, 'name');
             list($baseId, $quoteId) = explode('/', $name);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => -log10 ($market['item_unit_step']),
@@ -177,7 +177,7 @@ class zaif extends Exchange {
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($funds, $currencyId);
             $account = array (
                 'free' => $balance,

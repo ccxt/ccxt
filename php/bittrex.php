@@ -770,7 +770,7 @@ class bittrex extends Exchange {
         $timestamp = $opened ? $opened : $updated;
         $type = ($opened === null) ? 'deposit' : 'withdrawal';
         $currencyId = $this->safe_string($transaction, 'Currency');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $status = 'pending';
         if ($type === 'deposit') {
             if ($currency !== null) {
@@ -1036,7 +1036,7 @@ class bittrex extends Exchange {
             } else if ($symbol !== null) {
                 $currencyIds = explode('/', $symbol);
                 $quoteCurrencyId = $currencyIds[1];
-                $fee['currency'] = $this->safeCurrencyCode ($quoteCurrencyId);
+                $fee['currency'] = $this->safe_currency_code($quoteCurrencyId);
             }
         }
         $price = $this->safe_float($order, 'Limit');

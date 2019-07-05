@@ -97,7 +97,7 @@ class btctradeua extends Exchange {
         for ($i = 0; $i < count ($accounts); $i++) {
             $account = $accounts[$i];
             $currencyId = $account['currency'];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_float($account, 'balance');
             $result[$code] = array (
                 'free' => $balance,

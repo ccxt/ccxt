@@ -130,7 +130,7 @@ class tidex extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
             $precision = $currency['amountPoint'];
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $active = $currency['visible'] === true;
             $canWithdraw = $currency['withdrawEnable'] === true;
             $canDeposit = $currency['depositEnable'] === true;
@@ -209,8 +209,8 @@ class tidex extends Exchange {
             $id = $keys[$i];
             $market = $markets[$id];
             list($baseId, $quoteId) = explode('_', $id);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'decimal_places'),
@@ -257,7 +257,7 @@ class tidex extends Exchange {
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($funds, $currencyId, array());
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'value');
@@ -426,7 +426,7 @@ class tidex extends Exchange {
         $feeCost = $this->safe_float($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
-            $feeCurrencyCode = $this->safeCurrencyCode ($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,

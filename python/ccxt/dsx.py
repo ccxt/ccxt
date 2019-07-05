@@ -173,7 +173,7 @@ class dsx (liqui):
             elif type == 'Withdraw':
                 type = 'withdrawal'
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         return {
             'id': self.safe_string(transaction, 'id'),
@@ -203,8 +203,8 @@ class dsx (liqui):
             market = markets[id]
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quoted_currency')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -279,7 +279,7 @@ class dsx (liqui):
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_value(funds, currencyId, {})
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
@@ -506,7 +506,7 @@ class dsx (liqui):
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
-            feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,

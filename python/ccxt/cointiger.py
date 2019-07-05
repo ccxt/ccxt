@@ -165,8 +165,8 @@ class cointiger (huobipro):
                 market = partition[j]
                 baseId = self.safe_string(market, 'baseCurrency')
                 quoteId = self.safe_string(market, 'quoteCurrency')
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 id = baseId + quoteId
                 uppercaseId = id.upper()
                 symbol = base + '/' + quote

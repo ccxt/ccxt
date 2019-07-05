@@ -161,8 +161,8 @@ class coss (Exchange):
             market = markets[i]
             marketId = market['symbol']
             baseId, quoteId = marketId.split('_')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'amount_limit_decimal'),
@@ -236,7 +236,7 @@ class coss (Exchange):
         for i in range(0, len(response)):
             currency = response[i]
             currencyId = self.safe_string(currency, 'currency_code')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             name = self.safe_string(currency, 'name')
             allowBuy = self.safe_value(currency, 'allow_buy')
             allowSell = self.safe_value(currency, 'allow_sell')
@@ -308,7 +308,7 @@ class coss (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency_code')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             total = self.safe_float(balance, 'total')
             used = self.safe_float(balance, 'in_order')
             free = self.safe_float(balance, 'available')
@@ -404,8 +404,8 @@ class coss (Exchange):
         if market is None:
             if marketId is not None:
                 baseId, quoteId = marketId.split('_')
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
@@ -531,7 +531,7 @@ class coss (Exchange):
         cost = parts[0]
         code = None
         if numParts > 1:
-            code = self.safeCurrencyCode(parts[1])
+            code = self.safe_currency_code(parts[1])
         return {
             'cost': cost,
             'currency': code,
@@ -572,8 +572,8 @@ class coss (Exchange):
             market = self.safe_value(self.markets_by_id, marketId, market)
             if market is None:
                 baseId, quoteId = marketId.split('_')
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         elif market is not None:
             symbol = market['symbol']
@@ -758,8 +758,8 @@ class coss (Exchange):
             market = self.safe_value(self.markets_by_id, marketId, market)
             if market is None:
                 baseId, quoteId = marketId.split('_')
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             else:
                 symbol = market['symbol']

@@ -96,7 +96,7 @@ class btctradeua (Exchange):
         for i in range(0, len(accounts)):
             account = accounts[i]
             currencyId = account['currency']
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_float(account, 'balance')
             result[code] = {
                 'free': balance,
