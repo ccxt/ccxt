@@ -394,7 +394,7 @@ class BaseError {};
 error_factory($error_hierarchy['BaseError'], 'BaseError');
 `
 
-const phpArray = errorHierarchy.replace (/{/g, 'array(').replace (/}/g, ')').replace (/:/g, '=>').trimRight () + ';'
+const phpArray = errorHierarchy.replace (/{/g, 'array(').replace (/}/g, ')').replace (/:/g, ' =>').trimRight () + ';'
 filename = './php/errors.php'
 fs.writeFileSync (filename, phpHeader + phpArray + phpErrorCode)
 log.bright.cyan ('Exporting error hierachy →', filename.yellow)
