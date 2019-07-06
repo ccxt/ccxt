@@ -154,16 +154,16 @@ class Exchange(BaseExchange):
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror:
-            self.raise_error(ExchangeNotAvailable, '', http_status_code, http_status_text, url, method, headers, http_response, json_response)
+            self.raise_error(ExchangeNotAvailable, 'socket.gaierror', http_status_code, http_status_text, url, method, headers, http_response, json_response)
 
         except concurrent.futures._base.TimeoutError:
-            self.raise_error(RequestTimeout, '', http_status_code, http_status_text, url, method, headers, http_response, json_response)
+            self.raise_error(RequestTimeout, 'concurrent.futures._base.TimeoutError', http_status_code, http_status_text, url, method, headers, http_response, json_response)
 
         except aiohttp.client_exceptions.ClientConnectionError:
-            self.raise_error(ExchangeNotAvailable, '', http_status_code, http_status_text, url, method, headers, http_response, json_response)
+            self.raise_error(ExchangeNotAvailable, 'aiohttp.client_exceptions.ClientConnectionError', http_status_code, http_status_text, url, method, headers, http_response, json_response)
 
         except aiohttp.client_exceptions.ClientError:  # base exception class
-            self.raise_error(ExchangeError, '', http_status_code, http_status_text, url, method, headers, http_response, json_response)
+            self.raise_error(ExchangeError, 'aiohttp.client_exceptions.ClientError', http_status_code, http_status_text, url, method, headers, http_response, json_response)
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
         self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)

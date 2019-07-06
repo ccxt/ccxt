@@ -547,7 +547,7 @@ class Exchange(object):
             response.raise_for_status()
 
         except Timeout:
-            self.raise_error(RequestTimeout, '', http_status_code, http_status_text, url, method, headers, http_response, json_response)
+            self.raise_error(RequestTimeout, 'requests.exceptions.Timeout', http_status_code, http_status_text, url, method, headers, http_response, json_response)
 
         except TooManyRedirects:
             self.raise_error(ExchangeError, 'Too many redirects.', http_status_code, http_status_text, url, method, headers, http_response, json_response)
