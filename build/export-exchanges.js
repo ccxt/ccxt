@@ -290,8 +290,8 @@ fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2))
 
 // ----------------------------------------------------------------------------
 
-const errorHeirachy = fs.readFileSync ('./error-hierarchy.json')
-const formatted = JSON.stringify (JSON.parse (errorHeirachy), null, 4).replace (/"/g, "'").replace (/((?:{| +)})(?!,)/g, '$1,') + '\n'
+const errorHierarchy = fs.readFileSync ('./error-hierarchy.json', 'utf8')
+const formatted = JSON.stringify (JSON.parse (errorHierarchy), null, 4).replace (/"/g, "'").replace (/((?:{| +)})(?!,)/g, '$1,') + '\n'
 
 const pythonErrorCode = `
 # -----------------------------------------------------------------------------
@@ -370,6 +370,35 @@ function subclass (BaseClass, classes, namespace = {}) {
 filename = './js/base/errors.js'
 fs.writeFileSync (filename, '\'use strict\';\n\nconst errorHierarchy = ' + formatted + jsErrorCode)
 log.bright.cyan ('Exporting error hierachy →', filename.yellow)
+
+const phpHeader = `
+<?php
+
+namespace ccxt;
+
+$error_hierarchy = `
+
+const phpErrorCode = `
+
+/*  ------------------------------------------------------------------------ */
+
+function error_factory($array, $parent) {
+    foreach ($array as $error => $subclasses) {
+        eval("namespace ccxt; class $error extends $parent {};");
+        error_factory($subclasses, $error);
+    }
+}
+
+class BaseError {};
+
+error_factory($error_hierarchy['BaseError'], 'BaseError');
+`
+
+const phpArray = errorHierarchy.replace (/{/g, 'array(').replace (/}/g, ')').replace (/:/g, '=>').trimRight () + ';'
+filename = './php/errors.php'
+fs.writeFileSync (filename, phpHeader + phpArray + phpErrorCode)
+log.bright.cyan ('Exporting error hierachy →', filename.yellow)
+
 
 // ----------------------------------------------------------------------------
 
