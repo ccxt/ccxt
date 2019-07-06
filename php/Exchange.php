@@ -1119,8 +1119,8 @@ class Exchange {
         throw $error;
     }
 
-    public function raiseError($error_class, $message, $code, $reason, $url, $method, $headers, $body, $response) {
-        $this->raise_error($error_class, $message, $code, $reason, $url, $method, $headers, $body, $response);
+    public function raiseError($error_class, $message, $httpCode, $httpStatusText, $url, $httpMethod, $headers, $responseBody, $responseJson) {
+        return $this->raise_error($error_class, $message, $httpCode, $httpStatusText, $url, $httpMethod, $headers, $responseBody, $responseJson);
     }
 
     public function parse_json($json_string, $as_associative_array = true) {
