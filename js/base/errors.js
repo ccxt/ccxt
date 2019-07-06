@@ -1,4 +1,4 @@
-'use strict;'
+'use strict';
 
 const errorHierarchy = {
     'BaseError': {
@@ -33,7 +33,7 @@ const errorHierarchy = {
             'RequestTimeout': {},
         },
     },
-},
+}
 
 /*  ------------------------------------------------------------------------ */
 
