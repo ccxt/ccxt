@@ -128,8 +128,9 @@ class Exchange(BaseExchange):
         encoded_body = body.encode() if body else None
         session_method = getattr(self.session, method.lower())
 
-        response = None
         http_response = None
+        http_status_code = None
+        http_status_text = None
         json_response = None
         try:
             async with session_method(yarl.URL(url, encoded=True),
@@ -138,7 +139,9 @@ class Exchange(BaseExchange):
                                       timeout=(self.timeout / 1000),
                                       proxy=self.aiohttp_proxy) as response:
                 http_response = await response.text()
-                json_response = self.parse_json(http_response) if self.is_json_encoded_object(http_response) else None
+                http_status_code = response.status
+                http_status_text = response.reason
+                json_response = self.parse_json(http_response)
                 headers = response.headers
                 if self.enableLastHttpResponse:
                     self.last_http_response = http_response
@@ -147,23 +150,23 @@ class Exchange(BaseExchange):
                 if self.enableLastJsonResponse:
                     self.last_json_response = json_response
                 if self.verbose:
-                    print("\nResponse:", method, url, response.status, headers, http_response)
-                self.logger.debug("%s %s, Response: %s %s %s", method, url, response.status, headers, http_response)
+                    print("\nResponse:", method, url, http_status_code, headers, http_response)
+                self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
 
         except socket.gaierror as e:
-            self.raise_error(ExchangeNotAvailable, url, method, e, None)
+            raise ExchangeNotAvailable(method + ' ' + url)
 
         except concurrent.futures._base.TimeoutError as e:
-            self.raise_error(RequestTimeout, method, url, e, None)
+            raise RequestTimeout(method + ' ' + url)
 
         except aiohttp.client_exceptions.ClientConnectionError as e:
-            self.raise_error(ExchangeNotAvailable, url, method, e, None)
+            raise ExchangeNotAvailable(method + ' ' + url)
 
         except aiohttp.client_exceptions.ClientError as e:  # base exception class
-            self.raise_error(ExchangeError, url, method, e, None)
+            raise ExchangeError(method + ' ' + url)
 
-        self.handle_errors(response.status, response.reason, url, method, headers, http_response, json_response)
-        self.handle_rest_errors(None, response.status, http_response, url, method)
+        self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
+        self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
         self.handle_rest_response(http_response, json_response, url, method, headers, body)
         if json_response is not None:
             return json_response
@@ -246,7 +249,7 @@ class Exchange(BaseExchange):
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         if not self.has['fetchTrades']:
-            self.raise_error(NotSupported, details='fetch_ohlcv() not implemented yet')
+            raise NotSupported('fetch_ohlcv() not implemented yet')
         await self.load_markets()
         trades = await self.fetch_trades(symbol, since, limit, params)
         return self.build_ohlcv(trades, timeframe, since, limit)
@@ -259,16 +262,16 @@ class Exchange(BaseExchange):
 
     async def edit_order(self, id, symbol, *args):
         if not self.enableRateLimit:
-            self.raise_error(ExchangeError, details='updateOrder() requires enableRateLimit = true')
+            raise ExchangeError('updateOrder() requires enableRateLimit = true')
         await self.cancel_order(id, symbol)
         return await self.create_order(symbol, *args)
 
     async def fetch_trading_fees(self, params={}):
-        self.raise_error(NotSupported, details='fetch_trading_fees() not supported yet')
+        raise NotSupported('fetch_trading_fees() not supported yet')
 
     async def fetch_trading_fee(self, symbol, params={}):
         if not self.has['fetchTradingFees']:
-            self.raise_error(NotSupported, details='fetch_trading_fee() not supported yet')
+            raise NotSupported('fetch_trading_fee() not supported yet')
         return await self.fetch_trading_fees(params)
 
     async def load_trading_limits(self, symbols=None, reload=False, params={}):
