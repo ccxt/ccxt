@@ -291,6 +291,8 @@ fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2))
 // ----------------------------------------------------------------------------
 
 const errorHeirachy = fs.readFileSync ('./error-hierarchy.json')
+const formatted = JSON.stringify (JSON.parse (errorHeirachy), null, 4).replace (/"/g, "'").replace (/((?:{| +)})(?!,)/g, '$1,') + '\n'
+
 const pythonErrorCode = `
 # -----------------------------------------------------------------------------
 
@@ -313,11 +315,10 @@ class BaseError(BaseException):
 error_factory(error_hierarchy['BaseError'], BaseError)
 `
 filename = './python/ccxt/base/errors.py'
-fs.writeFileSync (filename, 'error_hierarchy = ' + errorHeirachy + pythonErrorCode)
+fs.writeFileSync (filename, 'error_hierarchy = ' + formatted + pythonErrorCode)
 log.bright.cyan ('Exporting error hierachy →', filename.yellow)
 
 const jsErrorCode = `
-
 /*  ------------------------------------------------------------------------ */
 
 module.exports = subclass (
@@ -367,7 +368,6 @@ function subclass (BaseClass, classes, namespace = {}) {
 }
 `
 filename = './js/base/errors.js'
-const formatted = JSON.stringify (JSON.parse (errorHeirachy), null, 4).replace (/"/g, "'").replace (/((?:{| +)})(?!,)/g, '$1,')
 fs.writeFileSync (filename, '\'use strict\';\n\nconst errorHierarchy = ' + formatted + jsErrorCode)
 log.bright.cyan ('Exporting error hierachy →', filename.yellow)
 

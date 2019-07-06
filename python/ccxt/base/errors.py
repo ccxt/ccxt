@@ -1,36 +1,36 @@
 error_hierarchy = {
-  "BaseError": {
-    "ExchangeError": {
-      "AuthenticationError": {
-        "PermissionDenied": {},
-        "AccountSuspended": {}
-      },
-      "ArgumentsRequired": {},
-      "BadRequest": {},
-      "BadResponse": {
-        "NullResponse": {}
-      },
-      "InsufficientFunds": {},
-      "InvalidAddress": {
-        "AddressPending": {}
-      },
-      "InvalidOrder": {
-        "OrderNotFound": {},
-        "OrderNotCached": {},
-        "CancelPending": {},
-        "OrderImmediatelyFillable": {},
-        "OrderNotFillable": {},
-        "DuplicateOrderId": {}
-      },
-      "NotSupported": {}
+    'BaseError': {
+        'ExchangeError': {
+            'AuthenticationError': {
+                'PermissionDenied': {},
+                'AccountSuspended': {},
+            },
+            'ArgumentsRequired': {},
+            'BadRequest': {},
+            'BadResponse': {
+                'NullResponse': {},
+            },
+            'InsufficientFunds': {},
+            'InvalidAddress': {
+                'AddressPending': {},
+            },
+            'InvalidOrder': {
+                'OrderNotFound': {},
+                'OrderNotCached': {},
+                'CancelPending': {},
+                'OrderImmediatelyFillable': {},
+                'OrderNotFillable': {},
+                'DuplicateOrderId': {},
+            },
+            'NotSupported': {},
+        },
+        'NetworkError': {
+            'DDoSProtection': {},
+            'ExchangeNotAvailable': {},
+            'InvalidNonce': {},
+            'RequestTimeout': {},
+        },
     },
-    "NetworkError": {
-      "DDoSProtection": {},
-      "ExchangeNotAvailable": {},
-      "InvalidNonce": {},
-      "RequestTimeout": {}
-    }
-  }
 }
 
 # -----------------------------------------------------------------------------
