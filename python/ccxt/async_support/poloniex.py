@@ -251,8 +251,8 @@ class poloniex (Exchange):
             id = keys[i]
             market = markets[id]
             quoteId, baseId = id.split('_')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             limits = self.extend(self.limits, {
                 'cost': {
@@ -285,11 +285,7 @@ class poloniex (Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             balance = self.safe_value(response, currencyId, {})
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'onOrders')
@@ -339,8 +335,8 @@ class poloniex (Exchange):
                 symbol = self.markets_by_id[marketId]['symbol']
             else:
                 quoteId, baseId = marketId.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             orderbook = self.parse_order_book(response[marketId])
             orderbook['nonce'] = self.safe_integer(response[marketId], 'seq')
@@ -398,8 +394,8 @@ class poloniex (Exchange):
                 symbol = market['symbol']
             else:
                 quoteId, baseId = id.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
                 market = {'symbol': symbol}
             ticker = response[id]
@@ -417,7 +413,7 @@ class poloniex (Exchange):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             active = (currency['delisted'] == 0) and not currency['disabled']
             result[code] = {
                 'id': id,
@@ -635,8 +631,8 @@ class poloniex (Exchange):
                             result.append(trades[j])
                     else:
                         quoteId, baseId = id.split('_')
-                        base = self.common_currency_code(baseId)
-                        quote = self.common_currency_code(quoteId)
+                        base = self.safe_currency_code(baseId)
+                        quote = self.safe_currency_code(quoteId)
                         symbol = base + '/' + quote
                         trades = response[id]
                         for j in range(0, len(trades)):
@@ -1165,13 +1161,8 @@ class poloniex (Exchange):
         timestamp = self.safe_integer(transaction, 'timestamp')
         if timestamp is not None:
             timestamp = timestamp * 1000
-        code = None
         currencyId = self.safe_string(transaction, 'currency')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is None:
-            code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        code = self.safe_currency_code(currencyId)
         status = self.safe_string(transaction, 'status', 'pending')
         txid = self.safe_string(transaction, 'txid')
         if status is not None:
