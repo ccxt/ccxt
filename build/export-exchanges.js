@@ -290,4 +290,87 @@ fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2))
 
 // ----------------------------------------------------------------------------
 
+const errorHeirachy = fs.readFileSync ('/Users/carlorevelli/Documents/important/code/ccxt/error-hierarchy.json')
+const pythonErrorCode = `
+# -----------------------------------------------------------------------------
+
+__all__ = []
+
+
+def error_factory(dictionary, super_class):
+    for key in dictionary:
+        __all__.append(key)
+        error_class = type(key, (super_class,), {})
+        globals()[key] = error_class
+        error_factory(dictionary[key], error_class)
+
+
+class BaseError(BaseException):
+    def __init__(self):
+        pass
+
+
+error_factory(error_hierarchy['BaseError'], BaseError)
+`
+filename = './python/ccxt/base/errors.py'
+fs.writeFileSync (filename, 'error_hierarchy = ' + errorHeirachy + pythonErrorCode)
+log.bright.cyan ('Exporting error hierachy →', filename.yellow)
+
+const jsErrorCode = `
+
+/*  ------------------------------------------------------------------------ */
+
+module.exports = subclass (
+    // Root class
+    Error,
+    // Derived class hierarchy
+    errorHierarchy,
+)
+
+/*  ------------------------------------------------------------------------ */
+
+function subclass (BaseClass, classes, namespace = {}) {
+
+    for (const [className, subclasses] of Object.entries (classes)) {
+
+        const Class = Object.assign (namespace, {
+
+        /*  By creating a named property, we trick compiler to assign our class constructor function a name.
+            Otherwise, all our error constructors would be shown as [Function: Error] in the debugger! And
+            the super-useful \`e.constructor.name\` magic wouldn't work — we then would have no chance to
+            obtain a error type string from an error instance programmatically!                               */
+
+            [className]: class extends BaseClass {
+
+                constructor (message) {
+
+                    super (message)
+
+                /*  A workaround to make \`instanceof\` work on custom Error classes in transpiled ES5.
+                    See my blog post for the explanation of this hack:
+
+                    https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */
+
+                    this.constructor = Class
+                    this.__proto__   = Class.prototype
+                    this.name        = className
+                    this.message     = message
+                }
+            }
+
+        })[className]
+
+        subclass (Class, subclasses, namespace)
+    }
+
+    return namespace
+}
+`
+filename = './js/base/errors.js'
+const formatted = JSON.stringify (JSON.parse (errorHeirachy), null, 4).replace (/"/g, "'").replace (/(?!^)}(?!,)/g, '},')
+fs.writeFileSync (filename, '\'use strict;\'\n\nconst errorHierarchy = ' + formatted + jsErrorCode)
+log.bright.cyan ('Exporting error hierachy →', filename.yellow)
+
+// ----------------------------------------------------------------------------
+
 log.bright.green ('Exchanges exported successfully.')

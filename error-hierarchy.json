@@ -1,5 +1,5 @@
 {
-  "BaseError":{
+  "BaseError": {
     "ExchangeError": {
       "AuthenticationError": {
         "PermissionDenied": {},
