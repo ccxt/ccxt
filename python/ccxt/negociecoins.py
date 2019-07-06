@@ -199,11 +199,7 @@ class negociecoins (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'name')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             openOrders = self.safe_float(balance, 'openOrders')
             withdraw = self.safe_float(balance, 'withdraw')
             account = {

@@ -64,11 +64,7 @@ class mixcoins (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
             account['free'] = self.safe_float(balance, 'avail')

@@ -22,7 +22,7 @@ module.exports = class huobipro extends Exchange {
             'has': {
                 'CORS': false,
                 'fetchTickers': true,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -96,8 +96,6 @@ module.exports = class huobipro extends Exchange {
                         'order/history', // 查询当前委托、历史委托
                         'order/matchresults', // 查询当前成交、历史成交
                         'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
-                        'dw/deposit-virtual/addresses',
-                        'dw/deposit-virtual/sharedAddressWithTag', // https://github.com/ccxt/ccxt/issues/4851
                         'query/deposit-withdraw',
                         'margin/loan-orders', // 借贷订单
                         'margin/accounts/balance', // 借贷账户详情
@@ -242,11 +240,9 @@ module.exports = class huobipro extends Exchange {
             const market = markets[i];
             const baseId = this.safeString (market, 'base-currency');
             const quoteId = this.safeString (market, 'quote-currency');
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
             const id = baseId + quoteId;
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': market['amount-precision'],
@@ -440,7 +436,7 @@ module.exports = class huobipro extends Exchange {
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || (feeCost === 0.0)) {
                 feeCost = filledPoints;
-                feeCurrency = this.commonCurrencyCode ('HBPOINT');
+                feeCurrency = this.safeCurrencyCode ('HBPOINT');
             }
         }
         if (feeCost !== undefined) {
@@ -564,7 +560,7 @@ module.exports = class huobipro extends Exchange {
             //
             const id = this.safeValue (currency, 'name');
             const precision = this.safeInteger (currency, 'withdraw-precision');
-            const code = this.commonCurrencyCode (id.toUpperCase ());
+            const code = this.safeCurrencyCode (id);
             const active = currency['visible'] && currency['deposit-enabled'] && currency['withdraw-enabled'];
             const name = this.safeString (currency, 'display-name');
             result[code] = {
@@ -619,12 +615,7 @@ module.exports = class huobipro extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             let account = undefined;
             if (code in result) {
                 account = result[code];
@@ -937,61 +928,6 @@ module.exports = class huobipro extends Exchange {
             'id': id,
             'status': 'canceled',
         });
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        // if code == 'EOS':
-        //     res = huobi.request('/dw/deposit-virtual/sharedAddressWithTag', 'private', 'GET', {'currency': 'eos', 'chain': 'eos1'})
-        //     address_info = res['data']
-        // else:
-        //     address_info = self.broker.fetch_deposit_address(code)
-        const request = {
-            'currency': currency['id'].toLowerCase (),
-        };
-        // https://github.com/ccxt/ccxt/issues/4851
-        const info = this.safeValue (currency, 'info', {});
-        const currencyAddressWithTag = this.safeValue (info, 'currency-addr-with-tag');
-        let method = 'privateGetDwDepositVirtualAddresses';
-        if (currencyAddressWithTag) {
-            method = 'privateGetDwDepositVirtualSharedAddressWithTag';
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // privateGetDwDepositVirtualSharedAddressWithTag
-        //
-        //     {
-        //         "status": "ok",
-        //         "data": {
-        //             "address": "huobideposit",
-        //             "tag": "1937002"
-        //         }
-        //     }
-        //
-        // privateGetDwDepositVirtualAddresses
-        //
-        //     {
-        //         "status": "ok",
-        //         "data": "0xd7842ec9ba2bc20354e12f0e925a4e285a64187b"
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        let address = undefined;
-        let tag = undefined;
-        if (currencyAddressWithTag) {
-            address = this.safeString (data, 'address');
-            tag = this.safeString (data, 'tag');
-        } else {
-            address = this.safeString (response, 'data');
-        }
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'info': response,
-        };
     }
 
     currencyToPrecision (currency, fee) {

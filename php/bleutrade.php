@@ -210,8 +210,8 @@ class bleutrade extends bittrex {
 
     public function parse_symbol ($id) {
         list($base, $quote) = explode($this->options['symbolSeparator'], $id);
-        $base = $this->safeCurrencyCode ($base);
-        $quote = $this->safeCurrencyCode ($quote);
+        $base = $this->safe_currency_code($base);
+        $quote = $this->safe_currency_code($quote);
         return $base . '/' . $quote;
     }
 
@@ -383,7 +383,7 @@ class bleutrade extends bittrex {
         //         CoinName => 'Dogecoin'
         //     }
         //
-        $code = $this->safeCurrencyCode ($this->safe_string($item, 'CoinSymbol'), $currency);
+        $code = $this->safe_currency_code($this->safe_string($item, 'CoinSymbol'), $currency);
         $description = $this->safe_string($item, 'Description');
         $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'Type'));
         $referenceId = null;
@@ -551,7 +551,7 @@ class bleutrade extends bittrex {
             } else if ($symbol !== null) {
                 $currencyIds = explode('/', $symbol);
                 $quoteCurrencyId = $currencyIds[1];
-                $fee['currency'] = $this->safeCurrencyCode ($quoteCurrencyId);
+                $fee['currency'] = $this->safe_currency_code($quoteCurrencyId);
             }
         }
         $price = $this->safe_float($order, 'Price');
@@ -634,7 +634,7 @@ class bleutrade extends bittrex {
             $type = 'withdrawal';
         }
         $currencyId = $this->safe_string($transaction, 'Coin');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $label = $this->safe_string($transaction, 'Label');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'TimeStamp'));
         $txid = $this->safe_string($transaction, 'TransactionId');

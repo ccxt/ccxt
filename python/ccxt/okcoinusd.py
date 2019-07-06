@@ -704,7 +704,7 @@ class okcoinusd (Exchange):
             # 'since': since is self.milliseconds() - 86400000 if None else since,  # default last 24h
         })
         if since is not None:
-            request['since'] = self.milliseconds() - 86400000  # default last 24h
+            request['since'] = int((self.milliseconds() - 86400000) / 1000)  # default last 24h
         if limit is not None:
             if self.options['fetchOHLCVWarning']:
                 raise ExchangeError(self.id + ' fetchOHLCV counts "limit" candles backwards in chronological ascending order, therefore the "limit" argument for ' + self.id + ' is disabled. Set ' + self.id + '.options["fetchOHLCVWarning"] = False to suppress self warning message.')

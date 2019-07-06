@@ -138,10 +138,8 @@ module.exports = class fcoin extends Exchange {
             const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
-            let base = baseId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            let quote = quoteId.toUpperCase ();
-            quote = this.commonCurrencyCode (quote);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'price': market['price_decimal'],
@@ -181,12 +179,7 @@ module.exports = class fcoin extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = balance['currency'];
-            let code = currencyId.toUpperCase ();
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = parseFloat (balance['available']);
             account['total'] = parseFloat (balance['balance']);

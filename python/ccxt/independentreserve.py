@@ -80,12 +80,10 @@ class independentreserve (Exchange):
         result = []
         for i in range(0, len(baseCurrencies)):
             baseId = baseCurrencies[i]
-            baseIdUppercase = baseId.upper()
-            base = self.common_currency_code(baseIdUppercase)
+            base = self.safe_currency_code(baseId)
             for j in range(0, len(quoteCurrencies)):
                 quoteId = quoteCurrencies[j]
-                quoteIdUppercase = quoteId.upper()
-                quote = self.common_currency_code(quoteIdUppercase)
+                quote = self.safe_currency_code(quoteId)
                 id = baseId + '/' + quoteId
                 symbol = base + '/' + quote
                 result.append({
@@ -106,11 +104,7 @@ class independentreserve (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'CurrencyCode')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'AvailableBalance')
             account['total'] = self.safe_float(balance, 'TotalBalance')

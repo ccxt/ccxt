@@ -165,8 +165,8 @@ class buda extends Exchange {
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $baseInfo = $this->fetch_currency_info ($baseId, $currencies);
             $quoteInfo = $this->fetch_currency_info ($quoteId, $currencies);
             $symbol = $base . '/' . $quote;
@@ -214,7 +214,7 @@ class buda extends Exchange {
                 continue;
             }
             $id = $this->safe_string($currency, 'id');
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $precision = $this->safe_float($currency, 'input_decimals');
             $minimum = pow(10, -$precision);
             $result[$code] = array (
@@ -446,7 +446,7 @@ class buda extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'id');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = floatval ($balance['available_amount'][0]);
             $account['total'] = floatval ($balance['amount'][0]);
@@ -662,7 +662,7 @@ class buda extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $amount = floatval ($transaction['amount'][0]);
         $fee = floatval ($transaction['fee'][0]);
         $feeCurrency = $transaction['fee'][1];

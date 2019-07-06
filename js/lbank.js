@@ -128,8 +128,8 @@ module.exports = class lbank extends Exchange {
                 baseId = parts[0];
                 quoteId = parts[1];
             }
-            const base = this.commonCurrencyCode (baseId.toUpperCase ());
-            const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'quantityAccuracy'),
@@ -184,8 +184,8 @@ module.exports = class lbank extends Exchange {
                     baseId = parts[0];
                     quoteId = parts[1];
                 }
-                const base = this.commonCurrencyCode (baseId.toUpperCase ());
-                const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
@@ -387,12 +387,7 @@ module.exports = class lbank extends Exchange {
         const currencyIds = Object.keys (free);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (free, currencyId);
             account['used'] = this.safeFloat (freeze, currencyId);

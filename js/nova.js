@@ -72,8 +72,8 @@ module.exports = class nova extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'marketname');
             const [ quoteId, baseId ] = id.split ('_');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const disabled = this.safeValue (market, 'disabled', false);
             const active = !disabled;
@@ -190,12 +190,7 @@ module.exports = class nova extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const lockbox = this.safeFloat (balance, 'amount_lockbox');
             const trades = this.safeFloat (balance, 'amount_trades');
             const account = {

@@ -727,7 +727,7 @@ class okcoinusd extends Exchange {
             // 'since' => $since === null ? $this->milliseconds () - 86400000 : $since,  // default last 24h
         ));
         if ($since !== null) {
-            $request['since'] = $this->milliseconds () - 86400000; // default last 24h
+            $request['since'] = intval (($this->milliseconds () - 86400000) / 1000); // default last 24h
         }
         if ($limit !== null) {
             if ($this->options['fetchOHLCVWarning']) {

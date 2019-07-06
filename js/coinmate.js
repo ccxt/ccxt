@@ -127,8 +127,8 @@ module.exports = class coinmate extends Exchange {
             const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'firstCurrency');
             const quoteId = this.safeString (market, 'secondCurrency');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -170,7 +170,7 @@ module.exports = class coinmate extends Exchange {
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (balances, currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
@@ -300,13 +300,8 @@ module.exports = class coinmate extends Exchange {
         const txid = this.safeString (item, 'txid');
         const address = this.safeString (item, 'destination');
         const tag = this.safeString (item, 'destinationTag');
-        let code = undefined;
         const currencyId = this.safeString (item, 'amountCurrency');
-        if (currencyId in this.currencies_by_id) {
-            code = this.currencies_by_id[currencyId]['code'];
-        } else {
-            code = this.commonCurrencyCide (currencyId);
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         let type = this.safeString (item, 'transferType');
         if (type !== undefined) {
             type = type.toLowerCase ();
@@ -385,8 +380,8 @@ module.exports = class coinmate extends Exchange {
                 quote = market['quote'];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.commonCurrencyCode (baseId);
-                quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }

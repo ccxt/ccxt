@@ -346,7 +346,7 @@ class mandala (Exchange):
         for i in range(0, len(data)):
             currency = data[i]
             id = self.safe_string(currency, 'shortName')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'fullName')
             precision = self.safe_integer(currency, 'decimalPrecision')
             active = True
@@ -423,8 +423,8 @@ class mandala (Exchange):
             id = ids[i]
             market = data[id]
             quoteId, baseId = id.split('_')  # they have base/quote reversed with some endpoints
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             baseCurrency = self.safe_value(currenciesById, baseId, {})
             quoteCurrency = self.safe_value(currenciesById, quoteId, {})
@@ -480,11 +480,7 @@ class mandala (Exchange):
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'balance')
             account['used'] = self.safe_float(balance, 'balanceInTrade')
@@ -682,8 +678,8 @@ class mandala (Exchange):
         symbol = None
         baseId = self.safe_string(trade, 'trade')
         quoteId = self.safe_string(trade, 'market')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         if base is not None and quote is not None:
             symbol = base + '/' + quote
         else:
@@ -903,8 +899,8 @@ class mandala (Exchange):
 
     def parse_symbol(self, id):
         quote, base = id.split(self.options['symbolSeparator'])
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
+        base = self.safe_currency_code(base)
+        quote = self.safe_currency_code(quote)
         return base + '/' + quote
 
     def parse_order(self, order, market=None):
@@ -949,8 +945,8 @@ class mandala (Exchange):
         id = self.safe_string(order, 'orderId')
         baseId = self.safe_string(order, 'trade')
         quoteId = self.safe_string(order, 'market')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = None
         if base is not None and quote is not None:
             symbol = base + '/' + quote
@@ -1285,13 +1281,8 @@ class mandala (Exchange):
         updated = self.parse8601(self.safe_value(transaction, 'withdrawalConfirmDate'))
         timestamp = self.parse8601(self.safe_string(transaction, 'withdrawalReqDate', updated))
         type = 'withdrawal' if ('withdrawalReqDate' in list(transaction.keys())) else 'deposit'
-        code = None
         currencyId = self.safe_string(transaction, 'withdrawalType')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'withdrawalStatus'))
         feeCost = None
         if type == 'deposit':
@@ -1363,7 +1354,6 @@ class mandala (Exchange):
         code = None
         if currency is not None:
             code = currency['code']
-        self.check_address(address)
         return {
             'currency': code,
             'address': address,

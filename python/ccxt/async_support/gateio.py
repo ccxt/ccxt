@@ -185,10 +185,8 @@ class gateio (Exchange):
             if numParts > 2:
                 baseId = parts[0] + '_' + parts[1]
                 quoteId = parts[2]
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -241,7 +239,7 @@ class gateio (Exchange):
         currencyIds = list(available.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(available, currencyId)
             account['used'] = self.safe_float(locked, currencyId)
@@ -327,8 +325,8 @@ class gateio (Exchange):
             'change': change,
             'percentage': percentage,
             'average': average,
-            'baseVolume': self.safe_float(ticker, 'baseVolume'),
-            'quoteVolume': self.safe_float(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_float(ticker, 'quoteVolume'),  # gateio has them reversed
+            'quoteVolume': self.safe_float(ticker, 'baseVolume'),
             'info': ticker,
         }
 
@@ -360,8 +358,8 @@ class gateio (Exchange):
             baseId, quoteId = id.split('_')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             market = None
             if symbol in self.markets:
@@ -484,13 +482,11 @@ class gateio (Exchange):
         # In the order status response, self field has a different name.
         remaining = self.safe_float_2(order, 'leftAmount', 'left')
         feeCost = self.safe_float(order, 'feeValue')
-        feeCurrency = self.safe_string(order, 'feeCurrency')
+        feeCurrencyId = self.safe_string(order, 'feeCurrency')
+        feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
         feeRate = self.safe_float(order, 'feePercentage')
         if feeRate is not None:
             feeRate = feeRate / 100
-        if feeCurrency is not None:
-            if feeCurrency in self.currencies_by_id:
-                feeCurrency = self.currencies_by_id[feeCurrency]['code']
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),
@@ -507,7 +503,7 @@ class gateio (Exchange):
             'trades': None,
             'fee': {
                 'cost': feeCost,
-                'currency': feeCurrency,
+                'currency': feeCurrencyCode,
                 'rate': feeRate,
             },
             'info': order,
@@ -693,13 +689,8 @@ class gateio (Exchange):
         #         'type': 'withdrawal'
         #     }
         #
-        code = None
         currencyId = self.safe_string(transaction, 'currency')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is None:
-            code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        code = self.safe_currency_code(currencyId, currency)
         id = self.safe_string(transaction, 'id')
         txid = self.safe_string(transaction, 'txid')
         amount = self.safe_float(transaction, 'amount')

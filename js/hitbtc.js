@@ -513,8 +513,8 @@ module.exports = class hitbtc extends Exchange {
             const quoteId = this.safeString (market, 'currency');
             const lot = this.safeFloat (market, 'lot');
             const step = this.safeFloat (market, 'step');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             result.push ({
                 'info': market,
@@ -563,12 +563,7 @@ module.exports = class hitbtc extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency_code');
-            let code = currencyId.toUpperCase ();
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat2 (balance, 'cash', 'balance');
             account['used'] = this.safeFloat (balance, 'reserved');

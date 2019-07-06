@@ -70,8 +70,8 @@ module.exports = class southxchange extends Exchange {
             const market = markets[i];
             const baseId = market[0];
             const quoteId = market[1];
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const id = symbol;
             result.push ({
@@ -95,12 +95,7 @@ module.exports = class southxchange extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'Currency');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const deposited = this.safeFloat (balance, 'Deposited');
             const unconfirmed = this.safeFloat (balance, 'Unconfirmed');
             const account = this.account ();
@@ -230,8 +225,8 @@ module.exports = class southxchange extends Exchange {
         const status = 'open';
         const baseId = this.safeString (order, 'ListingCurrency');
         const quoteId = this.safeString (order, 'ReferenceCurrency');
-        const base = this.commonCurrencyCode (baseId);
-        const quote = this.commonCurrencyCode (quoteId);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
         const timestamp = undefined;
         const price = this.safeFloat (order, 'LimitPrice');

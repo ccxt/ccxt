@@ -154,8 +154,8 @@ class livecoin (Exchange):
             market = response[i]
             id = self.safe_string(market, 'symbol')
             baseId, quoteId = id.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             coinRestrictions = self.safe_value(restrictionsById, symbol)
             precision = {
@@ -200,7 +200,7 @@ class livecoin (Exchange):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
             walletStatus = self.safe_string(currency, 'walletStatus')
             active = (walletStatus == 'normal')
@@ -265,7 +265,7 @@ class livecoin (Exchange):
         ]
         currencies.append({
             'id': 'RUR',
-            'code': self.common_currency_code('RUR'),
+            'code': self.safe_currency_code('RUR'),
             'name': 'Russian ruble',
         })
         for i in range(0, len(currencies)):
@@ -281,11 +281,7 @@ class livecoin (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = None
             if code in result:
                 account = result[code]
@@ -712,7 +708,6 @@ class livecoin (Exchange):
         #        "externalKey": "....87diPBy......3hTtuwUT78Yi",(address on deposits, tx on withdrawals)
         #        "documentId": 1110662453
         #    },
-        code = None
         txid = None
         address = None
         id = self.safe_string(transaction, 'documentId')
@@ -721,11 +716,7 @@ class livecoin (Exchange):
         type = self.safe_string(transaction, 'type').lower()
         currencyId = self.safe_string(transaction, 'fixedCurrency')
         feeCost = self.safe_float(transaction, 'fee')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         if type == 'withdrawal':
             txid = self.safe_string(transaction, 'externalKey')
             address = self.safe_string(transaction, 'id')

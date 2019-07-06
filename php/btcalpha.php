@@ -114,8 +114,8 @@ class btcalpha extends Exchange {
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'currency1');
             $quoteId = $this->safe_string($market, 'currency2');
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -251,7 +251,7 @@ class btcalpha extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $used = $this->safe_float($balance, 'reserve');
             $total = $this->safe_float($balance, 'balance');
             $free = null;

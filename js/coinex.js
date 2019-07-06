@@ -277,11 +277,7 @@ module.exports = class coinex extends Exchange {
         const feeCost = this.safeFloat (trade, 'fee');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'fee_asset');
-            const feeCurrency = this.safeValue (this.currencies_by_id, feeCurrencyId);
-            let feeCurrencyCode = undefined;
-            if (feeCurrency !== undefined) {
-                feeCurrencyCode = feeCurrency['code'];
-            }
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -366,12 +362,7 @@ module.exports = class coinex extends Exchange {
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const balance = this.safeValue (balances, currencyId, {});
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'available');
@@ -428,12 +419,8 @@ module.exports = class coinex extends Exchange {
         let symbol = undefined;
         const marketId = this.safeString (order, 'market');
         market = this.safeValue (this.markets_by_id, marketId);
-        let feeCurrency = undefined;
         const feeCurrencyId = this.safeString (order, 'fee_asset');
-        const currency = this.safeValue (this.currencies_by_id, feeCurrencyId);
-        if (currency !== undefined) {
-            feeCurrency = currency['code'];
-        }
+        let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         if (market !== undefined) {
             symbol = market['symbol'];
             if (feeCurrency === undefined) {
@@ -702,16 +689,8 @@ module.exports = class coinex extends Exchange {
                 txid = undefined;
             }
         }
-        let code = undefined;
         const currencyId = this.safeString (transaction, 'coin_type');
-        if (currencyId in this.currencies_by_id) {
-            currency = this.currencies_by_id[currencyId];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = this.safeInteger (transaction, 'create_time');
         if (timestamp !== undefined) {
             timestamp = timestamp * 1000;

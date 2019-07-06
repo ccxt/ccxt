@@ -168,12 +168,7 @@ class lykke extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'AssetId');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['total'] = $this->safe_float($balance, 'Balance');
             $account['used'] = $this->safe_float($balance, 'Reserved');
@@ -233,8 +228,8 @@ class lykke extends Exchange {
             $id = $this->safe_string($market, 'Id');
             $name = $this->safe_string($market, 'Name');
             list($baseId, $quoteId) = explode('/', $name);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'Accuracy'),

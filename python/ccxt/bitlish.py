@@ -132,8 +132,8 @@ class bitlish (Exchange):
             id = self.safe_string(market, 'id')
             name = self.safe_string(market, 'name')
             baseId, quoteId = name.split('/')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -189,8 +189,8 @@ class bitlish (Exchange):
             else:
                 baseId = id[0:3]
                 quoteId = id[3:6]
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
@@ -273,7 +273,7 @@ class bitlish (Exchange):
         currencyIds = list(response.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             balance = self.safe_value(response, currencyId, {})
             account['free'] = self.safe_float(balance, 'funds')

@@ -222,8 +222,8 @@ class kraken (Exchange):
                 },
             },
             'commonCurrencies': {
+                'XBT': 'BTC',
                 'XDG': 'DOGE',
-                'FEE': 'KFEE',
             },
             'options': {
                 'cacheDepositMethodsOnFetchDepositAddress': True,  # will issue up to two calls in fetchDepositAddress
@@ -271,7 +271,7 @@ class kraken (Exchange):
                 numPieces = len(pieces)
                 if numPieces == 2:
                     amount = float(pieces[0])
-                    code = self.common_currency_code(pieces[1])
+                    code = self.safe_currency_code(pieces[1])
                     result[code] = amount
         return result
 
@@ -285,16 +285,8 @@ class kraken (Exchange):
             market = response['result'][id]
             baseId = market['base']
             quoteId = market['quote']
-            base = baseId
-            quote = quoteId
-            if len(base) > 3:
-                if (base[0] == 'X') or (base[0] == 'Z'):
-                    base = base[1:]
-            if len(quote) > 3:
-                if (quote[0] == 'X') or (quote[0] == 'Z'):
-                    quote = quote[1:]
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             darkpool = id.find('.d') >= 0
             symbol = market['altname'] if darkpool else (base + '/' + quote)
             maker = None
@@ -339,6 +331,12 @@ class kraken (Exchange):
         result = self.append_inactive_markets(result)
         self.marketsByAltname = self.index_by(result, 'altname')
         return result
+
+    def safe_currency_code(self, currencyId, currency=None):
+        if len(currencyId) > 3:
+            if (currencyId.find('X') == 0) or (currencyId.find('Z') == 0):
+                currencyId = currencyId[1:]
+        return super(kraken, self).safe_currency_code(currencyId, currency)
 
     def append_inactive_markets(self, result):
         # result should be an array to append to
@@ -385,7 +383,7 @@ class kraken (Exchange):
             # see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            code = self.common_currency_code(self.safe_string(currency, 'altname'))
+            code = self.safe_currency_code(self.safe_string(currency, 'altname'))
             precision = self.safe_integer(currency, 'decimals')
             # assumes all currencies are active except those listed above
             active = not self.in_array(code, self.options['inactiveCurrencies'])
@@ -579,7 +577,7 @@ class kraken (Exchange):
         referenceId = self.safe_string(item, 'refid')
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        code = self.safeCurrencyCode(self.safe_string(item, 'asset'), currency)
+        code = self.safe_currency_code(self.safe_string(item, 'asset'), currency)
         amount = self.safe_float(item, 'amount')
         if amount < 0:
             direction = 'out'
@@ -768,7 +766,6 @@ class kraken (Exchange):
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_balance(self, params={}):
-        await self.load_markets()
         response = await self.privatePostBalance(params)
         balances = self.safe_value(response, 'result')
         if balances is None:
@@ -777,16 +774,7 @@ class kraken (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if code in self.currencies_by_id:
-                code = self.currencies_by_id[code]['code']
-            else:
-                # X-ISO4217-A3 standard currency codes
-                if code[0] == 'X':
-                    code = code[1:]
-                elif code[0] == 'Z':
-                    code = code[1:]
-                code = self.common_currency_code(code)
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_float(balances, currencyId)
             account = {
                 'free': balance,
@@ -864,16 +852,8 @@ class kraken (Exchange):
             quoteIdEnd = 7
         baseId = id[baseIdStart:baseIdEnd]
         quoteId = id[quoteIdStart:quoteIdEnd]
-        base = baseId
-        quote = quoteId
-        if len(base) > 3:
-            if (base[0] == 'X') or (base[0] == 'Z'):
-                base = base[1:]
-        if len(quote) > 3:
-            if (quote[0] == 'X') or (quote[0] == 'Z'):
-                quote = quote[1:]
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
         market = {
             'symbol': symbol,
@@ -1129,13 +1109,8 @@ class kraken (Exchange):
         timestamp = self.safe_integer(transaction, 'time')
         if timestamp is not None:
             timestamp = timestamp * 1000
-        code = None
         currencyId = self.safe_string(transaction, 'asset')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'info')
         amount = self.safe_float(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))

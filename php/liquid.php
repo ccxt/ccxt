@@ -130,7 +130,7 @@ class liquid extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'currency');
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $active = $currency['depositable'] && $currency['withdrawable'];
             $amountPrecision = $this->safe_integer($currency, 'display_precision');
             $pricePrecision = $this->safe_integer($currency, 'quoting_precision');
@@ -206,8 +206,8 @@ class liquid extends Exchange {
             $id = (string) $market['id'];
             $baseId = $market['base_currency'];
             $quoteId = $market['quoted_currency'];
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $maker = $this->safe_float($market, 'maker_fee');
             $taker = $this->safe_float($market, 'taker_fee');
@@ -280,12 +280,7 @@ class liquid extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safe_currency_code($currencyId);
             $total = $this->safe_float($balance, 'balance');
             $account = array (
                 'free' => $total,
@@ -328,7 +323,7 @@ class liquid extends Exchange {
                 if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                     $market = $this->markets[$symbol];
                 } else {
-                    $symbol = $this->common_currency_code($baseId) . '/' . $this->common_currency_code($quoteId);
+                    $symbol = $this->safe_currency_code($baseId) . '/' . $this->safe_currency_code($quoteId);
                 }
             }
         }
