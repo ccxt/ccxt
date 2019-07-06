@@ -49,6 +49,8 @@ const TICK_SIZE = 2;
 const NO_PADDING = 0;
 const PAD_WITH_ZERO = 1;
 
+include 'errors.php'; // yeet
+
 class Exchange {
 
     const VERSION = '1.18.901';

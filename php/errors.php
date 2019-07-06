@@ -1,42 +1,44 @@
-
 <?php
 
 namespace ccxt;
 
+use Exception;
+
 $error_hierarchy = array(
-  "BaseError"=> array(
-    "ExchangeError"=> array(
-      "AuthenticationError"=> array(
-        "PermissionDenied"=> array(),
-        "AccountSuspended"=> array()
+  "BaseError" => array(
+    "ExchangeError" => array(
+      "AuthenticationError" => array(
+        "PermissionDenied" => array(),
+        "AccountSuspended" => array()
       ),
-      "ArgumentsRequired"=> array(),
-      "BadRequest"=> array(),
-      "BadResponse"=> array(
-        "NullResponse"=> array()
+      "ArgumentsRequired" => array(),
+      "BadRequest" => array(),
+      "BadResponse" => array(
+        "NullResponse" => array()
       ),
-      "InsufficientFunds"=> array(),
-      "InvalidAddress"=> array(
-        "AddressPending"=> array()
+      "InsufficientFunds" => array(),
+      "InvalidAddress" => array(
+        "AddressPending" => array()
       ),
-      "InvalidOrder"=> array(
-        "OrderNotFound"=> array(),
-        "OrderNotCached"=> array(),
-        "CancelPending"=> array(),
-        "OrderImmediatelyFillable"=> array(),
-        "OrderNotFillable"=> array(),
-        "DuplicateOrderId"=> array()
+      "InvalidOrder" => array(
+        "OrderNotFound" => array(),
+        "OrderNotCached" => array(),
+        "CancelPending" => array(),
+        "OrderImmediatelyFillable" => array(),
+        "OrderNotFillable" => array(),
+        "DuplicateOrderId" => array()
       ),
-      "NotSupported"=> array()
+      "NotSupported" => array()
     ),
-    "NetworkError"=> array(
-      "DDoSProtection"=> array(),
-      "ExchangeNotAvailable"=> array(),
-      "InvalidNonce"=> array(),
-      "RequestTimeout"=> array()
+    "NetworkError" => array(
+      "DDoSProtection" => array(),
+      "ExchangeNotAvailable" => array(),
+      "InvalidNonce" => array(),
+      "RequestTimeout" => array()
     )
   )
 );
+
 /*  ------------------------------------------------------------------------ */
 
 function error_factory($array, $parent) {
@@ -46,6 +48,6 @@ function error_factory($array, $parent) {
     }
 }
 
-class BaseError {};
+class BaseError extends Exception {};
 
 error_factory($error_hierarchy['BaseError'], 'BaseError');

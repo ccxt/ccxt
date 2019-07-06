@@ -371,10 +371,11 @@ filename = './js/base/errors.js'
 fs.writeFileSync (filename, '\'use strict\';\n\nconst errorHierarchy = ' + formatted + jsErrorCode)
 log.bright.cyan ('Exporting error hierachy →', filename.yellow)
 
-const phpHeader = `
-<?php
+const phpHeader = `<?php
 
 namespace ccxt;
+
+use Exception;
 
 $error_hierarchy = `
 
@@ -389,7 +390,7 @@ function error_factory($array, $parent) {
     }
 }
 
-class BaseError {};
+class BaseError extends Exception {};
 
 error_factory($error_hierarchy['BaseError'], 'BaseError');
 `
@@ -398,7 +399,6 @@ const phpArray = errorHierarchy.replace (/{/g, 'array(').replace (/}/g, ')').rep
 filename = './php/errors.php'
 fs.writeFileSync (filename, phpHeader + phpArray + phpErrorCode)
 log.bright.cyan ('Exporting error hierachy →', filename.yellow)
-
 
 // ----------------------------------------------------------------------------
 
