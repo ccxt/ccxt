@@ -1106,6 +1106,23 @@ class Exchange {
         // it's a stub function, does nothing in base code
     }
 
+    public function raise_error($error_class, $message, $httpCode, $httpStatusText, $url, $httpMethod, $headers, $responseBody, $responseJson) {
+        $error = new $error_class($message);
+        $error->httpCode = $httpCode;
+        $error->httpStatusText = $httpStatusText;
+        $error->url = $url;
+        $error->httpMethod = $httpMethod;
+        $error->responseHeaders = $headers;
+        $error->responseBody = $responseBody;
+        $error->responseJson = $responseJson;
+        $error->exchangeId = $this->id;
+        throw $error;
+    }
+
+    public function raiseError($error_class, $message, $code, $reason, $url, $method, $headers, $body, $response) {
+        $this->raise_error($error_class, $message, $code, $reason, $url, $method, $headers, $body, $response);
+    }
+
     public function parse_json($json_string, $as_associative_array = true) {
         return json_decode($json_string, $as_associative_array);
     }

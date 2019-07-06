@@ -581,6 +581,19 @@ module.exports = class Exchange {
         // override me
     }
 
+    raiseError (ErrorClass, message, httpCode, httpStatusText, url, httpMethod, responseHeaders, responseBody, responseJson) {
+        const error = new ErrorClass (message)
+        error.httpCode = httpCode
+        error.httpStatusText = httpStatusText
+        error.url = url
+        error.httpMethod = httpMethod
+        error.responseHeaders = responseHeaders
+        error.responseBody = responseBody
+        error.responseJson = responseJson
+        error.exchangeId = this.id
+        throw error
+    }
+
     defaultErrorHandler (code, reason, responseBody, url, method) {
         if ((code >= 200) && (code <= 299))
             return

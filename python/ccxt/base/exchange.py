@@ -476,6 +476,18 @@ class Exchange(object):
     def handle_errors(self, code, reason, url, method, headers, body, response):
         pass
 
+    def raise_error(self, error_class, message, http_code, http_status_text, url, http_method, headers, response_body, response_json):
+        error = error_class(message)
+        error.httpCode = http_code
+        error.httpStatusText = http_status_text
+        error.url = url
+        error.httpMethod = http_method
+        error.responseHeaders = headers
+        error.responseBody = response_body
+        error.responseJson = response_json
+        error.exchangeId = self.id
+        raise error
+
     def prepare_request_headers(self, headers=None):
         headers = headers or {}
         headers.update(self.headers)
@@ -534,19 +546,19 @@ class Exchange(object):
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)
             response.raise_for_status()
 
-        except Timeout as e:
-            raise RequestTimeout(method + ' ' + url)
+        except Timeout:
+            self.raise_error(RequestTimeout, '', http_status_code, http_status_text, url, method, headers, http_response, json_response)
 
-        except TooManyRedirects as e:
-            raise ExchangeError(method + ' ' + url)
+        except TooManyRedirects:
+            self.raise_error(ExchangeError, 'Too many redirects.', http_status_code, http_status_text, url, method, headers, http_response, json_response)
 
-        except SSLError as e:
-            raise ExchangeError(method + ' ' + url)
+        except SSLError:
+            self.raise_error(ExchangeError, 'SSL error.', http_status_code, http_status_text, url, method, headers, http_response, json_response)
 
-        except HTTPError as e:
+        except HTTPError:
             self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
             self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
-            raise ExchangeError(method + ' ' + url)
+            self.raise_error(ExchangeError, 'HTTP status code error.', http_status_code, http_status_text, url, method, headers, http_response, json_response)
 
         except RequestException as e:  # base exception class
             error_string = str(e)
