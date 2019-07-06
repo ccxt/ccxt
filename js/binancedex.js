@@ -40,7 +40,7 @@ module.exports = class binancedex extends Exchange {
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -99,6 +99,7 @@ module.exports = class binancedex extends Exchange {
                         'ticker/24hr',
                         'depth',
                         'klines',
+                        'orders/{id}',
                     ],
                 },
             },
@@ -106,6 +107,13 @@ module.exports = class binancedex extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'orderTypes': {
+                    'limit': 2,
+                },
+                'orderSide': {
+                    'buy': 1,
+                    'sell': 2,
+                },
             },
         });
     }
@@ -256,12 +264,77 @@ module.exports = class binancedex extends Exchange {
         throw new NotSupported (this.id + ' createOrder not implemented yet');
     }
 
+    parseOrder (order, market = undefined) {
+        const orderStatusMap = {
+            'FullyFill': 'closed',
+            'Canceled': 'canceled',
+            'PartialFill': 'open',
+            'Ack': 'open',
+            'Expired': 'canceled',
+            'FailedBlocking': 'canceled',
+            'FailedMatching': 'canceled',
+            'IocExpire': 'canceled',
+            'IocNoFill': 'canceled',
+        };
+        let status = undefined;
+        const orderStatus = this.safeString (order, 'status', undefined);
+        if (orderStatus in orderStatusMap) {
+            status = orderStatusMap[orderStatus];
+        }
+        let side = 'buy';
+        if (order['direction'] === this.options['orderSide']['sell']) {
+            side = 'sell';
+        }
+        const marketId = this.safeString (order, 'symbol');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            const marketInfo = this.markets_by_id[marketId];
+            symbol = marketInfo['symbol'];
+        }
+        let orderType = 'market';
+        if (order['orderType'] === this.options['orderTypes']['limit']) {
+            orderType = 'limit';
+        }
+        const timestamp = this.parse8601 (this.safeString (order, 'orderCreateTime'));
+        const quantity = this.safeFloat (order, 'quantity');
+        const filledQuantity = this.safeFloat (order, 'cumulateQuantity');
+        const price = this.safeFloat (order, 'price');
+        const id = this.safeString (order, 'orderId');
+        const feeInfo = this.safeString (order, 'fee').split (':');
+        const feeSymbol = this.currencies_by_id[this.safeString (feeInfo, 0)]['code'];
+        return {
+            'info': order,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': orderType,
+            'side': side,
+            'price': price,
+            'average': undefined,
+            'amount': quantity,
+            'remaining': quantity - filledQuantity,
+            'filled': filledQuantity,
+            'status': status,
+            'fee': {
+                'cost': parseFloat (this.safeString (feeInfo, 1)),
+                'currency': feeSymbol,
+            },
+        };
+    }
+
     async fetchOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' createOrder not implemented yet');
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.publicGetOrdersId (this.extend (request, params));
+        return this.parseOrder (response, symbol);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + 'api/v1/' + path;
+        let url = this.urls['api'] + 'api/v1/' + this.implodeParams (path, params);
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
