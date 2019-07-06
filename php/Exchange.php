@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.894';
+$version = '1.18.898';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.894';
+    const VERSION = '1.18.898';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1064,21 +1064,6 @@ class Exchange {
         return $signature;
     }
 
-    public function raise_error($exception_type, $url, $method = 'GET', $error = null, $details = null) {
-        $exception_class = $exception_type;
-        $namespace = '\\' . __NAMESPACE__ . '\\';
-        if (substr($exception_class, 0, strlen($namespace)) !== $namespace) {
-            $exception_class =  $namespace . $exception_type;
-        }
-        throw new $exception_class(implode(' ', array(
-            $this->id,
-            $method,
-            $url,
-            $error,
-            $details,
-        )));
-    }
-
     // this method is experimental
     public function throttle() {
         $now = $this->milliseconds();
@@ -1292,13 +1277,11 @@ class Exchange {
 
         if ($result === false) {
             if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
-                $this->raise_error('RequestTimeout', $url, $method, $curl_errno, $curl_error);
+                throw new RequestTimeout(implode(' ', array($url, $method, $curl_errno, $curl_error)));
             }
 
-            // var_dump ($result);
-
             // all sorts of SSL problems, accessibility
-            $this->raise_error('ExchangeNotAvailable', $url, $method, $curl_errno, $curl_error);
+            throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
 
         $string_code = (string) $http_status_code;
@@ -1307,9 +1290,9 @@ class Exchange {
             $error_class = $this->httpExceptions[$string_code];
             if ($error_class === 'ExchangeNotAvailable') {
                 if (preg_match('#cloudflare|incapsula|overload|ddos#i', $result)) {
-                    $error_class = 'DDoSProtection';
-                } else {
-                    $details = '(possible reasons: ' . implode(', ', array(
+                    throw new DDoSProtection(implode(' ', array($url, $method, $http_status_code, $result)));
+                }
+                $details = '(possible reasons: ' . implode(', ', array(
                         'invalid API keys',
                         'bad or old nonce',
                         'exchange is down or offline',
@@ -1317,29 +1300,30 @@ class Exchange {
                         'DDoS protection',
                         'rate-limiting in effect',
                     )) . ')';
-                }
-                $this->raise_error($error_class, $url, $method, $http_status_code, $result, isset($details) ? $details : null);
-            } else {
-                $this->raise_error($error_class, $url, $method, $http_status_code, $result);
+                throw new ExchangeNotAvailable(implode(' ', array($url, $method, $http_status_code, $result, $details)));
             }
+            $namespaced = 'ccxt\\' . $error_class;
+            throw new $namespaced(implode(' ', array($url, $method, $http_status_code, $result)));
         }
 
         if (!$json_response) {
-            if (preg_match('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
-                $details = '(possible reasons: ' . implode(', ', array(
+            $details = '(possible reasons: ' . implode(', ', array(
                     'exchange is down or offline',
                     'on maintenance',
                     'DDoS protection',
                     'rate-limiting in effect',
                 )) . ')';
-
-                $this->raise_error('ExchangeNotAvailable', $url, $method, $http_status_code,
-                    'not accessible from this location at the moment', $details);
+            $error_class = null;
+            if (preg_match('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
+                $error_class = 'ExchangeNotAvailable';
             }
 
             if (preg_match('#cloudflare|incapsula#i', $result)) {
-                $this->raise_error('DDoSProtection', $url, $method, $http_status_code,
-                    'not accessible from this location at the moment');
+                $error_class = 'DDosProtection';
+            }
+            if ($error_class !== null) {
+                $namespaced = 'ccxt\\' . $error_class;
+                throw new $namespaced(implode(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
             }
         }
 

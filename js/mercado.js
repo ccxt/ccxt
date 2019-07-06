@@ -213,18 +213,11 @@ module.exports = class mercado extends Exchange {
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId.toUpperCase ());
-            }
-            // const currencyId = this.currencyId (code);
-            const lowercase = currencyId.toLowerCase ();
-            if (lowercase in balances) {
-                const balance = this.safeValue (balances, lowercase, {});
+            const code = this.safeCurrencyCode (currencyId);
+            if (currencyId in balances) {
+                const balance = this.safeValue (balances, currencyId, {});
                 const account = this.account ();
-                account['free'] = parseFloat (balance, 'available');
+                account['free'] = this.safeFloat (balance, 'available');
                 account['total'] = this.safeFloat (balance, 'total');
                 result[code] = account;
             }
