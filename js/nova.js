@@ -22,6 +22,7 @@ module.exports = class nova extends Exchange {
                 'fetchDepositAddress': true,
             },
             'urls': {
+                'referral': 'https://novaexchange.com/signup/?re=is8vz2hsl3qxewv1uawd',
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
                 'api': 'https://novaexchange.com/remote',
                 'www': 'https://novaexchange.com',
