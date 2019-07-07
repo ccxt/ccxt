@@ -431,20 +431,17 @@ module.exports = class okcoinusd extends Exchange {
                 quoteId = parts[1];
                 baseNumericId = this.safeInteger (market, 'baseCurrency');
                 quoteNumericId = this.safeInteger (market, 'quoteCurrency');
-                uppercaseBaseId = baseId.toUpperCase ();
-                uppercaseQuoteId = quoteId.toUpperCase ();
-                base = this.commonCurrencyCode (uppercaseBaseId);
-                quote = this.commonCurrencyCode (uppercaseQuoteId);
+                base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
                 contracts = [{}];
             } else {
                 // futures markets
                 quoteId = this.safeString (market, 'quote');
                 uppercaseBaseId = this.safeString (market, 'symbolDesc');
-                uppercaseQuoteId = quoteId.toUpperCase ();
                 baseId = uppercaseBaseId.toLowerCase ();
                 lowercaseId = baseId + '_' + quoteId;
-                base = this.commonCurrencyCode (uppercaseBaseId);
-                quote = this.commonCurrencyCode (uppercaseQuoteId);
+                base = this.safeCurrencyCode (uppercaseBaseId);
+                quote = this.safeCurrencyCode (quoteId);
             }
             for (let k = 0; k < contracts.length; k++) {
                 const contract = contracts[k];
@@ -602,10 +599,8 @@ module.exports = class okcoinusd extends Exchange {
                     market = this.markets_by_id[marketId];
                 } else {
                     const [ baseId, quoteId ] = ticker['symbol'].split ('_');
-                    let base = baseId.toUpperCase ();
-                    let quote = quoteId.toUpperCase ();
-                    base = this.commonCurrencyCode (base);
-                    quote = this.commonCurrencyCode (quote);
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
                     symbol = base + '/' + quote;
                 }
             }
@@ -755,12 +750,7 @@ module.exports = class okcoinusd extends Exchange {
         ids = this.arrayConcat (ids, usedKeys);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let code = id.toUpperCase ();
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
+            const code = this.safeCurrencyCode (id);
             const account = this.account ();
             account['free'] = this.safeFloat (balances['free'], id);
             account['used'] = this.safeFloat (balances[usedField], id);

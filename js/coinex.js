@@ -134,8 +134,8 @@ module.exports = class coinex extends Exchange {
             const id = this.safeString (market, 'market');
             const quoteId = this.safeString (market, 'buy_asset_type');
             const baseId = this.safeString (market, 'sell_asset_type');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'sell_asset_type_places'),
