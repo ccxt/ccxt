@@ -278,8 +278,8 @@ class bittrex extends Exchange {
             $id = $this->safe_string($market, 'MarketName');
             $baseId = $this->safe_string($market, 'MarketCurrency');
             $quoteId = $this->safe_string($market, 'BaseCurrency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $pricePrecision = 8;
             if (is_array($this->options['pricePrecisionByCode']) && array_key_exists($quote, $this->options['pricePrecisionByCode'])) {
@@ -330,7 +330,7 @@ class bittrex extends Exchange {
         $keys = is_array($indexed) ? array_keys($indexed) : array();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
-            $currency = $this->common_currency_code($id);
+            $currency = $this->safe_currency_code($id);
             $account = $this->account ();
             $balance = $indexed[$id];
             $free = $this->safe_float($balance, 'Available', 0);
@@ -445,7 +445,7 @@ class bittrex extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
             $address = $this->safe_value($currency, 'BaseAddress');
             $fee = $this->safe_float($currency, 'TxFee'); // todo => redesign
@@ -829,8 +829,8 @@ class bittrex extends Exchange {
 
     public function parse_symbol ($id) {
         list($quoteId, $baseId) = explode($this->options['symbolSeparator'], $id);
-        $base = $this->common_currency_code($baseId);
-        $quote = $this->common_currency_code($quoteId);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         return $base . '/' . $quote;
     }
 
@@ -884,8 +884,8 @@ class bittrex extends Exchange {
         $feeCurrency = null;
         if ($marketSymbol !== null) {
             list($baseId, $quoteId) = explode('-', $marketSymbol);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
