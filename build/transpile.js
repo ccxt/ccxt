@@ -488,7 +488,9 @@ function transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
     }
 
     // special case for Python super
-    python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
+    if (className) {
+        python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
+    }
 
     return python3Body
 }
