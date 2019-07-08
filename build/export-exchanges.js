@@ -293,112 +293,25 @@ fs.writeFileSync ('./package.json', JSON.stringify (packageJSON, null, 2))
 const errorHierarchy = fs.readFileSync ('./error-hierarchy.json', 'utf8')
 const formatted = JSON.stringify (JSON.parse (errorHierarchy), null, 4).replace (/"/g, "'").replace (/((?:{| +)})(?!,)/g, '$1,') + '\n'
 
-const pythonErrorCode = `
-# -----------------------------------------------------------------------------
-
-__all__ = []
-
-
-def error_factory(dictionary, super_class):
-    for key in dictionary:
-        __all__.append(key)
-        error_class = type(key, (super_class,), {})
-        globals()[key] = error_class
-        error_factory(dictionary[key], error_class)
-
-
-class BaseError(BaseException):
-    def __init__(self, message):
-        super(BaseError, self).__init__(message)
-        pass
-
-
-error_factory(error_hierarchy['BaseError'], BaseError)
-`
 filename = './python/ccxt/base/errors.py'
-fs.writeFileSync (filename, 'error_hierarchy = ' + formatted + pythonErrorCode)
+let contents = fs.readFileSync (filename, 'utf8')
+let regex = /}\n([\s\S]+)/
+const pythonCode = regex.exec (contents)[1]
+fs.writeFileSync (filename, 'error_hierarchy = ' + formatted + pythonCode)
 log.bright.cyan ('Exporting error hierachy →', filename.yellow)
 
-const jsErrorCode = `
-/*  ------------------------------------------------------------------------ */
-
-module.exports = subclass (
-    // Root class
-    Error,
-    // Derived class hierarchy
-    errorHierarchy,
-)
-
-/*  ------------------------------------------------------------------------ */
-
-function subclass (BaseClass, classes, namespace = {}) {
-
-    for (const [className, subclasses] of Object.entries (classes)) {
-
-        const Class = Object.assign (namespace, {
-
-        /*  By creating a named property, we trick compiler to assign our class constructor function a name.
-            Otherwise, all our error constructors would be shown as [Function: Error] in the debugger! And
-            the super-useful \`e.constructor.name\` magic wouldn't work — we then would have no chance to
-            obtain a error type string from an error instance programmatically!                               */
-
-            [className]: class extends BaseClass {
-
-                constructor (message) {
-
-                    super (message)
-
-                /*  A workaround to make \`instanceof\` work on custom Error classes in transpiled ES5.
-                    See my blog post for the explanation of this hack:
-
-                    https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */
-
-                    this.constructor = Class
-                    this.__proto__   = Class.prototype
-                    this.name        = className
-                    this.message     = message
-                }
-            }
-
-        })[className]
-
-        subclass (Class, subclasses, namespace)
-    }
-
-    return namespace
-}
-`
 filename = './js/base/errors.js'
+contents = fs.readFileSync (filename, 'utf8')
+const jsErrorCode = regex.exec (contents)[1]
 fs.writeFileSync (filename, '\'use strict\';\n\nconst errorHierarchy = ' + formatted + jsErrorCode)
 log.bright.cyan ('Exporting error hierachy →', filename.yellow)
 
-const phpHeader = `<?php
-
-namespace ccxt;
-
-use Exception;
-
-$error_hierarchy = `
-
-const phpErrorCode = `
-
-/*  ------------------------------------------------------------------------ */
-
-function error_factory($array, $parent) {
-    foreach ($array as $error => $subclasses) {
-        eval("namespace ccxt; class $error extends $parent {};");
-        error_factory($subclasses, $error);
-    }
-}
-
-class BaseError extends Exception {};
-
-error_factory($error_hierarchy['BaseError'], 'BaseError');
-`
-
-const phpArray = errorHierarchy.replace (/{/g, 'array(').replace (/}/g, ')').replace (/:/g, ' =>').trimRight () + ';'
 filename = './php/errors.php'
-fs.writeFileSync (filename, phpHeader + phpArray + phpErrorCode)
+const phpRegex = /(\$error_hierarchy = )array\([\s\S]+?\);/
+contents = fs.readFileSync (filename, 'utf8')
+const phpArray = errorHierarchy.replace (/{/g, 'array(').replace (/}/g, ')').replace (/:/g, ' =>').trimRight () + ';'
+const phpErrorCode = contents.replace (phpRegex, '$1' + phpArray)
+fs.writeFileSync (filename, phpErrorCode)
 log.bright.cyan ('Exporting error hierachy →', filename.yellow)
 
 // ----------------------------------------------------------------------------
