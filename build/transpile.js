@@ -7,7 +7,11 @@
 "use strict";
 
 const fs   = require ('fs')
-    , { replaceInFile } = require ('./common.js')
+    , {
+        replaceInFile,
+        overwriteFile,
+        createFolderRecursively
+    } = require ('./common.js')
     , path = require ('path')
     , log  = require ('ololog')
     , ansi = require ('ansicolor').nice
@@ -735,46 +739,6 @@ function transpileDerivedExchangeFiles (folder, pattern = '.js') {
     })
 
     return classes
-}
-
-//-----------------------------------------------------------------------------
-
-function copyFile (oldName, newName) {
-    let contents = fs.readFileSync (oldName, 'utf8')
-    fs.truncateSync (newName)
-    fs.writeFileSync (newName, contents)
-}
-
-//-----------------------------------------------------------------------------
-
-function overwriteFile (filename, contents) {
-    // log.cyan ('Overwriting → ' + filename.yellow)
-    fs.closeSync (fs.openSync (filename, 'a'));
-    fs.truncateSync (filename)
-    fs.writeFileSync (filename, contents)
-}
-
-//----------------------------------------------------------------------------
-
-function createFolder (folder) {
-    try {
-        fs.mkdirSync (folder)
-    } catch (err) {
-        if (err.code !== 'EEXIST') {
-            throw err
-        }
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function createFolderRecursively (folder) {
-
-    const parts = folder.split (path.sep)
-
-    for (let i = 1; i <= parts.length; i++) {
-        createFolder (path.join.apply (null, parts.slice (0, i)))
-    }
 }
 
 //-----------------------------------------------------------------------------
