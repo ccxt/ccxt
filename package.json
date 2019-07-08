@@ -23,6 +23,7 @@
     "test-python-base": "python python/test/test_decimal_to_precision.py",
     "test-php-base": "php -f php/test/decimal_to_precision.php",
     "export-exchanges": "node build/export-exchanges",
+    "export-errors": "node build/export-errors",
     "git-ignore-generated-files": "node build/git-ignore-generated-files",
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",
     "update-badges": "node build/update-badges",
