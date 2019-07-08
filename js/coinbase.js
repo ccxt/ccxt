@@ -305,7 +305,7 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = await this.prepareAccountRequest (code, limit, params);
+        const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const response = await this[method] (this.extend (request, query));
@@ -647,7 +647,7 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = await this.prepareAccountRequest (code, limit, params);
+        const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         const query = this.omit (params, ['account_id', 'accountId']);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
@@ -999,22 +999,28 @@ module.exports = class coinbase extends Exchange {
         }
     }
 
-    async prepareAccountRequest (code, limit, params) {
-        let accountId = this.safeString2 (params, 'account_id', 'accountId');
-        if (accountId === undefined) {
-            if (code === undefined) {
-                throw new ArgumentsRequired (this.id + ' method requires an account_id (or accountId) parameter AND/OR a currency code');
-            }
-            accountId = await this.findAccountId (code);
-            if (accountId === undefined) {
-                throw new ExchangeError (this.id + ' invalid currency code');
-            }
-        }
+    async prepareAccountRequest (limit, params) {
+        const accountId = this.safeString2 (params, 'account_id', 'accountId');
         const request = {
             'account_id': accountId,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        return request;
+    }
+
+    async prepareAccountRequestWithCurrencyCode (code, limit, params) {
+        const request = this.prepareAccountRequest (limit, params);
+        if (request['accountId'] === undefined) {
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' method requires an account_id (or accountId) parameter OR a currency code');
+            }
+            const accountId = await this.findAccountId (code);
+            if (accountId === undefined) {
+                throw new ExchangeError (this.id + ' invalid currency code');
+            }
+            request['accountId'] = accountId;
         }
         return request;
     }
