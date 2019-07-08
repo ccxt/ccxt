@@ -8,3 +8,7 @@ function replaceInFile (filename, regex, replacement) {
     fs.truncateSync (filename)
     fs.writeFileSync (filename, newContents)
 }
+
+module.exports = {
+    replaceInFile,
+}
