@@ -2640,12 +2640,7 @@ module.exports = class okex3 extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/api' + '/' + api + '/' + this.version + '/';
-        if (Array.isArray (params)) {
-            request += path;
-        } else {
-            request += this.implodeParams (path, params);
-        }
+        const request = '/api' + '/' + api + '/' + this.version + '/' + this.implodeParams (path, params);
         let url = this.urls['api'] + request;
         const query = this.omit (params, this.extractParams (path));
         const type = this.getPathAuthenticationType (path);
@@ -2673,9 +2668,8 @@ module.exports = class okex3 extends Exchange {
                 }
             } else {
                 if (Object.keys (query).length) {
-                    const jsonQuery = this.json (query);
-                    body = jsonQuery;
-                    auth += jsonQuery;
+                    body = this.json (query);
+                    auth += body;
                 }
                 headers['Content-Type'] = 'application/json';
             }
