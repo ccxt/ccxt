@@ -766,10 +766,10 @@ class Exchange(object):
 
     @staticmethod
     def implode_params(string, params):
-        if not isinstance(params, dict):
-            return string
-        for key in params:
-            string = string.replace('{' + key + '}', str(params[key]))
+        if isinstance(params, dict):
+            for key in params:
+                if not isinstance(params[key], list):
+                    string = string.replace('{' + key + '}', str(params[key]))
         return string
 
     @staticmethod
