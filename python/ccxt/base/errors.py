@@ -46,7 +46,7 @@ def error_factory(dictionary, super_class):
         error_factory(dictionary[key], error_class)
 
 
-class BaseError(BaseException):
+class BaseError(Exception):
     def __init__(self, message):
         super(BaseError, self).__init__(message)
         pass
