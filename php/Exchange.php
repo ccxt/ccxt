@@ -474,9 +474,11 @@ class Exchange {
     }
 
     public static function implode_params($string, $params) {
-        foreach ($params as $key => $value) {
-            if (gettype($value) !== 'array') {
-                $string = implode($value, mb_split('{' . preg_quote($key) . '}', $string));
+        if (static::is_associative ($params)) {
+            foreach ($params as $key => $value) {
+                if (gettype($value) !== 'array') {
+                    $string = implode($value, mb_split('{' . preg_quote($key) . '}', $string));
+                }
             }
         }
         return $string;
