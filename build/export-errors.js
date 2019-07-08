@@ -5,7 +5,7 @@ const { replaceInFile } = require ('./common.js')
 
 const formatted = JSON.stringify (errorHierarchy, null, 4).replace (/"/g, "'").replace (/((?:{| +)})(?!,)/g, '$1,') + '\n'
 
-function logReplaceWithFile (filename, regex, replacement) {
+function logReplaceInFile (filename, regex, replacement) {
     log.bright.cyan ('Exporting error hierachy →', filename.yellow)
     replaceInFile (filename, regex, replacement)
 }
