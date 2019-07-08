@@ -7,6 +7,7 @@
 "use strict";
 
 const fs   = require ('fs')
+    , { replaceInFile } = require ('./common.js')
     , path = require ('path')
     , log  = require ('ololog')
     , ansi = require ('ansicolor').nice
@@ -17,16 +18,6 @@ const fs   = require ('fs')
 // ---------------------------------------------------------------------------
 
 const [ /* node */, /* script */, filename ] = process.argv
-
-// ---------------------------------------------------------------------------
-
-function replaceInFile (filename, regex, replacement) {
-    let contents = fs.readFileSync (filename, 'utf8')
-    const parts = contents.split (regex)
-    const newContents = parts[0] + replacement + parts[1]
-    fs.truncateSync (filename)
-    fs.writeFileSync (filename, newContents)
-}
 
 // ----------------------------------------------------------------------------
 
