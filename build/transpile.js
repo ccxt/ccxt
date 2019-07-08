@@ -12,7 +12,7 @@ const fs   = require ('fs')
         overwriteFile,
         createFolderRecursively
     } = require ('./common.js')
-    , path = require ('path')
+    , { basename } = require ('path')
     , log  = require ('ololog')
     , ansi = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
@@ -727,7 +727,7 @@ function transpileDerivedExchangeFiles (folder, pattern = '.js') {
     const ids = require ('../exchanges.json').ids;
 
     const classNames = fs.readdirSync (folder)
-        .filter (file => file.includes (pattern) && ids.includes (path.basename (file, pattern)))
+        .filter (file => file.includes (pattern) && ids.includes (basename (file, pattern)))
         .map (file => transpileDerivedExchangeFile (folder, file))
 
     if (classNames.length === 0)
