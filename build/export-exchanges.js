@@ -29,7 +29,7 @@ if (!fs.existsSync (gitWikiPath)) {
 
 // ----------------------------------------------------------------------------
 
-function logReplaceWithFile (filename, regex, replacement) {
+function logReplaceInFile (filename, regex, replacement) {
     log.bright.cyan ('Exporting exchanges →', filename.yellow)
     replaceInFile (filename, regex, replacement)
 }
@@ -88,7 +88,7 @@ const pad = function (string, n) {
     },
 
 ].forEach (({ file, regex, replacement }) => {
-    logReplaceWithFile (file, regex, replacement)
+    logReplaceInFile (file, regex, replacement)
 })
 
 log.bright.green ('Base sources updated successfully.')
@@ -173,16 +173,16 @@ const ending = " cryptocurrency exchange markets and trading APIs:\n\n"
 const totalString = beginning + numExchanges + ending
 const allExchanges = totalString + exchangesTable + "$1"
 const allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
-logReplaceWithFile ('README.md', allExchangesRegex, allExchanges)
-logReplaceWithFile (wikiPath + '/Manual.md', allExchangesRegex, allExchanges)
-logReplaceWithFile (wikiPath + '/Exchange-Markets.md', allExchangesRegex, allExchanges)
+logReplaceInFile ('README.md', allExchangesRegex, allExchanges)
+logReplaceInFile (wikiPath + '/Manual.md', allExchangesRegex, allExchanges)
+logReplaceInFile (wikiPath + '/Exchange-Markets.md', allExchangesRegex, allExchanges)
 
 const certifiedFieldIndex = tableHeadings.indexOf ('certified')
 const certified = tableData.filter ((x) => x[certifiedFieldIndex] !== '' )
 const certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
 const certifiedExchangesTable = makeTable (certified)
 const certifiedExchanges = '$1' + certifiedExchangesTable + "\n"
-logReplaceWithFile ('README.md', certifiedExchangesRegex, certifiedExchanges)
+logReplaceInFile ('README.md', certifiedExchangesRegex, certifiedExchanges)
 
 
 let exchangesByCountries = []
