@@ -1,9 +1,14 @@
-const fs  = require ('fs')
-const log = require ('ololog').unlimited
-const ansi      = require ('ansicolor').nice
+const { replaceInFile } = require ('./common.js')
+    , log = require ('ololog').unlimited
+    , ansi = require ('ansicolor').nice
+    , errorHierarchy = require ('../js/base/errors.json')
 
-const errorHierarchy = require ('../js/base/errors.json')
 const formatted = JSON.stringify (errorHierarchy, null, 4).replace (/"/g, "'").replace (/((?:{| +)})(?!,)/g, '$1,') + '\n'
+
+function logReplaceWithFile (filename, regex, replacement) {
+    log.bright.cyan ('Exporting error hierachy →', filename.yellow)
+    replaceInFile (filename, regex, replacement)
+}
 
 let filename = './python/ccxt/base/errors.py'
 let contents = fs.readFileSync (filename, 'utf8')
