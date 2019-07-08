@@ -471,8 +471,7 @@ module.exports = class bytetrade extends Exchange {
         const quoteCurrency = this.currencies_by_id[quoteId];
         const priceFloat = parseFloat (price);
         const priceChain = priceFloat * Math.pow (10, quoteCurrency['basePrecision']);
-        const nowMs = Date.now () / 1000;
-        const now = Math.ceil (nowMs);
+        const now = this.seconds ();
         const expiration = now + 10;
         const ob = {
             'fee': '300000000000000',
@@ -490,7 +489,7 @@ module.exports = class bytetrade extends Exchange {
             'money_id': parseInt (quoteId),
             'stock_id': parseInt (baseId),
         };
-        const obj = JSON.stringify (ob);
+        const obj = this.json (ob);
         const request = {
             'trObj': obj,
         };
@@ -643,7 +642,7 @@ module.exports = class bytetrade extends Exchange {
             'money_id': parseInt (quoteId),
             'stock_id': parseInt (baseId),
         };
-        const obj = JSON.stringify (ob);
+        const obj = this.json (ob);
         const request = {
             'trObj': obj,
         };
@@ -693,7 +692,7 @@ module.exports = class bytetrade extends Exchange {
             'amount': amountChain.toString (),
             'message': message,
         };
-        const obj = JSON.stringify (ob);
+        const obj = this.json (ob);
         const request = {
             'trObj': obj,
         };
@@ -919,14 +918,14 @@ module.exports = class bytetrade extends Exchange {
             'asset_type': parseInt (coinId),
             'amount': amountChain.toString (),
         };
-        const obj = JSON.stringify (ob);
+        const obj = this.json (ob);
         const pixiuWithdrawRequest = {};
         pixiuWithdrawRequest['cmd'] = 'withdrawNotify';
         pixiuWithdrawRequest['chain_type'] = chainType;
         pixiuWithdrawRequest['toExternalAddress'] = address;
         pixiuWithdrawRequest['transaction'] = obj;
         pixiuWithdrawRequest['chainContractAddress'] = this.safeString (Currency['info'], 'chainType');
-        const pixiuWithdrawRequestObj = JSON.stringify (pixiuWithdrawRequest);
+        const pixiuWithdrawRequestObj = this.json (pixiuWithdrawRequest);
         const response = await this.publicPostTransaction (pixiuWithdrawRequestObj);
         return {
             'info': response,
