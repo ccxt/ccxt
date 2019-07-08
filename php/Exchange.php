@@ -582,7 +582,7 @@ class Exchange {
         if ($timestamp < 0) {
             return null;
         }
-        $result = date('c', (int) floor($timestamp / 1000));
+        $result = gmdate('c', (int) floor($timestamp / 1000));
         $msec = (int) $timestamp % 1000;
         $result = str_replace('+00:00', sprintf('.%03dZ', $msec), $result);
         return $result;
