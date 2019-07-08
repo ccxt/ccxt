@@ -2,8 +2,8 @@ const fs  = require ('fs')
 const log = require ('ololog').unlimited
 const ansi      = require ('ansicolor').nice
 
-const errorHierarchy = fs.readFileSync ('./errors.json', 'utf8')
-const formatted = JSON.stringify (JSON.parse (errorHierarchy), null, 4).replace (/"/g, "'").replace (/((?:{| +)})(?!,)/g, '$1,') + '\n'
+const errorHierarchy = require ('../js/base/errors.json')
+const formatted = JSON.stringify (errorHierarchy, null, 4).replace (/"/g, "'").replace (/((?:{| +)})(?!,)/g, '$1,') + '\n'
 
 let filename = './python/ccxt/base/errors.py'
 let contents = fs.readFileSync (filename, 'utf8')
