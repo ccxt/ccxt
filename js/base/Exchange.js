@@ -961,11 +961,13 @@ module.exports = class Exchange {
     }
 
     implodeParams (string, params) {
-        if (Array.isArray (params)) {
-            return string
+        if (!Array.isArray (params)) {
+            for (let property in params) {
+                if (!Array.isArray (params[property])) {
+                    string = string.replace ('{' + property + '}', params[property])
+                }
+            }
         }
-        for (let property in params)
-            string = string.replace ('{' + property + '}', params[property])
         return string
     }
 
