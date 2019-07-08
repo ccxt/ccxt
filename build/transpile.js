@@ -10,7 +10,8 @@ const fs   = require ('fs')
     , {
         replaceInFile,
         overwriteFile,
-        createFolderRecursively
+        createFolderRecursively,
+        regexAll        
     } = require ('./common.js')
     , { basename } = require ('path')
     , log  = require ('ololog')
@@ -22,18 +23,6 @@ const fs   = require ('fs')
 // ---------------------------------------------------------------------------
 
 const [ /* node */, /* script */, filename ] = process.argv
-
-// ----------------------------------------------------------------------------
-
-function regexAll (text, array) {
-
-    for (let i in array) {
-        let regex = array[i][0]
-        regex = typeof regex === 'string' ? new RegExp (regex, 'g') : new RegExp (regex)
-        text = text.replace (regex, array[i][1])
-    }
-    return text
-}
 
 // ----------------------------------------------------------------------------
 // TODO: rewrite commonRegexes from hardcoded logic to conversion methods
