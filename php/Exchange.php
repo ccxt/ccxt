@@ -364,16 +364,23 @@ class Exchange {
         return mb_strtoupper(mb_substr($string, 0, 1)) . mb_substr($string, 1);
     }
 
+    public static function is_associative($array) {
+        return count(array_filter(array_keys($array), 'is_string')) > 0;
+    }
+
     public static function omit($array, $keys) {
-        $result = $array;
-        if (is_array($keys)) {
-            foreach ($keys as $key) {
-                unset($result[$key]);
+        if (static::is_associative($array)) {
+            $result = $array;
+            if (is_array($keys)) {
+                foreach ($keys as $key) {
+                    unset($result[$key]);
+                }
+            } else {
+                unset($result[$keys]);
             }
-        } else {
-            unset($result[$keys]);
+            return $result;
         }
-        return $result;
+        return $array;
     }
 
     public static function unique($array) {
@@ -470,9 +477,11 @@ class Exchange {
     }
 
     public static function implode_params($string, $params) {
-        foreach ($params as $key => $value) {
-            if (gettype($value) !== 'array') {
-                $string = implode($value, mb_split('{' . preg_quote($key) . '}', $string));
+        if (static::is_associative($params)) {
+            foreach ($params as $key => $value) {
+                if (gettype($value) !== 'array') {
+                    $string = implode($value, mb_split('{' . preg_quote($key) . '}', $string));
+                }
             }
         }
         return $string;
@@ -1424,8 +1433,7 @@ class Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
-        return ('array' === gettype($ohlcv) && 0 == count(array_filter(array_keys($ohlcv), 'is_string'))) ?
-            array_slice($ohlcv, 0, 6) : $ohlcv;
+        return ('array' === gettype($ohlcv) && !static::is_associative($ohlcv)) ? array_slice($ohlcv, 0, 6) : $ohlcv;
     }
 
     public function parseOHLCV($ohlcv, $market = null, $timeframe = 60, $since = null, $limit = null) {
@@ -2222,10 +2230,9 @@ class Exchange {
         if (!isset($market)) {
             $market = $this->find_market($string);
         }
-        if ((gettype($market) === 'array') && (count(array_filter(array_keys($market), 'is_string')) !== 0)) {
+        if ((gettype($market) === 'array') && static::is_associative($market)) {
             return $market['symbol'];
         }
-
         return $string;
     }
 

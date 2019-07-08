@@ -766,8 +766,10 @@ class Exchange(object):
 
     @staticmethod
     def implode_params(string, params):
-        for key in params:
-            string = string.replace('{' + key + '}', str(params[key]))
+        if isinstance(params, dict):
+            for key in params:
+                if not isinstance(params[key], list):
+                    string = string.replace('{' + key + '}', str(params[key]))
         return string
 
     @staticmethod
@@ -794,16 +796,18 @@ class Exchange(object):
 
     @staticmethod
     def omit(d, *args):
-        result = d.copy()
-        for arg in args:
-            if type(arg) is list:
-                for key in arg:
-                    if key in result:
-                        del result[key]
-            else:
-                if arg in result:
-                    del result[arg]
-        return result
+        if isinstance(d, dict):
+            result = d.copy()
+            for arg in args:
+                if type(arg) is list:
+                    for key in arg:
+                        if key in result:
+                            del result[key]
+                else:
+                    if arg in result:
+                        del result[arg]
+            return result
+        return d
 
     @staticmethod
     def unique(array):
