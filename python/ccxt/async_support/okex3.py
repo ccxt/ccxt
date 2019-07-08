@@ -2561,9 +2561,8 @@ class okex3 (Exchange):
                     auth += urlencodedQuery
             else:
                 if query:
-                    jsonQuery = self.json(query)
-                    body = jsonQuery
-                    auth += jsonQuery
+                    body = self.json(query)
+                    auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['OK-ACCESS-SIGN'] = self.decode(signature)
