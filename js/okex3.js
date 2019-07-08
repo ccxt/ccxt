@@ -2640,7 +2640,12 @@ module.exports = class okex3 extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const request = '/api' + '/' + api + '/' + this.version + '/' + this.implodeParams (path, params);
+        let request = '/api' + '/' + api + '/' + this.version + '/';
+        if (Array.isArray (params)) {
+            request = request + path;
+        } else {
+            request = request + this.implodeParams (path, params);
+        }
         let url = this.urls['api'] + request;
         const query = this.omit (params, this.extractParams (path));
         const type = this.getPathAuthenticationType (path);
