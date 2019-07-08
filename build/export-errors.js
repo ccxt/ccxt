@@ -21,7 +21,7 @@ log.bright.cyan ('Exporting error hierachy →', filename.yellow)
 filename = './php/errors.php'
 const phpRegex = /(\$error_hierarchy = )array\([\s\S]+?\);/
 contents = fs.readFileSync (filename, 'utf8')
-const phpArray = errorHierarchy.replace (/{/g, 'array(').replace (/}/g, ')').replace (/:/g, ' =>').trimRight () + ';'
+const phpArray = JSON.stringify (errorHierarchy, undefined, 4).replace (/{/g, 'array(').replace (/}/g, ')').replace (/:/g, ' =>').trimRight () + ';'
 const phpErrorCode = contents.replace (phpRegex, '$1' + phpArray)
 fs.writeFileSync (filename, phpErrorCode)
 log.bright.cyan ('Exporting error hierachy →', filename.yellow)
