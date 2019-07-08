@@ -369,15 +369,18 @@ class Exchange {
     }
 
     public static function omit($array, $keys) {
-        $result = $array;
-        if (is_array($keys)) {
-            foreach ($keys as $key) {
-                unset($result[$key]);
+        if (static::is_associative($array)) {
+            $result = $array;
+            if (is_array($keys)) {
+                foreach ($keys as $key) {
+                    unset($result[$key]);
+                }
+            } else {
+                unset($result[$keys]);
             }
-        } else {
-            unset($result[$keys]);
+            return $result;
         }
-        return $result;
+        return $array;
     }
 
     public static function unique($array) {
