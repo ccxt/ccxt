@@ -1,4 +1,5 @@
 const { replaceInFile } = require ('./common.js')
+    , fs = require ('fs')
     , log = require ('ololog').unlimited
     , ansi = require ('ansicolor').nice
     , errorHierarchy = require ('../js/base/errors.json')
