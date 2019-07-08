@@ -1,6 +1,6 @@
 'use strict';
 
-const errorHierarchy = require ('../../errors.json')
+const errorHierarchy = require ('./errors.json')
 
 /*  ------------------------------------------------------------------------ */
 
