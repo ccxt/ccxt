@@ -303,8 +303,8 @@ class gemini (Exchange):
         }
         ticker = await self.publicGetPubtickerSymbol(self.extend(request, params))
         timestamp = self.safe_integer(ticker['volume'], 'timestamp')
-        baseVolume = self.safe_float(market, 'base')
-        quoteVolume = self.safe_float(market, 'quote')
+        baseCurrency = market['base']  # unified structures are guaranteed to have unified fields
+        quoteCurrency = market['quote']  # so we don't need safe-methods for unified structures
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -324,8 +324,8 @@ class gemini (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker['volume'], baseVolume),
-            'quoteVolume': self.safe_float(ticker['volume'], quoteVolume),
+            'baseVolume': self.safe_float(ticker['volume'], baseCurrency),
+            'quoteVolume': self.safe_float(ticker['volume'], quoteCurrency),
             'info': ticker,
         }
 
