@@ -356,7 +356,80 @@ declare module 'ccxt' {
     export class bitkk extends zb {}
     export class bitlish extends Exchange {}
     export class bitmarket extends Exchange {}
-    export class bitmex extends Exchange {}
+    export class bitmex extends Exchange {
+        // Public API
+        public publicGetAnnouncement(params?: any): Promise<any>;
+        public publicGetAnnouncementUrgent(params?: any): Promise<any>;
+        public publicGetFunding(params?: any): Promise<any>;
+        public publicGetInstrument(params?: any): Promise<any>;
+        public publicGetInstrumentActive(params?: any): Promise<any>;
+        public publicGetInstrumentActiveAndIndices(params?: any): Promise<any>;
+        public publicGetInstrumentActiveIntervals(params?: any): Promise<any>;
+        public publicGetInstrumentCompositeIndex(params?: any): Promise<any>;
+        public publicGetInstrumentIndices(params?: any): Promise<any>;
+        public publicGetInsurance(params?: any): Promise<any>;
+        public publicGetLeaderboard(params?: any): Promise<any>;
+        public publicGetLiquidation(params?: any): Promise<any>;
+        public publicGetOrderBook(params?: any): Promise<any>;
+        public publicGetOrderBookL2(params?: any): Promise<any>;
+        public publicGetQuote(params?: any): Promise<any>;
+        public publicGetQuoteBucketed(params?: any): Promise<any>;
+        public publicGetSchema(params?: any): Promise<any>;
+        public publicGetSchemaWebsocketHelp(params?: any): Promise<any>;
+        public publicGetSettlement(params?: any): Promise<any>;
+        public publicGetStats(params?: any): Promise<any>;
+        public publicGetStatsHistory(params?: any): Promise<any>;
+        public publicGetTrade(params?: any): Promise<any>;
+        public publicGetTradeBucketed(params?: any): Promise<any>;
+        // Private API
+        public privateGetApiKey(params?: any): Promise<any>;
+        public privateGetChat(params?: any): Promise<any>;
+        public privateGetChatChannels(params?: any): Promise<any>;
+        public privateGetChatConnected(params?: any): Promise<any>;
+        public privateGetExecution(params?: any): Promise<any>;
+        public privateGetExecutionTradeHistory(params?: any): Promise<any>;
+        public privateGetNotification(params?: any): Promise<any>;
+        public privateGetOrder(params?: any): Promise<any>;
+        public privateGetPosition(params?: any): Promise<any>;
+        public privateGetUser(params?: any): Promise<any>;
+        public privateGetUserAffiliateStatus(params?: any): Promise<any>;
+        public privateGetUserCheckReferralCode(params?: any): Promise<any>;
+        public privateGetUserCommission(params?: any): Promise<any>;
+        public privateGetUserDepositAddress(params?: any): Promise<any>;
+        public privateGetUserMargin(params?: any): Promise<any>;
+        public privateGetUserMinWithdrawalFee(params?: any): Promise<any>;
+        public privateGetUserWallet(params?: any): Promise<any>;
+        public privateGetUserWalletHistory(params?: any): Promise<any>;
+        public privateGetUserWalletSummary(params?: any): Promise<any>;
+        public privatePostApiKey(params?: any): Promise<any>;
+        public privatePostApiKeyDisable(params?: any): Promise<any>;
+        public privatePostApiKeyEnable(params?: any): Promise<any>;
+        public privatePostChat(params?: any): Promise<any>;
+        public privatePostOrder(params?: any): Promise<any>;
+        public privatePostOrderBulk(params?: any): Promise<any>;
+        public privatePostOrderCancelAllAfter(params?: any): Promise<any>;
+        public privatePostOrderClosePosition(params?: any): Promise<any>;
+        public privatePostPositionIsolate(params?: any): Promise<any>;
+        public privatePostPositionLeverage(params?: any): Promise<any>;
+        public privatePostPositionRiskLimit(params?: any): Promise<any>;
+        public privatePostPositionTransferMargin(params?: any): Promise<any>;
+        public privatePostUserCancelWithdrawal(params?: any): Promise<any>;
+        public privatePostUserConfirmEmail(params?: any): Promise<any>;
+        public privatePostUserConfirmEnableTFA(params?: any): Promise<any>;
+        public privatePostUserConfirmWithdrawal(params?: any): Promise<any>;
+        public privatePostUserDisableTFA(params?: any): Promise<any>;
+        public privatePostUserLogout(params?: any): Promise<any>;
+        public privatePostUserLogoutAll(params?: any): Promise<any>;
+        public privatePostUserPreferences(params?: any): Promise<any>;
+        public privatePostUserRequestEnableTFA(params?: any): Promise<any>;
+        public privatePostUserRequestWithdrawal(params?: any): Promise<any>;
+        public privatePutOrder(params?: any): Promise<any>;
+        public privatePutOrderBulk(params?: any): Promise<any>;
+        public privatePutUser(params?: any): Promise<any>;
+        public privateDeleteApiKey(params?: any): Promise<any>;
+        public privateDeleteOrder(params?: any): Promise<any>;
+        public privateDeleteOrderAll(params?: any): Promise<any>;
+    }
     export class bitso extends Exchange {}
     export class bitstamp extends Exchange {}
     export class bitstamp1 extends Exchange {}
