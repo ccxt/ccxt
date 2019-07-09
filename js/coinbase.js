@@ -999,7 +999,7 @@ module.exports = class coinbase extends Exchange {
         }
     }
 
-    async prepareAccountRequest (limit, params) {
+    prepareAccountRequest (limit, params) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         const request = {
             'account_id': accountId,
@@ -1012,7 +1012,7 @@ module.exports = class coinbase extends Exchange {
 
     async prepareAccountRequestWithCurrencyCode (code, limit, params) {
         const request = this.prepareAccountRequest (limit, params);
-        if (request['accountId'] === undefined) {
+        if (request['account_id'] === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' method requires an account_id (or accountId) parameter OR a currency code');
             }
@@ -1020,7 +1020,7 @@ module.exports = class coinbase extends Exchange {
             if (accountId === undefined) {
                 throw new ExchangeError (this.id + ' invalid currency code');
             }
-            request['accountId'] = accountId;
+            request['account_id'] = accountId;
         }
         return request;
     }
