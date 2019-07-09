@@ -96,7 +96,7 @@ module.exports = class bytetrade extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'CMT@18': 'CMT@18',
+                '18': 'CMT@18',
             },
             // exchange-specific options
             'options': {
@@ -117,12 +117,63 @@ module.exports = class bytetrade extends Exchange {
             const id = this.safeString (currency, 'code');
             const name = this.safeValue (currency, 'name');
             const nameId = name + '@' + id;
+            // in bytetrade.com DEX, request https://api-v2.bytetrade.com/currencies will return currencies,
+            // the api doc is https://github.com/Bytetrade/bytetrade-official-api-docs/wiki/rest-api#get-currencies-get-currencys-supported-in-bytetradecom
+            // we can see the coin name is none-unique in the result, the coin which code is 18 is the  CyberMiles ERC20, and the coin which code is 35 is the CyberMiles main chain.
+            // because bytetrade is DEX, supports people create coin with the same name, but the id(code) of coin is unique, so we must use the name and id as the identity of coin.
+            // so I use name@id as the key of commonCurrencies dict
+            // if the name@id is in commonCurrencies, safeCurrencyCode() call will return the commonCurrencies[name@id], for example, CMT@18 will return code CMT@18;
+            // if the name@id is not in commonCurrencies, 'commonCurrencies[name@id] = name' will be set in fetchCurrencies function, after that, safeCurrencyCode() call will return correct code, for example CMT@35 will return CMT
+            // [{
+            //     "name": "CMT",      // currency name, non-unique
+            //     "code": "18",       // currency id, unique
+            //     "type": "crypto",
+            //     "fullname": "CyberMiles",
+            //     "active": true,
+            //     "chainType": "ethereum",
+            //     "basePrecision": 18,
+            //     "transferPrecision": 10,
+            //     "externalPrecision": 18,
+            //     "chainContractAddress": "0xf85feea2fdd81d51177f6b8f35f0e6734ce45f5f",
+            //     "limits": {
+            //       "deposit": {
+            //         "min": "0",
+            //         "max": "-1"
+            //       },
+            //       "withdraw": {
+            //         "min": "0",
+            //         "max": "-1"
+            //       }
+            //     }
+            //   },
+            //   {
+            //     "name": "CMT",
+            //     "code": "35",
+            //     "type": "crypto",
+            //     "fullname": "CyberMiles",
+            //     "active": true,
+            //     "chainType": "cmt",
+            //     "basePrecision": 18,
+            //     "transferPrecision": 10,
+            //     "externalPrecision": 18,
+            //     "chainContractAddress": "0x0000000000000000000000000000000000000000",
+            //     "limits": {
+            //       "deposit": {
+            //         "min": "1",
+            //         "max": "-1"
+            //       },
+            //       "withdraw": {
+            //         "min": "10",
+            //         "max": "-1"
+            //       }
+            //     }
+            //   }
+            //   ]
             if (!(nameId in this.commonCurrencies)) {
                 this.commonCurrencies[nameId] = name;
             }
-            const code = this.commonCurrencyCode (nameId);
+            const code = this.safeCurrencyCode (nameId, currency);
             const active = currency['active'];
-            // const name = this.safeString (currency, 'display-name');
             const limits = this.safeValue (currency, 'limits');
             const deposit = this.safeValue (limits, 'deposit');
             let maxDeposit = this.safeFloat (deposit, 'max');
@@ -141,8 +192,6 @@ module.exports = class bytetrade extends Exchange {
                 'name': name,
                 'active': active,
                 'fee': undefined,
-                'basePrecision': this.safeValue (currency, 'basePrecision'),
-                'transferPrecision': this.safeValue (currency, 'transferPrecision'),
                 'limits': {
                     'deposit': {
                         'min': this.safeFloat (deposit, 'min'),
@@ -171,18 +220,8 @@ module.exports = class bytetrade extends Exchange {
             const quoteId = this.safeString (market, 'quote');
             const quoteName = this.safeString (market, 'quoteName');
             const quoteNameAndId = quoteName + '@' + quoteId;
-            let base = '';
-            let quote = '';
-            if (baseNameAndId in this.commonCurrencies) {
-                base = this.commonCurrencies[baseNameAndId];
-            } else {
-                base = baseName;
-            }
-            if (quoteNameAndId in this.commonCurrencies) {
-                quote = this.commonCurrencies[quoteNameAndId];
-            } else {
-                quote = quoteName;
-            }
+            const base = this.safeCurrencyCode (baseNameAndId);
+            const quote = this.safeCurrencyCode (quoteNameAndId);
             const symbol = base + '/' + quote;
             const amountMin = this.safeFloat (market['limits']['amount'], 'min');
             const amountMax = this.safeFloat (market['limits']['amount'], 'max');
@@ -241,12 +280,7 @@ module.exports = class bytetrade extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'code');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            const code = this.safeCurrencyCode (currencyId, undefined);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'free');
             account['used'] = this.safeFloat (balance, 'used');
@@ -443,7 +477,7 @@ module.exports = class bytetrade extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (this.apiKey === undefined) {
-            throw new ArgumentsRequired ('fetchDeposits requires hasAlreadyAuthenticatedSuccessfully');
+            throw new ArgumentsRequired ('createOrder requires hasAlreadyAuthenticatedSuccessfully');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -466,11 +500,11 @@ module.exports = class bytetrade extends Exchange {
         const baseId = market['baseId'];
         const baseCurrency = this.currencies_by_id[baseId];
         const amountFloat = parseFloat (amount);
-        const amountChain = amountFloat * Math.pow (10, baseCurrency['basePrecision']);
+        const amountChain = amountFloat * Math.pow (10, baseCurrency['info']['basePrecision']);
         const quoteId = market['quoteId'];
         const quoteCurrency = this.currencies_by_id[quoteId];
         const priceFloat = parseFloat (price);
-        const priceChain = priceFloat * Math.pow (10, quoteCurrency['basePrecision']);
+        const priceChain = priceFloat * Math.pow (10, quoteCurrency['info']['basePrecision']);
         const now = this.seconds ();
         const expiration = now + 10;
         const ob = {
@@ -534,7 +568,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchDeposits requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchOrder requires hasAlreadyAuthenticatedSuccessfully or userid argument');
         }
         await this.loadMarkets ();
         const request = {};
@@ -555,7 +589,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchDeposits requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchOpenOrders requires hasAlreadyAuthenticatedSuccessfully or userid argument');
         }
         await this.loadMarkets ();
         let market = undefined;
@@ -578,7 +612,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchDeposits requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchClosedOrders requires hasAlreadyAuthenticatedSuccessfully or userid argument');
         }
         await this.loadMarkets ();
         let market = undefined;
@@ -601,7 +635,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchDeposits requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchOrders requires hasAlreadyAuthenticatedSuccessfully or userid argument');
         }
         await this.loadMarkets ();
         let market = undefined;
@@ -625,6 +659,9 @@ module.exports = class bytetrade extends Exchange {
     }
 
     async cancelOrder (id, symbol, params = {}) {
+        if (this.apiKey === undefined) {
+            throw new ArgumentsRequired ('cancelOrder requires hasAlreadyAuthenticatedSuccessfully');
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
@@ -683,7 +720,7 @@ module.exports = class bytetrade extends Exchange {
         const currency = this.currencies[code];
         const message = this.safe_string (params, 'message');
         const amountFloat = parseFloat (amount);
-        const amountChain = amountFloat * Math.pow (10, currency['basePrecision']);
+        const amountChain = amountFloat * Math.pow (10, currency['info']['basePrecision']);
         const ob = {
             'fee': '300000000000000',
             'from': this.apiKey,
@@ -814,16 +851,8 @@ module.exports = class bytetrade extends Exchange {
             }
         }
         const txid = this.safeValue (transaction, 'txid');
-        let code = undefined;
         const currencyId = this.safeString (transaction, 'code');
-        if (currencyId in this.currencies_by_id) {
-            currency = this.currencies_by_id[currencyId];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeInteger (transaction, 'timestamp');
         const datetime = this.safeString (transaction, 'datetime');
         const type = this.safeString (transaction, 'type');
@@ -832,12 +861,7 @@ module.exports = class bytetrade extends Exchange {
         const feeInfo = this.safeValue (transaction, 'fee');
         const feeCost = this.safeFloat (feeInfo, 'cost');
         const feeCurrencyId = this.safeString (feeInfo, 'code');
-        let feeCode = undefined;
-        if (feeCurrencyId in this.currencies_by_id) {
-            feeCode = this.currencies_by_id[feeCurrencyId]['code'];
-        } else {
-            feeCode = this.commonCurrencyCode (feeCurrencyId);
-        }
+        const feeCode = this.safeCurrencyCode (feeCurrencyId, currency);
         const fee = {
             'cost': feeCost,
             'currency': feeCode,
@@ -910,7 +934,7 @@ module.exports = class bytetrade extends Exchange {
         const coinId = currency['id'];
         const Currency = this.currencies_by_id[coinId];
         const amountFloat = parseFloat (amount);
-        const amountChain = amountFloat * Math.pow (10, Currency['basePrecision']);
+        const amountChain = amountFloat * Math.pow (10, Currency['info']['basePrecision']);
         const ob = {
             'fee': '300000000000000',
             'from': this.apiKey,
