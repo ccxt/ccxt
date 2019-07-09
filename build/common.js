@@ -2,12 +2,19 @@
 
 const fs = require ('fs')
     , path = require ('path')
+    , log = require ('ololog')
+    , ansi = require ('ansicolor').nice
 
 function replaceInFile (filename, regex, replacement) {
     let contents = fs.readFileSync (filename, 'utf8')
     const newContents = contents.replace (regex, replacement)
     fs.truncateSync (filename)
     fs.writeFileSync (filename, newContents)
+}
+
+function logReplaceInFile (message, filename, regex, replacement) {
+    log.bright.cyan (message, filename.yellow)
+    replaceInFile (filename, regex, replacement)
 }
 
 function copyFile (oldName, newName) {
@@ -51,6 +58,7 @@ function regexAll (text, array) {
 
 module.exports = {
     replaceInFile,
+    logReplaceInFile,
     copyFile,
     overwriteFile,
     createFolder,
