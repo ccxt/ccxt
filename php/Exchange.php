@@ -1302,8 +1302,7 @@ class Exchange {
                     )) . ')';
                 throw new ExchangeNotAvailable(implode(' ', array($url, $method, $http_status_code, $result, $details)));
             }
-            $namespaced = 'ccxt\\' . $error_class;
-            throw new $namespaced(implode(' ', array($url, $method, $http_status_code, $result)));
+            throw new $error_class(implode(' ', array($url, $method, $http_status_code, $result)));
         }
 
         if (!$json_response) {
@@ -1322,8 +1321,7 @@ class Exchange {
                 $error_class = 'DDosProtection';
             }
             if ($error_class !== null) {
-                $namespaced = 'ccxt\\' . $error_class;
-                throw new $namespaced(implode(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
+                throw new $error_class(implode(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
             }
         }
 
