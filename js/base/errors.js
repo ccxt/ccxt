@@ -1,15 +1,6 @@
 'use strict';
 
-const errorHierarchy = require ('./errors.json')
-
-/*  ------------------------------------------------------------------------ */
-
-module.exports = subclass (
-    // Root class
-    Error,
-    // Derived class hierarchy
-    errorHierarchy,
-)
+const errorHierarchy = require ('./errorHierarchy.js')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -49,3 +40,12 @@ function subclass (BaseClass, classes, namespace = {}) {
 
     return namespace
 }
+
+/*  ------------------------------------------------------------------------ */
+
+module.exports = subclass (
+    // Root class
+    Error,
+    // Derived class hierarchy
+    errorHierarchy,
+)
