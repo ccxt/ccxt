@@ -935,7 +935,7 @@ function transpileErrorHierarchy () {
 
     const { python3Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js })
 
-    const message = 'Exporting error hierachy →'
+    const message = 'Transpiling error hierachy →'
     logReplaceInFile (message, './python/ccxt/base/errors.py', /error_hierarchy = .+?\n\}/s, python3Body)
     logReplaceInFile (message, './php/errors.php',             /\$error_hierarchy = .+?\n\)\;/s, phpBody)
 }
