@@ -13,7 +13,7 @@ const fs        = require ('fs')
     , log       = require ('ololog').unlimited
     , ansi      = require ('ansicolor').nice
     , { keys, values, entries } = Object
-    , { replaceInFile } = require ('./common.js')
+    , { replaceInFile, logReplaceInFile } = require ('./common.js')
 
 // ----------------------------------------------------------------------------
 
@@ -29,9 +29,8 @@ if (!fs.existsSync (gitWikiPath)) {
 
 // ----------------------------------------------------------------------------
 
-function logReplaceInFile (filename, regex, replacement) {
-    log.bright.cyan ('Exporting exchanges →', filename.yellow)
-    replaceInFile (filename, regex, replacement)
+function logExportExchanges (filename, regex, replacement) {
+    return logReplaceInFile ('Exporting exchanges →', filename, regex, replacement)
 }
 
 // ----------------------------------------------------------------------------
@@ -88,7 +87,7 @@ const pad = function (string, n) {
     },
 
 ].forEach (({ file, regex, replacement }) => {
-    logReplaceInFile (file, regex, replacement)
+    logExportExchanges (file, regex, replacement)
 })
 
 log.bright.green ('Base sources updated successfully.')
@@ -173,16 +172,16 @@ const ending = " cryptocurrency exchange markets and trading APIs:\n\n"
 const totalString = beginning + numExchanges + ending
 const allExchanges = totalString + exchangesTable + "$1"
 const allExchangesRegex = new RegExp ("[^\n]+[\n]{2}\\|[^`]+\\|([\n][\n]|[\n]$|$)", 'm')
-logReplaceInFile ('README.md', allExchangesRegex, allExchanges)
-logReplaceInFile (wikiPath + '/Manual.md', allExchangesRegex, allExchanges)
-logReplaceInFile (wikiPath + '/Exchange-Markets.md', allExchangesRegex, allExchanges)
+logExportExchanges ('README.md', allExchangesRegex, allExchanges)
+logExportExchanges (wikiPath + '/Manual.md', allExchangesRegex, allExchanges)
+logExportExchanges (wikiPath + '/Exchange-Markets.md', allExchangesRegex, allExchanges)
 
 const certifiedFieldIndex = tableHeadings.indexOf ('certified')
 const certified = tableData.filter ((x) => x[certifiedFieldIndex] !== '' )
 const certifiedExchangesRegex = new RegExp ("^(## Certified Cryptocurrency Exchanges\n{3})(?:\\|.+\\|$\n)+", 'm')
 const certifiedExchangesTable = makeTable (certified)
 const certifiedExchanges = '$1' + certifiedExchangesTable + "\n"
-logReplaceInFile ('README.md', certifiedExchangesRegex, certifiedExchanges)
+logExportExchanges ('README.md', certifiedExchangesRegex, certifiedExchanges)
 
 
 let exchangesByCountries = []
