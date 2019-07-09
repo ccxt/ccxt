@@ -398,7 +398,8 @@ class cex extends Exchange {
             $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'orders');
+            // https://github.com/ccxt/ccxt/issues/5484
+            $account['used'] = $this->safe_float($balance, 'orders', 0.0);
             $code = $this->safe_currency_code($currencyId);
             $result[$code] = $account;
         }
