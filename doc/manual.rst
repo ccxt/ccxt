@@ -3331,8 +3331,8 @@ The ``fetchStatus()`` method will return a status structure like shown below:
 .. code:: javascript
 
    {
-       'status': 'ok' // 'ok', 'shutdown', 'error', 'maintenance'
-       'updated': undefined // integer, last updated timestamp in milliseconds if updated via the API
+       'status': 'ok', // 'ok', 'shutdown', 'error', 'maintenance'
+       'updated': undefined, // integer, last updated timestamp in milliseconds if updated via the API
        'eta': undefined, // when the maintenance or outage is expected to end
        'url': undefined, // a link to a GitHub issue or to an exchange post on the subject
    }
