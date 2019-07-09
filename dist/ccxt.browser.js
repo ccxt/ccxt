@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.912'
+const version = '1.18.913'
 
 Exchange.ccxtVersion = version
 
@@ -59636,7 +59636,7 @@ module.exports = class lykke extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -59831,6 +59831,7 @@ module.exports = class mandala extends Exchange {
                     'Exception_BadRequest': BadRequest, // {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
                 },
                 'broad': {
+                    'Some error occurred, try again later.': ExchangeNotAvailable, // {"status":"Error","errorMessage":"Some error occurred, try again later.","data":null}
                 },
             },
             'options': {
