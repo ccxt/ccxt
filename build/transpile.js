@@ -9,9 +9,10 @@
 const fs   = require ('fs')
     , {
         replaceInFile,
+        logReplaceInFile,
         overwriteFile,
         createFolderRecursively,
-        regexAll        
+        regexAll
     } = require ('./common.js')
     , { basename } = require ('path')
     , log  = require ('ololog')
@@ -127,6 +128,8 @@ const commonRegexes = [
     [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
     [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
     [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
+    [ /errorHierarchy/g, 'error_hierarchy'],
+    [ /\'use strict\';?\s+/g, '' ],
 ]
 
 // ----------------------------------------------------------------------------
@@ -168,9 +171,9 @@ const pythonRegexes = [
     // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
     [ /this\./g, 'self.' ],
     [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
     [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
@@ -288,9 +291,9 @@ const phpRegexes = [
     [ /\{\}/g, 'array()' ],
     [ /\[\]/g, 'array()' ],
     [ /\{([^\n\}]+)\}/g, 'array($1)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)/g, 'is_array($1) ? array_keys($1) : array()' ],
     [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
@@ -510,7 +513,7 @@ function transpilePython3ToPython2 (py) {
 function transpileJavaScriptToPHP ({ js, variables }) {
 
     // match all local variables (let, const or var)
-    let localVariablesRegex = /[^a-zA-Z0-9_](?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
+    let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
 
     let allVariables = (variables || []).map (x => x); // clone the array
     // process the variables created in destructuring assignments as well
@@ -534,12 +537,14 @@ function transpileJavaScriptToPHP ({ js, variables }) {
         allVariables.push (catchClauseMatches[1])
     }
 
+    allVariables = allVariables.map (error => regexAll(error, commonRegexes))
+
     // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
-    let phpVariablesRegexes = allVariables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_/])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
+    let phpVariablesRegexes = allVariables.map (x => [ "(^|[^$$a-zA-Z0-9\\.\\>'_/])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
 
     // support for php syntax for object-pointer dereference
     // convert all $variable.property to $variable->property
-    let variablePropertiesRegexes = allVariables.map (x => [ "([^a-zA-Z0-9\\.\\>'_])" + x + '\\.', '$1' + x + '->' ])
+    let variablePropertiesRegexes = allVariables.map (x => [ "(^|[^a-zA-Z0-9\\.\\>'_])" + x + '\\.', '$1' + x + '->' ])
 
     // transpile JS → PHP
     let phpBody = regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
@@ -822,7 +827,6 @@ function transpileDateTimeTests () {
     let js = fs.readFileSync (jsFile).toString ()
 
     js = regexAll (js, [
-        [ /\'use strict\';?\s+/g, '' ],
         [ /[^\n]+require[^\n]+\n/g, '' ],
         [/^\/\*.*\s+/mg, ''],
     ])
@@ -847,6 +851,8 @@ import ccxt  # noqa: F402\n\
     overwriteFile (pyFile, python)
     overwriteFile (phpFile, php)
 }
+
+//-----------------------------------------------------------------------------
 
 function transpilePrecisionTests () {
 
@@ -917,9 +923,29 @@ function number_to_string ($x) {\n\
 
 //-----------------------------------------------------------------------------
 
+function transpileErrorHierarchy () {
+
+    const errorHierarchyFilename = './js/base/errorHierarchy.js'
+
+    let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
+
+    js = regexAll (js, [
+        [ /module\.exports = [^\;]+\;\n/s, '' ],
+    ]).trim ()
+
+    const { python3Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js })
+
+    const message = 'Exporting error hierachy →'
+    logReplaceInFile (message, './python/ccxt/base/errors.py', /error_hierarchy = .+?\n\}/s, python3Body)
+    logReplaceInFile (message, './php/errors.php',             /\$error_hierarchy = .+?\n\)\;/s, phpBody)
+}
+
+//-----------------------------------------------------------------------------
+
 createFolderRecursively (python2Folder)
 createFolderRecursively (python3Folder)
 createFolderRecursively (phpFolder)
+
 
 const classes = transpileDerivedExchangeFiles ('./js/', filename)
 
@@ -931,6 +957,7 @@ if (classes === null) {
 // HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
 exportTypeScriptDeclarations (classes)  // we use typescript?
 
+transpileErrorHierarchy ()
 transpilePrecisionTests ()
 transpileDateTimeTests ()
 transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
