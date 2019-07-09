@@ -1311,6 +1311,9 @@ class Exchange {
                     )) . ')';
                 throw new ExchangeNotAvailable(implode(' ', array($url, $method, $http_status_code, $result, $details)));
             }
+            if (substr($error_class, 0, 6) !== '\\ccxt\\') {
+                $error_class = '\\ccxt\\' . $error_class;
+            }
             throw new $error_class(implode(' ', array($url, $method, $http_status_code, $result)));
         }
 
@@ -1330,6 +1333,9 @@ class Exchange {
                 $error_class = 'DDosProtection';
             }
             if ($error_class !== null) {
+                if (substr($error_class, 0, 6) !== '\\ccxt\\') {
+                    $error_class = '\\ccxt\\' . $error_class;
+                }
                 throw new $error_class(implode(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
             }
         }
