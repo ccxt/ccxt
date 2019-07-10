@@ -35,7 +35,7 @@ error_hierarchy = {
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.functions import to_camelcase
+from ccxt.base.functions import to_camelcase  # noqa
 
 __all__ = []
 
