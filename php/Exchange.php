@@ -137,7 +137,6 @@ class Exchange {
         'coingi',
         'coinmarketcap',
         'coinmate',
-        'coinnest',
         'coinone',
         'coinspot',
         'cointiger',
