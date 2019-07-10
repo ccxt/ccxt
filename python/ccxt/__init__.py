@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.921'
+__version__ = '1.18.922'
 
 # ----------------------------------------------------------------------------
 
@@ -85,7 +85,6 @@ from ccxt.bitforex import bitforex                          # noqa: F401
 from ccxt.bithumb import bithumb                            # noqa: F401
 from ccxt.bitkk import bitkk                                # noqa: F401
 from ccxt.bitlish import bitlish                            # noqa: F401
-from ccxt.bitmarket import bitmarket                        # noqa: F401
 from ccxt.bitmex import bitmex                              # noqa: F401
 from ccxt.bitso import bitso                                # noqa: F401
 from ccxt.bitstamp import bitstamp                          # noqa: F401
@@ -213,7 +212,6 @@ exchanges = [
     'bithumb',
     'bitkk',
     'bitlish',
-    'bitmarket',
     'bitmex',
     'bitso',
     'bitstamp',

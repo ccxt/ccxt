@@ -59,7 +59,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 126 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 125 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -103,8 +103,6 @@ The ccxt library currently supports the following 126 cryptocurrency exchange ma
 | `bitkk <https://www.bitkk.com>`__                                                         | bitkk              | `bitkk <https://www.bitkk.com>`__                                                          | 1   | `API <https://www.bitkk.com/i/developer>`__                                                     |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `bitlish <https://bitlish.com>`__                                                         | bitlish            | `Bitlish <https://bitlish.com>`__                                                          | 1   | `API <https://bitlish.com/api>`__                                                               |                                                                      |
-+-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `bitmarket <https://www.bitmarket.net/?ref=23323>`__                                      | bitmarket          | `BitMarket <https://www.bitmarket.net/?ref=23323>`__                                       | \*  | `API <https://www.bitmarket.net/docs.php?file=api_public.html>`__                               |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `bitmex <https://www.bitmex.com/register/rm3C16>`__                                       | bitmex             | `BitMEX <https://www.bitmex.com/register/rm3C16>`__                                        | 1   | `API <https://www.bitmex.com/app/apiOverview>`__                                                |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -364,14 +362,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.921/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.921/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.922/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.922/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.921/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.922/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
