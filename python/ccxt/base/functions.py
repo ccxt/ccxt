@@ -2,7 +2,7 @@
 # we should probably try to do the same with php...
 
 
-def capiеalize(string):
+def capitalize(string):
     # first character only, rest characters unchanged
     # the native pythonic .capitalize() method lowercases all other characters
     # which is an unwanted behaviour, therefore we use this custom implementation
