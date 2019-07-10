@@ -96,7 +96,53 @@ module.exports = class bytetrade extends Exchange {
                 },
             },
             'commonCurrencies': {
-                '18': 'CMT@18',
+                'BTT@1': 'BTT',
+                'ETH@2': 'ETH',
+                'KCASH@3': 'KCASH',
+                'OMG@4': 'OMG',
+                'IOST@5': 'IOST',
+                'ZIL@6': 'ZIL',
+                'ELF@7': 'ELF',
+                'TNB@8': 'TNB',
+                'ADX@9': 'ADX',
+                'DGD@10': 'DGD',
+                'ZRX@11': 'ZRX',
+                'ENG@12': 'ENG',
+                'THETA@13': 'THETA',
+                'MANA@14': 'MANA',
+                'APPC@15': 'APPC',
+                'BLZ@16': 'BLZ',
+                'MCO@17': 'MCO',
+                'CMT@18': 'CMT@18',
+                'BNB@19': 'BNB',
+                'AE@20': 'AE',
+                'BTM@21': 'BTM',
+                'BAT@22': 'BAT',
+                'GNT@23': 'GNT',
+                'WTC@24': 'WTC',
+                'SNT@25': 'SNT',
+                'KEX@26': 'KEX',
+                'SUB@27': 'SUB',
+                'WISH@28': 'WISH',
+                'KICK@29': 'KICK',
+                'BITX@30': 'BITX',
+                'GUSD@31': 'GUSD',
+                'BTC@32': 'BTC',
+                'USDT@33': 'USDT',
+                'MT@34': 'MT',
+                'CMT@35': 'CMT',
+                'HRP@36': 'HRP',
+                'DT@37': 'DT',
+                'BWL@38': 'BWL',
+                'VROS@39': 'VROS',
+                'ONOT@40': 'ONOT',
+                'NAKA@41': 'NAKA',
+                'NASH@42': 'NASH',
+                'GAME@43': 'GAME',
+                'BHT@44': 'BHT',
+                'BTA@45': 'BTA',
+                'HLB@46': 'HLB',
+                'B95@47': 'B95',
             },
             // exchange-specific options
             'options': {
@@ -117,13 +163,14 @@ module.exports = class bytetrade extends Exchange {
             const id = this.safeString (currency, 'code');
             const name = this.safeValue (currency, 'name');
             const nameId = name + '@' + id;
+            currency['code'] = nameId;
             // in bytetrade.com DEX, request https://api-v2.bytetrade.com/currencies will return currencies,
             // the api doc is https://github.com/Bytetrade/bytetrade-official-api-docs/wiki/rest-api#get-currencies-get-currencys-supported-in-bytetradecom
-            // we can see the coin name is none-unique in the result, the coin which code is 18 is the  CyberMiles ERC20, and the coin which code is 35 is the CyberMiles main chain.
-            // because bytetrade is DEX, supports people create coin with the same name, but the id(code) of coin is unique, so we must use the name and id as the identity of coin.
-            // so I use name@id as the key of commonCurrencies dict
-            // if the name@id is in commonCurrencies, safeCurrencyCode() call will return the commonCurrencies[name@id], for example, CMT@18 will return code CMT@18;
-            // if the name@id is not in commonCurrencies, 'commonCurrencies[name@id] = name' will be set in fetchCurrencies function, after that, safeCurrencyCode() call will return correct code, for example CMT@35 will return CMT
+            // we can see the coin name is none-unique in the result, the coin which code is 18 is the CyberMiles ERC20, and the coin which code is 35 is the CyberMiles main chain, but their name is same.
+            // that is because bytetrade is a DEX, supports people create coin with the same name, but the id(code) of coin is unique, so we should use the id or name and id as the identity of coin.
+            // For coin name and symbol is same with CCXT, I use name@id as the key of commonCurrencies dict.
+            // If the name@id is in commonCurrencies, safeCurrencyCode() call will return the commonCurrencies[name@id], for example, CMT@18 will return code CMT@18, CMT@35 will return CMT as the code, Satisfy CCXT's Naming Consistency;
+            // If the name@id is not in commonCurrencies, safeCurrencyCode() call will return name@id, for example if a new coin is created, whose name is CMT, and code is 99, it will return CMT@99 as the code.
             // [{
             //     "name": "CMT",      // currency name, non-unique
             //     "code": "18",       // currency id, unique
@@ -169,9 +216,6 @@ module.exports = class bytetrade extends Exchange {
             //     }
             //   }
             //   ]
-            if (!(nameId in this.commonCurrencies)) {
-                this.commonCurrencies[nameId] = name;
-            }
             const code = this.safeCurrencyCode (nameId, currency);
             const active = currency['active'];
             const limits = this.safeValue (currency, 'limits');
