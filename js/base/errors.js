@@ -17,8 +17,7 @@ function subclass (BaseClass, classes, namespace = {}) {
 
             [className]: class extends BaseClass {
 
-                constructor (message) {
-
+                constructor (message, httpCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
                     super (message)
 
                 /*  A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
@@ -27,9 +26,17 @@ function subclass (BaseClass, classes, namespace = {}) {
                     https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */
 
                     this.constructor = Class
-                    this.__proto__   = Class.prototype
-                    this.name        = className
-                    this.message     = message
+                    this.__proto__ = Class.prototype
+                    this.name = className
+
+                    this.message = message
+                    this.httpCode = httpCode
+                    this.httpStatusText = httpStatusText
+                    this.url = url
+                    this.httpMethod = httpMethod
+                    this.responseHeaders = responseHeaders
+                    this.responseBody = responseBody
+                    this.responseJson = responseJson
                 }
             }
 
