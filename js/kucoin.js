@@ -500,7 +500,7 @@ module.exports = class kucoin extends Exchange {
             request['startAt'] = Math.floor (since / 1000);
         }
         const response = await this.publicGetMarketCandles (this.extend (request, params));
-        const responseData = response['data'];
+        const responseData = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (responseData, market, timeframe, since, limit);
     }
 
