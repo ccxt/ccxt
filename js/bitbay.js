@@ -341,6 +341,19 @@ module.exports = class bitbay extends Exchange {
         //         commissionValue: null
         //     }
         //
+        //
+        //     example with fee:
+        //
+        //     amount: "0.29285199"
+        //     commissionValue: "0.00125927"
+        //     id: "11c8203a-a267-11e9-b698-0242ac110007"
+        //     initializedBy: "Buy"
+        //     market: "ETH-EUR"
+        //     offerId: "11c82038-a267-11e9-b698-0242ac110007"
+        //     rate: "277"
+        //     time: "1562689917517"
+        //     userAction: "Buy"
+        //     wasTaker: true
         const timestamp = this.safeInteger (trade, 'time');
         const userAction = this.safeString (trade, 'userAction');
         const side = (userAction === 'Buy') ? 'buy' : 'sell';
