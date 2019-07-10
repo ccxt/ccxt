@@ -47,9 +47,15 @@ def error_factory(dictionary, super_class):
 
 
 class BaseError(Exception):
-    def __init__(self, message):
+    def __init__(self, message, http_code=None, http_status_text=None, url=None, http_method=None, response_headers=None, response_body=None, response_json=None):
         super(BaseError, self).__init__(message)
-        pass
+        self.http_code = http_code
+        self.http_status_text = http_status_text
+        self.url = url
+        self.http_method = http_method
+        self.response_headers = response_headers
+        self.response_body = response_body
+        self.response_json = response_json
 
 
 error_factory(error_hierarchy['BaseError'], BaseError)
