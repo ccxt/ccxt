@@ -368,15 +368,16 @@ module.exports = class bitbay extends Exchange {
             }
         }
         const commissionValue = this.safeFloat (trade, 'commissionValue');
+        const marketId = this.safeString (trade, 'market');
         let fee = undefined;
         if (commissionValue !== undefined) {
-            // it always seems to be null so don't know what currency to use
+            const market = this.findMarket (marketId);
+            const feeCurrency = market ? market.quote : undefined;
             fee = {
-                'currency': undefined,
+                'currency': feeCurrency,
                 'cost': commissionValue,
             };
         }
-        const marketId = this.safeString (trade, 'market');
         const order = this.safeString (trade, 'offerId');
         // todo: check this logic
         const type = order ? 'limit' : 'market';
@@ -385,7 +386,7 @@ module.exports = class bitbay extends Exchange {
             'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.findSymbol (marketId.replace ('-', '')),
+            'symbol': this.findsymbol (marketId.replace ('-', '')),
             'type': type,
             'side': side,
             'price': price,
