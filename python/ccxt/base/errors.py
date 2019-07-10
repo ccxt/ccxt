@@ -65,7 +65,7 @@ class BaseError(Exception):
         camelcase = to_camelcase(item)
         if item == camelcase:
             raise AttributeError("{} object has no attribute {}".format(type(self).__name__, item))
-        return super(BaseError, self).__getattribute__(camelcase)
+        return getattr(self, camelcase)
 
     def __str__(self):
         return ' '.join(i for i in [self.exchangeId, self.url, self.httpCode, self.httpStatusText, self.args[0]] if isinstance(i, str))
