@@ -199,6 +199,7 @@ class mandala extends Exchange {
                     'Exception_BadRequest' => '\\ccxt\\BadRequest', // array("status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload")
                 ),
                 'broad' => array (
+                    'Some error occurred, try again later.' => '\\ccxt\\ExchangeNotAvailable', // array("status":"Error","errorMessage":"Some error occurred, try again later.","data":null)
                 ),
             ),
             'options' => array (

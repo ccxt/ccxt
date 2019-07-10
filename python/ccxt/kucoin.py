@@ -492,7 +492,7 @@ class kucoin (Exchange):
         if since is not None:
             request['startAt'] = int(math.floor(since / 1000))
         response = self.publicGetMarketCandles(self.extend(request, params))
-        responseData = response['data']
+        responseData = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(responseData, market, timeframe, since, limit)
 
     def create_deposit_address(self, code, params={}):

@@ -135,8 +135,8 @@ class coinex extends Exchange {
             $id = $this->safe_string($market, 'market');
             $quoteId = $this->safe_string($market, 'buy_asset_type');
             $baseId = $this->safe_string($market, 'sell_asset_type');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'sell_asset_type_places'),

@@ -139,8 +139,8 @@ class coinex (Exchange):
             id = self.safe_string(market, 'market')
             quoteId = self.safe_string(market, 'buy_asset_type')
             baseId = self.safe_string(market, 'sell_asset_type')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'sell_asset_type_places'),

@@ -1,4 +1,6 @@
-error_hierarchy = {
+'use strict';
+
+const errorHierarchy = {
     'BaseError': {
         'ExchangeError': {
             'AuthenticationError': {
@@ -31,25 +33,6 @@ error_hierarchy = {
             'RequestTimeout': {},
         },
     },
-}
+};
 
-# -----------------------------------------------------------------------------
-
-__all__ = []
-
-
-def error_factory(dictionary, super_class):
-    for key in dictionary:
-        __all__.append(key)
-        error_class = type(key, (super_class,), {})
-        globals()[key] = error_class
-        error_factory(dictionary[key], error_class)
-
-
-class BaseError(Exception):
-    def __init__(self, message):
-        super(BaseError, self).__init__(message)
-        pass
-
-
-error_factory(error_hierarchy['BaseError'], BaseError)
+module.exports = errorHierarchy;

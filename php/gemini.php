@@ -302,8 +302,8 @@ class gemini extends Exchange {
         );
         $ticker = $this->publicGetPubtickerSymbol (array_merge ($request, $params));
         $timestamp = $this->safe_integer($ticker['volume'], 'timestamp');
-        $baseVolume = $this->safe_float($market, 'base');
-        $quoteVolume = $this->safe_float($market, 'quote');
+        $baseCurrency = $market['base']; // unified structures are guaranteed to have unified fields
+        $quoteCurrency = $market['quote']; // so we don't need safe-methods for unified structures
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -323,8 +323,8 @@ class gemini extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker['volume'], $baseVolume),
-            'quoteVolume' => $this->safe_float($ticker['volume'], $quoteVolume),
+            'baseVolume' => $this->safe_float($ticker['volume'], $baseCurrency),
+            'quoteVolume' => $this->safe_float($ticker['volume'], $quoteCurrency),
             'info' => $ticker,
         );
     }

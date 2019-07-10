@@ -253,6 +253,8 @@ class huobipro extends Exchange {
             $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
             $minAmount = $this->safe_float($market, 'min-order-amt', pow(10, -$precision['amount']));
             $minCost = $this->safe_float($market, 'min-order-value', 0);
+            $state = $this->safe_string($market, 'state');
+            $active = ($state === 'online');
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -260,7 +262,7 @@ class huobipro extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => true,
+                'active' => $active,
                 'precision' => $precision,
                 'taker' => $taker,
                 'maker' => $maker,

@@ -567,8 +567,8 @@ class okex3 (Exchange):
                 marketType = 'futures'
                 baseId = self.safe_string(market, 'underlying_index')
         quoteId = self.safe_string(market, 'quote_currency')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = (base + '/' + quote) if spot else id
         amountPrecision = self.safe_string(market, 'size_increment')
         if amountPrecision is not None:
@@ -684,7 +684,7 @@ class okex3 (Exchange):
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'currency')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
             name = self.safe_string(currency, 'name')
             canDeposit = self.safe_integer(currency, 'can_deposit')
@@ -764,10 +764,8 @@ class okex3 (Exchange):
             numParts = len(parts)
             if numParts == 2:
                 baseId, quoteId = parts
-                base = baseId.upper()
-                quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             else:
                 symbol = marketId
@@ -1128,11 +1126,7 @@ class okex3 (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['total'] = self.safe_float(balance, 'balance')
             account['used'] = self.safe_float(balance, 'hold')
@@ -1179,8 +1173,8 @@ class okex3 (Exchange):
             symbol = None
             if market is None:
                 baseId, quoteId = marketId.split('-')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             else:
                 symbol = market['symbol']
@@ -1199,11 +1193,7 @@ class okex3 (Exchange):
                 if key.find(':') >= 0:
                     parts = key.split(':')
                     currencyId = parts[1]
-                    code = currencyId
-                    if currencyId in self.currencies_by_id:
-                        code = self.currencies_by_id[currencyId]['code']
-                    else:
-                        code = self.common_currency_code(currencyId)
+                    code = self.safe_currency_code(currencyId)
                     account = self.account()
                     account['total'] = self.safe_float(marketBalance, 'balance')
                     account['used'] = self.safe_float(marketBalance, 'hold')
@@ -1250,12 +1240,11 @@ class okex3 (Exchange):
         # their root field name is "info", so our info will contain their info
         result = {'info': response}
         info = self.safe_value(response, 'info', {})
-        lowercaseIds = list(info.keys())
-        for i in range(0, len(lowercaseIds)):
-            lowercaseId = lowercaseIds[i]
-            id = lowercaseId.upper()
-            code = self.common_currency_code(id)
-            balance = self.safe_value(info, lowercaseId, {})
+        ids = list(info.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = self.safe_currency_code(id)
+            balance = self.safe_value(info, id, {})
             account = self.account()
             # it may be incorrect to use total, free and used for swap accounts
             account['total'] = self.safe_float(balance, 'equity')
@@ -1947,9 +1936,7 @@ class okex3 (Exchange):
         tag = self.safe_string_2(depositAddress, 'tag', 'payment_id')
         tag = self.safe_string(depositAddress, 'memo', tag)
         currencyId = self.safe_string(depositAddress, 'currency')
-        code = None
-        if currencyId is not None:
-            code = self.common_currency_code(currencyId.upper())
+        code = self.safe_currency_code(currencyId)
         self.check_address(address)
         return {
             'currency': code,
@@ -2129,15 +2116,7 @@ class okex3 (Exchange):
             type = 'deposit'
             address = addressFrom
         currencyId = self.safe_string(transaction, 'currency')
-        code = None
-        if currencyId is not None:
-            uppercaseId = currencyId
-            currencyId = currencyId.lower()
-            if currencyId in self.currencies_by_id:
-                currency = self.currencies_by_id[currencyId]
-                code = currency['code']
-            else:
-                code = self.common_currency_code(uppercaseId)
+        code = self.safe_currency_code(currencyId)
         amount = self.safe_float(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
@@ -2582,9 +2561,8 @@ class okex3 (Exchange):
                     auth += urlencodedQuery
             else:
                 if query:
-                    jsonQuery = self.json(query)
-                    body = jsonQuery
-                    auth += jsonQuery
+                    body = self.json(query)
+                    auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['OK-ACCESS-SIGN'] = self.decode(signature)

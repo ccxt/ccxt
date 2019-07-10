@@ -244,8 +244,8 @@ class poloniex extends Exchange {
             $id = $keys[$i];
             $market = $markets[$id];
             list($quoteId, $baseId) = explode('_', $id);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $limits = array_merge ($this->limits, array (
                 'cost' => array (
@@ -280,12 +280,7 @@ class poloniex extends Exchange {
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $balance = $this->safe_value($response, $currencyId, array());
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'onOrders');
@@ -340,8 +335,8 @@ class poloniex extends Exchange {
                 $symbol = $this->markets_by_id[$marketId]['symbol'];
             } else {
                 list($quoteId, $baseId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
             $orderbook = $this->parse_order_book($response[$marketId]);
@@ -405,8 +400,8 @@ class poloniex extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list($quoteId, $baseId) = explode('_', $id);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
                 $market = array( 'symbol' => $symbol );
             }
@@ -427,7 +422,7 @@ class poloniex extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
             $result[$code] = array (
                 'id' => $id,
@@ -661,8 +656,8 @@ class poloniex extends Exchange {
                         }
                     } else {
                         list($quoteId, $baseId) = explode('_', $id);
-                        $base = $this->common_currency_code($baseId);
-                        $quote = $this->common_currency_code($quoteId);
+                        $base = $this->safe_currency_code($baseId);
+                        $quote = $this->safe_currency_code($quoteId);
                         $symbol = $base . '/' . $quote;
                         $trades = $response[$id];
                         for ($j = 0; $j < count ($trades); $j++) {
@@ -1272,15 +1267,8 @@ class poloniex extends Exchange {
         if ($timestamp !== null) {
             $timestamp = $timestamp * 1000;
         }
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency === null) {
-            $code = $this->common_currency_code($currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $code = $this->safe_currency_code($currencyId);
         $status = $this->safe_string($transaction, 'status', 'pending');
         $txid = $this->safe_string($transaction, 'txid');
         if ($status !== null) {

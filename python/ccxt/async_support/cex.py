@@ -402,7 +402,8 @@ class cex (Exchange):
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'orders')
+            # https://github.com/ccxt/ccxt/issues/5484
+            account['used'] = self.safe_float(balance, 'orders', 0.0)
             code = self.safe_currency_code(currencyId)
             result[code] = account
         return self.parse_balance(result)

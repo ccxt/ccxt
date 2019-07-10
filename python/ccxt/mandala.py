@@ -12,6 +12,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class mandala (Exchange):
@@ -206,6 +207,7 @@ class mandala (Exchange):
                     'Exception_BadRequest': BadRequest,  # {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
                 },
                 'broad': {
+                    'Some error occurred, try again later.': ExchangeNotAvailable,  # {"status":"Error","errorMessage":"Some error occurred, try again later.","data":null}
                 },
             },
             'options': {

@@ -278,8 +278,8 @@ module.exports = class bittrex extends Exchange {
             const id = this.safeString (market, 'MarketName');
             const baseId = this.safeString (market, 'MarketCurrency');
             const quoteId = this.safeString (market, 'BaseCurrency');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             let pricePrecision = 8;
             if (quote in this.options['pricePrecisionByCode']) {
@@ -330,7 +330,7 @@ module.exports = class bittrex extends Exchange {
         const keys = Object.keys (indexed);
         for (let i = 0; i < keys.length; i++) {
             const id = keys[i];
-            const currency = this.commonCurrencyCode (id);
+            const currency = this.safeCurrencyCode (id);
             const account = this.account ();
             const balance = indexed[id];
             const free = this.safeFloat (balance, 'Available', 0);
@@ -445,7 +445,7 @@ module.exports = class bittrex extends Exchange {
             // todo: will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             const precision = 8; // default precision, todo: fix "magic constants"
             const address = this.safeValue (currency, 'BaseAddress');
             const fee = this.safeFloat (currency, 'TxFee'); // todo: redesign
@@ -829,8 +829,8 @@ module.exports = class bittrex extends Exchange {
 
     parseSymbol (id) {
         const [ quoteId, baseId ] = id.split (this.options['symbolSeparator']);
-        const base = this.commonCurrencyCode (baseId);
-        const quote = this.commonCurrencyCode (quoteId);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
         return base + '/' + quote;
     }
 
@@ -884,8 +884,8 @@ module.exports = class bittrex extends Exchange {
         let feeCurrency = undefined;
         if (marketSymbol !== undefined) {
             const [ baseId, quoteId ] = marketSymbol.split ('-');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             symbol = base + '/' + quote;
             feeCurrency = quote;
         }
