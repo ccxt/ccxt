@@ -22,7 +22,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
 from ccxt.base.decimal_to_precision import number_to_string
-from ccxt.base.functions import captialize, to_camelcase
+from ccxt.base.functions import capitalize, to_camelcase
 
 
 # -----------------------------------------------------------------------------
@@ -669,7 +669,7 @@ class Exchange(object):
 
     @staticmethod
     def capitalize(string):
-        return captialize(string)
+        return capitalize(string)
 
     @staticmethod
     def keysort(dictionary):
