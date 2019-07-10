@@ -35,6 +35,8 @@ error_hierarchy = {
 
 # -----------------------------------------------------------------------------
 
+from ccxt.base.functions import to_camelcase
+
 __all__ = []
 
 
@@ -47,15 +49,26 @@ def error_factory(dictionary, super_class):
 
 
 class BaseError(Exception):
-    def __init__(self, message, http_code=None, http_status_text=None, url=None, http_method=None, response_headers=None, response_body=None, response_json=None):
+    def __init__(self, message, exchange_id=None, http_code=None, http_status_text=None, url=None, http_method=None, response_headers=None, response_body=None, response_json=None):
         super(BaseError, self).__init__(message)
-        self.http_code = http_code
-        self.http_status_text = http_status_text
+        self.exchangeId = exchange_id
+        self.httpCode = http_code
+        self.httpStatusText = http_status_text
         self.url = url
-        self.http_method = http_method
-        self.response_headers = response_headers
-        self.response_body = response_body
-        self.response_json = response_json
+        self.httpMethod = http_method
+        self.responseHeaders = response_headers
+        self.responseBody = response_body
+        self.responseJson = response_json
+
+    def __getattr__(self, item):
+        # __getattr__ is called for attributes that are not found on the object
+        camelcase = to_camelcase(item)
+        if item == camelcase:
+            raise AttributeError("{} object has no attribute {}".format(type(self).__name__, item))
+        return super(BaseError, self).__getattribute__(camelcase)
+
+    def __str__(self):
+        return ' '.join(i for i in [self.exchangeId, self.url, self.httpCode, self.httpStatusText, self.args[0]] if isinstance(i, str))
 
 
 error_factory(error_hierarchy['BaseError'], BaseError)

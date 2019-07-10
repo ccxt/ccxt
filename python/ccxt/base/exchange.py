@@ -22,6 +22,8 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
 from ccxt.base.decimal_to_precision import number_to_string
+from ccxt.base.functions import captialize, to_camelcase
+
 
 # -----------------------------------------------------------------------------
 
@@ -344,8 +346,7 @@ class Exchange(object):
         cls = type(self)
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
-                parts = name.split('_')
-                camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
+                camelcase = to_camelcase(name)
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))
@@ -667,13 +668,8 @@ class Exchange(object):
         return str(uuid.uuid4())
 
     @staticmethod
-    def capitalize(string):  # first character only, rest characters unchanged
-        # the native pythonic .capitalize() method lowercases all other characters
-        # which is an unwanted behaviour, therefore we use this custom implementation
-        # check it yourself: print('foobar'.capitalize(), 'fooBar'.capitalize())
-        if len(string) > 1:
-            return "%s%s" % (string[0].upper(), string[1:])
-        return string.upper()
+    def capitalize(string):
+        return captialize(string)
 
     @staticmethod
     def keysort(dictionary):
