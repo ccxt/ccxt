@@ -79,8 +79,8 @@ class flowbtc extends Exchange {
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'product1Label');
             $quoteId = $this->safe_string($market, 'product2Label');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->commoCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $precision = array (
                 'amount' => $this->safe_integer($market, 'product1DecimalPlaces'),
                 'price' => $this->safe_integer($market, 'product2DecimalPlaces'),
@@ -122,7 +122,7 @@ class flowbtc extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $balance['name'];
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'balance');
             $account['total'] = $this->safe_float($balance, 'hold');

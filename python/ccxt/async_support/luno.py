@@ -30,6 +30,7 @@ class luno (Exchange):
                 'fetchTradingFees': True,
             },
             'urls': {
+                'referral': 'https://www.luno.com/invite/44893A',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg',
                 'api': 'https://api.mybitx.com/api',
                 'www': 'https://www.luno.com',
@@ -93,8 +94,8 @@ class luno (Exchange):
             id = market['pair']
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -115,11 +116,7 @@ class luno (Exchange):
         for i in range(0, len(wallets)):
             wallet = wallets[i]
             currencyId = self.safe_string(wallet, 'asset')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             reserved = self.safe_float(wallet, 'reserved')
             unconfirmed = self.safe_float(wallet, 'unconfirmed')
             balance = self.safe_float(wallet, 'balance')

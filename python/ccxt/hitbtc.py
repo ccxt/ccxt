@@ -517,8 +517,8 @@ class hitbtc (Exchange):
             quoteId = self.safe_string(market, 'currency')
             lot = self.safe_float(market, 'lot')
             step = self.safe_float(market, 'step')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'info': market,
@@ -565,11 +565,7 @@ class hitbtc (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float_2(balance, 'cash', 'balance')
             account['used'] = self.safe_float(balance, 'reserved')

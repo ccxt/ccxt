@@ -44,7 +44,7 @@ class kucoin extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
-                'referral' => 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
+                'referral' => 'https://www.kucoin.com/?rcode=E5wkqe',
                 'api' => array (
                     'public' => 'https://openapi-v2.kucoin.com',
                     'private' => 'https://openapi-v2.kucoin.com',
@@ -152,7 +152,7 @@ class kucoin extends Exchange {
                 '400006' => '\\ccxt\\AuthenticationError',
                 '400007' => '\\ccxt\\AuthenticationError',
                 '400008' => '\\ccxt\\NotSupported',
-                '400100' => '\\ccxt\\ArgumentsRequired',
+                '400100' => '\\ccxt\\BadRequest',
                 '411100' => '\\ccxt\\AccountSuspended',
                 '415000' => '\\ccxt\\BadRequest', // array("code":"415000","msg":"Unsupported Media Type")
                 '500000' => '\\ccxt\\ExchangeError',
@@ -177,6 +177,7 @@ class kucoin extends Exchange {
             'options' => array (
                 'version' => 'v1',
                 'symbolSeparator' => '-',
+                'fetchMyTradesMethod' => 'private_get_fills',
             ),
         ));
     }
@@ -213,13 +214,13 @@ class kucoin extends Exchange {
         $result = array();
         for ($i = 0; $i < count ($data); $i++) {
             $market = $data[$i];
-            $id = $market['name'];
-            $baseId = $market['baseCurrency'];
-            $quoteId = $market['quoteCurrency'];
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $id = $this->safe_string($market, 'name');
+            $baseId = $this->safe_string($market, 'baseCurrency');
+            $quoteId = $this->safe_string($market, 'quoteCurrency');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $active = $market['enableTrading'];
+            $active = $this->safe_value($market, 'enableTrading');
             $baseMaxSize = $this->safe_float($market, 'baseMaxSize');
             $baseMinSize = $this->safe_float($market, 'baseMinSize');
             $quoteMaxSize = $this->safe_float($market, 'quoteMaxSize');
@@ -262,18 +263,20 @@ class kucoin extends Exchange {
     public function fetch_currencies ($params = array ()) {
         $response = $this->publicGetCurrencies ($params);
         //
-        // { $precision => 10,
-        //   $name => 'KCS',
-        //   fullName => 'KCS shares',
-        //   currency => 'KCS' }
+        //     {
+        //         $precision => 10,
+        //         $name => 'KCS',
+        //         fullName => 'KCS shares',
+        //         currency => 'KCS'
+        //     }
         //
         $responseData = $response['data'];
         $result = array();
         for ($i = 0; $i < count ($responseData); $i++) {
             $entry = $responseData[$i];
             $id = $this->safe_string($entry, 'name');
-            $name = $entry['fullName'];
-            $code = $this->common_currency_code($id);
+            $name = $this->safe_string($entry, 'fullName');
+            $code = $this->safe_currency_code($id);
             $precision = $this->safe_integer($entry, 'precision');
             $result[$code] = array (
                 'id' => $id,
@@ -310,7 +313,7 @@ class kucoin extends Exchange {
             $account = $data[$i];
             $accountId = $this->safe_string($account, 'id');
             $currencyId = $this->safe_string($account, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $type = $this->safe_string($account, 'type');  // main or trade
             $result[] = array (
                 'id' => $accountId,
@@ -366,8 +369,8 @@ class kucoin extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -732,8 +735,8 @@ class kucoin extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
             $market = $this->safe_value($this->markets_by_id, $marketId);
@@ -750,7 +753,7 @@ class kucoin extends Exchange {
         $price = $this->safe_float($order, 'price');
         $side = $this->safe_string($order, 'side');
         $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
-        $feeCurrency = $this->common_currency_code($feeCurrencyId);
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $feeCost = $this->safe_float($order, 'fee');
         $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'dealSize');
@@ -800,17 +803,28 @@ class kucoin extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $method = 'privateGetFills';
-        if ($since !== null) {
-            // if $since is earlier than 2019-02-18T00:00:00Z
-            if ($since < 1550448000000) {
-                $request['startAt'] = intval ($since / 1000);
-                // despite that this endpoint is called `HistOrders`
-                // it returns historical $trades instead of orders
-                $method = 'privateGetHistOrders';
-            } else {
+        $method = $this->options['fetchMyTradesMethod'];
+        $parseResponseData = false;
+        if ($method === 'private_get_fills') {
+            // does not return $trades earlier than 2019-02-18T00:00:00Z
+            if ($since !== null) {
+                // only returns $trades up to one week after the $since param
                 $request['startAt'] = $since;
             }
+        } else if ($method === 'private_get_limit_fills') {
+            // does not return $trades earlier than 2019-02-18T00:00:00Z
+            // takes no $params
+            // only returns first 1000 $trades (not only "in the last 24 hours" as stated in the docs)
+            $parseResponseData = true;
+        } else if ($method === 'private_get_hist_orders') {
+            // despite that this endpoint is called `HistOrders`
+            // it returns historical $trades instead of orders
+            // returns $trades earlier than 2019-02-18T00:00:00Z only
+            if ($since !== null) {
+                $request['startAt'] = intval ($since / 1000);
+            }
+        } else {
+            throw new ExchangeError($this->id . ' invalid fetchClosedOrder method');
         }
         $response = $this->$method (array_merge ($request, $params));
         //
@@ -854,7 +868,12 @@ class kucoin extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $trades = $this->safe_value($data, 'items', array());
+        $trades = null;
+        if ($parseResponseData) {
+            $trades = $data;
+        } else {
+            $trades = $this->safe_value($data, 'items', array());
+        }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
@@ -961,8 +980,8 @@ class kucoin extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -994,7 +1013,7 @@ class kucoin extends Exchange {
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
-            $feeCurrency = $this->common_currency_code($feeCurrencyId);
+            $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             if ($feeCurrency === null) {
                 if ($market !== null) {
                     $feeCurrency = ($side === 'sell') ? $market['quote'] : $market['base'];
@@ -1096,14 +1115,8 @@ class kucoin extends Exchange {
         //         "updatedAt" => 1546504603000
         //     }
         //
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'address');
         $amount = $this->safe_float($transaction, 'amount');
         $txid = $this->safe_string($transaction, 'walletTxId');
@@ -1316,12 +1329,7 @@ class kucoin extends Exchange {
         for ($i = 0; $i < count ($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = array();
             $account['total'] = $this->safe_float($balance, 'balance');
             $account['free'] = $this->safe_float($balance, 'available');
@@ -1414,18 +1422,7 @@ class kucoin extends Exchange {
         //     }
         //
         $currencyId = $this->safe_string($item, 'currency');
-        $code = null;
-        if ($currencyId !== null) {
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
-        } else {
-            if ($currency !== null) {
-                $code = $currency['code'];
-            }
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $fee = array (
             'cost' => $this->safe_float($item, 'fee'),
             'code' => $code,

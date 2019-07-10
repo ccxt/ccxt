@@ -123,11 +123,7 @@ class indodax (Exchange):
         currencyIds = list(free.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if code in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(free, currencyId)
             account['used'] = self.safe_float(used, currencyId)

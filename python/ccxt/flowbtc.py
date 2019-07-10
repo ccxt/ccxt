@@ -78,8 +78,8 @@ class flowbtc (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'product1Label')
             quoteId = self.safe_string(market, 'product2Label')
-            base = self.common_currency_code(baseId)
-            quote = self.commoCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             precision = {
                 'amount': self.safe_integer(market, 'product1DecimalPlaces'),
                 'price': self.safe_integer(market, 'product2DecimalPlaces'),
@@ -119,7 +119,7 @@ class flowbtc (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = balance['name']
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'balance')
             account['total'] = self.safe_float(balance, 'hold')

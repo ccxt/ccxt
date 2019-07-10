@@ -205,17 +205,11 @@ class mercado (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
-            # currencyId = self.currencyId(code)
-            lowercase = currencyId.lower()
-            if lowercase in balances:
-                balance = self.safe_value(balances, lowercase, {})
+            code = self.safe_currency_code(currencyId)
+            if currencyId in balances:
+                balance = self.safe_value(balances, currencyId, {})
                 account = self.account()
-                account['free'] = float(balance, 'available')
+                account['free'] = self.safe_float(balance, 'available')
                 account['total'] = self.safe_float(balance, 'total')
                 result[code] = account
         return self.parse_balance(result)

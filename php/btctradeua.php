@@ -21,6 +21,7 @@ class btctradeua extends Exchange {
                 'fetchOpenOrders' => true,
             ),
             'urls' => array (
+                'referral' => 'https://btc-trade.com.ua/registration/22689',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api' => 'https://btc-trade.com.ua/api',
                 'www' => 'https://btc-trade.com.ua',
@@ -97,7 +98,7 @@ class btctradeua extends Exchange {
         for ($i = 0; $i < count ($accounts); $i++) {
             $account = $accounts[$i];
             $currencyId = $account['currency'];
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_float($account, 'balance');
             $result[$code] = array (
                 'free' => $balance,

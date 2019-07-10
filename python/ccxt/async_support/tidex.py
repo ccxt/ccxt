@@ -145,7 +145,7 @@ class tidex (Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             precision = currency['amountPoint']
-            code = self.safeCurrencyCode(id)
+            code = self.safe_currency_code(id)
             active = currency['visible'] is True
             canWithdraw = currency['withdrawEnable'] is True
             canDeposit = currency['depositEnable'] is True
@@ -219,8 +219,8 @@ class tidex (Exchange):
             id = keys[i]
             market = markets[id]
             baseId, quoteId = id.split('_')
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -265,7 +265,7 @@ class tidex (Exchange):
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_value(funds, currencyId, {})
             account = self.account()
             account['free'] = self.safe_float(balance, 'value')
@@ -412,7 +412,7 @@ class tidex (Exchange):
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
-            feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,

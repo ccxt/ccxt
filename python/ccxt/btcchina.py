@@ -103,8 +103,8 @@ class btcchina (Exchange):
             quoteId = id[3:6]
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.safeCurrencyCode(base)
-            quote = self.safeCurrencyCode(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,

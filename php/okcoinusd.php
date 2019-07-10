@@ -416,7 +416,6 @@ class okcoinusd extends Exchange {
             $quoteNumericId = null;
             $lowercaseId = null;
             $uppercaseBaseId = null;
-            $uppercaseQuoteId = null;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'maxSizeDigit'),
                 'price' => $this->safe_integer($market, 'maxPriceDigit'),
@@ -432,20 +431,17 @@ class okcoinusd extends Exchange {
                 $quoteId = $parts[1];
                 $baseNumericId = $this->safe_integer($market, 'baseCurrency');
                 $quoteNumericId = $this->safe_integer($market, 'quoteCurrency');
-                $uppercaseBaseId = strtoupper($baseId);
-                $uppercaseQuoteId = strtoupper($quoteId);
-                $base = $this->common_currency_code($uppercaseBaseId);
-                $quote = $this->common_currency_code($uppercaseQuoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $contracts = [array()];
             } else {
                 // futures $markets
                 $quoteId = $this->safe_string($market, 'quote');
                 $uppercaseBaseId = $this->safe_string($market, 'symbolDesc');
-                $uppercaseQuoteId = strtoupper($quoteId);
                 $baseId = strtolower($uppercaseBaseId);
                 $lowercaseId = $baseId . '_' . $quoteId;
-                $base = $this->common_currency_code($uppercaseBaseId);
-                $quote = $this->common_currency_code($uppercaseQuoteId);
+                $base = $this->safe_currency_code($uppercaseBaseId);
+                $quote = $this->safe_currency_code($quoteId);
             }
             for ($k = 0; $k < count ($contracts); $k++) {
                 $contract = $contracts[$k];
@@ -603,10 +599,8 @@ class okcoinusd extends Exchange {
                     $market = $this->markets_by_id[$marketId];
                 } else {
                     list($baseId, $quoteId) = explode('_', $ticker['symbol']);
-                    $base = strtoupper($baseId);
-                    $quote = strtoupper($quoteId);
-                    $base = $this->common_currency_code($base);
-                    $quote = $this->common_currency_code($quote);
+                    $base = $this->safe_currency_code($baseId);
+                    $quote = $this->safe_currency_code($quoteId);
                     $symbol = $base . '/' . $quote;
                 }
             }
@@ -727,7 +721,7 @@ class okcoinusd extends Exchange {
             // 'since' => $since === null ? $this->milliseconds () - 86400000 : $since,  // default last 24h
         ));
         if ($since !== null) {
-            $request['since'] = $this->milliseconds () - 86400000; // default last 24h
+            $request['since'] = intval (($this->milliseconds () - 86400000) / 1000); // default last 24h
         }
         if ($limit !== null) {
             if ($this->options['fetchOHLCVWarning']) {
@@ -756,12 +750,7 @@ class okcoinusd extends Exchange {
         $ids = $this->array_concat($ids, $usedKeys);
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $code = strtoupper($id);
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$id]['code'];
-            } else {
-                $code = $this->common_currency_code($code);
-            }
+            $code = $this->safe_currency_code($id);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balances['free'], $id);
             $account['used'] = $this->safe_float($balances[$usedField], $id);

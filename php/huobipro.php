@@ -241,11 +241,9 @@ class huobipro extends Exchange {
             $market = $markets[$i];
             $baseId = $this->safe_string($market, 'base-currency');
             $quoteId = $this->safe_string($market, 'quote-currency');
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
             $id = $baseId . $quoteId;
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $market['amount-precision'],
@@ -255,6 +253,8 @@ class huobipro extends Exchange {
             $taker = ($base === 'OMG') ? 0 : 0.2 / 100;
             $minAmount = $this->safe_float($market, 'min-order-amt', pow(10, -$precision['amount']));
             $minCost = $this->safe_float($market, 'min-order-value', 0);
+            $state = $this->safe_string($market, 'state');
+            $active = ($state === 'online');
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -262,7 +262,7 @@ class huobipro extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'active' => true,
+                'active' => $active,
                 'precision' => $precision,
                 'taker' => $taker,
                 'maker' => $maker,
@@ -439,7 +439,7 @@ class huobipro extends Exchange {
         if ($filledPoints !== null) {
             if (($feeCost === null) || ($feeCost === 0.0)) {
                 $feeCost = $filledPoints;
-                $feeCurrency = $this->common_currency_code('HBPOINT');
+                $feeCurrency = $this->safe_currency_code('HBPOINT');
             }
         }
         if ($feeCost !== null) {
@@ -563,7 +563,7 @@ class huobipro extends Exchange {
             //
             $id = $this->safe_value($currency, 'name');
             $precision = $this->safe_integer($currency, 'withdraw-precision');
-            $code = $this->common_currency_code(strtoupper($id));
+            $code = $this->safe_currency_code($id);
             $active = $currency['visible'] && $currency['deposit-enabled'] && $currency['withdraw-enabled'];
             $name = $this->safe_string($currency, 'display-name');
             $result[$code] = array (
@@ -618,12 +618,7 @@ class huobipro extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = null;
             if (is_array($result) && array_key_exists($code, $result)) {
                 $account = $result[$code];
@@ -1131,7 +1126,7 @@ class huobipro extends Exchange {
         //
         $timestamp = $this->safe_integer($transaction, 'created-at');
         $updated = $this->safe_integer($transaction, 'updated-at');
-        $code = $this->safeCurrencyCode ($this->safe_string($transaction, 'currency'));
+        $code = $this->safe_currency_code($this->safe_string($transaction, 'currency'));
         $type = $this->safe_string($transaction, 'type');
         if ($type === 'withdraw') {
             $type = 'withdrawal';

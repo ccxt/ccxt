@@ -242,11 +242,9 @@ class huobipro (Exchange):
             market = markets[i]
             baseId = self.safe_string(market, 'base-currency')
             quoteId = self.safe_string(market, 'quote-currency')
-            base = baseId.upper()
-            quote = quoteId.upper()
             id = baseId + quoteId
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': market['amount-precision'],
@@ -256,6 +254,8 @@ class huobipro (Exchange):
             taker = 0 if (base == 'OMG') else 0.2 / 100
             minAmount = self.safe_float(market, 'min-order-amt', math.pow(10, -precision['amount']))
             minCost = self.safe_float(market, 'min-order-value', 0)
+            state = self.safe_string(market, 'state')
+            active = (state == 'online')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -263,7 +263,7 @@ class huobipro (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'active': active,
                 'precision': precision,
                 'taker': taker,
                 'maker': maker,
@@ -415,7 +415,7 @@ class huobipro (Exchange):
         if filledPoints is not None:
             if (feeCost is None) or (feeCost == 0.0):
                 feeCost = filledPoints
-                feeCurrency = self.common_currency_code('HBPOINT')
+                feeCurrency = self.safe_currency_code('HBPOINT')
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -525,7 +525,7 @@ class huobipro (Exchange):
             #
             id = self.safe_value(currency, 'name')
             precision = self.safe_integer(currency, 'withdraw-precision')
-            code = self.common_currency_code(id.upper())
+            code = self.safe_currency_code(id)
             active = currency['visible'] and currency['deposit-enabled'] and currency['withdraw-enabled']
             name = self.safe_string(currency, 'display-name')
             result[code] = {
@@ -578,11 +578,7 @@ class huobipro (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             account = None
             if code in result:
                 account = result[code]
@@ -1026,7 +1022,7 @@ class huobipro (Exchange):
         #
         timestamp = self.safe_integer(transaction, 'created-at')
         updated = self.safe_integer(transaction, 'updated-at')
-        code = self.safeCurrencyCode(self.safe_string(transaction, 'currency'))
+        code = self.safe_currency_code(self.safe_string(transaction, 'currency'))
         type = self.safe_string(transaction, 'type')
         if type == 'withdraw':
             type = 'withdrawal'

@@ -101,8 +101,8 @@ class bitso extends Exchange {
             list($baseId, $quoteId) = explode('_', $id);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->safeCurrencyCode ($base);
-            $quote = $this->safeCurrencyCode ($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $limits = array (
                 'amount' => array (
@@ -145,7 +145,7 @@ class bitso extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $this->safe_float($balance, 'locked'),
@@ -227,7 +227,7 @@ class bitso extends Exchange {
         $feeCost = $this->safe_float($trade, 'fees_amount');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fees_currency');
-            $feeCurrency = $this->safeCurrencyCode ($feeCurrencyId);
+            $feeCurrency = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrency,
@@ -341,8 +341,8 @@ class bitso extends Exchange {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->safeCurrencyCode ($baseId);
-                $quote = $this->safeCurrencyCode ($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }

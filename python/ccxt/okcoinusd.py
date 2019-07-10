@@ -422,7 +422,6 @@ class okcoinusd (Exchange):
             quoteNumericId = None
             lowercaseId = None
             uppercaseBaseId = None
-            uppercaseQuoteId = None
             precision = {
                 'amount': self.safe_integer(market, 'maxSizeDigit'),
                 'price': self.safe_integer(market, 'maxPriceDigit'),
@@ -438,20 +437,17 @@ class okcoinusd (Exchange):
                 quoteId = parts[1]
                 baseNumericId = self.safe_integer(market, 'baseCurrency')
                 quoteNumericId = self.safe_integer(market, 'quoteCurrency')
-                uppercaseBaseId = baseId.upper()
-                uppercaseQuoteId = quoteId.upper()
-                base = self.common_currency_code(uppercaseBaseId)
-                quote = self.common_currency_code(uppercaseQuoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 contracts = [{}]
             else:
                 # futures markets
                 quoteId = self.safe_string(market, 'quote')
                 uppercaseBaseId = self.safe_string(market, 'symbolDesc')
-                uppercaseQuoteId = quoteId.upper()
                 baseId = uppercaseBaseId.lower()
                 lowercaseId = baseId + '_' + quoteId
-                base = self.common_currency_code(uppercaseBaseId)
-                quote = self.common_currency_code(uppercaseQuoteId)
+                base = self.safe_currency_code(uppercaseBaseId)
+                quote = self.safe_currency_code(quoteId)
             for k in range(0, len(contracts)):
                 contract = contracts[k]
                 type = self.safe_string(contract, 'type', 'spot')
@@ -594,10 +590,8 @@ class okcoinusd (Exchange):
                     market = self.markets_by_id[marketId]
                 else:
                     baseId, quoteId = ticker['symbol'].split('_')
-                    base = baseId.upper()
-                    quote = quoteId.upper()
-                    base = self.common_currency_code(base)
-                    quote = self.common_currency_code(quote)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
@@ -704,7 +698,7 @@ class okcoinusd (Exchange):
             # 'since': since is self.milliseconds() - 86400000 if None else since,  # default last 24h
         })
         if since is not None:
-            request['since'] = self.milliseconds() - 86400000  # default last 24h
+            request['since'] = int((self.milliseconds() - 86400000) / 1000)  # default last 24h
         if limit is not None:
             if self.options['fetchOHLCVWarning']:
                 raise ExchangeError(self.id + ' fetchOHLCV counts "limit" candles backwards in chronological ascending order, therefore the "limit" argument for ' + self.id + ' is disabled. Set ' + self.id + '.options["fetchOHLCVWarning"] = False to suppress self warning message.')
@@ -728,11 +722,7 @@ class okcoinusd (Exchange):
         ids = self.array_concat(ids, usedKeys)
         for i in range(0, len(ids)):
             id = ids[i]
-            code = id.upper()
-            if id in self.currencies_by_id:
-                code = self.currencies_by_id[id]['code']
-            else:
-                code = self.common_currency_code(code)
+            code = self.safe_currency_code(id)
             account = self.account()
             account['free'] = self.safe_float(balances['free'], id)
             account['used'] = self.safe_float(balances[usedField], id)

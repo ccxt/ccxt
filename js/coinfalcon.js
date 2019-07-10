@@ -72,8 +72,8 @@ module.exports = class coinfalcon extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const [ baseId, quoteId ] = market['name'].split ('-');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'size_precision'),
@@ -252,11 +252,7 @@ module.exports = class coinfalcon extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency_code');
-            const uppercase = currencyId.toUpperCase ();
-            let code = this.commonCurrencyCode (uppercase);
-            if (uppercase in this.currencies_by_id) {
-                code = this.currencies_by_id[uppercase]['code'];
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = {
                 'free': this.safeFloat (balance, 'available_balance'),
                 'used': this.safeFloat (balance, 'hold_balance'),

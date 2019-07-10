@@ -352,8 +352,8 @@ class cex extends Exchange {
             $baseId = $this->safe_string($market, 'symbol1');
             $quoteId = $this->safe_string($market, 'symbol2');
             $id = $baseId . '/' . $quoteId;
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -398,8 +398,9 @@ class cex extends Exchange {
             $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'orders');
-            $code = $this->common_currency_code($currencyId);
+            // https://github.com/ccxt/ccxt/issues/5484
+            $account['used'] = $this->safe_float($balance, 'orders', 0.0);
+            $code = $this->safe_currency_code($currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -626,8 +627,8 @@ class cex extends Exchange {
         if ($market === null) {
             $baseId = $this->safe_string($order, 'symbol1');
             $quoteId = $this->safe_string($order, 'symbol2');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 $market = $this->market ($symbol);

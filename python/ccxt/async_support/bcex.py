@@ -304,8 +304,8 @@ class bcex (Exchange):
                 quoteId = self.safe_string(market, 'coin_to')
                 base = baseId.upper()
                 quote = quoteId.upper()
-                base = self.safeCurrencyCode(base)
-                quote = self.safeCurrencyCode(quote)
+                base = self.safe_currency_code(base)
+                quote = self.safe_currency_code(quote)
                 id = baseId + '2' + quoteId
                 symbol = base + '/' + quote
                 active = True
@@ -398,7 +398,7 @@ class bcex (Exchange):
             parts = key.split('_')
             currencyId = parts[0]
             lockOrOver = parts[1]
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             if not(code in list(result.keys())):
                 result[code] = self.account()
             if lockOrOver == 'lock':

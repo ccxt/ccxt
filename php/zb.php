@@ -173,8 +173,8 @@ class zb extends Exchange {
             $id = $keys[$i];
             $market = $markets[$id];
             list($baseId, $quoteId) = explode('_', $id);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'amountScale'),
@@ -229,7 +229,7 @@ class zb extends Exchange {
             //                 key => "btc"         }
             $account = $this->account ();
             $currencyId = $this->safe_string($balance, 'key');
-            $code = $this->safeCurrencyCode ($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'freez');
             $result[$code] = $account;

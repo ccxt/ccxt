@@ -96,9 +96,8 @@ class ice3x (Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'currency_id')
-            code = self.safe_string(currency, 'iso')
-            code = code.upper()
-            code = self.common_currency_code(code)
+            currencyId = self.safe_string(currency, 'iso')
+            code = self.safe_currency_code(currencyId)
             result[code] = {
                 'id': id,
                 'code': code,
@@ -124,9 +123,9 @@ class ice3x (Exchange):
         return result
 
     async def fetch_markets(self, params={}):
-        if not self.currencies:
+        if not self.currencies_by_id:
             self.currencies = await self.fetch_currencies()
-        self.currencies_by_id = self.index_by(self.currencies, 'id')
+            self.currencies_by_id = self.index_by(self.currencies, 'id')
         response = await self.publicGetPairList(params)
         markets = self.safe_value(response['response'], 'entities')
         result = []
@@ -137,8 +136,8 @@ class ice3x (Exchange):
             quoteId = self.safe_string(market, 'currency_id_to')
             baseCurrency = self.currencies_by_id[baseId]
             quoteCurrency = self.currencies_by_id[quoteId]
-            base = self.common_currency_code(baseCurrency['code'])
-            quote = self.common_currency_code(quoteCurrency['code'])
+            base = baseCurrency['code']
+            quote = quoteCurrency['code']
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -147,7 +146,7 @@ class ice3x (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'active': None,
                 'info': market,
             })
         return result

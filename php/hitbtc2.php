@@ -566,8 +566,8 @@ class hitbtc2 extends hitbtc {
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $lot = $this->safe_float($market, 'quantityIncrement');
             $step = $this->safe_float($market, 'tickSize');
@@ -620,7 +620,7 @@ class hitbtc2 extends hitbtc {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $payin = $this->safe_value($currency, 'payinEnabled');
             $payout = $this->safe_value($currency, 'payoutEnabled');
             $transfer = $this->safe_value($currency, 'transferEnabled');
@@ -700,12 +700,7 @@ class hitbtc2 extends hitbtc {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = strtoupper($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($code);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'reserved');
@@ -962,14 +957,8 @@ class hitbtc2 extends hitbtc {
         $id = $this->safe_string($transaction, 'id');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'createdAt'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'updatedAt'));
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currencyId];
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
         $type = $this->safe_string($transaction, 'type');

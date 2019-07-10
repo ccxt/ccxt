@@ -64,8 +64,8 @@ class vaultoro (Exchange):
         market = self.safe_value(response, 'data')
         baseId = self.safe_string(market, 'MarketCurrency')
         quoteId = self.safe_string(market, 'BaseCurrency')
-        base = self.safeCurrencyCode(baseId)
-        quote = self.safeCurrencyCode(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
         id = self.safe_string(market, 'MarketName')
         result.append({
@@ -87,7 +87,7 @@ class vaultoro (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'cash')
             account['used'] = self.safe_float(balance, 'reserved')

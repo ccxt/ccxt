@@ -198,8 +198,8 @@ class kraken extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
+                'XBT' => 'BTC',
                 'XDG' => 'DOGE',
-                'FEE' => 'KFEE',
             ),
             'options' => array (
                 'cacheDepositMethodsOnFetchDepositAddress' => true, // will issue up to two calls in fetchDepositAddress
@@ -251,7 +251,7 @@ class kraken extends Exchange {
                 $numPieces = is_array ($pieces) ? count ($pieces) : 0;
                 if ($numPieces === 2) {
                     $amount = floatval ($pieces[0]);
-                    $code = $this->common_currency_code($pieces[1]);
+                    $code = $this->safe_currency_code($pieces[1]);
                     $result[$code] = $amount;
                 }
             }
@@ -269,20 +269,8 @@ class kraken extends Exchange {
             $market = $response['result'][$id];
             $baseId = $market['base'];
             $quoteId = $market['quote'];
-            $base = $baseId;
-            $quote = $quoteId;
-            if (strlen ($base) > 3) {
-                if (($base[0] === 'X') || ($base[0] === 'Z')) {
-                    $base = mb_substr($base, 1);
-                }
-            }
-            if (strlen ($quote) > 3) {
-                if (($quote[0] === 'X') || ($quote[0] === 'Z')) {
-                    $quote = mb_substr($quote, 1);
-                }
-            }
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $darkpool = mb_strpos($id, '.d') !== false;
             $symbol = $darkpool ? $market['altname'] : ($base . '/' . $quote);
             $maker = null;
@@ -332,6 +320,15 @@ class kraken extends Exchange {
         return $result;
     }
 
+    public function safe_currency_code ($currencyId, $currency = null) {
+        if (strlen ($currencyId) > 3) {
+            if ((mb_strpos($currencyId, 'X') === 0) || (mb_strpos($currencyId, 'Z') === 0)) {
+                $currencyId = mb_substr($currencyId, 1);
+            }
+        }
+        return parent::safe_currency_code($currencyId, $currency);
+    }
+
     public function append_inactive_markets ($result) {
         // $result should be an array to append to
         $precision = array( 'amount' => 8, 'price' => 8 );
@@ -379,7 +376,7 @@ class kraken extends Exchange {
             // see => https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $code = $this->common_currency_code($this->safe_string($currency, 'altname'));
+            $code = $this->safe_currency_code($this->safe_string($currency, 'altname'));
             $precision = $this->safe_integer($currency, 'decimals');
             // assumes all $currencies are $active except those listed above
             $active = !$this->in_array($code, $this->options['inactiveCurrencies']);
@@ -597,7 +594,7 @@ class kraken extends Exchange {
         $referenceId = $this->safe_string($item, 'refid');
         $referenceAccount = null;
         $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
-        $code = $this->safeCurrencyCode ($this->safe_string($item, 'asset'), $currency);
+        $code = $this->safe_currency_code($this->safe_string($item, 'asset'), $currency);
         $amount = $this->safe_float($item, 'amount');
         if ($amount < 0) {
             $direction = 'out';
@@ -805,7 +802,6 @@ class kraken extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
-        $this->load_markets();
         $response = $this->privatePostBalance ($params);
         $balances = $this->safe_value($response, 'result');
         if ($balances === null) {
@@ -815,18 +811,7 @@ class kraken extends Exchange {
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($code, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$code]['code'];
-            } else {
-                // X-ISO4217-A3 standard currency codes
-                if ($code[0] === 'X') {
-                    $code = mb_substr($code, 1);
-                } else if ($code[0] === 'Z') {
-                    $code = mb_substr($code, 1);
-                }
-                $code = $this->common_currency_code($code);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_float($balances, $currencyId);
             $account = array (
                 'free' => $balance,
@@ -915,20 +900,8 @@ class kraken extends Exchange {
         }
         $baseId = mb_substr($id, $baseIdStart, $baseIdEnd - $baseIdStart);
         $quoteId = mb_substr($id, $quoteIdStart, $quoteIdEnd - $quoteIdStart);
-        $base = $baseId;
-        $quote = $quoteId;
-        if (strlen ($base) > 3) {
-            if (($base[0] === 'X') || ($base[0] === 'Z')) {
-                $base = mb_substr($base, 1);
-            }
-        }
-        if (strlen ($quote) > 3) {
-            if (($quote[0] === 'X') || ($quote[0] === 'Z')) {
-                $quote = mb_substr($quote, 1);
-            }
-        }
-        $base = $this->common_currency_code($base);
-        $quote = $this->common_currency_code($quote);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
         $market = array (
             'symbol' => $symbol,
@@ -1216,14 +1189,8 @@ class kraken extends Exchange {
         if ($timestamp !== null) {
             $timestamp = $timestamp * 1000;
         }
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'asset');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'info');
         $amount = $this->safe_float($transaction, 'amount');
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));

@@ -415,7 +415,7 @@ class bitfinex extends Exchange {
         $ids = is_array($fees) ? array_keys($fees) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $code = $this->safeCurrencyCode ($id);
+            $code = $this->safe_currency_code($id);
             $withdraw[$code] = $this->safe_float($fees, $id);
         }
         return array (
@@ -468,10 +468,18 @@ class bitfinex extends Exchange {
                 continue;
             }
             $id = strtoupper($id);
-            $baseId = mb_substr($id, 0, 3 - 0);
-            $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = $this->safeCurrencyCode ($baseId);
-            $quote = $this->safeCurrencyCode ($quoteId);
+            $baseId = null;
+            $quoteId = null;
+            if (mb_strpos($id, ':') !== false) {
+                $parts = explode(':', $id);
+                $baseId = $parts[0];
+                $quoteId = $parts[1];
+            } else {
+                $baseId = mb_substr($id, 0, 3 - 0);
+                $quoteId = mb_substr($id, 3, 6 - 3);
+            }
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'price' => $market['price_precision'],
@@ -539,7 +547,7 @@ class bitfinex extends Exchange {
             $balance = $response[$i];
             if ($balance['type'] === $balanceType) {
                 $currencyId = $this->safe_string($balance, 'currency');
-                $code = $this->safeCurrencyCode ($currencyId);
+                $code = $this->safe_currency_code($currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
                 // BCH symbol is kept for backward-compatibility
                 // we need a workaround here so that the old BCH $balance
@@ -609,8 +617,8 @@ class bitfinex extends Exchange {
             } else {
                 $baseId = mb_substr($marketId, 0, 3 - 0);
                 $quoteId = mb_substr($marketId, 3, 6 - 3);
-                $base = $this->safeCurrencyCode ($baseId);
-                $quote = $this->safeCurrencyCode ($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -663,7 +671,7 @@ class bitfinex extends Exchange {
         if (is_array($trade) && array_key_exists('fee_amount', $trade)) {
             $feeCost = -$this->safe_float($trade, 'fee_amount');
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
-            $feeCurrencyCode = $this->safeCurrencyCode ($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -1007,7 +1015,7 @@ class bitfinex extends Exchange {
             $updated = intval ($updated * 1000);
         }
         $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safeCurrencyCode ($currencyId, $currency);
+        $code = $this->safe_currency_code($currencyId, $currency);
         $type = $this->safe_string($transaction, 'type'); // DEPOSIT or WITHDRAWAL
         if ($type !== null) {
             $type = strtolower($type);

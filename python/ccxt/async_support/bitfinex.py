@@ -428,7 +428,7 @@ class bitfinex (Exchange):
         ids = list(fees.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            code = self.safeCurrencyCode(id)
+            code = self.safe_currency_code(id)
             withdraw[code] = self.safe_float(fees, id)
         return {
             'info': response,
@@ -477,10 +477,17 @@ class bitfinex (Exchange):
             if not self.in_array(id, ids):
                 continue
             id = id.upper()
-            baseId = id[0:3]
-            quoteId = id[3:6]
-            base = self.safeCurrencyCode(baseId)
-            quote = self.safeCurrencyCode(quoteId)
+            baseId = None
+            quoteId = None
+            if id.find(':') >= 0:
+                parts = id.split(':')
+                baseId = parts[0]
+                quoteId = parts[1]
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_precision'],
@@ -543,7 +550,7 @@ class bitfinex (Exchange):
             balance = response[i]
             if balance['type'] == balanceType:
                 currencyId = self.safe_string(balance, 'currency')
-                code = self.safeCurrencyCode(currencyId)
+                code = self.safe_currency_code(currencyId)
                 # bitfinex had BCH previously, now it's BAB, but the old
                 # BCH symbol is kept for backward-compatibility
                 # we need a workaround here so that the old BCH balance
@@ -602,8 +609,8 @@ class bitfinex (Exchange):
             else:
                 baseId = marketId[0:3]
                 quoteId = marketId[3:6]
-                base = self.safeCurrencyCode(baseId)
-                quote = self.safeCurrencyCode(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         last = self.safe_float(ticker, 'last_price')
         return {
@@ -649,7 +656,7 @@ class bitfinex (Exchange):
         if 'fee_amount' in trade:
             feeCost = -self.safe_float(trade, 'fee_amount')
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
-            feeCurrencyCode = self.safeCurrencyCode(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -945,7 +952,7 @@ class bitfinex (Exchange):
         if updated is not None:
             updated = int(updated * 1000)
         currencyId = self.safe_string(transaction, 'currency')
-        code = self.safeCurrencyCode(currencyId, currency)
+        code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string(transaction, 'type')  # DEPOSIT or WITHDRAWAL
         if type is not None:
             type = type.lower()

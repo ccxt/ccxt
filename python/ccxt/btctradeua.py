@@ -22,6 +22,7 @@ class btctradeua (Exchange):
                 'fetchOpenOrders': True,
             },
             'urls': {
+                'referral': 'https://btc-trade.com.ua/registration/22689',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api': 'https://btc-trade.com.ua/api',
                 'www': 'https://btc-trade.com.ua',
@@ -96,7 +97,7 @@ class btctradeua (Exchange):
         for i in range(0, len(accounts)):
             account = accounts[i]
             currencyId = account['currency']
-            code = self.safeCurrencyCode(currencyId)
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_float(account, 'balance')
             result[code] = {
                 'free': balance,
