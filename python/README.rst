@@ -59,7 +59,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 127 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 126 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -175,8 +175,6 @@ The ccxt library currently supports the following 127 cryptocurrency exchange ma
 | coinmarketcap      | `CoinMarketCap <https://coinmarketcap.com>`__                                              | 1   | `API <https://coinmarketcap.com/api>`__                                                         |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | coinmate           | `CoinMate <https://coinmate.io?referral=YTFkM1RsOWFObVpmY1ZjMGREQmpTRnBsWjJJNVp3PT0>`__    | \*  | `API <https://coinmate.docs.apiary.io>`__                                                       |                                                                      |
-+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| coinnest           | `coinnest <https://www.coinnest.co.kr>`__                                                  | \*  | `API <https://www.coinnest.co.kr/doc/intro.html>`__                                             |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | coinone            | `CoinOne <https://coinone.co.kr>`__                                                        | 2   | `API <https://doc.coinone.co.kr>`__                                                             |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -366,14 +364,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.918/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.918/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.920/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.920/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.918/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.920/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
