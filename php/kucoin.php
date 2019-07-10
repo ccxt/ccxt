@@ -501,7 +501,7 @@ class kucoin extends Exchange {
             $request['startAt'] = (int) floor($since / 1000);
         }
         $response = $this->publicGetMarketCandles (array_merge ($request, $params));
-        $responseData = $response['data'];
+        $responseData = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($responseData, $market, $timeframe, $since, $limit);
     }
 
