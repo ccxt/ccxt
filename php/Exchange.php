@@ -121,7 +121,6 @@ class Exchange {
         'buda',
         'bxinth',
         'cex',
-        'chbtc',
         'chilebit',
         'cobinhood',
         'coinbase',
