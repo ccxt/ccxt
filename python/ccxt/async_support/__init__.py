@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.924'
+__version__ = '1.18.925'
 
 # -----------------------------------------------------------------------------
 
@@ -86,7 +86,6 @@ from ccxt.async_support.btcturk import btcturk                            # noqa
 from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bxinth import bxinth                              # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
-from ccxt.async_support.chbtc import chbtc                                # noqa: F401
 from ccxt.async_support.chilebit import chilebit                          # noqa: F401
 from ccxt.async_support.cobinhood import cobinhood                        # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
@@ -213,7 +212,6 @@ exchanges = [
     'buda',
     'bxinth',
     'cex',
-    'chbtc',
     'chilebit',
     'cobinhood',
     'coinbase',
