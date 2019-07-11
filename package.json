@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.922",
+  "version": "1.18.923",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -462,7 +462,8 @@
     "dx.exchange",
     "DX.Exchange",
     "oceanex.pro.com",
-    "OceanEx"
+    "OceanEx",
+    "flowbtc.com.br"
   ],
   "collective": {
     "type": "opencollective",

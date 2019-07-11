@@ -204,7 +204,7 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `fcoinjp <https://www.fcoinjp.com>`__                                                     | fcoinjp            | `FCoinJP <https://www.fcoinjp.com>`__                                                      | 2   | `API <https://developer.fcoin.com>`__                                                           |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `flowbtc <https://trader.flowbtc.com>`__                                                  | flowbtc            | `flowBTC <https://trader.flowbtc.com>`__                                                   | 1   | `API <https://www.flowbtc.com.br/api.html>`__                                                   |                                                                      |
+| `flowbtc <https://www.flowbtc.com.br>`__                                                  | flowbtc            | `flowBTC <https://www.flowbtc.com.br>`__                                                   | 1   | `API <https://www.flowbtc.com.br/api.html>`__                                                   |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `foxbit <https://foxbit.exchange>`__                                                      | foxbit             | `FoxBit <https://foxbit.exchange>`__                                                       | 1   | `API <https://blinktrade.com/docs>`__                                                           |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -362,14 +362,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.922/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.922/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.923/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.923/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.922/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.923/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
