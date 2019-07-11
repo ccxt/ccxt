@@ -397,6 +397,7 @@ module.exports = class latoken extends Exchange {
         const market = this.market (symbol);
         const resp = {
             'symbol': market['symbol'],
+            'limit': limit,
         };
         const response = await this.publicGetMarketDataTrades (this.extend (resp, params));
         const trades = this.safeValue (response, 'trades', []);
@@ -552,6 +553,10 @@ module.exports = class latoken extends Exchange {
                 url += '/' + params['symbol'];
             } else if (path === 'marketData/ticker' && Object.keys (params).length) {
                 url += '/' + params['symbol'];
+            } else if (path === 'marketData/orderBook' && Object.keys (params).length) {
+                url += '/' + params['symbol'];
+            } else if (path === 'marketData/trades' && Object.keys (params).length) {
+                url += '/' + params['symbol'] + '/' + params['limit'];
             } else {
                 url += '?' + this.urlencode (params);
             }
@@ -563,7 +568,7 @@ module.exports = class latoken extends Exchange {
                     'timestamp': this.nonce (),
                 };
                 const query1 = '?' + this.urlencode (param);
-                const dataToSign = '/api/v1/' + path + '/' + params;
+                const dataToSign = '/api/v1/' + path + '/' + params['currency'];
                 const signature = this.hmac (this.encode (dataToSign + query1), this.encode (this.secret), 'sha256');
                 url += query1;
                 headers = {
