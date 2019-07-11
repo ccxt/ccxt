@@ -62,8 +62,8 @@ module.exports = class flowbtc extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.005,
-                    'taker': 0.0025,
+                    'maker': 0.0025,
+                    'taker': 0.005,
                 },
             },
         });
