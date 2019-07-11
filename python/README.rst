@@ -206,7 +206,7 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | flowbtc            | `flowBTC <https://www.flowbtc.com.br>`__                                                   | 1   | `API <https://www.flowbtc.com.br/api.html>`__                                                   |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| foxbit             | `FoxBit <https://foxbit.exchange>`__                                                       | 1   | `API <https://blinktrade.com/docs>`__                                                           |                                                                      |
+| foxbit             | `FoxBit <https://foxbit.com.br/exchange>`__                                                | 1   | `API <https://foxbit.com.br/api/>`__                                                            |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | fybse              | `FYB-SE <https://www.fybse.se>`__                                                          | \*  | `API <https://fyb.docs.apiary.io>`__                                                            |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -362,14 +362,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.923/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.923/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.924/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.924/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.923/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.924/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
