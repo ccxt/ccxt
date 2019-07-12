@@ -3365,7 +3365,7 @@ Some errors raised by ccxt will have properties that you test for and handle app
 
 Initially support for these properties will limited, and not all errors thrown by ccxt will have these properties defined. We plan on unifying all errors soon.
 
-Note: all/any of these properties may be `undefined/None/null`
+**Note: all/any of these properties may be `undefined/None/null`!**
 
 Error property access:
 
