@@ -489,7 +489,6 @@ class hitbtc (Exchange):
                 },
             },
             'commonCurrencies': {
-                'BCH': 'Bitcoin Cash',
                 'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
                 'DRK': 'DASH',
