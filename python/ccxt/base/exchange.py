@@ -22,8 +22,7 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
 from ccxt.base.decimal_to_precision import number_to_string
-from ccxt.base.functions import captialize, to_camelcase
-
+import ccxt.base.functions as functions
 
 # -----------------------------------------------------------------------------
 
@@ -46,6 +45,7 @@ __all__ = [
 import types
 import logging
 import base64
+import inspect
 import calendar
 import collections
 import datetime
@@ -304,6 +304,11 @@ class Exchange(object):
         'BCHSV': 'BSV',
     }
 
+    # assign all functions as staticmethod descriptors
+    # classattr = staticmethod(function) is the same as @staticmethod; def function(self):
+    for name, function in inspect.getmembers(functions, inspect.isfunction):
+        locals()[name] = staticmethod(function)
+
     def __init__(self, config={}):
 
         self.precision = dict() if self.precision is None else self.precision
@@ -346,7 +351,7 @@ class Exchange(object):
         cls = type(self)
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
-                camelcase = to_camelcase(name)
+                camelcase = self.to_camelcase(name)
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))
@@ -666,10 +671,6 @@ class Exchange(object):
     @staticmethod
     def uuid():
         return str(uuid.uuid4())
-
-    @staticmethod
-    def capitalize(string):
-        return captialize(string)
 
     @staticmethod
     def keysort(dictionary):

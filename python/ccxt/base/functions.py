@@ -2,7 +2,7 @@
 # we should probably try to do the same with php...
 
 
-def captialize(string):
+def capitalize(string):
     # first character only, rest characters unchanged
     # the native pythonic .capitalize() method lowercases all other characters
     # which is an unwanted behaviour, therefore we use this custom implementation
@@ -14,4 +14,4 @@ def captialize(string):
 
 def to_camelcase(underscore):
     parts = underscore.split('_')
-    return parts[0] + ''.join(map(captialize, parts[1:]))
+    return parts[0] + ''.join(map(capitalize, parts[1:]))
