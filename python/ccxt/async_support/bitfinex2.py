@@ -217,10 +217,17 @@ class bitfinex2 (bitfinex):
             market = response[i]
             id = self.safe_string(market, 'pair')
             id = id.upper()
-            baseId = id[0:3]
-            quoteId = id[3:6]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            baseId = None
+            quoteId = None
+            if id.find(':') >= 0:
+                parts = id.split(':')
+                baseId = parts[0]
+                quoteId = parts[1]
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             id = 't' + id
             baseId = self.get_currency_id(baseId)
@@ -254,6 +261,9 @@ class bitfinex2 (bitfinex):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'swap': False,
+                'spot': False,
+                'futures': False,
             })
         return result
 
@@ -270,15 +280,9 @@ class bitfinex2 (bitfinex):
             total = balance[2]
             available = balance[4]
             if accountType == balanceType:
-                code = currency
-                if currency in self.currencies_by_id:
-                    code = self.currencies_by_id[currency]['code']
-                elif currency[0] == 't':
+                if currency[0] == 't':
                     currency = currency[1:]
-                    code = currency.upper()
-                    code = self.common_currency_code(code)
-                else:
-                    code = self.common_currency_code(code)
+                code = self.safe_currency_code(currency)
                 account = self.account()
                 account['total'] = total
                 if not available:
@@ -436,7 +440,7 @@ class bitfinex2 (bitfinex):
             orderId = trade[3]
             takerOrMaker = 'maker' if (trade[8] == 1) else 'taker'
             feeCost = trade[9]
-            feeCurrency = self.common_currency_code(trade[10])
+            feeCurrency = self.safe_currency_code(trade[10])
             if feeCost is not None:
                 fee = {
                     'cost': abs(feeCost),

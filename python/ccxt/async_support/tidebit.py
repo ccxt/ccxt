@@ -146,8 +146,8 @@ class tidebit (Exchange):
             id = self.safe_string(market, 'id')
             symbol = self.safe_string(market, 'name')
             baseId, quoteId = symbol.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -171,7 +171,7 @@ class tidebit (Exchange):
             if currencyId in self.currencies_by_id:
                 code = self.currencies_by_id[currencyId]['code']
             else:
-                code = self.common_currency_code(currencyId.upper())
+                code = self.safe_currency_code(currencyId.upper())
             account = self.account()
             account['free'] = self.safe_float(balance, 'balance')
             account['used'] = self.safe_float(balance, 'locked')
@@ -240,10 +240,8 @@ class tidebit (Exchange):
             else:
                 baseId = id[0:3]
                 quoteId = id[3:6]
-                base = baseId.upper()
-                quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)
@@ -317,6 +315,8 @@ class tidebit (Exchange):
         else:
             request['timestamp'] = 1800000
         response = await self.publicGetK(self.extend(request, params))
+        if response == 'null':
+            return []
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     def parse_order_status(self, status):

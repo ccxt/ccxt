@@ -358,8 +358,8 @@ class cex (Exchange):
             baseId = self.safe_string(market, 'symbol1')
             quoteId = self.safe_string(market, 'symbol2')
             id = baseId + '/' + quoteId
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -402,8 +402,9 @@ class cex (Exchange):
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'orders')
-            code = self.common_currency_code(currencyId)
+            # https://github.com/ccxt/ccxt/issues/5484
+            account['used'] = self.safe_float(balance, 'orders', 0.0)
+            code = self.safe_currency_code(currencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -600,8 +601,8 @@ class cex (Exchange):
         if market is None:
             baseId = self.safe_string(order, 'symbol1')
             quoteId = self.safe_string(order, 'symbol2')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             if symbol in self.markets:
                 market = self.market(symbol)

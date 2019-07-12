@@ -23,7 +23,7 @@ class coinbase extends Exchange {
             'has' => array (
                 'CORS' => true,
                 'cancelOrder' => false,
-                'createDepositAddress' => false,
+                'createDepositAddress' => true,
                 'createOrder' => false,
                 'deposit' => false,
                 'fetchBalance' => true,
@@ -163,9 +163,119 @@ class coinbase extends Exchange {
     }
 
     public function fetch_accounts ($params = array ()) {
-        $this->load_markets();
         $response = $this->privateGetAccounts ($params);
-        return $this->safe_value($response, 'data');
+        //
+        //     {
+        //         "id" => "XLM",
+        //         "name" => "XLM Wallet",
+        //         "primary" => false,
+        //         "type" => "wallet",
+        //         "$currency" => array (
+        //             "$code" => "XLM",
+        //             "name" => "Stellar Lumens",
+        //             "color" => "#000000",
+        //             "sort_index" => 127,
+        //             "exponent" => 7,
+        //             "type" => "crypto",
+        //             "address_regex" => "^G[A-Z2-7]{55}$",
+        //             "asset_id" => "13b83335-5ede-595b-821e-5bcdfa80560f",
+        //             "destination_tag_name" => "XLM Memo ID",
+        //             "destination_tag_regex" => "^[ -~]array(1,28)$"
+        //         ),
+        //         "balance" => array (
+        //             "amount" => "0.0000000",
+        //             "$currency" => "XLM"
+        //         ),
+        //         "created_at" => null,
+        //         "updated_at" => null,
+        //         "resource" => "$account",
+        //         "resource_path" => "/v2/accounts/XLM",
+        //         "allow_deposits" => true,
+        //         "allow_withdrawals" => true
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = array();
+        for ($i = 0; $i < count ($data); $i++) {
+            $account = $data[$i];
+            $currency = $this->safe_value($account, 'currency', array());
+            $currencyId = $this->safe_string($currency, 'code');
+            $code = $this->safe_currency_code($currencyId);
+            $result[] = array (
+                'id' => $this->safe_string($account, 'id'),
+                'type' => $this->safe_string($account, 'type'),
+                'code' => $code,
+                'info' => $account,
+            );
+        }
+        return $result;
+    }
+
+    public function create_deposit_address ($code, $params = array ()) {
+        $accountId = $this->safe_string($params, 'account_id');
+        $params = $this->omit ($params, 'account_id');
+        if ($accountId === null) {
+            $this->loadAccounts ();
+            for ($i = 0; $i < count ($this->accounts); $i++) {
+                $account = $this->accounts[$i];
+                if ($account['code'] === $code && $account['type'] === 'wallet') {
+                    $accountId = $account['id'];
+                    break;
+                }
+            }
+        }
+        if ($accountId === null) {
+            throw new ExchangeError($this->id . ' createDepositAddress could not find the $account with matching currency $code, specify an `account_id` extra param');
+        }
+        $request = array (
+            'account_id' => $accountId,
+        );
+        $response = $this->privatePostAccountsAccountIdAddresses (array_merge ($request, $params));
+        //
+        //     {
+        //         "$data" => {
+        //             "id" => "05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
+        //             "$address" => "coinbasebase",
+        //             "address_info" => array (
+        //                 "$address" => "coinbasebase",
+        //                 "destination_tag" => "287594668"
+        //             ),
+        //             "name" => null,
+        //             "created_at" => "2019-07-01T14:39:29Z",
+        //             "updated_at" => "2019-07-01T14:39:29Z",
+        //             "network" => "eosio",
+        //             "uri_scheme" => "eosio",
+        //             "resource" => "$address",
+        //             "resource_path" => "/v2/accounts/14cfc769-e852-52f3-b831-711c104d194c/addresses/05b1ebbf-9438-5dd4-b297-2ddedc98d0e4",
+        //             "warnings" => array (
+        //                 array (
+        //                     "title" => "Only send EOS (EOS) to this $address",
+        //                     "details" => "Sending any other cryptocurrency will result in permanent loss.",
+        //                     "image_url" => "https://dynamic-assets.coinbase.com/deaca3d47b10ed4a91a872e9618706eec34081127762d88f2476ac8e99ada4b48525a9565cf2206d18c04053f278f693434af4d4629ca084a9d01b7a286a7e26/asset_icons/1f8489bb280fb0a0fd643c1161312ba49655040e9aaaced5f9ad3eeaf868eadc.png"
+        //                 ),
+        //                 {
+        //                     "title" => "Both an $address and EOS memo are required to receive EOS",
+        //                     "details" => "If you send funds without an EOS memo or with an incorrect EOS memo, your funds cannot be credited to your $account->",
+        //                     "image_url" => "https://www.coinbase.com/assets/receive-warning-2f3269d83547a7748fb39d6e0c1c393aee26669bfea6b9f12718094a1abff155.png"
+        //                 }
+        //             ),
+        //             "warning_title" => "Only send EOS (EOS) to this $address",
+        //             "warning_details" => "Sending any other cryptocurrency will result in permanent loss.",
+        //             "destination_tag" => "287594668",
+        //             "deposit_uri" => "eosio:coinbasebase?dt=287594668",
+        //             "callback_url" => null
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $tag = $this->safe_string($data, 'destination_tag');
+        $address = $this->safe_string($data, 'address');
+        return array (
+            'currency' => $code,
+            'tag' => $tag,
+            'address' => $address,
+            'info' => $response,
+        );
     }
 
     public function fetch_my_sells ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -203,9 +313,13 @@ class coinbase extends Exchange {
         }
         $this->load_markets();
         $query = $this->omit ($params, array ( 'account_id', 'accountId' ));
-        $response = $this->$method (array_merge (array (
+        $request = array (
             'account_id' => $accountId,
-        ), $query));
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->$method (array_merge ($request, $query));
         return $this->parseTransactions ($response['data'], null, $since, $limit);
     }
 
@@ -288,10 +402,10 @@ class coinbase extends Exchange {
         $type = $this->safe_string($transaction, 'resource');
         $amount = $this->safe_float($amountObject, 'amount');
         $currencyId = $this->safe_string($amountObject, 'currency');
-        $currency = $this->common_currency_code($currencyId);
+        $currency = $this->safe_currency_code($currencyId);
         $feeCost = $this->safe_float($feeObject, 'amount');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
-        $feeCurrency = $this->common_currency_code($feeCurrencyId);
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $fee = array (
             'cost' => $feeCost,
             'currency' => $feeCurrency,
@@ -369,8 +483,8 @@ class coinbase extends Exchange {
             $baseId = $this->safe_string($totalObject, 'currency');
             $quoteId = $this->safe_string($amountObject, 'currency');
             if (($baseId !== null) && ($quoteId !== null)) {
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -387,7 +501,7 @@ class coinbase extends Exchange {
         }
         $feeCost = $this->safe_float($feeObject, 'amount');
         $feeCurrencyId = $this->safe_string($feeObject, 'currency');
-        $feeCurrency = $this->common_currency_code($feeCurrencyId);
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $fee = array (
             'cost' => $feeCost,
             'currency' => $feeCurrency,
@@ -417,7 +531,7 @@ class coinbase extends Exchange {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'id');
             $name = $this->safe_string($currency, 'name');
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $minimum = $this->safe_float($currency, 'min_size');
             $result[$code] = array (
                 'id' => $id,
@@ -500,11 +614,8 @@ class coinbase extends Exchange {
         for ($b = 0; $b < count ($balances); $b++) {
             $balance = $balances[$b];
             if ($this->in_array($balance['type'], $accounts)) {
-                $currencyId = $balance['balance']['currency'];
-                $code = $currencyId;
-                if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                    $code = $this->currencies_by_id[$currencyId]['code'];
-                }
+                $currencyId = $this->safe_string($balance['balance'], 'currency');
+                $code = $this->safe_currency_code($currencyId);
                 $total = $this->safe_float($balance['balance'], 'amount');
                 $free = $total;
                 $used = null;
@@ -525,14 +636,14 @@ class coinbase extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/' . $this->implode_params($path, $params);
+        $fullPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($method === 'GET') {
             if ($query) {
-                $request .= '?' . $this->urlencode ($query);
+                $fullPath .= '?' . $this->urlencode ($query);
             }
         }
-        $url = $this->urls['api'] . '/' . $this->version . $request;
+        $url = $this->urls['api'] . $fullPath;
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
@@ -543,7 +654,7 @@ class coinbase extends Exchange {
                     $payload = $body;
                 }
             }
-            $auth = $nonce . $method . '/' . $this->version . $request . $payload;
+            $auth = $nonce . $method . $fullPath . $payload;
             $signature = $this->hmac ($this->encode ($auth), $this->encode ($this->secret));
             $headers = array (
                 'CB-ACCESS-KEY' => $this->apiKey,

@@ -46,12 +46,12 @@ class mixcoins extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/USD' => array( 'id' => 'btc_usd', 'symbol' => 'BTC/USD', 'base' => 'BTC', 'quote' => 'USD', 'baseId' => 'btc', 'quoteId' => 'usd', 'maker' => 0.0015, 'taker' => 0.0025 ),
+                'BTC/USDT' => array( 'id' => 'btc_usdt', 'symbol' => 'BTC/USDT', 'base' => 'BTC', 'quote' => 'USDT', 'baseId' => 'btc', 'quoteId' => 'usdt', 'maker' => 0.0015, 'taker' => 0.0025 ),
                 'ETH/BTC' => array( 'id' => 'eth_btc', 'symbol' => 'ETH/BTC', 'base' => 'ETH', 'quote' => 'BTC', 'baseId' => 'eth', 'quoteId' => 'btc', 'maker' => 0.001, 'taker' => 0.0015 ),
                 'BCH/BTC' => array( 'id' => 'bch_btc', 'symbol' => 'BCH/BTC', 'base' => 'BCH', 'quote' => 'BTC', 'baseId' => 'bch', 'quoteId' => 'btc', 'maker' => 0.001, 'taker' => 0.0015 ),
                 'LSK/BTC' => array( 'id' => 'lsk_btc', 'symbol' => 'LSK/BTC', 'base' => 'LSK', 'quote' => 'BTC', 'baseId' => 'lsk', 'quoteId' => 'btc', 'maker' => 0.0015, 'taker' => 0.0025 ),
-                'BCH/USD' => array( 'id' => 'bch_usd', 'symbol' => 'BCH/USD', 'base' => 'BCH', 'quote' => 'USD', 'baseId' => 'bch', 'quoteId' => 'usd', 'maker' => 0.001, 'taker' => 0.0015 ),
-                'ETH/USD' => array( 'id' => 'eth_usd', 'symbol' => 'ETH/USD', 'base' => 'ETH', 'quote' => 'USD', 'baseId' => 'eth', 'quoteId' => 'usd', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'BCH/USDT' => array( 'id' => 'bch_usdt', 'symbol' => 'BCH/USDT', 'base' => 'BCH', 'quote' => 'USDT', 'baseId' => 'bch', 'quoteId' => 'usdt', 'maker' => 0.001, 'taker' => 0.0015 ),
+                'ETH/USDT' => array( 'id' => 'eth_usdt', 'symbol' => 'ETH/USDT', 'base' => 'ETH', 'quote' => 'USDT', 'baseId' => 'eth', 'quoteId' => 'usdt', 'maker' => 0.001, 'taker' => 0.0015 ),
             ),
         ));
     }
@@ -64,12 +64,7 @@ class mixcoins extends Exchange {
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safe_currency_code($currencyId);
             $balance = $this->safe_value($balances, $currencyId, array());
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'avail');
@@ -218,6 +213,11 @@ class mixcoins extends Exchange {
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         if (is_array($response) && array_key_exists('status', $response)) {
+            //
+            // todo add a unified standard handleErrors with $this->exceptions in describe()
+            //
+            //     array("status":503,"message":"Maintenancing, try again later","result":null)
+            //
             if ($response['status'] === 200) {
                 return $response;
             }

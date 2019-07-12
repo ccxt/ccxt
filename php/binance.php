@@ -216,8 +216,8 @@ class binance extends Exchange {
             }
             $baseId = $market['baseAsset'];
             $quoteId = $market['quoteAsset'];
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $filters = $this->index_by($market['filters'], 'filterType');
             $precision = array (
@@ -315,12 +315,7 @@ class binance extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $balance['asset'];
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'free');
             $account['used'] = $this->safe_float($balance, 'locked');
@@ -511,7 +506,7 @@ class binance extends Exchange {
         if (is_array($trade) && array_key_exists('commission', $trade)) {
             $fee = array (
                 'cost' => $this->safe_float($trade, 'commission'),
-                'currency' => $this->common_currency_code($trade['commissionAsset']),
+                'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAsset')),
             );
         }
         $takerOrMaker = null;
@@ -944,7 +939,7 @@ class binance extends Exchange {
         //             fromAsset => "ADA"                  ),
         $orderId = $this->safe_string($trade, 'tranId');
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'operateTime'));
-        $tradedCurrency = $this->safeCurrencyCode ($trade, 'fromAsset');
+        $tradedCurrency = $this->safe_currency_code($this->safe_string($trade, 'fromAsset'));
         $earnedCurrency = $this->currency ('BNB')['code'];
         $applicantSymbol = $earnedCurrency . '/' . $tradedCurrency;
         $tradedCurrencyIsQuote = false;
@@ -1118,16 +1113,8 @@ class binance extends Exchange {
             }
         }
         $txid = $this->safe_value($transaction, 'txId');
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'asset');
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currencyId];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = null;
         $insertTime = $this->safe_integer($transaction, 'insertTime');
         $applyTime = $this->safe_integer($transaction, 'applyTime');
@@ -1209,7 +1196,7 @@ class binance extends Exchange {
         $withdrawFees = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $withdrawFees[$code] = $this->safe_float($detail[$id], 'withdrawFee');
         }
         return array (

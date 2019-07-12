@@ -152,8 +152,8 @@ class bibox extends Exchange {
             $numericId = $this->safe_integer($market, 'id');
             $baseId = $this->safe_string($market, 'coin_symbol');
             $quoteId = $this->safe_string($market, 'currency_symbol');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $id = $baseId . '_' . $quoteId;
             $precision = array (
@@ -195,8 +195,8 @@ class bibox extends Exchange {
         } else {
             $baseId = $this->safe_string($ticker, 'coin_symbol');
             $quoteId = $this->safe_string($ticker, 'currency_symbol');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
         }
         $last = $this->safe_float($ticker, 'last');
@@ -294,7 +294,7 @@ class bibox extends Exchange {
             if (is_array($this->currencies_by_id) && array_key_exists($feeCurrency, $this->currencies_by_id)) {
                 $feeCurrency = $this->currencies_by_id[$feeCurrency]['code'];
             } else {
-                $feeCurrency = $this->common_currency_code($feeCurrency);
+                $feeCurrency = $this->safe_currency_code($feeCurrency);
             }
         }
         $feeRate = null; // todo => deduce from $market if $market is defined
@@ -396,7 +396,7 @@ class bibox extends Exchange {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'symbol');
             $name = $this->safe_string($currency, 'name');
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $precision = 8;
             $deposit = $this->safe_value($currency, 'enable_deposit');
             $withdraw = $this->safe_value($currency, 'enable_withdraw');
@@ -434,10 +434,12 @@ class bibox extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
+        $type = $this->safe_string($params, 'type', 'assets');
+        $params = $this->omit ($params, 'type');
         $request = array (
-            'cmd' => 'transfer/mainAssets',
+            'cmd' => 'transfer/' . $type, // assets, mainAssets
             'body' => array_merge (array (
-                'select' => 1,
+                'select' => 1, // return full info
             ), $params),
         );
         $response = $this->privatePostTransfer ($request);
@@ -557,16 +559,8 @@ class bibox extends Exchange {
         //
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'to_address');
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'coin_symbol');
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currencyId];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_string($transaction, 'createdAt');
         $tag = $this->safe_string($transaction, 'addr_remark');
         $type = $this->safe_string($transaction, 'type');

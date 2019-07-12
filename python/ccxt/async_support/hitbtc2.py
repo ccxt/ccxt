@@ -573,8 +573,8 @@ class hitbtc2 (hitbtc):
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             lot = self.safe_float(market, 'quantityIncrement')
             step = self.safe_float(market, 'tickSize')
@@ -625,7 +625,7 @@ class hitbtc2 (hitbtc):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             payin = self.safe_value(currency, 'payinEnabled')
             payout = self.safe_value(currency, 'payoutEnabled')
             transfer = self.safe_value(currency, 'transferEnabled')
@@ -699,11 +699,7 @@ class hitbtc2 (hitbtc):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'reserved')
@@ -932,13 +928,8 @@ class hitbtc2 (hitbtc):
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
         updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
-        code = None
         currencyId = self.safe_string(transaction, 'currency')
-        if currencyId in self.currencies_by_id:
-            currency = self.currencies_by_id[currencyId]
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_float(transaction, 'amount')
         type = self.safe_string(transaction, 'type')

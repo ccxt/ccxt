@@ -165,8 +165,8 @@ class therock (Exchange):
                 id = self.safe_string(market, 'id')
                 baseId = self.safe_string(market, 'trade_currency')
                 quoteId = self.safe_string(market, 'base_currency')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
                 buy_fee = self.safe_float(market, 'buy_fee')
                 sell_fee = self.safe_float(market, 'sell_fee')
@@ -213,11 +213,7 @@ class therock (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'trading_balance')
             account['total'] = self.safe_float(balance, 'balance')
@@ -494,10 +490,7 @@ class therock (Exchange):
         if type == 'trade' or type == 'fee':
             referenceId = self.safe_string(item, 'trade_id')
         currencyId = self.safe_string(item, 'currency')
-        code = None
-        if currencyId is not None:
-            currencyId = currencyId.upper()
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId)
         amount = self.safe_float(item, 'price')
         timestamp = self.parse8601(self.safe_string(item, 'date'))
         status = 'ok'
@@ -722,10 +715,7 @@ class therock (Exchange):
                 txid = self.safe_string(detail, 'id')
                 address = self.safe_string(detail, 'recipient')
         currencyId = self.safe_string(transaction, 'currency')
-        code = None
-        if currencyId is not None:
-            currencyId = currencyId.upper()
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId)
         amount = self.safe_float(transaction, 'price')
         timestamp = self.parse8601(self.safe_string(transaction, 'date'))
         status = 'ok'
@@ -1122,6 +1112,7 @@ class therock (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        headers = {} if (headers is None) else headers
         if api == 'private':
             self.check_required_credentials()
             if query:
@@ -1134,11 +1125,9 @@ class therock (Exchange):
                         url += '?' + queryString
             nonce = str(self.nonce())
             auth = nonce + url
-            headers = {
-                'X-TRT-KEY': self.apiKey,
-                'X-TRT-NONCE': nonce,
-                'X-TRT-SIGN': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512),
-            }
+            headers['X-TRT-KEY'] = self.apiKey
+            headers['X-TRT-NONCE'] = nonce
+            headers['X-TRT-SIGN'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
         elif api == 'public':
             if query:
                 url += '?' + self.rawencode(query)

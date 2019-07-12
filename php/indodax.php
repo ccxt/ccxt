@@ -118,12 +118,7 @@ class indodax extends Exchange {
         $currencyIds = is_array($free) ? array_keys($free) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($code, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['used'] = $this->safe_float($used, $currencyId);

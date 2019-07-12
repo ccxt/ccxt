@@ -53,10 +53,11 @@ class kucoin (Exchange):
                 'fetchAccounts': True,
                 'fetchFundingFee': True,
                 'fetchOHLCV': True,
+                'fetchLedger': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/57369448-3cc3aa80-7196-11e9-883e-5ebeb35e4f57.jpg',
-                'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
+                'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
                 'api': {
                     'public': 'https://openapi-v2.kucoin.com',
                     'private': 'https://openapi-v2.kucoin.com',
@@ -164,7 +165,7 @@ class kucoin (Exchange):
                 '400006': AuthenticationError,
                 '400007': AuthenticationError,
                 '400008': NotSupported,
-                '400100': ArgumentsRequired,
+                '400100': BadRequest,
                 '411100': AccountSuspended,
                 '415000': BadRequest,  # {"code":"415000","msg":"Unsupported Media Type"}
                 '500000': ExchangeError,
@@ -189,6 +190,7 @@ class kucoin (Exchange):
             'options': {
                 'version': 'v1',
                 'symbolSeparator': '-',
+                'fetchMyTradesMethod': 'private_get_fills',
             },
         })
 
@@ -222,13 +224,13 @@ class kucoin (Exchange):
         result = []
         for i in range(0, len(data)):
             market = data[i]
-            id = market['name']
-            baseId = market['baseCurrency']
-            quoteId = market['quoteCurrency']
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            id = self.safe_string(market, 'name')
+            baseId = self.safe_string(market, 'baseCurrency')
+            quoteId = self.safe_string(market, 'quoteCurrency')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            active = market['enableTrading']
+            active = self.safe_value(market, 'enableTrading')
             baseMaxSize = self.safe_float(market, 'baseMaxSize')
             baseMinSize = self.safe_float(market, 'baseMinSize')
             quoteMaxSize = self.safe_float(market, 'quoteMaxSize')
@@ -269,18 +271,20 @@ class kucoin (Exchange):
     def fetch_currencies(self, params={}):
         response = self.publicGetCurrencies(params)
         #
-        # {precision: 10,
-        #   name: 'KCS',
-        #   fullName: 'KCS shares',
-        #   currency: 'KCS'}
+        #     {
+        #         precision: 10,
+        #         name: 'KCS',
+        #         fullName: 'KCS shares',
+        #         currency: 'KCS'
+        #     }
         #
         responseData = response['data']
         result = {}
         for i in range(0, len(responseData)):
             entry = responseData[i]
             id = self.safe_string(entry, 'name')
-            name = entry['fullName']
-            code = self.common_currency_code(id)
+            name = self.safe_string(entry, 'fullName')
+            code = self.safe_currency_code(id)
             precision = self.safe_integer(entry, 'precision')
             result[code] = {
                 'id': id,
@@ -315,7 +319,7 @@ class kucoin (Exchange):
             account = data[i]
             accountId = self.safe_string(account, 'id')
             currencyId = self.safe_string(account, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             type = self.safe_string(account, 'type')  # main or trade
             result.append({
                 'id': accountId,
@@ -367,8 +371,8 @@ class kucoin (Exchange):
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('-')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:
@@ -488,7 +492,7 @@ class kucoin (Exchange):
         if since is not None:
             request['startAt'] = int(math.floor(since / 1000))
         response = self.publicGetMarketCandles(self.extend(request, params))
-        responseData = response['data']
+        responseData = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(responseData, market, timeframe, since, limit)
 
     def create_deposit_address(self, code, params={}):
@@ -705,8 +709,8 @@ class kucoin (Exchange):
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('-')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             market = self.safe_value(self.markets_by_id, marketId)
         if symbol is None:
@@ -719,7 +723,7 @@ class kucoin (Exchange):
         price = self.safe_float(order, 'price')
         side = self.safe_string(order, 'side')
         feeCurrencyId = self.safe_string(order, 'feeCurrency')
-        feeCurrency = self.common_currency_code(feeCurrencyId)
+        feeCurrency = self.safe_currency_code(feeCurrencyId)
         feeCost = self.safe_float(order, 'fee')
         amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'dealSize')
@@ -762,16 +766,26 @@ class kucoin (Exchange):
             request['symbol'] = market['id']
         if limit is not None:
             request['pageSize'] = limit
-        method = 'privateGetFills'
-        if since is not None:
-            # if since is earlier than 2019-02-18T00:00:00Z
-            if since < 1550448000000:
-                request['startAt'] = int(since / 1000)
-                # despite that self endpoint is called `HistOrders`
-                # it returns historical trades instead of orders
-                method = 'privateGetHistOrders'
-            else:
+        method = self.options['fetchMyTradesMethod']
+        parseResponseData = False
+        if method == 'private_get_fills':
+            # does not return trades earlier than 2019-02-18T00:00:00Z
+            if since is not None:
+                # only returns trades up to one week after the since param
                 request['startAt'] = since
+        elif method == 'private_get_limit_fills':
+            # does not return trades earlier than 2019-02-18T00:00:00Z
+            # takes no params
+            # only returns first 1000 trades(not only "in the last 24 hours" as stated in the docs)
+            parseResponseData = True
+        elif method == 'private_get_hist_orders':
+            # despite that self endpoint is called `HistOrders`
+            # it returns historical trades instead of orders
+            # returns trades earlier than 2019-02-18T00:00:00Z only
+            if since is not None:
+                request['startAt'] = int(since / 1000)
+        else:
+            raise ExchangeError(self.id + ' invalid fetchClosedOrder method')
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -814,7 +828,11 @@ class kucoin (Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        trades = self.safe_value(data, 'items', [])
+        trades = None
+        if parseResponseData:
+            trades = data
+        else:
+            trades = self.safe_value(data, 'items', [])
         return self.parse_trades(trades, market, since, limit)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -917,8 +935,8 @@ class kucoin (Exchange):
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('-')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:
@@ -943,7 +961,7 @@ class kucoin (Exchange):
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
-            feeCurrency = self.common_currency_code(feeCurrencyId)
+            feeCurrency = self.safe_currency_code(feeCurrencyId)
             if feeCurrency is None:
                 if market is not None:
                     feeCurrency = market['quote'] if (side == 'sell') else market['base']
@@ -1035,13 +1053,8 @@ class kucoin (Exchange):
         #         "updatedAt": 1546504603000
         #     }
         #
-        code = None
         currencyId = self.safe_string(transaction, 'currency')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'address')
         amount = self.safe_float(transaction, 'amount')
         txid = self.safe_string(transaction, 'walletTxId')
@@ -1234,17 +1247,140 @@ class kucoin (Exchange):
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = {}
             account['total'] = self.safe_float(balance, 'balance')
             account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'holds')
             result[code] = account
         return self.parse_balance(result)
+
+    def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchLedger requires a code param')
+        self.load_markets()
+        self.loadAccounts()
+        currency = self.currency(code)
+        accountId = self.safe_string(params, 'accountId')
+        if accountId is None:
+            for i in range(0, len(self.accounts)):
+                account = self.accounts[i]
+                if account['currency'] == code and account['type'] == 'main':
+                    accountId = account['id']
+                    break
+        if accountId is None:
+            raise ExchangeError(self.id + ' ' + code + 'main account is not loaded in loadAccounts')
+        request = {
+            'accountId': accountId,
+        }
+        if since is not None:
+            request['startAt'] = int(math.floor(since / 1000))
+        response = self.privateGetAccountsAccountIdLedgers(self.extend(request, params))
+        #
+        #     {
+        #         code: '200000',
+        #         data: {
+        #             totalNum: 1,
+        #             totalPage: 1,
+        #             pageSize: 50,
+        #             currentPage: 1,
+        #             items: [
+        #                 {
+        #                     createdAt: 1561897880000,
+        #                     amount: '0.0111123',
+        #                     bizType: 'Exchange',
+        #                     balance: '0.13224427',
+        #                     fee: '0.0000111',
+        #                     context: '{"symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806"}',
+        #                     currency: 'ETH',
+        #                     direction: 'out'
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        items = response['data']['items']
+        return self.parse_ledger(items, currency, since, limit)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        # trade
+        #
+        #     {
+        #         createdAt: 1561897880000,
+        #         amount: '0.0111123',
+        #         bizType: 'Exchange',
+        #         balance: '0.13224427',
+        #         fee: '0.0000111',
+        #         context: '{"symbol":"KCS-ETH","orderId":"5d18ab98c788c6426188296f","tradeId":"5d18ab9818996813f539a806"}',
+        #         currency: 'ETH',
+        #         direction: 'out'
+        #     }
+        #
+        # withdrawal
+        #
+        #     {
+        #         createdAt: 1561900264000,
+        #         amount: '0.14333217',
+        #         bizType: 'Withdrawal',
+        #         balance: '0',
+        #         fee: '0.01',
+        #         context: '{"orderId":"5d18b4e687111437cf1c48b9","txId":"0x1d136ee065c5c4c5caa293faa90d43e213c953d7cdd575c89ed0b54eb87228b8"}',
+        #         currency: 'ETH',
+        #         direction: 'out'
+        #     }
+        #
+        currencyId = self.safe_string(item, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
+        fee = {
+            'cost': self.safe_float(item, 'fee'),
+            'code': code,
+        }
+        amount = self.safe_float(item, 'amount')
+        after = self.safe_float(item, 'balance')
+        direction = self.safe_string(item, 'direction')
+        before = None
+        if after is not None and amount is not None:
+            difference = amount if (direction == 'out') else -amount
+            before = self.sum(after, difference)
+        timestamp = self.safe_integer(item, 'createdAt')
+        type = self.parse_ledger_entry_type(self.safe_string(item, 'bizType'))
+        contextString = self.safe_string(item, 'context')
+        id = None
+        referenceId = None
+        if self.is_json_encoded_object(contextString):
+            context = self.parse_json(contextString)
+            id = self.safe_string(context, 'orderId')
+            if type == 'trade':
+                referenceId = self.safe_string(context, 'tradeId')
+            elif type == 'transaction':
+                referenceId = self.safe_string(context, 'txId')
+        return {
+            'id': id,
+            'currency': code,
+            'account': None,
+            'referenceAccount': None,
+            'referenceId': referenceId,
+            'status': None,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'fee': fee,
+            'direction': direction,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'type': type,
+            'info': item,
+        }
+
+    def parse_ledger_entry_type(self, type):
+        types = {
+            'Exchange': 'trade',
+            'Withdrawal': 'transaction',
+            'Deposit': 'transaction',
+            'Transfer': 'transfer',
+        }
+        return self.safe_string(types, type, type)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         #

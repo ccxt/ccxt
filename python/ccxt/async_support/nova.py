@@ -24,6 +24,7 @@ class nova (Exchange):
                 'fetchDepositAddress': True,
             },
             'urls': {
+                'referral': 'https://novaexchange.com/signup/?re=is8vz2hsl3qxewv1uawd',
                 'logo': 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
                 'api': 'https://novaexchange.com/remote',
                 'www': 'https://novaexchange.com',
@@ -73,8 +74,8 @@ class nova (Exchange):
             market = markets[i]
             id = self.safe_string(market, 'marketname')
             quoteId, baseId = id.split('_')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             disabled = self.safe_value(market, 'disabled', False)
             active = not disabled
@@ -180,11 +181,7 @@ class nova (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             lockbox = self.safe_float(balance, 'amount_lockbox')
             trades = self.safe_float(balance, 'amount_trades')
             account = {

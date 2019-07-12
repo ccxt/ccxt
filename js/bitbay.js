@@ -174,8 +174,8 @@ module.exports = class bitbay extends Exchange {
             const baseId = this.safeString (first, 'currency');
             const quoteId = this.safeString (second, 'currency');
             const id = baseId + quoteId;
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (first, 'scale'),

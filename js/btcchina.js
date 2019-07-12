@@ -101,8 +101,8 @@ module.exports = class btcchina extends Exchange {
             const quoteId = id.slice (3, 6);
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,

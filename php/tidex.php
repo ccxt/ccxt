@@ -66,6 +66,7 @@ class tidex extends Exchange {
                 ),
                 'private' => array (
                     'post' => array (
+                        'getInfoExt',
                         'getInfo',
                         'Trade',
                         'ActiveOrders',
@@ -129,8 +130,7 @@ class tidex extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
             $precision = $currency['amountPoint'];
-            $code = strtoupper($id);
-            $code = $this->common_currency_code($code);
+            $code = $this->safe_currency_code($id);
             $active = $currency['visible'] === true;
             $canWithdraw = $currency['withdrawEnable'] === true;
             $canDeposit = $currency['depositEnable'] === true;
@@ -209,10 +209,8 @@ class tidex extends Exchange {
             $id = $keys[$i];
             $market = $markets[$id];
             list($baseId, $quoteId) = explode('_', $id);
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'decimal_places'),
@@ -252,30 +250,18 @@ class tidex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostGetInfo ($params);
+        $response = $this->privatePostGetInfoExt ($params);
         $balances = $this->safe_value($response, 'return');
         $result = array( 'info' => $balances );
         $funds = $this->safe_value($balances, 'funds', array());
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
-            $total = null;
-            $used = null;
-            if ($balances['open_orders'] === 0) {
-                $total = $funds[$currencyId];
-                $used = 0.0;
-            }
-            $account = array (
-                'free' => $funds[$currencyId],
-                'used' => $used,
-                'total' => $total,
-            );
+            $code = $this->safe_currency_code($currencyId);
+            $balance = $this->safe_value($funds, $currencyId, array());
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'value');
+            $account['used'] = $this->safe_float($balance, 'inOrders');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -440,14 +426,7 @@ class tidex extends Exchange {
         $feeCost = $this->safe_float($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
-            $feeCurrencyId = strtoupper($feeCurrencyId);
-            $feeCurrency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
-            $feeCurrencyCode = null;
-            if ($feeCurrency !== null) {
-                $feeCurrencyCode = $feeCurrency['code'];
-            } else {
-                $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
-            }
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,

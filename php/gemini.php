@@ -199,11 +199,11 @@ class gemini extends Exchange {
             $minAmount = explode(' ', $minAmountAsString);
             $amountPrecision = explode(' ', $amountTickSizeAsString);
             $pricePrecision = explode(' ', $priceTickSizeAsString);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $baseId = strtolower($baseId);
             $quoteId = strtolower($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->precision_from_string($amountPrecision[0]),
                 'price' => $this->precision_from_string($pricePrecision[0]),
@@ -246,10 +246,8 @@ class gemini extends Exchange {
             $market = $id;
             $baseId = mb_substr($id, 0, 3 - 0);
             $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => null,
@@ -304,8 +302,8 @@ class gemini extends Exchange {
         );
         $ticker = $this->publicGetPubtickerSymbol (array_merge ($request, $params));
         $timestamp = $this->safe_integer($ticker['volume'], 'timestamp');
-        $baseVolume = $this->safe_float($market, 'base');
-        $quoteVolume = $this->safe_float($market, 'quote');
+        $baseCurrency = $market['base']; // unified structures are guaranteed to have unified fields
+        $quoteCurrency = $market['quote']; // so we don't need safe-methods for unified structures
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -325,8 +323,8 @@ class gemini extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker['volume'], $baseVolume),
-            'quoteVolume' => $this->safe_float($ticker['volume'], $quoteVolume),
+            'baseVolume' => $this->safe_float($ticker['volume'], $baseCurrency),
+            'quoteVolume' => $this->safe_float($ticker['volume'], $quoteCurrency),
             'info' => $ticker,
         );
     }
@@ -335,20 +333,12 @@ class gemini extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestampms');
         $id = $this->safe_string($trade, 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
-        $fee = $this->safe_float($trade, 'fee_amount');
-        if ($fee !== null) {
-            $currency = $this->safe_string($trade, 'fee_currency');
-            if ($currency !== null) {
-                if (is_array($this->currencies_by_id) && array_key_exists($currency, $this->currencies_by_id)) {
-                    $currency = $this->currencies_by_id[$currency]['code'];
-                }
-                $currency = $this->common_currency_code($currency);
-            }
-            $fee = array (
-                'cost' => $this->safe_float($trade, 'fee_amount'),
-                'currency' => $currency,
-            );
-        }
+        $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
+        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+        $fee = array (
+            'cost' => $this->safe_float($trade, 'fee_amount'),
+            'currency' => $feeCurrencyCode,
+        );
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -400,7 +390,7 @@ class gemini extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['total'] = $this->safe_float($balance, 'amount');
@@ -572,16 +562,8 @@ class gemini extends Exchange {
 
     public function parse_transaction ($transaction, $currency = null) {
         $timestamp = $this->safe_integer($transaction, 'timestampms');
-        $code = null;
-        if ($currency === null) {
-            $currencyId = $this->safe_string($transaction, 'currency');
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $currency = $this->currencies_by_id[$currencyId];
-            }
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'destination');
         $type = $this->safe_string($transaction, 'type');
         if ($type !== null) {

@@ -276,6 +276,7 @@ module.exports = class bitfinex extends Exchange {
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
+                'AMP': 'AMPL',
                 'ATM': 'ATMI',
                 'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
                 'BAB': 'BCH',
@@ -414,11 +415,7 @@ module.exports = class bitfinex extends Exchange {
         const ids = Object.keys (fees);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let code = id;
-            if (id in this.currencies_by_id) {
-                const currency = this.currencies_by_id[id];
-                code = currency['code'];
-            }
+            const code = this.safeCurrencyCode (id);
             withdraw[code] = this.safeFloat (fees, id);
         }
         return {
@@ -471,10 +468,18 @@ module.exports = class bitfinex extends Exchange {
                 continue;
             }
             id = id.toUpperCase ();
-            const baseId = id.slice (0, 3);
-            const quoteId = id.slice (3, 6);
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            let baseId = undefined;
+            let quoteId = undefined;
+            if (id.indexOf (':') >= 0) {
+                const parts = id.split (':');
+                baseId = parts[0];
+                quoteId = parts[1];
+            } else {
+                baseId = id.slice (0, 3);
+                quoteId = id.slice (3, 6);
+            }
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'price': market['price_precision'],
@@ -542,8 +547,7 @@ module.exports = class bitfinex extends Exchange {
             const balance = response[i];
             if (balance['type'] === balanceType) {
                 const currencyId = this.safeString (balance, 'currency');
-                let code = currencyId.toUpperCase ();
-                code = this.commonCurrencyCode (code);
+                const code = this.safeCurrencyCode (currencyId);
                 // bitfinex had BCH previously, now it's BAB, but the old
                 // BCH symbol is kept for backward-compatibility
                 // we need a workaround here so that the old BCH balance
@@ -613,8 +617,8 @@ module.exports = class bitfinex extends Exchange {
             } else {
                 const baseId = marketId.slice (0, 3);
                 const quoteId = marketId.slice (3, 6);
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
@@ -667,12 +671,7 @@ module.exports = class bitfinex extends Exchange {
         if ('fee_amount' in trade) {
             const feeCost = -this.safeFloat (trade, 'fee_amount');
             const feeCurrencyId = this.safeString (trade, 'fee_currency');
-            let feeCurrencyCode = undefined;
-            if (feeCurrencyId in this.currencies_by_id) {
-                feeCurrencyCode = this.currencies_by_id[feeCurrencyId]['code'];
-            } else {
-                feeCurrencyCode = this.commonCurrencyCode (feeCurrencyId);
-            }
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -1015,18 +1014,8 @@ module.exports = class bitfinex extends Exchange {
         if (updated !== undefined) {
             updated = parseInt (updated * 1000);
         }
-        let code = undefined;
-        if (currency === undefined) {
-            const currencyId = this.safeString (transaction, 'currency');
-            if (currencyId in this.currencies_by_id) {
-                currency = this.currencies_by_id[currencyId];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
         let type = this.safeString (transaction, 'type'); // DEPOSIT or WITHDRAWAL
         if (type !== undefined) {
             type = type.toLowerCase ();

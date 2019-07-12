@@ -290,6 +290,7 @@ class bitfinex (Exchange):
             'commonCurrencies': {
                 'ABS': 'ABYSS',
                 'AIO': 'AION',
+                'AMP': 'AMPL',
                 'ATM': 'ATMI',
                 'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
                 'BAB': 'BCH',
@@ -427,10 +428,7 @@ class bitfinex (Exchange):
         ids = list(fees.keys())
         for i in range(0, len(ids)):
             id = ids[i]
-            code = id
-            if id in self.currencies_by_id:
-                currency = self.currencies_by_id[id]
-                code = currency['code']
+            code = self.safe_currency_code(id)
             withdraw[code] = self.safe_float(fees, id)
         return {
             'info': response,
@@ -479,10 +477,17 @@ class bitfinex (Exchange):
             if not self.in_array(id, ids):
                 continue
             id = id.upper()
-            baseId = id[0:3]
-            quoteId = id[3:6]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            baseId = None
+            quoteId = None
+            if id.find(':') >= 0:
+                parts = id.split(':')
+                baseId = parts[0]
+                quoteId = parts[1]
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_precision'],
@@ -545,8 +550,7 @@ class bitfinex (Exchange):
             balance = response[i]
             if balance['type'] == balanceType:
                 currencyId = self.safe_string(balance, 'currency')
-                code = currencyId.upper()
-                code = self.common_currency_code(code)
+                code = self.safe_currency_code(currencyId)
                 # bitfinex had BCH previously, now it's BAB, but the old
                 # BCH symbol is kept for backward-compatibility
                 # we need a workaround here so that the old BCH balance
@@ -605,8 +609,8 @@ class bitfinex (Exchange):
             else:
                 baseId = marketId[0:3]
                 quoteId = marketId[3:6]
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         last = self.safe_float(ticker, 'last_price')
         return {
@@ -652,11 +656,7 @@ class bitfinex (Exchange):
         if 'fee_amount' in trade:
             feeCost = -self.safe_float(trade, 'fee_amount')
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
-            feeCurrencyCode = None
-            if feeCurrencyId in self.currencies_by_id:
-                feeCurrencyCode = self.currencies_by_id[feeCurrencyId]['code']
-            else:
-                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -951,15 +951,8 @@ class bitfinex (Exchange):
         updated = self.safe_float(transaction, 'timestamp')
         if updated is not None:
             updated = int(updated * 1000)
-        code = None
-        if currency is None:
-            currencyId = self.safe_string(transaction, 'currency')
-            if currencyId in self.currencies_by_id:
-                currency = self.currencies_by_id[currencyId]
-            else:
-                code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string(transaction, 'type')  # DEPOSIT or WITHDRAWAL
         if type is not None:
             type = type.lower()

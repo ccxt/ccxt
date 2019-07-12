@@ -250,6 +250,7 @@ class bittrex extends Exchange {
                 'subaccountId' => null,
                 // see the implementation of fetchClosedOrdersV3 below
                 'fetchClosedOrdersMethod' => 'fetch_closed_orders_v3',
+                'fetchClosedOrdersFilterBySince' => true,
             ),
             'commonCurrencies' => array (
                 'BITS' => 'SWIFT',
@@ -277,8 +278,8 @@ class bittrex extends Exchange {
             $id = $this->safe_string($market, 'MarketName');
             $baseId = $this->safe_string($market, 'MarketCurrency');
             $quoteId = $this->safe_string($market, 'BaseCurrency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $pricePrecision = 8;
             if (is_array($this->options['pricePrecisionByCode']) && array_key_exists($quote, $this->options['pricePrecisionByCode'])) {
@@ -329,7 +330,7 @@ class bittrex extends Exchange {
         $keys = is_array($indexed) ? array_keys($indexed) : array();
         for ($i = 0; $i < count ($keys); $i++) {
             $id = $keys[$i];
-            $currency = $this->common_currency_code($id);
+            $currency = $this->safe_currency_code($id);
             $account = $this->account ();
             $balance = $indexed[$id];
             $free = $this->safe_float($balance, 'Available', 0);
@@ -444,7 +445,7 @@ class bittrex extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
             $address = $this->safe_value($currency, 'BaseAddress');
             $fee = $this->safe_float($currency, 'TxFee'); // todo => redesign
@@ -768,14 +769,8 @@ class bittrex extends Exchange {
         $opened = $this->parse8601 ($this->safe_string($transaction, 'Opened'));
         $timestamp = $opened ? $opened : $updated;
         $type = ($opened === null) ? 'deposit' : 'withdrawal';
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'Currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $status = 'pending';
         if ($type === 'deposit') {
             if ($currency !== null) {
@@ -834,8 +829,8 @@ class bittrex extends Exchange {
 
     public function parse_symbol ($id) {
         list($quoteId, $baseId) = explode($this->options['symbolSeparator'], $id);
-        $base = $this->common_currency_code($baseId);
-        $quote = $this->common_currency_code($quoteId);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         return $base . '/' . $quote;
     }
 
@@ -844,6 +839,14 @@ class bittrex extends Exchange {
             return $this->parse_order_v3 ($order, $market);
         } else {
             return $this->parse_order_v2 ($order, $market);
+        }
+    }
+
+    public function parse_orders ($orders, $market = null, $since = null, $limit = null, $params = array ()) {
+        if ($this->options['fetchClosedOrdersFilterBySince']) {
+            return parent::parse_orders($orders, $market, $since, $limit, $params);
+        } else {
+            return parent::parse_orders($orders, $market, null, $limit, $params);
         }
     }
 
@@ -881,8 +884,8 @@ class bittrex extends Exchange {
         $feeCurrency = null;
         if ($marketSymbol !== null) {
             list($baseId, $quoteId) = explode('-', $marketSymbol);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
@@ -1033,11 +1036,7 @@ class bittrex extends Exchange {
             } else if ($symbol !== null) {
                 $currencyIds = explode('/', $symbol);
                 $quoteCurrencyId = $currencyIds[1];
-                if (is_array($this->currencies_by_id) && array_key_exists($quoteCurrencyId, $this->currencies_by_id)) {
-                    $fee['currency'] = $this->currencies_by_id[$quoteCurrencyId]['code'];
-                } else {
-                    $fee['currency'] = $this->common_currency_code($quoteCurrencyId);
-                }
+                $fee['currency'] = $this->safe_currency_code($quoteCurrencyId);
             }
         }
         $price = $this->safe_float($order, 'Limit');
@@ -1167,7 +1166,7 @@ class bittrex extends Exchange {
             $request['pageSize'] = $limit;
         }
         if ($since !== null) {
-            $request['startDate'] = $this->ymdhms ($since) . 'Z';
+            $request['startDate'] = $this->ymdhms ($since, 'T') . 'Z';
         }
         $market = null;
         if ($symbol !== null) {

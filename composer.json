@@ -219,11 +219,17 @@
         "email": "rocket.mind@gmail.com",
         "homepage": "https://github.com/xpl",
         "role": "Developer"
+    }, {
+        "name": "Carlo Revelli",
+        "email": "carlo.revelli@berkeley.edu",
+        "homepage": "https://github.com/frosty00",
+        "role": "Junior Developer"
     }],
     "autoload": {
-        "psr-4" : {
+        "psr-4": {
             "ccxt\\" : "php/"
-        }
+        },
+        "files": [ "php/errors.php" ]
     },
     "require": {
         "php": ">=5.4.0",

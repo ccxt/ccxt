@@ -339,7 +339,6 @@ declare module 'ccxt' {
     export class acx extends Exchange {}
     export class allcoin extends okcoinusd {}
     export class anxpro extends Exchange {}
-    export class anybits extends bitsane {}
     export class bcex extends Exchange {}
     export class bequant extends hitbtc2 {}
     export class bibox extends Exchange {}
@@ -356,9 +355,7 @@ declare module 'ccxt' {
     export class bithumb extends Exchange {}
     export class bitkk extends zb {}
     export class bitlish extends Exchange {}
-    export class bitmarket extends Exchange {}
     export class bitmex extends Exchange {}
-    export class bitsane extends Exchange {}
     export class bitso extends Exchange {}
     export class bitstamp extends Exchange {}
     export class bitstamp1 extends Exchange {}
@@ -370,7 +367,6 @@ declare module 'ccxt' {
     export class btcalpha extends Exchange {}
     export class btcbox extends Exchange {}
     export class btcchina extends Exchange {}
-    export class btcexchange extends btcturk {}
     export class btcmarkets extends Exchange {}
     export class btctradeim extends coinegg {}
     export class btctradeua extends Exchange {}
@@ -378,7 +374,6 @@ declare module 'ccxt' {
     export class buda extends Exchange {}
     export class bxinth extends Exchange {}
     export class cex extends Exchange {}
-    export class chbtc extends zb {}
     export class chilebit extends foxbit {}
     export class cobinhood extends Exchange {}
     export class coinbase extends Exchange {}
@@ -393,7 +388,6 @@ declare module 'ccxt' {
     export class coingi extends Exchange {}
     export class coinmarketcap extends Exchange {}
     export class coinmate extends Exchange {}
-    export class coinnest extends Exchange {}
     export class coinone extends Exchange {}
     export class coinspot extends Exchange {}
     export class cointiger extends huobipro {}
@@ -412,7 +406,6 @@ declare module 'ccxt' {
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
     export class fybse extends Exchange {}
-    export class fybsg extends fybse {}
     export class gateio extends Exchange {}
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
@@ -458,7 +451,6 @@ declare module 'ccxt' {
     export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
     export class upbit extends Exchange {}
-    export class urdubit extends foxbit {}
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}
     export class virwox extends Exchange {}

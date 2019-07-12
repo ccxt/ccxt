@@ -148,8 +148,8 @@ class tidebit extends Exchange {
             $id = $this->safe_string($market, 'id');
             $symbol = $this->safe_string($market, 'name');
             list($baseId, $quoteId) = explode('/', $symbol);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -175,7 +175,7 @@ class tidebit extends Exchange {
             if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
                 $code = $this->currencies_by_id[$currencyId]['code'];
             } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
+                $code = $this->safe_currency_code(strtoupper($currencyId));
             }
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'balance');
@@ -253,10 +253,8 @@ class tidebit extends Exchange {
             } else {
                 $baseId = mb_substr($id, 0, 3 - 0);
                 $quoteId = mb_substr($id, 3, 6 - 3);
-                $base = strtoupper($baseId);
-                $quote = strtoupper($quoteId);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
             $ticker = $tickers[$id];
@@ -340,6 +338,9 @@ class tidebit extends Exchange {
             $request['timestamp'] = 1800000;
         }
         $response = $this->publicGetK (array_merge ($request, $params));
+        if ($response === 'null') {
+            return array();
+        }
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
