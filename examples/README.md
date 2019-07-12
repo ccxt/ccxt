@@ -97,6 +97,10 @@ php -f path/to/example.php # substitute for actual filename here
 
 [如何学习CCXT框架，CCXT框架的使用以及修改交易所的API设置。 讲解如何学习CCXT框架，如何修改和设置CCXT框架中交易所实例的内容设置， 如何获取Tick和行情数据等。](https://www.youtube.com/watch?v=sj8g3gz0k24) – A video on getting started with CCXT and working with market data.
 
+[第二十课：如何使用CCXT框架获取交易所账户信息，下单和查询订单等私有API接口的调用， 以及如何处理交易所返回的数据](https://www.youtube.com/watch?v=GF0uVVIMbn8) – A video on working with private data in CCXT.
+
+[第21课：如何开微信交易所下单机器人以及如何修改CCXT火币交易所api设置等问题解答](https://www.youtube.com/watch?v=ezeOX3-ZzUc) – A video explaining how to write a WeChat bot and how to configure CCXT.
+
 [Python数字货币量化交易开发入门视频-利用CCXT获取bitmex交易所的行情数据](https://www.bilibili.com/video/av44339579/) – A video in Chinese on how to get started with CCXT in Python and a tutorial on OHLCV + Pandas export to CSV.
 
 [BitMEX自動売買Bot「MANA 1.0.1」の全て](https://note.mu/moycoin/n/n6f585ea854d4) – An example of automatic BitMEX Bot MANA 1.0.1.
