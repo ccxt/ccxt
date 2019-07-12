@@ -113,7 +113,6 @@ class Exchange {
         'btcalpha',
         'btcbox',
         'btcchina',
-        'btcexchange',
         'btcmarkets',
         'btctradeim',
         'btctradeua',
