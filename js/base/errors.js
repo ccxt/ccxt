@@ -17,7 +17,7 @@ function subclass (BaseClass, classes, namespace = {}) {
 
             [className]: class extends BaseClass {
 
-                constructor (message, exchangeId = undefined,  httpMethod = undefined, httpCode = undefined, httpStatusText = undefined, url = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
+                constructor (message, exchangeId = undefined, httpMethod = undefined, httpCode = undefined, httpStatusText = undefined, url = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
                     super (message)
 
                 /*  A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
