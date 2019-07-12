@@ -479,7 +479,7 @@ class mercado extends Exchange {
         $this->load_markets();
         $market = $this->market ($symbol);
         $request = array (
-            'coin_pair' => $market['base'],
+            'coin_pair' => $market['id'],
         );
         $response = $this->privatePostListOrders (array_merge ($request, $params));
         $responseData = $this->safe_value($response, 'response_data', array());

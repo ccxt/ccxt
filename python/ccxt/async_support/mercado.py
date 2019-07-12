@@ -440,7 +440,7 @@ class mercado (Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'coin_pair': market['base'],
+            'coin_pair': market['id'],
         }
         response = await self.privatePostListOrders(self.extend(request, params))
         responseData = self.safe_value(response, 'response_data', {})
