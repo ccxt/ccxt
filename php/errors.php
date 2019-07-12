@@ -3,7 +3,6 @@
 namespace ccxt;
 
 use Exception;
-use Throwable;
 
 $error_hierarchy = array (
     'BaseError' => array (
@@ -59,20 +58,20 @@ class BaseError extends Exception {
     public $responseBody;
     public $responseJson;
 
-    public function __construct($message = "", $exchangeId = null, $httpCode = null, $httpStatusText = null, $url = null, $httpMethod = null, $responseHeaders = null, $responseBody = null, $responseJson = null) {
+    public function __construct($message = "", $exchangeId = null, $httpMethod = null, $httpCode = null, $httpStatusText = null, $url = null, $responseHeaders = null, $responseBody = null, $responseJson = null) {
         parent::__construct($message, 0, null);
         $this->exchangeId = $exchangeId;
+        $this->httpMethod = $httpMethod;
         $this->httpCode = $httpCode;
         $this->httpStatusText = $httpStatusText;
         $this->url = $url;
-        $this->httpMethod = $httpMethod;
         $this->responseHeaders = $responseHeaders;
         $this->responseBody = $responseBody;
         $this->responseJson = $responseJson;
     }
 
     public function __toString() {
-        return implode(' ', array_filter(array($this->exchangeId, $this->url, $this->httpCode, $this->httpStatusText, $this->getMessage()), 'is_string'));
+        return implode(' ', array_map('strval', array_filter(array(get_class($this) . ':', $this->exchangeId, $this->httpMethod, $this->url, $this->httpCode, $this->httpStatusText, $this->getMessage()), function ($x) { return !is_null($x); })));
     }
 
     public function __get($name) {

@@ -22,7 +22,6 @@ from ccxt.base.errors import InvalidAddress
 from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
 from ccxt.base.decimal_to_precision import number_to_string
-from ccxt.base import functions
 
 # -----------------------------------------------------------------------------
 
@@ -45,7 +44,6 @@ __all__ = [
 import types
 import logging
 import base64
-import inspect
 import calendar
 import collections
 import datetime
@@ -57,6 +55,7 @@ import hmac
 import io
 import json
 import math
+from numbers import Number
 import re
 from requests import Session
 from requests.utils import default_user_agent
@@ -65,6 +64,7 @@ from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestExc
 from ssl import SSLError
 # import sys
 import time
+import uuid
 import zlib
 from decimal import Decimal
 
@@ -82,6 +82,12 @@ except NameError:
 
 # -----------------------------------------------------------------------------
 
+try:
+    import urllib.parse as _urlencode    # Python 3
+except ImportError:
+    import urllib as _urlencode          # Python 2
+
+# -----------------------------------------------------------------------------
 # web3/0x imports
 
 try:
@@ -296,11 +302,6 @@ class Exchange(object):
         'BCHSV': 'BSV',
     }
 
-    # assign all functions as staticmethod descriptors
-    # classattr = staticmethod(function) is the same as @staticmethod; def function(self):
-    for name, function in inspect.getmembers(functions, inspect.isfunction):
-        locals()[name] = staticmethod(function)
-
     def __init__(self, config={}):
 
         self.precision = dict() if self.precision is None else self.precision
@@ -343,7 +344,8 @@ class Exchange(object):
         cls = type(self)
         for name in dir(self):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
-                camelcase = self.to_camelcase(name)
+                parts = name.split('_')
+                camelcase = parts[0] + ''.join(self.capitalize(i) for i in parts[1:])
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
                     setattr(cls, camelcase, getattr(cls, name))
@@ -589,6 +591,392 @@ class Exchange(object):
             pass
 
     @staticmethod
+    def safe_float(dictionary, key, default_value=None):
+        value = default_value
+        try:
+            if isinstance(dictionary, list) and isinstance(key, int) and len(dictionary) > key:
+                value = float(dictionary[key])
+            else:
+                value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
+        except ValueError as e:
+            value = default_value
+        return value
+
+    @staticmethod
+    def safe_string(dictionary, key, default_value=None):
+        return str(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+
+    @staticmethod
+    def safe_integer(dictionary, key, default_value=None):
+        if key is None or (key not in dictionary):
+            return default_value
+        value = dictionary[key]
+        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
+            return int(value)
+        return default_value
+
+    @staticmethod
+    def safe_value(dictionary, key, default_value=None):
+        return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+
+    # we're not using safe_floats with a list argument as we're trying to save some cycles here
+    # we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
+
+    @staticmethod
+    def safe_float_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(Exchange.safe_float, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_string_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(Exchange.safe_string, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_integer_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(Exchange.safe_integer, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_value_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(Exchange.safe_value, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_either(method, dictionary, key1, key2, default_value=None):
+        """A helper-wrapper for the safe_value_2() family."""
+        value = method(dictionary, key1)
+        return value if value is not None else method(dictionary, key2, default_value)
+
+    @staticmethod
+    def truncate(num, precision=0):
+        """Deprecated, use decimal_to_precision instead"""
+        if precision > 0:
+            decimal_precision = math.pow(10, precision)
+            return math.trunc(num * decimal_precision) / decimal_precision
+        return int(Exchange.truncate_to_string(num, precision))
+
+    @staticmethod
+    def truncate_to_string(num, precision=0):
+        """Deprecated, todo: remove references from subclasses"""
+        if precision > 0:
+            parts = ('{0:.%df}' % precision).format(Decimal(num)).split('.')
+            decimal_digits = parts[1][:precision].rstrip('0')
+            decimal_digits = decimal_digits if len(decimal_digits) else '0'
+            return parts[0] + '.' + decimal_digits
+        return ('%d' % num)
+
+    @staticmethod
+    def uuid():
+        return str(uuid.uuid4())
+
+    @staticmethod
+    def capitalize(string):  # first character only, rest characters unchanged
+        # the native pythonic .capitalize() method lowercases all other characters
+        # which is an unwanted behaviour, therefore we use this custom implementation
+        # check it yourself: print('foobar'.capitalize(), 'fooBar'.capitalize())
+        if len(string) > 1:
+            return "%s%s" % (string[0].upper(), string[1:])
+        return string.upper()
+
+    @staticmethod
+    def keysort(dictionary):
+        return collections.OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
+
+    @staticmethod
+    def extend(*args):
+        if args is not None:
+            result = None
+            if type(args[0]) is collections.OrderedDict:
+                result = collections.OrderedDict()
+            else:
+                result = {}
+            for arg in args:
+                result.update(arg)
+            return result
+        return {}
+
+    @staticmethod
+    def deep_extend(*args):
+        result = None
+        for arg in args:
+            if isinstance(arg, dict):
+                if not isinstance(result, dict):
+                    result = {}
+                for key in arg:
+                    result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+            else:
+                result = arg
+        return result
+
+    @staticmethod
+    def filter_by(array, key, value=None):
+        if value:
+            grouped = Exchange.group_by(array, key)
+            if value in grouped:
+                return grouped[value]
+            return []
+        return array
+
+    @staticmethod
+    def filterBy(self, array, key, value=None):
+        return Exchange.filter_by(array, key, value)
+
+    @staticmethod
+    def group_by(array, key):
+        result = {}
+        array = Exchange.to_array(array)
+        array = [entry for entry in array if (key in entry) and (entry[key] is not None)]
+        for entry in array:
+            if entry[key] not in result:
+                result[entry[key]] = []
+            result[entry[key]].append(entry)
+        return result
+
+    @staticmethod
+    def groupBy(array, key):
+        return Exchange.group_by(array, key)
+
+    @staticmethod
+    def index_by(array, key):
+        result = {}
+        if type(array) is dict:
+            array = Exchange.keysort(array).values()
+        for element in array:
+            if (key in element) and (element[key] is not None):
+                k = element[key]
+                result[k] = element
+        return result
+
+    @staticmethod
+    def sort_by(array, key, descending=False):
+        return sorted(array, key=lambda k: k[key] if k[key] is not None else "", reverse=descending)
+
+    @staticmethod
+    def array_concat(a, b):
+        return a + b
+
+    @staticmethod
+    def in_array(needle, haystack):
+        return needle in haystack
+
+    @staticmethod
+    def is_empty(object):
+        return not object
+
+    @staticmethod
+    def extract_params(string):
+        return re.findall(r'{([\w-]+)}', string)
+
+    @staticmethod
+    def implode_params(string, params):
+        if isinstance(params, dict):
+            for key in params:
+                if not isinstance(params[key], list):
+                    string = string.replace('{' + key + '}', str(params[key]))
+        return string
+
+    @staticmethod
+    def url(path, params={}):
+        result = Exchange.implode_params(path, params)
+        query = Exchange.omit(params, Exchange.extract_params(path))
+        if query:
+            result += '?' + _urlencode.urlencode(query)
+        return result
+
+    @staticmethod
+    def urlencode(params={}):
+        if (type(params) is dict) or isinstance(params, collections.OrderedDict):
+            return _urlencode.urlencode(params)
+        return params
+
+    @staticmethod
+    def rawencode(params={}):
+        return _urlencode.unquote(Exchange.urlencode(params))
+
+    @staticmethod
+    def encode_uri_component(uri):
+        return _urlencode.quote(uri, safe="~()*!.'")
+
+    @staticmethod
+    def omit(d, *args):
+        if isinstance(d, dict):
+            result = d.copy()
+            for arg in args:
+                if type(arg) is list:
+                    for key in arg:
+                        if key in result:
+                            del result[key]
+                else:
+                    if arg in result:
+                        del result[arg]
+            return result
+        return d
+
+    @staticmethod
+    def unique(array):
+        return list(set(array))
+
+    @staticmethod
+    def pluck(array, key):
+        return [
+            element[key]
+            for element in array
+            if (key in element) and (element[key] is not None)
+        ]
+
+    @staticmethod
+    def sum(*args):
+        return sum([arg for arg in args if isinstance(arg, (float, int))])
+
+    @staticmethod
+    def ordered(array):
+        return collections.OrderedDict(array)
+
+    @staticmethod
+    def aggregate(bidasks):
+        ordered = Exchange.ordered({})
+        for [price, volume] in bidasks:
+            if volume > 0:
+                ordered[price] = (ordered[price] if price in ordered else 0) + volume
+        result = []
+        items = list(ordered.items())
+        for price, volume in items:
+            result.append([price, volume])
+        return result
+
+    @staticmethod
+    def sec():
+        return Exchange.seconds()
+
+    @staticmethod
+    def msec():
+        return Exchange.milliseconds()
+
+    @staticmethod
+    def usec():
+        return Exchange.microseconds()
+
+    @staticmethod
+    def seconds():
+        return int(time.time())
+
+    @staticmethod
+    def milliseconds():
+        return int(time.time() * 1000)
+
+    @staticmethod
+    def microseconds():
+        return int(time.time() * 1000000)
+
+    @staticmethod
+    def iso8601(timestamp=None):
+        if timestamp is None:
+            return timestamp
+        if not isinstance(timestamp, (int, long)):
+            return None
+        if int(timestamp) < 0:
+            return None
+
+        try:
+            utc = datetime.datetime.utcfromtimestamp(timestamp // 1000)
+            return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
+        except (TypeError, OverflowError, OSError):
+            return None
+
+    @staticmethod
+    def dmy(timestamp, infix='-'):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
+
+    @staticmethod
+    def ymd(timestamp, infix='-'):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%Y' + infix + '%m' + infix + '%d')
+
+    @staticmethod
+    def ymdhms(timestamp, infix=' '):
+        utc_datetime = datetime.datetime.utcfromtimestamp(int(round(timestamp / 1000)))
+        return utc_datetime.strftime('%Y-%m-%d' + infix + '%H:%M:%S')
+
+    @staticmethod
+    def parse_date(timestamp=None):
+        if timestamp is None:
+            return timestamp
+        if not isinstance(timestamp, str):
+            return None
+        if 'GMT' in timestamp:
+            try:
+                string = ''.join([str(value) for value in parsedate(timestamp)[:6]]) + '.000Z'
+                dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+                return calendar.timegm(dt.utctimetuple()) * 1000
+            except (TypeError, OverflowError, OSError):
+                return None
+        else:
+            return Exchange.parse8601(timestamp)
+
+    @staticmethod
+    def parse8601(timestamp=None):
+        if timestamp is None:
+            return timestamp
+        yyyy = '([0-9]{4})-?'
+        mm = '([0-9]{2})-?'
+        dd = '([0-9]{2})(?:T|[\\s])?'
+        h = '([0-9]{2}):?'
+        m = '([0-9]{2}):?'
+        s = '([0-9]{2})'
+        ms = '(\\.[0-9]{1,3})?'
+        tz = '(?:(\\+|\\-)([0-9]{2})\\:?([0-9]{2})|Z)?'
+        regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
+        try:
+            match = re.search(regex, timestamp, re.IGNORECASE)
+            if match is None:
+                return None
+            yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
+            ms = ms or '.000'
+            msint = int(ms[1:])
+            sign = sign or ''
+            sign = int(sign + '1') * -1
+            hours = int(hours or 0) * sign
+            minutes = int(minutes or 0) * sign
+            offset = datetime.timedelta(hours=hours, minutes=minutes)
+            string = yyyy + mm + dd + h + m + s + ms + 'Z'
+            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
+            dt = dt + offset
+            return calendar.timegm(dt.utctimetuple()) * 1000 + msint
+        except (TypeError, OverflowError, OSError, ValueError):
+            return None
+
+    @staticmethod
+    def hash(request, algorithm='md5', digest='hex'):
+        h = hashlib.new(algorithm, request)
+        if digest == 'hex':
+            return h.hexdigest()
+        elif digest == 'base64':
+            return base64.b64encode(h.digest())
+        return h.digest()
+
+    @staticmethod
+    def hmac(request, secret, algorithm=hashlib.sha256, digest='hex'):
+        h = hmac.new(secret, request, algorithm)
+        if digest == 'hex':
+            return h.hexdigest()
+        elif digest == 'base64':
+            return base64.b64encode(h.digest())
+        return h.digest()
+
+    @staticmethod
+    def binary_concat(*args):
+        result = bytes()
+        for arg in args:
+            result = result + arg
+        return result
+
+    @staticmethod
+    def base64urlencode(s):
+        return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
+
+    @staticmethod
+    def binary_to_base64(s):
+        return Exchange.decode(base64.standard_b64encode(s))
+
+    @staticmethod
     def jwt(request, secret, alg='HS256'):
         algos = {
             'HS256': hashlib.sha256,
@@ -620,8 +1008,34 @@ class Exchange(object):
         priv_key = load_pem_private_key(secret, None, backends.default_backend())
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
+    @staticmethod
+    def unjson(input):
+        return json.loads(input)
+
+    @staticmethod
+    def json(data, params=None):
+        return json.dumps(data, separators=(',', ':'))
+
+    @staticmethod
+    def is_json_encoded_object(input):
+        return (isinstance(input, basestring) and
+                (len(input) >= 2) and
+                ((input[0] == '{') or (input[0] == '[')))
+
+    @staticmethod
+    def encode(string):
+        return string.encode()
+
+    @staticmethod
+    def decode(string):
+        return string.decode()
+
+    @staticmethod
+    def to_array(value):
+        return list(value.values()) if type(value) is dict else value
+
     def nonce(self):
-        return self.seconds()
+        return Exchange.seconds()
 
     def check_required_credentials(self, error=True):
         keys = list(self.requiredCredentials.keys())
