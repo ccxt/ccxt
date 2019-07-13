@@ -327,24 +327,15 @@ class bittrex extends Exchange {
         $balances = $this->safe_value($response, 'result');
         $result = array( 'info' => $balances );
         $indexed = $this->index_by($balances, 'Currency');
-        $keys = is_array($indexed) ? array_keys($indexed) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
-            $id = $keys[$i];
-            $currency = $this->safe_currency_code($id);
+        $currencyIds = is_array($indexed) ? array_keys($indexed) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            $balance = $indexed[$id];
-            $free = $this->safe_float($balance, 'Available', 0);
-            $total = $this->safe_float($balance, 'Balance', 0);
-            $used = null;
-            if ($total !== null) {
-                if ($free !== null) {
-                    $used = $total - $free;
-                }
-            }
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $account['total'] = $total;
-            $result[$currency] = $account;
+            $balance = $indexed[$currencyId];
+            $account['free'] = $this->safe_float($balance, 'Available');
+            $account['total'] = $this->safe_float($balance, 'Balance');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

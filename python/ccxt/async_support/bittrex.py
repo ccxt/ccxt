@@ -339,22 +339,15 @@ class bittrex (Exchange):
         balances = self.safe_value(response, 'result')
         result = {'info': balances}
         indexed = self.index_by(balances, 'Currency')
-        keys = list(indexed.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            currency = self.safe_currency_code(id)
+        currencyIds = list(indexed.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            balance = indexed[id]
-            free = self.safe_float(balance, 'Available', 0)
-            total = self.safe_float(balance, 'Balance', 0)
-            used = None
-            if total is not None:
-                if free is not None:
-                    used = total - free
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
-            result[currency] = account
+            balance = indexed[currencyId]
+            account['free'] = self.safe_float(balance, 'Available')
+            account['total'] = self.safe_float(balance, 'Balance')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
