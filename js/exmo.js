@@ -596,17 +596,18 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostUserInfo (params);
         const result = { 'info': response };
-        const currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currencyId = this.currencyId (code);
             const account = this.account ();
-            if (currency in response['balances']) {
-                account['free'] = this.safeFloat (response['balances'], currency);
+            if (currencyId in response['balances']) {
+                account['free'] = this.safeFloat (response['balances'], currencyId);
             }
-            if (currency in response['reserved']) {
-                account['used'] = this.safeFloat (response['reserved'], currency);
+            if (currencyId in response['reserved']) {
+                account['used'] = this.safeFloat (response['reserved'], currencyId);
             }
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
