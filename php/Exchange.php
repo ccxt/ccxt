@@ -155,7 +155,6 @@ class Exchange {
         'gateio',
         'gdax',
         'gemini',
-        'hadax',
         'hitbtc',
         'hitbtc2',
         'huobipro',
