@@ -163,8 +163,11 @@ class coingi (Exchange):
             currencyId = self.safe_string(balance['currency'], 'name')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = balance['available']
-            account['used'] = balance['blocked'] + balance['inOrders'] + balance['withdrawing']
+            account['free'] = self.safe_float(balance, 'available')
+            blocked = self.safe_float(balance, 'blocked')
+            inOrders = self.safe_float(balance, 'inOrders')
+            withdrawing = self.safe_float(balance, 'withdrawing')
+            account['used'] = self.sum(blocked, inOrders, withdrawing)
             result[code] = account
         return self.parse_balance(result)
 

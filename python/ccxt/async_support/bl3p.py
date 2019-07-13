@@ -82,9 +82,6 @@ class bl3p (Exchange):
             account = self.account()
             account['free'] = self.safe_float(available, 'value')
             account['total'] = self.safe_float(balance, 'value')
-            if account['total']:
-                if account['free']:
-                    account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
 
