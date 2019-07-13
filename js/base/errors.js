@@ -1,6 +1,7 @@
 'use strict';
 
 const errorHierarchy = require ('./errorHierarchy.js')
+const { unCamelCase } = require ('./functions')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -38,6 +39,16 @@ function subclass (BaseClass, classes, namespace = {}) {
                     this.responseHeaders = responseHeaders
                     this.responseBody = responseBody
                     this.responseJson = responseJson
+
+                    for (const property of Object.getOwnPropertyNames (this)) {
+                        const underscore = unCamelCase (property)
+                        if (underscore !== property) {
+                            Object.defineProperty (this, unCamelCase (property), {
+                                get () { return this[property] },
+                                set (value) { this[property] = value }
+                            })
+                        }
+                    }
                 }
             }
 
