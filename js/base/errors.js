@@ -40,13 +40,15 @@ function subclass (BaseClass, classes, namespace = {}) {
                     this.responseBody = responseBody
                     this.responseJson = responseJson
 
-                    for (const property of Object.getOwnPropertyNames (this)) {
-                        const underscore = unCamelCase (property)
-                        if (underscore !== property && !this.hasOwnProperty (underscore)) {
-                            Object.defineProperty (this, underscore, {
-                                get () { return this[property] },
-                                set (value) { this[property] = value }
-                            })
+                    if (this.name === 'BaseError') {
+                        for (const property of Object.getOwnPropertyNames (this)) {
+                            const underscore = unCamelCase (property)
+                            if (underscore !== property) {
+                                Object.defineProperty (this, underscore, {
+                                    get () { return this[property] },
+                                    set (value) { this[property] = value }
+                                })
+                            }
                         }
                     }
                 }
