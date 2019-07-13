@@ -56,11 +56,8 @@ class kraken extends Exchange {
                     'zendesk' => 'https://support.kraken.com/hc/en-us/articles/',
                 ),
                 'www' => 'https://www.kraken.com',
-                'doc' => array (
-                    'https://www.kraken.com/en-us/help/api',
-                    'https://github.com/nothingisdead/npm-kraken-api',
-                ),
-                'fees' => 'https://www.kraken.com/en-us/help/fees',
+                'doc' => 'https://www.kraken.com/features/api',
+                'fees' => 'https://www.kraken.com/en-us/features/fee-schedule',
             ),
             'fees' => array (
                 'trading' => array (
