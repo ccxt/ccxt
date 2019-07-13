@@ -59,17 +59,11 @@ class fybse (Exchange):
         quote = self.markets[symbol]['quote']
         lowercase = quote.lower() + 'Bal'
         fiat = self.safe_float(response, lowercase)
-        crypto = {
-            'free': btc,
-            'used': 0.0,
-            'total': btc,
-        }
+        crypto = self.account()
+        crypto['total'] = btc
         result = {'BTC': crypto}
-        result[quote] = {
-            'free': fiat,
-            'used': 0.0,
-            'total': fiat,
-        }
+        result[quote] = self.account()
+        result[quote]['total'] = fiat
         result['info'] = response
         return self.parse_balance(result)
 

@@ -79,14 +79,21 @@ class foxbit extends Exchange {
             $currencyIds = is_array($this->currencies_by_id) ? array_keys($this->currencies_by_id) : array();
             for ($i = 0; $i < count ($currencyIds); $i++) {
                 $currencyId = $currencyIds[$i];
-                $currency = $this->currencies_by_id[$currencyId];
-                $code = $currency['code'];
-                // we only set the balance for the $currency if that $currency is present in $response
-                // otherwise we will lose the info if the $currency balance has been funded or traded or not
+                $code = $this->safe_currency_code($currencyId);
+                // we only set the balance for the currency if that currency is present in $response
+                // otherwise we will lose the info if the currency balance has been funded or traded or not
                 if (is_array($balances) && array_key_exists($currencyId, $balances)) {
                     $account = $this->account ();
-                    $account['used'] = floatval ($balances[$currencyId . '_locked']) * 1e-8;
-                    $account['total'] = floatval ($balances[$currencyId]) * 1e-8;
+                    $used = $this->safe_float($balances, $currencyId . '_locked');
+                    if ($used !== null) {
+                        $used *= 1e-8;
+                    }
+                    $total = $this->safe_float($balances, $currencyId);
+                    if ($total !== null) {
+                        $total *= 1e-8;
+                    }
+                    $account['used'] = $used;
+                    $account['total'] = $total;
                     $result[$code] = $account;
                 }
             }
