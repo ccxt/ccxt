@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.928'
+__version__ = '1.18.929'
 
 # ----------------------------------------------------------------------------
 
@@ -139,7 +139,6 @@ from ccxt.fybse import fybse                                # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
 from ccxt.gdax import gdax                                  # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
-from ccxt.hadax import hadax                                # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
@@ -264,7 +263,6 @@ exchanges = [
     'gateio',
     'gdax',
     'gemini',
-    'hadax',
     'hitbtc',
     'hitbtc2',
     'huobipro',
