@@ -999,7 +999,7 @@ module.exports = class coinbase extends Exchange {
         }
     }
 
-    prepareAccountRequest (limit, params) {
+    prepareAccountRequest (symbol, limit, params) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         const request = {
             'account_id': accountId,
