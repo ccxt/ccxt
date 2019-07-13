@@ -109,8 +109,8 @@ module.exports = class coss extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.0020,
-                    'maker': 0.0014,
+                    'taker': 0.0025,
+                    'maker': 0.0,
                 },
                 'funding': {
                     'tierBased': false,
