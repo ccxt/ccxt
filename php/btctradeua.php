@@ -94,17 +94,14 @@ class btctradeua extends Exchange {
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         $result = array( 'info' => $response );
-        $accounts = $this->safe_value($response, 'accounts');
-        for ($i = 0; $i < count ($accounts); $i++) {
-            $account = $accounts[$i];
-            $currencyId = $account['currency'];
+        $balances = $this->safe_value($response, 'accounts');
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $balance = $this->safe_float($account, 'balance');
-            $result[$code] = array (
-                'free' => $balance,
-                'used' => 0.0,
-                'total' => $balance,
-            );
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

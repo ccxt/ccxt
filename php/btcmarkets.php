@@ -269,14 +269,17 @@ class btcmarkets extends Exchange {
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $multiplier = 100000000;
-            $total = $this->safe_float($balance, 'balance') / $multiplier;
-            $used = $this->safe_float($balance, 'pendingFunds') / $multiplier;
-            $free = $total - $used;
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $total = $this->safe_float($balance, 'balance');
+            if ($total !== null) {
+                $total /= $multiplier;
+            }
+            $used = $this->safe_float($balance, 'pendingFunds');
+            if ($used !== null) {
+                $used /= $multiplier;
+            }
+            $account = $this->account ();
+            $account['used'] = $used;
+            $account['total'] = $total;
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
