@@ -382,17 +382,9 @@ class bigone extends Exchange {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset_id');
             $code = $this->safe_currency_code($currencyId);
-            $total = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'locked_balance');
-            $free = null;
-            if ($total !== null && $used !== null) {
-                $free = $total - $used;
-            }
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'locked_balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

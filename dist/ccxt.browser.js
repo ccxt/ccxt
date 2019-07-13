@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.932'
+const version = '1.18.933'
 
 Exchange.ccxtVersion = version
 
@@ -7257,17 +7257,9 @@ module.exports = class bigone extends Exchange {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'asset_id');
             const code = this.safeCurrencyCode (currencyId);
-            const total = this.safeFloat (balance, 'balance');
-            const used = this.safeFloat (balance, 'locked_balance');
-            let free = undefined;
-            if (total !== undefined && used !== undefined) {
-                free = total - used;
-            }
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'locked_balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -9688,11 +9680,8 @@ module.exports = class bitbank extends Exchange {
         const balances = response['data']['assets'];
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const id = balance['asset'];
-            let code = id;
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
-            }
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
             const account = {
                 'free': this.safeFloat (balance, 'free_amount'),
                 'used': this.safeFloat (balance, 'locked_amount'),
