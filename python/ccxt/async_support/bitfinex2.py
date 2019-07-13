@@ -284,6 +284,8 @@ class bitfinex2 (bitfinex):
                     currency = currency[1:]
                 code = self.safe_currency_code(currency)
                 account = self.account()
+                # do not fill in zeroes and missing values in the parser
+                # rewrite and unify the following to use the unified parseBalance
                 account['total'] = total
                 if not available:
                     if available == 0:
