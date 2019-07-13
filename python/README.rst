@@ -45,7 +45,7 @@ Certified Cryptocurrency Exchanges
 +-------------------------------------------------------------------------+----------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `coss <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                       | coss     | `COSS <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                       | 1   | `API <https://api.coss.io/v1/spec>`__                                                           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------+----------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `kraken <https://www.kraken.com>`__                                     | kraken   | `Kraken <https://www.kraken.com>`__                                     | 0   | `API <https://www.kraken.com/en-us/help/api>`__                                                 | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
+| `kraken <https://www.kraken.com>`__                                     | kraken   | `Kraken <https://www.kraken.com>`__                                     | 0   | `API <https://www.kraken.com/features/api>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------+----------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `kucoin <https://www.kucoin.com/?rcode=E5wkqe>`__                       | kucoin   | `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__                       | 2   | `API <https://docs.kucoin.com>`__                                                               | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------+----------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -230,7 +230,7 @@ The ccxt library currently supports the following 122 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | kkex               | `KKEX <https://kkex.com>`__                                                                | 2   | `API <https://kkex.com/api_wiki/cn/>`__                                                         |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| kraken             | `Kraken <https://www.kraken.com>`__                                                        | 0   | `API <https://www.kraken.com/en-us/help/api>`__                                                 | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
+| kraken             | `Kraken <https://www.kraken.com>`__                                                        | 0   | `API <https://www.kraken.com/features/api>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | kucoin             | `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__                                          | 2   | `API <https://docs.kucoin.com>`__                                                               | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -356,14 +356,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.930/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.930/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.931/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.931/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.930/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.931/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
