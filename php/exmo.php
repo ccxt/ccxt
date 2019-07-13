@@ -597,17 +597,18 @@ class exmo extends Exchange {
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
         $result = array( 'info' => $response );
-        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currencyId = $this->currencyId ($code);
             $account = $this->account ();
-            if (is_array($response['balances']) && array_key_exists($currency, $response['balances'])) {
-                $account['free'] = $this->safe_float($response['balances'], $currency);
+            if (is_array($response['balances']) && array_key_exists($currencyId, $response['balances'])) {
+                $account['free'] = $this->safe_float($response['balances'], $currencyId);
             }
-            if (is_array($response['reserved']) && array_key_exists($currency, $response['reserved'])) {
-                $account['used'] = $this->safe_float($response['reserved'], $currency);
+            if (is_array($response['reserved']) && array_key_exists($currencyId, $response['reserved'])) {
+                $account['used'] = $this->safe_float($response['reserved'], $currencyId);
             }
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

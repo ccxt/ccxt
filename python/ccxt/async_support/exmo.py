@@ -592,15 +592,16 @@ class exmo (Exchange):
         await self.load_markets()
         response = await self.privatePostUserInfo(params)
         result = {'info': response}
-        currencies = list(self.currencies.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
+        codes = list(self.currencies.keys())
+        for i in range(0, len(codes)):
+            code = codes[i]
+            currencyId = self.currencyId(code)
             account = self.account()
-            if currency in response['balances']:
-                account['free'] = self.safe_float(response['balances'], currency)
-            if currency in response['reserved']:
-                account['used'] = self.safe_float(response['reserved'], currency)
-            result[currency] = account
+            if currencyId in response['balances']:
+                account['free'] = self.safe_float(response['balances'], currencyId)
+            if currencyId in response['reserved']:
+                account['used'] = self.safe_float(response['reserved'], currencyId)
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
