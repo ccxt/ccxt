@@ -43,7 +43,7 @@ function subclass (BaseClass, classes, namespace = {}) {
                     for (const property of Object.getOwnPropertyNames (this)) {
                         const underscore = unCamelCase (property)
                         if (underscore !== property) {
-                            Object.defineProperty (this, unCamelCase (property), {
+                            Object.defineProperty (this, underscore, {
                                 get () { return this[property] },
                                 set (value) { this[property] = value }
                             })
