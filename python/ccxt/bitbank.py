@@ -257,10 +257,8 @@ class bitbank (Exchange):
         balances = response['data']['assets']
         for i in range(0, len(balances)):
             balance = balances[i]
-            id = balance['asset']
-            code = id
-            if id in self.currencies_by_id:
-                code = self.currencies_by_id[id]['code']
+            currencyId = self.safe_string(balance, 'asset')
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'free_amount'),
                 'used': self.safe_float(balance, 'locked_amount'),

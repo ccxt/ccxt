@@ -367,16 +367,9 @@ class bigone (Exchange):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset_id')
             code = self.safe_currency_code(currencyId)
-            total = self.safe_float(balance, 'balance')
-            used = self.safe_float(balance, 'locked_balance')
-            free = None
-            if total is not None and used is not None:
-                free = total - used
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'locked_balance')
             result[code] = account
         return self.parse_balance(result)
 
