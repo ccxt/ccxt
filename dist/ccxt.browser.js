@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.936'
+const version = '1.18.937'
 
 Exchange.ccxtVersion = version
 
@@ -32750,19 +32750,14 @@ module.exports = class coinone extends Exchange {
             'result',
             'normalWallets',
         ]);
-        const ids = Object.keys (balances);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const balance = balances[id];
-            const code = this.safeCurrencyCode (id);
-            const free = this.safeFloat (balance, 'avail');
-            const total = this.safeFloat (balance, 'balance');
-            const used = total - free;
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const balance = balances[currencyId];
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'avail');
+            account['total'] = this.safeFloat (balance, 'balance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -33216,12 +33211,8 @@ module.exports = class coinspot extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            const total = this.safeFloat (balances, currencyId);
-            const account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
-            };
+            const account = this.account ();
+            account['total'] = this.safeFloat (balances, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -33809,12 +33800,7 @@ module.exports = class cointiger extends huobipro {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'coin');
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = currencyId.toUpperCase ();
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['used'] = this.safeFloat (balance, 'lock');
             account['free'] = this.safeFloat (balance, 'normal');
@@ -36654,16 +36640,16 @@ module.exports = class crypton extends Exchange {
         await this.loadMarkets ();
         const balances = await this.privateGetBalances (params);
         const result = { 'info': balances };
-        const keys = Object.keys (balances);
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const currency = this.safeCurrencyCode (id);
+        const currencyIds = Object.keys (balances);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const balance = balances[id];
+            const balance = balances[currencyId];
             account['total'] = this.safeFloat (balance, 'total');
             account['free'] = this.safeFloat (balance, 'free');
             account['used'] = this.safeFloat (balance, 'locked');
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

@@ -74,12 +74,8 @@ class coinspot (Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
-            total = self.safe_float(balances, currencyId)
-            account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
-            }
+            account = self.account()
+            account['total'] = self.safe_float(balances, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
