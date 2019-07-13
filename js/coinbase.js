@@ -288,7 +288,7 @@ module.exports = class coinbase extends Exchange {
 
     async fetchMySells (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // they don't have an endpoint for all historical trades
-        const request = await this.prepareAccountRequest (symbol, limit, params);
+        const request = await this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const sells = await this.privateGetAccountsAccountIdSells (this.extend (request, query));
@@ -297,7 +297,7 @@ module.exports = class coinbase extends Exchange {
 
     async fetchMyBuys (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // they don't have an endpoint for all historical trades
-        const request = await this.prepareAccountRequest (symbol, limit, params);
+        const request = await this.prepareAccountRequest (limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const buys = await this.privateGetAccountsAccountIdBuys (this.extend (request, query));
@@ -999,7 +999,7 @@ module.exports = class coinbase extends Exchange {
         }
     }
 
-    prepareAccountRequest (symbol, limit, params) {
+    prepareAccountRequest (limit = undefined, params = {}) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
         const request = {
             'account_id': accountId,
@@ -1010,11 +1010,11 @@ module.exports = class coinbase extends Exchange {
         return request;
     }
 
-    async prepareAccountRequestWithCurrencyCode (code, limit, params) {
+    async prepareAccountRequestWithCurrencyCode (code = undefined, limit = undefined, params = {}) {
         const request = this.prepareAccountRequest (limit, params);
         if (request['account_id'] === undefined) {
             if (code === undefined) {
-                throw new ArgumentsRequired (this.id + ' method requires an account_id (or accountId) parameter OR a currency code');
+                throw new ArgumentsRequired (this.id + ' method requires an account_id (or accountId) parameter OR a currency code argument');
             }
             const accountId = await this.findAccountId (code);
             if (accountId === undefined) {
