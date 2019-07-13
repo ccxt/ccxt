@@ -287,6 +287,8 @@ class bitfinex2 extends bitfinex {
                 }
                 $code = $this->safe_currency_code($currency);
                 $account = $this->account ();
+                // do not fill in zeroes and missing values in the parser
+                // rewrite and unify the following to use the unified parseBalance
                 $account['total'] = $total;
                 if (!$available) {
                     if ($available === 0) {

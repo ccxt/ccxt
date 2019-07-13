@@ -260,6 +260,7 @@ class bitbay extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($codes); $i++) {
             $code = $codes[$i];
+            // rewrite with safeCurrencyCode, traverse by currency ids
             $currencyId = $this->currencyId ($code);
             $balance = $this->safe_value($balances, $currencyId);
             if ($balance !== null) {
