@@ -1248,7 +1248,7 @@ class kucoin (Exchange):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
-            account = {}
+            account = self.account()
             account['total'] = self.safe_float(balance, 'balance')
             account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'holds')

@@ -281,12 +281,8 @@ class liquid extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $total = $this->safe_float($balance, 'balance');
-            $account = array (
-                'free' => $total,
-                'used' => 0.0,
-                'total' => $total,
-            );
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
