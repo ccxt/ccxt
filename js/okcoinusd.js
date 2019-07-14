@@ -1090,7 +1090,7 @@ module.exports = class okcoinusd extends Exchange {
         }, params);
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (method, code, reason, url, headers, body, response) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

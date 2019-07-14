@@ -629,7 +629,7 @@ module.exports = class gemini extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (method, httpCode, reason, url, headers, body, response) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

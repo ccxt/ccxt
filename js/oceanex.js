@@ -670,7 +670,7 @@ module.exports = class oceanex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (method, code, reason, url, headers, body, response) {
         //
         //     {"code":1011,"message":"This IP '5.228.233.138' is not allowed","data":{}}
         //

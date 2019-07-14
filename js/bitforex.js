@@ -540,7 +540,7 @@ module.exports = class bitforex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (method, code, reason, url, headers, body, response) {
         if (typeof body !== 'string') {
             return; // fallback to default error handler
         }

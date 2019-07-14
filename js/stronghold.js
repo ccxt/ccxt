@@ -730,7 +730,7 @@ module.exports = class stronghold extends Exchange {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (method, code, reason, url, headers, body, response) {
         if (!response) {
             return; // fallback to base error handler by default
         }
