@@ -1083,7 +1083,7 @@ module.exports = class kraken extends Exchange {
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
-            'txid': id
+            'txid': id,
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
