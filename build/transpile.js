@@ -735,14 +735,14 @@ function transpileDerivedExchangeFiles (folder, pattern = '.js') {
     })
 
     // delete old transpiled files
-    function oldRemover (folder, extension) {
-        fs.readdirSync (folder).filter (file => !fs.lstatSync (folder + file).isDirectory ())
-            .map (file => file.replace (new RegExp (extension + '$'), '')).filter (file => !(file in classes) && !file.match (/Exchange|errors|__init__|^\./))
+    function oldRemover (folder, extension, pattern) {
+        fs.readdirSync (folder).filter (file => !fs.lstatSync (folder + file).isDirectory () && file.match (pattern))
+            .map (file => file.replace (pattern, '')).filter (file => !(file in classes) && !file.match (/Exchange|errors|__init__|^\./))
             .map (file => folder + file + extension).forEach (fs.unlinkSync)
     }
-    oldRemover (python2Folder, '.py')
-    oldRemover (python3Folder, '.py')
-    oldRemover (phpFolder, '.php')
+    oldRemover (python2Folder, '.py', /\.py$/)
+    oldRemover (python3Folder, '.py', /\.py$/)
+    oldRemover (phpFolder, '.php', /\.php$/)
 
     return classes
 }
