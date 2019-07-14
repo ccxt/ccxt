@@ -742,9 +742,9 @@ function transpileDerivedExchangeFiles (folder, pattern = '.js') {
             .forEach (fs.unlinkSync)
     }
     
-    deleteOldTranspiledFiles (python2Folder, '.py', /\.pyc?$/)
-    deleteOldTranspiledFiles (python3Folder, '.py', /\.pyc?$/)
-    deleteOldTranspiledFiles (phpFolder, '.php', /\.php$/)
+    deleteOldTranspiledFiles (python2Folder, /\.pyc?$/)
+    deleteOldTranspiledFiles (python3Folder, /\.pyc?$/)
+    deleteOldTranspiledFiles (phpFolder, /\.php$/)
 
     return classes
 }
