@@ -904,13 +904,6 @@ class Exchange {
         $this->restRequestQueue = null;
         $this->restPollerLoopIsRunning = false;
         $this->enableRateLimit = false;
-        $this->enableLastJsonResponse = true;
-        $this->enableLastHttpResponse = true;
-        $this->enableLastResponseHeaders = true;
-        $this->last_http_response = null;
-        $this->last_json_response = null;
-        $this->last_response_headers = null;
-
         $this->requiresWeb3 = false;
 
         $this->commonCurrencies = array(
@@ -1247,22 +1240,10 @@ class Exchange {
 
         $this->lastRestRequestTimestamp = $this->milliseconds();
 
-        if ($this->enableLastHttpResponse) {
-            $this->last_http_response = $result;
-        }
-
-        if ($this->enableLastResponseHeaders) {
-            $this->last_response_headers = $response_headers;
-        }
-
         $json_response = null;
 
         if ($this->is_json_encoded_object($result)) {
             $json_response = $this->parse_json($result);
-
-            if ($this->enableLastJsonResponse) {
-                $this->last_json_response = $json_response;
-            }
         }
 
         $curl_errno = curl_errno($this->curl);

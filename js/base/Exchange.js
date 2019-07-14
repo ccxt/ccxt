@@ -283,13 +283,6 @@ module.exports = class Exchange {
         this.requiresWeb3 = false
         this.precision = {}
 
-        this.enableLastJsonResponse = true
-        this.enableLastHttpResponse = true
-        this.enableLastResponseHeaders = true
-        this.last_http_response    = undefined
-        this.last_json_response    = undefined
-        this.last_response_headers = undefined
-
         this.arrayConcat = (a, b) => a.concat (b)
 
         const unCamelCaseProperties = (obj = this) => {
@@ -630,18 +623,6 @@ module.exports = class Exchange {
             const json = shouldParseJson ? this.parseRestResponse (response, responseBody, url, method) : undefined
 
             const responseHeaders = this.getResponseHeaders (response)
-
-            if (this.enableLastResponseHeaders) {
-                this.last_response_headers = responseHeaders
-            }
-
-            if (this.enableLastHttpResponse) {
-                this.last_http_response = responseBody // FIXME: for those classes that haven't switched to handleErrors yet
-            }
-
-            if (this.enableLastJsonResponse) {
-                this.last_json_response = json         // FIXME: for those classes that haven't switched to handleErrors yet
-            }
 
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")

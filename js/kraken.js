@@ -1081,20 +1081,10 @@ module.exports = class kraken extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
-        try {
-            response = await this.privatePostCancelOrder (this.extend ({
-                'txid': id,
-            }, params));
-        } catch (e) {
-            if (this.last_http_response) {
-                if (this.last_http_response.indexOf ('EOrder:Unknown order') >= 0) {
-                    throw new OrderNotFound (this.id + ' cancelOrder() error ' + this.last_http_response);
-                }
-            }
-            throw e;
-        }
-        return response;
+        const request = {
+            'txid': id
+        };
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

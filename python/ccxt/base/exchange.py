@@ -284,12 +284,6 @@ class Exchange(object):
     rateLimitTokens = 16
     rateLimitMaxTokens = 16
     rateLimitUpdateTime = 0
-    enableLastHttpResponse = True
-    enableLastJsonResponse = True
-    enableLastResponseHeaders = True
-    last_http_response = None
-    last_json_response = None
-    last_response_headers = None
 
     requiresWeb3 = False
     web3 = None
@@ -522,13 +516,6 @@ class Exchange(object):
             http_status_text = response.reason
             json_response = self.parse_json(http_response)
             headers = response.headers
-            # FIXME remove last_x_responses from subclasses
-            if self.enableLastHttpResponse:
-                self.last_http_response = http_response
-            if self.enableLastJsonResponse:
-                self.last_json_response = json_response
-            if self.enableLastResponseHeaders:
-                self.last_response_headers = headers
             if self.verbose:
                 print("\nResponse:", method, url, http_status_code, headers, http_response)
             self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)

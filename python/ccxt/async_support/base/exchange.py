@@ -143,12 +143,6 @@ class Exchange(BaseExchange):
                 http_status_text = response.reason
                 json_response = self.parse_json(http_response)
                 headers = response.headers
-                if self.enableLastHttpResponse:
-                    self.last_http_response = http_response
-                if self.enableLastResponseHeaders:
-                    self.last_response_headers = headers
-                if self.enableLastJsonResponse:
-                    self.last_json_response = json_response
                 if self.verbose:
                     print("\nResponse:", method, url, http_status_code, headers, http_response)
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)

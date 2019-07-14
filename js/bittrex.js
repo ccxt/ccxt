@@ -1075,21 +1075,10 @@ module.exports = class bittrex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = undefined;
-        try {
-            const orderIdField = this.getOrderIdField ();
-            const request = {};
-            request[orderIdField] = id;
-            response = await this.accountGetOrder (this.extend (request, params));
-        } catch (e) {
-            if (this.last_json_response) {
-                const message = this.safeString (this.last_json_response, 'message');
-                if (message === 'UUID_INVALID') {
-                    throw new OrderNotFound (this.id + ' fetchOrder() error: ' + this.last_http_response);
-                }
-            }
-            throw e;
-        }
+        const orderIdField = this.getOrderIdField ();
+        const request = {};
+        request[orderIdField] = id;
+        const response = await this.accountGetOrder (this.extend (request, params));
         if (!response['result']) {
             throw new OrderNotFound (this.id + ' order ' + id + ' not found');
         }
