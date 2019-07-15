@@ -12,6 +12,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import ExchangeNotAvailable
 
 
 class mandala (Exchange):
@@ -37,6 +38,7 @@ class mandala (Exchange):
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
+                'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOrderStatus': True,
                 'fetchTickers': True,
@@ -56,7 +58,7 @@ class mandala (Exchange):
                 'api': 'https://zapi.{hostname}',
                 'www': 'https://mandalaex.com',
                 'doc': [
-                    'https://documenter.getpostman.com/view/6273708/RznBP1Hh',
+                    'https://apidocs.mandalaex.com',
                 ],
                 'fees': [
                     'https://mandalaex.com/trading-rules/',
@@ -205,6 +207,7 @@ class mandala (Exchange):
                     'Exception_BadRequest': BadRequest,  # {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
                 },
                 'broad': {
+                    'Some error occurred, try again later.': ExchangeNotAvailable,  # {"status":"Error","errorMessage":"Some error occurred, try again later.","data":null}
                 },
             },
             'options': {
@@ -345,7 +348,7 @@ class mandala (Exchange):
         for i in range(0, len(data)):
             currency = data[i]
             id = self.safe_string(currency, 'shortName')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'fullName')
             precision = self.safe_integer(currency, 'decimalPrecision')
             active = True
@@ -422,8 +425,8 @@ class mandala (Exchange):
             id = ids[i]
             market = data[id]
             quoteId, baseId = id.split('_')  # they have base/quote reversed with some endpoints
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             baseCurrency = self.safe_value(currenciesById, baseId, {})
             quoteCurrency = self.safe_value(currenciesById, quoteId, {})
@@ -474,18 +477,15 @@ class mandala (Exchange):
         #         ],
         #     }
         #
-        data = self.safe_value(response, 'Data')
+        data = self.safe_value(response, 'Data', [])
         result = {'info': response}
         for i in range(0, len(data)):
             balance = data[i]
-            code = self.common_currency_code(self.safe_string(balance, 'currency'))
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            free = self.safe_float(balance, 'balance', 0)
-            used = self.safe_float(balance, 'balanceInTrade', 0)
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
+            account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'balanceInTrade')
             result[code] = account
         return self.parse_balance(result)
 
@@ -680,8 +680,8 @@ class mandala (Exchange):
         symbol = None
         baseId = self.safe_string(trade, 'trade')
         quoteId = self.safe_string(trade, 'market')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         if base is not None and quote is not None:
             symbol = base + '/' + quote
         else:
@@ -699,15 +699,15 @@ class mandala (Exchange):
                 'currency': quote,
             }
         return {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': None,
-            'takerOrMaker': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -859,10 +859,11 @@ class mandala (Exchange):
         self.load_markets()
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + ' cancelOrder() requires an order side extra parameter')
+            raise ArgumentsRequired(self.id + ' cancelOrder() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
+        id = str(id)
         request = {
-            'orderId': str(id),
+            'orderId': id,
             'side': side.upper(),
         }
         response = self.orderPostCancelMyOrder(self.extend(request, params))
@@ -876,21 +877,21 @@ class mandala (Exchange):
         return self.parse_order(response, {
             'id': id,
             'symbol': symbol,
-            'side': side,
+            'side': side.lower(),
             'status': 'canceled',
         })
 
     def cancel_all_orders(self, symbols=None, params={}):
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires an order side extra parameter')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
         if symbols is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbols argument(a list containing one symbol)')
+            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a `symbols` argument(a list containing one symbol)')
         else:
             numSymbols = len(symbols)
             if numSymbols != 1:
-                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbols argument(a list containing one symbol)')
+                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a `symbols` argument(a list containing one symbol)')
         symbol = symbols[0]
         request = {
             'side': side.upper(),
@@ -900,8 +901,8 @@ class mandala (Exchange):
 
     def parse_symbol(self, id):
         quote, base = id.split(self.options['symbolSeparator'])
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
+        base = self.safe_currency_code(base)
+        quote = self.safe_currency_code(quote)
         return base + '/' + quote
 
     def parse_order(self, order, market=None):
@@ -946,8 +947,8 @@ class mandala (Exchange):
         id = self.safe_string(order, 'orderId')
         baseId = self.safe_string(order, 'trade')
         quoteId = self.safe_string(order, 'market')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = None
         if base is not None and quote is not None:
             symbol = base + '/' + quote
@@ -1004,7 +1005,7 @@ class mandala (Exchange):
         self.load_markets()
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + ' fetchOrders() requires an order side extra parameter')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
         request = {
             'key': self.apiKey,
@@ -1048,7 +1049,9 @@ class mandala (Exchange):
         #
         data = self.safe_value(response, 'data', [])
         market = self.market(symbol) if (symbol is not None) else None
-        return self.parse_orders(data, market, since, limit)
+        return self.parse_orders(data, market, since, limit, {
+            'side': side.lower(),
+        })
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1093,16 +1096,17 @@ class mandala (Exchange):
         data = self.safe_value(response, 'data')
         return self.parse_orders(data, market, since, limit)
 
-    def fetch_order_status(self, id, symbol=None, params={}):
+    def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
         side = self.safe_string(params, 'side')
         if side is None:
-            raise ArgumentsRequired(self.id + ' fetchOrderStatus() requires an order side extra parameter')
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires an order `side` extra parameter')
         params = self.omit(params, 'side')
+        id = str(id)
         request = {
             'key': self.apiKey,
             'side': side.upper(),
-            'orderId': str(id),
+            'orderId': id,
         }
         response = self.orderGetMyOrderStatusKeySideOrderId(self.extend(request, params))
         #
@@ -1118,8 +1122,10 @@ class mandala (Exchange):
         #     }
         #
         data = self.safe_value(response, 'data')
-        order = self.parse_order(data)
-        return order['status']
+        return self.extend(self.parse_order(data), {
+            'id': id,
+            'side': side.lower(),
+        })
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -1277,13 +1283,8 @@ class mandala (Exchange):
         updated = self.parse8601(self.safe_value(transaction, 'withdrawalConfirmDate'))
         timestamp = self.parse8601(self.safe_string(transaction, 'withdrawalReqDate', updated))
         type = 'withdrawal' if ('withdrawalReqDate' in list(transaction.keys())) else 'deposit'
-        code = None
         currencyId = self.safe_string(transaction, 'withdrawalType')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'withdrawalStatus'))
         feeCost = None
         if type == 'deposit':
@@ -1355,7 +1356,6 @@ class mandala (Exchange):
         code = None
         if currency is not None:
             code = currency['code']
-        self.check_address(address)
         return {
             'currency': code,
             'address': address,
@@ -1495,11 +1495,11 @@ class mandala (Exchange):
             if api == 'api':
                 token = self.safe_string(self.options, 'accessToken')
                 if token is None:
-                    raise AuthenticationError(self.id + ' ' + path + ' endpoint requires an accessToken option or a prior call to signIn() method')
+                    raise AuthenticationError(self.id + ' ' + path + ' endpoint requires an `accessToken` option or a prior call to signIn() method')
                 expires = self.safe_integer(self.options, 'expires')
                 if expires is not None:
                     if self.milliseconds() >= expires:
-                        raise AuthenticationError(self.id + ' accessToken expired, supply a new accessToken or call signIn() method')
+                        raise AuthenticationError(self.id + ' accessToken expired, supply a new `accessToken` or call signIn() method')
                 tokenType = self.safe_string(self.options, 'tokenType', 'bearer')
                 headers['Authorization'] = tokenType + ' ' + token
             if method == 'POST':

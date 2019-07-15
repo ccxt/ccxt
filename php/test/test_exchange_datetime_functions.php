@@ -8,7 +8,6 @@ include_once (__DIR__.'/../Exchange.php');
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-
 $exchange = new \ccxt\Exchange (array (
     'id' => 'regirock',
 ));
@@ -26,7 +25,7 @@ assert ($exchange->iso8601 () === null);
 assert ($exchange->iso8601 (null) === null);
 assert ($exchange->iso8601 ('') === null);
 assert ($exchange->iso8601 ('a') === null);
-assert ($exchange->iso8601 (array ()) === null);
+assert ($exchange->iso8601 (array()) === null);
 
 // ----------------------------------------------------------------------------
 
@@ -42,7 +41,7 @@ assert ($exchange->parse8601 ('Sr90') === null);
 assert ($exchange->parse8601 ('') === null);
 assert ($exchange->parse8601 () === null);
 assert ($exchange->parse8601 (null) === null);
-assert ($exchange->parse8601 (array ()) === null);
+assert ($exchange->parse8601 (array()) === null);
 assert ($exchange->parse8601 (33) === null);
 
 // ----------------------------------------------------------------------------

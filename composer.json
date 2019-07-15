@@ -219,11 +219,17 @@
         "email": "rocket.mind@gmail.com",
         "homepage": "https://github.com/xpl",
         "role": "Developer"
+    }, {
+        "name": "Carlo Revelli",
+        "email": "carlo.revelli@berkeley.edu",
+        "homepage": "https://github.com/frosty00",
+        "role": "Junior Developer"
     }],
     "autoload": {
-        "psr-4" : {
+        "psr-4": {
             "ccxt\\" : "php/"
-        }
+        },
+        "files": [ "php/errors.php" ]
     },
     "require": {
         "php": ">=5.4.0",
@@ -231,6 +237,8 @@
         "ext-curl": "*",
         "ext-iconv": "*",
         "ext-pcre": "*",
+        "ext-json": "*",
+        "ext-openssl": "*",
         "kornrunner/secp256k1": "0.1.0",
         "ext-gmp": "*",
         "symfony/polyfill-mbstring": "^1.7",

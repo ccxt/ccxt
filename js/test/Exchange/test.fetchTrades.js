@@ -23,8 +23,12 @@ module.exports = async (exchange, symbol) => {
         let now = Date.now ()
         for (let i = 0; i < trades.length; i++) {
             testTrade (exchange, trades[i], symbol, now)
-            if (i > 0)
-                assert (trades[i].timestamp >= trades[i - 1].timestamp)
+            if (i > 0) {
+                if (trades[i].timestamp && trades[i - 1].timestamp) {
+                    assert (trades[i].timestamp >= trades[i - 1].timestamp)
+                }
+            }
+
         }
         // log (asTable (trades))
 
