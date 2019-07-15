@@ -871,7 +871,10 @@ module.exports = class bitmex extends Exchange {
             // 'endTime': '',    // ending date filter for results
         };
         if (limit !== undefined) {
-            request['count'] = limit + (this.options['fetchOHLCVOpenTimestamp'] ? 1 : 0); // default 100, max 500
+            if (this.options['fetchOHLCVOpenTimestamp']) {
+                limit = limit + 1;
+            }
+            request['count'] = limit; // default 100, max 500
         }
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
