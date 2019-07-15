@@ -888,7 +888,6 @@ module.exports = class bitmex extends Exchange {
                 result[i][0] = result[i - 1][0];
             }
             result.shift ();
-            return result;
         }
         return result;
     }
