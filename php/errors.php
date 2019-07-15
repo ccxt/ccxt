@@ -77,12 +77,7 @@ class BaseError extends Exception {
     public function __get($name) {
         $camelcase = preg_replace_callback('/_(\w)/', function ($x) {return strtoupper($x[1]); }, $name);
         if ($camelcase === $name) {
-            $trace = debug_backtrace();
-            trigger_error(
-                'Undefined property via __get(): ' . $name .
-                ' in ' . $trace[0]['file'] .
-                ' on line ' . $trace[0]['line'],
-                E_USER_NOTICE);
+            trigger_error('Undefined property via __get(): ' . $name, E_USER_NOTICE);
             return null;
         }
         return $this->$camelcase;
