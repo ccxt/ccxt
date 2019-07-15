@@ -128,23 +128,23 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let response = await this.privateGetTradePairs ();
-        let result = [];
-        let keys = Object.keys (response['data']);
+        const response = await this.privateGetTradePairs ();
+        const result = [];
+        const keys = Object.keys (response['data']);
         for (let i = 0; i < keys.length; i++) {
-            let id = keys[i];
-            let pair = id.split ('_');
-            let baseId = pair[1];
-            let quoteId = pair[0];
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            let symbol = base + '/' + quote;
-            let market = response['data'][id];
-            let precision = {
+            const id = keys[i];
+            const pair = id.split ('_');
+            const baseId = pair[1];
+            const quoteId = pair[0];
+            const base = baseId.toUpperCase ();
+            const quote = quoteId.toUpperCase ();
+            const symbol = base + '/' + quote;
+            const market = response['data'][id];
+            const precision = {
                 'price': market[1],
                 'amount': market[0],
             };
-            let limits = {
+            const limits = {
                 'amount': {
                     'min': market[2],
                     'max': undefined,
@@ -175,16 +175,16 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        let response = await this.privateGetMyposition ();
-        let result = { 'info': response };
-        let free = response['free'];
-        let frozen = response['frozen'];
-        let keysFree = Object.keys (free);
-        let keysFrozen = Object.keys (frozen);
-        let keys = this.arrayConcat (keysFree, keysFrozen);
+        const response = await this.privateGetMyposition ();
+        const result = { 'info': response };
+        const free = response['free'];
+        const frozen = response['frozen'];
+        const keysFree = Object.keys (free);
+        const keysFrozen = Object.keys (frozen);
+        const keys = this.arrayConcat (keysFree, keysFrozen);
         for (let i = 0; i < keys.length; i++) {
-            let uppercase = keys[i].toUpperCase ();
-            let account = this.account ();
+            const uppercase = keys[i].toUpperCase ();
+            const account = this.account ();
             if (this.inArray (keys[i], keysFree)) {
                 account['free'] = free[keys[i]];
             }
@@ -198,12 +198,12 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        let markets = await this.loadMarkets ();
+        const markets = await this.loadMarkets ();
         symbol = markets[symbol]['id'];
-        let request = {
+        const request = {
             'symbol': symbol,
         };
-        let response = await this.privateGetDepth (this.extend (request, params));
+        const response = await this.privateGetDepth (this.extend (request, params));
         return this.parseOrderBook (response, parseInt (response['date']) * 1000);
     }
 
@@ -211,36 +211,36 @@ module.exports = class digifinex extends Exchange {
         if (symbols !== undefined) {
             throw new BadRequest ('Only supports fetching all tickers');
         }
-        let response = await this.publicGetTicker ();
-        let result = {};
-        let keys = Object.keys (response['ticker']);
+        const response = await this.publicGetTicker ();
+        const result = {};
+        const keys = Object.keys (response['ticker']);
         for (let i = 0; i < keys.length; i++) {
             let symbol = keys[i].toUpperCase ();
-            let parts = symbol.split ('_');
+            const parts = symbol.split ('_');
             symbol = parts[1] + '/' + parts[0];
-            let r = this.parseTicker (response['date'], response['ticker'], symbol);
+            const r = this.parseTicker (response['date'], response['ticker'], symbol);
             result[symbol] = r;
         }
         return result;
     }
 
     async fetchTicker (symbol, params = {}) {
-        let markets = await this.loadMarkets ();
+        const markets = await this.loadMarkets ();
         symbol = markets[symbol]['id'];
-        let response = await this.publicGetTicker (this.extend ({
+        const response = await this.publicGetTicker (this.extend ({
             'symbol': symbol,
         }, params));
         let result = 0;
-        let keys = Object.keys (response['ticker']);
+        const keys = Object.keys (response['ticker']);
         for (let i = 0; i < keys.length; i++) {
-            let symbol = keys[i];
+            const symbol = keys[i];
             result = this.parseTicker (response['date'], response['ticker'], symbol);
         }
         return result;
     }
 
     parseTicker (date, ticker, symbol) {
-        let timestamp = parseInt (date) * 1000;
+        const timestamp = parseInt (date) * 1000;
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -266,12 +266,11 @@ module.exports = class digifinex extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['date']) * 1000;
-        let side = trade['type'].toLowerCase ();
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'amount');
-        let cost = price * amount;
-        let fee = undefined;
+        const timestamp = parseInt (trade['date']) * 1000;
+        const side = trade['type'].toLowerCase ();
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const cost = price * amount;
         return {
             'id': undefined,
             'info': trade,
@@ -284,18 +283,19 @@ module.exports = class digifinex extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': fee,
+            'takerOrMaker': 'taker',
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
-        let markets = await this.loadMarkets ();
-        let market = markets[symbol];
+        const markets = await this.loadMarkets ();
+        const market = markets[symbol];
         symbol = market['id'];
-        let request = {
+        const request = {
             'symbol': symbol,
         };
-        let response = await this.privateGetTradeDetail (this.extend (request, params));
+        const response = await this.privateGetTradeDetail (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
@@ -306,8 +306,8 @@ module.exports = class digifinex extends Exchange {
             throw new InvalidOrder ();
         }
         await this.loadMarkets ();
-        let markets = await this.loadMarkets ();
-        let mark = markets[symbol]['id'];
+        const markets = await this.loadMarkets ();
+        const mark = markets[symbol]['id'];
         const order = {
             'symbol': mark,
             'price': this.priceToPrecision (symbol, price),
@@ -317,8 +317,8 @@ module.exports = class digifinex extends Exchange {
         if (type === 'market') {
             throw new InvalidOrder ('market order not supported');
         }
-        let response = await this.privatePostTrade (this.extend (order, params));
-        let result = {
+        const response = await this.privatePostTrade (this.extend (order, params));
+        const result = {
             'info': response,
             'id': response['order_id'],
             'symbol': symbol,
@@ -329,15 +329,16 @@ module.exports = class digifinex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         // await this.loadMarkets ();
-        let response = await this.privatePostCancelOrder ({ 'order_id': id });
-        if (response.success.length !== 1)
+        const response = await this.privatePostCancelOrder ({ 'order_id': id });
+        if (response.success.length !== 1) {
             throw new OrderNotFound ();
+        }
         return response;
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         // maximum 20 IDs supported
-        let response = await this.privatePostCancelOrder ({ 'order_id': ids.join (',') });
+        const response = await this.privatePostCancelOrder ({ 'order_id': ids.join (',') });
         return response;
     }
 
@@ -353,16 +354,16 @@ module.exports = class digifinex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let side = order['type'];
-        let status = this.parseOrderStatus (this.safeString (order, 'status'));
+        const side = order['type'];
+        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         if (market === undefined) {
-            let exchange = order['symbol'].toUpperCase ();
+            const exchange = order['symbol'].toUpperCase ();
             if (exchange in this.markets_by_id) {
                 market = this.markets_by_id[exchange];
             }
         }
-        let timestamp = parseInt (order['created_date']) * 1000;
-        let result = {
+        const timestamp = parseInt (order['created_date']) * 1000;
+        const result = {
             'info': order,
             'id': order['order_id'].toString (),
             'timestamp': timestamp,
@@ -386,14 +387,14 @@ module.exports = class digifinex extends Exchange {
         // exchange-specific non-unified parameters: page, type
         // page: Page Num, page=1 for 1st page. None for 1st page by default.
         // type：buy/sell/buy_market/sell_market，none for all types
-        let markets = await this.loadMarkets ();
-        let market = markets[symbol];
+        const markets = await this.loadMarkets ();
+        const market = markets[symbol];
         symbol = market['id'];
-        let request = {
+        const request = {
             'symbol': symbol,
         };
-        let response = await this.privateGetOpenOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['orders'], market, since, limit);
+        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        const orders = this.parseOrders (response['orders'], market, since, limit);
         return orders;
     }
 
@@ -403,22 +404,22 @@ module.exports = class digifinex extends Exchange {
         // exchange-specific non-unified parameters: page, type
         // page: Page Num, page=1 for 1st page. None for 1st page by default.
         // type：buy/sell/buy_market/sell_market，none for all types
-        let markets = await this.loadMarkets ();
-        let market = markets[symbol];
+        const markets = await this.loadMarkets ();
+        const market = markets[symbol];
         symbol = market['id'];
-        let request = {
+        const request = {
             'symbol': symbol,
         };
         if (since) {
             request['date'] = this.dateUTC8 (since);
         }
-        let response = await this.privateGetOrderHistory (params);
-        let filtered = this.parseOrders (response['orders'], market, since, limit);
+        const response = await this.privateGetOrderHistory (params);
+        const filtered = this.parseOrders (response['orders'], market, since, limit);
         return filtered;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        let response = await this.privateGetOrderInfo (this.extend ({
+        const response = await this.privateGetOrderInfo (this.extend ({
             'order_id': parseInt (id),
         }, params));
         return this.parseOrder (response);
@@ -426,7 +427,7 @@ module.exports = class digifinex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0],
+            ohlcv[0] * 1000,
             ohlcv[5],
             ohlcv[3],
             ohlcv[4],
@@ -436,14 +437,14 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        let markets = await this.loadMarkets ();
-        let market = markets[symbol];
+        const markets = await this.loadMarkets ();
+        const market = markets[symbol];
         symbol = market['id'];
-        let request = {
+        const request = {
             'symbol': symbol,
             'type': 'kline_' + timeframe,
         };
-        let response = await this.privateGetKline (this.extend (request, params));
+        const response = await this.privateGetKline (this.extend (request, params));
         return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
     }
 
@@ -454,23 +455,24 @@ module.exports = class digifinex extends Exchange {
             params['timestamp'] = parseInt (this.nonce ());
             params['apiSecret'] = this.secret;
             params = this.keysort (params);
-            let keys = Object.keys (params);
-            let arr = [];
+            const keys = Object.keys (params);
+            const arr = [];
             for (let i = 0; i < keys.length; i++) {
-                let key = keys[i];
-                let s = params[key].toString ();
+                const key = keys[i];
+                const s = params[key].toString ();
                 arr.push (s);
             }
-            this.omit (params, 'apiSecret');
-            let s = arr.join ('');
-            let sign = this.hash (this.encode (s), 'md5');
+            params = this.omit (params, 'apiSecret');
+            const s = arr.join ('');
+            const sign = this.hash (this.encode (s), 'md5');
             params['sign'] = sign;
         }
         let url = '';
-        if (api === 'publicV3')
+        if (api === 'publicV3') {
             url = this.url['apiV3'] + '/' + path;
-        else
+        } else {
             url = this.urls['api'] + '/' + path;
+        }
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
@@ -480,7 +482,7 @@ module.exports = class digifinex extends Exchange {
                 body = this.urlencode (params);
             }
         }
-        let result = { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const result = { 'url': url, 'method': method, 'body': body, 'headers': headers };
         return result;
     }
 
