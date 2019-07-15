@@ -58,13 +58,13 @@ class BaseError extends Exception {
     public $responseBody;
     public $responseJson;
 
-    public function __construct($message = "", $exchangeId = null, $httpMethod = null, $httpCode = null, $httpStatusText = null, $url = null, $responseHeaders = null, $responseBody = null, $responseJson = null) {
+    public function __construct($message = "", $exchangeId = null, $httpCode = null, $httpStatusText = null, $url = null, $httpMethod = null, $responseHeaders = null, $responseBody = null, $responseJson = null) {
         parent::__construct($message, 0, null);
         $this->exchangeId = $exchangeId;
-        $this->httpMethod = $httpMethod;
         $this->httpCode = $httpCode;
         $this->httpStatusText = $httpStatusText;
         $this->url = $url;
+        $this->httpMethod = $httpMethod;
         $this->responseHeaders = $responseHeaders;
         $this->responseBody = $responseBody;
         $this->responseJson = $responseJson;

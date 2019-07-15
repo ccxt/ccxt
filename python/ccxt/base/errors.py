@@ -50,13 +50,13 @@ def error_factory(dictionary, super_class):
 
 
 class BaseError(Exception):
-    def __init__(self, message, exchange_id=None, http_method=None, http_code=None, http_status_text=None, url=None, response_headers=None, response_body=None, response_json=None):
+    def __init__(self, message, exchange_id=None, http_code=None, http_status_text=None, url=None, http_method=None, response_headers=None, response_body=None, response_json=None):
         super(BaseError, self).__init__(message)
         self.__dict__['exchangeId'] = exchange_id
-        self.__dict__['httpMethod'] = http_method
         self.__dict__['httpCode'] = http_code
         self.__dict__['httpStatusText'] = http_status_text
         self.__dict__['url'] = url
+        self.__dict__['httpMethod'] = http_method
         self.__dict__['responseHeaders'] = response_headers
         self.__dict__['responseBody'] = response_body
         self.__dict__['responseJson'] = response_json
