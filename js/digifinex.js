@@ -47,7 +47,7 @@ module.exports = class digifinex extends Exchange {
             'urls': {
                 'logo': 'https://static.digifinex.vip/newhome/pc/img/index/logo_dark.svg',
                 'api': 'https://openapi.digifinex.vip/v2',
-                'apiV3': 'https://openapi.digifinex.vip/v3/',
+                'apiV3': 'https://openapi.digifinex.vip/v3',
                 'www': 'https://www.digifinex.vip/',
                 'doc': [
                     'https://github.com/DigiFinex/api',
@@ -198,12 +198,17 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        // limit can be up to 100, defaults to 10
         const markets = await this.loadMarkets ();
-        symbol = markets[symbol]['id'];
+        const market = markets[symbol];
+        symbol = market['baseId'] + '_' + market['quoteId'];
         const request = {
-            'symbol': symbol,
+            'market': symbol,
         };
-        const response = await this.privateGetDepth (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicV3GetOrderBook (this.extend (request, params));
         return this.parseOrderBook (response, parseInt (response['date']) * 1000);
     }
 
@@ -469,7 +474,7 @@ module.exports = class digifinex extends Exchange {
         }
         let url = '';
         if (api === 'publicV3') {
-            url = this.url['apiV3'] + '/' + path;
+            url = this.urls['apiV3'] + '/' + path;
         } else {
             url = this.urls['api'] + '/' + path;
         }
