@@ -1136,16 +1136,27 @@ class Exchange(object):
         return self.markets
 
     def load_markets(self, reload=False, params={}):
-        if not reload:
-            if self.markets:
-                if not self.markets_by_id:
-                    return self.set_markets(self.markets)
-                return self.markets
+        if not reload and self.markets:
+            if not self.markets_by_id:
+                return self.set_markets(self.markets)
+            return self.markets
         currencies = None
         if self.has['fetchCurrencies']:
             currencies = self.fetch_currencies()
         markets = self.fetch_markets(params)
         return self.set_markets(markets, currencies)
+
+    def load_currencies(self, reload=False, params={}):
+        if not reload and self.currencies:
+            if not self.currencies_by_id:
+                return self.set_markets({}, self.currencies)
+            return self.currencies
+        if self.has['fetchCurrencies']:
+            currencies = self.fetch_currencies(params)
+            self.set_markets({}, currencies)
+        else:
+            self.load_markets()
+        return self.currencies
 
     def load_accounts(self, reload=False, params={}):
         if reload:
