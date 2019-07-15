@@ -372,7 +372,7 @@ module.exports = class bitmart extends Exchange {
         const timestamp = this.milliseconds ();
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
-        let info = order['info'];
+        let info = this.safeValue (order, 'info');
         if (info === undefined) {
             info = this.extend ({}, order);
         }
