@@ -154,6 +154,7 @@ module.exports = class bitmex extends Exchange {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
+                'fetchOHLCVOpenTimestamp': false,
             },
         });
     }
@@ -878,7 +879,18 @@ module.exports = class bitmex extends Exchange {
             request['startTime'] = ymdhms; // starting date filter for results
         }
         const response = await this.publicGetTradeBucketed (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const result = this.parseOHLCVs (response, market, timeframe, since, limit);
+        if (this.options['fetchOHLCVOpenTimestamp']) {
+            // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
+            // we can emulate the open timestamp by shifting all the timestamps one place
+            // so the previous close becomes the current open, and we drop the first candle
+            for (let i = result.length - 1; i > 0; i--) {
+                result[i][0] = result[i - 1][0];
+            }
+            result.shift ();
+            return result;
+        }
+        return result;
     }
 
     parseTrade (trade, market = undefined) {
