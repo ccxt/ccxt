@@ -545,7 +545,7 @@ class Exchange(object):
 
         except HTTPError as e:
             self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
-            self.default_error_handler(http_status_code, http_status_text, body, url, method)
+            self.default_error_handler(http_status_code, http_status_text, http_response, url, method)
             raise ExchangeError(method + ' ' + url)
 
         except RequestException as e:  # base exception class

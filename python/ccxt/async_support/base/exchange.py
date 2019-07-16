@@ -166,11 +166,12 @@ class Exchange(BaseExchange):
             raise ExchangeError(method + ' ' + url)
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
-        self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
-        self.handle_rest_response(http_response, json_response, url, method)
-        if json_response is not None:
+
+        if json_response is None:
+            self.default_error_handler(http_status_code, http_status_text, http_response, url, method)
+            return http_response
+        else:
             return json_response
-        return http_response
 
     async def load_markets(self, reload=False, params={}):
         if not reload:
