@@ -476,7 +476,8 @@ class oceanex (Exchange):
         request = {'ids': [id]}
         response = self.privateGetOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
-        if data is None or len(data) == 0:
+        dataLength = len(data)
+        if data is None or dataLength == 0:
             raise OrderNotFound(self.id + ' could not found matching order')
         return self.parse_order(data[0], market)
 
