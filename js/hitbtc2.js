@@ -807,11 +807,15 @@ module.exports = class hitbtc2 extends hitbtc {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const ticker = response[i];
-            const id = ticker['symbol'];
-            if (id in this.markets_by_id) {
-                const market = this.markets_by_id[id];
-                const symbol = market['symbol'];
-                result[symbol] = this.parseTicker (ticker, market);
+            const marketId = this.safeString (ticker, 'symbol');
+            if (marketId !== undefined) {
+                if (marketId in this.markets_by_id) {
+                    const market = this.markets_by_id[marketId];
+                    const symbol = market['symbol'];
+                    result[symbol] = this.parseTicker (ticker, market);
+                } else {
+                    result[marketId] = this.parseTicker (ticker);
+                }
             }
         }
         return result;
