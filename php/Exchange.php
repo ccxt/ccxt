@@ -1111,7 +1111,12 @@ class Exchange {
     }
 
     public function parse_json($json_string, $as_associative_array = true) {
-        return json_decode($json_string, $as_associative_array);
+        if (strlen($json_string) === 0) {
+            return array();
+        }
+        else if (static::is_json_encoded_object($json_string)) {
+            return json_decode($json_string, $as_associative_array);
+        }
     }
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
@@ -1255,14 +1260,10 @@ class Exchange {
             $this->last_response_headers = $response_headers;
         }
 
-        $json_response = null;
+        $json_response = $this->parse_json($result);
 
-        if ($this->is_json_encoded_object($result)) {
-            $json_response = $this->parse_json($result);
-
-            if ($this->enableLastJsonResponse) {
-                $this->last_json_response = $json_response;
-            }
+        if ($this->enableLastJsonResponse) {
+            $this->last_json_response = $json_response;
         }
 
         $curl_errno = curl_errno($this->curl);
