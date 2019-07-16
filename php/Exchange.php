@@ -1288,8 +1288,19 @@ class Exchange {
             throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
 
-        $string_code = (string) $http_status_code;
+        if (isset($json_response)) {
+            return $json_response;
+        } else {
+            $this->default_error_handler($http_status_code, $http_status_text, $result, $url, $method);
+            return $result;
+        }
+    }
 
+    public function default_error_handler($http_status_code, $http_status_text, $result, $url, $method) {
+        if ($http_status_code >= 200 && $http_status_code <= 299) {
+            return;
+        }
+        $string_code = (string) $http_status_code;
         if (array_key_exists($string_code, $this->httpExceptions)) {
             $error_class = $this->httpExceptions[$string_code];
             if ($error_class === 'ExchangeNotAvailable') {
@@ -1312,30 +1323,26 @@ class Exchange {
             throw new $error_class(implode(' ', array($url, $method, $http_status_code, $result)));
         }
 
-        if (!$json_response) {
-            $details = '(possible reasons: ' . implode(', ', array(
-                    'exchange is down or offline',
-                    'on maintenance',
-                    'DDoS protection',
-                    'rate-limiting in effect',
-                )) . ')';
-            $error_class = null;
-            if (preg_match('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
-                $error_class = 'ExchangeNotAvailable';
-            }
-
-            if (preg_match('#cloudflare|incapsula#i', $result)) {
-                $error_class = 'DDosProtection';
-            }
-            if ($error_class !== null) {
-                if (substr($error_class, 0, 6) !== '\\ccxt\\') {
-                    $error_class = '\\ccxt\\' . $error_class;
-                }
-                throw new $error_class(implode(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
-            }
+        $details = '(possible reasons: ' . implode(', ', array(
+                'exchange is down or offline',
+                'on maintenance',
+                'DDoS protection',
+                'rate-limiting in effect',
+            )) . ')';
+        $error_class = null;
+        if (preg_match('#offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing#i', $result)) {
+            $error_class = 'ExchangeNotAvailable';
         }
 
-        return isset($json_response) ? $json_response : $result;
+        if (preg_match('#cloudflare|incapsula#i', $result) && $http_status_code < 500) {
+            $error_class = 'DDosProtection';
+        }
+        if ($error_class !== null) {
+            if (substr($error_class, 0, 6) !== '\\ccxt\\') {
+                $error_class = '\\ccxt\\' . $error_class;
+            }
+            throw new $error_class(implode(' ', array($url, $method, $http_status_code, 'not accessible from this location at the moment', $details)));
+        }
     }
 
     public function set_markets($markets, $currencies = null) {

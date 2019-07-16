@@ -545,7 +545,7 @@ class Exchange(object):
 
         except HTTPError as e:
             self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
-            self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
+            self.default_error_handler(http_status_code, http_status_text, body, url, method)
             raise ExchangeError(method + ' ' + url)
 
         except RequestException as e:  # base exception class
@@ -556,12 +556,16 @@ class Exchange(object):
                 raise ExchangeError(method + ' ' + url)
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
-        self.handle_rest_response(http_response, json_response, url, method)
-        if json_response is not None:
-            return json_response
-        return http_response
 
-    def handle_rest_errors(self, http_status_code, http_status_text, body, url, method):
+        if json_response is None:
+            self.default_error_handler(http_status_code, http_status_text, http_response, url, method)
+            return http_response
+        else:
+            return json_response
+
+    def default_error_handler(self, http_status_code, http_status_text, body, url, method):
+        if 200 <= http_status_code <= 299:
+            return
         error = None
         string_code = str(http_status_code)
         if string_code in self.httpExceptions:
@@ -572,20 +576,19 @@ class Exchange(object):
         if error:
             raise error(' '.join([method, url, string_code, http_status_text, body]))
 
-    def handle_rest_response(self, response, json_response, url, method):
-        if self.is_json_encoded_object(response) and json_response is None:
-            ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
-            exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
-            if ddos_protection:
-                raise DDoSProtection(' '.join([method, url, response]))
-            if exchange_not_available:
-                message = response + ' exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
-                raise ExchangeNotAvailable(' '.join([method, url, response, message]))
-            raise ExchangeError(' '.join([method, url, response]))
+        ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', body, flags=re.IGNORECASE)
+        exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', body, flags=re.IGNORECASE)
+        if ddos_protection and http_status_code < 500:
+            raise DDoSProtection(' '.join([method, url, body]))
+        if exchange_not_available:
+            message = body + ' exchange downtime, exchange closed for maintenance or offline, DDoS protection or rate-limiting in effect'
+            raise ExchangeNotAvailable(' '.join([method, url, body, message]))
 
     def parse_json(self, http_response):
         try:
-            if Exchange.is_json_encoded_object(http_response):
+            if len(http_response) == 0:
+                return {}
+            elif Exchange.is_json_encoded_object(http_response):
                 return json.loads(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
