@@ -121,16 +121,16 @@ class crypton extends Exchange {
         $this->load_markets();
         $balances = $this->privateGetBalances ($params);
         $result = array( 'info' => $balances );
-        $keys = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
-            $id = $keys[$i];
-            $currency = $this->safe_currency_code($id);
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            $balance = $balances[$id];
+            $balance = $balances[$currencyId];
             $account['total'] = $this->safe_float($balance, 'total');
             $account['free'] = $this->safe_float($balance, 'free');
             $account['used'] = $this->safe_float($balance, 'locked');
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

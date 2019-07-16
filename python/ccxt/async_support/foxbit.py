@@ -78,14 +78,19 @@ class foxbit (Exchange):
             currencyIds = list(self.currencies_by_id.keys())
             for i in range(0, len(currencyIds)):
                 currencyId = currencyIds[i]
-                currency = self.currencies_by_id[currencyId]
-                code = currency['code']
+                code = self.safe_currency_code(currencyId)
                 # we only set the balance for the currency if that currency is present in response
                 # otherwise we will lose the info if the currency balance has been funded or traded or not
                 if currencyId in balances:
                     account = self.account()
-                    account['used'] = float(balances[currencyId + '_locked']) * 1e-8
-                    account['total'] = float(balances[currencyId]) * 1e-8
+                    used = self.safe_float(balances, currencyId + '_locked')
+                    if used is not None:
+                        used *= 1e-8
+                    total = self.safe_float(balances, currencyId)
+                    if total is not None:
+                        total *= 1e-8
+                    account['used'] = used
+                    account['total'] = total
                     result[code] = account
         return self.parse_balance(result)
 

@@ -135,19 +135,14 @@ class coinone (Exchange):
             'result',
             'normalWallets',
         ])
-        ids = list(balances.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            balance = balances[id]
-            code = self.safe_currency_code(id)
-            free = self.safe_float(balance, 'avail')
-            total = self.safe_float(balance, 'balance')
-            used = total - free
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            balance = balances[currencyId]
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'avail')
+            account['total'] = self.safe_float(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 

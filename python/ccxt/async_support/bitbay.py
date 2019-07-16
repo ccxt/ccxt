@@ -259,6 +259,7 @@ class bitbay (Exchange):
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
+            # rewrite with safeCurrencyCode, traverse by currency ids
             currencyId = self.currencyId(code)
             balance = self.safe_value(balances, currencyId)
             if balance is not None:

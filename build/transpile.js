@@ -734,6 +734,21 @@ function transpileDerivedExchangeFiles (folder, pattern = '.js') {
         classes[className] = baseClass
     })
 
+    function deleteOldTranspiledFiles (folder, pattern) {
+        fs.readdirSync (folder)
+            .filter (file =>
+                !fs.lstatSync (folder + file).isDirectory () &&
+                file.match (pattern) &&
+                !(file.replace (/\.[a-z]+$/, '') in classes) &&
+                !file.match (/^Exchange|errors|__init__|\\./))
+            .map (file => folder + file)
+            .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
+    }
+
+    deleteOldTranspiledFiles (python2Folder, /\.pyc?$/)
+    deleteOldTranspiledFiles (python3Folder, /\.pyc?$/)
+    deleteOldTranspiledFiles (phpFolder, /\.php$/)
+
     return classes
 }
 

@@ -252,19 +252,10 @@ class btcalpha extends Exchange {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $used = $this->safe_float($balance, 'reserve');
-            $total = $this->safe_float($balance, 'balance');
-            $free = null;
-            if ($used !== null) {
-                if ($total !== null) {
-                    $free = $total - $used;
-                }
-            }
-            $result[$code] = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $account = $this->account ();
+            $account['used'] = $this->safe_float($balance, 'reserve');
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

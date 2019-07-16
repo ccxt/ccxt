@@ -72,12 +72,8 @@ class coinspot extends Exchange {
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $total = $this->safe_float($balances, $currencyId);
-            $account = array (
-                'free' => $total,
-                'used' => 0.0,
-                'total' => $total,
-            );
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balances, $currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

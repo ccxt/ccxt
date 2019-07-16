@@ -179,12 +179,12 @@ class fcoin extends Exchange {
         $balances = $this->safe_value($response, 'data');
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $balance['currency'];
+            $currencyId = $this->safe_string($balance, 'currency');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            $account['free'] = floatval ($balance['available']);
-            $account['total'] = floatval ($balance['balance']);
-            $account['used'] = floatval ($balance['frozen']);
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'frozen');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

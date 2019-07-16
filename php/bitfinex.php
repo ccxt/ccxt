@@ -305,6 +305,7 @@ class bitfinex extends Exchange {
                 'UDC' => 'USDC',
                 'UST' => 'USDT',
                 'UTN' => 'UTNP',
+                'VSY' => 'VSYS',
                 'XCH' => 'XCHF',
             ),
             'exceptions' => array (
