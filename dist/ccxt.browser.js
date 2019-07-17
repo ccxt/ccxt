@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.947'
+const version = '1.18.948'
 
 Exchange.ccxtVersion = version
 
@@ -42843,7 +42843,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires symbol param');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires symbol param');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

@@ -589,7 +589,7 @@ class gateio (Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
-            raise ExchangeError(self.id + ' fetchMyTrades requires symbol param')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades requires symbol param')
         await self.load_markets()
         market = self.market(symbol)
         request = {
