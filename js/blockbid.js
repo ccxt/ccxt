@@ -339,7 +339,7 @@ module.exports = class blockbid extends Exchange {
         let result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             let balance = response[i];
-            let currency = balance['currency'];
+            let currency = balance['currency'].toUpperCase();
             if (currency in this.currencies_by_id) {
                 currency = this.currencies_by_id[currency]['code'];
             }
@@ -421,7 +421,7 @@ module.exports = class blockbid extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+    async createOrder (symbol, type, side, amount, price, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let method = 'privatePostOrders';
@@ -561,10 +561,19 @@ module.exports = class blockbid extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
-        headers = {};
+        let body, query;
+        if (method === 'GET') {
+            query = this.omit (params, this.extractParams (path));
+            query = this.urlencode (query);
+            if (query.length) {
+                url += '?' + query;
+            }
+        } else if (method !== 'DELETE') {
+          body = params;
+        }
+        let headers = { 'Content-Type': 'application/json' };
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
@@ -572,10 +581,11 @@ module.exports = class blockbid extends Exchange {
             let encodedApiKey = this.encode (this.apiKey);
             let encodedNonce = this.encode (nonce);
             let rawSignature = this.stringToBase64 (encodedApiKey) + this.stringToBase64 (encodedNonce);
-            let stringifyedPayload = this.encode ('');
-            if (body) {
-                stringifyedPayload = this.encode (body);
+            let stringifyedPayload = '';
+            if (body && Object.keys(body).length > 0) {
+              stringifyedPayload = this.encode(JSON.stringify(body));
             }
+            body = JSON.stringify(body);
             rawSignature = rawSignature + this.stringToBase64 (stringifyedPayload);
             let encodedSecret = this.encode (this.secret);
             const signature = this.hmac (rawSignature, encodedSecret, 'sha384', 'base64');
@@ -583,15 +593,7 @@ module.exports = class blockbid extends Exchange {
             headers['X-Blockbid-Nonce'] = nonce;
             headers['X-Blockbid-Api-Key'] = this.apiKey;
         }
-        if (method === 'GET') {
-            query = this.urlencode (query);
-            if (query.length) {
-                url += '?' + query;
-            }
-        } else {
-            headers['Content-type'] = 'application/json';
-            body = this.json (query);
-        }
+
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
