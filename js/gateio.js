@@ -684,7 +684,7 @@ module.exports = class gateio extends Exchange {
         if (since !== undefined) {
             request['start'] = since;
         }
-        const response = this.privatePostDepositsWithdrawals (this.extend (request, params));
+        const response = await this.privatePostDepositsWithdrawals (this.extend (request, params));
         let transactions = undefined;
         if (type === undefined) {
             const deposits = this.safeValue (response, 'deposits', []);
