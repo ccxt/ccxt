@@ -17,9 +17,9 @@ module.exports = class blockbid extends Exchange {
             'has': {
                 'CORS': false,
                 'cancelOrders': true,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
                 'fetchL2OrderBook': false, // this probably needs to be implemented
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOHLCV': true,
@@ -75,8 +75,7 @@ module.exports = class blockbid extends Exchange {
                         'balances',
                         'balances/{currency}',
                         'addresses',
-                        'deposits',
-                        'deposits/{id}',
+                        'deposits/crypto',
                         'trades/my',
                         'orders',
                         'orders/{id}',
@@ -339,7 +338,7 @@ module.exports = class blockbid extends Exchange {
         let result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             let balance = response[i];
-            let currency = balance['currency'].toUpperCase();
+            let currency = balance['currency'].toUpperCase ();
             if (currency in this.currencies_by_id) {
                 currency = this.currencies_by_id[currency]['code'];
             }
@@ -483,6 +482,28 @@ module.exports = class blockbid extends Exchange {
         return this.parseOrders (result, undefined, since, limit);
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ExchangeError (this.id + ' fetchDeposits() requires a currency code arguemnt');
+        }
+        let currency = this.currency (code);
+        let request = {
+            'currency': currency['id'],
+        };
+        let response = await this.privateGetDepositsCrypto (this.extend (request, params));
+        return this.parseTransactions (response, currency);
+    }
+
+    parseTransactionStatus (status) {
+        let statuses = {
+            'processing': 'pending',
+            'rejected': 'failed',
+            'accepted': 'ok',
+        };
+        return (status in statuses) ? statuses[status] : status;
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -563,7 +584,8 @@ module.exports = class blockbid extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
-        let body, query;
+        let body = undefined;
+        let query = undefined;
         if (method === 'GET') {
             query = this.omit (params, this.extractParams (path));
             query = this.urlencode (query);
@@ -571,7 +593,7 @@ module.exports = class blockbid extends Exchange {
                 url += '?' + query;
             }
         } else if (method !== 'DELETE') {
-          body = params;
+            body = params;
         }
         let headers = { 'Content-Type': 'application/json' };
         if (api === 'private') {
@@ -582,10 +604,10 @@ module.exports = class blockbid extends Exchange {
             let encodedNonce = this.encode (nonce);
             let rawSignature = this.stringToBase64 (encodedApiKey) + this.stringToBase64 (encodedNonce);
             let stringifyedPayload = '';
-            if (body && Object.keys(body).length > 0) {
-              stringifyedPayload = this.encode(JSON.stringify(body));
+            if (body && Object.keys (body).length > 0) {
+                stringifyedPayload = this.encode (JSON.stringify (body));
             }
-            body = JSON.stringify(body);
+            body = JSON.stringify (body);
             rawSignature = rawSignature + this.stringToBase64 (stringifyedPayload);
             let encodedSecret = this.encode (this.secret);
             const signature = this.hmac (rawSignature, encodedSecret, 'sha384', 'base64');
@@ -593,7 +615,6 @@ module.exports = class blockbid extends Exchange {
             headers['X-Blockbid-Nonce'] = nonce;
             headers['X-Blockbid-Api-Key'] = this.apiKey;
         }
-
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
