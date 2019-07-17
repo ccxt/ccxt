@@ -367,7 +367,6 @@ module.exports = class blockbid extends Exchange {
         };
         return this.safeString (statuses, status, status);
     }
-
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
         let symbol = undefined;
@@ -492,10 +491,11 @@ module.exports = class blockbid extends Exchange {
             'currency': currency['id'],
         };
         let response = await this.privateGetDepositsCrypto (this.extend (request, params));
-        const deposits = response.map ((r) => {
-            r.type = 'deposit';
-            return r;
-        });
+        let deposits = [];
+        for (let i = 0; i < response.length; i++) {
+          response[i].type = 'deposit';
+          deposits.push (response[i]);
+        }
         return this.parseTransactions (deposits, currency);
     }
 
@@ -539,7 +539,12 @@ module.exports = class blockbid extends Exchange {
         }
         let method = isFiat ? 'privateGetWithdrawsFiat' : 'privateGetWithdrawsCrypto';
         let response = await this[method] (this.extend (request, params));
-        return this.parseTransactions (response, currency, since, limit);
+        let withdrawals = [];
+        for (let i = 0; i < response.length; i++) {
+          response[i].type = 'withdrawal';
+          withdrawals.push (response[i]);
+        }
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     parseTransactionStatuses (status) {
@@ -549,9 +554,9 @@ module.exports = class blockbid extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        const id = this.safeString (transaction, 'withdrawID');
+        const id = this.safeString (transaction, 'id');
         const txid = this.safeString (transaction, 'txid');
-        const timestamp = this.parse8601 (this.safeString (transaction, 'timeCreated'));
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdAt'));
         let code = undefined;
         const currencyId = this.safeString (transaction, 'currency');
         const address = this.safeString (transaction, 'address');
@@ -563,7 +568,8 @@ module.exports = class blockbid extends Exchange {
         }
         const amount = this.safeFloat (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const updated = this.safeString (transaction, 'timeUpdated');
+        const updated = this.safeString (transaction, 'createdAt');
+        const type = this.safeString (transaction, 'type');
         const fee = {
             'cost': this.safeFloat (transaction, 'fee'),
             'currency': code,
@@ -577,7 +583,7 @@ module.exports = class blockbid extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'address': address,
             'tag': undefined, // or is it defined?
-            'type': undefined, // direction of the transaction, ('deposit' | 'withdraw')
+            'type': type, // direction of the transaction, ('deposit' | 'withdraw')
             'amount': amount,
             'currency': code,
             'status': status,
