@@ -129,6 +129,7 @@ const commonRegexes = [
     [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
     [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
     [ /errorHierarchy/g, 'error_hierarchy'],
+    [ /defaultErrorHandler/g, 'default_error_handler' ],
     [ /\'use strict\';?\s+/g, '' ],
 ]
 
@@ -240,6 +241,7 @@ const pythonRegexes = [
     [ /([^\s]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
     [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
     [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
+    [ /function([\s\S]+?)\s*{/g, 'def$1:' ]  // allow transpilation of arbitrary functions outside classes
 ])
 
 // ----------------------------------------------------------------------------
@@ -301,7 +303,8 @@ const phpRegexes = [
     [ /throw new Error \((.*)\)/g, 'throw new \\Exception($1)' ],
     [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1($2)' ],
     [ /throw ([\S]+)\;/g, 'throw $$$1;' ],
-    [ '([^a-z]+) (' + Object.keys (errors).join ('|') + ')([^\\s])', "$1 '\\\\ccxt\\\\$2'$3" ],
+    [ '(new|instanceof) ccxt\\.', '$1 \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
+    [ '(?:ccxt\\.)?(?<!\\\\)(' + Object.keys (errors).join ('|') + ')([^\\s])', "'\\\\ccxt\\\\$1'$2" ],
     [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
     [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {' ],
     [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
@@ -348,7 +351,6 @@ const phpRegexes = [
     [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos($1, $2)' ],
     [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array($2) && array_key_exists($1, $2))' ],
     [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode($2, $1)' ],
-    [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
     [ /Math\.(max|min)/g, '$1' ],
     [ /console\.log/g, 'var_dump'],
     [ /process\.exit/g, 'exit'],
@@ -535,6 +537,18 @@ function transpileJavaScriptToPHP ({ js, variables }) {
     let catchClauseMatches
     while (catchClauseMatches = catchClauseRegex.exec (js)) {
         allVariables.push (catchClauseMatches[1])
+    }
+
+    // add support for transpiling functions declared outside a class
+    let functionSignatureRegex = /function\s+\w+\s*\(([^)]+)\)\s*{/g // signature line
+    let methodArgumentsMatches
+    while (methodArgumentsMatches = functionSignatureRegex.exec (js)) {
+        let args = methodArgumentsMatches[1].trim ()
+        // extract argument names and local variables
+        args = args.length ? args.split (',').map (x => x.trim ()) : []
+        // get names of all method arguments for later substitutions
+        let variables = args.map (arg => arg.split ('=').map (x => x.trim ()) [0])
+        allVariables = allVariables.concat (variables)
     }
 
     allVariables = allVariables.map (error => regexAll(error, commonRegexes))
@@ -848,7 +862,41 @@ function transpileDateTimeTests () {
 
     let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
-    // phpBody = phpBody.replace (/exchange\./g, 'Exchange::')
+    const pythonHeader =
+"\n\
+import ccxt  # noqa: F402\n\
+\n\
+# ----------------------------------------------------------------------------\n\
+\n"
+
+    const python = pyPreamble + pythonHeader + python2Body
+    const php = phpPreamble + phpBody
+
+    log.magenta ('→', pyFile.yellow)
+    log.magenta ('→', phpFile.yellow)
+
+    overwriteFile (pyFile, python)
+    overwriteFile (phpFile, php)
+}
+
+//-----------------------------------------------------------------------------
+
+function transpileDefaultErrorHandlerTests () {
+    const jsFile = './js/test/errors/test.defaultErrorHandler.js'
+    const pyFile = './python/test/test_default_error_handler.py'
+    const phpFile = './php/test/test_default_error_handler.php'
+
+    log.magenta ('Transpiling from', jsFile.yellow)
+
+    let js = fs.readFileSync (jsFile).toString ()
+
+    js = regexAll (js, [
+        [ /[^\n]+require[^\n]+\n/g, '' ],
+        [/^\/\*.*\s+/mg, ''],
+        [/\.name/g, ''],
+    ])
+
+    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({js: js})
 
     const pythonHeader =
 "\n\
@@ -962,20 +1010,21 @@ createFolderRecursively (python3Folder)
 createFolderRecursively (phpFolder)
 
 
-const classes = transpileDerivedExchangeFiles ('./js/', filename)
+//const classes = transpileDerivedExchangeFiles ('./js/', filename)
 
+let classes = null
 if (classes === null) {
     log.bright.yellow ('0 files transpiled.')
-    return;
 }
 
 // HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
-exportTypeScriptDeclarations (classes)  // we use typescript?
+//exportTypeScriptDeclarations (classes)  // we use typescript?
 
-transpileErrorHierarchy ()
-transpilePrecisionTests ()
-transpileDateTimeTests ()
-transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
+//transpileErrorHierarchy ()
+//transpilePrecisionTests ()
+//transpileDateTimeTests ()
+transpileDefaultErrorHandlerTests ()
+//transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
 // transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
 
 //-----------------------------------------------------------------------------
