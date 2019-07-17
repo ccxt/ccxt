@@ -504,6 +504,7 @@ module.exports = class blockbid extends Exchange {
             'processing': 'pending',
             'rejected': 'failed',
             'accepted': 'ok',
+            'succeed': 'ok'
         };
         return (status in statuses) ? statuses[status] : status;
     }
