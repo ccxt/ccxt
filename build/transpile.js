@@ -1024,7 +1024,7 @@ transpileErrorHierarchy ()
 transpilePrecisionTests ()
 transpileDateTimeTests ()
 transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
-transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
+// transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
 
 //-----------------------------------------------------------------------------
 
