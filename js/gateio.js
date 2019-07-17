@@ -625,7 +625,7 @@ module.exports = class gateio extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ExchangeError (this.id + ' fetchMyTrades requires symbol param');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires symbol param');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
