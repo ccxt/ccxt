@@ -1010,22 +1010,21 @@ createFolderRecursively (python3Folder)
 createFolderRecursively (phpFolder)
 
 
-//const classes = transpileDerivedExchangeFiles ('./js/', filename)
+const classes = transpileDerivedExchangeFiles ('./js/', filename)
 
-let classes = null
 if (classes === null) {
     log.bright.yellow ('0 files transpiled.')
+    return;
 }
 
 // HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
-//exportTypeScriptDeclarations (classes)  // we use typescript?
+exportTypeScriptDeclarations (classes)  // we use typescript?
 
-//transpileErrorHierarchy ()
-//transpilePrecisionTests ()
-//transpileDateTimeTests ()
-transpileDefaultErrorHandlerTests ()
-//transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
-// transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
+transpileErrorHierarchy ()
+transpilePrecisionTests ()
+transpileDateTimeTests ()
+transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
+transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
 
 //-----------------------------------------------------------------------------
 
