@@ -285,7 +285,8 @@ module.exports = class gateio extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseTicker (ticker, market = undefined) {
