@@ -492,7 +492,11 @@ module.exports = class blockbid extends Exchange {
             'currency': currency['id'],
         };
         let response = await this.privateGetDepositsCrypto (this.extend (request, params));
-        return this.parseTransactions (response, currency);
+        const deposits = response.map ((r) => {
+            r.type = 'deposit';
+            return r;
+        });
+        return this.parseTransactions (deposits, currency);
     }
 
     parseTransactionStatus (status) {
