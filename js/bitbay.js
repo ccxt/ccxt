@@ -362,7 +362,7 @@ module.exports = class bitbay extends Exchange {
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-                symbol = market['symbol']
+                symbol = market['symbol'];
                 base = market['base'];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('-');
