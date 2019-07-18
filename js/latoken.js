@@ -121,7 +121,7 @@ module.exports = class latoken extends Exchange {
                 },
             },
             'options': {
-                'timeframe': 5 * 1000, // 5 sec, default
+                'createOrderMethod': 'private_post_order_new', // private_post_order_test_order
             },
             'exceptions': {
                 'exact': {
@@ -663,7 +663,8 @@ module.exports = class latoken extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'orderType': type,
         };
-        const response = await this.privatePostOrderNew (this.extend (request, params));
+        const method = this.safeString (this.options, 'createOrderMethod', 'private_post_order_new');
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "orderId":"1563460093.134037.704945@0370:2",
