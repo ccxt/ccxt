@@ -383,7 +383,7 @@ module.exports = class bitbay extends Exchange {
         if (feeCost !== undefined) {
             fee = {
                 'currency': base,
-                'cost': commissionValue,
+                'cost': feeCost,
             };
         }
         const order = this.safeString (trade, 'offerId');
