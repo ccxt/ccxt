@@ -548,30 +548,26 @@ module.exports = class Exchange {
         // override me
     }
 
-    defaultErrorHandler (code, reason, responseBody, url, method) {
-        if ((code >= 200) && (code <= 299))
-            return
-        let ErrorClass = undefined
-        let details = responseBody
+    defaultErrorHandler (code, reason, responseBody, response, url, method) {
         const match = responseBody.match (/<title>([^<]+)/i)
-        if (match)
-            details = match[1].trim ();
-        ErrorClass = this.httpExceptions[code.toString ()] || ExchangeError
-        if (ErrorClass === ExchangeNotAvailable) {
-            if (responseBody.match (/cloudflare|incapsula|overload|ddos/i)) {
+        let title = undefined;
+        if (match) {
+            title = match[1].trim ();
+        }
+        let ErrorClass = this.httpExceptions[code.toString ()]
+        if (response !== undefined) {
+            const maintenance = responseBody.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
+            if (maintenance) {
+                ErrorClass = ExchangeNotAvailable
+            }
+            const ddosProtection = responseBody.match (/cloudflare|incapsula|overload|ddos/i)
+            if (ddosProtection) {
                 ErrorClass = DDoSProtection
-            } else {
-                details += ' (possible reasons: ' + [
-                    'invalid API keys',
-                    'bad or old nonce',
-                    'exchange is down or offline',
-                    'on maintenance',
-                    'DDoS protection',
-                    'rate-limiting',
-                ].join (', ') + ')'
             }
         }
-        throw new ErrorClass ([ this.id, method, url, code, reason, details ].join (' '))
+        if (ErrorClass !== undefined) {
+            throw new ErrorClass ([ this.id, method, url, code, reason, title ].join (' '))
+        }
     }
 
     isJsonEncodedObject (object) {
