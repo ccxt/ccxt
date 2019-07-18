@@ -123,6 +123,10 @@ module.exports = class latoken extends Exchange {
                 'timeframe': 5 * 1000, // 5 sec, default
             },
             'exceptions': {
+                'exact': {
+                },
+                'broad': {
+                },
                 'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
                 'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
                 'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
@@ -135,20 +139,6 @@ module.exports = class latoken extends Exchange {
                 '429': DDoSProtection,
                 '500': ExchangeError,
                 '503': ExchangeNotAvailable,
-                '200004': InsufficientFunds,
-                '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
-                '300000': InvalidOrder,
-                '400001': AuthenticationError,
-                '400002': InvalidNonce,
-                '400003': AuthenticationError,
-                '400004': AuthenticationError,
-                '400005': AuthenticationError,
-                '400006': AuthenticationError,
-                '400007': AuthenticationError,
-                '400008': NotSupported,
-                '400100': ArgumentsRequired,
-                '411100': AccountSuspended,
-                '500000': ExchangeError,
             },
         });
     }
@@ -189,7 +179,7 @@ module.exports = class latoken extends Exchange {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const id = this.safeString (market, 'pairId');
+            const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quotedCurrency');
             const numericId = this.safeInteger (market, 'pairId');
@@ -384,14 +374,23 @@ module.exports = class latoken extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.symbol + 'fetchTicker requires a symbol argument');
-        }
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         };
-        const response = await this.publicGetMarketDataTicker (this.extend (request, params));
+        const response = await this.publicGetMarketDataTickerSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "pairId": 502,
+        //         "symbol": "LAETH",
+        //         "volume": 1023314.3202,
+        //         "open": 134.82,
+        //         "low": 133.95,
+        //         "high": 136.22,
+        //         "close": 135.12,
+        //         "priceChange": 0.22
+        //     }
+        //
         return this.parseTicker (response, market);
     }
 
@@ -615,6 +614,8 @@ module.exports = class latoken extends Exchange {
         if (!response) {
             return;
         }
+        // {"error":{"message":"Pair 370 is not found","errorType":"RequestError","statusCode":400}}
+        // { "message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)." }
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
         const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
