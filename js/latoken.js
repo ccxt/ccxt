@@ -446,10 +446,10 @@ module.exports = class latoken extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "side": "sell",
-        //         "price": 136.2,
-        //         "amount": 0.57,
-        //         "timestamp": 1555515807369
+        //         "side":"buy",
+        //         "price":0.022315,
+        //         "amount":0.706,
+        //         "timestamp":1563454655
         //     }
         //
         // fetchMyTrades (private)
@@ -465,7 +465,10 @@ module.exports = class latoken extends Exchange {
         //     }
         //
         const type = undefined;
-        const timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        let timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const side = this.safeString (trade, 'side');
@@ -518,15 +521,15 @@ module.exports = class latoken extends Exchange {
         const response = await this.publicGetMarketDataTradesSymbol (this.extend (request, params));
         //
         //     {
-        //         "pairId": 502,
-        //         "symbol": "LAETH",
-        //         "tradeCount": 1,
+        //         "pairId":370,
+        //         "symbol":"ETHBTC",
+        //         "tradeCount":51,
         //         "trades": [
         //             {
-        //                 "side": "sell",
-        //                 "price": 136.2,
-        //                 "amount": 0.57,
-        //                 "timestamp": 1555515807369
+        //                 "side":"buy",
+        //                 "price":0.022315,
+        //                 "amount":0.706,
+        //                 "timestamp":1563454655
         //             }
         //         ]
         //     }
