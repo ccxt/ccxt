@@ -181,8 +181,9 @@ module.exports = class latoken extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'symbol');
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quotedCurrency');
+            // the exchange shows them inverted
+            const baseId = this.safeString (market, 'quotedCurrency');
+            const quoteId = this.safeString (market, 'baseCurrency');
             const numericId = this.safeInteger (market, 'pairId');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
@@ -650,18 +651,25 @@ module.exports = class latoken extends Exchange {
         return (this.parseOrder (response));
     }
 
-    async createOrder (symbol, cliOrdId, side, price, amount, orderType, timeAlive, params = {}) {
-        const order = {
-            'symbol': symbol,
-            'cliOrdId': cliOrdId,
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        // if (type !== 'limit') {
+        //     throw new ExchangeError (this.id + ' allows limit orders only');
+        // }
+        const request = {
+            'symbol': this.marketId (symbol),
             'side': side,
-            'price': price,
-            'amount': amount,
-            'orderType': orderType,
-            'timeAlive': timeAlive,
+            // 'price': this.priceToPrecision (symbol, price),
+            'amount': this.amountToPrecision (symbol, amount),
+            'orderType': type,
         };
-        const result = await this.privatePostOrderNew (this.extend (order, params));
-        return this.parseOrder (result);
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePostOrderNew (this.extend (request, params));
+        console.log (response);
+        process.exit ();
+        return this.parseOrder (response);
     }
 
     async cancelOrder (id, params = {}) {
@@ -730,8 +738,10 @@ module.exports = class latoken extends Exchange {
         if (!response) {
             return;
         }
-        // {"error":{"message":"Pair 370 is not found","errorType":"RequestError","statusCode":400}}
+        // { "error": { "message": "Pair 370 is not found","errorType":"RequestError","statusCode":400 }}
         // { "message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)." }
+        // { "error": { "message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 }}
+        // { "error": { "message": "Request is out of time", "errorType": "RequestError", "statusCode":400}}
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
         const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
