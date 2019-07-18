@@ -339,7 +339,7 @@ module.exports = class latoken extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         };
         const response = await this.publicGetMarketDataOrderBookSymbol (this.extend (request, params));
         //
@@ -664,6 +664,18 @@ module.exports = class latoken extends Exchange {
             'orderType': type,
         };
         const response = await this.privatePostOrderNew (this.extend (request, params));
+        //
+        //     {
+        //         "orderId":"1563460093.134037.704945@0370:2",
+        //         "cliOrdId":"",
+        //         "pairId":370,
+        //         "symbol":"ETHBTC",
+        //         "side":"sell",
+        //         "orderType":"limit",
+        //         "price":1.0,
+        //         "amount":1.0
+        //     }
+        //
         return this.parseOrder (response);
     }
 
@@ -713,7 +725,6 @@ module.exports = class latoken extends Exchange {
         if (Object.keys (query).length) {
             request += '?' + urlencodedQuery;
         }
-        const url = this.urls['api'] + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const signature = this.hmac (this.encode (request), this.encode (this.secret));
@@ -726,6 +737,7 @@ module.exports = class latoken extends Exchange {
                 body = urlencodedQuery;
             }
         }
+        const url = this.urls['api'] + request;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -733,11 +745,12 @@ module.exports = class latoken extends Exchange {
         if (!response) {
             return;
         }
-        // { "error": { "message": "Pair 370 is not found","errorType":"RequestError","statusCode":400 }}
         // { "message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)." }
+        // { "error": { "message": "Pair 370 is not found","errorType":"RequestError","statusCode":400 }}
         // { "error": { "message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 }}
         // { "error": { "message": "Request is out of time", "errorType": "RequestError", "statusCode":400 }}
-        // { "error": { "message":"Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 }}
+        // { "error": { "message": "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 }}
+        // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
         const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
