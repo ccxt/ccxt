@@ -332,79 +332,69 @@ module.exports = class coinbase extends Exchange {
     }
 
     parseTransaction (transaction, market = undefined) {
-        // fiat_deposit: {
-        //     "id": "f34c19f3-b730-5e3d-9f72",
-        //     "status": "completed",
-        //     "payment_method": {
-        //         "id": "a022b31d-f9c7-5043-98f2",
-        //         "resource": "payment_method",
-        //         "resource_path": "/v2/payment-methods/a022b31d-f9c7-5043-98f2"
-        //     },
-        //     "transaction": {
-        //         "id": "04ed4113-3732-5b0c-af86-b1d2146977d0",
-        //         "resource": "transaction",
-        //         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86"
-        //     },
-        //     "user_reference": "2VTYTH",
-        //     "created_at": "2017-02-09T07:01:18Z",
-        //     "updated_at": "2017-02-09T07:01:26Z",
-        //     "resource": "deposit",
-        //     "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72",
-        //     "committed": true,
-        //     "payout_at": "2017-02-12T07:01:17Z",
-        //     "instant": false,
-        //     "fee": {
-        //         "amount": "0.00",
-        //         "currency": "EUR"
-        //     },
-        //     "amount": {
-        //         "amount": "114.02",
-        //         "currency": "EUR"
-        //     },
-        //     "subtotal": {
-        //         "amount": "114.02",
-        //         "currency": "EUR"
-        //     },
-        //     "hold_until": null,
-        //     "hold_days": 0,
-        //     "hold_business_days": 0,
-        //     "next_step": null }
         //
-        // fiat_withdrawal: {
-        //     "id": "cfcc3b4a-eeb6-5e8c-8058",
-        //     "status": "completed",
-        //     "payment_method": {
-        //         "id": "8b94cfa4-f7fd-5a12-a76a",
-        //         "resource": "payment_method",
-        //         "resource_path": "/v2/payment-methods/8b94cfa4-f7fd-5a12-a76a"
-        //     },
-        //     "transaction": {
-        //         "id": "fcc2550b-5104-5f83-a444",
-        //         "resource": "transaction",
-        //         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/fcc2550b-5104-5f83-a444"
-        //     },
-        //     "user_reference": "MEUGK",
-        //     "created_at": "2018-07-26T08:55:12Z",
-        //     "updated_at": "2018-07-26T08:58:18Z",
-        //     "resource": "withdrawal",
-        //     "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/cfcc3b4a-eeb6-5e8c-8058",
-        //     "committed": true,
-        //     "payout_at": "2018-07-31T08:55:12Z",
-        //     "instant": false,
-        //     "fee": {
-        //         "amount": "0.15",
-        //         "currency": "EUR"
-        //     },
-        //     "amount": {
-        //         "amount": "13130.69",
-        //         "currency": "EUR"
-        //     },
-        //     "subtotal": {
-        //         "amount": "13130.84",
-        //         "currency": "EUR"
-        //     },
-        //     "idem": "e549dee5-63ed-4e79-8a96",
-        //     "next_step": null }
+        // fiat deposit
+        //
+        //     {
+        //         "id": "f34c19f3-b730-5e3d-9f72",
+        //         "status": "completed",
+        //         "payment_method": {
+        //             "id": "a022b31d-f9c7-5043-98f2",
+        //             "resource": "payment_method",
+        //             "resource_path": "/v2/payment-methods/a022b31d-f9c7-5043-98f2"
+        //         },
+        //         "transaction": {
+        //             "id": "04ed4113-3732-5b0c-af86-b1d2146977d0",
+        //             "resource": "transaction",
+        //             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/04ed4113-3732-5b0c-af86"
+        //         },
+        //         "user_reference": "2VTYTH",
+        //         "created_at": "2017-02-09T07:01:18Z",
+        //         "updated_at": "2017-02-09T07:01:26Z",
+        //         "resource": "deposit",
+        //         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/deposits/f34c19f3-b730-5e3d-9f72",
+        //         "committed": true,
+        //         "payout_at": "2017-02-12T07:01:17Z",
+        //         "instant": false,
+        //         "fee": { "amount": "0.00", "currency": "EUR" },
+        //         "amount": { "amount": "114.02", "currency": "EUR" },
+        //         "subtotal": { "amount": "114.02", "currency": "EUR" },
+        //         "hold_until": null,
+        //         "hold_days": 0,
+        //         "hold_business_days": 0,
+        //         "next_step": null
+        //     }
+        //
+        // fiat_withdrawal
+        //
+        //     {
+        //         "id": "cfcc3b4a-eeb6-5e8c-8058",
+        //         "status": "completed",
+        //         "payment_method": {
+        //             "id": "8b94cfa4-f7fd-5a12-a76a",
+        //             "resource": "payment_method",
+        //             "resource_path": "/v2/payment-methods/8b94cfa4-f7fd-5a12-a76a"
+        //         },
+        //         "transaction": {
+        //             "id": "fcc2550b-5104-5f83-a444",
+        //             "resource": "transaction",
+        //             "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/transactions/fcc2550b-5104-5f83-a444"
+        //         },
+        //         "user_reference": "MEUGK",
+        //         "created_at": "2018-07-26T08:55:12Z",
+        //         "updated_at": "2018-07-26T08:58:18Z",
+        //         "resource": "withdrawal",
+        //         "resource_path": "/v2/accounts/91cd2d36-3a91-55b6-a5d4-0124cf105483/withdrawals/cfcc3b4a-eeb6-5e8c-8058",
+        //         "committed": true,
+        //         "payout_at": "2018-07-31T08:55:12Z",
+        //         "instant": false,
+        //         "fee": { "amount": "0.15", "currency": "EUR" },
+        //         "amount": { "amount": "13130.69", "currency": "EUR" },
+        //         "subtotal": { "amount": "13130.84", "currency": "EUR" },
+        //         "idem": "e549dee5-63ed-4e79-8a96",
+        //         "next_step": null
+        //     }
+        //
         const amountObject = this.safeValue (transaction, 'amount', {});
         const feeObject = this.safeValue (transaction, 'fee', {});
         const id = this.safeString (transaction, 'id');
@@ -446,41 +436,29 @@ module.exports = class coinbase extends Exchange {
     parseTrade (trade, market = undefined) {
         //
         //     {
-        //       "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
-        //       "status": "completed",
-        //       "payment_method": {
-        //         "id": "83562370-3e5c-51db-87da-752af5ab9559",
-        //         "resource": "payment_method",
-        //         "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
-        //       },
-        //       "transaction": {
-        //         "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
-        //         "resource": "transaction",
-        //         "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
-        //       },
-        //       "amount": {
-        //         "amount": "1.00000000",
-        //         "currency": "BTC"
-        //       },
-        //       "total": {
-        //         "amount": "10.25",
-        //         "currency": "USD"
-        //       },
-        //       "subtotal": {
-        //         "amount": "10.10",
-        //         "currency": "USD"
-        //       },
-        //       "created_at": "2015-01-31T20:49:02Z",
-        //       "updated_at": "2015-02-11T16:54:02-08:00",
-        //       "resource": "buy",
-        //       "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
-        //       "committed": true,
-        //       "instant": false,
-        //       "fee": {
-        //         "amount": "0.15",
-        //         "currency": "USD"
-        //       },
-        //       "payout_at": "2015-02-18T16:54:00-08:00"
+        //         "id": "67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //         "status": "completed",
+        //         "payment_method": {
+        //             "id": "83562370-3e5c-51db-87da-752af5ab9559",
+        //             "resource": "payment_method",
+        //             "resource_path": "/v2/payment-methods/83562370-3e5c-51db-87da-752af5ab9559"
+        //         },
+        //         "transaction": {
+        //             "id": "441b9494-b3f0-5b98-b9b0-4d82c21c252a",
+        //             "resource": "transaction",
+        //             "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/transactions/441b9494-b3f0-5b98-b9b0-4d82c21c252a"
+        //         },
+        //         "amount": { "amount": "1.00000000", "currency": "BTC" },
+        //         "total": { "amount": "10.25", "currency": "USD" },
+        //         "subtotal": { "amount": "10.10", "currency": "USD" },
+        //         "created_at": "2015-01-31T20:49:02Z",
+        //         "updated_at": "2015-02-11T16:54:02-08:00",
+        //         "resource": "buy",
+        //         "resource_path": "/v2/accounts/2bbf394c-193b-5b2a-9155-3b4732659ede/buys/67e0eaec-07d7-54c4-a72c-2e92826897df",
+        //         "committed": true,
+        //         "instant": false,
+        //         "fee": { "amount": "0.15", "currency": "USD" },
+        //         "payout_at": "2015-02-18T16:54:00-08:00"
         //     }
         //
         let symbol = undefined;
