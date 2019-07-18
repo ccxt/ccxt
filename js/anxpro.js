@@ -142,8 +142,7 @@ module.exports = class anxpro extends Exchange {
         });
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
-        // todo: migrate this to fetchLedger
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
@@ -206,74 +205,163 @@ module.exports = class anxpro extends Exchange {
         //     }
         //
         const transactions = this.safeValue (response, 'transactions', []);
-        const grouped = this.groupBy (transactions, 'transactionType', []);
-        const depositsAndWithdrawals = this.arrayConcat (this.safeValue (grouped, 'DEPOSIT', []), this.safeValue (grouped, 'WITHDRAWAL', []));
-        return this.parseTransactions (depositsAndWithdrawals, currency, since, limit);
+        return this.parseLedger (transactions, undefined, since, limit);
     }
 
-    parseTransaction (transaction, currency = undefined) {
+    parseLedgerEntryStatus (status) {
+        const types = {
+            'PROCESSED': 'ok',
+            'REVERSED': 'canceled',
+            'CANCELLED_INSUFFICIENT_FUNDS': 'canceled',
+            'CANCELLED_LIMIT_BREACH': 'canceled',
+        };
+        return this.safeString (types, status, status);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'FILL_DEBIT': 'trade',
+            'FILL_CREDIT': 'trade',
+            'DEPOSIT': 'transaction',
+            'WITHDRAWAL': 'transaction',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        // examples:
+        //     FILL / FILL_DEBIT
+        //   { transactionClass: 'FILL',
+        //     uuid: 'f1a95748-6455-483b-91bc-8940632b281d',
+        //     userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //     amount: -400,
+        //     fee: 0,
+        //     balanceBefore: 24265.72689976,
+        //     balanceAfter: 23865.72689976,
+        //     ccy: 'XRP',
+        //     transactionState: 'PROCESSED',
+        //     transactionType: 'FILL_DEBIT',
+        //     received: '1528833229000',
+        //     processed: '1528833229000',
+        //     timestampMillis: '1563447561687',
+        //     displayTitle: 'Order Fill',
+        //     displayDescription: 'Sell XRP @ 0.00008608 BTC/XRP' }
         //
-        // withdrawal
+        // FILL / FILL_CREDIT
+        //   { transactionClass: 'FILL',
+        //     uuid: 'a5ae54de-c14a-4ef8-842d-56000c9dc7ab',
+        //     userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //     amount: 0.09006364,
+        //     fee: 0.00018013,
+        //     balanceBefore: 0.3190001,
+        //     balanceAfter: 0.40888361,
+        //     ccy: 'BTC',
+        //     transactionState: 'PROCESSED',
+        //     transactionType: 'FILL_CREDIT',
+        //     received: '1551357057000',
+        //     processed: '1551357057000',
+        //     timestampMillis: '1563447560618',
+        //     displayTitle: 'Order Fill',
+        //     displayDescription: 'Buy BTC @ 3008.53930 EUR/BTC' }
         //
-        //     {
-        //         transactionClass: 'COIN',
-        //         uuid: 'bff91938-4dad-4c48-9db6-468324ce96c1',
-        //         userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
-        //         amount: -0.40888361,
-        //         fee: 0.002,
-        //         balanceBefore: 0.40888361,
-        //         balanceAfter: 0.40888361,
-        //         ccy: 'BTC',
-        //         transactionState: 'PROCESSED',
-        //         transactionType: 'WITHDRAWAL',
-        //         received: '1551357156000',
-        //         processed: '1551357156000',
-        //         timestampMillis: '1557441846213',
-        //         displayTitle: 'Coin Withdrawal',
-        //         displayDescription: 'Withdraw to: 1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        //         coinAddress: '1AHnhqbvbYx3rnZx8uC7NbFZaTe4tafFHX',
-        //         coinTransactionId:
-        //         'ab80abcb62bf6261ebc827c73dd59a4ce15d740b6ba734af6542f43b6485b923',
-        //         subAccount: {
-        //             uuid: '652e1add-0d0b-462c-a03c-d6197c825c1a',
-        //             name: 'DEFAULT'
-        //         }
-        //     }
+        // COIN / DEPOSIT
+        //   { transactionClass: 'COIN',
+        //     uuid: 'eb65576f-c1a8-423c-8e2f-fa50109b2eab',
+        //     userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //     amount: 3.99287184,
+        //     fee: 0,
+        //     balanceBefore: 8.39666034,
+        //     balanceAfter: 12.38953218,
+        //     ccy: 'ETH',
+        //     transactionState: 'PROCESSED',
+        //     transactionType: 'DEPOSIT',
+        //     received: '1529420056000',
+        //     processed: '1529420766000',
+        //     timestampMillis: '1563447561011',
+        //     displayTitle: 'Coin Deposit',
+        //     displayDescription: 'Deposit to: 0xf123aa44fadea913a7da99cc2ee202db684ce0e3',
+        //     coinTransactionId:
+        //     '0x33a3e5ea7c034dc5324a88aa313962df0a5d571ab4bcc3cb00b876b1bdfc54f7',
+        //         coinConfirmations: 51,
+        //     coinConfirmationsRequired: 45,
+        //     subAccount:
+        //     { uuid: 'aba1de05-c7c6-49d7-84ab-a6aca0e827b6',
+        //         name: 'DEFAULT' } }
         //
-        // deposit
+        // COIN / WITHDRAWAL
+        //   { transactionClass: 'COIN',
+        //     uuid: '0babc27c-3f9a-428a-98e8-e2dadd05dc66',
+        //     userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //     amount: -4413.33838347,
+        //     fee: 0.1,
+        //     balanceBefore: 4413.33838347,
+        //     balanceAfter: 4413.33838347,
+        //     ccy: 'DOGE',
+        //     transactionState: 'PROCESSED',
+        //     transactionType: 'WITHDRAWAL',
+        //     received: '1559138997000',
+        //     processed: '1559139001000',
+        //     timestampMillis: '1563447560585',
+        //     displayTitle: 'Coin Withdrawal',
+        //     displayDescription: 'Withdraw to: DHzNTPCArLqadZw9tBzFAVqD3pdumKb7Zd',
+        //     coinAddress: 'DHzNTPCArLqadZw9tBzFAVqD3pdumKb7Zd',
+        //     coinTransactionId:
+        //     'cce2943216a4f7df63d8344be992e09a7692c73a7db91b23f5ab0a8b7ad3aa68',
+        //         subAccount:
+        //     { uuid: '51c2f37e-ef26-4908-9aab-7149bc3b808a',
+        //         name: 'DEFAULT' } }
         //
-        //     {
-        //         "transactionClass": "COIN",
-        //         "uuid": "eb65576f-c1a8-423c-8e2f-fa50109b2eab",
-        //         "userUuid": "82027ee9-cb59-4f29-80d6-f7e793f39ad4",
-        //         "amount": 3.99287184,
-        //         "fee": 0,
-        //         "balanceBefore": 8.39666034,
-        //         "balanceAfter": 12.38953218,
-        //         "ccy": "ETH",
-        //         "transactionState": "PROCESSED",
-        //         "transactionType": "DEPOSIT",
-        //         "received": "1529420056000",
-        //         "processed": "1529420766000",
-        //         "timestampMillis": "1557442743854",
-        //         "displayTitle": "Coin Deposit",
-        //         "displayDescription": "Deposit to: 0xf123aa44fadea913a7da99cc2ee202db684ce0e3",
-        //         "coinTransactionId": "0x33a3e5ea7c034dc5324a88aa313962df0a5d571ab4bcc3cb00b876b1bdfc54f7",
-        //         "coinConfirmations": 51,
-        //         "coinConfirmationsRequired": 45,
-        //         "subAccount": {"uuid": "aba1de05-c7c6-49d7-84ab-a6aca0e827b6", "name": "DEFAULT"}
-        //     }
+        // CASH / WITHDRAWAL
+        //   { transactionClass: 'CASH',
+        //     uuid: 'ad876d2a-cd95-4b6c-a682-d5e482218686',
+        //     userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //     amount: -10000,
+        //     fee: 120,
+        //     balanceBefore: 10068.9293957,
+        //     balanceAfter: 68.9293957,
+        //     ccy: 'EUR',
+        //     transactionState: 'PROCESSED',
+        //     transactionType: 'WITHDRAWAL',
+        //     received: '1516799644000',
+        //     processed: '1516799650000',
+        //     timestampMillis: '1563447597327',
+        //     displayTitle: 'Cash Withdrawal',
+        //     displayDescription: '',
+        //     paymentTransferType: 'BANK_WIRE' }
         //
-        const timestamp = this.safeInteger (transaction, 'received');
-        const updated = this.safeInteger (transaction, 'processed');
-        const transactionType = this.safeString (transaction, 'transactionType');
-        let type = undefined;
-        let amount = this.safeFloat (transaction, 'amount');
-        let address = this.safeString (transaction, 'coinAddress');
+        // undefined / DEPOSIT
+        //   { uuid: '5dd719f7-a0a3-4981-9872-ae1251f00d29',
+        //     userUuid: '82027ee9-cb59-4f29-80d6-f7e793f39ad4',
+        //     amount: 3.2,
+        //     fee: 0,
+        //     balanceBefore: 0,
+        //     balanceAfter: 3.2,
+        //     ccy: 'ETH',
+        //     transactionState: 'PROCESSED',
+        //     transactionType: 'DEPOSIT',
+        //     received: '1508981474000',
+        //     processed: '1508981474000',
+        //     timestampMillis: '1563447622516',
+        //     displayTitle: 'Receive via email',
+        //     displayDescription: 'From: mm@anx.hk' }
+        const timestamp = this.safeInteger (item, 'received');
+        const updated = this.safeInteger (item, 'processed');
+        const transactionType = this.safeString (item, 'transactionType');
+        const transactionState = this.safeString (item, 'transactionState');
+        const amount = this.safeFloat (item, 'amount');
+        const feeCost = this.safeFloat (item, 'fee');
+        const currencyId = this.safeString (item, 'ccy');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        let fee = undefined;
+        if (feeCost) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        let address = this.safeString (item, 'coinAddress');
         let tag = undefined;
         if (transactionType === 'WITHDRAWAL') {
-            type = 'withdrawal';
-            amount = -amount;
             if (address) {
                 //  xrp: "coinAddress": "rw2ciyaNshpHe7bCHo4bRWq6pqqynnWKQg?dt=3750180345",
                 if (address.indexOf ('?dt=') >= 0) {
@@ -284,7 +372,7 @@ module.exports = class anxpro extends Exchange {
             }
         } else if (transactionType === 'DEPOSIT') {
             if (!address) {
-                const displayDescription = this.safeString (transaction, 'displayDescription');
+                const displayDescription = this.safeString (item, 'displayDescription');
                 const addressText = displayDescription.replace ('Deposit to: ', '');
                 if (addressText.length > 0) {
                     //  eth: "displayDescription": "Deposit to: 0xf123aa44fadea913a7da99cc2ee202db684ce0e3",
@@ -298,42 +386,26 @@ module.exports = class anxpro extends Exchange {
                     }
                 }
             }
-            type = 'deposit';
         }
-        const currencyId = this.safeString (transaction, 'ccy');
-        const code = this.safeCurrencyCode (currencyId);
-        const transactionState = this.safeString (transaction, 'transactionState');
-        const status = this.parseTransactionStatus (transactionState);
-        const feeCost = this.safeFloat (transaction, 'fee');
-        const netAmount = amount - feeCost;
+        const txid = this.safeString (item, 'coinTransactionId');
+        const absAmount = amount < 0 ? -amount : amount;
+        const netAmount = absAmount - feeCost;
         return {
+            'id': this.safeString (item, 'uuid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'id': this.safeString (transaction, 'uuid'),
-            'currency': code,
+            'updated': updated,
             'amount': netAmount,
+            'currency': code,
+            'direction': amount < 0 ? 'out' : 'in',
+            'status': this.parseLedgerEntryStatus (transactionState),
+            'type': this.parseLedgerEntryType (transactionType),
             'address': address,
             'tag': tag,
-            'status': status,
-            'type': type,
-            'updated': updated,
-            'txid': this.safeString (transaction, 'coinTransactionId'),
-            'fee': {
-                'cost': feeCost,
-                'currency': code,
-            },
-            'info': transaction,
+            'txid': txid,
+            'fee': fee,
+            'info': item,
         };
-    }
-
-    parseTransactionStatus (status) {
-        const statuses = {
-            'PROCESSED': 'ok',
-            'REVERSED': 'canceled',
-            'CANCELLED_INSUFFICIENT_FUNDS': 'canceled',
-            'CANCELLED_LIMIT_BREACH': 'canceled',
-        };
-        return this.safeString (statuses, status, status);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
