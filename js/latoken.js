@@ -88,7 +88,7 @@ module.exports = class latoken extends Exchange {
                         'ExchangeInfo/pair',
                         'ExchangeInfo/currencies',
                         'ExchangeInfo/currencies/{symbol}',
-                        'MarketData/ticker',
+                        'MarketData/tickers',
                         'MarketData/ticker/{symbol}',
                         'MarketData/orderBook/{symbol}',
                         'MarketData/trades/{symbol}/{limit}',
@@ -414,7 +414,7 @@ module.exports = class latoken extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetMarketDataTicker (params);
+        const response = await this.publicGetMarketDataTickers (params);
         //
         //     [
         //         {
