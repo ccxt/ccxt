@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.956'
+const version = '1.18.957'
 
 Exchange.ccxtVersion = version
 
@@ -40279,25 +40279,52 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // their docs does not mention it, but if you don't supply a symbol
-        // their API will return an empty response as if you don't have any trades
-        // therefore we make it required here as calling it without a symbol is useless
+        // a symbol is required but it can be a single string, or a non-empty array
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument (a single symbol or an array)');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let pair = undefined;
+        let market = undefined;
+        if (Array.isArray (symbol)) {
+            const numSymbols = symbol.length;
+            if (numSymbols < 1) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a non-empty symbol array');
+            }
+            const marketIds = this.marketIds (symbol);
+            pair = marketIds.join (',');
+        } else {
+            market = this.market (symbol);
+            pair = market['id'];
+        }
         const request = {
-            'pair': market['id'],
+            'pair': pair,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privatePostUserTrades (this.extend (request, params));
-        if (market !== undefined) {
-            response = response[market['id']];
+        const response = await this.privatePostUserTrades (this.extend (request, params));
+        let result = [];
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            let symbol = undefined;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            const items = response[marketId];
+            const trades = this.parseTrades (items, market, since, limit, {
+                'symbol': symbol,
+            });
+            result = this.arrayConcat (result, trades);
         }
-        return this.parseTrades (response, market, since, limit);
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
