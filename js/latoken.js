@@ -27,6 +27,7 @@ module.exports = class latoken extends Exchange {
                 'createMarketOrder': false,
                 'createOrder': true,
                 'fetchBalance': true,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchMyTrades': true,
@@ -532,9 +533,6 @@ module.exports = class latoken extends Exchange {
         const request = {
             'symbol': symbol,
         };
-        if (since !== undefined) {
-            request['timestamp'] = since;
-        }
         const response = await this.privateGetOrderTrades (this.extend (request, params));
         //
         //     {
@@ -630,41 +628,39 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
-        return this.fetchOrdersByStatus ('active', symbol, since, limit, params);
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersWithMethod ('private_get_order_active', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return this.fetchOrdersByStatus ('filled', symbol, since, limit, params);
     }
 
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        return this.fetchOrdersByStatus ('cancelled', symbol, since, limit, params);
+    }
+
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {
+            'status': status,
+        };
+        return this.fetchOrdersWithMethod ('private_get_order_status', symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
+            throw ArgumentsRequired (this.id + ' fetchOrdersWithMethod requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'status': status,
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        const response = await this.privateGetOrderStatus (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchAllActiveOrders (symbol, limit = 50, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'symbol': symbol,
-            'limit': limit,
-        };
-        request['timestamp'] = this.nonce ();
-        const response = await this.privateGetOrderActive (this.extend (request, params));
-        const orders = this.parseOrders (response);
-        return orders;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -821,6 +817,7 @@ module.exports = class latoken extends Exchange {
         // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
         // { "error": { "message": "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 }}
         // { "error": { "message": "Symbol must be specified","errorType":"RequestError","statusCode":400 }}
+        // { "error": { "message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 }}
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
         const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
