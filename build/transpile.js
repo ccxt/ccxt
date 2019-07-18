@@ -303,7 +303,8 @@ const phpRegexes = [
     [ /throw new Error \((.*)\)/g, 'throw new \\Exception($1)' ],
     [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1($2)' ],
     [ /throw ([\S]+)\;/g, 'throw $$$1;' ],
-    [ '([^a-z]+) (' + Object.keys (errors).join ('|') + ')([^\\s])', "$1 '\\\\ccxt\\\\$2'$3" ],
+    [ '(: |\\(|, )(?:ccxt\\.)?(' + Object.keys (errors).join ('|') + ')', "$1'\\\\ccxt\\\\$2'" ],
+    [ '([^\'\\\\])(?:ccxt\\.)?(' + Object.keys (errors).join ('|') + ')', "$1$2" ],
     [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
     [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\.length\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 count ($4);$5) {' ],
     [ /for\s+\(([a-zA-Z0-9_]+)\s*=\s*([^\;\s]+\s*)\;[^\<\>\=]+(\<=|\>=|<|>)\s*(.*)\s*\;([^\)]+)\)\s*{/g, 'for ($1 = $2; $1 $3 $4;$5) {' ],
@@ -836,6 +837,7 @@ const phpPreamble = "\
 <?php\n\
 namespace ccxt;\n\
 include_once (__DIR__.'/../Exchange.php');\n\
+include_once (__DIR__.'/../errors.php');\n\
 \n\
 // ----------------------------------------------------------------------------\n\
 \n\
