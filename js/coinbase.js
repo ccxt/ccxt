@@ -924,7 +924,7 @@ module.exports = class coinbase extends Exchange {
         let fee = undefined;
         const networkInfo = this.safeValue (item, 'network', {});
         // txid = network['hash']; // txid does not belong to the unified ledger structure
-        const feeInfo = this.safeValue (networkInfo, 'transaction_fee', {});
+        const feeInfo = this.safeValue (networkInfo, 'transaction_fee');
         if (feeInfo !== undefined) {
             const feeCurrencyId = this.safeString (feeInfo, 'currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId, currency);
