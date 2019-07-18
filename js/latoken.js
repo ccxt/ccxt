@@ -48,6 +48,7 @@ module.exports = class latoken extends Exchange {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTransactions': false,
                 'fetchDeposits': false,
@@ -155,16 +156,9 @@ module.exports = class latoken extends Exchange {
         return this.milliseconds ();
     }
 
-    async currentTime () {
-        const response = await this.publicGetExchangeInfoTime ();
-        const time = this.safeString (response, 'time');
-        const timeSeconds = this.safeInteger (response, 'unixTimeSeconds');
-        const timeMiliseconds = this.safeInteger (response, 'unixTimeMiliseconds');
-        return {
-            'time': time,
-            'timeSeconds': timeSeconds,
-            'timeMiliseconds': timeMiliseconds,
-        };
+    async fetchTime (params = {}) {
+        const response = await this.publicGetExchangeInfoTime (params);
+        return this.safeInteger (response, 'unixTimeMiliseconds');
     }
 
     async fetchMarkets (params = {}) {
