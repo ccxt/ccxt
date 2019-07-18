@@ -1111,10 +1111,7 @@ class Exchange {
     }
 
     public function parse_json($json_string, $as_associative_array = true) {
-        if (strlen($json_string) === 0) {
-            return array();
-        }
-        else if (static::is_json_encoded_object($json_string)) {
+        if (static::is_json_encoded_object($json_string)) {
             return json_decode($json_string, $as_associative_array);
         }
     }
@@ -1289,12 +1286,9 @@ class Exchange {
             throw new ExchangeNotAvailable(implode(' ', array($url, $method, $curl_errno, $curl_error)));
         }
 
-        if (isset($json_response)) {
-            return $json_response;
-        } else {
-            $this->default_error_handler($http_status_code, $http_status_text, $result, $url, $method);
-            return $result;
-        }
+        $this->default_error_handler($http_status_code, $http_status_text, $result, $url, $method);
+
+        return isset($json_response) ? $json_response : $result;
     }
 
     public function default_error_handler($http_status_code, $http_status_text, $result, $url, $method) {

@@ -556,12 +556,9 @@ class Exchange(object):
                 raise ExchangeError(method + ' ' + url)
 
         self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
+        self.default_error_handler(http_status_code, http_status_text, http_response, url, method)
 
-        if json_response is None:
-            self.default_error_handler(http_status_code, http_status_text, http_response, url, method)
-            return http_response
-        else:
-            return json_response
+        return json_response or http_response
 
     def default_error_handler(self, http_status_code, http_status_text, body, url, method):
         if 200 <= http_status_code <= 299:
@@ -586,9 +583,7 @@ class Exchange(object):
 
     def parse_json(self, http_response):
         try:
-            if len(http_response) == 0:
-                return {}
-            elif Exchange.is_json_encoded_object(http_response):
+            if Exchange.is_json_encoded_object(http_response):
                 return json.loads(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
