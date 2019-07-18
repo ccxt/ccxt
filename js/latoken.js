@@ -631,29 +631,28 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
-        return this.fetchOrdersByStatus (symbol, 'active', since, limit, params);
+        return this.fetchOrdersByStatus ('active', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 50, params = {}) {
-        return this.fetchOrdersByStatus (symbol, 'cancelled', since, limit, params);
+        return this.fetchOrdersByStatus ('filled', symbol, since, limit, params);
     }
 
-    async fetchOrdersByStatus (symbol, status, since = undefined, limit = 100, params = {}) {
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = undefined;
+        const market = this.market (symbol);
         const request = {
             'status': status,
+            'symbol': market['id'],
         };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['symbol'];
-        }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 100
         }
         const response = await this.privateGetOrderStatus (this.extend (request, params));
-        const orders = this.parseOrders (response);
-        return orders;
+        return this.parseOrders (response, market, since, limit);
     }
 
     async fetchAllActiveOrders (symbol, limit = 50, params = {}) {
@@ -821,6 +820,7 @@ module.exports = class latoken extends Exchange {
         // { "error": { "message": "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 }}
         // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
         // { "error": { "message": "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 }}
+        // { "error": { "message": "Symbol must be specified","errorType":"RequestError","statusCode":400 }}
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
         const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
