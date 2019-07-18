@@ -268,14 +268,17 @@ module.exports = class btcmarkets extends Exchange {
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const multiplier = 100000000;
-            const total = this.safeFloat (balance, 'balance') / multiplier;
-            const used = this.safeFloat (balance, 'pendingFunds') / multiplier;
-            const free = total - used;
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            let total = this.safeFloat (balance, 'balance');
+            if (total !== undefined) {
+                total /= multiplier;
+            }
+            let used = this.safeFloat (balance, 'pendingFunds');
+            if (used !== undefined) {
+                used /= multiplier;
+            }
+            const account = this.account ();
+            account['used'] = used;
+            account['total'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);

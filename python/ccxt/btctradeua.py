@@ -93,17 +93,14 @@ class btctradeua (Exchange):
         self.load_markets()
         response = self.privatePostBalance(params)
         result = {'info': response}
-        accounts = self.safe_value(response, 'accounts')
-        for i in range(0, len(accounts)):
-            account = accounts[i]
-            currencyId = account['currency']
+        balances = self.safe_value(response, 'accounts')
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
-            balance = self.safe_float(account, 'balance')
-            result[code] = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            }
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'balance')
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):

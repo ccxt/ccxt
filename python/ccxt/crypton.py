@@ -119,16 +119,16 @@ class crypton (Exchange):
         self.load_markets()
         balances = self.privateGetBalances(params)
         result = {'info': balances}
-        keys = list(balances.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            currency = self.safe_currency_code(id)
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            balance = balances[id]
+            balance = balances[currencyId]
             account['total'] = self.safe_float(balance, 'total')
             account['free'] = self.safe_float(balance, 'free')
             account['used'] = self.safe_float(balance, 'locked')
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):

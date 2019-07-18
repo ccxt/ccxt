@@ -56,11 +56,8 @@ class kraken extends Exchange {
                     'zendesk' => 'https://support.kraken.com/hc/en-us/articles/',
                 ),
                 'www' => 'https://www.kraken.com',
-                'doc' => array (
-                    'https://www.kraken.com/en-us/help/api',
-                    'https://github.com/nothingisdead/npm-kraken-api',
-                ),
-                'fees' => 'https://www.kraken.com/en-us/help/fees',
+                'doc' => 'https://www.kraken.com/features/api',
+                'fees' => 'https://www.kraken.com/en-us/features/fee-schedule',
             ),
             'fees' => array (
                 'trading' => array (
@@ -812,12 +809,8 @@ class kraken extends Exchange {
         for ($i = 0; $i < count ($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $balance = $this->safe_float($balances, $currencyId);
-            $account = array (
-                'free' => $balance,
-                'used' => 0.0,
-                'total' => $balance,
-            );
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balances, $currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

@@ -186,12 +186,12 @@ class fcoin (Exchange):
         balances = self.safe_value(response, 'data')
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['currency']
+            currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = float(balance['available'])
-            account['total'] = float(balance['balance'])
-            account['used'] = float(balance['frozen'])
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'frozen')
             result[code] = account
         return self.parse_balance(result)
 

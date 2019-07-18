@@ -294,10 +294,7 @@ class ice3x extends Exchange {
             $balance = $balances[$i];
             // currency ids are numeric strings
             $currencyId = $this->safe_string($balance, 'currency_id');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;

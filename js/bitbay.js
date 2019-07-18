@@ -259,6 +259,7 @@ module.exports = class bitbay extends Exchange {
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
+            // rewrite with safeCurrencyCode, traverse by currency ids
             const currencyId = this.currencyId (code);
             const balance = this.safeValue (balances, currencyId);
             if (balance !== undefined) {

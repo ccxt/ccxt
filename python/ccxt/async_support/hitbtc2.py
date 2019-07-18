@@ -792,10 +792,14 @@ class hitbtc2 (hitbtc):
         result = {}
         for i in range(0, len(response)):
             ticker = response[i]
-            id = ticker['symbol']
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            marketId = self.safe_string(ticker, 'symbol')
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+                    symbol = market['symbol']
+                    result[symbol] = self.parse_ticker(ticker, market)
+                else:
+                    result[marketId] = self.parse_ticker(ticker)
         return result
 
     async def fetch_ticker(self, symbol, params={}):

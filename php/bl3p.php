@@ -82,11 +82,6 @@ class bl3p extends Exchange {
             $account = $this->account ();
             $account['free'] = $this->safe_float($available, 'value');
             $account['total'] = $this->safe_float($balance, 'value');
-            if ($account['total']) {
-                if ($account['free']) {
-                    $account['used'] = $account['total'] - $account['free'];
-                }
-            }
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

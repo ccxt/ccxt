@@ -93,17 +93,14 @@ module.exports = class btctradeua extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
         const result = { 'info': response };
-        const accounts = this.safeValue (response, 'accounts');
-        for (let i = 0; i < accounts.length; i++) {
-            const account = accounts[i];
-            const currencyId = account['currency'];
+        const balances = this.safeValue (response, 'accounts');
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const balance = this.safeFloat (account, 'balance');
-            result[code] = {
-                'free': balance,
-                'used': 0.0,
-                'total': balance,
-            };
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'balance');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

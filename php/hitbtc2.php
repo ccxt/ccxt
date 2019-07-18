@@ -808,10 +808,16 @@ class hitbtc2 extends hitbtc {
         $result = array();
         for ($i = 0; $i < count ($response); $i++) {
             $ticker = $response[$i];
-            $id = $ticker['symbol'];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($ticker, $market);
+            $marketId = $this->safe_string($ticker, 'symbol');
+            if ($marketId !== null) {
+                if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                    $market = $this->markets_by_id[$marketId];
+                    $symbol = $market['symbol'];
+                    $result[$symbol] = $this->parse_ticker($ticker, $market);
+                } else {
+                    $result[$marketId] = $this->parse_ticker($ticker);
+                }
+            }
         }
         return $result;
     }

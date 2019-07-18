@@ -276,9 +276,7 @@ class ice3x (Exchange):
             balance = balances[i]
             # currency ids are numeric strings
             currencyId = self.safe_string(balance, 'currency_id')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['total'] = self.safe_float(balance, 'balance')
             result[code] = account

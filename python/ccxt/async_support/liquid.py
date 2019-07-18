@@ -280,12 +280,8 @@ class liquid (Exchange):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
-            total = self.safe_float(balance, 'balance')
-            account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
-            }
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 

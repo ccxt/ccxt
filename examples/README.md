@@ -69,6 +69,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Download Cryptocurrency Data with CCXT](https://backtest-rookies.com/2018/03/08/download-cryptocurrency-data-with-ccxt/) – A sample script to download historical data from exchanges with a video overview: [Easy Python script to download crypto currency market data with CCXT package](https://www.youtube.com/watch?v=PTGkJsrF7kQ).
 
+[ccxt 를 사용하여 가상화폐 데이터 다운로드하기](https://antilibrary.org/2174) – A Japanese translation of the above article.
+
 [Experiments : Creating a Crypto Twitter Bot to Announce Newly Listed CryptoCoins](https://medium.com/@kennychuaio/experiments-creating-a-crypto-twitter-bot-to-announce-newly-listed-cryptocoins-9cd23930f5cb) – An article on how to integrate with CCXT and Twitter to get new currencies from exchanges automatically.
 
 [CCXT Exercise Index (Python)](https://coil.com/p/sarantium/CCXT-Exercise-Index/U3-ljsKK1) – All CCXT exercises for Python by number and subject. It will be continuously updated as more exercises are added!
@@ -96,6 +98,10 @@ php -f path/to/example.php # substitute for actual filename here
 [ccxtの使い方:pythonで価格取得や残高確認できるAPI ccxt](https://oretano.com/ccxt-resume) – An nice overview of using CCXT in Python.
 
 [如何学习CCXT框架，CCXT框架的使用以及修改交易所的API设置。 讲解如何学习CCXT框架，如何修改和设置CCXT框架中交易所实例的内容设置， 如何获取Tick和行情数据等。](https://www.youtube.com/watch?v=sj8g3gz0k24) – A video on getting started with CCXT and working with market data.
+
+[第二十课：如何使用CCXT框架获取交易所账户信息，下单和查询订单等私有API接口的调用， 以及如何处理交易所返回的数据](https://www.youtube.com/watch?v=GF0uVVIMbn8) – A video on working with private data in CCXT.
+
+[第21课：如何开微信交易所下单机器人以及如何修改CCXT火币交易所api设置等问题解答](https://www.youtube.com/watch?v=ezeOX3-ZzUc) – A video explaining how to write a WeChat bot and how to configure CCXT.
 
 [Python数字货币量化交易开发入门视频-利用CCXT获取bitmex交易所的行情数据](https://www.bilibili.com/video/av44339579/) – A video in Chinese on how to get started with CCXT in Python and a tutorial on OHLCV + Pandas export to CSV.
 

@@ -286,6 +286,8 @@ module.exports = class bitfinex2 extends bitfinex {
                 }
                 const code = this.safeCurrencyCode (currency);
                 const account = this.account ();
+                // do not fill in zeroes and missing values in the parser
+                // rewrite and unify the following to use the unified parseBalance
                 account['total'] = total;
                 if (!available) {
                     if (available === 0) {

@@ -264,14 +264,15 @@ class btcmarkets (Exchange):
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             multiplier = 100000000
-            total = self.safe_float(balance, 'balance') / multiplier
-            used = self.safe_float(balance, 'pendingFunds') / multiplier
-            free = total - used
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            total = self.safe_float(balance, 'balance')
+            if total is not None:
+                total /= multiplier
+            used = self.safe_float(balance, 'pendingFunds')
+            if used is not None:
+                used /= multiplier
+            account = self.account()
+            account['used'] = used
+            account['total'] = total
             result[code] = account
         return self.parse_balance(result)
 
