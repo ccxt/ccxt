@@ -99,7 +99,23 @@ class bleutrade (bittrex):
                 },
                 'v3Private': {
                     'get': [
+                        'getbalance',
+                        'getbalances',
+                        'buylimit',
+                        'selllimit',
+                        'buylimitami',
+                        'selllimitami',
+                        'buystoplimit',
+                        'sellstoplimit',
+                        'ordercancel',
+                        'getopenorders',
+                        'getdeposithistory',
+                        'getdepositaddress',
                         'getmytransactions',
+                        'withdraw',
+                        'directtransfer',
+                        'getwithdrawhistory',
+                        'getlimits',
                     ],
                 },
             },
@@ -284,7 +300,7 @@ class bleutrade (bittrex):
             side = 'buy'
         elif trade['OrderType'] == 'SELL':
             side = 'sell'
-        id = self.safe_string(trade, 'TradeID')
+        id = self.safe_string_2(trade, 'TradeID', 'ID')
         symbol = None
         if market is not None:
             symbol = market['symbol']

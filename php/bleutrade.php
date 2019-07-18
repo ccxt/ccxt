@@ -95,7 +95,23 @@ class bleutrade extends bittrex {
                 ),
                 'v3Private' => array (
                     'get' => array (
+                        'getbalance',
+                        'getbalances',
+                        'buylimit',
+                        'selllimit',
+                        'buylimitami',
+                        'selllimitami',
+                        'buystoplimit',
+                        'sellstoplimit',
+                        'ordercancel',
+                        'getopenorders',
+                        'getdeposithistory',
+                        'getdepositaddress',
                         'getmytransactions',
+                        'withdraw',
+                        'directtransfer',
+                        'getwithdrawhistory',
+                        'getlimits',
                     ),
                 ),
             ),
@@ -299,7 +315,7 @@ class bleutrade extends bittrex {
         } else if ($trade['OrderType'] === 'SELL') {
             $side = 'sell';
         }
-        $id = $this->safe_string($trade, 'TradeID');
+        $id = $this->safe_string_2($trade, 'TradeID', 'ID');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

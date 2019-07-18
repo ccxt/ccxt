@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.951'
+const version = '1.18.952'
 
 Exchange.ccxtVersion = version
 
@@ -20416,7 +20416,23 @@ module.exports = class bleutrade extends bittrex {
                 },
                 'v3Private': {
                     'get': [
+                        'getbalance',
+                        'getbalances',
+                        'buylimit',
+                        'selllimit',
+                        'buylimitami',
+                        'selllimitami',
+                        'buystoplimit',
+                        'sellstoplimit',
+                        'ordercancel',
+                        'getopenorders',
+                        'getdeposithistory',
+                        'getdepositaddress',
                         'getmytransactions',
+                        'withdraw',
+                        'directtransfer',
+                        'getwithdrawhistory',
+                        'getlimits',
                     ],
                 },
             },
@@ -20620,7 +20636,7 @@ module.exports = class bleutrade extends bittrex {
         } else if (trade['OrderType'] === 'SELL') {
             side = 'sell';
         }
-        const id = this.safeString (trade, 'TradeID');
+        const id = this.safeString2 (trade, 'TradeID', 'ID');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
