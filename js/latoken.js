@@ -340,7 +340,7 @@ module.exports = class latoken extends Exchange {
         const request = {
             'symbol': market['symbol'],
         };
-        const response = await this.publicGetMarketDataOrderBook (this.extend (request, params));
+        const response = await this.publicGetMarketDataOrderBookSymbol (this.extend (request, params));
         //
         //     {
         //         "pairId": 502,
