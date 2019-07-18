@@ -345,8 +345,12 @@ module.exports = class latoken extends Exchange {
     parseTicker (ticker, market = undefined) {
         const symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
         const open = this.safeFloat (ticker, 'open');
-        const priceChange = this.safeFloat (ticker, 'priceChange');
-        const priceChangePercent = (open / this.sum (open, priceChange)) * 100;
+        const close = this.safeFloat (ticker, 'close');
+        let change = undefined;
+        if (open !== undefined && close !== undefined) {
+            change = close - open;
+        }
+        const percentage = this.safeFloat (ticker, 'priceChange');
         const timestamp = this.nonce ();
         return {
             'symbol': symbol,
@@ -360,11 +364,11 @@ module.exports = class latoken extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
-            'close': this.safeFloat (ticker, 'close'),
-            'last': undefined,
+            'close': close,
+            'last': close,
             'previousClose': undefined,
-            'change': priceChange,
-            'percentage': priceChangePercent,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': undefined,
