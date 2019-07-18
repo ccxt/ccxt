@@ -970,7 +970,6 @@ module.exports = class coinbase extends Exchange {
     async findAccountId (code) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        let accountId = undefined;
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
             if (account['code'] === code) {
@@ -982,6 +981,9 @@ module.exports = class coinbase extends Exchange {
 
     prepareAccountRequest (limit = undefined, params = {}) {
         const accountId = this.safeString2 (params, 'account_id', 'accountId');
+        if (accountId === undefined) {
+            throw new ArgumentsRequired (this.id + ' method requires an account_id (or accountId) parameter');
+        }
         const request = {
             'account_id': accountId,
         };
@@ -992,16 +994,21 @@ module.exports = class coinbase extends Exchange {
     }
 
     async prepareAccountRequestWithCurrencyCode (code = undefined, limit = undefined, params = {}) {
-        const request = this.prepareAccountRequest (limit, params);
-        if (request['account_id'] === undefined) {
+        let accountId = this.safeString2 (params, 'account_id', 'accountId');
+        if (accountId === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' method requires an account_id (or accountId) parameter OR a currency code argument');
             }
-            const accountId = await this.findAccountId (code);
+            accountId = await this.findAccountId (code);
             if (accountId === undefined) {
-                throw new ExchangeError (this.id + ' invalid currency code');
+                throw new ExchangeError (this.id + ' could not find account id for ' + code);
             }
-            request['account_id'] = accountId;
+        }
+        const request = {
+            'account_id': accountId,
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
         return request;
     }
