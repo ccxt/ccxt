@@ -329,17 +329,14 @@ module.exports = class latoken extends Exchange {
         return this.parseBalance (result);
     }
 
-    async fetchOrderBook (symbol, params = {}) {
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['symbol'],
         };
-        const timestamp = this.nonce ();
         const response = await this.publicGetMarketDataOrderBook (this.extend (request, params));
-        const orderbook = this.parseOrderBook (response, timestamp, 'bids', 'asks', 'price', 'amount');
-        orderbook['nonce'] = this.nonce ();
-        return orderbook;
+        return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     parseTicker (ticker, market = undefined) {
