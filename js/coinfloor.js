@@ -274,8 +274,8 @@ module.exports = class coinfloor extends Exchange {
             if (key.indexOf ('_') > 0) {
                 const parts = key.split ('_');
                 if (parts.length === 2) {
-                    const baseIdPresentInKey = parts[0] in item;
-                    const quoteIdPresentInKey = parts[1] in item;
+                    const baseIdPresentInKey = item[parts[0]] !== undefined;
+                    const quoteIdPresentInKey = item[parts[1]] !== undefined;
                     if (baseIdPresentInKey && quoteIdPresentInKey) {
                         baseId = parts[0];
                         quoteId = parts[1];
