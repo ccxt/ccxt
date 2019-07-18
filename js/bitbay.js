@@ -370,10 +370,11 @@ module.exports = class bitbay extends Exchange {
         }
         const commissionValue = this.safeFloat (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
+        const symbol = this.findSymbol (marketId.replace ('-', ''));
         let fee = undefined;
         if (commissionValue !== undefined) {
-            const market = this.findMarket (marketId);
-            const feeCurrency = market ? market.quote : undefined;
+            const market = this.market (symbol);
+            const feeCurrency = market ? market.base : undefined;
             fee = {
                 'currency': feeCurrency,
                 'cost': commissionValue,
@@ -387,7 +388,7 @@ module.exports = class bitbay extends Exchange {
             'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.findsymbol (marketId.replace ('-', '')),
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
