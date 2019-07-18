@@ -771,6 +771,9 @@ class upbit (Exchange):
             numMinutes = int(round(timeframePeriod / 60))
             request['unit'] = numMinutes
             method += 'Unit'
+        if since is not None:
+            # convert `since` to `to` value
+            request['to'] = self.iso8601(self.sum(since, timeframePeriod * limit * 1000))
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     [{                 market: "BTC-ETH",

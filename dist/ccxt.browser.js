@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.958'
+const version = '1.18.959'
 
 Exchange.ccxtVersion = version
 
@@ -85631,6 +85631,10 @@ module.exports = class upbit extends Exchange {
             const numMinutes = Math.round (timeframePeriod / 60);
             request['unit'] = numMinutes;
             method += 'Unit';
+        }
+        if (since !== undefined) {
+            // convert `since` to `to` value
+            request['to'] = this.iso8601 (this.sum (since, timeframePeriod * limit * 1000));
         }
         const response = await this[method] (this.extend (request, params));
         //
