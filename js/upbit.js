@@ -804,7 +804,7 @@ module.exports = class upbit extends Exchange {
         }
         if (since !== undefined) {
             // convert `since` to `to` value
-            request['to'] = this.iso8601 (since + (timeframePeriod * limit * 1000));
+            request['to'] = this.iso8601 (this.sum (since, timeframePeriod * limit * 1000));
         }
         const response = await this[method] (this.extend (request, params));
         //
