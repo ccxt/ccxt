@@ -437,23 +437,66 @@ module.exports = class latoken extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const info = trade;
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "side": "sell",
+        //         "price": 136.2,
+        //         "amount": 0.57,
+        //         "timestamp": 1555515807369
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "id": "1555492358.126073.126767@0502:2",
+        //         "orderId": "1555492358.126073.126767@0502:2",
+        //         "commission": 0.012,
+        //         "side": "buy",
+        //         "price": 136.2,
+        //         "amount": 0.7,
+        //         "time": 1555515807369
+        //     }
+        //
         const type = undefined;
-        const fee = undefined;
+        const timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        const side = this.safeString (trade, 'side');
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = amount * price;
+            }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const id = this.safeString (trade, 'id');
+        const orderId = this.safeString (trade, 'orderId');
+        const feeCost = this.safeFloat (trade, 'commission');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+        }
         return {
-            'info': info,
-            'timestamp': trade['timestamp'],
-            'datetime': this.iso8601 (trade['timestamp']),
-            'symbol': trade['symbol'],
-            'pairId': trade['pairId'],
-            'id': trade['id'],
-            'order': trade['orderId'],
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'id': id,
+            'order': orderId,
             'type': type,
-            'side': trade['side'],
-            'price': trade['price'],
-            'amount': trade['amount'],
-            'cost': trade['price'] * trade['amount'],
-            'commision': trade['commision'],
+            'takerOrMaker': undefined,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         };
     }
@@ -487,16 +530,39 @@ module.exports = class latoken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyTrades (symbol = undefined, params = {}, limit = 10) {
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = undefined;
         const request = {
             'symbol': symbol,
         };
+        if (since !== undefined) {
+            request['timestamp'] = since;
+        }
         const response = await this.privateGetOrderTrades (this.extend (request, params));
-        const rawTrades = this.safeValue (response, 'trades', []);
-        const trades = this.parseTrades (rawTrades, market);
-        return trades;
+        //
+        //     {
+        //         "pairId": 502,
+        //         "symbol": "LAETH",
+        //         "tradeCount": 1,
+        //         "trades": [
+        //             {
+        //                 "id": "1555492358.126073.126767@0502:2",
+        //                 "orderId": "1555492358.126073.126767@0502:2",
+        //                 "commission": 0.012,
+        //                 "side": "buy",
+        //                 "price": 136.2,
+        //                 "amount": 0.7,
+        //                 "time": 1555515807369
+        //             }
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'trades', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     parseOrder (order) {
