@@ -1006,7 +1006,7 @@ module.exports = class coinbase extends Exchange {
         }
         const request = {
             'account_id': accountId,
-        }
+        };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
