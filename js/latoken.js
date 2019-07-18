@@ -192,6 +192,7 @@ module.exports = class latoken extends Exchange {
             const id = this.safeString (market, 'pairId');
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quotedCurrency');
+            const numericId = this.safeInteger (market, 'pairId');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -215,6 +216,7 @@ module.exports = class latoken extends Exchange {
             };
             result.push ({
                 'id': id,
+                'numericId': id,
                 'info': market,
                 'symbol': symbol,
                 'base': base,
