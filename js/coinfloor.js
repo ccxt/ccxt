@@ -236,7 +236,8 @@ module.exports = class coinfloor extends Exchange {
     }
 
     parseLedgerEntry (item, currency = undefined) {
-        // {
+        // trade:
+        //   {
         //     "datetime": "2017-07-25 06:41:24",
         //     "id": 1500964884381265,
         //     "type": 2,
@@ -244,9 +245,10 @@ module.exports = class coinfloor extends Exchange {
         //     "xbt_eur": "2322.00",
         //     "eur": "-232.20",
         //     "fee": "0.00",
-        //     "order_id": 84696745
-        // }
-        // {
+        //     "order_id": 84696745 }
+        //
+        // transactions:
+        //   {
         //     "datetime": "2017-07-25 13:19:46",
         //     "id": 97669,
         //     "type": 1,
@@ -254,9 +256,8 @@ module.exports = class coinfloor extends Exchange {
         //     "xbt_eur": null,
         //     "eur": "0",
         //     "fee": "0.0000",
-        //     "order_id": null
-        // }
-        // {
+        //     "order_id": null }
+        //   {
         //     "datetime": "2017-07-27 16:44:55",
         //     "id": 98277,
         //     "type": 0,
@@ -264,8 +265,7 @@ module.exports = class coinfloor extends Exchange {
         //     "xbt_eur": null,
         //     "eur": "4970.04",
         //     "fee": "0.00",
-        //     "order_id": null
-        // }
+        //     "order_id": null }
         const keys = Object.keys (item);
         let baseId = undefined;
         let quoteId = undefined;
@@ -285,27 +285,43 @@ module.exports = class coinfloor extends Exchange {
         }
         const baseAmount = this.safeFloat (item, baseId);
         const quoteAmount = this.safeFloat (item, quoteId);
-        const datetimeText = this.safeString (item, 'datetime');
-        const timestamp = this.parse8601 (datetimeText);
-        const amount = baseAmount !== 0 ? baseAmount : quoteAmount;
-        const currencyId = baseAmount !== 0 ? baseId : quoteId;
-        const code = this.safeCurrencyCode (currencyId, currency);
-        let fee = undefined;
-        if ('fee' in item) {
+        if (this.safeString (item, 'type') === '2') {
+            // it's a trade so let make 2 entries
+            const orderId = this.safeString (item, 'order_id');
+            return [
+                this.createLedgerItem (baseAmount, baseId, orderId, undefined, item),
+                this.createLedgerItem (quoteAmount, quoteId, orderId, undefined, item),
+            ];
+        } else {
+            const amount = baseAmount !== 0 ? baseAmount : quoteAmount;
+            const currencyId = baseAmount !== 0 ? baseId : quoteId;
             const feeCost = this.safeFloat (item, 'fee');
+            return this.createLedgerItem (amount, currencyId, undefined, feeCost, item);
+        }
+    }
+
+    createLedgerItem (amount, currencyId, referenceId, feeCost, item) {
+        const id = this.safeString (item, 'id');
+        const timestamp = this.parse8601 (this.safeString (item, 'datetime'));
+        const datetime = this.iso8601 (timestamp);
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        let fee = undefined;
+        const code = this.safeCurrencyCode (currencyId);
+        if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
                 'currency': code,
             };
         }
         return {
-            'id': this.safeString (item, 'id'),
+            'id': id,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'amount': amount < 0 ? -amount : amount,
+            'direction': amount < 0 ? 'out' : 'in',
             'currency': code,
-            'type': this.parseLedgerEntryType (this.safeString ('type')),
-            'referenceId': this.safeString (item, 'order_id'),
+            'type': type,
+            'referenceId': referenceId,
             'referenceAccount': undefined,
             'before': undefined,
             'after': undefined,
