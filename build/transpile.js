@@ -241,7 +241,7 @@ const pythonRegexes = [
     [ /([^\s]+) \}/g, '$1}' ],    // PEP8 E202 remove whitespaces before right } bracket
     [ /([^a-z])(elif|if|or|else)\(/g, '$1$2 \(' ], // a correction for PEP8 E225 side-effect for compound and ternary conditionals
     [ /\=\=\sTrue/g, 'is True' ], // a correction for PEP8 E712, it likes "is True", not "== True"
-    [ /function([\s\S]+?)\s*{/g, 'def$1:' ]  // allow transpilation of arbitrary functions outside classes
+    [ /^function([\s\S]{3,}?)\s*{/mg, 'def$1:' ]  // allow transpilation of arbitrary functions outside classes
 ])
 
 // ----------------------------------------------------------------------------
@@ -351,7 +351,6 @@ const phpRegexes = [
     [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos($1, $2)' ],
     [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array($2) && array_key_exists($1, $2))' ],
     [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode($2, $1)' ],
-    [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
     [ /Math\.(max|min)/g, '$1' ],
     [ /console\.log/g, 'var_dump'],
     [ /process\.exit/g, 'exit'],
@@ -903,6 +902,7 @@ function transpileDefaultErrorHandlerTests () {
     const pythonHeader =
 "\n\
 import ccxt  # noqa: F402\n\
+Exchange = ccxt.Exchange\n\
 \n\
 # ----------------------------------------------------------------------------\n\
 \n"
@@ -1025,8 +1025,9 @@ exportTypeScriptDeclarations (classes)  // we use typescript?
 transpileErrorHierarchy ()
 transpilePrecisionTests ()
 transpileDateTimeTests ()
-transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
-// transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
+transpileDefaultErrorHandlerTests ()
+//transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
+//transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
 
 //-----------------------------------------------------------------------------
 

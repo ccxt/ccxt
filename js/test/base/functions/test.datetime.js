@@ -2,8 +2,9 @@
 
 const ccxt = require ('../../../../ccxt');
 const assert = require ('assert');
+const Exchange = require ('../../../base/Exchange')
 
-const exchange = new ccxt.Exchange ({
+const exchange = new Exchange ({
     'id': 'regirock',
 });
 

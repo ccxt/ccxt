@@ -1,7 +1,9 @@
 const ccxt = require ('../../../ccxt' );
+const Exchange = require ('../../base/Exchange')
+
 
 function testDefaultErrorHandler (errorClass, httpStatusCode, httpStatusText, body, url, method) {
-    const exchange = new ccxt.Exchange ({
+    const exchange = new Exchange ({
         'id': 'regirock',
     });
     try {
