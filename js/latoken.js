@@ -13,7 +13,7 @@ module.exports = class latoken extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'latoken',
             'name': 'Latoken',
-            'countries': [ 'VG' ],
+            'countries': [ 'KY' ], // Cayman Islands
             'version': 'v1',
             'rateLimit': 2000,
             'certified': false,
@@ -299,32 +299,36 @@ module.exports = class latoken extends Exchange {
 
     async fetchBalance (currency = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'currency': currency,
-        };
-        const response = await this.privateGetAccountBalances (this.extend (request, params));
+        const response = await this.privateGetAccountBalances (params);
+        //
+        //     [
+        //         {
+        //             "currencyId": 102,
+        //             "symbol": "LA",
+        //             "name": "Latoken",
+        //             "amount": 1054.66,
+        //             "available": 900.66,
+        //             "frozen": 154,
+        //             "pending": 0
+        //         }
+        //     ]
+        //
         const result = {
             'info': response,
         };
-        if (currency !== undefined) {
-            const currency = response['symbol'];
-            const account = {
-                'free': parseFloat (response['available']),
-                'used': parseFloat (response['frozen']),
-                'total': parseFloat (response['amount']),
-            };
-            result[currency] = account;
-            return this.parseBalance (result);
-        }
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currency = balance['symbol'];
+            const currencyId = this.safeString (balance, 'symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const frozen = this.safeFloat (balance, 'frozen');
+            const pending = this.safeFloat (balance, 'pending');
+            const used = this.sum (frozen, pending);
             const account = {
-                'free': parseFloat (balance['available']),
-                'used': parseFloat (balance['frozen']),
-                'total': parseFloat (balance['amount']),
+                'free': this.safeFloat (balance, 'available'),
+                'used': used,
+                'total': this.safeFloat (balance, 'amount'),
             };
-            result[currency] = account;
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
