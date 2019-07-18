@@ -91,6 +91,7 @@ module.exports = class latoken extends Exchange {
                         'MarketData/tickers',
                         'MarketData/ticker/{symbol}',
                         'MarketData/orderBook/{symbol}',
+                        'MarketData/trades/{symbol}',
                         'MarketData/trades/{symbol}/{limit}',
                     ],
                 },
