@@ -1288,7 +1288,7 @@ class Exchange {
 
         $this->default_error_handler($http_status_code, $http_status_text, $result, $url, $method);
 
-        return isset($json_response) ? $json_response : $result;
+        return $json_response === null ? $result : $json_response;
     }
 
     public function default_error_handler($http_status_code, $http_status_text, $result, $url, $method) {
