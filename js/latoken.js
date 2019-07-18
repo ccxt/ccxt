@@ -660,6 +660,25 @@ module.exports = class latoken extends Exchange {
             request['limit'] = limit; // default 100
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "orderId": "1555492358.126073.126767@0502:2",
+        //             "cliOrdId": "myNewOrder",
+        //             "pairId": 502,
+        //             "symbol": "LAETH",
+        //             "side": "buy",
+        //             "orderType": "limit",
+        //             "price": 136.2,
+        //             "amount": 0.57,
+        //             "orderStatus": "partiallyFilled",
+        //             "executedAmount": 0.27,
+        //             "reaminingAmount": 0.3,
+        //             "timeCreated": 155551580736,
+        //             "timeFilled": 0
+        //         }
+        //     ]
+        //
         return this.parseOrders (response, market, since, limit);
     }
 
