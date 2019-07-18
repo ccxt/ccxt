@@ -583,7 +583,7 @@ module.exports = class latoken extends Exchange {
         //         "amount":1.0
         //     }
         //
-        // cancelOrder
+        // cancelOrder, fetchOrder
         //
         //     {
         //         "orderId": "1555492358.126073.126767@0502:2",
@@ -668,13 +668,30 @@ module.exports = class latoken extends Exchange {
         return orders;
     }
 
-    async fetchOrder (id, params = {}) {
+    async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
             'orderId': id,
         };
         const response = await this.privateGetOrderGetOrder (this.extend (request, params));
-        return (this.parseOrder (response));
+        //
+        //     {
+        //         "orderId": "1555492358.126073.126767@0502:2",
+        //         "cliOrdId": "myNewOrder",
+        //         "pairId": 502,
+        //         "symbol": "LAETH",
+        //         "side": "buy",
+        //         "orderType": "limit",
+        //         "price": 136.2,
+        //         "amount": 0.57,
+        //         "orderStatus": "partiallyFilled",
+        //         "executedAmount": 0.27,
+        //         "reaminingAmount": 0.3,
+        //         "timeCreated": 155551580736,
+        //         "timeFilled": 0
+        //     }
+        //
+        return this.parseOrder (response);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
