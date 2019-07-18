@@ -561,7 +561,7 @@ class btcmarkets extends Exchange {
             $cost = 0;
             for ($i = 0; $i < $numTrades; $i++) {
                 $trade = $trades[$i];
-                $cost = $this->sum ($cost, $trade[$i]['cost']);
+                $cost = $this->sum ($cost, $trade['cost']);
             }
             if ($filled > 0) {
                 $average = $cost / $filled;

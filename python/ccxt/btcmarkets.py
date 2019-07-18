@@ -520,7 +520,7 @@ class btcmarkets (Exchange):
             cost = 0
             for i in range(0, numTrades):
                 trade = trades[i]
-                cost = self.sum(cost, trade[i]['cost'])
+                cost = self.sum(cost, trade['cost'])
             if filled > 0:
                 average = cost / filled
             lastTradeTimestamp = trades[numTrades - 1]['timestamp']
