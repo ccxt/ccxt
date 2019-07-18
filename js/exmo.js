@@ -772,17 +772,12 @@ module.exports = class exmo extends Exchange {
         await this.loadMarkets ();
         let pair = undefined;
         if (Array.isArray (symbol)) {
-            if (symbol.length === 0) {
+            const numSymbols = symbol.length;
+            if (numSymbols < 1) {
                 throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a non-empty symbol array');
             }
-            pair = '';
-            for (let i = 0; i < symbol.length; i++) {
-                if (i > 0) {
-                    pair += ',';
-                }
-                const market = this.market (symbol[i]);
-                pair += market['id'];
-            }
+            const marketIds = this.marketIds (symbol);
+            pair = marketIds.join (',');
         } else {
             const market = this.market (symbol);
             pair = market['id'];
