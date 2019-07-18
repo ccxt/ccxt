@@ -336,6 +336,19 @@ module.exports = class latoken extends Exchange {
             'symbol': market['symbol'],
         };
         const response = await this.publicGetMarketDataOrderBook (this.extend (request, params));
+        //
+        //     {
+        //         "pairId": 502,
+        //         "symbol": "LAETH",
+        //         "spread": 0.07,
+        //         "asks": [
+        //             { "price": 136.3, "amount": 7.024 }
+        //         ],
+        //         "bids": [
+        //             { "price": 136.2, "amount": 6.554 }
+        //         ]
+        //     }
+        //
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -445,17 +458,33 @@ module.exports = class latoken extends Exchange {
         };
     }
 
-    async fetchTrades (symbol, limit = 100, params = {}) {
-        // argument list is ↑↑↑ not unified here
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const resp = {
+        const request = {
             'symbol': market['symbol'],
-            'limit': limit,
         };
-        const response = await this.publicGetMarketDataTrades (this.extend (resp, params));
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50, max 100
+        }
+        const response = await this.publicGetMarketDataTradesSymbol (this.extend (request, params));
+        //
+        //     {
+        //         "pairId": 502,
+        //         "symbol": "LAETH",
+        //         "tradeCount": 1,
+        //         "trades": [
+        //             {
+        //                 "side": "sell",
+        //                 "price": 136.2,
+        //                 "amount": 0.57,
+        //                 "timestamp": 1555515807369
+        //             }
+        //         ]
+        //     }
+        //
         const trades = this.safeValue (response, 'trades', []);
-        return this.parseTrades (trades); // ← this should be parseTrades (trades, market, since, limit)
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, params = {}, limit = 10) {
