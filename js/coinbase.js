@@ -625,12 +625,12 @@ module.exports = class coinbase extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
         const query = this.omit (params, ['account_id', 'accountId']);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        await this.loadMarkets ();
         const res = await this.privateGetAccountsAccountIdTransactions (this.extend (request, query));
         return this.parseLedger (res.data, undefined, since, limit);
     }
@@ -968,13 +968,16 @@ module.exports = class coinbase extends Exchange {
     }
 
     async findAccountId (code) {
+        await this.loadMarkets ();
         await this.loadAccounts ();
+        let accountId = undefined;
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
             if (account['code'] === code) {
                 return account['id'];
             }
         }
+        return undefined;
     }
 
     prepareAccountRequest (limit = undefined, params = {}) {
