@@ -653,22 +653,17 @@ module.exports = class latoken extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        // if (type !== 'limit') {
-        //     throw new ExchangeError (this.id + ' allows limit orders only');
-        // }
+        if (type !== 'limit') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
         const request = {
             'symbol': this.marketId (symbol),
             'side': side,
-            // 'price': this.priceToPrecision (symbol, price),
+            'price': this.priceToPrecision (symbol, price),
             'amount': this.amountToPrecision (symbol, amount),
             'orderType': type,
         };
-        if (price !== undefined) {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
         const response = await this.privatePostOrderNew (this.extend (request, params));
-        console.log (response);
-        process.exit ();
         return this.parseOrder (response);
     }
 
@@ -741,7 +736,8 @@ module.exports = class latoken extends Exchange {
         // { "error": { "message": "Pair 370 is not found","errorType":"RequestError","statusCode":400 }}
         // { "message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)." }
         // { "error": { "message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 }}
-        // { "error": { "message": "Request is out of time", "errorType": "RequestError", "statusCode":400}}
+        // { "error": { "message": "Request is out of time", "errorType": "RequestError", "statusCode":400 }}
+        // { "error": { "message":"Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 }}
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
         const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
