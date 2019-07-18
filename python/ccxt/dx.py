@@ -184,7 +184,7 @@ class dx (Exchange):
             base, quote = fullName.split('/')
             amountPrecision = 0
             if instrument['meQuantityMultiplier'] != 0:
-                amountPrecision = math.log10(instrument['meQuantityMultiplier'])
+                amountPrecision = int(math.log10(instrument['meQuantityMultiplier']))
             base = self.safe_currency_code(base)
             quote = self.safe_currency_code(quote)
             baseId = self.safe_string(asset, 'baseCurrencyId')
