@@ -771,6 +771,7 @@ module.exports = class exmo extends Exchange {
         }
         await this.loadMarkets ();
         let pair = undefined;
+        let market = undefined;
         if (Array.isArray (symbol)) {
             const numSymbols = symbol.length;
             if (numSymbols < 1) {
@@ -779,7 +780,7 @@ module.exports = class exmo extends Exchange {
             const marketIds = this.marketIds (symbol);
             pair = marketIds.join (',');
         } else {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             pair = market['id'];
         }
         const request = {
@@ -793,12 +794,23 @@ module.exports = class exmo extends Exchange {
         const marketIds = Object.keys (response);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
+            let symbol = undefined;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
             const items = response[marketId];
-            const market = this.findMarket (marketId);
-            const trades = this.parseTrades (items, market, since, limit);
+            const trades = this.parseTrades (items, market, since, limit, {
+                'symbol': symbol,
+            });
             result = this.arrayConcat (result, trades);
         }
-        return result;
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
