@@ -17,6 +17,7 @@ module.exports = class latoken extends Exchange {
             'version': 'v1',
             'rateLimit': 1500,
             'certified': false,
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
                 'publicAPI': true,
@@ -558,24 +559,12 @@ module.exports = class latoken extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
-        let url = this.urls['api']['v1'];
-        url += '/' + path;
+        const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'] + request;
         if (api === 'public') {
-            headers = {
-                'Content-type': 'application/json',
-            };
-            if (path === 'exchangeInfo/pairs' && Object.keys (params).length) {
-                url += '/' + params['currency'];
-            } else if (path === 'exchangeInfo/currencies' && Object.keys (params).length) {
-                url += '/' + params['symbol'];
-            } else if (path === 'marketData/ticker' && Object.keys (params).length) {
-                url += '/' + params['symbol'];
-            } else if (path === 'marketData/orderBook' && Object.keys (params).length) {
-                url += '/' + params['symbol'];
-            } else if (path === 'marketData/trades' && Object.keys (params).length) {
-                url += '/' + params['symbol'] + '/' + params['limit'];
-            } else {
-                url += '?' + this.urlencode (params);
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
