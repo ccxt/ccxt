@@ -158,6 +158,13 @@ module.exports = class latoken extends Exchange {
 
     async fetchTime (params = {}) {
         const response = await this.publicGetExchangeInfoTime (params);
+        //
+        //     {
+        //         "time": "2019-04-18T9:00:00.0Z",
+        //         "unixTimeSeconds": 1555578000,
+        //         "unixTimeMiliseconds": 1555578000000
+        //     }
+        //
         return this.safeInteger (response, 'unixTimeMiliseconds');
     }
 
