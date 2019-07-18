@@ -740,7 +740,7 @@ module.exports = class latoken extends Exchange {
         const marketId = this.marketId (symbol);
         const request = {
             'symbol': marketId,
-        }
+        };
         const response = await this.privatePostOrderCancelAll (this.extend (request, params));
         //
         //     {
