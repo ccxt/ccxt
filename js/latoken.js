@@ -558,7 +558,39 @@ module.exports = class latoken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrder (order) {
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "orderId":"1563460093.134037.704945@0370:2",
+        //         "cliOrdId":"",
+        //         "pairId":370,
+        //         "symbol":"ETHBTC",
+        //         "side":"sell",
+        //         "orderType":"limit",
+        //         "price":1.0,
+        //         "amount":1.0
+        //     }
+        //
+        // cancelOrder
+        //
+        //     {
+        //         "orderId": "1555492358.126073.126767@0502:2",
+        //         "cliOrdId": "myNewOrder",
+        //         "pairId": 502,
+        //         "symbol": "LAETH",
+        //         "side": "buy",
+        //         "orderType": "limit",
+        //         "price": 136.2,
+        //         "amount": 0.57,
+        //         "orderStatus": "partiallyFilled",
+        //         "executedAmount": 0.27,
+        //         "reaminingAmount": 0.3,
+        //         "timeCreated": 155551580736,
+        //         "timeFilled": 0
+        //     }
+        //
         const symbol = order['symbol'];
         const side = order['side'];
         const orderType = order['orderType'];
