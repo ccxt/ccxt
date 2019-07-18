@@ -510,7 +510,7 @@ module.exports = class latoken extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['symbol'],
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
