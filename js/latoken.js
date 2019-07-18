@@ -169,19 +169,34 @@ module.exports = class latoken extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetExchangeInfoPairs (params);
+        const response = await this.publicGetExchangeInfoPairs (params);
+        //
+        //     [
+        //         {
+        //             "pairId": 502,
+        //             "symbol": "LAETH",
+        //             "baseCurrency": "LA",
+        //             "quotedCurrency": "ETH",
+        //             "makerFee": 0.01,
+        //             "takerFee": 0.01,
+        //             "pricePrecision": 8,
+        //             "amountPrecision": 8,
+        //             "minQty": 0.1
+        //         }
+        //     ]
+        //
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = market['pairId'];
-            const baseId = market['baseCurrency'];
-            const quoteId = market['quotedCurrency'];
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
-            const symbol = market['symbol'];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const id = this.safeString (market, 'pairId');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quotedCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
             const precision = {
-                'price': market['pricePrecision'],
-                'amount': market['amountPrecision'],
+                'price': this.safeInteger (market, 'pricePrecision'),
+                'amount': this.safeInteger (market, 'amountPrecision'),
             };
             const limits = {
                 'amount': {
@@ -189,16 +204,17 @@ module.exports = class latoken extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': Math.pow (10, -precision['price']),
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
                     'max': undefined,
                 },
             };
-            limits['cost'] = {
-                'min': market['amountPrecision'],
-                'max': undefined,
-            };
             result.push ({
                 'id': id,
+                'info': market,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -207,7 +223,6 @@ module.exports = class latoken extends Exchange {
                 'active': true,
                 'precision': precision,
                 'limits': limits,
-                'info': market,
             });
         }
         return result;
