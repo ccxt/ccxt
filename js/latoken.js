@@ -15,7 +15,7 @@ module.exports = class latoken extends Exchange {
             'name': 'Latoken',
             'countries': [ 'VG' ],
             'version': 'v1',
-            'rateLimit': 1500,
+            'rateLimit': 2000,
             'certified': false,
             'userAgent': this.userAgents['chrome'],
             'has': {
@@ -216,7 +216,7 @@ module.exports = class latoken extends Exchange {
             };
             result.push ({
                 'id': id,
-                'numericId': id,
+                'numericId': numericId,
                 'info': market,
                 'symbol': symbol,
                 'base': base,
@@ -227,6 +227,61 @@ module.exports = class latoken extends Exchange {
                 'precision': precision,
                 'limits': limits,
             });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetExchangeInfoCurrencies (params);
+        //
+        //     [
+        //         {
+        //             "currencyId": 102,
+        //             "symbol": "LA",
+        //             "name": "Latoken",
+        //             "precission": 8,
+        //             "type": "ERC20",
+        //             "fee": 0.1
+        //         }
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'symbol');
+            const numericId = this.safeInteger (currency, 'currencyId');
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeInteger (currency, 'precission');
+            const fee = this.safeFloat (currency, 'fee');
+            const active = undefined;
+            result[code] = {
+                'id': id,
+                'numericId': numericId,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': active,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
         }
         return result;
     }
@@ -344,49 +399,6 @@ module.exports = class latoken extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetMarketDataTicker (params);
         return this.parseTicker (response);
-    }
-
-    async fetchCurrencies (symbol = undefined, params = {}) {
-        const request = {
-            'symbol': symbol,
-        };
-        if (symbol !== undefined) {
-            const currencies = await this.publicGetExchangeInfoCurrencies (this.extend (request, params));
-            const id = currencies['currencyId'];
-            const symbol = currencies['symbol'];
-            const name = currencies['name'];
-            const precision = currencies['precission'];
-            const type = currencies['type'];
-            const fee = currencies['fee'];
-            return {
-                'id': id,
-                'symbol': symbol,
-                'name': name,
-                'precision': precision,
-                'type': type,
-                'fee': fee,
-            };
-        }
-        const currencies = await this.publicGetExchangeInfoCurrencies (params);
-        const result = [];
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = currency['currencyId'];
-            const symbol = currency['symbol'];
-            const name = currency['name'];
-            const precision = currency['precission'];
-            const type = currency['type'];
-            const fee = currency['fee'];
-            result.push ({
-                'id': id,
-                'symbol': symbol,
-                'name': name,
-                'precision': precision,
-                'type': type,
-                'fee': fee,
-            });
-        }
-        return result;
     }
 
     parseTrade (trade, market = undefined) {
