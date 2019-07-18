@@ -327,34 +327,21 @@ module.exports = class bitbay extends Exchange {
         }
     }
 
-    parseMyTrade (trade, market) {
+    parseMyTrade (trade, market = undefined) {
         //
         //     {
-        //         id: '5b6780e2-5bac-4ac7-88f4-b49b5957d33a',
-        //         market: 'BTC-EUR',
-        //         time: '1520719374684',
-        //         amount: '0.3',
-        //         rate: '7502',
-        //         initializedBy: 'Sell',
+        //         amount: "0.29285199",
+        //         commissionValue: "0.00125927",
+        //         id: "11c8203a-a267-11e9-b698-0242ac110007",
+        //         initializedBy: "Buy",
+        //         market: "ETH-EUR",
+        //         offerId: "11c82038-a267-11e9-b698-0242ac110007",
+        //         rate: "277",
+        //         time: "1562689917517",
+        //         userAction: "Buy",
         //         wasTaker: true,
-        //         userAction: 'Sell',
-        //         offerId: 'd093b0aa-b9c9-4a52-b3e2-673443a6188b',
-        //         commissionValue: null
         //     }
         //
-        //
-        //     example with fee:
-        //
-        //     amount: "0.29285199"
-        //     commissionValue: "0.00125927"
-        //     id: "11c8203a-a267-11e9-b698-0242ac110007"
-        //     initializedBy: "Buy"
-        //     market: "ETH-EUR"
-        //     offerId: "11c82038-a267-11e9-b698-0242ac110007"
-        //     rate: "277"
-        //     time: "1562689917517"
-        //     userAction: "Buy"
-        //     wasTaker: true
         const timestamp = this.safeInteger (trade, 'time');
         const userAction = this.safeString (trade, 'userAction');
         const side = (userAction === 'Buy') ? 'buy' : 'sell';
@@ -368,15 +355,34 @@ module.exports = class bitbay extends Exchange {
                 cost = price * amount;
             }
         }
-        const commissionValue = this.safeFloat (trade, 'commissionValue');
+        const feeCost = this.safeFloat (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
-        const symbol = this.findSymbol (marketId.replace ('-', ''));
+        let base = undefined;
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol']
+                base = market['base'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (market !== undefined) {
+            if (symbol === undefined) {
+                symbol = market['symbol'];
+            }
+            if (base === undefined) {
+                base = market['base'];
+            }
+        }
         let fee = undefined;
-        if (commissionValue !== undefined) {
-            const market = this.market (symbol);
-            const feeCurrency = market ? market.base : undefined;
+        if (feeCost !== undefined) {
             fee = {
-                'currency': feeCurrency,
+                'currency': base,
                 'cost': commissionValue,
             };
         }
