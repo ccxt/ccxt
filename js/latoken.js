@@ -558,6 +558,16 @@ module.exports = class latoken extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'active': 'open',
+            'partiallyFilled': 'open',
+            'filled': 'closed',
+            'cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
@@ -722,25 +732,36 @@ module.exports = class latoken extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelAllOrders (symbol, params = {}) {
-        await this.loadMarkets ();
+    async cancelAllOrders (symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.symbol + ' cancelAllOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
         }
-        const response = await this.privatePostOrderCancelAll (this.extend ({
-            'symbol': symbol,
-        }, params));
+        await this.loadMarkets ();
+        const marketId = this.marketId (symbol);
+        const request = {
+            'symbol': marketId,
+        }
+        const response = await this.privatePostOrderCancelAll (this.extend (request, params));
+        //
+        //     {
+        //         "pairId": 502,
+        //         "symbol": "LAETH",
+        //         "cancelledOrders": [
+        //             "1555492358.126073.126767@0502:2"
+        //         ]
+        //     }
+        //
         const result = [];
-        for (let i = 0; i < response.cancelledOrders.length; i++) {
-            const resp = response.cancelledOrders[i];
-            result.push ({
-                'pairId': response['pairId'],
-                'symbol': response['symbol'],
-                'cancelledOrder': resp,
+        const canceledOrders = this.safeValue (response, 'cancelledOrders', []);
+        for (let i = 0; i < canceledOrders.length; i++) {
+            const order = this.parseOrder ({
+                'symbol': marketId,
+                'orderId': canceledOrders[i],
+                'orderStatus': 'canceled',
             });
+            result.push (order);
         }
-        const orders = this.parseTrades (result);
-        return orders;
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
