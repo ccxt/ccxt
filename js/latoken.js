@@ -694,40 +694,30 @@ module.exports = class latoken extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
-        const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
-        const query = this.omit (params, this.extractParams (path));
-        let url = this.urls['api'] + request;
-        if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'private') {
+        let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (api === 'private') {
+            const nonce = this.nonce ();
+            query = this.extend ({
+                'timestamp': nonce,
+            }, query);
+        }
+        const urlencodedQuery = this.urlencode (query);
+        if (Object.keys (query).length) {
+            request += '?' + urlencodedQuery;
+        }
+        const url = this.urls['api'] + request;
+        if (api === 'private') {
             this.checkRequiredCredentials ();
-            if (path === 'account/balances' && params['currency']) {
-                url += '/' + params;
-                const param = {
-                    'timestamp': this.nonce (),
-                };
-                const query1 = '?' + this.urlencode (param);
-                const dataToSign = '/api/v1/' + path + '/' + params['currency'];
-                const signature = this.hmac (this.encode (dataToSign + query1), this.encode (this.secret), 'sha256');
-                url += query1;
-                headers = {
-                    'X-LA-KEY': this.apiKey,
-                    'X-LA-SIGNATURE': signature,
-                };
-            } else {
-                params['timestamp'] = this.nonce ();
-                const query1 = '?' + this.urlencode (params);
-                const dataToSign = '/api/v1/' + path;
-                const signature = this.hmac (this.encode (dataToSign + query1), this.encode (this.secret), 'sha256');
-                url += query1;
-                headers = {
-                    'X-LA-KEY': this.apiKey,
-                    'X-LA-SIGNATURE': signature,
-                };
+            const signature = this.hmac (this.encode (request), this.encode (this.secret));
+            headers = {
+                'X-LA-KEY': this.apiKey,
+                'X-LA-SIGNATURE': signature,
+            };
+            if (method === 'POST') {
+                headers['Content-Type'] = 'application/x-www-form-urlencoded';
+                body = urlencodedQuery;
             }
-            body = this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
