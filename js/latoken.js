@@ -24,37 +24,21 @@ module.exports = class latoken extends Exchange {
                 'pivateAPI': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
-                'createLimitOrder': true,
                 'createMarketOrder': false,
                 'createOrder': true,
-                'createDepositAddress': false,
-                'deposit': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
-                'fetchTradingFees': false,
-                'fetchFundingFees': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': false,
-                'fetchAllActiveOrders': true,
                 'fetchOrdersByStatus': true,
-                'fetchOrdersByOrderId': true,
-                'fetchActiveOrders': true,
-                'fetchCancelledOrders': true,
-                'fetchFilledOrders': true,
-                'fetchPartiallyFilledOrders': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTransactions': false,
-                'fetchDeposits': false,
-                'fetchWithdrawals': false,
-                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -680,15 +664,29 @@ module.exports = class latoken extends Exchange {
         return this.parseOrder (response);
     }
 
-    async cancelOrder (id, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a id argument');
-        }
-        await this.loadMarkets ();
-        const response = await this.privatePostOrderCancel (this.extend ({
+        const request = {
             'orderId': id,
-        }, params));
+        };
+        const response = await this.privatePostOrderCancel (this.extend (request, params));
+        //
+        //     {
+        //         "orderId": "1555492358.126073.126767@0502:2",
+        //         "cliOrdId": "myNewOrder",
+        //         "pairId": 502,
+        //         "symbol": "LAETH",
+        //         "side": "buy",
+        //         "orderType": "limit",
+        //         "price": 136.2,
+        //         "amount": 0.57,
+        //         "orderStatus": "partiallyFilled",
+        //         "executedAmount": 0.27,
+        //         "reaminingAmount": 0.3,
+        //         "timeCreated": 155551580736,
+        //         "timeFilled": 0
+        //     }
+        //
         return this.parseOrder (response);
     }
 
@@ -752,6 +750,7 @@ module.exports = class latoken extends Exchange {
         // { "error": { "message": "Request is out of time", "errorType": "RequestError", "statusCode":400 }}
         // { "error": { "message": "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 }}
         // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
+        // { "error": { "message": "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 }}
         const errorCode = this.safeString (response, 'code');
         const message = this.safeString (response, 'msg');
         const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
