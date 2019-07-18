@@ -298,7 +298,10 @@ module.exports = class bleutrade extends bittrex {
         } else if (trade['OrderType'] === 'SELL') {
             side = 'sell';
         }
-        const id = this.safeString (trade, 'TradeID');
+        let id = this.safeString (trade, 'TradeID');
+        if (id === undefined) {
+            id = this.safeString (trade, 'ID');
+        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
