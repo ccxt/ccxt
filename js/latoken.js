@@ -220,7 +220,7 @@ module.exports = class latoken extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': true,
+                'active': undefined, // assuming true
                 'precision': precision,
                 'limits': limits,
             });
