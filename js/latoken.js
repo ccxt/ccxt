@@ -580,7 +580,7 @@ module.exports = class latoken extends Exchange {
         //         "amount":1.0
         //     }
         //
-        // cancelOrder, fetchOrder
+        // cancelOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
         //         "orderId": "1555492358.126073.126767@0502:2",
