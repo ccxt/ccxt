@@ -19,4 +19,4 @@ exchange = ccxt.bitfinex({
 
 for i in range(0, 10):
     # this can be any call instead of fetch_ticker, really
-    print(exchange.fetch_ticker('BTC/USD'))
+    print(exchange.fetch_ticker('BTC/USDT'))
