@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -109,6 +110,19 @@ class indodax (Exchange):
                     'percentage': True,
                     'maker': 0,
                     'taker': 0.003,
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    'invalid_pair': BadRequest,  # {"error":"invalid_pair","error_description":"Invalid Pair"}
+                    'Insufficient balance.': InsufficientFunds,
+                    'invalid order.': OrderNotFound,
+                    'Invalid credentials. API not found or session has expired.': AuthenticationError,
+                    'Invalid credentials. Bad sign.': AuthenticationError,
+                },
+                'broad': {
+                    'Minimum price': InvalidOrder,
+                    'Minimum order': InvalidOrder,
                 },
             },
         })
@@ -435,27 +449,21 @@ class indodax (Exchange):
         # [{data, ...}, {...}, ...]
         if isinstance(response, list):
             return  # public endpoints may return []-arrays
-        if not('success' in list(response.keys())):
+        error = self.safe_value(response, 'error', '')
+        if not('success' in list(response.keys())) and error == '':
             return  # no 'success' property on public responses
-        if response['success'] == 1:
+        if self.safe_integer(response, 'success', 0) == 1:
             # {success: 1, return: {orders: []}}
             if not('return' in list(response.keys())):
                 raise ExchangeError(self.id + ': malformed response: ' + self.json(response))
             else:
                 return
-        message = response['error']
         feedback = self.id + ' ' + body
-        # todo: rewrite self for unified self.exceptions(exact/broad)
-        if message == 'Insufficient balance.':
-            raise InsufficientFunds(feedback)
-        elif message == 'invalid order.':
-            raise OrderNotFound(feedback)  # cancelOrder(1)
-        elif message.find('Minimum price ') >= 0:
-            raise InvalidOrder(feedback)  # price < limits.price.min, on createLimitBuyOrder('ETH/BTC', 1, 0)
-        elif message.find('Minimum order ') >= 0:
-            raise InvalidOrder(feedback)  # cost < limits.cost.min on createLimitBuyOrder('ETH/BTC', 0, 1)
-        elif message == 'Invalid credentials. API not found or session has expired.':
-            raise AuthenticationError(feedback)  # on bad apiKey
-        elif message == 'Invalid credentials. Bad sign.':
-            raise AuthenticationError(feedback)  # on bad secret
-        raise ExchangeError(self.id + ': unknown error: ' + self.json(response))
+        exact = self.exceptions['exact']
+        if error in exact:
+            raise exact[error](feedback)
+        broad = self.exceptions['broad']
+        broadKey = self.findBroadlyMatchedKey(broad, error)
+        if broadKey is not None:
+            raise broad[broadKey](feedback)
+        raise ExchangeError(feedback)  # unknown message
