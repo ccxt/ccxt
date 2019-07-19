@@ -49,6 +49,7 @@ module.exports = class bitopro extends Exchange {
                         'tickers',
                         'tickers/{pair}',
                         'trades/{pair}',
+                        'provisioning/trading-pairs',
                     ],
                 },
                 'private': {
@@ -117,28 +118,49 @@ module.exports = class bitopro extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetTickers ();
-        const tickers = this.safeValue (response, 'data', []);
+        const response = await this.publicGetProvisioningTradingPairs ();
+        const markets = this.safeValue (response, 'data', []);
         const result = [];
-        for (let i = 0; i < tickers.length; i++) {
-            const ticker = tickers[i];
-            const pair = this.safeString (ticker, 'pair');
-            const [ baseId, quoteId ] = pair.split ('_');
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const active = !market['maintain'];
+            const pair = this.safeString (market, 'pair');
+            let base = this.safeString (market, 'base');
+            let quote = this.safeString (market, 'quote');
             const id = pair;
-            const base = this.commonCurrencyCode (baseId).toUpperCase ();
-            const quote = this.commonCurrencyCode (quoteId).toUpperCase ();
+            base = this.commonCurrencyCode (base).toUpperCase ();
+            quote = this.commonCurrencyCode (quote).toUpperCase ();
             const symbol = base + '/' + quote;
+            const precision = {
+                'price': this.safeInteger (market, 'quotePrecision'),
+                'amount': this.safeInteger (market, 'basePrecision'),
+                'cost': undefined,
+            };
+            const limits = {
+                'amount': {
+                    'min': this.safeFloat (market, 'minLimitBaseAmount'),
+                    'max': this.safeFloat (market, 'maxLimitBaseAmount'),
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'limits': undefined,
-                'precision': undefined,
-                'active': true,
-                'info': ticker,
+                'baseId': base,
+                'quoteId': quote,
+                'limits': limits,
+                'precision': precision,
+                'active': active,
+                'info': market,
             });
         }
         return result;
