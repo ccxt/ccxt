@@ -24,7 +24,7 @@ module.exports = class bytetrade extends Exchange {
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': true,
-                'fetchOrders': 'emulated',
+                'fetchOrders': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'withdraw': true,
@@ -60,7 +60,7 @@ module.exports = class bytetrade extends Exchange {
                     'get': [
                         'klines',        // Kline of a symbol
                         'depth',         // Market Depth of a symbol
-                        'trades',        // Trade records of a symbol
+                        'new/trades',    // Trade records of a symbol
                         'tickers',
                     ],
                 },
@@ -69,17 +69,21 @@ module.exports = class bytetrade extends Exchange {
                         'symbols',        // Reference information of trading instrument, including base currency, quote precision, etc.
                         'currencies',     // The list of currencies available
                         'balance',        // Get the balance of an account
-                        'orders/open',    // Get the open orders of an account
-                        'orders/closed',  // Get the closed orders of an account
-                        'orders',         // Get the details of an order of an account
-                        'orders/trades',  // Get detail match results
+                        'new/orders/open',    // Get the open orders of an account
+                        'new/orders/closed',  // Get the closed orders of an account
+                        'new/orders/all',     // Get the open and closed orders of an account
+                        'new/orders',         // Get the details of an order of an account
+                        'new/orders/trades',  // Get detail match results
                         'depositaddress', // Get deposit address
                         'withdrawals',    // Get withdrawals info
                         'deposits',       // Get deposit info
                         'transfers',      // Get transfer info
-                        'transaction',    // Post create order\cancel order\withdraw\transfer transaction to blockchain
                     ],
                     'post': [
+                        'transaction/createorder',    // Post create order transaction to blockchain
+                        'transaction/cancelorder',    // Post cancel order transaction to blockchain
+                        'transaction/withdraw',       // Post withdraw transaction to blockchain
+                        'transaction/transfer',       // Post transfer transaction to blockchain
                     ],
                 },
                 'private': {
@@ -439,9 +443,12 @@ module.exports = class bytetrade extends Exchange {
         const amount = this.safeFloat2 (trade, 'amount', 'amount');
         const cost = this.safeFloat2 (trade, 'cost', 'cost');
         const id = this.safeString2 (trade, 'id', 'id');
+        const type = this.safeString2 (trade, 'type', 'type');
+        const takerOrMaker = this.safeString2 (trade, 'takerOrMaker', 'takerOrMaker');
         const side = this.safeString2 (trade, 'side', 'side');
         const datetime = this.safeString2 (trade, 'datetime', 'datetime');
-        // const orderId = this.safeString (trade, 'orderId');
+        const order = this.safeString2 (trade, 'order', 'order');
+        const fee = this.safeValue (trade, 'fee');
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (trade, 'symbol');
@@ -456,14 +463,14 @@ module.exports = class bytetrade extends Exchange {
             'datetime': datetime,
             'symbol': symbol,
             'id': id,
-            'order': undefined,
-            'type': undefined,
-            'takerOrMaker': undefined,
+            'order': order,
+            'type': type,
+            'takerOrMaker': takerOrMaker,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -479,7 +486,7 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 100, maximum = 500
         }
-        const response = await this.marketGetTrades (this.extend (request, params));
+        const response = await this.marketGetNewTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -544,11 +551,13 @@ module.exports = class bytetrade extends Exchange {
         const baseId = market['baseId'];
         const baseCurrency = this.currencies_by_id[baseId];
         const amountFloat = parseFloat (amount);
-        const amountChain = amountFloat * Math.pow (10, baseCurrency['info']['basePrecision']);
+        const amountFloatChain = amountFloat * Math.pow (10, baseCurrency['info']['basePrecision']);
+        const amountChain = parseInt (amountFloatChain);
         const quoteId = market['quoteId'];
         const quoteCurrency = this.currencies_by_id[quoteId];
         const priceFloat = parseFloat (price);
-        const priceChain = priceFloat * Math.pow (10, quoteCurrency['info']['basePrecision']);
+        const priceFloatChain = priceFloat * Math.pow (10, quoteCurrency['info']['basePrecision']);
+        const priceChain = parseInt (priceFloatChain);
         const now = this.seconds ();
         const expiration = now + 10;
         const ob = {
@@ -567,21 +576,11 @@ module.exports = class bytetrade extends Exchange {
             'money_id': parseInt (quoteId),
             'stock_id': parseInt (baseId),
         };
-        const obj = this.json (ob);
+        const signedTransaction = await this.signExTransactionV1 ('create_order', ob, this.secret);
         const request = {
-            'trObj': obj,
+            'trObj': signedTransaction,
         };
-        // tr.add_type_operation("order_create", ob);
-        // tr.timestamp = Math.ceil(Date.now() / 1000);
-        // tr.dapp="harvey1322";
-        // tr.validate_type = 0;
-        // tr.add_signer(bytetrade_js.PrivateKey.fromHex(test_privatekey));
-        // tr.finalize2();
-        // if (!tr.signed) { tr.sign(); }
-        // var trObj = tr.toObject();
-        // console.log("id " + tr.id());
-        // console.log(JSON.stringify(trObj));
-        const response = await this.publicGetTransaction (request);
+        const response = await this.publicPostTransactionCreateorder (request);
         const timestamp = this.milliseconds ();
         const statusCode = this.safe_string (response, 'code');
         let status = '';
@@ -627,7 +626,7 @@ module.exports = class bytetrade extends Exchange {
             request['symbol'] = market['id'];
         }
         request['id'] = id;
-        const response = await this.publicGetOrders (this.extend (request, params));
+        const response = await this.publicGetNewOrders (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -650,7 +649,7 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetOrdersOpen (this.extend (request, params));
+        const response = await this.publicGetNewOrdersOpen (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -673,7 +672,7 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetOrdersClosed (this.extend (request, params));
+        const response = await this.publicGetNewOrdersClosed (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -696,9 +695,7 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const responseOpen = await this.publicGetOrdersOpen (this.extend (request, params));
-        const responseClosed = await this.publicGetOrdersClosed (this.extend (request, params));
-        const response = responseOpen + responseClosed;
+        const response = await this.publicGetNewOrdersAll (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -719,15 +716,16 @@ module.exports = class bytetrade extends Exchange {
         const ob = {
             'fee': '300000000000000',
             'creator': this.apiKey,
+            'order_id': id,
             'market_name': marketName,
             'money_id': parseInt (quoteId),
             'stock_id': parseInt (baseId),
         };
-        const obj = this.json (ob);
+        const signedTransaction = await this.signExTransactionV1 ('cancel_order', ob, this.secret);
         const request = {
-            'trObj': obj,
+            'trObj': signedTransaction,
         };
-        const response = await this.publicGetTransaction (request);
+        const response = await this.publicPostTransactionCancelorder (request);
         const timestamp = this.milliseconds ();
         const statusCode = this.safe_string (response, 'code');
         let status = '';
@@ -762,22 +760,21 @@ module.exports = class bytetrade extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currencies[code];
-        const message = this.safe_string (params, 'message');
         const amountFloat = parseFloat (amount);
-        const amountChain = amountFloat * Math.pow (10, currency['info']['basePrecision']);
+        const amountFloatChain = amountFloat * Math.pow (10, currency['info']['basePrecision']);
+        const amountChain = parseInt (amountFloatChain);
         const ob = {
-            'fee': '300000000000000',
+            'fee': '900000000000000',
             'from': this.apiKey,
             'to': to,
             'asset_type': parseInt (currency['id']),
             'amount': amountChain.toString (),
-            'message': message,
         };
-        const obj = this.json (ob);
+        const signedTransaction = await this.signExTransactionV1 ('transfer', ob, this.secret);
         const request = {
-            'trObj': obj,
+            'trObj': signedTransaction,
         };
-        const response = await this.publicGetTransaction (request);
+        const response = await this.publicPostTransactionTransfer (request);
         const timestamp = this.milliseconds ();
         const statusCode = this.safe_string (response, 'code');
         let status = '';
@@ -806,18 +803,27 @@ module.exports = class bytetrade extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (!('userid' in params) && (this.apiKey === undefined)) {
+            throw new ArgumentsRequired ('fetchMyTrades requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+        }
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired ('fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
+        const request = {};
+        if ('userid' in params) {
+            request['userid'] = params['userid'];
+        } else {
+            request['userid'] = this.apiKey;
+        }
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetMyTrades (this.extend (request, params));
+        const response = await this.publicGetNewOrdersTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -939,11 +945,11 @@ module.exports = class bytetrade extends Exchange {
         } else {
             request['userid'] = this.apiKey;
         }
-        request['currency'] = currency['id'];
-        const response = await this.publicGetDepositAddress (request);
-        const address = this.safeString (response, 'address');
-        const tag = this.safeString (response, 'addressTag');
-        const chainType = this.safeString (response, 'chainType');
+        request['code'] = currency['id'];
+        const response = await this.publicGetDepositaddress (request);
+        const address = this.safeString (response[0], 'address');
+        const tag = this.safeString (response[0], 'addressTag');
+        const chainType = this.safeString (response[0], 'chainType');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -978,7 +984,8 @@ module.exports = class bytetrade extends Exchange {
         const coinId = currency['id'];
         const Currency = this.currencies_by_id[coinId];
         const amountFloat = parseFloat (amount);
-        const amountChain = amountFloat * Math.pow (10, Currency['info']['basePrecision']);
+        const amountFloatChain = amountFloat * Math.pow (10, Currency['info']['basePrecision']);
+        const amountChain = parseInt (amountFloatChain);
         const ob = {
             'fee': '300000000000000',
             'from': this.apiKey,
@@ -986,15 +993,13 @@ module.exports = class bytetrade extends Exchange {
             'asset_type': parseInt (coinId),
             'amount': amountChain.toString (),
         };
-        const obj = this.json (ob);
-        const pixiuWithdrawRequest = {};
-        pixiuWithdrawRequest['cmd'] = 'withdrawNotify';
-        pixiuWithdrawRequest['chain_type'] = chainType;
-        pixiuWithdrawRequest['toExternalAddress'] = address;
-        pixiuWithdrawRequest['transaction'] = obj;
-        pixiuWithdrawRequest['chainContractAddress'] = this.safeString (Currency['info'], 'chainType');
-        const pixiuWithdrawRequestObj = this.json (pixiuWithdrawRequest);
-        const response = await this.publicPostTransaction (pixiuWithdrawRequestObj);
+        const signedTransaction = await this.signExTransactionV1 ('withdraw', ob, this.secret);
+        const request = {};
+        request['chainType'] = chainType;
+        request['toExternalAddress'] = address;
+        request['trObj'] = signedTransaction;
+        request['chainContractAddress'] = this.safeString (Currency['info'], 'chainContractAddress');
+        const response = await this.publicPostTransactionWithdraw (request);
         return {
             'info': response,
             'id': this.safeString (response, 'id'),
@@ -1004,25 +1009,11 @@ module.exports = class bytetrade extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         url += '/' + path;
-        if (api === 'wapi') {
-            url += '.html';
-        }
-        const userDataStream = (path === 'userDataStream');
-        if (path === 'historicalTrades') {
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
-        } else if (userDataStream) {
-            body = this.urlencode (params);
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
-        }
-        if ((api === 'private') || (api === 'wapi' && path !== 'systemStatus')) {
+        if ((api === 'private')) {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.extend ({
                 'timestamp': this.nonce (),
+                'recvWindow': this.options['recvWindow'],
             }, params));
             const signature = this.hmac (this.encode (query), this.encode (this.secret));
             query += '&' + 'signature=' + signature;
@@ -1036,10 +1027,8 @@ module.exports = class bytetrade extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if (!userDataStream) {
-                if (Object.keys (params).length) {
-                    url += '?' + this.urlencode (params);
-                }
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

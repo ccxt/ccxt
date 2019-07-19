@@ -16,6 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.bytetradelib import bytetradelib
 
 # -----------------------------------------------------------------------------
 
@@ -98,6 +99,8 @@ except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 
 # -----------------------------------------------------------------------------
+
+btt_lib = bytetradelib()
 
 
 class Exchange(object):
@@ -1850,6 +1853,70 @@ class Exchange(object):
             'orderHash': orderHash,
             'signature': self._convertECSignatureToSignatureHex(signature),
         })
+
+    def signExTransactionV1(self, trans_type, trans_info, privateKey):
+        dapp_name = 'Sagittarius'
+        if (trans_type == "create_order"):
+            str_trans = btt_lib.create_order3_transaction(
+                trans_info['fee'],
+                trans_info['creator'],
+                trans_info['side'],
+                trans_info['order_type'],
+                trans_info['market_name'],
+                str(trans_info['amount']),
+                str(trans_info['price']),
+                False,
+                str(0),
+                None,
+                None,
+                int(trans_info['money_id']),
+                int(trans_info['stock_id']),
+                dapp_name,
+                privateKey
+            )
+        elif (trans_type == "cancel_order"):
+            str_trans = btt_lib.cancel_order2_transaction(
+                trans_info['fee'],
+                trans_info['creator'],
+                trans_info['market_name'],
+                trans_info['order_id'],
+                trans_info['money_id'],
+                trans_info['stock_id'],
+                dapp_name,
+                privateKey
+            )
+        elif (trans_type == "transfer"):
+            str_trans = btt_lib.transfer_order_transaction(
+                trans_info['fee'],
+                trans_info['from'],
+                trans_info['to'],
+                int(trans_info['asset_type']),
+                str(trans_info['amount']),
+                dapp_name,
+                privateKey
+            )
+        elif(trans_type == "withdraw"):
+            str_trans = btt_lib.propose_withdraw_transaction(
+                trans_info['fee'],
+                trans_info['from'],
+                trans_info['to_external_address'],
+                trans_info['asset_type'],
+                str(trans_info['amount']),
+                dapp_name,
+                privateKey
+            )
+        # elif (trans_type == "withdraw_btc"):
+        #     str_trans = btt_lib.propose_withdraw2_transaction(
+        #         trans_info['fee'],
+        #         trans_info['from'],
+        #         trans_info['to_external_address'],
+        #         trans_info['asset_type'],
+        #         str(trans_info['amount']),
+        #         str(trans_info['asset_fee']),
+        #         dapp_name,
+        #         privateKey
+        #     )
+        return str_trans
 
     def _convertECSignatureToSignatureHex(self, signature):
         # https://github.com/0xProject/0x-monorepo/blob/development/packages/order-utils/src/signature_utils.ts
