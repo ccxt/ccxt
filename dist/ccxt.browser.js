@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.961'
+const version = '1.18.962'
 
 Exchange.ccxtVersion = version
 
@@ -52087,10 +52087,7 @@ module.exports = class kraken extends Exchange {
 
     async fetchBalance (params = {}) {
         const response = await this.privatePostBalance (params);
-        const balances = this.safeValue (response, 'result');
-        if (balances === undefined) {
-            throw new ExchangeNotAvailable (this.id + ' fetchBalance failed due to a malformed response ' + this.json (response));
-        }
+        const balances = this.safeValue (response, 'result', {});
         const result = { 'info': balances };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
