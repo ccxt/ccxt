@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, OrderNotFound, InvalidOrder, DDoSProtection, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InvalidNonce, OrderNotFound, InvalidOrder, DDoSProtection, BadRequest, AuthenticationError } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -73,7 +73,7 @@ module.exports = class latoken extends Exchange {
                         'ExchangeInfo/currencies',
                         'ExchangeInfo/currencies/{symbol}',
                         'MarketData/tickers',
-                        'MarketData/tickers/{symbol}',
+                        'MarketData/ticker/{symbol}',
                         'MarketData/orderBook/{symbol}',
                         'MarketData/trades/{symbol}',
                         'MarketData/trades/{symbol}/{limit}',
@@ -109,21 +109,21 @@ module.exports = class latoken extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Signature or ApiKey is not valid': AuthenticationError, // { "error": { "message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 }}
+                    'Request is out of time': InvalidNonce, // { "error": { "message": "Request is out of time", "errorType": "RequestError", "statusCode":400 }}
+                    'Symbol must be specified': BadRequest, // { "error": { "message": "Symbol must be specified","errorType":"RequestError","statusCode":400 }}
                 },
                 'broad': {
+                    'Request limit reached': DDoSProtection, // { "message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)." }
+                    'Pair': BadRequest, // { "error": { "message": "Pair 370 is not found","errorType":"RequestError","statusCode":400 }}
+                    'Price needs to be greater than': InvalidOrder, // { "error": { "message": "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 }}
+                    'Amount needs to be greater than': InvalidOrder, // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
+                    'The Symbol field is required': InvalidOrder, // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
+                    'OrderType is not valid': InvalidOrder, // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
+                    'Side is not valid': InvalidOrder, // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
+                    'Cancelable order whit': OrderNotFound, // { "error": { "message": "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 }}
+                    'Order': OrderNotFound, // { "error": { "message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 }}
                 },
-                'order_not_exist': OrderNotFound, // {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                'order_not_exist_or_not_allow_to_cancel': InvalidOrder, // {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
-                'Order size below the minimum requirement.': InvalidOrder, // {"code":"400100","msg":"Order size below the minimum requirement."}
-                'The withdrawal amount is below the minimum requirement.': ExchangeError, // {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
-                '400': BadRequest,
-                '401': AuthenticationError,
-                '403': NotSupported,
-                '404': NotSupported,
-                '405': NotSupported,
-                '429': DDoSProtection,
-                '500': ExchangeError,
-                '503': ExchangeNotAvailable,
             },
         });
     }
@@ -382,7 +382,7 @@ module.exports = class latoken extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetMarketDataTickersSymbol (this.extend (request, params));
+        const response = await this.publicGetMarketDataTickerSymbol (this.extend (request, params));
         //
         //     {
         //         "pairId": 502,
@@ -528,9 +528,9 @@ module.exports = class latoken extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
-        const market = undefined;
+        const market = this.market (symbol);
         const request = {
-            'symbol': symbol,
+            'symbol': market['id'],
         };
         const response = await this.privateGetOrderTrades (this.extend (request, params));
         //
@@ -827,20 +827,41 @@ module.exports = class latoken extends Exchange {
         if (!response) {
             return;
         }
-        // { "message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)." }
-        // { "error": { "message": "Pair 370 is not found","errorType":"RequestError","statusCode":400 }}
-        // { "error": { "message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 }}
-        // { "error": { "message": "Request is out of time", "errorType": "RequestError", "statusCode":400 }}
-        // { "error": { "message": "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 }}
-        // { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
-        // { "error": { "message": "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 }}
-        // { "error": { "message": "Symbol must be specified","errorType":"RequestError","statusCode":400 }}
-        // { "error": { "message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 }}
-        const errorCode = this.safeString (response, 'code');
-        const message = this.safeString (response, 'msg');
-        const ExceptionClass = this.safeValue2 (this.exceptions, message, errorCode);
-        if (ExceptionClass !== undefined) {
-            throw new ExceptionClass (this.id + ' ' + message);
+        //
+        //     { "message": "Request limit reached!", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)." }
+        //     { "error": { "message": "Pair 370 is not found","errorType":"RequestError","statusCode":400 }}
+        //     { "error": { "message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 }}
+        //     { "error": { "message": "Request is out of time", "errorType": "RequestError", "statusCode":400 }}
+        //     { "error": { "message": "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 }}
+        //     { "error": { "message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 }}
+        //     { "error": { "message": "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 }}
+        //     { "error": { "message": "Symbol must be specified","errorType":"RequestError","statusCode":400 }}
+        //     { "error": { "message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 }}
+        //
+        const message = this.safeString (response, 'message');
+        const exact = this.exceptions['exact'];
+        const broad = this.exceptions['broad'];
+        const feedback = this.id + ' ' + body;
+        if (message !== undefined) {
+            if (message in exact) {
+                throw new exact[message] (feedback);
+            }
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+        }
+        const error = this.safeValue (response, 'error', {});
+        const errorMessage = this.safeString (error, 'message');
+        if (errorMessage !== undefined) {
+            if (errorMessage in exact) {
+                throw new exact[errorMessage] (feedback);
+            }
+            const broadKey = this.findBroadlyMatchedKey (broad, errorMessage);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
         }
     }
 };
