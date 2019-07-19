@@ -779,7 +779,8 @@ module.exports = class bitstamp extends Exchange {
         if (address !== undefined) {
             // dt (destination tag) is embedded into the address field
             const addressParts = address.split ('?dt=');
-            if (addressParts.length === 2) {
+            const numParts = addressParts.length;
+            if (numParts > 1) {
                 address = addressParts[0];
                 tag = addressParts[1];
             }
