@@ -40,22 +40,8 @@ module.exports = class latoken extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
             },
-            'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '3h': '3h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '1D',
-                '1w': '7D',
-                '2w': '14D',
-                '1M': '1M',
-            },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/6286552/54519214-0f693600-4977-11e9-9ff4-6ea2f62875b0.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
                 'api': 'https://api.latoken.com',
                 'www': 'https://www.latoken.com',
                 'doc': [
