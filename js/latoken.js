@@ -598,31 +598,50 @@ module.exports = class latoken extends Exchange {
         //         "timeFilled": 0
         //     }
         //
-        const symbol = order['symbol'];
-        const side = order['side'];
-        const orderType = order['orderType'];
+        const id = this.safeString (order, 'orderId');
+        const timestamp = this.safeValue (order, 'timeCreated');
+        const marketId = this.safeString (order, 'symbol');
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const side = this.safeString (order, 'side');
+        const type = this.safeString (order, 'orderType');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
-        const orderStatus = order['orderStatus'];
-        const executedAmount = this.safeFloat (order, 'executedAmount');
-        const reaminingAmount = this.safeFloat (order, 'reaminingAmount');
-        const timeCreated = this.safeValue (order, 'timeCreated');
+        const filled = this.safeFloat (order, 'executedAmount');
+        const remaining = this.safeFloat (order, 'reaminingAmount');
+        const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
+        let cost = undefined;
+        if (filled !== undefined) {
+            if (price !== undefined) {
+                cost = filled * price;
+            }
+        }
+        const timeFilled = this.safeInteger (order, 'timeFilled');
+        let lastTradeTimestamp = undefined;
+        if (timeFilled !== undefined && timeFilled > 0) {
+            lastTradeTimestamp = timeFilled;
+        }
         return {
-            'id': order['orderId'],
+            'id': id,
             'info': order,
-            'timestamp': timeCreated,
-            'datetime': this.iso8601 (timeCreated),
-            'lastTradeTimestamp': undefined,
-            'status': orderStatus,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
             'symbol': symbol,
-            'type': orderType,
+            'type': type,
             'side': side,
             'price': price,
-            'cost': undefined,
+            'cost': cost,
             'amount': amount,
-            'filled': executedAmount,
-            'average': price,
-            'remaining': reaminingAmount,
+            'filled': filled,
+            'average': undefined,
+            'remaining': remaining,
             'fee': undefined,
         };
     }
