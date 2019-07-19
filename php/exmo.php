@@ -762,7 +762,8 @@ class exmo extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetTrades (array_merge ($request, $params));
-        return $this->parse_trades($response[$market['id']], $market, $since, $limit);
+        $data = $this->safe_value($response, $market['id'], array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
