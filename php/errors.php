@@ -48,7 +48,6 @@ function error_factory($array, $parent) {
     }
 }
 
-// , unCamelCase: s => s.match (/^[A-Z0-9_]+$/) ? s : (s.replace (/([a-z0-9])([A-Z])/g, '$1_$2').replace (/([A-Z0-9])([A-Z0-9][a-z])/g, '$1_$2').toLowerCase ())
 
 function un_camel_case($string) {
     if (preg_match('/^[A-Z-9_]+$/', $string)) {
