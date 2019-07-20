@@ -3406,6 +3406,7 @@ try {
 } catch (\ccxt\NetworkError $e) {
     var_dump($e->httpCode);
     var_dump($e->url);
+}
 ```
 ## Exception Hierarchy
 
