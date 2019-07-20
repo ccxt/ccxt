@@ -885,7 +885,7 @@ module.exports = class bitmex extends Exchange {
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
             for (let i = 0; i < result.length; i++) {
-                result[i][0] = result[i][0] - this.parseTimeframe (timeframe);
+                result[i][0] = result[i][0] - (this.parseTimeframe (timeframe) * 1000);
             }
         }
         return result;
