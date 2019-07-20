@@ -885,7 +885,7 @@ module.exports = class bitmex extends Exchange {
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
             for (let i = 0; i < result.length; i++) {
-                result[i][0] = result[i][0] - this.normalizeTimeframe (timeframe);
+                result[i][0] = result[i][0] - this.parseTimeframe (timeframe);
             }
         }
         return result;
@@ -1289,20 +1289,5 @@ module.exports = class bitmex extends Exchange {
             headers['api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    normalizeTimeframe (timeframe) {
-        const timePeriods = {
-            's': 1000,
-            'm': 1000 * 60,
-            'h': 1000 * 60 * 60,
-            'd': 1000 * 60 * 60 * 24,
-            'w': 1000 * 60 * 60 * 24 * 7,
-            'y': 1000 * 60 * 60 * 24 * 365,
-        };
-        const periodIndex = timeframe.length - 1;
-        const period = timeframe.slice (periodIndex);
-        const unitTime = parseInt (timeframe.slice (0, periodIndex));
-        return unitTime * timePeriods[period];
     }
 };
