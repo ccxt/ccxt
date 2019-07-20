@@ -105,6 +105,19 @@ class indodax extends Exchange {
                     'taker' => 0.003,
                 ),
             ),
+            'exceptions' => array (
+                'exact' => array (
+                    'invalid_pair' => '\\ccxt\\BadRequest', // array("error":"invalid_pair","error_description":"Invalid Pair")
+                    'Insufficient balance.' => '\\ccxt\\InsufficientFunds',
+                    'invalid order.' => '\\ccxt\\OrderNotFound',
+                    'Invalid credentials. API not found or session has expired.' => '\\ccxt\\AuthenticationError',
+                    'Invalid credentials. Bad sign.' => '\\ccxt\\AuthenticationError',
+                ),
+                'broad' => array (
+                    'Minimum price' => '\\ccxt\\InvalidOrder',
+                    'Minimum order' => '\\ccxt\\InvalidOrder',
+                ),
+            ),
         ));
     }
 
@@ -467,16 +480,17 @@ class indodax extends Exchange {
         if ($response === null) {
             return;
         }
-        // array( success => 0, error => "invalid order." )
+        // array( success => 0, $error => "invalid order." )
         // or
         // [array( data, ... ), array( ... ), ... ]
         if (gettype ($response) === 'array' && count (array_filter (array_keys ($response), 'is_string')) == 0) {
             return; // public endpoints may return array()-arrays
         }
-        if (!(is_array($response) && array_key_exists('success', $response))) {
+        $error = $this->safe_value($response, 'error', '');
+        if (!(is_array($response) && array_key_exists('success', $response)) && $error === '') {
             return; // no 'success' property on public responses
         }
-        if ($response['success'] === 1) {
+        if ($this->safe_integer($response, 'success', 0) === 1) {
             // array( success => 1, return => { orders => array() )}
             if (!(is_array($response) && array_key_exists('return', $response))) {
                 throw new ExchangeError($this->id . ' => malformed $response => ' . $this->json ($response));
@@ -484,22 +498,16 @@ class indodax extends Exchange {
                 return;
             }
         }
-        $message = $response['error'];
         $feedback = $this->id . ' ' . $body;
-        // todo => rewrite this for unified $this->exceptions (exact/broad)
-        if ($message === 'Insufficient balance.') {
-            throw new InsufficientFunds($feedback);
-        } else if ($message === 'invalid order.') {
-            throw new OrderNotFound($feedback); // cancelOrder(1)
-        } else if (mb_strpos($message, 'Minimum price ') !== false) {
-            throw new InvalidOrder($feedback); // price < limits.price.min, on createLimitBuyOrder ('ETH/BTC', 1, 0)
-        } else if (mb_strpos($message, 'Minimum order ') !== false) {
-            throw new InvalidOrder($feedback); // cost < limits.cost.min on createLimitBuyOrder ('ETH/BTC', 0, 1)
-        } else if ($message === 'Invalid credentials. API not found or session has expired.') {
-            throw new AuthenticationError($feedback); // on bad apiKey
-        } else if ($message === 'Invalid credentials. Bad sign.') {
-            throw new AuthenticationError($feedback); // on bad secret
+        $exact = $this->exceptions['exact'];
+        if (is_array($exact) && array_key_exists($error, $exact)) {
+            throw new $exact[$error]($feedback);
         }
-        throw new ExchangeError($this->id . ' => unknown error => ' . $this->json ($response));
+        $broad = $this->exceptions['broad'];
+        $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
+        if ($broadKey !== null) {
+            throw new $broad[$broadKey]($feedback);
+        }
+        throw new ExchangeError($feedback); // unknown message
     }
 }

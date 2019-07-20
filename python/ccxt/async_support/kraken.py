@@ -764,9 +764,7 @@ class kraken (Exchange):
 
     async def fetch_balance(self, params={}):
         response = await self.privatePostBalance(params)
-        balances = self.safe_value(response, 'result')
-        if balances is None:
-            raise ExchangeNotAvailable(self.id + ' fetchBalance failed due to a malformed response ' + self.json(response))
+        balances = self.safe_value(response, 'result', {})
         result = {'info': balances}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):

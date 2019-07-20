@@ -278,7 +278,7 @@ class gateio extends Exchange {
         //     {
         //         "elapsed" => "15ms",
         //         "result" => "true",
-        //         "data" => array (
+        //         "$data" => array (
         //             array ( "1553930820000", "1.005299", "4081.05", "4086.18", "4081.05", "4086.18" ),
         //             array ( "1553930880000", "0.110923277", "4095.2", "4095.23", "4091.15", "4091.15" ),
         //             ...
@@ -286,7 +286,8 @@ class gateio extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -626,7 +627,7 @@ class gateio extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ExchangeError($this->id . ' fetchMyTrades requires $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol param');
         }
         $this->load_markets();
         $market = $this->market ($symbol);

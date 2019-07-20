@@ -47,7 +47,7 @@ class coinfloor extends Exchange {
                         '{id}/balance/',
                         '{id}/user_transactions/',
                         '{id}/open_orders/',
-                        '{id}/cancel_order/',
+                        '{symbol}/cancel_order/',
                         '{id}/buy/',
                         '{id}/sell/',
                         '{id}/buy_market/',
@@ -219,7 +219,16 @@ class coinfloor extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
-        return $this->privatePostIdCancelOrder (array( 'id' => $id ));
+        if ($symbol === null) {
+            throw new NotSupported($this->id . ' cancelOrder requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'symbol' => $market['id'],
+            'id' => $id,
+        );
+        return $this->privatePostSymbolCancelOrder ($request);
     }
 
     public function parse_order ($order, $market = null) {
@@ -273,6 +282,13 @@ class coinfloor extends Exchange {
             'id' => $market['id'],
         );
         $response = $this->privatePostIdOpenOrders (array_merge ($request, $params));
+        //   {
+        //     "amount" => "1.0000",
+        //     "datetime" => "2019-07-12 13:28:16",
+        //     "id" => 233123443,
+        //     "price" => "1000.00",
+        //     "type" => 0
+        //   }
         return $this->parse_orders($response, $market, $since, $limit, array( 'status' => 'open' ));
     }
 

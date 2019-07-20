@@ -319,19 +319,19 @@ class bitbay (Exchange):
         else:
             return self.parse_my_trade(trade, market)
 
-    def parse_my_trade(self, trade, market):
+    def parse_my_trade(self, trade, market=None):
         #
         #     {
-        #         id: '5b6780e2-5bac-4ac7-88f4-b49b5957d33a',
-        #         market: 'BTC-EUR',
-        #         time: '1520719374684',
-        #         amount: '0.3',
-        #         rate: '7502',
-        #         initializedBy: 'Sell',
+        #         amount: "0.29285199",
+        #         commissionValue: "0.00125927",
+        #         id: "11c8203a-a267-11e9-b698-0242ac110007",
+        #         initializedBy: "Buy",
+        #         market: "ETH-EUR",
+        #         offerId: "11c82038-a267-11e9-b698-0242ac110007",
+        #         rate: "277",
+        #         time: "1562689917517",
+        #         userAction: "Buy",
         #         wasTaker: True,
-        #         userAction: 'Sell',
-        #         offerId: 'd093b0aa-b9c9-4a52-b3e2-673443a6188b',
-        #         commissionValue: null
         #     }
         #
         timestamp = self.safe_integer(trade, 'time')
@@ -345,15 +345,31 @@ class bitbay (Exchange):
         if amount is not None:
             if price is not None:
                 cost = price * amount
-        commissionValue = self.safe_float(trade, 'commissionValue')
-        fee = None
-        if commissionValue is not None:
-            # it always seems to be null so don't know what currency to use
-            fee = {
-                'currency': None,
-                'cost': commissionValue,
-            }
+        feeCost = self.safe_float(trade, 'commissionValue')
         marketId = self.safe_string(trade, 'market')
+        base = None
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+                base = market['base']
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if market is not None:
+            if symbol is None:
+                symbol = market['symbol']
+            if base is None:
+                base = market['base']
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': base,
+                'cost': feeCost,
+            }
         order = self.safe_string(trade, 'offerId')
         # todo: check self logic
         type = 'limit' if order else 'market'
@@ -362,7 +378,7 @@ class bitbay (Exchange):
             'order': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': self.find_symbol(marketId.replace('-', '')),
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,

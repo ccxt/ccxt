@@ -144,6 +144,7 @@ class anxpro extends Exchange {
     }
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        // todo => migrate this to fetchLedger
         $this->load_markets();
         $request = array();
         if ($since !== null) {
@@ -206,8 +207,8 @@ class anxpro extends Exchange {
         //     }
         //
         $transactions = $this->safe_value($response, 'transactions', array());
-        $grouped = $this->group_by($transactions, 'transactionType');
-        $depositsAndWithdrawals = $this->array_concat($grouped['DEPOSIT'], $grouped['WITHDRAWAL']);
+        $grouped = $this->group_by($transactions, 'transactionType', array());
+        $depositsAndWithdrawals = $this->array_concat($this->safe_value($grouped, 'DEPOSIT', array()), $this->safe_value($grouped, 'WITHDRAWAL', array()));
         return $this->parseTransactions ($depositsAndWithdrawals, $currency, $since, $limit);
     }
 

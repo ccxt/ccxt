@@ -379,7 +379,7 @@ class bitstamp (Exchange):
         #     datetime: '2018-01-07 10:45:34.132551',
         #     btc: '0.0079015000000000',
         #     tid: 42777395,
-        #     type: 2,  #(0 - deposit 1 - withdrawal 2 - market trade) NOT buy/sell
+        #     type: 2,  #(0 - deposit; 1 - withdrawal; 2 - market trade) NOT buy/sell
         #     xrp: '50.00000000'}
         id = self.safe_string_2(trade, 'id', 'tid')
         symbol = None
