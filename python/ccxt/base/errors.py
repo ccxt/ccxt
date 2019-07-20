@@ -37,8 +37,7 @@ error_hierarchy = {
 
 __all__ = []
 
-
-import ccxt  # noqa
+from ccxt.base.functions import un_camel_case  # noqa
 
 
 def error_factory(dictionary, super_class):
@@ -52,33 +51,31 @@ def error_factory(dictionary, super_class):
 class BaseError(Exception):
     def __init__(self, message, exchange_id=None, http_code=None, http_status_text=None, url=None, http_method=None, response_headers=None, response_body=None, response_json=None):
         super(BaseError, self).__init__(message)
-        self.__dict__['exchangeId'] = exchange_id
-        self.__dict__['httpCode'] = http_code
-        self.__dict__['httpStatusText'] = http_status_text
+        self.__dict__['exchange_id'] = exchange_id
+        self.__dict__['http_code'] = http_code
+        self.__dict__['http_status_text'] = http_status_text
         self.__dict__['url'] = url
-        self.__dict__['httpMethod'] = http_method
-        self.__dict__['responseHeaders'] = response_headers
-        self.__dict__['responseBody'] = response_body
-        self.__dict__['responseJson'] = response_json
+        self.__dict__['http_method'] = http_method
+        self.__dict__['response_headers'] = response_headers
+        self.__dict__['response_body'] = response_body
+        self.__dict__['response_json'] = response_json
 
     def __getattr__(self, item):
         # __getattr__ is called for attributes that are not found on the object
-        parts = item.split('_')
-        camelcase = parts[0] + ''.join(ccxt.Exchange.capitalize(i) for i in parts[1:])
-        if item == camelcase:
+        underscore = un_camel_case(item)
+        if item == underscore:
             raise AttributeError("{} object has no attribute {}".format(type(self).__name__, item))
-        return getattr(self, camelcase)
+        return getattr(self, underscore)
 
     def __setattr__(self, key, value):
-        parts = key.split('_')
-        camelcase = parts[0] + ''.join(ccxt.Exchange.capitalize(i) for i in parts[1:])
-        if hasattr(self, camelcase):
-            return super(BaseError, self).__setattr__(camelcase, value)
+        underscore = un_camel_case(key)
+        if hasattr(self, underscore):
+            return super(BaseError, self).__setattr__(underscore, value)
         else:
             raise AttributeError('Cannot set attribute ' + key)
 
     def __str__(self):
-        return ' '.join(str(i) for i in [self.exchangeId, self.httpMethod, self.url, self.httpCode, self.httpStatusText, self.args[0]] if i is not None)
+        return ' '.join(str(i) for i in [self.exchange_id, self.http_method, self.url, self.http_code, self.http_status_text, self.args[0]] if i is not None)
 
 
 error_factory(error_hierarchy['BaseError'], BaseError)

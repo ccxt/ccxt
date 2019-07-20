@@ -39,18 +39,6 @@ function subclass (BaseClass, classes, namespace = {}) {
                     this.responseHeaders = responseHeaders
                     this.responseBody = responseBody
                     this.responseJson = responseJson
-
-                    if (this.name === 'BaseError') {
-                        for (const property of Object.getOwnPropertyNames (this)) {
-                            const underscore = unCamelCase (property)
-                            if (underscore !== property) {
-                                Object.defineProperty (this, underscore, {
-                                    get () { return this[property] },
-                                    set (value) { this[property] = value }
-                                })
-                            }
-                        }
-                    }
                 }
             }
 
@@ -64,9 +52,27 @@ function subclass (BaseClass, classes, namespace = {}) {
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = subclass (
+const Errors = subclass (
     // Root class
     Error,
     // Derived class hierarchy
     errorHierarchy,
 )
+
+const BaseError = Errors['BaseError']
+const instance = new BaseError ()
+for (const property of Object.getOwnPropertyNames (instance)) {
+    const underscore = unCamelCase (property)
+    if (underscore !== property) {
+        Object.defineProperty (BaseError.prototype, underscore, {
+            get () {
+                return this[property]
+            },
+            set (value) {
+                this[property] = value
+            },
+        })
+    }
+}
+
+module.exports = Errors

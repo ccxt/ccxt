@@ -48,26 +48,38 @@ function error_factory($array, $parent) {
     }
 }
 
-class BaseError extends Exception {
-    public $exchangeId;
-    public $httpCode;
-    public $httpStatusText;
-    public $url;
-    public $httpMethod;
-    public $responseHeaders;
-    public $responseBody;
-    public $responseJson;
+// , unCamelCase: s => s.match (/^[A-Z0-9_]+$/) ? s : (s.replace (/([a-z0-9])([A-Z])/g, '$1_$2').replace (/([A-Z0-9])([A-Z0-9][a-z])/g, '$1_$2').toLowerCase ())
 
-    public function __construct($message = "", $exchangeId = null, $httpCode = null, $httpStatusText = null, $url = null, $httpMethod = null, $responseHeaders = null, $responseBody = null, $responseJson = null) {
+function un_camel_case($string) {
+    if (preg_match('/^[A-Z-9_]+$/', $string)) {
+        return $string;
+    }
+    $first = preg_replace('/([a-z0-9])([A-Z])/', '$1_$2', $string);
+    $second = preg_replace('/([A-Z0-9])([A-Z0-9][a-z])/', '$1_$2', $first);
+    return strtolower($second);
+}
+
+
+class BaseError extends Exception {
+    public $exchange_id;
+    public $http_code;
+    public $http_status_text;
+    public $url;
+    public $http_method;
+    public $response_headers;
+    public $response_body;
+    public $response_json;
+
+    public function __construct($message = "", $exchange_id = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null) {
         parent::__construct($message, 0, null);
-        $this->exchangeId = $exchangeId;
-        $this->httpCode = $httpCode;
-        $this->httpStatusText = $httpStatusText;
+        $this->exchange_id = $exchange_id;
+        $this->http_code = $http_code;
+        $this->http_status_text = $http_status_text;
         $this->url = $url;
-        $this->httpMethod = $httpMethod;
-        $this->responseHeaders = $responseHeaders;
-        $this->responseBody = $responseBody;
-        $this->responseJson = $responseJson;
+        $this->http_method = $http_method;
+        $this->response_headers = $response_headers;
+        $this->response_body = $response_body;
+        $this->response_json = $response_json;
     }
 
     public function __toString() {
@@ -75,18 +87,18 @@ class BaseError extends Exception {
     }
 
     public function __get($name) {
-        $camelcase = preg_replace_callback('/_(\w)/', function ($x) {return strtoupper($x[1]); }, $name);
-        if ($camelcase === $name) {
+        $underscore = un_camel_case($name);
+        if ($underscore === $name) {
             trigger_error('Undefined property via __get(): ' . $name, E_USER_NOTICE);
             return null;
         }
-        return $this->$camelcase;
+        return $this->$underscore;
     }
 
     public function __set($name, $value) {
-        $camelcase = preg_replace_callback('/_(\w)/', function ($x) {return strtoupper($x[1]); }, $name);
-        if (property_exists($this, $camelcase)) {
-            $this->$camelcase = $value;
+        $underscore = un_camel_case($value);
+        if (property_exists($this, $underscore)) {
+            $this->$underscore = $value;
         } else {
             throw new \InvalidArgumentException('Cannot set $name');
         }
