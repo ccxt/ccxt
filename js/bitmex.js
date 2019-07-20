@@ -1290,4 +1290,19 @@ module.exports = class bitmex extends Exchange {
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
+
+    normalizeTimeframe (timeframe) {
+        const timePeriods = {
+            's': 1000,
+            'm': 1000 * 60,
+            'h': 1000 * 60 * 60,
+            'd': 1000 * 60 * 60 * 24,
+            'w': 1000 * 60 * 60 * 24 * 7,
+            'y': 1000 * 60 * 60 * 24 * 365,
+        };
+        const periodIndex = timeframe.length - 1;
+        const period = timeframe.slice (periodIndex);
+        const unitTime = parseInt (timeframe.slice (0, periodIndex));
+        return unitTime * timePeriods[period];
+    }
 };

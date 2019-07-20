@@ -1938,17 +1938,3 @@ class Exchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
-
-    @staticmethod
-    def normalize_timeframe(timeframe):
-        timePeriods = {
-            's': 1000,
-            'm': 1000 * 60,
-            'h': 1000 * 60 * 60,
-            'd': 1000 * 60 * 60 * 24,
-            'w': 1000 * 60 * 60 * 24 * 7,
-            'y': 1000 * 60 * 60 * 24 * 365,
-        }
-        period = timeframe[-1]
-        unitTime = int(timeframe[0:-1])
-        return unitTime * timePeriods[period]

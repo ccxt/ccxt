@@ -2703,23 +2703,4 @@ class Exchange {
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
     }
-
-    public static function normalize_timeframe ($timeframe) {
-        $timePeriods = array (
-            's' => 1000,
-            'm' => 1000 * 60,
-            'h' => 1000 * 60 * 60,
-            'd' => 1000 * 60 * 60 * 24,
-            'w' => 1000 * 60 * 60 * 24 * 7,
-            'y' => 1000 * 60 * 60 * 24 * 365,
-        );
-        $periodIndex = strlen ($timeframe) - 1;
-        $period = mb_substr($timeframe, $periodIndex);
-        $unitTime = intval (mb_substr($timeframe, 0, $periodIndex - 0));
-        return $unitTime * $timePeriods[$period];
-    }
-
-    public static function normalizeTimeframe($timeframe) {
-        return static::noramlize_timeframe($timeframe);
-    }
 }
