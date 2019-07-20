@@ -887,11 +887,9 @@ module.exports = class bitmex extends Exchange {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
-            const start = result.length - 1;
-            for (let i = start; i > 0; i--) {
-                result[i][0] = result[i - 1][0];
+            for (let i = 0; i < result.length; i++) {
+                result[i][0] = result[i][0] - this.normalizeTimeframe (timeframe);
             }
-            result.shift ();
         }
         return result;
     }
