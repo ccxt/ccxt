@@ -20,7 +20,7 @@ function subclass (BaseClass, classes, namespace = {}) {
 
                 constructor (message, exchangeId = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
                     // don't pass message to super here to make the property work
-                    super ()
+                    super (message)
 
                     // A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
                     // See my blog post for the explanation of this hack:
@@ -29,11 +29,20 @@ function subclass (BaseClass, classes, namespace = {}) {
 
                     this.constructor = Class
                     this.name = className
+
+                    // make this.message invoked as a property that calls this.toString, and hide this.messageBody
                     Object.defineProperty (this, 'messageBody', {
                         'writable': true,
                         'value': message,
                     })
-                    // make this.message invoked as a property that calls this.toString, and hide this.messageBody
+                    Object.defineProperty (this, 'message', {
+                        get () {
+                            return this.toString ()
+                        },
+                        set (value) {
+                            this.messageBody = value
+                        },
+                    })
 
                     this.exchangeId = exchangeId
                     this.httpStatusCode = httpStatusCode
@@ -83,13 +92,5 @@ for (const property of Object.getOwnPropertyNames (instance)) {
         })
     }
 }
-Object.defineProperty (BaseError.prototype, 'message', {
-    get () {
-        return this.toString ()
-    },
-    set (value) {
-        this.messageBody = value
-    },
-})
 
 module.exports = Errors
