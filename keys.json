@@ -39,7 +39,6 @@
     "coinmarketcap": { "skip": true },
     "coolcoin":      { "skip": true },
     "crypton":       { "skip": true },
-    "cryptopia":     { "skip": true },
     "dsx":           { "skip": true },
     "dx":            { "skip": true },
     "ethfinex":      { "skip": true },

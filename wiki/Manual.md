@@ -2161,7 +2161,7 @@ console.log (exchange.has)
 ```Python
 # Python
 import ccxt
-id = 'cryptopia'
+id = 'binance'
 exchange = getattr(ccxt, id) ()
 print(exchange.has)
 ```
