@@ -9,7 +9,7 @@ const cloudscraper = require ('cloudscraper')
 
 ;(async () => {
 
-    const exchange = new ccxt.cryptopia ({
+    const exchange = new ccxt.binance ({
         'verbose': process.argv.includes ('--verbose'),
         'timeout': 60000,
     })
