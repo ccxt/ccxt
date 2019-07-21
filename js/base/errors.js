@@ -19,17 +19,21 @@ function subclass (BaseClass, classes, namespace = {}) {
             [className]: class extends BaseClass {
 
                 constructor (message, exchangeId = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
-                    super (message)
+                    // don't pass message to super here to make the property work
+                    super ()
 
-                /*  A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
-                    See my blog post for the explanation of this hack:
+                    // A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
+                    // See my blog post for the explanation of this hack:
 
-                    https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */
+                    // https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801        */
 
                     this.constructor = Class
-                    this.__proto__ = Class.prototype
                     this.name = className
-                    this.message = message
+                    Object.defineProperty (this, 'messageBody', {
+                        'writable': true,
+                        'value': message,
+                    })
+                    // make this.message invoked as a property that calls this.toString, and hide this.messageBody
 
                     this.exchangeId = exchangeId
                     this.httpStatusCode = httpStatusCode
@@ -42,7 +46,7 @@ function subclass (BaseClass, classes, namespace = {}) {
                 }
 
                 toString () {
-                    return [this.message, this.exchangeId, this.httpMethod, this.url, this.httpStatusCode, this.httpStatusText].filter (x => x !== undefined).join (' ')
+                    return [this.messageBody, this.exchangeId, this.httpMethod, this.url, this.httpStatusCode, this.httpStatusText].filter (x => x !== undefined).join (' ')
                 }
             }
 
@@ -75,8 +79,17 @@ for (const property of Object.getOwnPropertyNames (instance)) {
             set (value) {
                 this[property] = value
             },
+            'enumerable': true,
         })
     }
 }
+Object.defineProperty (BaseError.prototype, 'message', {
+    get () {
+        return this.toString ()
+    },
+    set (value) {
+        this.messageBody = value
+    },
+})
 
 module.exports = Errors
