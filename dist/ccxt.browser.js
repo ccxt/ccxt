@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.967'
+const version = '1.18.968'
 
 Exchange.ccxtVersion = version
 
@@ -54206,7 +54206,9 @@ module.exports = class kucoin extends Exchange {
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                †                 ↑
         //
-        let endpoint = '/api/' + this.options['version'] + '/' + this.implodeParams (path, params);
+        const version = this.safeString (params, 'version', this.options['version']);
+        params = this.omit (params, 'version');
+        let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = headers !== undefined ? headers : {};
