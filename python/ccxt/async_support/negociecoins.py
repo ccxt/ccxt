@@ -354,7 +354,7 @@ class negociecoins (Exchange):
                 'Authorization': 'amx ' + auth,
             }
             if method == 'POST':
-                headers['Content-Type'] = 'application/json charset=UTF-8'
+                headers['Content-Type'] = 'application/json; charset=UTF-8'
                 headers['Content-Length'] = len(body)
             elif len(queryString):
                 url += '?' + queryString

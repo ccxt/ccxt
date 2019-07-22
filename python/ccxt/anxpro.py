@@ -153,6 +153,7 @@ class anxpro (Exchange):
         })
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        # todo: migrate self to fetchLedger
         self.load_markets()
         request = {}
         if since is not None:
@@ -212,8 +213,8 @@ class anxpro (Exchange):
         #     }
         #
         transactions = self.safe_value(response, 'transactions', [])
-        grouped = self.group_by(transactions, 'transactionType')
-        depositsAndWithdrawals = self.array_concat(grouped['DEPOSIT'], grouped['WITHDRAWAL'])
+        grouped = self.group_by(transactions, 'transactionType', [])
+        depositsAndWithdrawals = self.array_concat(self.safe_value(grouped, 'DEPOSIT', []), self.safe_value(grouped, 'WITHDRAWAL', []))
         return self.parseTransactions(depositsAndWithdrawals, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):

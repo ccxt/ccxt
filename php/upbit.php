@@ -803,6 +803,10 @@ class upbit extends Exchange {
             $request['unit'] = $numMinutes;
             $method .= 'Unit';
         }
+        if ($since !== null) {
+            // convert `$since` to `to` value
+            $request['to'] = $this->iso8601 ($this->sum ($since, $timeframePeriod * $limit * 1000));
+        }
         $response = $this->$method (array_merge ($request, $params));
         //
         //     array ( array (                  $market => "BTC-ETH",

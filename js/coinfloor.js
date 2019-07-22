@@ -44,7 +44,7 @@ module.exports = class coinfloor extends Exchange {
                 'private': {
                     'post': [
                         '{id}/balance/',
-                        '{id}/user_transactions/',
+                        '{symbol}/user_transactions/',
                         '{id}/open_orders/',
                         '{symbol}/cancel_order/',
                         '{id}/buy/',
@@ -199,6 +199,137 @@ module.exports = class coinfloor extends Exchange {
         };
         const response = await this.publicGetIdTransactions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // code is actually a market symbol in this situation, not a currency code
+        await this.loadMarkets ();
+        let market = undefined;
+        if (code) {
+            market = this.findMarket (code);
+            if (!market) {
+                throw new NotSupported (this.id + ' fetchTransactions requires a market symbol param');
+            }
+        }
+        const request = {
+            'id': market['id'],
+            'limit': limit,
+        };
+        const response = await this.privatePostIdUserTransactions (this.extend (request, params));
+        return this.parseLedger (response, undefined, since, limit);
+    }
+
+    parseLedgerEntryStatus (status) {
+        const types = {
+            'completed': 'ok',
+        };
+        return this.safeString (types, status, status);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            '0': 'transaction', // deposit
+            '1': 'transaction', // withdrawal
+            '2': 'trade',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        // trade:
+        //   {
+        //     "datetime": "2017-07-25 06:41:24",
+        //     "id": 1500964884381265,
+        //     "type": 2,
+        //     "xbt": "0.1000",
+        //     "xbt_eur": "2322.00",
+        //     "eur": "-232.20",
+        //     "fee": "0.00",
+        //     "order_id": 84696745 }
+        //
+        // transactions:
+        //   {
+        //     "datetime": "2017-07-25 13:19:46",
+        //     "id": 97669,
+        //     "type": 1,
+        //     "xbt": "-3.0000",
+        //     "xbt_eur": null,
+        //     "eur": "0",
+        //     "fee": "0.0000",
+        //     "order_id": null }
+        //   {
+        //     "datetime": "2017-07-27 16:44:55",
+        //     "id": 98277,
+        //     "type": 0,
+        //     "xbt": "0",
+        //     "xbt_eur": null,
+        //     "eur": "4970.04",
+        //     "fee": "0.00",
+        //     "order_id": null }
+        const keys = Object.keys (item);
+        let baseId = undefined;
+        let quoteId = undefined;
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (key.indexOf ('_') > 0) {
+                const parts = key.split ('_');
+                const numParts = parts.length;
+                if (numParts === 2) {
+                    const baseIdPresentInKey = this.safeString (item, parts[0]);
+                    const quoteIdPresentInKey = this.safeString (item, parts[1]);
+                    if (baseIdPresentInKey && quoteIdPresentInKey) {
+                        baseId = baseIdPresentInKey;
+                        quoteId = quoteIdPresentInKey;
+                    }
+                }
+            }
+        }
+        const baseAmount = this.safeFloat (item, baseId);
+        const quoteAmount = this.safeFloat (item, quoteId);
+        if (this.safeString (item, 'type') === '2') {
+            // it's a trade so let make 2 entries
+            const orderId = this.safeString (item, 'order_id');
+            return [
+                this.createLedgerItem (baseAmount, baseId, orderId, undefined, item),
+                this.createLedgerItem (quoteAmount, quoteId, orderId, undefined, item),
+            ];
+        } else {
+            const amount = baseAmount !== 0 ? baseAmount : quoteAmount;
+            const currencyId = baseAmount !== 0 ? baseId : quoteId;
+            const feeCost = this.safeFloat (item, 'fee');
+            return this.createLedgerItem (amount, currencyId, undefined, feeCost, item);
+        }
+    }
+
+    createLedgerItem (amount, currencyId, referenceId, feeCost, item) {
+        const id = this.safeString (item, 'id');
+        const timestamp = this.parse8601 (this.safeString (item, 'datetime'));
+        const datetime = this.iso8601 (timestamp);
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        let fee = undefined;
+        const code = this.safeCurrencyCode (currencyId);
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        return {
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': datetime,
+            'amount': amount < 0 ? -amount : amount,
+            'direction': amount < 0 ? 'out' : 'in',
+            'currency': code,
+            'type': type,
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'before': undefined,
+            'after': undefined,
+            'status': 'ok',
+            'fee': fee,
+            'info': item,
+        };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

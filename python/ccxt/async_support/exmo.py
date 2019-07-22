@@ -738,25 +738,50 @@ class exmo (Exchange):
             'pair': market['id'],
         }
         response = await self.publicGetTrades(self.extend(request, params))
-        return self.parse_trades(response[market['id']], market, since, limit)
+        data = self.safe_value(response, market['id'], [])
+        return self.parse_trades(data, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
-        # their docs does not mention it, but if you don't supply a symbol
-        # their API will return an empty response as if you don't have any trades
-        # therefore we make it required here as calling it without a symbol is useless
+        # a symbol is required but it can be a single string, or a non-empty array
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument(a single symbol or an array)')
         await self.load_markets()
-        market = self.market(symbol)
+        pair = None
+        market = None
+        if isinstance(symbol, list):
+            numSymbols = len(symbol)
+            if numSymbols < 1:
+                raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a non-empty symbol array')
+            marketIds = self.market_ids(symbol)
+            pair = ','.join(marketIds)
+        else:
+            market = self.market(symbol)
+            pair = market['id']
         request = {
-            'pair': market['id'],
+            'pair': pair,
         }
         if limit is not None:
             request['limit'] = limit
         response = await self.privatePostUserTrades(self.extend(request, params))
-        if market is not None:
-            response = response[market['id']]
-        return self.parse_trades(response, market, since, limit)
+        result = []
+        marketIds = list(response.keys())
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            symbol = None
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                baseId, quoteId = marketId.split('_')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+            items = response[marketId]
+            trades = self.parse_trades(items, market, since, limit, {
+                'symbol': symbol,
+            })
+            result = self.array_concat(result, trades)
+        return self.filter_by_since_limit(result, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

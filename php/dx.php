@@ -178,7 +178,7 @@ class dx extends Exchange {
             list($base, $quote) = explode('/', $fullName);
             $amountPrecision = 0;
             if ($instrument['meQuantityMultiplier'] !== 0) {
-                $amountPrecision = log10 ($instrument['meQuantityMultiplier']);
+                $amountPrecision = intval (log10 ($instrument['meQuantityMultiplier']));
             }
             $base = $this->safe_currency_code($base);
             $quote = $this->safe_currency_code($quote);

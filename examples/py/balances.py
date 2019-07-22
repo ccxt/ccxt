@@ -60,12 +60,6 @@ hitbtc = ccxt.hitbtc({
     'secret': '8340a60fb4e9fc73a169c26c7a7926f5',
 })
 
-quadrigacx = ccxt.quadrigacx({
-    'apiKey': 'jKvWkMqrOj',
-    'secret': 'f65a2e3bf3c73171ee14e389314b2f78',
-    'uid': '395037',  # QuadrigaCX requires uid!
-})
-
 try:
     # fetch account balance from the exchange
     gdaxBalance = gdax.fetch_balance()
@@ -78,12 +72,6 @@ try:
 
     # output the result
     dump(green(hitbtc.name), 'balance', hitbtcBalance)
-
-    # ... and another one
-    quadrigacxBalance = quadrigacx.fetch_balance()
-
-    # output the result
-    dump(green(quadrigacx.name), 'balance', quadrigacxBalance)
 
 except ccxt.DDoSProtection as e:
     print(type(e).__name__, e.args, 'DDoS Protection (ignoring)')

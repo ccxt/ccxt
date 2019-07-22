@@ -632,8 +632,8 @@ class coinbase extends Exchange {
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg => instance.last_json_response.pagination.next_starting_after
-        $res = $this->privateGetAccountsAccountIdTransactions (array_merge ($request, $query));
-        return $this->parse_ledger($res->data, null, $since, $limit);
+        $response = $this->privateGetAccountsAccountIdTransactions (array_merge ($request, $query));
+        return $this->parse_ledger($response['data'], null, $since, $limit);
     }
 
     public function parse_ledger_entry_status ($status) {
