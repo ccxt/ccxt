@@ -1490,7 +1490,7 @@ module.exports = class kucoin extends Exchange {
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                †                 ↑
         //
-        const version = this.safeString (params, 'version', this.options['version'])
+        const version = this.safeString (params, 'version', this.options['version']);
         params = this.omit (params, 'version');
         let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
