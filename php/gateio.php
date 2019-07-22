@@ -375,12 +375,7 @@ class gateio extends Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
             }
-            $ticker = $this->parse_ticker($response[$id], $market);
-            // https://github.com/ccxt/ccxt/pull/5138
-            $baseVolume = $ticker['baseVolume'];
-            $ticker['baseVolume'] = $ticker['quoteVolume'];
-            $ticker['quoteVolume'] = $baseVolume;
-            $result[$symbol] = $ticker;
+            $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
         return $result;
     }

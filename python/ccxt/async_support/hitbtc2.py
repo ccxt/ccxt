@@ -929,6 +929,16 @@ class hitbtc2 (hitbtc):
         #         address: '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
         #     }
         #
+        #     {
+        #         "id": "4f351f4f-a8ee-4984-a468-189ed590ddbd",
+        #         "index": 3112719565,
+        #         "type": "withdraw",
+        #         "status": "success",
+        #         "currency": "BCHOLD",
+        #         "amount": "0.02423133",
+        #         "createdAt": "2019-07-16T16:52:04.494Z",
+        #         "updatedAt": "2019-07-16T16:54:07.753Z"
+        #     }
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
         updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
@@ -936,11 +946,6 @@ class hitbtc2 (hitbtc):
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_float(transaction, 'amount')
-        type = self.safe_string(transaction, 'type')
-        if type == 'payin':
-            type = 'deposit'
-        elif type == 'payout':
-            type = 'withdrawal'
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'hash')
         fee = None
@@ -950,6 +955,7 @@ class hitbtc2 (hitbtc):
                 'cost': feeCost,
                 'currency': code,
             }
+        type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         return {
             'info': transaction,
             'id': id,
@@ -972,7 +978,15 @@ class hitbtc2 (hitbtc):
             'failed': 'failed',
             'success': 'ok',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'payin': 'deposit',
+            'payout': 'withdrawal',
+            'withdraw': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()

@@ -960,6 +960,16 @@ class hitbtc2 extends hitbtc {
         //         $address => '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
         //     }
         //
+        //     {
+        //         "$id" => "4f351f4f-a8ee-4984-a468-189ed590ddbd",
+        //         "index" => 3112719565,
+        //         "$type" => "withdraw",
+        //         "$status" => "success",
+        //         "$currency" => "BCHOLD",
+        //         "$amount" => "0.02423133",
+        //         "createdAt" => "2019-07-16T16:52:04.494Z",
+        //         "updatedAt" => "2019-07-16T16:54:07.753Z"
+        //     }
         $id = $this->safe_string($transaction, 'id');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'createdAt'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'updatedAt'));
@@ -967,12 +977,6 @@ class hitbtc2 extends hitbtc {
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
-        $type = $this->safe_string($transaction, 'type');
-        if ($type === 'payin') {
-            $type = 'deposit';
-        } else if ($type === 'payout') {
-            $type = 'withdrawal';
-        }
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'hash');
         $fee = null;
@@ -983,6 +987,7 @@ class hitbtc2 extends hitbtc {
                 'currency' => $code,
             );
         }
+        $type = $this->parse_transaction_type ($this->safe_string($transaction, 'type'));
         return array (
             'info' => $transaction,
             'id' => $id,
@@ -1006,7 +1011,16 @@ class hitbtc2 extends hitbtc {
             'failed' => 'failed',
             'success' => 'ok',
         );
-        return (is_array($statuses) && array_key_exists($status, $statuses)) ? $statuses[$status] : $status;
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction_type ($type) {
+        $types = array (
+            'payin' => 'deposit',
+            'payout' => 'withdrawal',
+            'withdraw' => 'withdrawal',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
