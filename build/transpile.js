@@ -164,7 +164,6 @@ const pythonRegexes = [
     [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
     [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
     [ /\.shift\s*\(\)/g, '.pop(0)' ],
-    [ /\.startsWith/g, '.startswith' ],
 
 // insert common regexes in the middle (critical)
 ].concat (commonRegexes).concat ([
@@ -337,7 +336,6 @@ const phpRegexes = [
     [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
     [ /([^\s\(]+).slice \(([^\)\:,]+)\)/g, 'mb_substr($1, $2)' ],
     [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr($1, $2, $3 - $2)' ],
-    [ /('?\w+'?)\.startsWith\s*\(('?\w+'?)\)/g, 'mb_substr($1, 0, strlen($2)) === $2' ],
     [ /([^\s\(]+).split \(('[^']*'|[^\,]+?)\)/g, 'explode($2, $1)' ],
     [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor($1)' ],
     [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs ($1)' ],
