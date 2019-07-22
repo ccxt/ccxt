@@ -986,6 +986,7 @@ module.exports = class hitbtc2 extends hitbtc {
                 'currency': code,
             };
         }
+        const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         return {
             'info': transaction,
             'id': id,
@@ -994,7 +995,7 @@ module.exports = class hitbtc2 extends hitbtc {
             'datetime': this.iso8601 (timestamp),
             'address': address,
             'tag': undefined,
-            'type': this.parseTransactionType (this.safeString (transaction, 'type')),
+            'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
@@ -1009,16 +1010,16 @@ module.exports = class hitbtc2 extends hitbtc {
             'failed': 'failed',
             'success': 'ok',
         };
-        return (status in statuses) ? statuses[status] : status;
+        return this.safeString (statuses, status, status);
     }
 
-    parseTransactionType (status) {
-        const statuses = {
+    parseTransactionType (type) {
+        const types = {
             'payin': 'deposit',
             'payout': 'withdrawal',
             'withdraw': 'withdrawal',
         };
-        return (status in statuses) ? statuses[status] : status;
+        return this.safeString (types, type, type);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
