@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.965'
+const version = '1.18.966'
 
 Exchange.ccxtVersion = version
 
@@ -43071,12 +43071,7 @@ module.exports = class gateio extends Exchange {
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
             }
-            const ticker = this.parseTicker (response[id], market);
-            // https://github.com/ccxt/ccxt/pull/5138
-            const baseVolume = ticker['baseVolume'];
-            ticker['baseVolume'] = ticker['quoteVolume'];
-            ticker['quoteVolume'] = baseVolume;
-            result[symbol] = ticker;
+            result[symbol] = this.parseTicker (response[id], market);
         }
         return result;
     }
