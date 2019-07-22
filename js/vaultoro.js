@@ -16,6 +16,12 @@ module.exports = class vaultoro extends Exchange {
             'version': '1',
             'has': {
                 'CORS': true,
+                'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchBalance': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'fetchTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
@@ -105,40 +111,6 @@ module.exports = class vaultoro extends Exchange {
             'asks': response['data'][1]['s'],
         };
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const quote = await this.publicGetBidandask (params);
-        const bidsLength = quote['bids'].length;
-        const bid = quote['bids'][bidsLength - 1];
-        const ask = quote['asks'][0];
-        const response = await this.publicGetMarkets (params);
-        const ticker = this.safeValue (response, 'data');
-        const timestamp = this.milliseconds ();
-        const last = this.safeFloat (ticker, 'LastPrice');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, '24hHigh'),
-            'low': this.safeFloat (ticker, '24hLow'),
-            'bid': bid[0],
-            'bidVolume': undefined,
-            'ask': ask[0],
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, '24hVolume'),
-            'info': ticker,
-        };
     }
 
     parseTrade (trade, market = undefined) {
