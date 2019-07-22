@@ -31,6 +31,7 @@ module.exports = class gemini extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': false,
                 'fetchDeposits': false,
+                'fetchOHLCV': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -65,6 +66,7 @@ module.exports = class gemini extends Exchange {
                         'trades/{symbol}',
                         'auction/{symbol}',
                         'auction/{symbol}/history',
+                        'candles/{symbol}/{timeframe}',
                     ],
                 },
                 'private': {
@@ -101,6 +103,15 @@ module.exports = class gemini extends Exchange {
                 '500': ExchangeError, // The server encountered an error
                 '502': ExchangeError, // Technical issues are preventing the request from being satisfied
                 '503': ExchangeNotAvailable, // The exchange is down for maintenance
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1hr',
+                '6h': '6hr',
+                '1d': '1day',
             },
             'exceptions': {
                 'exact': {
@@ -601,7 +612,13 @@ module.exports = class gemini extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
         if (api !== 'web') {
-            url = '/' + this.version + url;
+            let version = undefined;
+            if (path.startsWith ('candles')) {
+                version = 'v2';
+            } else {
+                version = this.version;
+            }
+            url = '/' + version + url;
         }
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
@@ -675,5 +692,16 @@ module.exports = class gemini extends Exchange {
             'tag': undefined,
             'info': response,
         };
+    }
+
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'timeframe': this.timeframes[timeframe],
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetCandlesSymbolTimeframe (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 };
