@@ -152,8 +152,8 @@ module.exports = class latoken extends Exchange {
             const market = response[i];
             const id = this.safeString (market, 'symbol');
             // the exchange shows them inverted
-            const baseId = this.safeString (market, 'quotedCurrency');
-            const quoteId = this.safeString (market, 'baseCurrency');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quotedCurrency');
             const numericId = this.safeInteger (market, 'pairId');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
