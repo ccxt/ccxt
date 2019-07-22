@@ -269,23 +269,25 @@ module.exports = class coinfloor extends Exchange {
         const keys = Object.keys (item);
         let baseId = undefined;
         let quoteId = undefined;
+        let baseAmount = undefined;
+        let quoteAmount = undefined;
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             if (key.indexOf ('_') > 0) {
                 const parts = key.split ('_');
                 const numParts = parts.length;
                 if (numParts === 2) {
-                    const baseIdPresentInKey = this.safeString (item, parts[0]);
-                    const quoteIdPresentInKey = this.safeString (item, parts[1]);
-                    if (baseIdPresentInKey && quoteIdPresentInKey) {
-                        baseId = baseIdPresentInKey;
-                        quoteId = quoteIdPresentInKey;
+                    const tmpBaseAmount = this.safeFloat (item, parts[0]);
+                    const tmpQuoteAmount = this.safeFloat (item, parts[1]);
+                    if (tmpBaseAmount !== undefined && tmpQuoteAmount !== undefined) {
+                        baseId = parts[0];
+                        quoteId = parts[1];
+                        baseAmount = tmpBaseAmount;
+                        quoteAmount = tmpQuoteAmount;
                     }
                 }
             }
         }
-        const baseAmount = this.safeFloat (item, baseId);
-        const quoteAmount = this.safeFloat (item, quoteId);
         if (this.safeString (item, 'type') === '2') {
             // it's a trade so let make 2 entries
             const orderId = this.safeString (item, 'order_id');
