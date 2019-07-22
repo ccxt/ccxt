@@ -738,7 +738,8 @@ class exmo (Exchange):
             'pair': market['id'],
         }
         response = await self.publicGetTrades(self.extend(request, params))
-        return self.parse_trades(response[market['id']], market, since, limit)
+        data = self.safe_value(response, market['id'], [])
+        return self.parse_trades(data, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         # a symbol is required but it can be a single string, or a non-empty array

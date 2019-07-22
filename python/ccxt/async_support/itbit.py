@@ -153,7 +153,7 @@ class itbit (Exchange):
         #         "rate": "250.53000000",
         #         "commissionPaid": "0.00000000",   # net trade fee paid after using any available rebate balance
         #         "commissionCurrency": "USD",
-        #         "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        #         "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book; positive values represent amount of rebate balance earned from trades adding liquidity to order book
         #         "rebateCurrency": "USD",
         #         "executionId": "23132"
         #     }
@@ -329,7 +329,7 @@ class itbit (Exchange):
         #                 "rate": "250.53000000",
         #                 "commissionPaid": "0.00000000",   # net trade fee paid after using any available rebate balance
         #                 "commissionCurrency": "USD",
-        #                 "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        #                 "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book; positive values represent amount of rebate balance earned from trades adding liquidity to order book
         #                 "rebateCurrency": "USD",
         #                 "executionId": "23132"
         #             },
