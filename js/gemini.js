@@ -67,6 +67,7 @@ module.exports = class gemini extends Exchange {
                         'v1/auction/{symbol}',
                         'v1/auction/{symbol}/history',
                         'v2/candles/{symbol}/{timeframe}',
+                        'v2/ticker/{symbol}',
                     ],
                 },
                 'private': {
