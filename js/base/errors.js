@@ -19,7 +19,6 @@ function subclass (BaseClass, classes, namespace = {}) {
             [className]: class extends BaseClass {
 
                 constructor (message, exchangeId = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
-                    // don't pass message to super here to make the property work
                     super (message)
 
                     // A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
