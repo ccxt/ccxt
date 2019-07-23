@@ -22,6 +22,7 @@ module.exports = class vaultoro extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchTrades': true,
+                'fetchTicker': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
