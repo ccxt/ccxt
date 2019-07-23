@@ -1520,12 +1520,7 @@ module.exports = class Exchange {
     }
 
     signZeroExOrder (order, privateKey) {
-        const orderHash = this.getZeroExOrderHash (order);
-        const signature = this.signMessage (orderHash, privateKey);
-        return this.extend (order, {
-            'orderHash': orderHash,
-            'ecSignature': signature, // todo fix v if needed
-        })
+        return this.signZeroExOrderFunction (order, privateKey, 'getZeroExOrderHash')
     }
 
     signZeroExOrderV2 (order, privateKey) {
@@ -1534,6 +1529,15 @@ module.exports = class Exchange {
         return this.extend (order, {
             'orderHash': orderHash,
             'signature': this.convertECSignatureToSignatureHex (signature),
+        })
+    }
+
+    signZeroExOrderFunction (order, privateKey, hashFunction) {
+        const orderHash = this[hashFunction] (order);
+        const signature = this.signMessage (orderHash, privateKey);
+        return this.extend (order, {
+            'orderHash': orderHash,
+            'signature': signature
         })
     }
 
