@@ -32,7 +32,7 @@ function subclass (BaseClass, classes, namespace = {}) {
                             return this.toString ()
                         },
                         set (value) {
-                            super.messageBody = value
+                            this.messageBody = value
                         },
                     })
                     this.message = message
