@@ -31,6 +31,7 @@ module.exports = class gemini extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': false,
                 'fetchDeposits': false,
+                'fetchOHLCV': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -59,30 +60,32 @@ module.exports = class gemini extends Exchange {
                 },
                 'public': {
                     'get': [
-                        'symbols',
-                        'pubticker/{symbol}',
-                        'book/{symbol}',
-                        'trades/{symbol}',
-                        'auction/{symbol}',
-                        'auction/{symbol}/history',
+                        'v1/symbols',
+                        'v1/pubticker/{symbol}',
+                        'v1/book/{symbol}',
+                        'v1/trades/{symbol}',
+                        'v1/auction/{symbol}',
+                        'v1/auction/{symbol}/history',
+                        'v2/candles/{symbol}/{timeframe}',
+                        'v2/ticker/{symbol}',
                     ],
                 },
                 'private': {
                     'post': [
-                        'order/new',
-                        'order/cancel',
-                        'order/cancel/session',
-                        'order/cancel/all',
-                        'order/status',
-                        'orders',
-                        'mytrades',
-                        'tradevolume',
-                        'transfers',
-                        'balances',
-                        'deposit/{currency}/newAddress',
-                        'withdraw/{currency}',
-                        'heartbeat',
-                        'transfers',
+                        'v1/order/new',
+                        'v1/order/cancel',
+                        'v1/order/cancel/session',
+                        'v1/order/cancel/all',
+                        'v1/order/status',
+                        'v1/orders',
+                        'v1/mytrades',
+                        'v1/tradevolume',
+                        'v1/transfers',
+                        'v1/balances',
+                        'v1/deposit/{currency}/newAddress',
+                        'v1/withdraw/{currency}',
+                        'v1/heartbeat',
+                        'v1/transfers',
                     ],
                 },
             },
@@ -101,6 +104,15 @@ module.exports = class gemini extends Exchange {
                 '500': ExchangeError, // The server encountered an error
                 '502': ExchangeError, // Technical issues are preventing the request from being satisfied
                 '503': ExchangeNotAvailable, // The exchange is down for maintenance
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1hr',
+                '6h': '6hr',
+                '1d': '1day',
             },
             'exceptions': {
                 'exact': {
@@ -238,7 +250,7 @@ module.exports = class gemini extends Exchange {
     }
 
     async fetchMarketsFromAPI (params = {}) {
-        const response = await this.publicGetSymbols (params);
+        const response = await this.publicGetV1Symbols (params);
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const id = response[i];
@@ -289,7 +301,7 @@ module.exports = class gemini extends Exchange {
             request['limit_bids'] = limit;
             request['limit_asks'] = limit;
         }
-        const response = await this.publicGetBookSymbol (this.extend (request, params));
+        const response = await this.publicGetV1BookSymbol (this.extend (request, params));
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -299,7 +311,7 @@ module.exports = class gemini extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const ticker = await this.publicGetPubtickerSymbol (this.extend (request, params));
+        const ticker = await this.publicGetV1PubtickerSymbol (this.extend (request, params));
         const timestamp = this.safeInteger (ticker['volume'], 'timestamp');
         const baseCurrency = market['base']; // unified structures are guaranteed to have unified fields
         const quoteCurrency = market['quote']; // so we don't need safe-methods for unified structures
@@ -378,13 +390,13 @@ module.exports = class gemini extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetTradesSymbol (this.extend (request, params));
+        const response = await this.publicGetV1TradesSymbol (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostBalances (params);
+        const response = await this.privatePostV1Balances (params);
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -463,13 +475,13 @@ module.exports = class gemini extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privatePostOrderStatus (this.extend (request, params));
+        const response = await this.privatePostV1OrderStatus (this.extend (request, params));
         return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostOrders (params);
+        const response = await this.privatePostV1Orders (params);
         let orders = this.parseOrders (response, undefined, since, limit);
         if (symbol !== undefined) {
             const market = this.market (symbol); // throws on non-existent symbol
@@ -492,7 +504,7 @@ module.exports = class gemini extends Exchange {
             'side': side,
             'type': 'exchange limit', // gemini allows limit orders only
         };
-        const response = await this.privatePostOrderNew (this.extend (request, params));
+        const response = await this.privatePostV1OrderNew (this.extend (request, params));
         return {
             'info': response,
             'id': response['order_id'],
@@ -504,7 +516,7 @@ module.exports = class gemini extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostOrderCancel (this.extend (request, params));
+        return await this.privatePostV1OrderCancel (this.extend (request, params));
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -522,7 +534,7 @@ module.exports = class gemini extends Exchange {
         if (since !== undefined) {
             request['timestamp'] = parseInt (since / 1000);
         }
-        const response = await this.privatePostMytrades (this.extend (request, params));
+        const response = await this.privatePostV1Mytrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -535,7 +547,7 @@ module.exports = class gemini extends Exchange {
             'amount': amount,
             'address': address,
         };
-        const response = await this.privatePostWithdrawCurrency (this.extend (request, params));
+        const response = await this.privatePostV1WithdrawCurrency (this.extend (request, params));
         return {
             'info': response,
             'id': this.safeString (response, 'txHash'),
@@ -555,7 +567,7 @@ module.exports = class gemini extends Exchange {
         if (since !== undefined) {
             request['timestamp'] = since;
         }
-        const response = await this.privatePostTransfers (this.extend (request, params));
+        const response = await this.privatePostV1Transfers (this.extend (request, params));
         return this.parseTransactions (response);
     }
 
@@ -600,9 +612,6 @@ module.exports = class gemini extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
-        if (api !== 'web') {
-            url = '/' + this.version + url;
-        }
         const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
             this.checkRequiredCredentials ();
@@ -666,7 +675,7 @@ module.exports = class gemini extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privatePostDepositCurrencyNewAddress (this.extend (request, params));
+        const response = await this.privatePostV1DepositCurrencyNewAddress (this.extend (request, params));
         const address = this.safeString (response, 'address');
         this.checkAddress (address);
         return {
@@ -675,5 +684,16 @@ module.exports = class gemini extends Exchange {
             'tag': undefined,
             'info': response,
         };
+    }
+
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'timeframe': this.timeframes[timeframe],
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV2CandlesSymbolTimeframe (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 };
