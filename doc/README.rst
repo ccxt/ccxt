@@ -238,7 +238,7 @@ The ccxt library currently supports the following 123 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `lakebtc <https://www.lakebtc.com>`__                                                     | lakebtc            | `LakeBTC <https://www.lakebtc.com>`__                                                      | 2   | `API <https://www.lakebtc.com/s/api_v2>`__                                                      |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `latoken <https://www.latoken.com>`__                                                     | latoken            | `Latoken <https://www.latoken.com>`__                                                      | 1   | `API <https://api.latoken.com>`__                                                               |                                                                      |
+| `latoken <https://latoken.com>`__                                                         | latoken            | `Latoken <https://latoken.com>`__                                                          | 1   | `API <https://api.latoken.com>`__                                                               |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `lbank <https://www.lbex.io/invite?icode=7QCY>`__                                         | lbank              | `LBank <https://www.lbex.io/invite?icode=7QCY>`__                                          | 1   | `API <https://github.com/LBank-exchange/lbank-official-api-docs>`__                             |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -358,14 +358,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.973/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.973/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.974/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.974/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.973/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.974/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
