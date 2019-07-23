@@ -17,6 +17,13 @@ class vaultoro (Exchange):
             'version': '1',
             'has': {
                 'CORS': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchBalance': True,
+                'createOrder': True,
+                'cancelOrder': True,
+                'fetchTrades': True,
+                'fetchTicker': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
@@ -102,39 +109,6 @@ class vaultoro (Exchange):
             'asks': response['data'][1]['s'],
         }
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'Gold_Price', 'Gold_Amount')
-
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        quote = await self.publicGetBidandask(params)
-        bidsLength = len(quote['bids'])
-        bid = quote['bids'][bidsLength - 1]
-        ask = quote['asks'][0]
-        response = await self.publicGetMarkets(params)
-        ticker = self.safe_value(response, 'data')
-        timestamp = self.milliseconds()
-        last = self.safe_float(ticker, 'LastPrice')
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, '24hHigh'),
-            'low': self.safe_float(ticker, '24hLow'),
-            'bid': bid[0],
-            'bidVolume': None,
-            'ask': ask[0],
-            'askVolume': None,
-            'vwap': None,
-            'open': None,
-            'close': last,
-            'last': last,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, '24hVolume'),
-            'info': ticker,
-        }
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'Time'))

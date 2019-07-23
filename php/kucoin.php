@@ -1491,7 +1491,9 @@ class kucoin extends Exchange {
         // the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         //                                †                 ↑
         //
-        $endpoint = '/api/' . $this->options['version'] . '/' . $this->implode_params($path, $params);
+        $version = $this->safe_string($params, 'version', $this->options['version']);
+        $params = $this->omit ($params, 'version');
+        $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         $endpart = '';
         $headers = $headers !== null ? $headers : array();

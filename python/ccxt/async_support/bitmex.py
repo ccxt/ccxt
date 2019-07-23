@@ -1163,8 +1163,7 @@ class bitmex (Exchange):
                 query += '?' + self.urlencode({'_format': format})
                 params = self.omit(params, '_format')
         url = self.urls['api'] + query
-        if api == 'private':
-            self.check_required_credentials()
+        if self.apiKey and self.secret:
             auth = method + query
             expires = self.safe_integer(self.options, 'api-expires')
             headers = {

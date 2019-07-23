@@ -1395,7 +1395,9 @@ class kucoin (Exchange):
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         #                                †                 ↑
         #
-        endpoint = '/api/' + self.options['version'] + '/' + self.implode_params(path, params)
+        version = self.safe_string(params, 'version', self.options['version'])
+        params = self.omit(params, 'version')
+        endpoint = '/api/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers is not headers if None else {}
