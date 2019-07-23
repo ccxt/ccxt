@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.973'
+const version = '1.18.974'
 
 Exchange.ccxtVersion = version
 
@@ -54824,7 +54824,7 @@ module.exports = class latoken extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg',
                 'api': 'https://api.latoken.com',
-                'www': 'https://www.latoken.com',
+                'www': 'https://latoken.com',
                 'doc': [
                     'https://api.latoken.com',
                 ],
