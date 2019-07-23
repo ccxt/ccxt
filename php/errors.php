@@ -71,6 +71,7 @@ class BaseError extends Exception {
 
     public function __construct($message = "", $exchange_id = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null) {
         parent::__construct($message, 0, null);
+        $this->message = $message;
         $this->exchange_id = $exchange_id;
         $this->http_code = $http_code;
         $this->http_status_text = $http_status_text;
@@ -87,10 +88,6 @@ class BaseError extends Exception {
 
     public function __get($name) {
         $underscore = un_camel_case($name);
-        if ($underscore === $name) {
-            trigger_error('Undefined property via __get(): ' . $name, E_USER_NOTICE);
-            return null;
-        }
         return $this->$underscore;
     }
 

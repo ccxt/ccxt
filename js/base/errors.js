@@ -29,18 +29,12 @@ function subclass (BaseClass, classes, namespace = {}) {
 
                     this.constructor = Class
                     this.name = className
-
-                    // make this.message invoked as a property that calls this.toString, and hide this.messageBody
-                    Object.defineProperty (this, 'messageBody', {
-                        'writable': true,
-                        'value': message,
-                    })
                     Object.defineProperty (this, 'message', {
                         get () {
                             return this.toString ()
                         },
                         set (value) {
-                            this.messageBody = value
+                            super.message = value
                         },
                     })
 
