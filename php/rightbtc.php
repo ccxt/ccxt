@@ -138,9 +138,8 @@ class rightbtc extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetTradingPairs ($params);
         // $zh = $this->publicGetGetAssetsTradingPairsZh ();
-        $markets = $response['status']['message'];
+        $markets = $this->publicGetTradingPairs ($params);
         $marketIds = is_array($markets) ? array_keys($markets) : array();
         $result = array();
         for ($i = 0; $i < count ($marketIds); $i++) {
