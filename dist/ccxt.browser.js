@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.974'
+const version = '1.18.975'
 
 Exchange.ccxtVersion = version
 
@@ -82238,7 +82238,6 @@ module.exports = class theocean extends Exchange {
             'countries': [ 'US' ],
             'rateLimit': 3000,
             'version': 'v1',
-            'certified': true,
             'requiresWeb3': true,
             'timeframes': {
                 '5m': '300',
