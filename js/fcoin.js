@@ -460,7 +460,7 @@ module.exports = class fcoin extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = { 'states': 'filled' };
+        const request = { 'states': 'partial_canceled,filled' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
