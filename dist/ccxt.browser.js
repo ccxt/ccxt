@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.969'
+const version = '1.18.970'
 
 Exchange.ccxtVersion = version
 
@@ -59969,6 +59969,8 @@ module.exports = class mandala extends Exchange {
                         'hmac', // ?side=BUY&market=BTC&trade=ETH&type=STOPLIMIT&volume=0.025&rate=0.032&timeInForce=GTC&stop=2&'
                     ],
                     'post': [
+                        'my-order-history',
+                        'my-order-status',
                         'PlaceOrder',
                         'cancel-my-order',
                         'cancel-all-my-orders',
@@ -61389,7 +61391,7 @@ module.exports = class mandala extends Exchange {
             if (method === 'POST') {
                 body = this.json (query);
                 headers['Content-Type'] = 'application/json';
-                headers['publicKey'] = this.apiKey;
+                headers['apiKey'] = this.apiKey;
             } else if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
