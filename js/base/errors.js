@@ -27,6 +27,7 @@ function subclass (BaseClass, classes, namespace = {}) {
 
                     this.constructor = Class
                     this.name = className
+                    this.__proto__ = Class.prototype
                     Object.defineProperty (this, 'message', {
                         get () {
                             return this.toString ()
