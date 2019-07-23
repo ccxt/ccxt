@@ -49,7 +49,7 @@ function subclass (BaseClass, classes, namespace = {}) {
                 }
 
                 toString () {
-                    return [this.messageBody, this.exchangeId, this.httpMethod, this.url, this.httpStatusCode, this.httpStatusText].filter (x => x !== undefined).join (' ')
+                    return [this.message, this.exchangeId, this.httpMethod, this.url, this.httpStatusCode, this.httpStatusText].filter (x => x !== undefined).join (' ')
                 }
             }
 
