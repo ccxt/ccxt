@@ -218,14 +218,16 @@ module.exports = class bitmart extends Exchange {
         const timestamp = this.milliseconds ();
         const marketId = this.safeString (ticker, 'symbol_id');
         let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        } else {
-            const [ baseId, quoteId ] = marketId.split ('_');
-            const base = this.safeCurrencyCode (baseId);
-            const quote = this.safeCurrencyCode (quoteId);
-            symbol = base + '/' + quote;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else if (marketId !== undefined) {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
         const last = this.safeFloat (ticker, 'current_price');
         const percentage = this.safeFloat (ticker, 'fluctuation');
@@ -340,40 +342,109 @@ module.exports = class bitmart extends Exchange {
         return this.parseOrderBook (response, undefined, 'buys', 'sells', 'price', 'amount');
     }
 
-    parseTrade (trade, market) {
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp === undefined) {
-            timestamp = this.safeInteger (trade, 'order_time');
-        }
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "amount":"2.29275119",
+        //         "price":"0.021858",
+        //         "count":"104.8930",
+        //         "order_time":1563997286061,
+        //         "type":"sell"
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         "symbol": "BMX_ETH",
+        //         "amount": "1.0",
+        //         "fees": "0.0005000000",
+        //         "trade_id": 2734956,
+        //         "price": "0.00013737",
+        //         "active": true,
+        //         "entrust_id": 5576623,
+        //         "timestamp": 1545292334000
+        //     }
+        //
+        const id = this.safeString (trade, 'trade_id');
+        const timestamp = this.safeInteger2 (trade, 'timestamp', 'order_time');
+        const type = undefined;
         let side = this.safeString (trade, 'type');
         if (side !== undefined) {
             side = side.toLowerCase ();
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
+        const orderId = this.safeInteger (trade, 'entrust_id');
+        const marketId = this.safeString (trade, 'symbol');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        const feeCost = this.safeFloat (trade, 'fees');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyCode = undefined;
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
         return {
             'info': trade,
-            'id': this.safeString (trade, 'trade_id'),
-            'order': this.safeInteger (trade, 'entrust_id'),
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': 'limit',
+            'symbol': symbol,
+            'type': type,
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'takerOrMaker': undefined,
-            'cost': price * amount,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.publicGetSymbolsSymbolTrades (this.extend ({
-            'symbol': this.marketId (symbol),
-        }, params));
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetSymbolsSymbolTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "amount":"2.29275119",
+        //             "price":"0.021858",
+        //             "count":"104.8930",
+        //             "order_time":1563997286061,
+        //             "type":"sell"
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -384,17 +455,33 @@ module.exports = class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
+            // 'offset': 0, // current page, starts from 0
         };
         if (limit === undefined) {
-            limit = 500;
-        }
-        request['limit'] = limit;
-        if (this.safeInteger (params, 'offset') === undefined) {
-            request['offset'] = 0;
+            request['limit'] = limit; // default 500, max 1000
         }
         const response = await this.privateGetTrades (this.extend (request, params));
-        const trades = this.safeValue (response, 'trades');
+        //
+        //     {
+        //         "total_trades": 216,
+        //         "total_pages": 22,
+        //         "current_page": 0,
+        //         "trades": [
+        //             {
+        //                 "symbol": "BMX_ETH",
+        //                 "amount": "1.0",
+        //                 "fees": "0.0005000000",
+        //                 "trade_id": 2734956,
+        //                 "price": "0.00013737",
+        //                 "active": true,
+        //                 "entrust_id": 5576623,
+        //                 "timestamp": 1545292334000
+        //             },
+        //         ]
+        //     }
+        //
+        const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
