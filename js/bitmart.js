@@ -28,6 +28,7 @@ module.exports = class bitmart extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchOrders': false,
+                'fetchOrderTrades': true,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCanceledOrders': true,
@@ -127,14 +128,16 @@ module.exports = class bitmart extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Place order error': InvalidOrder, // {"message":"Place order error"}
                     'Not found': OrderNotFound, // {"message":"Not found"}
+                    "Required Integer parameter 'status' is not present": BadRequest, // {"message":"Required Integer parameter 'status' is not present"}
+                    "Required String parameter 'symbol' is not present": BadRequest, // {"message":"Required String parameter 'symbol' is not present"}
+                    "Required Integer parameter 'offset' is not present": BadRequest, // {"message":"Required Integer parameter 'offset' is not present"}
+                    "Required Integer parameter 'limit' is not present": BadRequest, // {"message":"Required Integer parameter 'limit' is not present"}
+
                 },
                 'broad': {
                     'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
-                    // {"message":"Required Integer parameter 'status' is not present"}
-                    // {"message":"Required String parameter 'symbol' is not present"}
-                    // {"message":"Required Integer parameter 'offset' is not present"}
-                    // {"message":"Required Integer parameter 'limit' is not present"}
                     'is not present': BadRequest,
                 },
             },
@@ -500,6 +503,14 @@ module.exports = class bitmart extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'entrust_id': id,
+        };
+        return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+    }
+
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
             this.safeInteger (ohlcv, 'timestamp'),
@@ -665,8 +676,8 @@ module.exports = class bitmart extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': side.toLowerCase (),
-            'amount': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
+            'amount': parseFloat (this.amountToPrecision (symbol, amount)),
+            'price': parseFloat (this.priceToPrecision (symbol, price)),
         };
         const response = await this.privatePostOrders (this.extend (request, params));
         //
@@ -830,6 +841,7 @@ module.exports = class bitmart extends Exchange {
         //     {"message":"Required Integer parameter 'limit' is not present"}
         //     {"message":"Invalid status. status=6 not support any more, please use 3:deal_success orders, 4:cancelled orders"}
         //     {"message":"Not found"}
+        //     {"message":"Place order error"}
         //
         const feedback = this.id + ' ' + body;
         const message = this.safeString (response, 'message');
