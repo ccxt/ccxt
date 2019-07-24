@@ -146,24 +146,68 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetSymbolsDetails ();
+        const markets = await this.publicGetSymbolsDetails (params);
+        //
+        //     [
+        //         {
+        //             "id":"1SG_BTC",
+        //             "base_currency":"1SG",
+        //             "quote_currency":"BTC",
+        //             "quote_increment":"0.1",
+        //             "base_min_size":"0.1000000000",
+        //             "base_max_size":"10000000.0000000000",
+        //             "price_min_precision":4,
+        //             "price_max_precision":6,
+        //             "expiration":"NA"
+        //         }
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const id = market['id'];
-            const base = market['base_currency'];
-            const quote = market['quote_currency'];
+            const id = this.safeString (market, 'id');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quote_currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            //
+            // https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/rest/public/symbols_details.md#response-details
+            // from the above API doc:
+            // quote_increment Minimum order price as well as the price increment
+            // price_min_precision Minimum price precision (digit) used to query price and kline
+            // price_max_precision Maximum price precision (digit) used to query price and kline
+            //
+            const quoteIncrementAsString = this.safeString (market, 'quote_increment');
+            const pricePrecision = this.precisionFromString (quoteIncrementAsString);
+            const quoteIncrement = parseFloat (quoteIncrementAsString);
             const precision = {
                 'amount': 8,
-                'price': market['price_max_precision'],
+                'price': pricePrecision,
+            };
+            const limits = {
+                'amount': {
+                    'min': this.safeFloat (market, 'base_min_size'),
+                    'max': this.safeFloat (market, 'base_max_size'),
+                },
+                'price': {
+                    'min': quoteIncrement,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
             };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'precision': precision,
+                'limits': limits,
                 'info': market,
             });
         }
