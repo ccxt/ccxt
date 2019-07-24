@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder, BadRequest } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder, BadRequest, OrderNotFound } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmart extends Exchange {
@@ -127,6 +127,7 @@ module.exports = class bitmart extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'Not found': OrderNotFound, // {"message":"Not found"}
                 },
                 'broad': {
                     'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
@@ -747,11 +748,7 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
             'id': id,
         };
@@ -770,7 +767,7 @@ module.exports = class bitmart extends Exchange {
         //         "status":3
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (response);
     }
 
     nonce () {
@@ -832,6 +829,7 @@ module.exports = class bitmart extends Exchange {
         //     {"message":"Required Integer parameter 'offset' is not present"}
         //     {"message":"Required Integer parameter 'limit' is not present"}
         //     {"message":"Invalid status. status=6 not support any more, please use 3:deal_success orders, 4:cancelled orders"}
+        //     {"message":"Not found"}
         //
         const feedback = this.id + ' ' + body;
         const message = this.safeString (response, 'message');
