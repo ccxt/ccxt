@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder, BadRequest } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmart extends Exchange {
@@ -28,8 +28,9 @@ module.exports = class bitmart extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchOrders': false,
-                'fetchOpenOrders': 'emulated',
-                'fetchClosedOrders': 'emulated',
+                'fetchOpenOrders': true,
+                'fetchClosedOrders': true,
+                'fetchCanceledOrders': true,
                 'fetchOrder': true,
             },
             'urls': {
@@ -128,7 +129,12 @@ module.exports = class bitmart extends Exchange {
                 'exact': {
                 },
                 'broad': {
-                    'Maximum price is': InvalidOrder, // { "message":"Maximum price is 0.112695" }
+                    'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
+                    // {"message":"Required Integer parameter 'status' is not present"}
+                    // {"message":"Required String parameter 'symbol' is not present"}
+                    // {"message":"Required Integer parameter 'offset' is not present"}
+                    // {"message":"Required Integer parameter 'limit' is not present"}
+                    'is not present': BadRequest,
                 },
             },
         });
@@ -572,7 +578,20 @@ module.exports = class bitmart extends Exchange {
         //
         //     {}
         //
-        //
+        // fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders
+        //             {
+        //                 "entrust_id":1223181,
+        //                 "symbol":"BMX_ETH",
+        //                 "timestamp":1528060666000,
+        //                 "side":"buy",
+        //                 "price":"1.000000",
+        //                 "fees":"0.1",
+        //                 "original_amount":"1",
+        //                 "executed_amount":"1",
+        //                 "remaining_amount":"0",
+        //                 "status":3
+        //             }
+
         //
         const id = this.safeString (order, 'entrust_id');
         const timestamp = this.milliseconds ();
@@ -659,8 +678,10 @@ module.exports = class bitmart extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const intId = parseInt (id);
         const request = {
-            'entrust_id': id,
+            'id': intId,
+            'entrust_id': intId,
         };
         const response = await this.privateDeleteOrdersId (this.extend (request, params));
         //
@@ -669,50 +690,60 @@ module.exports = class bitmart extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': this.marketId (symbol),
-        };
         if (limit === undefined) {
-            limit = 500;
+            limit = 500; // default 500, max 1000
         }
-        request['limit'] = limit;
-        if (this.safeInteger (params, 'offset') === undefined) {
-            request['offset'] = 0;
-        }
-        // pending & partially filled orders
-        request['status'] = 5;
+        const request = {
+            'symbol': market['id'],
+            'status': status,
+            'offset': 0, // current page, starts from 0
+            'limit': limit,
+        };
         const response = await this.privateGetOrders (this.extend (request, params));
-        const orders = this.safeValue (response, 'orders');
+        //
+        //     {
+        //         "orders":[
+        //             {
+        //                 "entrust_id":1223181,
+        //                 "symbol":"BMX_ETH",
+        //                 "timestamp":1528060666000,
+        //                 "side":"buy",
+        //                 "price":"1.000000",
+        //                 "fees":"0.1",
+        //                 "original_amount":"1",
+        //                 "executed_amount":"1",
+        //                 "remaining_amount":"0",
+        //                 "status":3
+        //             }
+        //         ],
+        //         "total_pages":1,
+        //         "total_orders":1,
+        //         "current_page":0,
+        //     }
+        //
+        const orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // 5 = pending & partially filled orders
+        return await this.fetchOrdersByStatus (5, symbol, since, limit, params);
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': this.marketId (symbol),
-        };
-        if (limit === undefined) {
-            limit = 500;
-        }
-        request['limit'] = limit;
-        if (this.safeInteger (params, 'offset') === undefined) {
-            request['offset'] = 0;
-        }
-        // successful and canceled orders
-        request['status'] = 6;
-        const response = await this.privateGetOrders (this.extend (request, params));
-        const orders = this.safeValue (response, 'orders');
-        return this.parseOrders (orders, market, since, limit);
+        // 3 = closed orders
+        return await this.fetchOrdersByStatus (3, symbol, since, limit, params);
+    }
+
+    async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // 4 = canceled orders
+        return await this.fetchOrdersByStatus (4, symbol, since, limit, params);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -780,7 +811,12 @@ module.exports = class bitmart extends Exchange {
             return;
         }
         //
-        //     { "message":"Maximum price is 0.112695" }
+        //     {"message":"Maximum price is 0.112695"}
+        //     {"message":"Required Integer parameter 'status' is not present"}
+        //     {"message":"Required String parameter 'symbol' is not present"}
+        //     {"message":"Required Integer parameter 'offset' is not present"}
+        //     {"message":"Required Integer parameter 'limit' is not present"}
+        //     {"message":"Invalid status. status=6 not support any more, please use 3:deal_success orders, 4:cancelled orders"}
         //
         const feedback = this.id + ' ' + body;
         const message = this.safeString (response, 'message');
