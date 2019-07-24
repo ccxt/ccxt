@@ -290,7 +290,6 @@ module.exports = class bitmart extends Exchange {
         return result;
     }
 
-
     async fetchCurrencies (params = {}) {
         const currencies = await this.publicGetCurrencies (params);
         //
@@ -333,13 +332,11 @@ module.exports = class bitmart extends Exchange {
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        //
-        // order query parameters:
-        //    precision : price precision whose range is defined in symbol details : [optional]
-        //
-        const response = await this.publicGetSymbolsSymbolOrders (this.extend ({
+        const request = {
             'symbol': this.marketId (symbol),
-        }, params));
+            // 'precision': 4, // optional price precision / depth level whose range is defined in symbol details
+        };
+        const response = await this.publicGetSymbolsSymbolOrders (this.extend (request, params));
         return this.parseOrderBook (response, undefined, 'buys', 'sells', 'price', 'amount');
     }
 
