@@ -530,20 +530,25 @@ module.exports = class bitmart extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const balances = await this.privateGetWallet (params);
+        //
+        //     [
+        //         {
+        //             "name":"Bitcoin",
+        //             "available":"0.0000000000",
+        //             "frozen":"0.0000000000",
+        //             "id":"BTC"
+        //         }
+        //     ]
+        //
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            let id = this.safeString (balance, 'id');
-            if (id in this.currencies_by_id) {
-                id = this.currencies_by_id[id]['code'];
-            }
-            const free = this.safeFloat (balance, 'available');
-            const used = this.safeFloat (balance, 'frozen');
-            result[id] = {
-                'free': free,
-                'used': used,
-                'total': this.sum (free, used),
-            };
+            const currencyId = this.safeString (balance, 'id');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'frozen');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
