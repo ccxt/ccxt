@@ -19,6 +19,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchMarkets': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
@@ -142,6 +143,16 @@ module.exports = class bitmart extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        //
+        //     {
+        //         "server_time": 1527777538000
+        //     }
+        //
+        return this.safeInteger (response, 'server_time');
     }
 
     async signIn (params = {}) {
