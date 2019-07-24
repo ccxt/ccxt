@@ -18,7 +18,7 @@ module.exports = class bitmart extends Exchange {
                 'CORS': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
-                'fetchTickers': 'emulated',
+                'fetchTickers': true,
                 'fetchCurrencies': true,
                 'fetchOrderBook': true,
                 'fetchTrades': true,
@@ -404,6 +404,7 @@ module.exports = class bitmart extends Exchange {
         const feeCost = this.safeFloat (trade, 'fees');
         let fee = undefined;
         if (feeCost !== undefined) {
+            // is it always quote, always base, or base-quote depending on the side?
             const feeCurrencyCode = undefined;
             fee = {
                 'cost': feeCost,
