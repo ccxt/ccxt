@@ -578,7 +578,7 @@ module.exports = class bitmart extends Exchange {
         //
         //     {}
         //
-        // fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders
+        // fetchOrder, fetchOrdersByStatus, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "entrust_id":1223181,
@@ -752,9 +752,24 @@ module.exports = class bitmart extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.privateGetOrdersId (this.extend ({
+        const request = {
             'id': id,
-        }, params));
+        };
+        const response = await this.privateGetOrdersId (this.extend (request, params));
+        //
+        //     {
+        //         "entrust_id":1223181,
+        //         "symbol":"BMX_ETH",
+        //         "timestamp":1528060666000,
+        //         "side":"buy",
+        //         "price":"1.000000",
+        //         "fees":"0.1",
+        //         "original_amount":"1",
+        //         "executed_amount":"1",
+        //         "remaining_amount":"0",
+        //         "status":3
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
