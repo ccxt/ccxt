@@ -534,6 +534,7 @@ module.exports = class bitmart extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         } else {
+            const nonce = this.nonce ();
             this.checkRequiredCredentials ();
             const token = this.safeString (this.options, 'accessToken');
             if (token === undefined) {
@@ -541,8 +542,8 @@ module.exports = class bitmart extends Exchange {
             }
             const expires = this.safeInteger (this.options, 'expires');
             if (expires !== undefined) {
-                if (this.nonce () >= expires) {
-                    throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call to signIn() method');
+                if (nonce >= expires) {
+                    throw new AuthenticationError (this.id + ' accessToken expired, supply a new accessToken or call the signIn() method');
                 }
             }
             if (Object.keys (query).length) {
@@ -550,7 +551,7 @@ module.exports = class bitmart extends Exchange {
             }
             headers = {
                 'Content-Type': 'application/json',
-                'X-BM-TIMESTAMP': this.nonce (),
+                'X-BM-TIMESTAMP': nonce.toString (),
                 'X-BM-AUTHORIZATION': 'Bearer ' + token,
             };
             if (method !== 'GET') {
