@@ -49,30 +49,41 @@ module.exports = class idex extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'returnCurrencies', // Available Currency Symbols
+                        'returnCurrencies', // available currency codss
                     ],
                 },
                 'private': {
                     'get': [
                         'apiKey',
-                        'returnContractAddress', // return address of walconst
+                        'returnContractAddress',
                     ],
                     'post': [
                         'apiKey',
                         'apiKey/disable',
                         'apiKey/enable',
-                        'returnTicker', // Ticker for particular symbol
-                        'returnOrderBook', // Return order book for a symbol
-                        'order', // Create new order
-                        'returnCompconsteBalances', // return Compconste Balance
-                        'returnOrderTrades', // return order for giver orderHash
-                        'returnOpenOrders', // return open orders for a particular address & market
+                        'returnTicker', // ticker for particular symbol
+                        'returnOrderBook', // return order book for a symbol
+                        'order', // create new order
+                        'returnBalances', // return total balance
+                        'returnCompleteBalances', // return complete balance
+                        'returnOrderTrades', // return trades for given orderHash
+                        'returnTradeHistory',
+                        'returnOpenOrders', // return open orders for a particular address and market
                         'cancel', // cancel the order by orderHash
+                        'returnDepositsWithdrawals',
                     ],
                 },
             },
-            'options': {},
+            'options': {
+                'contractAddress': undefined,
+            },
             'exceptions': {},
+            'requiredCredentials': {
+                'walletAddress': true,
+                'privateKey': true,
+                'apiKey': false,
+                'secret': false,
+            },
         });
     }
 
@@ -81,16 +92,16 @@ module.exports = class idex extends Exchange {
         const result = [];
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const market = markets[key];
-            if (key === 'ETH') {
+            const baseId = keys[i];
+            const market = markets[baseId];
+            if (baseId === 'ETH') {
                 continue;
             }
-            const base = 'ETH';
-            const baseId = '0x0000000000000000000000000000000000000000';
-            const quote = key;
-            const quoteId = this.safeString (market, 'address');
-            const id = base + '_' + quote;
+            const quote = 'ETH';
+            const quoteAddress = '0x0000000000000000000000000000000000000000';
+            const baseAddress = this.safeString (market, 'address');
+            const id = quote + '_' + baseId; // the base and quote are inverted
+            const base = this.commonCurrencyCode (baseId);
             const symbol = base + '/' + quote;
             const precision = {
                 'price': 18,
@@ -102,8 +113,8 @@ module.exports = class idex extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'baseId': baseId,
-                'quoteId': quoteId,
+                'baseId': baseAddress,
+                'quoteId': quoteAddress,
                 'precision': precision,
                 'limits': {
                     'amount': {
@@ -125,8 +136,7 @@ module.exports = class idex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = '';
-        const symbol = undefined;
+        let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
         }
@@ -134,31 +144,27 @@ module.exports = class idex extends Exchange {
         const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
         const open = this.safeFloat (ticker, 'high');
         const last = this.safeFloat (ticker, 'last');
-        const change = undefined;
-        const percentage = this.safeFloat (ticker, 'percentChange');
-        const average = undefined;
+        let change = undefined;
+        let percentage = this.safeFloat (ticker, 'percentChange');
+        let average = undefined;
         if (last !== undefined && open !== undefined) {
             change = last - open;
             average = this.sum (last, open) / 2;
-            if (open > 0)
+            if (open > 0) {
                 percentage = change / open * 100;
+            }
         }
-        const vwap = undefined;
-        if (quoteVolume !== undefined)
-            if (baseVolume !== undefined)
-                if (baseVolume > 0)
-                    vwap = quoteVolume / baseVolume;
         return {
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'highestBid'),
             'bidVolume': undefined,
             'ask': this.safeFloat (ticker, 'lowestAsk'),
             'askVolume': undefined,
-            'vwap': vwap,
+            'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
@@ -175,62 +181,47 @@ module.exports = class idex extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['base'] + '_' + market['quote'];
         const request = {
-            'market': marketId,
+            'market': market['id'],
         };
         const ticker = await this.privatePostReturnTicker (this.extend (request, params));
-        if ('message' in ticker) {
-            throw new ExchangeError (this.id + ' ' + ticker['message']);
-        }
         return this.parseTicker (ticker, market);
-    }
-
-    async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
-        const tickers = await this.privatePostReturnTicker (params);
-        const result = {};
-        const keys = Object.keys (tickers);
-        for (const p = 0; p < keys.length; p++) {
-            const symbol = keys[p].replace ('_', '/');
-            const val = tickers[keys[p]];
-            const market = {};
-            market['symbol'] = symbol;
-            result[symbol] = this.parseTicker (val, market);
-        }
-        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketId = market['base'] + '_' + market['quote'];
-        const orderbook = await this.privatePostReturnOrderBook (this.extend ({
-            'market': marketId,
+        const id = market['quote'] + '_' + market['base'];
+        const request = {
+            'market': id,
             'count': 30,
-        }));
+        };
+        const orderbook = await this.privatePostReturnOrderBook (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const request = { 'address': this.apiKey };
-        const balances = await this.privatePostReturnCompconsteBalances (this.extend (request));
-        const result = { 'info': balances };
+        const request = {
+            'address': this.walletAddress,
+        };
+        const balances = await this.privatePostReturnCompleteBalances (this.extend (request, params));
+        const result = {
+            'info': balances,
+        };
         const keys = Object.keys (balances);
-        for (const p = 0; p < keys.length; p++) {
+        for (let p = 0; p < keys.length; p++) {
             const currency = keys[p];
             const balance = balances[currency];
-            const account = {
+            result[currency] = {
                 'free': this.safeFloat (balance, 'available'),
                 'used': this.safeFloat (balance, 'onOrders'),
             };
-            result[currency] = account;
         }
         return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const contractAddress = await this.getContractAddress ();
@@ -262,13 +253,13 @@ module.exports = class idex extends Exchange {
             'nonce': nonce,
             'address': this.apiKey,
         };
-        const esc = this.signZeroExFunction (orderToHash, this.secret, 'getIdexCreateOrderHash');
+        const esc = this.signZeroExFunction (orderToHash, this.privateKey, 'getIdexCreateOrderHash');
         const request = {
             'tokenBuy': tokenBuy,
             'amountBuy': amount_buy,
             'tokenSell': tokenSell,
             'amountSell': amount_sell,
-            'address': this.apiKey,
+            'address': this.walletAddress,
             'nonce': nonce,
             'expires': 100000,
             'r': esc['ecSignature']['r'],
@@ -298,15 +289,16 @@ module.exports = class idex extends Exchange {
     }
 
     async cancelOrder (orderId, symbol = undefined, params = {}) {
+        this.checkRequiredCredentials ();
         const nonce = this.milliseconds () * 100000;
         const orderToHash = {
             'orderHash': orderId,
             'nonce': nonce,
         };
-        const signedOrder = this.signZeroExFunction (orderToHash, this.secret, 'getIdexCancelOrderHash');
+        const signedOrder = this.signZeroExFunction (orderToHash, this.privateKey, 'getIdexCancelOrderHash');
         const request = {
             'orderHash': orderId,
-            'address': this.apiKey,
+            'address': this.walletAddress,
             'nonce': nonce,
             'v': signedOrder['ecSignature']['v'],
             'r': signedOrder['ecSignature']['r'],
@@ -316,36 +308,126 @@ module.exports = class idex extends Exchange {
     }
 
     async getContractAddress () {
-        if (this.walletAddress === undefined) {
-            return this.safeString (await this.privateGetReturnContractAddress (), 'address');
-        } else {
-            return this.walletAddress;
+        if (this.options['contractAddress'] !== undefined) {
+            return this.options['contractAddress'];
         }
+        this.options['contractAddress'] = this.safeString (await this.privateGetReturnContractAddress (), 'address');
+        return this.options['contractAddress'];
+    }
+
+    async fetchTransactions (params = {}) {
+        const request = {
+            'address': this.walletAddress,
+        };
+        const response = await this.privatePostReturnDepositsWithdrawals (this.extend (request, params));
+        const deposits = this.parseTransactions (response['deposits']);
+        const withdrawals = this.parseTransactions (response['withdrawals']);
+        return this.arrayConcat (deposits, withdrawals);
+    }
+
+    parseTransaction (item, currency = undefined) {
+        const amount = this.safeFloat (item, 'amount');
+        const timestamp = this.safeInteger (item, 'timestamp') * 1000;
+        const txhash = this.safeString (item, 'transactionHash');
+        let id = undefined;
+        let type = undefined;
+        let status = undefined;
+        let addressFrom = undefined;
+        let addressTo = undefined;
+        if ('depositNumber' in item) {
+            id = this.safeString (item, 'depositNumber');
+            type = 'deposit';
+            addressTo = this.walletAddress;
+        } else if ('withdrawalNumber' in item) {
+            id = this.safeString (item, 'withdrawalNumber');
+            type = 'withdrawal';
+            status = this.parseTransactionStatus (this.safeString (item, 'status'));
+            addressFrom = this.walletAddress;
+        }
+        const code = this.commonCurrencyCode (this.safeString (item, 'currency'));
+        return {
+            'info': item,
+            'id': id,
+            'txid': txhash,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': code,
+            'amount': amount,
+            'status': status,
+            'type': type,
+            'updated': undefined,
+            'comment': undefined,
+            'addressFrom': addressFrom,
+            'tagFrom': undefined,
+            'addressTo': addressTo,
+            'tagTo': undefined,
+            'fee': {
+                'currency': code,
+                'cost': undefined,
+                'rate': undefined,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'COMPLETE': 'ok',
+        };
+        return this.safeString (statuses, status);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'address': this.walletAddress,
+            'market': market['id'],
+        };
+        const response = this.privatePostReturnOpenOrders (this.extend (request, params));
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        const timestamp = this.safeInteger (order, 'timestamp') * 1000;
+        const side = this.safeString (order, 'type');
+        let symbol = undefined;
+        const amount = this.safeString (order, 'amount');
+        const price = this.safeFloat (order, 'price');
+        if ('market' in order) {
+            const marketId = order['market'];
+            symbol = this.markets_by_id[marketId]['symbol'];
+        } else if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const id = this.safeString (order, 'orderHash');
+        return {
+            'info': order,
+            'id': id,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'type': 'limit',
+            'filled': undefined,
+            'remaining': undefined,
+            'cost': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = path;
         if (method === 'GET') {
             query += '?' + this.urlencode (params);
+        } else if (method === 'POST') {
+            body = this.json (params);
         }
         const url = this.urls['api'] + query;
-        if (api === 'private') {
-            this.checkRequiredCredentials ();
-            const nonce = this.nonce ().toString ();
-            let auth = method + query + nonce;
-            if (method === 'POST' || method === 'PUT') {
-                if (Object.keys (params).length) {
-                    body = this.json (params);
-                    auth += body;
-                }
-            }
-            headers = {
-                'Content-Type': 'application/json',
-                'api-nonce': nonce,
-                'api-key': this.apiKey,
-                'api-signature': this.hmac (this.encode (auth), this.encode (this.secret)),
-            };
-        }
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -367,5 +449,14 @@ module.exports = class idex extends Exchange {
             order['orderHash'], // address
             order['nonce'], // uint256
         ]);
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response) {
+        if (response === undefined) {
+            return;
+        }
+        if ('message' in response) {
+            throw new ExchangeError (response['message']);
+        }
     }
 };
