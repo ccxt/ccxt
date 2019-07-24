@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------------------
 
 const okcoinusd = require ('./okcoinusd.js');
-const { ExchangeError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -61,63 +60,5 @@ module.exports = class okex extends okcoinusd {
                 'YOYO': 'YOYOW',
             },
         });
-    }
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const method = market['future'] ? 'privatePostFutureTrade' : 'privatePostTrade';
-        const orderSide = (type === 'market') ? (side + '_market') : side;
-        const isMarketBuy = ((market['spot']) && (type === 'market') && (side === 'buy') && (!this.options['marketBuyPrice']));
-        const orderPrice = isMarketBuy ? this.safeFloat (params, 'cost') : price;
-        const request = this.createRequest (market, {
-            'type': orderSide,
-        });
-        if (market['future']) {
-            request['match_price'] = type === 'market' ? 1 : 0; // match best counter party price? 0 or 1, ignores price if 1
-            request['lever_rate'] = 10; // leverage rate value: 10 or 20 (10 by default)
-            request['type'] = side === 'buy' ? '1' : '2';
-        } else if (type === 'market') {
-            if (side === 'buy') {
-                if (!orderPrice) {
-                    if (this.options['marketBuyPrice']) {
-                        // eslint-disable-next-line quotes
-                        throw new ExchangeError (this.id + " market buy orders require a price argument (the amount you want to spend or the cost of the order) when this.options['marketBuyPrice'] is true.");
-                    } else {
-                        // eslint-disable-next-line quotes
-                        throw new ExchangeError (this.id + " market buy orders require an additional cost parameter, cost = price * amount. If you want to pass the cost of the market order (the amount you want to spend) in the price argument (the default " + this.id + " behaviour), set this.options['marketBuyPrice'] = true. It will effectively suppress this warning exception as well.");
-                    }
-                } else {
-                    request['price'] = orderPrice;
-                }
-            } else {
-                request['amount'] = amount;
-            }
-        }
-        if (type !== 'market') {
-            request['price'] = orderPrice;
-            request['amount'] = amount;
-        }
-        params = this.omit (params, 'cost');
-        const response = await this[method] (this.extend (request, params));
-        const timestamp = this.milliseconds ();
-        return {
-            'info': response,
-            'id': this.safeString (response, 'order_id'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'status': undefined,
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
-            'cost': undefined,
-            'trades': undefined,
-            'fee': undefined,
-        };
     }
 };
