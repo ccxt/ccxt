@@ -80,10 +80,6 @@ module.exports = class binancedex extends Exchange {
                 'doc': 'https://docs.binance.org/api-reference/',
                 'fees': 'https://docs.binance.org/trading-spec.html',
             },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-            },
             'fees': {
                 'trading': {
                 },
@@ -100,12 +96,19 @@ module.exports = class binancedex extends Exchange {
                         'depth',
                         'klines',
                         'orders/{id}',
+                        'account/{address}',
                     ],
                 },
             },
             'commonCurrencies': {
             },
             'precisionMode': TICK_SIZE,
+            'requiredCredentials': {
+                'apiKey': false,
+                'secret': false,
+                'privateKey': true,
+                'walletAddress': true,
+            },
             'options': {
                 'orderTypes': {
                     'limit': 2,
@@ -241,6 +244,31 @@ module.exports = class binancedex extends Exchange {
         }
         const response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    async fetchBalance (params = {}) {
+        this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const request = {
+            'address': this.walletAddress,
+        };
+        const response = await this.publicGetAccountAddress (this.extend (request, params));
+        const balances = response['balances'];
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'symbol');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            const free = this.safeFloat (balance, 'free');
+            const frozen = this.safeFloat (balance, 'frozen');
+            const locked = this.safeFloat (balance, 'locked');
+            account['free'] = free;
+            account['used'] = locked;
+            account['total'] = free + frozen + locked;
+            result[code] = account;
+        }
+        return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
