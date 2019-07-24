@@ -1588,8 +1588,14 @@ module.exports = class Exchange {
                 proposed_ops: []
             });
         }
-        // else if (trans_type == 'withdraw_btc') {
-        // }
+        else if (trans_type == 'btc_withdraw') {
+            tr.add_type_operation("btc_withdraw", ob);
+            tr.propose({ fee: '300000000000000',
+                proposaler: ob['from'],
+                expiration_time: this.seconds (),
+                proposed_ops: []
+            });
+        }
         tr.timestamp = this.seconds ();
         tr.dapp = dapp_name;
         tr.validate_type = 0;

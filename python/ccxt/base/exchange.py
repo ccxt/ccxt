@@ -16,7 +16,6 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
-from ccxt.base.bytetradelib import bytetradelib
 
 # -----------------------------------------------------------------------------
 
@@ -100,7 +99,11 @@ except ImportError:
 
 # -----------------------------------------------------------------------------
 
-btt_lib = bytetradelib()
+try:
+    from ccxt.base.bytetradelib import bytetradelib
+    btt_lib = bytetradelib()
+except ImportError:
+    btt_lib = None
 
 
 class Exchange(object):
@@ -1895,7 +1898,7 @@ class Exchange(object):
                 dapp_name,
                 privateKey
             )
-        elif(trans_type == "withdraw"):
+        elif (trans_type == "withdraw"):
             str_trans = btt_lib.propose_withdraw_transaction(
                 trans_info['fee'],
                 trans_info['from'],
@@ -1905,17 +1908,17 @@ class Exchange(object):
                 dapp_name,
                 privateKey
             )
-        # elif (trans_type == "withdraw_btc"):
-        #     str_trans = btt_lib.propose_withdraw2_transaction(
-        #         trans_info['fee'],
-        #         trans_info['from'],
-        #         trans_info['to_external_address'],
-        #         trans_info['asset_type'],
-        #         str(trans_info['amount']),
-        #         str(trans_info['asset_fee']),
-        #         dapp_name,
-        #         privateKey
-        #     )
+        elif (trans_type == "btc_withdraw"):
+            str_trans = btt_lib.withdraw2_transaction(
+                trans_info['fee'],
+                trans_info['from'],
+                trans_info['to_external_address'],
+                trans_info['asset_type'],
+                str(trans_info['amount']),
+                str(trans_info['asset_fee']),
+                dapp_name,
+                privateKey
+            )
         return str_trans
 
     def _convertECSignatureToSignatureHex(self, signature):

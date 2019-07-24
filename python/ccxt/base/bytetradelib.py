@@ -10,11 +10,11 @@ class bytetradelib(object):
     def __init__(self):
         self.libbytetradepython = 0
         if(platform.system() == 'Linux'):
-            self.libbytetradepython = cdll.LoadLibrary(curDir + '/dll/libbytetradepython.so')
+            self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython.so')
         elif(platform.system() == 'Windows'):
-            self.libbytetradepython = cdll.LoadLibrary(curDir + '/dll/libbytetradepython.dll')
+            self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython.dll')
         elif(platform.system() == 'Darwin'):
-            self.libbytetradepython = cdll.LoadLibrary(curDir + '/dll/libbytetradepython.dylib')
+            self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython.dylib')
         self.lock = threading.Lock()
 
     def get_address_from_wif_private_key(self, private_key):
@@ -158,6 +158,23 @@ class bytetradelib(object):
                 bytes(to_external_address.encode('utf-8')),
                 asset_type,
                 bytes(amount.encode('utf-8')),
+                bytes(dapp.encode('utf-8')),
+                bytes(private_key.encode('utf-8')),
+                len(private_key)
+            )
+            return ret.decode('utf-8')
+
+    def withdraw2_transaction(self, fee, from_id, to_external_address, asset_type, amount, asset_fee, dapp, private_key):
+        with self.lock:
+            t = self.libbytetradepython.withdraw2_transaction
+            t.restype = c_char_p
+            ret = t(
+                bytes(fee.encode('utf-8')),
+                bytes(from_id.encode('utf-8')),
+                bytes(to_external_address.encode('utf-8')),
+                asset_type,
+                bytes(amount.encode('utf-8')),
+                bytes(asset_fee.encode('utf-8')),
                 bytes(dapp.encode('utf-8')),
                 bytes(private_key.encode('utf-8')),
                 len(private_key)

@@ -60,7 +60,7 @@ module.exports = class bytetrade extends Exchange {
                     'get': [
                         'klines',        // Kline of a symbol
                         'depth',         // Market Depth of a symbol
-                        'new/trades',    // Trade records of a symbol
+                        'trades',        // Trade records of a symbol
                         'tickers',
                     ],
                 },
@@ -69,11 +69,11 @@ module.exports = class bytetrade extends Exchange {
                         'symbols',        // Reference information of trading instrument, including base currency, quote precision, etc.
                         'currencies',     // The list of currencies available
                         'balance',        // Get the balance of an account
-                        'new/orders/open',    // Get the open orders of an account
-                        'new/orders/closed',  // Get the closed orders of an account
-                        'new/orders/all',     // Get the open and closed orders of an account
-                        'new/orders',         // Get the details of an order of an account
-                        'new/orders/trades',  // Get detail match results
+                        'orders/open',    // Get the open orders of an account
+                        'orders/closed',  // Get the closed orders of an account
+                        'orders/all',     // Get the open and closed orders of an account
+                        'orders',         // Get the details of an order of an account
+                        'orders/trades',  // Get detail match results
                         'depositaddress', // Get deposit address
                         'withdrawals',    // Get withdrawals info
                         'deposits',       // Get deposit info
@@ -386,6 +386,9 @@ module.exports = class bytetrade extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.marketGetTickers (this.extend (request, params));
+        if (response.length > 0) {
+            return this.parseTicker (response[0], market);
+        }
         return this.parseTicker (response, market);
     }
 
@@ -486,7 +489,7 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 100, maximum = 500
         }
-        const response = await this.marketGetNewTrades (this.extend (request, params));
+        const response = await this.marketGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -551,13 +554,17 @@ module.exports = class bytetrade extends Exchange {
         const baseId = market['baseId'];
         const baseCurrency = this.currencies_by_id[baseId];
         const amountFloat = parseFloat (amount);
-        const amountFloatChain = amountFloat * Math.pow (10, baseCurrency['info']['basePrecision']);
-        const amountChain = parseInt (amountFloatChain);
+        const amountChainWithoutTruncate = amountFloat * Math.pow (10, baseCurrency['info']['basePrecision']);
+        const amountTruncateValue = Math.pow (10, baseCurrency['info']['basePrecision'] - market['precision']['amount']);
+        const amountMiddleAfterTruncate = parseInt (amountChainWithoutTruncate / amountTruncateValue);
+        const amountChain = parseInt (amountMiddleAfterTruncate * amountTruncateValue);
         const quoteId = market['quoteId'];
         const quoteCurrency = this.currencies_by_id[quoteId];
         const priceFloat = parseFloat (price);
-        const priceFloatChain = priceFloat * Math.pow (10, quoteCurrency['info']['basePrecision']);
-        const priceChain = parseInt (priceFloatChain);
+        const priceChainWithoutTruncate = priceFloat * Math.pow (10, quoteCurrency['info']['basePrecision']);
+        const priceTruncateValue = Math.pow (10, quoteCurrency['info']['basePrecision'] - market['precision']['price']);
+        const priceMiddleAfterTruncate = parseInt (priceChainWithoutTruncate / priceTruncateValue);
+        const priceChain = parseInt (priceMiddleAfterTruncate * priceTruncateValue);
         const now = this.seconds ();
         const expiration = now + 10;
         const ob = {
@@ -626,7 +633,7 @@ module.exports = class bytetrade extends Exchange {
             request['symbol'] = market['id'];
         }
         request['id'] = id;
-        const response = await this.publicGetNewOrders (this.extend (request, params));
+        const response = await this.publicGetOrders (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -649,7 +656,7 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetNewOrdersOpen (this.extend (request, params));
+        const response = await this.publicGetOrdersOpen (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -672,7 +679,7 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetNewOrdersClosed (this.extend (request, params));
+        const response = await this.publicGetOrdersClosed (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -695,7 +702,7 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetNewOrdersAll (this.extend (request, params));
+        const response = await this.publicGetOrdersAll (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -761,8 +768,10 @@ module.exports = class bytetrade extends Exchange {
         await this.loadMarkets ();
         const currency = this.currencies[code];
         const amountFloat = parseFloat (amount);
-        const amountFloatChain = amountFloat * Math.pow (10, currency['info']['basePrecision']);
-        const amountChain = parseInt (amountFloatChain);
+        const amountChainWithoutTruncate = amountFloat * Math.pow (10, currency['info']['basePrecision']);
+        const TruncateValue = Math.pow (10, currency['info']['basePrecision'] - currency['info']['transferPrecision']);
+        const amountMiddleAfterTruncate = parseInt (amountChainWithoutTruncate / TruncateValue);
+        const amountChain = parseInt (amountMiddleAfterTruncate * TruncateValue);
         const ob = {
             'fee': '900000000000000',
             'from': this.apiKey,
@@ -823,7 +832,7 @@ module.exports = class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetNewOrdersTrades (this.extend (request, params));
+        const response = await this.publicGetOrdersTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -984,16 +993,28 @@ module.exports = class bytetrade extends Exchange {
         const coinId = currency['id'];
         const Currency = this.currencies_by_id[coinId];
         const amountFloat = parseFloat (amount);
-        const amountFloatChain = amountFloat * Math.pow (10, Currency['info']['basePrecision']);
-        const amountChain = parseInt (amountFloatChain);
-        const ob = {
-            'fee': '300000000000000',
-            'from': this.apiKey,
-            'to_external_address': middleAddress,
-            'asset_type': parseInt (coinId),
-            'amount': amountChain.toString (),
-        };
-        const signedTransaction = await this.signExTransactionV1 ('withdraw', ob, this.secret);
+        const amountChain = parseInt (amountFloat * Math.pow (10, currency['info']['externalPrecision']));
+        let signedTransaction = '';
+        if (chainTypeString === 'bitcoin') {
+            const ob = {
+                'fee': '300000000000000',
+                'from': this.apiKey,
+                'to_external_address': middleAddress,
+                'asset_type': parseInt (coinId),
+                'amount': amountChain.toString (),
+                'asset_fee': '18000',
+            };
+            signedTransaction = await this.signExTransactionV1 ('btc_withdraw', ob, this.secret);
+        } else {
+            const ob = {
+                'fee': '300000000000000',
+                'from': this.apiKey,
+                'to_external_address': middleAddress,
+                'asset_type': parseInt (coinId),
+                'amount': amountChain.toString (),
+            };
+            signedTransaction = await this.signExTransactionV1 ('withdraw', ob, this.secret);
+        }
         const request = {};
         request['chainType'] = chainType;
         request['toExternalAddress'] = address;
