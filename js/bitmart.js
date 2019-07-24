@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InvalidOrder } = require ('./base/errors');
 //  ---------------------------------------------------------------------------
 
 module.exports = class bitmart extends Exchange {
@@ -122,6 +122,13 @@ module.exports = class bitmart extends Exchange {
                             [50000, 0.03 / 100],
                         ],
                     },
+                },
+            },
+            'exceptions': {
+                'exact': {
+                },
+                'broad': {
+                    'Maximum price is': InvalidOrder, // { "message":"Maximum price is 0.112695" }
                 },
             },
         });
@@ -510,7 +517,7 @@ module.exports = class bitmart extends Exchange {
             limit = 1;
         }
         // convert timeframe minutes to milliseconds
-        const step = (this.timeframes[timeframe] * 60 * 1000);
+        const step = this.parseTimeframe (timeframe) * 1000;
         let to = this.milliseconds ();
         if (since === undefined) {
             since = to - (step * limit);
@@ -518,7 +525,7 @@ module.exports = class bitmart extends Exchange {
             to = this.sum (since, step * limit);
         }
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'to': to,
             'from': since,
             'step': this.timeframes[timeframe],
@@ -554,45 +561,66 @@ module.exports = class bitmart extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "entrust_id":1223181
+        //     }
+        //
+        // cancelOrder
+        //
+        //     {}
+        //
+        //
+        //
+        const id = this.safeString (order, 'entrust_id');
         const timestamp = this.milliseconds ();
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
-        let info = this.safeValue (order, 'info');
-        if (info === undefined) {
-            info = this.extend ({}, order);
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'original_amount');
+        let cost = undefined;
+        let filled = this.safeFloat (order, 'executed_amount');
+        let remaining = this.safeFloat (order, 'remaining_amount');
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                if (filled === undefined) {
+                    filled = amount - remaining;
+                }
+            }
+            if (filled !== undefined) {
+                if (remaining === undefined) {
+                    remaining = amount - filled;
+                }
+                if (cost === undefined) {
+                    if (price !== undefined) {
+                        cost = price * filled;
+                    }
+                }
+            }
         }
-        order = this.mapOrderResponse (order, market);
+        const side = this.safeString (order, 'side');
+        const type = undefined;
         return {
-            'id': this.safeInteger (order, 'id'),
-            'info': info,
+            'id': id,
+            'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': 'limit',
-            'side': this.safeString (order, 'side'),
-            'price': this.safeFloat (order, 'price'),
-            'amount': this.safeFloat (order, 'amount'),
+            'type': type,
+            'side': side,
+            'price': price,
+            'amount': amount,
             'cost': undefined,
             'average': undefined,
-            'filled': this.safeFloat (order, 'executed_amount'),
-            'remaining': this.safeFloat (order, 'remaining_amount'),
+            'filled': filled,
+            'remaining': remaining,
             'status': status,
             'fee': undefined,
             'trades': undefined,
         };
-    }
-
-    mapOrderResponse (order, market = undefined) {
-        const originalAmount = this.safeFloat (order, 'original_amount');
-        if (originalAmount !== undefined) {
-            order['amount'] = originalAmount;
-        }
-        const entrustId = this.safeInteger (order, 'entrust_id');
-        if (entrustId !== undefined) {
-            order['id'] = entrustId;
-        }
-        return order;
     }
 
     parseOrderStatus (status) {
@@ -609,38 +637,36 @@ module.exports = class bitmart extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (type !== 'limit') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let order = {
-            'symbol': this.marketId (symbol),
+        const request = {
+            'symbol': market['id'],
             'side': side.toLowerCase (),
             'amount': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
         };
-        const response = await this.privatePostOrders (this.extend (order, params));
-        order = this.extend ({
-            'status': 'open',
-            'info': response,
-        }, order);
-        return this.parseOrder (this.extend (order, response), market);
+        const response = await this.privatePostOrders (this.extend (request, params));
+        //
+        //     {
+        //         "entrust_id":1223181
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const response = await this.privateDeleteOrdersId (this.extend ({
-            'id': id,
+        const request = {
             'entrust_id': id,
-        }, params));
-        return this.parseOrder (this.extend ({
-            'symbol': this.marketId (symbol),
-            'status': 'canceled',
-            'entrust_id': id,
-            'info': response,
-        }, response), market);
+        };
+        const response = await this.privateDeleteOrdersId (this.extend (request, params));
+        //
+        // responds with an empty object {}
+        //
+        return this.parseOrder (response);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -747,5 +773,28 @@ module.exports = class bitmart extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code, reason, url, method, headers, body, response) {
+        if (response === undefined) {
+            return;
+        }
+        //
+        //     { "message":"Maximum price is 0.112695" }
+        //
+        const feedback = this.id + ' ' + body;
+        const message = this.safeString (response, 'message');
+        if (message !== undefined) {
+            const exact = this.exceptions['exact'];
+            if (message in exact) {
+                throw new exact[message] (feedback);
+            }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
