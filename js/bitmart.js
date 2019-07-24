@@ -132,13 +132,14 @@ module.exports = class bitmart extends Exchange {
                 'exact': {
                     'Place order error': InvalidOrder, // {"message":"Place order error"}
                     'Not found': OrderNotFound, // {"message":"Not found"}
-                    "Required Integer parameter 'status' is not present": BadRequest, // {"message":"Required Integer parameter 'status' is not present"}
-                    "Required String parameter 'symbol' is not present": BadRequest, // {"message":"Required String parameter 'symbol' is not present"}
-                    "Required Integer parameter 'offset' is not present": BadRequest, // {"message":"Required Integer parameter 'offset' is not present"}
-                    "Required Integer parameter 'limit' is not present": BadRequest, // {"message":"Required Integer parameter 'limit' is not present"}
                 },
                 'broad': {
                     'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
+                    // {"message":"Required Integer parameter 'status' is not present"}
+                    // {"message":"Required String parameter 'symbol' is not present"}
+                    // {"message":"Required Integer parameter 'offset' is not present"}
+                    // {"message":"Required Integer parameter 'limit' is not present"}
+                    // {"message":"Required Long parameter 'from' is not present"}
                     'is not present': BadRequest,
                 },
             },
@@ -534,30 +535,24 @@ module.exports = class bitmart extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        if (since === undefined && limit === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV requires either a `since` argument or a `limit` argument (or both)');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        //
-        // ohlcv query parameters:
-        //    from : start time of k-line data (in milliseconds) : [required]
-        //    to : end time of k-line data (in milliseconds) : [required]
-        //    step : steps of sampling (in minutes, default 1 minute) : [optional]
-        //
-        if (limit === undefined) {
-            limit = 1;
-        }
-        // convert timeframe minutes to milliseconds
-        const step = this.parseTimeframe (timeframe) * 1000;
+        const periodInSeconds = this.parseTimeframe (timeframe);
+        const duration = periodInSeconds * limit * 1000;
         let to = this.milliseconds ();
         if (since === undefined) {
-            since = to - (step * limit);
+            since = to - duration;
         } else {
-            to = this.sum (since, step * limit);
+            to = this.sum (since, duration);
         }
         const request = {
             'symbol': market['id'],
-            'to': to,
-            'from': since,
-            'step': this.timeframes[timeframe],
+            'from': since, // start time of k-line data (in milliseconds, required)
+            'to': to, // end time of k-line data (in milliseconds, required)
+            'step': this.timeframes[timeframe], // steps of sampling (in minutes, default 1 minute, optional)
         };
         const response = await this.publicGetSymbolsSymbolKline (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -871,6 +866,7 @@ module.exports = class bitmart extends Exchange {
         //     {"message":"Required String parameter 'symbol' is not present"}
         //     {"message":"Required Integer parameter 'offset' is not present"}
         //     {"message":"Required Integer parameter 'limit' is not present"}
+        //     {"message":"Required Long parameter 'from' is not present"}
         //     {"message":"Invalid status. status=6 not support any more, please use 3:deal_success orders, 4:cancelled orders"}
         //     {"message":"Not found"}
         //     {"message":"Place order error"}
