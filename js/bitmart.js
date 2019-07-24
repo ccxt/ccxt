@@ -265,16 +265,39 @@ module.exports = class bitmart extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const currencies = await this.publicGetCurrencies (params);
+        //
+        //     [
+        //         {
+        //             "name":"CNY1",
+        //             "withdraw_enabled":false,
+        //             "id":"CNY1",
+        //             "deposit_enabled":false
+        //         }
+        //     ]
+        //
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = currency['id'];
-            result[id] = {
-                'id': id,
-                'code': id,
-                'name': currency['name'],
+            const currencyId = this.safeString (currency, 'id');
+            const code = this.safeCurrencyCode (currencyId);
+            const name = this.safeString (currency, 'name');
+            const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
+            const depositEnabled = this.safeValue (currency, 'deposit_enabled');
+            const active = withdrawEnabled && depositEnabled;
+            result[code] = {
+                'id': currencyId,
+                'code': code,
+                'name': name,
                 'info': currency, // the original payload
-                'active': true,
+                'active': active,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': { 'min': undefined, 'max': undefined },
+                    'price': { 'min': undefined, 'max': undefined },
+                    'cost': { 'min': undefined, 'max': undefined },
+                    'withdraw': { 'min': undefined, 'max': undefined },
+                },
             };
         }
         return result;
