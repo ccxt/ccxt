@@ -605,7 +605,7 @@ module.exports = class bitmart extends Exchange {
             '5': 'open',
             '6': 'closed',
         };
-        return (status in statuses) ? statuses[status] : status;
+        return this.safeString (statuses, status, status);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
