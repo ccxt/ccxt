@@ -37,10 +37,11 @@ module.exports = class bitmart extends Exchange {
                 'fetchOrder': true,
             },
             'urls': {
-                'logo': 'https://www.bitmart.com/_nuxt/img/ed5c199.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/61835713-a2662f80-ae85-11e9-9d00-6442919701fd.jpg',
                 'api': 'https://openapi.bitmart.com',
                 'www': 'https://www.bitmart.com/',
-                'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs/blob/master/REST.md',
+                'doc': 'https://github.com/bitmartexchange/bitmart-official-api-docs',
+                'referral': 'http://www.bitmart.com/?r=rQCFLh',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -140,6 +141,7 @@ module.exports = class bitmart extends Exchange {
                     // {"message":"Required Integer parameter 'offset' is not present"}
                     // {"message":"Required Integer parameter 'limit' is not present"}
                     // {"message":"Required Long parameter 'from' is not present"}
+                    // {"message":"Required Long parameter 'to' is not present"}
                     'is not present': BadRequest,
                 },
             },
@@ -555,6 +557,18 @@ module.exports = class bitmart extends Exchange {
             'step': this.timeframes[timeframe], // steps of sampling (in minutes, default 1 minute, optional)
         };
         const response = await this.publicGetSymbolsSymbolKline (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "timestamp":1525761000000,
+        //             "open_price":"0.010130",
+        //             "highest_price":"0.010130",
+        //             "lowest_price":"0.010130",
+        //             "current_price":"0.010130",
+        //             "volume":"0.000000"
+        //         }
+        //     ]
+        //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
@@ -867,6 +881,7 @@ module.exports = class bitmart extends Exchange {
         //     {"message":"Required Integer parameter 'offset' is not present"}
         //     {"message":"Required Integer parameter 'limit' is not present"}
         //     {"message":"Required Long parameter 'from' is not present"}
+        //     {"message":"Required Long parameter 'to' is not present"}
         //     {"message":"Invalid status. status=6 not support any more, please use 3:deal_success orders, 4:cancelled orders"}
         //     {"message":"Not found"}
         //     {"message":"Place order error"}
