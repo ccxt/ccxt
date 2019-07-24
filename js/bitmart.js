@@ -27,6 +27,7 @@ module.exports = class bitmart extends Exchange {
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'cancelAllOrders': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchOpenOrders': true,
@@ -134,7 +135,6 @@ module.exports = class bitmart extends Exchange {
                     "Required String parameter 'symbol' is not present": BadRequest, // {"message":"Required String parameter 'symbol' is not present"}
                     "Required Integer parameter 'offset' is not present": BadRequest, // {"message":"Required Integer parameter 'offset' is not present"}
                     "Required Integer parameter 'limit' is not present": BadRequest, // {"message":"Required Integer parameter 'limit' is not present"}
-
                 },
                 'broad': {
                     'Maximum price is': InvalidOrder, // {"message":"Maximum price is 0.112695"}
@@ -700,6 +700,27 @@ module.exports = class bitmart extends Exchange {
         // responds with an empty object {}
         //
         return this.parseOrder (response);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+        }
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ArgumentsRequired (this.id + " cancelAllOrders requires a `side` parameter ('buy' or 'sell')");
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': side, // 'buy' or 'sell'
+        };
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        //
+        // responds with an empty object {}
+        //
+        return response;
     }
 
     async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
