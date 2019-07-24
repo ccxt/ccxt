@@ -216,7 +216,17 @@ module.exports = class bitmart extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        const symbol = ticker['symbol_id'];
+        const marketId = this.safeString (ticker, 'symbol_id');
+        let symbol = undefined;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+            symbol = market['symbol'];
+        } else {
+            const [ baseId, quoteId ] = marketId.split ('_');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        }
         const last = this.safeFloat (ticker, 'current_price');
         const percentage = this.safeFloat (ticker, 'fluctuation');
         return {
@@ -245,10 +255,27 @@ module.exports = class bitmart extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        const ticker = await this.publicGetTicker (this.extend ({
+        const request = {
             'symbol': this.marketId (symbol),
-        }, params));
-        return this.parseTicker (ticker);
+        };
+        const response = await this.publicGetTicker (this.extend (request, params));
+        //
+        //     {
+        //         "volume":"97487.38",
+        //         "ask_1":"0.00148668",
+        //         "base_volume":"144.59",
+        //         "lowest_price":"0.00144362",
+        //         "bid_1":"0.00148017",
+        //         "highest_price":"0.00151000",
+        //         "ask_1_amount":"92.03",
+        //         "current_price":"0.00148230",
+        //         "fluctuation":"+0.0227",
+        //         "symbol_id":"XRP_ETH",
+        //         "url":"https://www.bitmart.com/trade?symbol=XRP_ETH",
+        //         "bid_1_amount":"134.78"
+        //     }
+        //
+        return this.parseTicker (response);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -262,6 +289,7 @@ module.exports = class bitmart extends Exchange {
         }
         return result;
     }
+
 
     async fetchCurrencies (params = {}) {
         const currencies = await this.publicGetCurrencies (params);
