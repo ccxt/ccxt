@@ -740,8 +740,9 @@ class okcoinusd (Exchange):
             'type': orderSide,
         })
         if market['future']:
-            request['match_price'] = 0  # match best counter party price? 0 or 1, ignores price if 1
+            request['match_price'] = 1 if (type == 'market') else 0  # match best counter party price? 0 or 1, ignores price if 1
             request['lever_rate'] = 10  # leverage rate value: 10 or 20(10 by default)
+            request['type'] = '1' if (side == 'buy') else '2'
         elif type == 'market':
             if side == 'buy':
                 if not orderPrice:

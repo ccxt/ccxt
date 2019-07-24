@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.975'
+const version = '1.18.978'
 
 Exchange.ccxtVersion = version
 
@@ -41820,7 +41820,7 @@ module.exports = class fcoin extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = { 'states': 'filled' };
+        const request = { 'states': 'partial_canceled,filled' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
@@ -64419,8 +64419,9 @@ module.exports = class okcoinusd extends Exchange {
             'type': orderSide,
         });
         if (market['future']) {
-            request['match_price'] = 0; // match best counter party price? 0 or 1, ignores price if 1
+            request['match_price'] = (type === 'market') ? 1 : 0; // match best counter party price? 0 or 1, ignores price if 1
             request['lever_rate'] = 10; // leverage rate value: 10 or 20 (10 by default)
+            request['type'] = (side === 'buy') ? '1' : '2';
         } else if (type === 'market') {
             if (side === 'buy') {
                 if (!orderPrice) {
@@ -69290,9 +69291,8 @@ module.exports = class rightbtc extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetTradingPairs (params);
         // let zh = await this.publicGetGetAssetsTradingPairsZh ();
-        const markets = response['status']['message'];
+        const markets = await this.publicGetTradingPairs (params);
         const marketIds = Object.keys (markets);
         const result = [];
         for (let i = 0; i < marketIds.length; i++) {

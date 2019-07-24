@@ -144,9 +144,8 @@ class rightbtc (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetTradingPairs(params)
         # zh = self.publicGetGetAssetsTradingPairsZh()
-        markets = response['status']['message']
+        markets = self.publicGetTradingPairs(params)
         marketIds = list(markets.keys())
         result = []
         for i in range(0, len(marketIds)):
