@@ -10,7 +10,7 @@ module.exports = class bitmart extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmart',
-            'name': 'Bitmart',
+            'name': 'BitMart',
             'countries': [ 'US', 'CN', 'HK', 'KR' ],
             'rateLimit': 1000,
             'version': 'v2',
