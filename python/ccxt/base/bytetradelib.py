@@ -12,7 +12,10 @@ class bytetradelib(object):
         if(platform.system() == 'Linux'):
             self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython.so')
         elif(platform.system() == 'Windows'):
-            self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython.dll')
+            if(platform.architecture()[0]=='64bit'):
+                self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython.dll')
+            else:
+                self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython32.dll')
         elif(platform.system() == 'Darwin'):
             self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython.dylib')
         self.lock = threading.Lock()
