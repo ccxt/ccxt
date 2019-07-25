@@ -769,8 +769,9 @@ module.exports = class okcoinusd extends Exchange {
             'type': orderSide,
         });
         if (market['future']) {
-            request['match_price'] = 0; // match best counter party price? 0 or 1, ignores price if 1
+            request['match_price'] = (type === 'market') ? 1 : 0; // match best counter party price? 0 or 1, ignores price if 1
             request['lever_rate'] = 10; // leverage rate value: 10 or 20 (10 by default)
+            request['type'] = (side === 'buy') ? '1' : '2';
         } else if (type === 'market') {
             if (side === 'buy') {
                 if (!orderPrice) {

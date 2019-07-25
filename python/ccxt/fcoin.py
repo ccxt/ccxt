@@ -430,7 +430,7 @@ class fcoin (Exchange):
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        request = {'states': 'filled'}
+        request = {'states': 'partial_canceled,filled'}
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):

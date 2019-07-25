@@ -1258,8 +1258,7 @@ class bitmex extends Exchange {
             }
         }
         $url = $this->urls['api'] . $query;
-        if ($api === 'private') {
-            $this->check_required_credentials();
+        if ($this->apiKey && $this->secret) {
             $auth = $method . $query;
             $expires = $this->safe_integer($this->options, 'api-expires');
             $headers = array (

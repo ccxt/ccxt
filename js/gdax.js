@@ -420,7 +420,7 @@ module.exports = class gdax extends Exchange {
 
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
-        return this.parse8601 (this.parse8601 (response, 'iso'));
+        return this.parse8601 (response, 'iso');
     }
 
     parseOrderStatus (status) {

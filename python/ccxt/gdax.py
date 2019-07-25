@@ -406,7 +406,7 @@ class gdax (Exchange):
 
     def fetch_time(self, params={}):
         response = self.publicGetTime(params)
-        return self.parse8601(self.parse8601(response, 'iso'))
+        return self.parse8601(response, 'iso')
 
     def parse_order_status(self, status):
         statuses = {

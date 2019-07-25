@@ -461,7 +461,7 @@ class fcoin extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array( 'states' => 'filled' );
+        $request = array( 'states' => 'partial_canceled,filled' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 

@@ -17,7 +17,6 @@ class theocean extends Exchange {
             'countries' => array ( 'US' ),
             'rateLimit' => 3000,
             'version' => 'v1',
-            'certified' => true,
             'requiresWeb3' => true,
             'timeframes' => array (
                 '5m' => '300',
