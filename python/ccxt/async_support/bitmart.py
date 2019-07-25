@@ -18,7 +18,7 @@ class bitmart (Exchange):
     def describe(self):
         return self.deep_extend(super(bitmart, self).describe(), {
             'id': 'bitmart',
-            'name': 'Bitmart',
+            'name': 'BitMart',
             'countries': ['US', 'CN', 'HK', 'KR'],
             'rateLimit': 1000,
             'version': 'v2',
