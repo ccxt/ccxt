@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.981",
+  "version": "1.18.982",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -466,7 +466,9 @@
     "flowbtc.com.br",
     "foxbit.com.br",
     "latoken.com",
-    "Latoken"
+    "Latoken",
+    "bitmart.com",
+    "BitMart"
   ],
   "collective": {
     "type": "opencollective",

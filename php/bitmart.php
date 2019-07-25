@@ -12,7 +12,7 @@ class bitmart extends Exchange {
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
             'id' => 'bitmart',
-            'name' => 'Bitmart',
+            'name' => 'BitMart',
             'countries' => array ( 'US', 'CN', 'HK', 'KR' ),
             'rateLimit' => 1000,
             'version' => 'v2',
