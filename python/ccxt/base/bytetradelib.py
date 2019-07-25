@@ -12,7 +12,7 @@ class bytetradelib(object):
         if(platform.system() == 'Linux'):
             self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython.so')
         elif(platform.system() == 'Windows'):
-            if(platform.architecture()[0]=='64bit'):
+            if(platform.architecture()[0] == '64bit'):
                 self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython.dll')
             else:
                 self.libbytetradepython = cdll.LoadLibrary(curDir + '/libbytetradepython32.dll')
