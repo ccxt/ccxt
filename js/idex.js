@@ -254,7 +254,6 @@ module.exports = class idex extends Exchange {
         //         "expires": 10000,
         //         "nonce": 18155189676,
         //         "user": "0xb631284dd7b74a846af5b37766ceb1f85d53eca4" } } ] }
-        console.log (JSON.stringify (response, undefined, 2))
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -389,7 +388,7 @@ module.exports = class idex extends Exchange {
                 'info': response,
             };
         } else {
-            throw new ExchangeError (this.id + ' cancel order failed ' + JSON.stringify (response));
+            throw new ExchangeError (this.id + ' cancel order failed ' + this.json (response));
         }
     }
 
