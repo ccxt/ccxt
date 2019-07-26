@@ -191,7 +191,7 @@ module.exports = class digifinex extends Exchange {
             if (this.inArray (keys[i], keysFrozen)) {
                 account['used'] = frozen[keys[i]];
             }
-            account['total'] = this.sum (account['free'] + account['used']);
+            account['total'] = this.sum (account['free'], account['used']);
             result[uppercase] = account;
         }
         return this.parseBalance (result);
@@ -220,9 +220,7 @@ module.exports = class digifinex extends Exchange {
         const result = {};
         const keys = Object.keys (response['ticker']);
         for (let i = 0; i < keys.length; i++) {
-            let symbol = keys[i].toUpperCase ();
-            const parts = symbol.split ('_');
-            symbol = parts[1] + '/' + parts[0];
+            const symbol = this.markets_by_id[keys[i]]['symbol'];
             const r = this.parseTicker (response['date'], response['ticker'], symbol);
             result[symbol] = r;
         }
@@ -454,7 +452,9 @@ module.exports = class digifinex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        params['apiKey'] = this.apiKey;
+        params = this.extend (params, {
+            'apiKey': this.apiKey,
+        });
         if (api === 'private') {
             this.checkRequiredCredentials ();
             params['timestamp'] = parseInt (this.nonce ());
