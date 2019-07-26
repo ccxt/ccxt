@@ -421,7 +421,7 @@ class gdax extends Exchange {
 
     public function fetch_time ($params = array ()) {
         $response = $this->publicGetTime ($params);
-        return $this->parse8601 ($this->parse8601 ($response, 'iso'));
+        return $this->parse8601 ($response, 'iso');
     }
 
     public function parse_order_status ($status) {
