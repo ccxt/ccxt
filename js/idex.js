@@ -262,10 +262,10 @@ module.exports = class idex extends Exchange {
             'address': this.walletAddress,
         };
         const response = await this.publicPostReturnCompleteBalances (this.extend (request, params));
-        // { ETH:
-        //       { available: '0.0167',
-        //         onOrders: '0.1533' }
-        // }
+        //    { ETH:
+        //         { available: '0.0167',
+        //           onOrders: '0.1533' }
+        //    }
         const result = {
             'info': response,
         };
@@ -297,8 +297,8 @@ module.exports = class idex extends Exchange {
             amountBuy = this.toWei (amount, 'ether', market['precision']['amount']);
             amountSell = this.toWei (quoteAmount, 'ether', 18);
         } else {
-            tokenBuy = market['baseId'];
-            tokenSell = market['quoteId'];
+            tokenBuy = market['quoteId'];
+            tokenSell = market['baseId'];
             amountBuy = this.toWei (quoteAmount, 'ether', 18);
             amountSell = this.toWei (amount, 'ether', market['precision']['amount']);
         }
@@ -702,6 +702,8 @@ module.exports = class idex extends Exchange {
         //        tokenSell: '0xb705268213d593b8fd88d3fdeff93aff5cbdcfae',
         //        usdValue: '11.336926687304238214' } ]
         if (Array.isArray (response)) {
+            return this.parseTrades (response, market, since, limit);
+        } else {
             let result = [];
             const marketIds = Object.keys (response);
             for (let i = 0; i < marketIds.length; i++) {
@@ -711,8 +713,6 @@ module.exports = class idex extends Exchange {
                 result = this.arrayConcat (result, parsed);
             }
             return result;
-        } else {
-            return this.parseTrades (response, market, since, limit);
         }
     }
 
@@ -740,16 +740,38 @@ module.exports = class idex extends Exchange {
         const side = this.safeString (trade, 'type');
         let feeCurrency = undefined;
         let symbol = undefined;
-        const takerOrMaker = this.safeString (trade, 'maker') === this.walletAddress ? 'maker' : 'taker';  // maybe there is better method to compare addresses
+        const maker = this.safeString (trade, 'maker');
+        let takerOrMaker = undefined;
+        if (maker !== undefined) {
+            if (maker.toLowerCase () === this.walletAddress.toLowerCase ()) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
+        }
         const buy = this.safeCurrencyCode (this.safeString (trade, 'tokenBuy'));
         const sell = this.safeCurrencyCode (this.safeString (trade, 'tokenSell'));
+        // get ready to be mind-boggled
+        let feeSide = undefined;
         if (buy !== undefined && sell !== undefined) {
-            if (takerOrMaker === 'maker') {
-                symbol = buy + '/' + sell;
-                feeCurrency = buy;
+            if (side === 'buy') {
+                feeSide = 'buyerFee';
+                if (takerOrMaker === 'maker') {
+                    symbol = buy + '/' + sell;
+                    feeCurrency = buy;
+                } else {
+                    symbol = sell + '/' + buy;
+                    feeCurrency = sell;
+                }
             } else {
-                symbol = sell + '/' + buy;
-                feeCurrency = sell;
+                feeSide = 'sellerFee';
+                if (takerOrMaker === 'maker') {
+                    symbol = sell + '/' + buy;
+                    feeCurrency = buy;
+                } else {
+                    symbol = buy + '/' + sell;
+                    feeCurrency = sell;
+                }
             }
         }
         if (symbol === undefined && market !== undefined) {
@@ -760,13 +782,14 @@ module.exports = class idex extends Exchange {
         const amount = this.safeFloat (trade, 'amount');
         const price = this.safeFloat (trade, 'price');
         const cost = this.safeFloat (trade, 'total');
-        const feeCost = this.safeFloat (trade, side + 'erFee');
+        const feeCost = this.safeFloat (trade, feeSide);  // can sometimes be a large negative number...
         const fee = {
             'currency': feeCurrency,
             'cost': feeCost,
         };
         if (feeCost !== undefined && amount !== undefined) {
-            fee['rate'] = feeCost / amount;
+            const feeCurrencyAmount = feeCurrency === 'ETH' ? cost : amount;
+            fee['rate'] = feeCost / feeCurrencyAmount;
         }
         const orderId = this.safeString (trade, 'orderHash');
         return {
