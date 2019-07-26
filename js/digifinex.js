@@ -14,7 +14,7 @@ module.exports = class digifinex extends Exchange {
             'id': 'digifinex',
             'name': 'DigiFinex',
             'countries': [ 'SG' ],
-            'version': 'v1',
+            'version': 'v2',
             'rateLimit': 900, // 300 for posts
             'certified': false,
             // new metainfo interface
@@ -46,8 +46,11 @@ module.exports = class digifinex extends Exchange {
             },
             'urls': {
                 'logo': 'https://static.digifinex.vip/newhome/pc/img/index/logo_dark.svg',
-                'api': 'https://openapi.digifinex.vip/v2',
-                'apiV3': 'https://openapi.digifinex.vip/v3',
+                'api': {
+                    'public': 'https://openapi.digifinex.vip/v2',
+                    'private': 'https://openapi.digifinex.vip/v2',
+                    'publicV3': 'https://openapi.digifinex.vip/v3',
+                },
                 'www': 'https://www.digifinex.vip/',
                 'doc': [
                     'https://github.com/DigiFinex/api',
@@ -472,12 +475,7 @@ module.exports = class digifinex extends Exchange {
             const sign = this.hash (this.encode (s), 'md5');
             params['sign'] = sign;
         }
-        let url = '';
-        if (api === 'publicV3') {
-            url = this.urls['apiV3'] + '/' + path;
-        } else {
-            url = this.urls['api'] + '/' + path;
-        }
+        let url = this.urls['api'][api] + '/' + path;
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
