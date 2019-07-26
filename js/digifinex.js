@@ -186,7 +186,7 @@ module.exports = class digifinex extends Exchange {
         const keysFrozen = Object.keys (frozen);
         const keys = this.arrayConcat (keysFree, keysFrozen);
         for (let i = 0; i < keys.length; i++) {
-            const uppercase = keys[i].toUpperCase ();
+            const uppercase = this.safeCurrencyCode (keys[i]);
             const account = this.account ();
             if (this.inArray (keys[i], keysFree)) {
                 account['free'] = free[keys[i]];
