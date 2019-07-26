@@ -17,13 +17,15 @@ module.exports = class idex extends Exchange {
             'version': '0',
             'requiresWeb3': true,
             'has': {
-                'CORS': true,
-                'fetchTickers': true,
                 'fetchOrderBook': true,
                 'fetchTicker': true,
                 'fetchMarkets': true,
                 'fetchBalance': true,
                 'createOrder': true,
+                'cancelOrder': true,
+                'fetchTransactions': true,
+                'fetchMyTrades': true,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': 'M1',
@@ -60,6 +62,7 @@ module.exports = class idex extends Exchange {
                         'returnOrderStatus',
                         'returnOrderTrades',
                         'returnTradeHistory',
+                        'returnTradeHistoryMeta', // not documented
                         'returnContractAddress',
                         'returnNextNonce',
                     ],
