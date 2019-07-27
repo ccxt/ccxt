@@ -352,9 +352,10 @@ module.exports = class idex extends Exchange {
 
     async getNonce () {
         if (this.options['orderNonce'] === undefined) {
-            return this.safeInteger (await this.publicPostReturnNextNonce ({
+            const response = await this.publicPostReturnNextNonce ({
                 'address': this.walletAddress,
-            }), 'nonce');
+            });
+            return this.safeInteger (response, 'nonce');
         } else {
             const result = this.options['orderNonce'];
             this.options['orderNonce'] += 1;
