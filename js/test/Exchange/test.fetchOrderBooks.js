@@ -17,7 +17,6 @@ module.exports = async (exchange) => {
     const customExchangeParams = ([
         'yobit',
         'tidex',
-        'binance',
         'ccex',
         'liqui',
     ]).reduce ((params, id) => ({ ...params, [id]: [randomSymbols], }), {})
