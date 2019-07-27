@@ -582,7 +582,10 @@ class latoken extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'orderId');
-        $timestamp = $this->safe_value($order, 'timeCreated') * 1000;
+        $timestamp = $this->safe_value($order, 'timeCreated');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $marketId;
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -596,7 +599,12 @@ class latoken extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'executedAmount');
-        $remaining = $amount - $filled;
+        $remaining = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $remaining = $amount - $filled;
+            }
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'orderStatus'));
         $cost = null;
         if ($filled !== null) {
