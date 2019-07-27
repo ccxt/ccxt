@@ -61,7 +61,7 @@ class BaseError(Exception):
     def __init__(self, error_message, verbose_errors=None, exchange_id=None, http_code=None, http_status_text=None, url=None, http_method=None, response_headers=None, response_body=None, response_json=None):
         message = ' '.join(str(i) for i in [exchange_id, http_method, url, http_code, http_status_text, error_message] if i is not None)
         if verbose_errors:
-            message += ('' if response_headers == None else '\n' + json.dumps(response_headers)) + ('' if response_json is None else '\n' + response_body)
+            message += ('' if response_headers is None else '\n' + json.dumps(response_headers)) + ('' if response_json is None else '\n' + response_body)
         super(BaseError, self).__init__(message)
         self.__dict__['error_messsage'] = error_message
         self.__dict__['exchange_id'] = exchange_id
