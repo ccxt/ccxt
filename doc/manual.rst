@@ -2372,7 +2372,7 @@ To check if any of the above methods are available, look into the ``.has`` prope
 
    # Python
    import ccxt
-   id = 'cryptopia'
+   id = 'binance'
    exchange = getattr(ccxt, id) ()
    print(exchange.has)
 
