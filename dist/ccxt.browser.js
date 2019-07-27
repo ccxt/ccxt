@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.986'
+const version = '1.18.987'
 
 Exchange.ccxtVersion = version
 
@@ -56105,26 +56105,32 @@ module.exports = class latoken extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "side":"buy",
-        //         "price":0.022315,
-        //         "amount":0.706,
-        //         "timestamp":1563454655
+        //         side: 'buy',
+        //         price: 0.33634,
+        //         amount: 0.01,
+        //         timestamp: 1564240008000 // milliseconds
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "id": "1555492358.126073.126767@0502:2",
-        //         "orderId": "1555492358.126073.126767@0502:2",
-        //         "commission": 0.012,
-        //         "side": "buy",
-        //         "price": 136.2,
-        //         "amount": 0.7,
-        //         "time": 1555515807369
+        //         id: '1564223032.892829.3.tg15',
+        //         orderId: '1564223032.671436.707548@1379:1',
+        //         commission: 0,
+        //         side: 'buy',
+        //         price: 0.32874,
+        //         amount: 0.607,
+        //         timestamp: 1564223033 // seconds
         //     }
         //
         const type = undefined;
-        const timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        let timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        if (timestamp !== undefined) {
+            // 03 Jan 2009 - first block
+            if (timestamp < 1230940800000) {
+                timestamp *= 1000;
+            }
+        }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const side = this.safeString (trade, 'side');
@@ -56182,10 +56188,10 @@ module.exports = class latoken extends Exchange {
         //         "tradeCount":51,
         //         "trades": [
         //             {
-        //                 "side":"buy",
-        //                 "price":0.022315,
-        //                 "amount":0.706,
-        //                 "timestamp":1563454655
+        //                 side: 'buy',
+        //                 price: 0.33634,
+        //                 amount: 0.01,
+        //                 timestamp: 1564240008000 // milliseconds
         //             }
         //         ]
         //     }
@@ -56211,13 +56217,13 @@ module.exports = class latoken extends Exchange {
         //         "tradeCount": 1,
         //         "trades": [
         //             {
-        //                 "id": "1555492358.126073.126767@0502:2",
-        //                 "orderId": "1555492358.126073.126767@0502:2",
-        //                 "commission": 0.012,
-        //                 "side": "buy",
-        //                 "price": 136.2,
-        //                 "amount": 0.7,
-        //                 "time": 1555515807369
+        //                 id: '1564223032.892829.3.tg15',
+        //                 orderId: '1564223032.671436.707548@1379:1',
+        //                 commission: 0,
+        //                 side: 'buy',
+        //                 price: 0.32874,
+        //                 amount: 0.607,
+        //                 timestamp: 1564223033 // seconds
         //             }
         //         ]
         //     }
@@ -56303,7 +56309,7 @@ module.exports = class latoken extends Exchange {
         const timeFilled = this.safeInteger (order, 'timeFilled');
         let lastTradeTimestamp = undefined;
         if (timeFilled !== undefined && timeFilled > 0) {
-            lastTradeTimestamp = timeFilled;
+            lastTradeTimestamp = timeFilled * 1000;
         }
         return {
             'id': id,
