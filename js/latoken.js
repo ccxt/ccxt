@@ -607,7 +607,7 @@ module.exports = class latoken extends Exchange {
         const timeFilled = this.safeInteger (order, 'timeFilled');
         let lastTradeTimestamp = undefined;
         if (timeFilled !== undefined && timeFilled > 0) {
-            lastTradeTimestamp = timeFilled;
+            lastTradeTimestamp = timeFilled * 1000;
         }
         return {
             'id': id,
