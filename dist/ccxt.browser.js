@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.983'
+const version = '1.18.984'
 
 Exchange.ccxtVersion = version
 
@@ -56338,7 +56338,7 @@ module.exports = class latoken extends Exchange {
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw ArgumentsRequired (this.id + ' fetchOrdersWithMethod requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersWithMethod requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
