@@ -436,7 +436,7 @@ module.exports = class latoken extends Exchange {
         //     }
         //
         const type = undefined;
-        const timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        const timestamp = this.safeInteger2 (trade, 'timestamp', 'time') * 1000;
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const side = this.safeString (trade, 'side');
