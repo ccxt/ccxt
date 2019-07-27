@@ -562,7 +562,7 @@ class latoken (Exchange):
         #     }
         #
         id = self.safe_string(order, 'orderId')
-        timestamp = self.safe_value(order, 'timeCreated')
+        timestamp = self.safe_value(order, 'timeCreated') * 1000
         marketId = self.safe_string(order, 'symbol')
         symbol = marketId
         if marketId in self.markets_by_id:
@@ -574,7 +574,7 @@ class latoken (Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'executedAmount')
-        remaining = self.safe_float(order, 'reaminingAmount')
+        remaining = amount - filled
         status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
         cost = None
         if filled is not None:
