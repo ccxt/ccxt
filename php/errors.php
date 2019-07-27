@@ -61,6 +61,7 @@ function un_camel_case($string) {
 
 class BaseError extends Exception {
     public $message;
+    public $error_message;
     public $exchange_id;
     public $http_code;
     public $http_status_text;
@@ -70,8 +71,13 @@ class BaseError extends Exception {
     public $response_body;
     public $response_json;
 
-    public function __construct($message = "", $exchange_id = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null) {
+    public function __construct($error_message = "", $verbose_errors = false, $exchange_id = null, $http_code = null, $http_status_text = null, $url = null, $http_method = null, $response_headers = null, $response_body = null, $response_json = null) {
+        $message = implode(' ', array_map('strval', array_filter(array($exchange_id, $http_method, $url, $http_code, $http_status_text, $error_message), function ($x) { return !is_null($x); })));
+        if ($verbose_errors) {
+            $message .= ($response_headers === null ? '' : "\n" . json_encode($response_headers)) . ($response_json === null ? '' : "\n" . $response_body);
+        }
         parent::__construct($message, 0, null);
+        $this->error_message = $error_message;
         $this->exchange_id = $exchange_id;
         $this->http_code = $http_code;
         $this->http_status_text = $http_status_text;
@@ -83,7 +89,7 @@ class BaseError extends Exception {
     }
 
     public function __toString() {
-        return implode(' ', array_map('strval', array_filter(array(get_class($this) . ':', $this->exchangeId, $this->httpMethod, $this->url, $this->httpCode, $this->httpStatusText, $this->getMessage()), function ($x) { return !is_null($x); })));
+        return $this->getMessage();
     }
 
     public function __get($name) {

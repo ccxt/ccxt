@@ -18,25 +18,22 @@ function subclass (BaseClass, classes, namespace = {}) {
 
             [className]: class extends BaseClass {
 
-                constructor (message, exchangeId = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
+                constructor (errorMessage, verboseErrors = false, exchangeId = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
                     // A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
                     // See my blog post for the explanation of this hack:
-
                     // https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801
+
+                    let message = [exchangeId, httpMethod, url, httpStatusCode, httpStatusText, errorMessage].filter (x => x !== undefined).join (' ')
+                    if (verboseErrors) {
+                        message += (responseHeaders === undefined ? '' : '\n' + JSON.stringify (responseHeaders, undefined, 2)) + (responseJson === undefined ? '' : '\n' + responseBody)
+                    }
                     super (message)
 
                     this.constructor = Class
                     this.name = className
                     this.__proto__ = Class.prototype
-                    Object.defineProperty (this, 'message', {
-                        get () {
-                            return this.toString ()
-                        },
-                        set (value) {
-                            this.messageBody = value
-                        },
-                    })
-                    this.message = message
+
+                    this.errorMessage = errorMessage
                     this.exchangeId = exchangeId
                     this.httpStatusCode = httpStatusCode
                     this.httpStatusText = httpStatusText
@@ -48,7 +45,7 @@ function subclass (BaseClass, classes, namespace = {}) {
                 }
 
                 toString () {
-                    return [this.exchangeId, this.messageBody, this.httpMethod, this.url, this.httpStatusCode, this.httpStatusText].filter (x => x !== undefined).join (' ')
+                    return this.message
                 }
             }
 
