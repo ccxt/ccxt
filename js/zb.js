@@ -172,12 +172,12 @@ module.exports = class zb extends Exchange {
             const id = keys[i];
             const market = markets[id];
             const [ baseId, quoteId ] = id.split ('_');
-            const base = this.commonCurrencyCode (baseId.toUpperCase ());
-            const quote = this.commonCurrencyCode (quoteId.toUpperCase ());
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': market['amountScale'],
-                'price': market['priceScale'],
+                'amount': this.safeInteger (market, 'amountScale'),
+                'price': this.safeInteger (market, 'priceScale'),
             };
             result.push ({
                 'id': id,
@@ -228,12 +228,7 @@ module.exports = class zb extends Exchange {
             //                 key: "btc"         }
             const account = this.account ();
             const currencyId = this.safeString (balance, 'key');
-            let code = undefined;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (this.safeString (balance, 'enName'));
-            }
+            const code = this.safeCurrencyCode (currencyId);
             account['free'] = this.safeFloat (balance, 'available');
             account['used'] = this.safeFloat (balance, 'freez');
             result[code] = account;

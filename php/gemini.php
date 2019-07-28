@@ -32,6 +32,7 @@ class gemini extends Exchange {
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => false,
                 'fetchDeposits' => false,
+                'fetchOHLCV' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -60,30 +61,32 @@ class gemini extends Exchange {
                 ),
                 'public' => array (
                     'get' => array (
-                        'symbols',
-                        'pubticker/{symbol}',
-                        'book/{symbol}',
-                        'trades/{symbol}',
-                        'auction/{symbol}',
-                        'auction/{symbol}/history',
+                        'v1/symbols',
+                        'v1/pubticker/{symbol}',
+                        'v1/book/{symbol}',
+                        'v1/trades/{symbol}',
+                        'v1/auction/{symbol}',
+                        'v1/auction/{symbol}/history',
+                        'v2/candles/{symbol}/{timeframe}',
+                        'v2/ticker/{symbol}',
                     ),
                 ),
                 'private' => array (
                     'post' => array (
-                        'order/new',
-                        'order/cancel',
-                        'order/cancel/session',
-                        'order/cancel/all',
-                        'order/status',
-                        'orders',
-                        'mytrades',
-                        'tradevolume',
-                        'transfers',
-                        'balances',
-                        'deposit/{currency}/newAddress',
-                        'withdraw/{currency}',
-                        'heartbeat',
-                        'transfers',
+                        'v1/order/new',
+                        'v1/order/cancel',
+                        'v1/order/cancel/session',
+                        'v1/order/cancel/all',
+                        'v1/order/status',
+                        'v1/orders',
+                        'v1/mytrades',
+                        'v1/tradevolume',
+                        'v1/transfers',
+                        'v1/balances',
+                        'v1/deposit/{currency}/newAddress',
+                        'v1/withdraw/{currency}',
+                        'v1/heartbeat',
+                        'v1/transfers',
                     ),
                 ),
             ),
@@ -102,6 +105,15 @@ class gemini extends Exchange {
                 '500' => '\\ccxt\\ExchangeError', // The server encountered an error
                 '502' => '\\ccxt\\ExchangeError', // Technical issues are preventing the request from being satisfied
                 '503' => '\\ccxt\\ExchangeNotAvailable', // The exchange is down for maintenance
+            ),
+            'timeframes' => array (
+                '1m' => '1m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1hr',
+                '6h' => '6hr',
+                '1d' => '1day',
             ),
             'exceptions' => array (
                 'exact' => array (
@@ -199,11 +211,11 @@ class gemini extends Exchange {
             $minAmount = explode(' ', $minAmountAsString);
             $amountPrecision = explode(' ', $amountTickSizeAsString);
             $pricePrecision = explode(' ', $priceTickSizeAsString);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
             $baseId = strtolower($baseId);
             $quoteId = strtolower($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->precision_from_string($amountPrecision[0]),
                 'price' => $this->precision_from_string($pricePrecision[0]),
@@ -239,17 +251,15 @@ class gemini extends Exchange {
     }
 
     public function fetch_markets_from_api ($params = array ()) {
-        $response = $this->publicGetSymbols ($params);
+        $response = $this->publicGetV1Symbols ($params);
         $result = array();
         for ($i = 0; $i < count ($response); $i++) {
             $id = $response[$i];
             $market = $id;
             $baseId = mb_substr($id, 0, 3 - 0);
             $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => null,
@@ -292,7 +302,7 @@ class gemini extends Exchange {
             $request['limit_bids'] = $limit;
             $request['limit_asks'] = $limit;
         }
-        $response = $this->publicGetBookSymbol (array_merge ($request, $params));
+        $response = $this->publicGetV1BookSymbol (array_merge ($request, $params));
         return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -302,10 +312,10 @@ class gemini extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
-        $ticker = $this->publicGetPubtickerSymbol (array_merge ($request, $params));
+        $ticker = $this->publicGetV1PubtickerSymbol (array_merge ($request, $params));
         $timestamp = $this->safe_integer($ticker['volume'], 'timestamp');
-        $baseVolume = $this->safe_float($market, 'base');
-        $quoteVolume = $this->safe_float($market, 'quote');
+        $baseCurrency = $market['base']; // unified structures are guaranteed to have unified fields
+        $quoteCurrency = $market['quote']; // so we don't need safe-methods for unified structures
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -325,8 +335,8 @@ class gemini extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker['volume'], $baseVolume),
-            'quoteVolume' => $this->safe_float($ticker['volume'], $quoteVolume),
+            'baseVolume' => $this->safe_float($ticker['volume'], $baseCurrency),
+            'quoteVolume' => $this->safe_float($ticker['volume'], $quoteCurrency),
             'info' => $ticker,
         );
     }
@@ -335,20 +345,12 @@ class gemini extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestampms');
         $id = $this->safe_string($trade, 'tid');
         $orderId = $this->safe_string($trade, 'order_id');
-        $fee = $this->safe_float($trade, 'fee_amount');
-        if ($fee !== null) {
-            $currency = $this->safe_string($trade, 'fee_currency');
-            if ($currency !== null) {
-                if (is_array($this->currencies_by_id) && array_key_exists($currency, $this->currencies_by_id)) {
-                    $currency = $this->currencies_by_id[$currency]['code'];
-                }
-                $currency = $this->common_currency_code($currency);
-            }
-            $fee = array (
-                'cost' => $this->safe_float($trade, 'fee_amount'),
-                'currency' => $currency,
-            );
-        }
+        $feeCurrencyId = $this->safe_string($trade, 'fee_currency');
+        $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+        $fee = array (
+            'cost' => $this->safe_float($trade, 'fee_amount'),
+            'currency' => $feeCurrencyCode,
+        );
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -389,18 +391,18 @@ class gemini extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
-        $response = $this->publicGetTradesSymbol (array_merge ($request, $params));
+        $response = $this->publicGetV1TradesSymbol (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostBalances ($params);
+        $response = $this->privatePostV1Balances ($params);
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'available');
             $account['total'] = $this->safe_float($balance, 'amount');
@@ -474,13 +476,13 @@ class gemini extends Exchange {
         $request = array (
             'order_id' => $id,
         );
-        $response = $this->privatePostOrderStatus (array_merge ($request, $params));
+        $response = $this->privatePostV1OrderStatus (array_merge ($request, $params));
         return $this->parse_order($response);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostOrders ($params);
+        $response = $this->privatePostV1Orders ($params);
         $orders = $this->parse_orders($response, null, $since, $limit);
         if ($symbol !== null) {
             $market = $this->market ($symbol); // throws on non-existent $symbol
@@ -503,7 +505,7 @@ class gemini extends Exchange {
             'side' => $side,
             'type' => 'exchange limit', // gemini allows limit orders only
         );
-        $response = $this->privatePostOrderNew (array_merge ($request, $params));
+        $response = $this->privatePostV1OrderNew (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['order_id'],
@@ -515,7 +517,7 @@ class gemini extends Exchange {
         $request = array (
             'order_id' => $id,
         );
-        return $this->privatePostOrderCancel (array_merge ($request, $params));
+        return $this->privatePostV1OrderCancel (array_merge ($request, $params));
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -533,7 +535,7 @@ class gemini extends Exchange {
         if ($since !== null) {
             $request['timestamp'] = intval ($since / 1000);
         }
-        $response = $this->privatePostMytrades (array_merge ($request, $params));
+        $response = $this->privatePostV1Mytrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -546,7 +548,7 @@ class gemini extends Exchange {
             'amount' => $amount,
             'address' => $address,
         );
-        $response = $this->privatePostWithdrawCurrency (array_merge ($request, $params));
+        $response = $this->privatePostV1WithdrawCurrency (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $this->safe_string($response, 'txHash'),
@@ -566,22 +568,14 @@ class gemini extends Exchange {
         if ($since !== null) {
             $request['timestamp'] = $since;
         }
-        $response = $this->privatePostTransfers (array_merge ($request, $params));
+        $response = $this->privatePostV1Transfers (array_merge ($request, $params));
         return $this->parseTransactions ($response);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
         $timestamp = $this->safe_integer($transaction, 'timestampms');
-        $code = null;
-        if ($currency === null) {
-            $currencyId = $this->safe_string($transaction, 'currency');
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $currency = $this->currencies_by_id[$currencyId];
-            }
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'destination');
         $type = $this->safe_string($transaction, 'type');
         if ($type !== null) {
@@ -619,9 +613,6 @@ class gemini extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = '/' . $this->implode_params($path, $params);
-        if ($api !== 'web') {
-            $url = '/' . $this->version . $url;
-        }
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'private') {
             $this->check_required_credentials();
@@ -685,7 +676,7 @@ class gemini extends Exchange {
         $request = array (
             'currency' => $currency['id'],
         );
-        $response = $this->privatePostDepositCurrencyNewAddress (array_merge ($request, $params));
+        $response = $this->privatePostV1DepositCurrencyNewAddress (array_merge ($request, $params));
         $address = $this->safe_string($response, 'address');
         $this->check_address($address);
         return array (
@@ -694,5 +685,16 @@ class gemini extends Exchange {
             'tag' => null,
             'info' => $response,
         );
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'timeframe' => $this->timeframes[$timeframe],
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetV2CandlesSymbolTimeframe (array_merge ($request, $params));
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 }

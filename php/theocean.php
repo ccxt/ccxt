@@ -17,7 +17,6 @@ class theocean extends Exchange {
             'countries' => array ( 'US' ),
             'rateLimit' => 3000,
             'version' => 'v1',
-            'certified' => true,
             'requiresWeb3' => true,
             'timeframes' => array (
                 '5m' => '300',
@@ -127,8 +126,8 @@ class theocean extends Exchange {
             $quoteToken = $this->safe_value($market, 'quoteToken', array());
             $baseId = $this->safe_string($baseToken, 'address');
             $quoteId = $this->safe_string($quoteToken, 'address');
-            $base = $this->common_currency_code($this->safe_string($baseToken, 'symbol'));
-            $quote = $this->common_currency_code($this->safe_string($quoteToken, 'symbol'));
+            $base = $this->safe_currency_code($this->safe_string($baseToken, 'symbol'));
+            $quote = $this->safe_currency_code($this->safe_string($quoteToken, 'symbol'));
             $symbol = $base . '/' . $quote;
             $id = $baseId . '/' . $quoteId;
             $baseDecimals = $this->safe_integer($baseToken, 'decimals');

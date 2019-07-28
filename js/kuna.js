@@ -74,10 +74,8 @@ module.exports = class kuna extends acx {
                 const slice = id.slice (index);
                 if ((index > 0) && (slice === quoteId)) {
                     const baseId = id.replace (quoteId, '');
-                    let base = baseId.toUpperCase ();
-                    let quote = quoteId.toUpperCase ();
-                    base = this.commonCurrencyCode (base);
-                    quote = this.commonCurrencyCode (quote);
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
                     const symbol = base + '/' + quote;
                     const precision = {
                         'amount': 6,

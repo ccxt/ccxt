@@ -269,6 +269,7 @@ class bittrex (Exchange):
                 'subaccountId': None,
                 # see the implementation of fetchClosedOrdersV3 below
                 'fetchClosedOrdersMethod': 'fetch_closed_orders_v3',
+                'fetchClosedOrdersFilterBySince': True,
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
@@ -293,8 +294,8 @@ class bittrex (Exchange):
             id = self.safe_string(market, 'MarketName')
             baseId = self.safe_string(market, 'MarketCurrency')
             quoteId = self.safe_string(market, 'BaseCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             pricePrecision = 8
             if quote in self.options['pricePrecisionByCode']:
@@ -338,22 +339,15 @@ class bittrex (Exchange):
         balances = self.safe_value(response, 'result')
         result = {'info': balances}
         indexed = self.index_by(balances, 'Currency')
-        keys = list(indexed.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            currency = self.common_currency_code(id)
+        currencyIds = list(indexed.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            balance = indexed[id]
-            free = self.safe_float(balance, 'Available', 0)
-            total = self.safe_float(balance, 'Balance', 0)
-            used = None
-            if total is not None:
-                if free is not None:
-                    used = total - free
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
-            result[currency] = account
+            balance = indexed[currencyId]
+            account['free'] = self.safe_float(balance, 'Available')
+            account['total'] = self.safe_float(balance, 'Balance')
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -444,7 +438,7 @@ class bittrex (Exchange):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
             address = self.safe_value(currency, 'BaseAddress')
             fee = self.safe_float(currency, 'TxFee')  # todo: redesign
@@ -740,13 +734,8 @@ class bittrex (Exchange):
         opened = self.parse8601(self.safe_string(transaction, 'Opened'))
         timestamp = opened if opened else updated
         type = 'deposit' if (opened is None) else 'withdrawal'
-        code = None
         currencyId = self.safe_string(transaction, 'Currency')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         status = 'pending'
         if type == 'deposit':
             if currency is not None:
@@ -799,8 +788,8 @@ class bittrex (Exchange):
 
     def parse_symbol(self, id):
         quoteId, baseId = id.split(self.options['symbolSeparator'])
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         return base + '/' + quote
 
     def parse_order(self, order, market=None):
@@ -808,6 +797,12 @@ class bittrex (Exchange):
             return self.parse_order_v3(order, market)
         else:
             return self.parse_order_v2(order, market)
+
+    def parse_orders(self, orders, market=None, since=None, limit=None, params={}):
+        if self.options['fetchClosedOrdersFilterBySince']:
+            return super(bittrex, self).parse_orders(orders, market, since, limit, params)
+        else:
+            return super(bittrex, self).parse_orders(orders, market, None, limit, params)
 
     def parse_order_status(self, status):
         statuses = {
@@ -842,8 +837,8 @@ class bittrex (Exchange):
         feeCurrency = None
         if marketSymbol is not None:
             baseId, quoteId = marketSymbol.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             feeCurrency = quote
         direction = self.safe_string(order, 'direction')
@@ -972,10 +967,7 @@ class bittrex (Exchange):
             elif symbol is not None:
                 currencyIds = symbol.split('/')
                 quoteCurrencyId = currencyIds[1]
-                if quoteCurrencyId in self.currencies_by_id:
-                    fee['currency'] = self.currencies_by_id[quoteCurrencyId]['code']
-                else:
-                    fee['currency'] = self.common_currency_code(quoteCurrencyId)
+                fee['currency'] = self.safe_currency_code(quoteCurrencyId)
         price = self.safe_float(order, 'Limit')
         cost = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Quantity')
@@ -1082,7 +1074,7 @@ class bittrex (Exchange):
         if limit is not None:
             request['pageSize'] = limit
         if since is not None:
-            request['startDate'] = self.ymdhms(since) + 'Z'
+            request['startDate'] = self.ymdhms(since, 'T') + 'Z'
         market = None
         if symbol is not None:
             market = self.market(symbol)

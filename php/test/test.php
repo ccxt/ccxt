@@ -62,7 +62,9 @@ $config = json_decode(file_get_contents($keys_file), true);
 foreach ($config as $id => $params) {
     foreach ($params as $key => $value) {
         if (array_key_exists($id, $exchanges)) {
-            $exchanges[$id]->$key = $value;
+            if (property_exists($exchanges[$id], $key)) {
+                $exchanges[$id]->$key = is_array($exchanges[$id]->$key) ? array_replace_recursive($exchanges[$id]->$key, $value) : $value;
+            }
         }
     }
 }

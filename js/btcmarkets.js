@@ -172,7 +172,7 @@ module.exports = class btcmarkets extends Exchange {
         const fee = this.safeFloat (item, 'fee');
         const status = this.parseTransactionStatus (this.safeString (item, 'status'));
         const ccy = this.safeString (item, 'currency');
-        const code = this.commonCurrencyCode (ccy);
+        const code = this.safeCurrencyCode (ccy);
         // todo: this logic is duplicated below
         let amount = this.safeFloat (item, 'amount');
         if (amount !== undefined) {
@@ -207,8 +207,8 @@ module.exports = class btcmarkets extends Exchange {
             const baseId = this.safeString (market, 'instrument');
             const quoteId = this.safeString (market, 'currency');
             const id = baseId + '/' + quoteId;
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             // todo: refactor this
             const fee = (quote === 'AUD') ? 0.0085 : 0.0022;
@@ -266,16 +266,19 @@ module.exports = class btcmarkets extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'currency');
-            const code = this.commonCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const multiplier = 100000000;
-            const total = this.safeFloat (balance, 'balance') / multiplier;
-            const used = this.safeFloat (balance, 'pendingFunds') / multiplier;
-            const free = total - used;
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            let total = this.safeFloat (balance, 'balance');
+            if (total !== undefined) {
+                total /= multiplier;
+            }
+            let used = this.safeFloat (balance, 'pendingFunds');
+            if (used !== undefined) {
+                used /= multiplier;
+            }
+            const account = this.account ();
+            account['used'] = used;
+            account['total'] = total;
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -557,7 +560,7 @@ module.exports = class btcmarkets extends Exchange {
             cost = 0;
             for (let i = 0; i < numTrades; i++) {
                 const trade = trades[i];
-                cost = this.sum (cost, trade[i]['cost']);
+                cost = this.sum (cost, trade['cost']);
             }
             if (filled > 0) {
                 average = cost / filled;

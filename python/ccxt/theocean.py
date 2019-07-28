@@ -29,7 +29,6 @@ class theocean (Exchange):
             'countries': ['US'],
             'rateLimit': 3000,
             'version': 'v1',
-            'certified': True,
             'requiresWeb3': True,
             'timeframes': {
                 '5m': '300',
@@ -138,8 +137,8 @@ class theocean (Exchange):
             quoteToken = self.safe_value(market, 'quoteToken', {})
             baseId = self.safe_string(baseToken, 'address')
             quoteId = self.safe_string(quoteToken, 'address')
-            base = self.common_currency_code(self.safe_string(baseToken, 'symbol'))
-            quote = self.common_currency_code(self.safe_string(quoteToken, 'symbol'))
+            base = self.safe_currency_code(self.safe_string(baseToken, 'symbol'))
+            quote = self.safe_currency_code(self.safe_string(quoteToken, 'symbol'))
             symbol = base + '/' + quote
             id = baseId + '/' + quoteId
             baseDecimals = self.safe_integer(baseToken, 'decimals')

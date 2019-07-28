@@ -149,10 +149,8 @@ class fcoin (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
-            base = baseId.upper()
-            base = self.common_currency_code(base)
-            quote = quoteId.upper()
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_decimal'],
@@ -188,16 +186,12 @@ class fcoin (Exchange):
         balances = self.safe_value(response, 'data')
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['currency']
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = float(balance['available'])
-            account['total'] = float(balance['balance'])
-            account['used'] = float(balance['frozen'])
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'frozen')
             result[code] = account
         return self.parse_balance(result)
 
@@ -436,7 +430,7 @@ class fcoin (Exchange):
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        request = {'states': 'filled'}
+        request = {'states': 'partial_canceled,filled'}
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):

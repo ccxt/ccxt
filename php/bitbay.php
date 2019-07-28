@@ -175,8 +175,8 @@ class bitbay extends Exchange {
             $baseId = $this->safe_string($first, 'currency');
             $quoteId = $this->safe_string($second, 'currency');
             $id = $baseId . $quoteId;
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($first, 'scale'),
@@ -260,6 +260,7 @@ class bitbay extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($codes); $i++) {
             $code = $codes[$i];
+            // rewrite with safeCurrencyCode, traverse by currency ids
             $currencyId = $this->currencyId ($code);
             $balance = $this->safe_value($balances, $currencyId);
             if ($balance !== null) {
@@ -327,19 +328,19 @@ class bitbay extends Exchange {
         }
     }
 
-    public function parse_my_trade ($trade, $market) {
+    public function parse_my_trade ($trade, $market = null) {
         //
         //     {
-        //         id => '5b6780e2-5bac-4ac7-88f4-b49b5957d33a',
-        //         $market => 'BTC-EUR',
-        //         time => '1520719374684',
-        //         $amount => '0.3',
-        //         rate => '7502',
-        //         initializedBy => 'Sell',
+        //         $amount => "0.29285199",
+        //         commissionValue => "0.00125927",
+        //         id => "11c8203a-a267-11e9-b698-0242ac110007",
+        //         initializedBy => "Buy",
+        //         $market => "ETH-EUR",
+        //         offerId => "11c82038-a267-11e9-b698-0242ac110007",
+        //         rate => "277",
+        //         time => "1562689917517",
+        //         $userAction => "Buy",
         //         $wasTaker => true,
-        //         $userAction => 'Sell',
-        //         offerId => 'd093b0aa-b9c9-4a52-b3e2-673443a6188b',
-        //         $commissionValue => null
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'time');
@@ -355,16 +356,37 @@ class bitbay extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        $commissionValue = $this->safe_float($trade, 'commissionValue');
+        $feeCost = $this->safe_float($trade, 'commissionValue');
+        $marketId = $this->safe_string($trade, 'market');
+        $base = null;
+        $symbol = null;
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+                $base = $market['base'];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if ($market !== null) {
+            if ($symbol === null) {
+                $symbol = $market['symbol'];
+            }
+            if ($base === null) {
+                $base = $market['base'];
+            }
+        }
         $fee = null;
-        if ($commissionValue !== null) {
-            // it always seems to be null so don't know what currency to use
+        if ($feeCost !== null) {
             $fee = array (
-                'currency' => null,
-                'cost' => $commissionValue,
+                'currency' => $base,
+                'cost' => $feeCost,
             );
         }
-        $marketId = $this->safe_string($trade, 'market');
         $order = $this->safe_string($trade, 'offerId');
         // todo => check this logic
         $type = $order ? 'limit' : 'market';
@@ -373,7 +395,7 @@ class bitbay extends Exchange {
             'order' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $this->find_symbol(str_replace('-', '', $marketId)),
+            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,

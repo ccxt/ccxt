@@ -12,7 +12,6 @@ module.exports = class theocean extends Exchange {
             'countries': [ 'US' ],
             'rateLimit': 3000,
             'version': 'v1',
-            'certified': true,
             'requiresWeb3': true,
             'timeframes': {
                 '5m': '300',
@@ -122,8 +121,8 @@ module.exports = class theocean extends Exchange {
             const quoteToken = this.safeValue (market, 'quoteToken', {});
             const baseId = this.safeString (baseToken, 'address');
             const quoteId = this.safeString (quoteToken, 'address');
-            const base = this.commonCurrencyCode (this.safeString (baseToken, 'symbol'));
-            const quote = this.commonCurrencyCode (this.safeString (quoteToken, 'symbol'));
+            const base = this.safeCurrencyCode (this.safeString (baseToken, 'symbol'));
+            const quote = this.safeCurrencyCode (this.safeString (quoteToken, 'symbol'));
             const symbol = base + '/' + quote;
             const id = baseId + '/' + quoteId;
             const baseDecimals = this.safeInteger (baseToken, 'decimals');

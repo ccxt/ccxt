@@ -117,8 +117,8 @@ class btcalpha (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'currency1')
             quoteId = self.safe_string(market, 'currency2')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -237,18 +237,11 @@ class btcalpha (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
-            used = self.safe_float(balance, 'reserve')
-            total = self.safe_float(balance, 'balance')
-            free = None
-            if used is not None:
-                if total is not None:
-                    free = total - used
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['used'] = self.safe_float(balance, 'reserve')
+            account['total'] = self.safe_float(balance, 'balance')
+            result[code] = account
         return self.parse_balance(result)
 
     def parse_order_status(self, status):

@@ -138,10 +138,8 @@ module.exports = class fcoin extends Exchange {
             const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
-            let base = baseId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            let quote = quoteId.toUpperCase ();
-            quote = this.commonCurrencyCode (quote);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'price': market['price_decimal'],
@@ -180,17 +178,12 @@ module.exports = class fcoin extends Exchange {
         const balances = this.safeValue (response, 'data');
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = balance['currency'];
-            let code = currencyId.toUpperCase ();
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = parseFloat (balance['available']);
-            account['total'] = parseFloat (balance['balance']);
-            account['used'] = parseFloat (balance['frozen']);
+            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'frozen');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -467,7 +460,7 @@ module.exports = class fcoin extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = { 'states': 'filled' };
+        const request = { 'states': 'partial_canceled,filled' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 

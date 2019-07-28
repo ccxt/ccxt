@@ -165,10 +165,8 @@ class cointiger (huobipro):
                 market = partition[j]
                 baseId = self.safe_string(market, 'baseCurrency')
                 quoteId = self.safe_string(market, 'quoteCurrency')
-                base = baseId.upper()
-                quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 id = baseId + quoteId
                 uppercaseId = id.upper()
                 symbol = base + '/' + quote
@@ -464,11 +462,7 @@ class cointiger (huobipro):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'coin')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = currencyId.upper()
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['used'] = self.safe_float(balance, 'lock')
             account['free'] = self.safe_float(balance, 'normal')

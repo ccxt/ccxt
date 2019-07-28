@@ -113,8 +113,8 @@ module.exports = class btcalpha extends Exchange {
             const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'currency1');
             const quoteId = this.safeString (market, 'currency2');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': 8,
@@ -250,20 +250,11 @@ module.exports = class btcalpha extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
-            const code = this.commonCurrencyCode (currencyId);
-            const used = this.safeFloat (balance, 'reserve');
-            const total = this.safeFloat (balance, 'balance');
-            let free = undefined;
-            if (used !== undefined) {
-                if (total !== undefined) {
-                    free = total - used;
-                }
-            }
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['used'] = this.safeFloat (balance, 'reserve');
+            account['total'] = this.safeFloat (balance, 'balance');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }

@@ -17,6 +17,13 @@ class vaultoro (Exchange):
             'version': '1',
             'has': {
                 'CORS': True,
+                'fetchMarkets': True,
+                'fetchOrderBook': True,
+                'fetchBalance': True,
+                'createOrder': True,
+                'cancelOrder': True,
+                'fetchTrades': True,
+                'fetchTicker': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
@@ -64,8 +71,8 @@ class vaultoro (Exchange):
         market = self.safe_value(response, 'data')
         baseId = self.safe_string(market, 'MarketCurrency')
         quoteId = self.safe_string(market, 'BaseCurrency')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
         id = self.safe_string(market, 'MarketName')
         result.append({
@@ -87,11 +94,7 @@ class vaultoro (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency_code')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'cash')
             account['used'] = self.safe_float(balance, 'reserved')
@@ -106,39 +109,6 @@ class vaultoro (Exchange):
             'asks': response['data'][1]['s'],
         }
         return self.parse_order_book(orderbook, None, 'bids', 'asks', 'Gold_Price', 'Gold_Amount')
-
-    async def fetch_ticker(self, symbol, params={}):
-        await self.load_markets()
-        quote = await self.publicGetBidandask(params)
-        bidsLength = len(quote['bids'])
-        bid = quote['bids'][bidsLength - 1]
-        ask = quote['asks'][0]
-        response = await self.publicGetMarkets(params)
-        ticker = self.safe_value(response, 'data')
-        timestamp = self.milliseconds()
-        last = self.safe_float(ticker, 'LastPrice')
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, '24hHigh'),
-            'low': self.safe_float(ticker, '24hLow'),
-            'bid': bid[0],
-            'bidVolume': None,
-            'ask': ask[0],
-            'askVolume': None,
-            'vwap': None,
-            'open': None,
-            'close': last,
-            'last': last,
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_float(ticker, '24hVolume'),
-            'info': ticker,
-        }
 
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'Time'))

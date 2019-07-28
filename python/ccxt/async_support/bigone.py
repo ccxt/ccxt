@@ -131,8 +131,8 @@ class bigone (Exchange):
             quoteAsset = self.safe_value(market, 'quoteAsset', {})
             baseId = self.safe_string(baseAsset, 'symbol')
             quoteId = self.safe_string(quoteAsset, 'symbol')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'baseScale'),
@@ -366,19 +366,10 @@ class bigone (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset_id')
-            code = self.common_currency_code(currencyId)
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            total = self.safe_float(balance, 'balance')
-            used = self.safe_float(balance, 'locked_balance')
-            free = None
-            if total is not None and used is not None:
-                free = total - used
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'locked_balance')
             result[code] = account
         return self.parse_balance(result)
 

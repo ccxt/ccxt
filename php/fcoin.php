@@ -139,10 +139,8 @@ class fcoin extends Exchange {
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = strtoupper($baseId);
-            $base = $this->common_currency_code($base);
-            $quote = strtoupper($quoteId);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'price' => $market['price_decimal'],
@@ -181,17 +179,12 @@ class fcoin extends Exchange {
         $balances = $this->safe_value($response, 'data');
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $balance['currency'];
-            $code = strtoupper($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($code);
-            }
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            $account['free'] = floatval ($balance['available']);
-            $account['total'] = floatval ($balance['balance']);
-            $account['used'] = floatval ($balance['frozen']);
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'frozen');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -468,7 +461,7 @@ class fcoin extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array( 'states' => 'filled' );
+        $request = array( 'states' => 'partial_canceled,filled' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 

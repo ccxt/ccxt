@@ -48,7 +48,7 @@ class coinfloor (Exchange):
                         '{id}/balance/',
                         '{id}/user_transactions/',
                         '{id}/open_orders/',
-                        '{id}/cancel_order/',
+                        '{symbol}/cancel_order/',
                         '{id}/buy/',
                         '{id}/sell/',
                         '{id}/buy_market/',
@@ -202,7 +202,15 @@ class coinfloor (Exchange):
         return await getattr(self, method)(self.extend(request, params))
 
     async def cancel_order(self, id, symbol=None, params={}):
-        return await self.privatePostIdCancelOrder({'id': id})
+        if symbol is None:
+            raise NotSupported(self.id + ' cancelOrder requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'id': id,
+        }
+        return await self.privatePostSymbolCancelOrder(request)
 
     def parse_order(self, order, market=None):
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
@@ -249,6 +257,13 @@ class coinfloor (Exchange):
             'id': market['id'],
         }
         response = await self.privatePostIdOpenOrders(self.extend(request, params))
+        #   {
+        #     "amount": "1.0000",
+        #     "datetime": "2019-07-12 13:28:16",
+        #     "id": 233123443,
+        #     "price": "1000.00",
+        #     "type": 0
+        #   }
         return self.parse_orders(response, market, since, limit, {'status': 'open'})
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

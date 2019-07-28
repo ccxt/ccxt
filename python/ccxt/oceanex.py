@@ -135,8 +135,8 @@ class oceanex (Exchange):
             id = self.safe_value(market, 'id')
             name = self.safe_value(market, 'name')
             baseId, quoteId = name.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             baseId = baseId.lower()
             quoteId = quoteId.lower()
             symbol = base + '/' + quote
@@ -446,11 +446,7 @@ class oceanex (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_value(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'balance')
             account['used'] = self.safe_float(balance, 'locked')
@@ -480,7 +476,8 @@ class oceanex (Exchange):
         request = {'ids': [id]}
         response = self.privateGetOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
-        if data is None or len(data) == 0:
+        dataLength = len(data)
+        if data is None or dataLength == 0:
             raise OrderNotFound(self.id + ' could not found matching order')
         return self.parse_order(data[0], market)
 

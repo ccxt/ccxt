@@ -130,22 +130,14 @@ class coinone extends Exchange {
             'result',
             'normalWallets',
         ));
-        $ids = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $balance = $balances[$id];
-            $code = strtoupper($id);
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$id]['code'];
-            }
-            $free = $this->safe_float($balance, 'avail');
-            $total = $this->safe_float($balance, 'balance');
-            $used = $total - $free;
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $balance = $balances[$currencyId];
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'avail');
+            $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

@@ -156,10 +156,8 @@ class cointiger extends huobipro {
                 $market = $partition[$j];
                 $baseId = $this->safe_string($market, 'baseCurrency');
                 $quoteId = $this->safe_string($market, 'quoteCurrency');
-                $base = strtoupper($baseId);
-                $quote = strtoupper($quoteId);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $id = $baseId . $quoteId;
                 $uppercaseId = strtoupper($id);
                 $symbol = $base . '/' . $quote;
@@ -490,12 +488,7 @@ class cointiger extends huobipro {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'coin');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = strtoupper($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['used'] = $this->safe_float($balance, 'lock');
             $account['free'] = $this->safe_float($balance, 'normal');

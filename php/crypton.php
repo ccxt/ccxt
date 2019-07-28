@@ -80,8 +80,8 @@ class crypton extends Exchange {
             $market = $markets[$id];
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -121,16 +121,16 @@ class crypton extends Exchange {
         $this->load_markets();
         $balances = $this->privateGetBalances ($params);
         $result = array( 'info' => $balances );
-        $keys = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
-            $id = $keys[$i];
-            $currency = $this->common_currency_code($id);
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            $balance = $balances[$id];
+            $balance = $balances[$currencyId];
             $account['total'] = $this->safe_float($balance, 'total');
             $account['free'] = $this->safe_float($balance, 'free');
             $account['used'] = $this->safe_float($balance, 'locked');
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -213,7 +213,7 @@ class crypton extends Exchange {
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
-            $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -304,7 +304,7 @@ class crypton extends Exchange {
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
-            $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -379,8 +379,8 @@ class crypton extends Exchange {
 
     public function parse_symbol ($id) {
         list($base, $quote) = explode('-', $id);
-        $base = $this->common_currency_code($base);
-        $quote = $this->common_currency_code($quote);
+        $base = $this->safe_currency_code($base);
+        $quote = $this->safe_currency_code($quote);
         return $base . '/' . $quote;
     }
 

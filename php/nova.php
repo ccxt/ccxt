@@ -23,6 +23,7 @@ class nova extends Exchange {
                 'fetchDepositAddress' => true,
             ),
             'urls' => array (
+                'referral' => 'https://novaexchange.com/signup/?re=is8vz2hsl3qxewv1uawd',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/30518571-78ca0bca-9b8a-11e7-8840-64b83a4a94b2.jpg',
                 'api' => 'https://novaexchange.com/remote',
                 'www' => 'https://novaexchange.com',
@@ -73,8 +74,8 @@ class nova extends Exchange {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'marketname');
             list($quoteId, $baseId) = explode('_', $id);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $disabled = $this->safe_value($market, 'disabled', false);
             $active = !$disabled;
@@ -191,12 +192,7 @@ class nova extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $lockbox = $this->safe_float($balance, 'amount_lockbox');
             $trades = $this->safe_float($balance, 'amount_trades');
             $account = array (

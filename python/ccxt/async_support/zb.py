@@ -181,12 +181,12 @@ class zb (Exchange):
             id = keys[i]
             market = markets[id]
             baseId, quoteId = id.split('_')
-            base = self.common_currency_code(baseId.upper())
-            quote = self.common_currency_code(quoteId.upper())
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': market['amountScale'],
-                'price': market['priceScale'],
+                'amount': self.safe_integer(market, 'amountScale'),
+                'price': self.safe_integer(market, 'priceScale'),
             }
             result.append({
                 'id': id,
@@ -235,11 +235,7 @@ class zb (Exchange):
             #                 key: "btc"         }
             account = self.account()
             currencyId = self.safe_string(balance, 'key')
-            code = None
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(self.safe_string(balance, 'enName'))
+            code = self.safe_currency_code(currencyId)
             account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'freez')
             result[code] = account

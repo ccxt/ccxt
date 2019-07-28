@@ -216,8 +216,8 @@ module.exports = class binance extends Exchange {
             }
             const baseId = market['baseAsset'];
             const quoteId = market['quoteAsset'];
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const filters = this.indexBy (market['filters'], 'filterType');
             const precision = {
@@ -315,12 +315,7 @@ module.exports = class binance extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = balance['asset'];
-            let code = currencyId;
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (currencyId);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'free');
             account['used'] = this.safeFloat (balance, 'locked');
@@ -511,7 +506,7 @@ module.exports = class binance extends Exchange {
         if ('commission' in trade) {
             fee = {
                 'cost': this.safeFloat (trade, 'commission'),
-                'currency': this.commonCurrencyCode (trade['commissionAsset']),
+                'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
         let takerOrMaker = undefined;
@@ -944,7 +939,7 @@ module.exports = class binance extends Exchange {
         //             fromAsset: "ADA"                  },
         const orderId = this.safeString (trade, 'tranId');
         const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
-        const tradedCurrency = this.safeCurrencyCode (trade, 'fromAsset');
+        const tradedCurrency = this.safeCurrencyCode (this.safeString (trade, 'fromAsset'));
         const earnedCurrency = this.currency ('BNB')['code'];
         const applicantSymbol = earnedCurrency + '/' + tradedCurrency;
         let tradedCurrencyIsQuote = false;
@@ -1118,16 +1113,8 @@ module.exports = class binance extends Exchange {
             }
         }
         const txid = this.safeValue (transaction, 'txId');
-        let code = undefined;
         const currencyId = this.safeString (transaction, 'asset');
-        if (currencyId in this.currencies_by_id) {
-            currency = this.currencies_by_id[currencyId];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         let timestamp = undefined;
         const insertTime = this.safeInteger (transaction, 'insertTime');
         const applyTime = this.safeInteger (transaction, 'applyTime');
@@ -1209,7 +1196,7 @@ module.exports = class binance extends Exchange {
         const withdrawFees = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             withdrawFees[code] = this.safeFloat (detail[id], 'withdrawFee');
         }
         return {
