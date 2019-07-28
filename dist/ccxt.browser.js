@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.990'
+const version = '1.18.991'
 
 Exchange.ccxtVersion = version
 
@@ -63583,6 +63583,14 @@ module.exports = class nova extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         });
     }
 
@@ -63599,7 +63607,7 @@ module.exports = class nova extends Exchange {
             const symbol = base + '/' + quote;
             const disabled = this.safeValue (market, 'disabled', false);
             const active = !disabled;
-            result.push ({
+            result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -63608,7 +63616,7 @@ module.exports = class nova extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'info': market,
-            });
+            }));
         }
         return result;
     }

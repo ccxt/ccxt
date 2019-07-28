@@ -65,6 +65,14 @@ class nova extends Exchange {
                     ),
                 ),
             ),
+            'fees' => array (
+                'trading' => array (
+                    'tierBased' => false,
+                    'percentage' => true,
+                    'maker' => 0.2 / 100,
+                    'taker' => 0.2 / 100,
+                ),
+            ),
         ));
     }
 
@@ -81,7 +89,7 @@ class nova extends Exchange {
             $symbol = $base . '/' . $quote;
             $disabled = $this->safe_value($market, 'disabled', false);
             $active = !$disabled;
-            $result[] = array (
+            $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
                 'base' => $base,
@@ -90,7 +98,7 @@ class nova extends Exchange {
                 'quoteId' => $quoteId,
                 'active' => $active,
                 'info' => $market,
-            );
+            ));
         }
         return $result;
     }

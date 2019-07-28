@@ -66,6 +66,14 @@ class nova (Exchange):
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': False,
+                    'percentage': True,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -81,7 +89,7 @@ class nova (Exchange):
             symbol = base + '/' + quote
             disabled = self.safe_value(market, 'disabled', False)
             active = not disabled
-            result.append({
+            result.append(self.extend(self.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -90,7 +98,7 @@ class nova (Exchange):
                 'quoteId': quoteId,
                 'active': active,
                 'info': market,
-            })
+            }))
         return result
 
     def fetch_order_book(self, symbol, limit=None, params={}):
