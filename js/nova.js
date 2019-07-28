@@ -313,6 +313,7 @@ module.exports = class nova extends Exchange {
         const statuses = {
             'Accounted': 'ok',
             'Confirmed': 'ok',
+            'Sent': 'ok',
             'Incoming': 'pending',
             'Approved': 'pending',
         };
