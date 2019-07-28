@@ -150,7 +150,15 @@ module.exports = class nova extends Exchange {
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
-        const fee = this.safeFloat (trade, 'fee');
+        const feeCost = this.safeFloat (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrency = (market === undefined) ? undefined : market['quote'];
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         const order = this.safeInteger (trade, 'orig_orderid');
         const id = this.safeInteger (trade, 'tradeid');
         let cost = undefined;
