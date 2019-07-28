@@ -18,17 +18,17 @@ function subclass (BaseClass, classes, namespace = {}) {
 
             [className]: class extends BaseClass {
 
-                constructor (errorMessage, verboseErrors = false, exchangeId = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
-                    // A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
-                    // See my blog post for the explanation of this hack:
-                    // https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801
+                constructor (errorMessage, verbose = false, exchangeId = undefined, httpStatusCode = undefined, httpStatusText = undefined, url = undefined, httpMethod = undefined, responseHeaders = undefined, responseBody = undefined, responseJson = undefined) {
 
                     let message = [exchangeId, httpMethod, url, httpStatusCode, httpStatusText, errorMessage].filter (x => x !== undefined).join (' ')
-                    if (verboseErrors) {
+                    if (verbose) {
                         message += (responseHeaders === undefined ? '' : '\n' + JSON.stringify (responseHeaders, undefined, 2)) + (responseJson === undefined ? '' : '\n' + responseBody)
                     }
                     super (message)
 
+                    // A workaround to make `instanceof` work on custom Error classes in transpiled ES5.
+                    // See my blog post for the explanation of this hack:
+                    // https://medium.com/@xpl/javascript-deriving-from-error-properly-8d2f8f315801
                     this.constructor = Class
                     this.name = className
                     this.__proto__ = Class.prototype
