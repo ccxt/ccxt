@@ -61,13 +61,13 @@ module.exports = class nova extends Exchange {
                         'walletstatus/{currency}/',
                     ],
                 },
-                'fees': {
-                    'trading': {
-                        'tierBased': false,
-                        'percentage': true,
-                        'maker': 0.2 / 100,
-                        'taker': 0.2 / 100,
-                    },
+            },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
                 },
             },
         });
