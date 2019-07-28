@@ -298,6 +298,7 @@ module.exports = class nova extends Exchange {
             'currency': code,
             'amount': amount,
             'address': address,
+            'addressTo': address,
             'tag': undefined,
             'status': status,
             'type': type,
