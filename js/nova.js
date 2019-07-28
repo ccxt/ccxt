@@ -135,6 +135,24 @@ module.exports = class nova extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // fetchMyTrades
+        //
+        //    {
+        //        basecurrency: 'BTC',
+        //        fee: '0.00000026',
+        //        fromamount: '1079.13354707',
+        //        fromcurrency: 'LINX',
+        //        orig_orderid: 42906337,
+        //        price: '0.00000012',
+        //        toamount: '0.0.00012924',
+        //        tocurrency: 'BTC',
+        //        trade_time: '2019-07-28 13:36',
+        //        tradeid: 21715234,
+        //        tradetype: 'SELL',
+        //        unix_t_trade_time: 1564313790,
+        //    }
+        //
         let timestamp = this.safeInteger2 (trade, 'unix_t_datestamp', 'unix_t_trade_time');
         if (timestamp !== undefined) {
             timestamp *= 1000;
@@ -319,11 +337,38 @@ module.exports = class nova extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // fetchOpenOrders
+        //
+        //    {
+        //        fromamount: 1079.13354707,
+        //        fromcurrency: 'LINX',
+        //        market: 'BTC_LINX',
+        //        orderdate: '2019-07-28 10:50',
+        //        orderid: 43102690,
+        //        ordertype: 'SELL',
+        //        price: '0.00000015',
+        //        toamount: '0.00016187',
+        //        tocurrency: 'BTC',
+        //        unix_t_orderdate: 1564303847
+        //    }
+        //
         const orderId = this.safeString (order, 'orderid');
-        const tradedCurrency = this.safeString (order, 'fromcurrency');
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'market');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const baseId = this.safeString (order, 'fromcurrency');
+                const quoteId = this.safeString (order, 'tocurrency');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
         const status = this.safeString (order, 'status');
-        const settlementCurrency = this.safeString (order, 'tocurrency');
-        const symbol = this.findSymbol (tradedCurrency + '/' + settlementCurrency);
         let timestamp = this.safeInteger (order, 'unix_t_orderdate');
         if (timestamp !== undefined) {
             timestamp *= 1000;
