@@ -1778,6 +1778,10 @@ class Exchange {
         return $this->fetch_bids_asks($symbols, $params);
     }
 
+    public function fetch_ticker($symbol, $params = array()) { // stub
+        throw new NotSupported($this->id . ' fetchTicker not supported yet');
+    }
+
     public function fetch_tickers($symbols, $params = array()) { // stub
         throw new NotSupported($this->id . ' API does not allow to fetch all tickers at once with a single call to fetch_tickers () for now');
     }
