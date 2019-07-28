@@ -277,6 +277,9 @@ module.exports = class nova extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         let timestamp = this.safeInteger (transaction, 'unix_t_time_seen');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (transaction, 'unix_t_time_sent');
+        }
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
