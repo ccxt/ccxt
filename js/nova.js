@@ -20,6 +20,8 @@ module.exports = class nova extends Exchange {
                 'createMarketOrder': false,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'urls': {
                 'referral': 'https://novaexchange.com/signup/?re=is8vz2hsl3qxewv1uawd',
@@ -271,6 +273,72 @@ module.exports = class nova extends Exchange {
             'tag': tag,
             'info': response,
         };
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.safeInteger (transaction, 'unix_t_time_seen');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        let status = this.safeString (transaction, 'status', 'pending');
+        status = this.parseTransactionStatus (status);
+        const amount = this.safeFloat (transaction, 'tx_amount');
+        const address = this.safeString (transaction, 'tx_address');
+        return {
+            'info': transaction,
+            'id': undefined,
+            'currency': code,
+            'amount': amount,
+            'address': address,
+            'tag': undefined,
+            'status': status,
+            'type': this.safeString (transaction, 'type'),
+            'updated': undefined,
+            'txid': this.safeString (transaction, 'tx_txid'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': {
+                'currency': code,
+                'cost': undefined,
+            },
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Accounted': 'ok',
+            'Confirmed': 'ok',
+            'Incoming': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.privatePostGetdeposithistory (params);
+        for (let i = 0; i < response['items'].length; i++) {
+            response['items'][i]['type'] = 'deposit';
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const deposits = this.parseTransactions (response['items'], currency, since, limit);
+        return this.filterByCurrencySinceLimit (deposits, code, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.privatePostGetwithdrawalhistory (params);
+        for (let i = 0; i < response['items'].length; i++) {
+            response['items'][i]['type'] = 'withdrawal';
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const deposits = this.parseTransactions (response['items'], currency, since, limit);
+        return this.filterByCurrencySinceLimit (deposits, code, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
