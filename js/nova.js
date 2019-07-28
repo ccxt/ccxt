@@ -327,8 +327,8 @@ module.exports = class nova extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const deposits = this.parseTransactions (response['items'], currency, since, limit);
-        return this.filterByCurrencySinceLimit (deposits, code, since, limit);
+        const deposits = this.safeValue (response, 'items', []);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -340,8 +340,8 @@ module.exports = class nova extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const deposits = this.parseTransactions (response['items'], currency, since, limit);
-        return this.filterByCurrencySinceLimit (deposits, code, since, limit);
+        const withdrawals = this.safeValue (response, 'items', []);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
