@@ -330,10 +330,10 @@ module.exports = class nova extends Exchange {
         await this.loadMarkets ();
         const market = undefined;
         const response = await this.privatePostMyopenorders (params);
-        for (let i = 0; i < response['items'].length; i++) {
-            response['items'][i]['status'] = 'open';
-        }
-        return this.parseOrders (this.safeValue (response, 'items', {}), market, since, limit);
+        const orders = this.safeValue (response, 'items', []);
+        return this.parseOrders (orders, market, since, limit, {
+            'status': 'open',
+        });
     }
 
     parseOrder (order, market = undefined) {
