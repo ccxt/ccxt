@@ -288,7 +288,7 @@ module.exports = class nova extends Exchange {
         const code = this.safeCurrencyCode (currencyId);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const amount = this.safeFloat (transaction, 'tx_amount');
-        const address = this.safeString (transaction, 'tx_address');
+        const addressTo = this.safeString (transaction, 'tx_address');
         const fee = undefined;
         const txid = this.safeString (transaction, 'tx_txid');
         const type = this.safeString (transaction, 'type');
@@ -297,9 +297,12 @@ module.exports = class nova extends Exchange {
             'id': undefined,
             'currency': code,
             'amount': amount,
-            'address': address,
-            'addressTo': address,
+            'addressFrom': undefined,
+            'address': addressTo,
+            'addressTo': addressTo,
+            'tagFrom': undefined,
             'tag': undefined,
+            'tagTo': undefined,
             'status': status,
             'type': type,
             'updated': updated,
