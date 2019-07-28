@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.988'
+const version = '1.18.989'
 
 Exchange.ccxtVersion = version
 
@@ -63539,6 +63539,8 @@ module.exports = class nova extends Exchange {
                 'createMarketOrder': false,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'urls': {
                 'referral': 'https://novaexchange.com/signup/?re=is8vz2hsl3qxewv1uawd',
@@ -63790,6 +63792,81 @@ module.exports = class nova extends Exchange {
             'tag': tag,
             'info': response,
         };
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.safeInteger2 (transaction, 'unix_t_time_seen', 'unix_t_daterequested');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        let updated = this.safeInteger (transaction, 'unix_t_datesent');
+        if (updated !== undefined) {
+            updated *= 1000;
+        }
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.safeFloat (transaction, 'tx_amount');
+        const addressTo = this.safeString (transaction, 'tx_address');
+        const fee = undefined;
+        const txid = this.safeString (transaction, 'tx_txid');
+        const type = this.safeString (transaction, 'type');
+        return {
+            'info': transaction,
+            'id': undefined,
+            'currency': code,
+            'amount': amount,
+            'addressFrom': undefined,
+            'address': addressTo,
+            'addressTo': addressTo,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Accounted': 'ok',
+            'Confirmed': 'ok',
+            'Incoming': 'pending',
+            'Approved': 'pending',
+            'Sent': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.privatePostGetdeposithistory (params);
+        for (let i = 0; i < response['items'].length; i++) {
+            response['items'][i]['type'] = 'deposit';
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const deposits = this.safeValue (response, 'items', []);
+        return this.parseTransactions (deposits, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.privatePostGetwithdrawalhistory (params);
+        for (let i = 0; i < response['items'].length; i++) {
+            response['items'][i]['type'] = 'withdrawal';
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const withdrawals = this.safeValue (response, 'items', []);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

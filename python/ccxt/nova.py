@@ -22,6 +22,8 @@ class nova (Exchange):
                 'createMarketOrder': False,
                 'createDepositAddress': True,
                 'fetchDepositAddress': True,
+                'fetchDeposits': True,
+                'fetchWithdrawals': True,
             },
             'urls': {
                 'referral': 'https://novaexchange.com/signup/?re=is8vz2hsl3qxewv1uawd',
@@ -255,6 +257,71 @@ class nova (Exchange):
             'tag': tag,
             'info': response,
         }
+
+    def parse_transaction(self, transaction, currency=None):
+        timestamp = self.safe_integer_2(transaction, 'unix_t_time_seen', 'unix_t_daterequested')
+        if timestamp is not None:
+            timestamp *= 1000
+        updated = self.safe_integer(transaction, 'unix_t_datesent')
+        if updated is not None:
+            updated *= 1000
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId)
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        amount = self.safe_float(transaction, 'tx_amount')
+        addressTo = self.safe_string(transaction, 'tx_address')
+        fee = None
+        txid = self.safe_string(transaction, 'tx_txid')
+        type = self.safe_string(transaction, 'type')
+        return {
+            'info': transaction,
+            'id': None,
+            'currency': code,
+            'amount': amount,
+            'addressFrom': None,
+            'address': addressTo,
+            'addressTo': addressTo,
+            'tagFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': fee,
+        }
+
+    def parse_transaction_status(self, status):
+        statuses = {
+            'Accounted': 'ok',
+            'Confirmed': 'ok',
+            'Incoming': 'pending',
+            'Approved': 'pending',
+            'Sent': 'pending',
+        }
+        return self.safe_string(statuses, status, status)
+
+    def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        response = self.privatePostGetdeposithistory(params)
+        for i in range(0, len(response['items'])):
+            response['items'][i]['type'] = 'deposit'
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        deposits = self.safe_value(response, 'items', [])
+        return self.parseTransactions(deposits, currency, since, limit)
+
+    def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        response = self.privatePostGetwithdrawalhistory(params)
+        for i in range(0, len(response['items'])):
+            response['items'][i]['type'] = 'withdrawal'
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
+        withdrawals = self.safe_value(response, 'items', [])
+        return self.parseTransactions(withdrawals, currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'

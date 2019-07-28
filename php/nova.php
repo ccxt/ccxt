@@ -21,6 +21,8 @@ class nova extends Exchange {
                 'createMarketOrder' => false,
                 'createDepositAddress' => true,
                 'fetchDepositAddress' => true,
+                'fetchDeposits' => true,
+                'fetchWithdrawals' => true,
             ),
             'urls' => array (
                 'referral' => 'https://novaexchange.com/signup/?re=is8vz2hsl3qxewv1uawd',
@@ -272,6 +274,81 @@ class nova extends Exchange {
             'tag' => $tag,
             'info' => $response,
         );
+    }
+
+    public function parse_transaction ($transaction, $currency = null) {
+        $timestamp = $this->safe_integer_2($transaction, 'unix_t_time_seen', 'unix_t_daterequested');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        $updated = $this->safe_integer($transaction, 'unix_t_datesent');
+        if ($updated !== null) {
+            $updated *= 1000;
+        }
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
+        $amount = $this->safe_float($transaction, 'tx_amount');
+        $addressTo = $this->safe_string($transaction, 'tx_address');
+        $fee = null;
+        $txid = $this->safe_string($transaction, 'tx_txid');
+        $type = $this->safe_string($transaction, 'type');
+        return array (
+            'info' => $transaction,
+            'id' => null,
+            'currency' => $code,
+            'amount' => $amount,
+            'addressFrom' => null,
+            'address' => $addressTo,
+            'addressTo' => $addressTo,
+            'tagFrom' => null,
+            'tag' => null,
+            'tagTo' => null,
+            'status' => $status,
+            'type' => $type,
+            'updated' => $updated,
+            'txid' => $txid,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => $fee,
+        );
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            'Accounted' => 'ok',
+            'Confirmed' => 'ok',
+            'Incoming' => 'pending',
+            'Approved' => 'pending',
+            'Sent' => 'pending',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
+        $response = $this->privatePostGetdeposithistory ($params);
+        for ($i = 0; $i < count ($response['items']); $i++) {
+            $response['items'][$i]['type'] = 'deposit';
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        $deposits = $this->safe_value($response, 'items', array());
+        return $this->parseTransactions ($deposits, $currency, $since, $limit);
+    }
+
+    public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
+        $response = $this->privatePostGetwithdrawalhistory ($params);
+        for ($i = 0; $i < count ($response['items']); $i++) {
+            $response['items'][$i]['type'] = 'withdrawal';
+        }
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+        }
+        $withdrawals = $this->safe_value($response, 'items', array());
+        return $this->parseTransactions ($withdrawals, $currency, $since, $limit);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
