@@ -134,7 +134,25 @@ class nova (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'unix_t_datestamp')
+        #
+        # fetchMyTrades
+        #
+        #    {
+        #        basecurrency: 'BTC',
+        #        fee: '0.00000026',
+        #        fromamount: '1079.13354707',
+        #        fromcurrency: 'LINX',
+        #        orig_orderid: 42906337,
+        #        price: '0.00000012',
+        #        toamount: '0.0.00012924',
+        #        tocurrency: 'BTC',
+        #        trade_time: '2019-07-28 13:36',
+        #        tradeid: 21715234,
+        #        tradetype: 'SELL',
+        #        unix_t_trade_time: 1564313790,
+        #    }
+        #
+        timestamp = self.safe_integer_2(trade, 'unix_t_datestamp', 'unix_t_trade_time')
         if timestamp is not None:
             timestamp *= 1000
         symbol = None
@@ -146,24 +164,33 @@ class nova (Exchange):
             side = side.lower()
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
+        feeCost = self.safe_float(trade, 'fee')
+        fee = None
+        if feeCost is not None:
+            feeCurrency = None if (market is None) else market['quote']
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
+        order = self.safe_integer(trade, 'orig_orderid')
+        id = self.safe_integer(trade, 'tradeid')
         cost = None
-        if price is not None:
-            if amount is not None:
-                cost = amount * price
+        if price is not None and amount is not None:
+            cost = amount * price
         return {
-            'id': None,
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': None,
+            'order': order,
             'type': type,
             'side': side,
             'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -173,6 +200,41 @@ class nova (Exchange):
             'pair': market['id'],
         }
         response = await self.publicGetMarketOrderhistoryPair(self.extend(request, params))
+        return self.parse_trades(response['items'], market, since, limit)
+
+    async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        #
+        # privatePostTradehistory response
+        #
+        #    {
+        #        items: {
+        #            {
+        #                basecurrency: 'BTC',
+        #                fee: '0.00000026',
+        #                fromamount: '1079.13354707',
+        #                fromcurrency: 'LINX',
+        #                orig_orderid: 42906337,
+        #                price: '0.00000012',
+        #                toamount: '0.0.00012924',
+        #                tocurrency: 'BTC',
+        #                trade_time: '2019-07-28 13:36',
+        #                tradeid: 21715234,
+        #                tradetype: 'SELL',
+        #                unix_t_trade_time: 1564313790,
+        #            },
+        #        },
+        #        message: 'Your trade history with recent first',
+        #        page: 1,
+        #        pages: 1,
+        #        perpage: 100,
+        #        status: 'success',
+        #        total_items: 1
+        #    }
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        response = await self.privatePostTradehistory(params)
         return self.parse_trades(response['items'], market, since, limit)
 
     async def fetch_balance(self, params={}):
@@ -223,6 +285,97 @@ class nova (Exchange):
             'orderid': id,
         }
         return await self.privatePostCancelorder(self.extend(request, params))
+
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        #
+        # privatePostMyopenorders response
+        #
+        #    {
+        #        items: {
+        #            {
+        #                fromamount: 1079.13354707,
+        #                fromcurrency: 'LINX',
+        #                market: 'BTC_LINX',
+        #                orderdate: '2019-07-28 10:50',
+        #                orderid: 43102690,
+        #                ordertype: 'SELL',
+        #                price: '0.00000015',
+        #                toamount: '0.00016187',
+        #                tocurrency: 'BTC',
+        #                unix_t_orderdate: 1564303847
+        #            },
+        #        },
+        #        message: 'Your open orders with recent first',
+        #        page: 1,
+        #        pages: 1,
+        #        perpage: 100,
+        #        status: 'success',
+        #        total_items: 1
+        #    }
+        await self.load_markets()
+        market = None
+        response = await self.privatePostMyopenorders(params)
+        orders = self.safe_value(response, 'items', [])
+        return self.parse_orders(orders, market, since, limit, {
+            'status': 'open',
+        })
+
+    def parse_order(self, order, market=None):
+        #
+        # fetchOpenOrders
+        #
+        #    {
+        #        fromamount: 1079.13354707,
+        #        fromcurrency: 'LINX',
+        #        market: 'BTC_LINX',
+        #        orderdate: '2019-07-28 10:50',
+        #        orderid: 43102690,
+        #        ordertype: 'SELL',
+        #        price: '0.00000015',
+        #        toamount: '0.00016187',
+        #        tocurrency: 'BTC',
+        #        unix_t_orderdate: 1564303847
+        #    }
+        #
+        orderId = self.safe_string(order, 'orderid')
+        symbol = None
+        marketId = self.safe_string(order, 'market')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+                symbol = market['symbol']
+            else:
+                baseId = self.safe_string(order, 'fromcurrency')
+                quoteId = self.safe_string(order, 'tocurrency')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        status = self.safe_string(order, 'status')
+        timestamp = self.safe_integer(order, 'unix_t_orderdate')
+        if timestamp is not None:
+            timestamp *= 1000
+        amount = self.safe_float(order, 'fromamount')
+        side = self.safe_string(order, 'ordertype')
+        if side is not None:
+            side = side.lower()
+        return {
+            'id': orderId,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'type': None,
+            'side': side,
+            'price': None,
+            'cost': None,
+            'amount': amount,
+            'remaining': None,
+            'filled': None,
+            'status': status,
+            'fee': None,
+            'trades': None,
+            'info': order,
+        }
 
     async def create_deposit_address(self, code, params={}):
         await self.load_markets()
