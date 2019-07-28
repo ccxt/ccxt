@@ -135,7 +135,7 @@ module.exports = class nova extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'unix_t_datestamp');
+        let timestamp = this.safeInteger2 (trade, 'unix_t_datestamp', 'unix_t_trade_time');
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
@@ -150,26 +150,27 @@ module.exports = class nova extends Exchange {
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
+        const fee = this.safeFloat (trade, 'fee');
+        const order = this.safeInteger (trade, 'orig_orderid');
+        const id = this.safeInteger (trade, 'tradeid');
         let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
+        if (price !== undefined && amount !== undefined) {
+            cost = amount * price;
         }
         return {
-            'id': undefined,
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
+            'order': order,
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -180,6 +181,43 @@ module.exports = class nova extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetMarketOrderhistoryPair (this.extend (request, params));
+        return this.parseTrades (response['items'], market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // privatePostTradehistory response
+        //
+        //    {
+        //        items: {
+        //            {
+        //                basecurrency: 'BTC',
+        //                fee: '0.00000026',
+        //                fromamount: '1079.13354707',
+        //                fromcurrency: 'LINX',
+        //                orig_orderid: 42906337,
+        //                price: '0.00000012',
+        //                toamount: '0.0.00012924',
+        //                tocurrency: 'BTC',
+        //                trade_time: '2019-07-28 13:36',
+        //                tradeid: 21715234,
+        //                tradetype: 'SELL',
+        //                unix_t_trade_time: 1564313790,
+        //            },
+        //        },
+        //        message: 'Your trade history with recent first',
+        //        page: 1,
+        //        pages: 1,
+        //        perpage: 100,
+        //        status: 'success',
+        //        total_items: 1
+        //    }
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privatePostTradehistory (params);
         return this.parseTrades (response['items'], market, since, limit);
     }
 
@@ -235,6 +273,76 @@ module.exports = class nova extends Exchange {
             'orderid': id,
         };
         return await this.privatePostCancelorder (this.extend (request, params));
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // privatePostMyopenorders response
+        //
+        //    {
+        //        items: {
+        //            {
+        //                fromamount: 1079.13354707,
+        //                fromcurrency: 'LINX',
+        //                market: 'BTC_LINX',
+        //                orderdate: '2019-07-28 10:50',
+        //                orderid: 43102690,
+        //                ordertype: 'SELL',
+        //                price: '0.00000015',
+        //                toamount: '0.00016187',
+        //                tocurrency: 'BTC',
+        //                unix_t_orderdate: 1564303847
+        //            },
+        //        },
+        //        message: 'Your open orders with recent first',
+        //        page: 1,
+        //        pages: 1,
+        //        perpage: 100,
+        //        status: 'success',
+        //        total_items: 1
+        //    }
+        await this.loadMarkets ();
+        const market = undefined;
+        const response = await this.privatePostMyopenorders (params);
+        for (let i = 0; i < response['items'].length; i++) {
+            response['items'][i]['status'] = 'open';
+        }
+        return this.parseOrders (this.safeValue (response, 'items', {}), market, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        const orderId = this.safeString (order, 'orderid');
+        const tradedCurrency = this.safeString (order, 'fromcurrency');
+        const status = this.safeString (order, 'status');
+        const settlementCurrency = this.safeString (order, 'tocurrency');
+        const symbol = this.findSymbol (tradedCurrency + '/' + settlementCurrency);
+        let timestamp = this.safeInteger (order, 'unix_t_orderdate');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const amount = this.safeFloat (order, 'fromamount');
+        let side = this.safeString (order, 'ordertype');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
+        return {
+            'id': orderId,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'type': undefined,
+            'side': side,
+            'price': undefined,
+            'cost': undefined,
+            'amount': amount,
+            'remaining': undefined,
+            'filled': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
+        };
     }
 
     async createDepositAddress (code, params = {}) {
