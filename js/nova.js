@@ -276,11 +276,11 @@ module.exports = class nova extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let timestamp = this.safeInteger2 (transaction, 'unix_t_time_seen');
+        let timestamp = this.safeInteger2 (transaction, 'unix_t_time_seen', 'unix_t_daterequested');
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
-        let updated = this.safeInteger (transaction, 'unix_t_time_sent');
+        let updated = this.safeInteger (transaction, 'unix_t_datesent');
         if (updated !== undefined) {
             updated *= 1000;
         }
@@ -314,6 +314,7 @@ module.exports = class nova extends Exchange {
             'Accounted': 'ok',
             'Confirmed': 'ok',
             'Incoming': 'pending',
+            'Approved': 'pending',
         };
         return this.safeString (statuses, status, status);
     }
