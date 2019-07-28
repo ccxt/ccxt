@@ -276,19 +276,22 @@ module.exports = class nova extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let timestamp = this.safeInteger (transaction, 'unix_t_time_seen');
-        if (timestamp === undefined) {
-            timestamp = this.safeInteger (transaction, 'unix_t_time_sent');
-        }
+        let timestamp = this.safeInteger2 (transaction, 'unix_t_time_seen');
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
+        let updated = this.safeInteger (transaction, 'unix_t_time_sent');
+        if (updated !== undefined) {
+            updated *= 1000;
+        }
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        let status = this.safeString (transaction, 'status', 'pending');
-        status = this.parseTransactionStatus (status);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const amount = this.safeFloat (transaction, 'tx_amount');
         const address = this.safeString (transaction, 'tx_address');
+        const fee = undefined;
+        const txid = this.safeString (transaction, 'tx_txid');
+        const type = this.safeString (transaction, 'type');
         return {
             'info': transaction,
             'id': undefined,
@@ -297,15 +300,12 @@ module.exports = class nova extends Exchange {
             'address': address,
             'tag': undefined,
             'status': status,
-            'type': this.safeString (transaction, 'type'),
-            'updated': undefined,
-            'txid': this.safeString (transaction, 'tx_txid'),
+            'type': type,
+            'updated': updated,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fee': {
-                'currency': code,
-                'cost': undefined,
-            },
+            'fee': fee,
         };
     }
 
