@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.binancedex_pb2 import create_order_msg, cancel_order_msg, Wallet
 
 
 class binancedex (Exchange):
@@ -115,13 +116,6 @@ class binancedex (Exchange):
                 'walletAddress': True,
             },
             'accountInfo': {},
-            'exceptions': {
-                'exact': {
-                },
-                'broad': {
-                    'signature verification failed': AuthenticationError,
-                },
-            },
             'options': {
                 'orderTypes': {
                     'limit': 2,
@@ -279,12 +273,16 @@ class binancedex (Exchange):
             'sequence': response['sequence'],
             'public_key': response['public_key'],
             'account_number': response['account_number'],
+            'wallet': Wallet(private_key=self.privateKey,
+                             account_number=response['account_number'],
+                             address=self.walletAddress,
+                             sequence=response['sequence']),
         }
         return self.accountInfo
 
     def is_account_info_available(self):
         keys = list(self.accountInfo.keys())
-        return len(keys) == 3
+        return len(keys) == 4
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
@@ -309,14 +307,10 @@ class binancedex (Exchange):
         if side == 'sell':
             order_side = 2
         msg = {
-            # 'body': create_order_msg(self.accountInfo['wallet'], market['id'], order_type, order_side, amount, price),
-            'body': 'magic goes here',
-            'order_type': order_type,
-            'market': market['id'],
-            'order_side': order_side,
+            'body': create_order_msg(self.accountInfo['wallet'], market['id'], order_type, order_side, amount, price),
         }
         response = self.privatePostBroadcastSync1(msg)
-        # self.accountInfo['wallet'].increment_sequence()
+        self.accountInfo['wallet'].increment_sequence()
         return {
             'info': response,
             'id': self.parse_json(response[0]['data'])['order_id'],
@@ -328,14 +322,12 @@ class binancedex (Exchange):
         self.load_markets()
         market = self.market(symbol)
         msg = {
-            # 'body': cancel_order_msg(self.accountInfo['wallet'], id, market['id']),
-            'body': 'magic goes here',
-            'id': market['id'],
+            'body': cancel_order_msg(self.accountInfo['wallet'], id, market['id']),
         }
         result = {
             'info': self.privatePostBroadcastSync1(msg),
         }
-        # self.accountInfo['wallet'].increment_sequence()
+        self.accountInfo['wallet'].increment_sequence()
         return result
 
     def parse_order(self, order, market=None):
