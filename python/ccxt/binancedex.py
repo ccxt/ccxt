@@ -354,7 +354,7 @@ class binancedex (Exchange):
         if orderStatus in orderStatusMap:
             status = orderStatusMap[orderStatus]
         side = 'buy'
-        if order['direction'] == self.options['orderSide']['sell']:
+        if order['side'] == self.options['orderSide']['sell']:
             side = 'sell'
         marketId = self.safe_string(order, 'symbol')
         symbol = None
@@ -362,7 +362,7 @@ class binancedex (Exchange):
             marketInfo = self.markets_by_id[marketId]
             symbol = marketInfo['symbol']
         orderType = 'market'
-        if order['orderType'] == self.options['orderTypes']['limit']:
+        if order['type'] == self.options['orderTypes']['limit']:
             orderType = 'limit'
         timestamp = self.parse8601(self.safe_string(order, 'orderCreateTime'))
         quantity = self.safe_float(order, 'quantity')
@@ -370,7 +370,7 @@ class binancedex (Exchange):
         price = self.safe_float(order, 'price')
         id = self.safe_string(order, 'orderId')
         feeInfo = self.safe_string(order, 'fee').split(':')
-        feeSymbol = self.currencies_by_id[self.safe_string(feeInfo, 0)]['code']
+        feeSymbol = self.currencies_by_id[feeInfo[0]]['code']
         return {
             'info': order,
             'id': id,
@@ -387,7 +387,7 @@ class binancedex (Exchange):
             'filled': filledQuantity,
             'status': status,
             'fee': {
-                'cost': float(self.safe_string(feeInfo, 1)),
+                'cost': float(feeInfo[1].replace(';', '')),
                 'currency': feeSymbol,
             },
         }
