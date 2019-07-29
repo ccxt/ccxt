@@ -378,7 +378,7 @@ module.exports = class binancedex extends Exchange {
             status = orderStatusMap[orderStatus];
         }
         let side = 'buy';
-        if (order['direction'] === this.options['orderSide']['sell']) {
+        if (order['side'] === this.options['orderSide']['sell']) {
             side = 'sell';
         }
         const marketId = this.safeString (order, 'symbol');
@@ -388,7 +388,7 @@ module.exports = class binancedex extends Exchange {
             symbol = marketInfo['symbol'];
         }
         let orderType = 'market';
-        if (order['orderType'] === this.options['orderTypes']['limit']) {
+        if (order['type'] === this.options['orderTypes']['limit']) {
             orderType = 'limit';
         }
         const timestamp = this.parse8601 (this.safeString (order, 'orderCreateTime'));
@@ -397,7 +397,7 @@ module.exports = class binancedex extends Exchange {
         const price = this.safeFloat (order, 'price');
         const id = this.safeString (order, 'orderId');
         const feeInfo = this.safeString (order, 'fee').split (':');
-        const feeSymbol = this.currencies_by_id[this.safeString (feeInfo, 0)]['code'];
+        const feeSymbol = this.currencies_by_id[feeInfo[0]]['code'];
         return {
             'info': order,
             'id': id,
@@ -414,7 +414,7 @@ module.exports = class binancedex extends Exchange {
             'filled': filledQuantity,
             'status': status,
             'fee': {
-                'cost': parseFloat (this.safeString (feeInfo, 1)),
+                'cost': parseFloat (feeInfo[1].replace (';', '')),
                 'currency': feeSymbol,
             },
         };
