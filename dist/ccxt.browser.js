@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.991'
+const version = '1.18.992'
 
 Exchange.ccxtVersion = version
 
@@ -3080,6 +3080,10 @@ module.exports = class Exchange {
             result['v'].push (ohlcvs[i][5]);
         }
         return result;
+    }
+
+    fetchTicker (symbol, params = {}) {
+        throw new NotSupported (this.id + ' fetchTicker not supported yet')
     }
 
     fetchTickers (symbols = undefined, params = {}) {
