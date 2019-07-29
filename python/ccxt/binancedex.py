@@ -116,6 +116,13 @@ class binancedex (Exchange):
                 'walletAddress': True,
             },
             'accountInfo': {},
+            'exceptions': {
+                'exact': {
+                },
+                'broad': {
+                    'signature verification failed': AuthenticationError,
+                },
+            },
             'options': {
                 'orderTypes': {
                     'limit': 2,
