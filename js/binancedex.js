@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { NotSupported } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const { AuthenticationError, ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ module.exports = class binancedex extends Exchange {
                 'fetchTradingLimits': false,
                 'fetchTransactions': false,
                 'fetchWithdrawals': false,
-                'privateAPI': false,
+                'privateAPI': true,
                 'publicAPI': true,
                 'withdraw': false,
             },
@@ -86,8 +86,6 @@ module.exports = class binancedex extends Exchange {
                 'funding': {
                 },
             },
-            'exceptions': {
-            },
             'api': {
                 'public': {
                     'get': [
@@ -99,6 +97,11 @@ module.exports = class binancedex extends Exchange {
                         'account/{address}',
                     ],
                 },
+                'private': {
+                    'post': [
+                        'broadcast/?sync=1',
+                    ],
+                },
             },
             'commonCurrencies': {
             },
@@ -108,6 +111,14 @@ module.exports = class binancedex extends Exchange {
                 'secret': false,
                 'privateKey': true,
                 'walletAddress': true,
+            },
+            'accountInfo': {},
+            'exceptions': {
+                'exact': {
+                },
+                'broad': {
+                    'signature verification failed': AuthenticationError,
+                },
             },
             'options': {
                 'orderTypes': {
@@ -271,6 +282,24 @@ module.exports = class binancedex extends Exchange {
         return this.parseBalance (result);
     }
 
+    async fetchAccountInfo (params = {}) {
+        const request = {
+            'address': this.walletAddress,
+        };
+        const response = await this.publicGetAccountAddress (this.extend (request, params));
+        this.accountInfo = {
+            'sequence': response['sequence'],
+            'public_key': response['public_key'],
+            'account_number': response['account_number'],
+        };
+        return this.accountInfo;
+    }
+
+    isAccountInfoAvailable () {
+        const keys = Object.keys (this.accountInfo);
+        return keys.length === 3;
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -285,11 +314,50 @@ module.exports = class binancedex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        throw new NotSupported (this.id + ' createOrder not implemented yet');
+        if (type !== 'limit') {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const order_type = 2;
+        if (!this.isAccountInfoAvailable ()) {
+            await this.fetchAccountInfo ();
+        }
+        let order_side = 1;
+        if (side === 'sell') {
+            order_side = 2;
+        }
+        const msg = {
+            // 'body': create_order_msg(self.accountInfo['wallet'], market['id'], order_type, order_side, amount, price),
+            'body': 'magic goes here',
+            'order_type': order_type,
+            'market': market['id'],
+            'order_side': order_side,
+        };
+        const response = this.privatePostBroadcastSync1 (msg);
+        // self.accountInfo['wallet'].increment_sequence()
+        return {
+            'info': response,
+            'id': this.parseJson (response[0]['data'])['order_id'],
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        throw new NotSupported (this.id + ' createOrder not implemented yet');
+        if (!this.isAccountInfoAvailable ()) {
+            await this.fetchAccountInfo ();
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const msg = {
+            // 'body': cancel_order_msg(self.accountInfo['wallet'], id, market['id']),
+            'body': 'magic goes here',
+            'id': market['id'],
+        };
+        const result = {
+            'info': this.privatePostBroadcastSync1 (msg),
+        };
+        // self.accountInfo['wallet'].increment_sequence()
+        return result;
     }
 
     parseOrder (order, market = undefined) {
@@ -368,8 +436,35 @@ module.exports = class binancedex extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         } else {
-            body = this.json (params);
+            if (api === 'private') {
+                body = params['body'];
+                headers = {
+                    'Content-type': 'text/plain',
+                };
+            } else {
+                body = this.json (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response) {
+        if (!response || httpCode === 200) {
+            return; // fallback to default error handler
+        }
+        const error = this.safeValue (response, 'message');
+        if (error) {
+            const feedback = this.id + ' ' + this.json (response);
+            const exact = this.exceptions['exact'];
+            if (error in exact) {
+                throw new exact[error] (feedback);
+            }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, error);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown error
+        }
     }
 };
