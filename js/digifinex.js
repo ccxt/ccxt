@@ -32,15 +32,15 @@ module.exports = class digifinex extends Exchange {
                 'fetchTickers': true,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '4h': '4h',
-                '12h': '12h',
-                '1d': '1d',
-                '1w': '1w',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '12h': '720',
+                '1d': '1D',
+                '1w': '1W',
             },
             'urls': {
                 'logo': 'https://static.digifinex.vip/newhome/pc/img/index/logo_dark.svg',
@@ -126,11 +126,6 @@ module.exports = class digifinex extends Exchange {
                 'orderTypes': {
                 },
             },
-            'headers': {
-                'Referer': 'https://www.digifinex.vip/en-ww/trade/USDT/QTUM',
-            },
-            'apiKey': '15cb6aad284ab8',
-            'secret': '48cad555befb5de238f6688b440a803f05cb6aad2',
         });
     }
 
@@ -697,15 +692,39 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        const markets = await this.loadMarkets ();
-        const market = markets[symbol];
-        symbol = market['id'];
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': symbol,
-            'type': 'kline_' + timeframe,
+            'symbol': market['id'],
+            'period': this.timeframes[timeframe],
+            // 'start_time': 1564520003, // starting timestamp, 200 candles before end_time by default
+            // 'end_time': 1564520003, // ending timestamp, current timestamp by default
         };
-        const response = await this.privateGetKline (this.extend (request, params));
-        return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
+        if (since !== undefined) {
+            const startTime = parseInt (since / 1000);
+            request['start_time'] = startTime;
+            if (limit !== undefined) {
+                const duration = this.parseTimeframe (timeframe);
+                request['end_time'] = this.sum (startTime, limit * duration);
+            }
+        } else if (limit !== undefined) {
+            const endTime = this.seconds ();
+            const duration = this.parseTimeframe (timeframe);
+            request['startTime'] = this.sum (endTime, -limit * duration);
+        }
+        const response = await this.publicGetKline (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             [1556712900,2205.899,0.029967,0.02997,0.029871,0.029927],
+        //             [1556713800,1912.9174,0.029992,0.030014,0.029955,0.02996],
+        //             [1556714700,1556.4795,0.029974,0.030019,0.029969,0.02999],
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
