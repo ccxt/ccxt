@@ -78,8 +78,8 @@ module.exports = class digifinex extends Exchange {
                         'margin/assets',
                     ],
                     'post': [
-                        '{market}/order​/new',
-                        '{market}/order​/cancel',
+                        '{market}/order/new',
+                        '{market}/order/cancel',
                         'transfer',
                         'margin/position/close',
                     ],
@@ -90,7 +90,7 @@ module.exports = class digifinex extends Exchange {
                     '10001': [ BadRequest, "Wrong request method, please check it's a GET ot POST request" ],
                     '10002': [ AuthenticationError, 'Invalid ApiKey' ],
                     '10003': [ AuthenticationError, "Sign doesn't match" ],
-                    '10004': [ ArgumentsRequired, 'Illegal request parameters' ],
+                    '10004': [ BadRequest, 'Illegal request parameters' ],
                     '10005': [ DDoSProtection, 'Request frequency exceeds the limit' ],
                     '10006': [ PermissionDenied, 'Unauthorized to execute this request' ],
                     '10007': [ PermissionDenied, 'IP address Unauthorized' ],
@@ -557,31 +557,38 @@ module.exports = class digifinex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // exchange-specific parameters: post_only
-        // post-only: 1: yes, 0: no. A post_only order will only be created as a maker order. If it cannot be placed into order book immediately, it will be cancelled automatically.
-        if (!price > 0 || !amount > 0) { // to parse exception tests
-            throw new InvalidOrder ();
-        }
         await this.loadMarkets ();
-        const markets = await this.loadMarkets ();
-        const mark = markets[symbol]['id'];
-        const order = {
-            'symbol': mark,
-            'price': this.priceToPrecision (symbol, price),
+        const market = this.market (symbol);
+        const orderType = this.safeString (params, 'type', 'spot');
+        params = this.omit (params, 'type');
+        const request = {
+            'market': orderType,
+            'symbol': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
-            'type': side,
+            // 'post_only': 0, // 0 by default, if set to 1 the order will be canceled if it can be executed immediately, making sure there will be no market taking
         };
+        let suffix = '';
         if (type === 'market') {
-            throw new InvalidOrder ('market order not supported');
+            suffix = '_market';
+        } else {
+            request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostTrade (this.extend (order, params));
-        const result = {
-            'info': response,
-            'id': response['order_id'],
+        request['type'] = side + suffix;
+        const response = await this.privatePostMarketOrderNew (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
+        //     }
+        //
+        const result = this.parseOrder (response, market);
+        return this.extend (result, {
             'symbol': symbol,
             'side': side,
-        };
-        return result;
+            'type': type,
+            'amount': amount,
+            'price': price,
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -739,7 +746,6 @@ module.exports = class digifinex extends Exchange {
             const auth = urlencoded;
             // the signature is not time-limited :\
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            // request['sign'] = signature;
             if (method === 'GET') {
                 if (urlencoded) {
                     url += '?' + urlencoded;
