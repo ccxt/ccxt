@@ -268,23 +268,27 @@ module.exports = class digifinex extends Exchange {
         params = this.omit (params, 'type');
         const method = 'privateGet' + this.capitalize (type) + 'Assets';
         const response = await this[method] (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "list": [
+        //             {
+        //                 "currency": "BTC",
+        //                 "free": 4723846.89208129,
+        //                 "frozen": 0
+        //             }
+        //         ]
+        //     }
+        const balances = this.safeValue (response, 'list', []);
         const result = { 'info': response };
-        const free = response['free'];
-        const frozen = response['frozen'];
-        const keysFree = Object.keys (free);
-        const keysFrozen = Object.keys (frozen);
-        const keys = this.arrayConcat (keysFree, keysFrozen);
-        for (let i = 0; i < keys.length; i++) {
-            const uppercase = this.safeCurrencyCode (keys[i]);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            if (this.inArray (keys[i], keysFree)) {
-                account['free'] = free[keys[i]];
-            }
-            if (this.inArray (keys[i], keysFrozen)) {
-                account['used'] = frozen[keys[i]];
-            }
-            account['total'] = this.sum (account['free'], account['used']);
-            result[uppercase] = account;
+            account['used'] = this.safeFloat (balance, 'frozen');
+            account['free'] = this.safeFloat (balance, 'free');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
