@@ -396,8 +396,15 @@ module.exports = class binancedex extends Exchange {
         const filledQuantity = this.safeFloat (order, 'cumulateQuantity');
         const price = this.safeFloat (order, 'price');
         const id = this.safeString (order, 'orderId');
+        let feeCurrency = undefined;
+        let feeCost = 0;
         const feeInfo = this.safeString (order, 'fee').split (':');
-        const feeSymbol = this.currencies_by_id[feeInfo[0]]['code'];
+        if (feeInfo.length > 0) {
+            feeCurrency = feeInfo[0];
+        }
+        if (feeInfo.length > 1) {
+            feeCost = parseFloat (feeInfo[1].replace (';', ''));
+        }
         return {
             'info': order,
             'id': id,
@@ -414,8 +421,8 @@ module.exports = class binancedex extends Exchange {
             'filled': filledQuantity,
             'status': status,
             'fee': {
-                'cost': parseFloat (feeInfo[1].replace (';', '')),
-                'currency': feeSymbol,
+                'cost': feeCost,
+                'currency': feeCurrency,
             },
         };
     }
