@@ -367,7 +367,8 @@ module.exports = class idex extends Exchange {
         if (this.options['contractAddress'] !== undefined) {
             return this.options['contractAddress'];
         }
-        this.options['contractAddress'] = this.safeString (await this.publicPostReturnContractAddress (), 'address');
+        const response = await this.publicPostReturnContractAddress ();
+        this.options['contractAddress'] = this.safeString (response, 'address');
         return this.options['contractAddress'];
     }
 
