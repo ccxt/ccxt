@@ -398,12 +398,16 @@ module.exports = class binancedex extends Exchange {
         const id = this.safeString (order, 'orderId');
         let feeCurrency = undefined;
         let feeCost = 0;
-        const feeInfo = this.safeString (order, 'fee').split (':');
-        if (feeInfo.length > 0) {
-            feeCurrency = feeInfo[0];
-        }
-        if (feeInfo.length > 1) {
-            feeCost = parseFloat (feeInfo[1].replace (';', ''));
+        const feeData = this.safeString (order, 'fee').split (';');
+        const feeInfoField = feeData.length - 2;
+        if (feeInfoField >= 0) {
+            const feeInfo = feeData[feeInfoField].split (':');
+            if (feeInfo.length > 0) {
+                feeCurrency = feeInfo[0];
+            }
+            if (feeInfo.length > 1) {
+                feeCost = parseFloat (feeInfo[1].replace (';', ''));
+            }
         }
         return {
             'info': order,
