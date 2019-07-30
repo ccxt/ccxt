@@ -472,38 +472,91 @@ module.exports = class digifinex extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
-        const timestamp = parseInt (trade['date']) * 1000;
-        const side = trade['type'].toLowerCase ();
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "date":1564520003,
+        //         "id":1596149203,
+        //         "amount":0.7073,
+        //         "type":"buy",
+        //         "price":0.02193,
+        //     }
+        //
+        // fetchMyTrades (private)
+        //
+        //     ...
+        //
+        const id = this.safeString (trade, 'id');
+        let timestamp = this.safeInteger (trade, 'date');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const side = this.safeString (trade, 'type');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
-        const cost = price * amount;
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
-            'id': undefined,
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': undefined,
             'order': undefined,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'takerOrMaker': 'taker',
+            'takerOrMaker': undefined,
             'fee': undefined,
         };
     }
 
-    async fetchTrades (symbol, since = undefined, limit = 50, params = {}) {
-        const markets = await this.loadMarkets ();
-        const market = markets[symbol];
-        symbol = market['id'];
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'symbol': symbol,
+            'symbol': market['id'],
         };
-        const response = await this.privateGetTradeDetail (this.extend (request, params));
-        return this.parseTrades (response['data'], market, since, limit);
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 500
+        }
+        const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //     {
+        //         "data":[
+        //             {
+        //                 "date":1564520003,
+        //                 "id":1596149203,
+        //                 "amount":0.7073,
+        //                 "type":"buy",
+        //                 "price":0.02193,
+        //             },
+        //             {
+        //                 "date":1564520002,
+        //                 "id":1596149165,
+        //                 "amount":0.3232,
+        //                 "type":"sell",
+        //                 "price":0.021927,
+        //             },
+        //         ],
+        //         "code": 0,
+        //         "date": 1564520003,
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
