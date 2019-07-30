@@ -358,7 +358,7 @@ module.exports = class idex extends Exchange {
             return this.safeInteger (response, 'nonce');
         } else {
             const result = this.options['orderNonce'];
-            this.options['orderNonce'] += 1;
+            this.options['orderNonce'] = this.sum (this.options['orderNonce'], 1);
             return result;
         }
     }
