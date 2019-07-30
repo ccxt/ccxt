@@ -371,11 +371,14 @@ class binancedex (Exchange):
         id = self.safe_string(order, 'orderId')
         feeCurrency = None
         feeCost = 0
-        feeInfo = self.safe_string(order, 'fee').split(':')
-        if len(feeInfo) > 0:
-            feeCurrency = feeInfo[0]
-        if len(feeInfo) > 1:
-            feeCost = float(feeInfo[1].replace(';', ''))
+        feeData = self.safe_string(order, 'fee').split(';')
+        feeInfoField = len(feeData) - 2
+        if feeInfoField >= 0:
+            feeInfo = feeData[feeInfoField].split(':')
+            if len(feeInfo) > 0:
+                feeCurrency = feeInfo[0]
+            if len(feeInfo) > 1:
+                feeCost = float(feeInfo[1].replace(';', ''))
         return {
             'info': order,
             'id': id,
