@@ -17,15 +17,10 @@ module.exports = class digifinex extends Exchange {
             'rateLimit': 900, // 300 for posts
             // new metainfo interface
             'has': {
-                // 'cancelAllOrders': false,
                 'cancelOrders': true,
                 'createMarketOrder': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
-                'fetchFundingFees': false,
-                // 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -269,7 +264,10 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const response = await this.privateGetMyposition ();
+        const type = this.safeString (params, 'type', 'spot');
+        params = this.omit (params, 'type');
+        const method = 'privateGet' + this.capitalize (type) + 'Assets';
+        const response = await this[method] (params);
         const result = { 'info': response };
         const free = response['free'];
         const frozen = response['frozen'];
@@ -682,12 +680,12 @@ module.exports = class digifinex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0] * 1000,
-            ohlcv[5],
-            ohlcv[3],
-            ohlcv[4],
-            ohlcv[2],
-            ohlcv[1],
+            ohlcv[0] * 1000, // timestamp
+            ohlcv[5], // open
+            ohlcv[3], // high
+            ohlcv[4], // low
+            ohlcv[2], // close
+            ohlcv[1], // volume
         ];
     }
 
@@ -731,41 +729,33 @@ module.exports = class digifinex extends Exchange {
         const version = (api === 'v2') ? api : this.version;
         let url = this.urls['api'] + '/' + version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
+        const urlencoded = this.urlencode (this.keysort (query));
         if (api === 'private') {
-            // todo: rework lines 576-594
-            params = this.extend (params, {
-                'apiKey': this.apiKey,
-            });
-            this.checkRequiredCredentials ();
-            params['timestamp'] = parseInt (this.nonce ());
-            params['apiSecret'] = this.secret;
-            params = this.keysort (params);
-            const keys = Object.keys (params);
-            const arr = [];
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                const s = params[key].toString ();
-                arr.push (s);
-            }
-            params = this.omit (params, 'apiSecret');
-            const s = arr.join ('');
-            const sign = this.hash (this.encode (s), 'md5');
-            params['sign'] = sign;
+            const nonce = this.nonce ().toString ();
+            const auth = urlencoded;
+            // the signature is not time-limited :\
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            // request['sign'] = signature;
             if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
+                if (urlencoded) {
+                    url += '?' + urlencoded;
                 }
             } else if (method === 'POST') {
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                if (Object.keys (params).length) {
-                    body = this.urlencode (params);
+                if (urlencoded) {
+                    body = urlencoded;
                 }
             }
+            headers = {
+                'ACCESS-KEY': this.apiKey,
+                'ACCESS-SIGN': signature,
+                'ACCESS-TIMESTAMP': nonce,
+            };
         } else {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
+            if (urlencoded) {
+                url += '?' + urlencoded;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
