@@ -4,7 +4,6 @@
 
 const Exchange = require ('./base/Exchange');
 const { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection, AuthenticationError, PermissionDenied, ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder, InvalidNonce, OrderNotFound } = require ('./base/errors');
-const { DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,9 +13,9 @@ module.exports = class digifinex extends Exchange {
             'id': 'digifinex',
             'name': 'DigiFinex',
             'countries': [ 'SG' ],
-            'version': 'v2',
+            'version': 'v3',
             'rateLimit': 900, // 300 for posts
-            'certified': false,
+            'userAgent': this.userAgents['chrome'],
             // new metainfo interface
             'has': {
                 // 'cancelAllOrders': false,
@@ -47,46 +46,45 @@ module.exports = class digifinex extends Exchange {
             'urls': {
                 'logo': 'https://static.digifinex.vip/newhome/pc/img/index/logo_dark.svg',
                 'api': {
-                    'public': 'https://openapi.digifinex.vip/v2',
-                    'private': 'https://openapi.digifinex.vip/v2',
-                    'publicV3': 'https://openapi.digifinex.vip/v3',
+                    'public': 'https://openapi.digifinex.vip',
+                    'private': 'https://openapi.digifinex.vip',
                 },
-                'www': 'https://www.digifinex.vip/',
+                'www': 'https://www.digifinex.vip',
                 'doc': [
-                    'https://github.com/DigiFinex/api',
+                    'https://docs.digifinex.vip',
                 ],
-                'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360007166473-Fee-Structure-on-DigiFinex',
+                'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328482-Fee-Structure-on-DigiFinex',
             },
             'api': {
                 'public': {
                     'get': [
-                        'ticker',
-                    ],
-                },
-                'publicV3': {
-                    'get': [
-                        'markets',
+                        'markets', // undocumented
+                        'ping',
+                        'time',
                         'order_book',
                         'trades',
                         'kline',
+                        'spot/symbols',
+                        'margin/currencies',
+                        'margin/symbols',
                     ],
                 },
                 'private': {
                     'get': [
-                        'otc_market_price',
-                        'depth',
-                        'trade_detail',
-                        'kline',
-                        'trade_pairs',
-                        'open_orders',
-                        'order_history',
-                        'order_info',
-                        'order_detail',
-                        'myposition',
+                        '{market}/financelog',
+                        '{market}/order',
+                        '{market}/order​/current',
+                        '{market}/order​/history',
+                        '{market}/mytrades',
+                        'spot/assets',
+                        'margin/positions',
+                        'margin/assets',
                     ],
                     'post': [
-                        'trade',
-                        'cancel_order',
+                        '{market}/order​/new',
+                        '{market}/order​/cancel',
+                        'transfer',
+                        'margin/position/close',
                     ],
                 },
             },
@@ -116,40 +114,64 @@ module.exports = class digifinex extends Exchange {
                     '20015': [ BadRequest, 'Date exceeds the limit' ],
                     '20018': [ PermissionDenied, 'Your trading rights have been banned by the system' ],
                     '20019': [ BadRequest, 'Wrong trading pair symbol. Correct format:"usdt_btc". Quote asset is in the front' ],
+                    '20020': [ DDoSProtection, "You have violated the API operation trading rules and temporarily forbid trading. At present, we have certain restrictions on the user's transaction rate and withdrawal rate." ],
+                    '50000': [ ExchangeError, 'Exception error' ],
                 },
                 'broad': {
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
             'options': {
                 'orderTypes': {
                 },
+            },
+            'headers': {
+                'Referer': 'https://www.digifinex.vip/en-ww/trade/USDT/QTUM',
             },
             'apiKey': '15cb6aad284ab8',
             'secret': '48cad555befb5de238f6688b440a803f05cb6aad2',
         });
     }
 
-    async fetchMarkets (params = {}) {
-        const response = await this.privateGetTradePairs ();
+    async fetchMarketsByType (type, params = {}) {
+        const method = 'publicGet' + this.capitalize (type) + 'Symbols';
+        const response = await this[method] (params);
+        //
+        //     {
+        //         "symbol_list": [
+        //             {
+        //                 "order_types":["LIMIT","MARKET"],
+        //                 "quote_asset":"USDT",
+        //                 "minimum_value":2,
+        //                 "amount_precision":4,
+        //                 "status":"TRADING",
+        //                 "minimum_amount":0.001,
+        //                 "symbol":"LTC_USDT",
+        //                 "margin_rate":0.3,
+        //                 "zone":"MAIN",
+        //                 "base_asset":"LTC",
+        //                 "price_precision":2
+        //             },
+        //         ],
+        //         "code":0
+        //     }
+        //
+        const markets = this.safeValue (response, 'symbols_list', []);
         const result = [];
-        const keys = Object.keys (response['data']);
-        for (let i = 0; i < keys.length; i++) {
-            const id = keys[i];
-            const pair = id.split ('_');
-            const baseId = pair[1];
-            const quoteId = pair[0];
-            const base = baseId.toUpperCase ();
-            const quote = quoteId.toUpperCase ();
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'base_asset');
+            const quoteId = this.safeString (market, 'quote_asset');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const market = response['data'][id];
             const precision = {
-                'price': market[1],
-                'amount': market[0],
+                'amount': this.safeInteger (market, 'amount_precision'),
+                'price': this.safeInteger (market, 'price_precision'),
             };
             const limits = {
                 'amount': {
-                    'min': market[2],
+                    'min': this.safeFloat (market, 'minimum_amount'),
                     'max': undefined,
                 },
                 'price': {
@@ -157,10 +179,21 @@ module.exports = class digifinex extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': market[3],
+                    'min': this.safeFloat (market, 'minimum_value'),
                     'max': undefined,
                 },
             };
+            //
+            // The status is documented in the exchange API docs as follows:
+            // TRADING, HALT (delisted), BREAK (trading paused)
+            // https://docs.digifinex.vip/en-ww/v3/#/public/spot/symbols
+            // However, all spot markets actually have status === 'HALT'
+            // despite that they appear to be active on the exchange website.
+            // Apparently, we can't trust this status.
+            // const status = this.safeString (market, 'status');
+            // const active = (status === 'TRADING');
+            //
+            const active = undefined;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -168,7 +201,68 @@ module.exports = class digifinex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': true,
+                'active': active,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchMarkets (params = {}) {
+        const response = await this.publicGetMarkets (params);
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "volume_precision":4,
+        //                 "price_precision":2,
+        //                 "market":"btc_usdt",
+        //                 "min_amount":2,
+        //                 "min_volume":0.0001
+        //             },
+        //         ],
+        //         "date":1564507456,
+        //         "code":0
+        //     }
+        //
+        const markets = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'market');
+            const [ baseId, quoteId ] = id.split ('_');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
+                'amount': this.safeInteger (market, 'volume_precision'),
+                'price': this.safeInteger (market, 'price_precision'),
+            };
+            const limits = {
+                'amount': {
+                    'min': this.safeFloat (market, 'min_volume'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeFloat (market, 'min_amount'),
+                    'max': undefined,
+                },
+            };
+            const active = undefined;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
                 'precision': precision,
                 'limits': limits,
                 'info': market,
@@ -201,18 +295,36 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        // limit can be up to 100, defaults to 10
-        const markets = await this.loadMarkets ();
-        const market = markets[symbol];
-        symbol = market['baseId'] + '_' + market['quoteId'];
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'market': symbol,
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = limit; // default 10, max 150
         }
-        const response = await this.publicV3GetOrderBook (this.extend (request, params));
-        return this.parseOrderBook (response, parseInt (response['date']) * 1000);
+        const response = await this.publicGetOrderBook (this.extend (request, params));
+        //
+        //     {
+        //         "bids": [
+        //             [9605.77,0.0016],
+        //             [9605.46,0.0003],
+        //             [9602.04,0.0127],
+        //         ],
+        //         "asks": [
+        //             [9627.22,0.025803],
+        //             [9627.12,0.168543],
+        //             [9626.52,0.0011529],
+        //         ],
+        //         "date":1564509499,
+        //         "code":0
+        //     }
+        //
+        let timestamp = this.safeInteger (response, 'date');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        return this.parseOrderBook (response, timestamp);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -244,7 +356,7 @@ module.exports = class digifinex extends Exchange {
         }
         return result;
     }
-
+    
     parseTicker (date, ticker, symbol) {
         const timestamp = parseInt (date) * 1000;
         return {
@@ -455,10 +567,13 @@ module.exports = class digifinex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        params = this.extend (params, {
-            'apiKey': this.apiKey,
-        });
+        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'private') {
+            // todo: rework lines 576-594
+            params = this.extend (params, {
+                'apiKey': this.apiKey,
+            });
             this.checkRequiredCredentials ();
             params['timestamp'] = parseInt (this.nonce ());
             params['apiSecret'] = this.secret;
@@ -474,19 +589,24 @@ module.exports = class digifinex extends Exchange {
             const s = arr.join ('');
             const sign = this.hash (this.encode (s), 'md5');
             params['sign'] = sign;
-        }
-        let url = this.urls['api'][api] + '/' + path;
-        if (method === 'GET') {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else if (method === 'POST') {
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                };
+                if (Object.keys (params).length) {
+                    body = this.urlencode (params);
+                }
             }
-        } else if (method === 'POST') {
-            if (Object.keys (params).length) {
-                body = this.urlencode (params);
+        } else {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
             }
         }
-        const result = { 'url': url, 'method': method, 'body': body, 'headers': headers };
-        return result;
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     dateUTC8 (timestampMS) {
