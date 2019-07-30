@@ -118,8 +118,8 @@ module.exports = class digifinex extends Exchange {
                 },
             },
             'options': {
-                'orderTypes': {
-                },
+                'defaultType': 'spot',
+                'types': [ 'spot', 'margin', 'otc' ],
             },
         });
     }
@@ -592,17 +592,60 @@ module.exports = class digifinex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        // await this.loadMarkets ();
-        const response = await this.privatePostCancelOrder ({ 'order_id': id });
-        if (response.success.length !== 1) {
-            throw new OrderNotFound ();
+        await this.loadMarkets ();
+        const orderType = this.safeString (params, 'type', 'spot');
+        params = this.omit (params, 'type');
+        const request = {
+            'market': orderType,
+            'order_id': id,
+        };
+        const response = await this.privatePostMarketOrderCancel (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "success": [
+        //             "198361cecdc65f9c8c9bb2fa68faec40",
+        //             "3fb0d98e51c18954f10d439a9cf57de0"
+        //         ],
+        //         "error": [
+        //             "78a7104e3c65cc0c5a212a53e76d0205"
+        //         ]
+        //     }
+        //
+        const canceledOrders = this.safeValue (response, 'success', []);
+        const numCanceledOrders = canceledOrders.length;
+        if (numCanceledOrders !== 1) {
+            throw new OrderNotFound (this.id + ' cancelOrder ' + id + ' not found');
         }
         return response;
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
-        // maximum 20 IDs supported
-        const response = await this.privatePostCancelOrder ({ 'order_id': ids.join (',') });
+        await this.loadMarkets ();
+        const orderType = this.safeString (params, 'type', 'spot');
+        params = this.omit (params, 'type');
+        const request = {
+            'market': orderType,
+            'order_id': ids.join (','),
+        };
+        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "success": [
+        //             "198361cecdc65f9c8c9bb2fa68faec40",
+        //             "3fb0d98e51c18954f10d439a9cf57de0"
+        //         ],
+        //         "error": [
+        //             "78a7104e3c65cc0c5a212a53e76d0205"
+        //         ]
+        //     }
+        //
+        const canceledOrders = this.safeValue (response, 'success', []);
+        const numCanceledOrders = canceledOrders.length;
+        if (numCanceledOrders < 1) {
+            throw new OrderNotFound (this.id + ' cancelOrders error');
+        }
         return response;
     }
 
