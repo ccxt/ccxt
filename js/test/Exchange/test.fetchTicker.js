@@ -24,6 +24,8 @@ const printTickerOneLiner = (ticker, method, symbol) => {
 
 module.exports = async (exchange, symbol) => {
 
+    const method = 'fetchTicker'
+
     const skippedExchanges = [
         'digifinex',
     ]
@@ -32,8 +34,6 @@ module.exports = async (exchange, symbol) => {
         log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
-
-    const method = 'fetchTicker'
 
     if (exchange.has[method]) {
 
