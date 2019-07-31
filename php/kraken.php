@@ -695,7 +695,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_ledger_entry ($id, $code = null, $params = array ()) {
-        $items = $this->fetchLedgerEntrysByIds (array ( $id ), $code, $params);
+        $items = $this->fetch_ledger_entries_by_ids (array ( $id ), $code, $params);
         return $items[0];
     }
 

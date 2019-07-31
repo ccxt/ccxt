@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.993'
+const version = '1.18.994'
 
 Exchange.ccxtVersion = version
 
@@ -52924,7 +52924,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchLedgerEntry (id, code = undefined, params = {}) {
-        const items = await this.fetchLedgerEntrysByIds ([ id ], code, params);
+        const items = await this.fetchLedgerEntriesByIds ([ id ], code, params);
         return items[0];
     }
 
