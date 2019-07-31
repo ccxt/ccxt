@@ -22,6 +22,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchTickers': true,
+                'fetchMyTrades': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -496,14 +497,26 @@ module.exports = class digifinex extends Exchange {
         //
         // fetchMyTrades (private)
         //
-        //     ...
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "order_id": "6707cbdcda0edfaa7f4ab509e4cbf966",
+        //         "id": 28457,
+        //         "price": 0.1,
+        //         "amount": 0,
+        //         "fee": 0.096,
+        //         "fee_currency": "USDT",
+        //         "timestamp": 1499865549,
+        //         "side": "buy",
+        //         "is_maker": true
+        //     }
         //
         const id = this.safeString (trade, 'id');
-        let timestamp = this.safeInteger (trade, 'date');
+        const orderId = this.safeString (trade, 'order_id');
+        let timestamp = this.safeInteger2 (trade, 'date', 'timestamp');
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
-        const side = this.safeString (trade, 'type');
+        const side = this.safeString2 (trade, 'type', 'side');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -513,8 +526,33 @@ module.exports = class digifinex extends Exchange {
             }
         }
         let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
+        const marketId = this.safeString (trade, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[market];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        const takerOrMaker = this.safeValue (trade, 'is_maker');
+        const feeCost = this.safeFloat (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fee_currency');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
         }
         return {
             'id': id,
@@ -523,13 +561,13 @@ module.exports = class digifinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'order': undefined,
+            'order': orderId,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'takerOrMaker': undefined,
-            'fee': undefined,
+            'takerOrMaker': takerOrMaker,
+            'fee': fee,
         };
     }
 
@@ -909,11 +947,15 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const orderType = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
         await this.loadMarkets ();
         const request = {
+            'market': orderType,
             'order_id': id,
         };
-        const response = await this.privateGetOrderInfo (this.extend (request, params));
+        const response = await this.privateGetMarketOrder (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -936,6 +978,49 @@ module.exports = class digifinex extends Exchange {
         //     }
         //
         return this.parseOrder (response);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const orderType = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {
+            'market': orderType,
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 10, max 100
+        }
+        const response = await this.privateGetMarketMytrades (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "list": [
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "order_id": "6707cbdcda0edfaa7f4ab509e4cbf966",
+        //                 "id": 28457,
+        //                 "price": 0.1,
+        //                 "amount": 0,
+        //                 "fee": 0.096,
+        //                 "fee_currency": "USDT",
+        //                 "timestamp": 1499865549,
+        //                 "side": "buy",
+        //                 "is_maker": true
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'list', []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
