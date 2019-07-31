@@ -556,6 +556,53 @@ module.exports = class digifinex extends Exchange {
         return this.parseTrades (data, market, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            ohlcv[0] * 1000, // timestamp
+            ohlcv[5], // open
+            ohlcv[3], // high
+            ohlcv[4], // low
+            ohlcv[2], // close
+            ohlcv[1], // volume
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'period': this.timeframes[timeframe],
+            // 'start_time': 1564520003, // starting timestamp, 200 candles before end_time by default
+            // 'end_time': 1564520003, // ending timestamp, current timestamp by default
+        };
+        if (since !== undefined) {
+            const startTime = parseInt (since / 1000);
+            request['start_time'] = startTime;
+            if (limit !== undefined) {
+                const duration = this.parseTimeframe (timeframe);
+                request['end_time'] = this.sum (startTime, limit * duration);
+            }
+        } else if (limit !== undefined) {
+            const endTime = this.seconds ();
+            const duration = this.parseTimeframe (timeframe);
+            request['startTime'] = this.sum (endTime, -limit * duration);
+        }
+        const response = await this.publicGetKline (this.extend (request, params));
+        //
+        //     {
+        //         "code":0,
+        //         "data":[
+        //             [1556712900,2205.899,0.029967,0.02997,0.029871,0.029927],
+        //             [1556713800,1912.9174,0.029992,0.030014,0.029955,0.02996],
+        //             [1556714700,1556.4795,0.029974,0.030019,0.029969,0.02999],
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -661,7 +708,52 @@ module.exports = class digifinex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const side = order['type'];
+        //
+        // createOrder
+        //
+        //     {
+        //         "code": 0,
+        //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
+        //     }
+        //
+        // fetchOrder
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "order_id": "dd3164b333a4afa9d5730bb87f6db8b3",
+        //         "created_date": 1562303547,
+        //         "finished_date": 0,
+        //         "price": 0.1,
+        //         "amount": 1,
+        //         "cash_amount": 1,
+        //         "executed_amount": 0,
+        //         "avg_price": 0,
+        //         "status": 1,
+        //         "type": "buy",
+        //         "kind": "margin"
+        //     }
+        //
+        const id = this.safeString (order, 'order_id');
+        let timestamp = this.safeInteger (order, 'created_date');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        let lastTradeTimestamp = this.safeInteger (order, 'finished_date');
+        if (lastTradeTimestamp !== undefined) {
+            lastTradeTimestamp *= 1000;
+        }
+        let side = this.safeString (order, 'type');
+        let type = undefined;
+        if (side !== undefined) {
+            let parts = side.split ('_');
+            let numParts = parts.length;
+            if (numParts > 1) {
+                side = parts[0];
+                type = parts[1];
+            } else {
+                type = 'limit';
+            }
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         if (market === undefined) {
             const exchange = order['symbol'].toUpperCase ();
@@ -669,25 +761,51 @@ module.exports = class digifinex extends Exchange {
                 market = this.markets_by_id[exchange];
             }
         }
-        const timestamp = parseInt (order['created_date']) * 1000;
-        const result = {
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        const amount = this.safeFloat (order, 'amount');
+        const filled = this.safeFloat (order, 'executed_amount');
+        const price = this.safeFloat (order, 'price');
+        const average = this.safeFloat (order, 'avg_price');
+        let remaining = undefined;
+        let cost = undefined;
+        if (filled !== undefined) {
+            if (average !== undefined) {
+                cost = filled * average;
+            }
+            if (amount !== undefined) {
+                remaining = Math.max (0, amount - filled);
+            }
+        }
+        return {
             'info': order,
-            'id': order['order_id'].toString (),
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': parseInt (order['finished_date']) * 1000,
-            'symbol': market['symbol'],
-            'type': 'limit',
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'symbol': symbol,
+            'type': type,
             'side': side,
-            'price': this.safeFloat (order, 'price'),
-            'average': this.safeFloat (order, 'avg_price'),
-            'amount': this.safeFloat (order, 'amount'),
-            'remaining': this.safeFloat (order, 'amount') - this.safeFloat (order, 'executed_amount'),
-            'filled': this.safeFloat (order, 'executed_amount'),
+            'price': price,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': cost,
+            'average': average,
             'status': status,
             'fee': undefined,
         };
-        return result;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -726,57 +844,33 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        const response = await this.privateGetOrderInfo (this.extend ({
-            'order_id': parseInt (id),
-        }, params));
-        return this.parseOrder (response);
-    }
-
-    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        return [
-            ohlcv[0] * 1000, // timestamp
-            ohlcv[5], // open
-            ohlcv[3], // high
-            ohlcv[4], // low
-            ohlcv[2], // close
-            ohlcv[1], // volume
-        ];
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
-            'period': this.timeframes[timeframe],
-            // 'start_time': 1564520003, // starting timestamp, 200 candles before end_time by default
-            // 'end_time': 1564520003, // ending timestamp, current timestamp by default
+            'order_id': id,
         };
-        if (since !== undefined) {
-            const startTime = parseInt (since / 1000);
-            request['start_time'] = startTime;
-            if (limit !== undefined) {
-                const duration = this.parseTimeframe (timeframe);
-                request['end_time'] = this.sum (startTime, limit * duration);
-            }
-        } else if (limit !== undefined) {
-            const endTime = this.seconds ();
-            const duration = this.parseTimeframe (timeframe);
-            request['startTime'] = this.sum (endTime, -limit * duration);
-        }
-        const response = await this.publicGetKline (this.extend (request, params));
+        const response = await this.privateGetOrderInfo (this.extend (request, params));
         //
         //     {
-        //         "code":0,
-        //         "data":[
-        //             [1556712900,2205.899,0.029967,0.02997,0.029871,0.029927],
-        //             [1556713800,1912.9174,0.029992,0.030014,0.029955,0.02996],
-        //             [1556714700,1556.4795,0.029974,0.030019,0.029969,0.02999],
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "order_id": "dd3164b333a4afa9d5730bb87f6db8b3",
+        //                 "created_date": 1562303547,
+        //                 "finished_date": 0,
+        //                 "price": 0.1,
+        //                 "amount": 1,
+        //                 "cash_amount": 1,
+        //                 "executed_amount": 0,
+        //                 "avg_price": 0,
+        //                 "status": 1,
+        //                 "type": "buy",
+        //                 "kind": "margin"
+        //             }
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.parseOrder (response);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
