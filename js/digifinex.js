@@ -1074,7 +1074,6 @@ module.exports = class digifinex extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const orderType = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
-        // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets ();
         const request = {
             'market': orderType,
