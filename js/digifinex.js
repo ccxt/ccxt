@@ -37,13 +37,14 @@ module.exports = class digifinex extends Exchange {
                 '1w': '1W',
             },
             'urls': {
-                'logo': 'https://static.digifinex.vip/newhome/pc/img/index/logo_dark.svg',
+                'logo': 'https://user-images.githubusercontent.com/1294454/62184319-304e8880-b366-11e9-99fe-8011d6929195.jpg',
                 'api': 'https://openapi.digifinex.vip',
                 'www': 'https://www.digifinex.vip',
                 'doc': [
                     'https://docs.digifinex.vip',
                 ],
                 'fees': 'https://digifinex.zendesk.com/hc/en-us/articles/360000328482-Fee-Structure-on-DigiFinex',
+                'referral': 'https://www.digifinex.vip/en-ww/from/DhOzBg/3798****5114',
             },
             'api': {
                 'v2': {
