@@ -685,7 +685,7 @@ module.exports = class digifinex extends Exchange {
     async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', 'spot');
+        const orderType = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         const request = {
             'market': orderType,
