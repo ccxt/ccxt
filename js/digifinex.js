@@ -17,8 +17,7 @@ module.exports = class digifinex extends Exchange {
             'rateLimit': 900, // 300 for posts
             'has': {
                 'cancelOrders': true,
-                'fetchBalance': true,
-                'fetchClosedOrders': true,
+                'fetchOrders': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -52,34 +51,49 @@ module.exports = class digifinex extends Exchange {
                 },
                 'public': {
                     'get': [
-                        'markets', // undocumented
-                        'ping',
-                        'time',
-                        'order_book',
-                        'trades',
+                        '{market}/symbols',
                         'kline',
-                        'spot/symbols',
                         'margin/currencies',
                         'margin/symbols',
+                        'markets', // undocumented
+                        'order_book',
+                        'ping',
+                        'spot/symbols',
+                        'time',
+                        'trades',
                     ],
                 },
                 'private': {
                     'get': [
-                        'ticker',
                         '{market}/financelog',
-                        '{market}/order',
-                        '{market}/order​/current',
-                        '{market}/order​/history',
                         '{market}/mytrades',
-                        'spot/assets',
-                        'margin/positions',
+                        '{market}/order',
+                        '{market}/order/current',
+                        '{market}/order/history',
                         'margin/assets',
+                        'margin/financelog',
+                        'margin/mytrades',
+                        'margin/order',
+                        'margin/order/current',
+                        'margin/order/history',
+                        'margin/positions',
+                        'otc/financelog',
+                        'spot/assets',
+                        'spot/financelog',
+                        'spot/mytrades',
+                        'spot/order',
+                        'spot/order/current',
+                        'spot/order/history',
                     ],
                     'post': [
-                        '{market}/order/new',
                         '{market}/order/cancel',
-                        'transfer',
+                        '{market}/order/new',
+                        'margin/order/cancel',
+                        'margin/order/new',
                         'margin/position/close',
+                        'spot/order/cancel',
+                        'spot/order/new',
+                        'transfer',
                     ],
                 },
             },
@@ -262,7 +276,8 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchBalance (params = {}) {
-        const type = this.safeString (params, 'type', 'spot');
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         const method = 'privateGet' + this.capitalize (type) + 'Assets';
         const response = await this[method] (params);
@@ -604,7 +619,8 @@ module.exports = class digifinex extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const orderType = this.safeString (params, 'type', 'spot');
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const orderType = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         const request = {
             'market': orderType,
@@ -638,7 +654,8 @@ module.exports = class digifinex extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const orderType = this.safeString (params, 'type', 'spot');
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const orderType = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         const request = {
             'market': orderType,
@@ -667,6 +684,7 @@ module.exports = class digifinex extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const orderType = this.safeString (params, 'type', 'spot');
         params = this.omit (params, 'type');
         const request = {
@@ -714,7 +732,7 @@ module.exports = class digifinex extends Exchange {
         //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
         //     }
         //
-        // fetchOrder
+        // fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -807,38 +825,87 @@ module.exports = class digifinex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // exchange-specific non-unified parameters: page, type
-        // page: Page Num, page=1 for 1st page. None for 1st page by default.
-        // type：buy/sell/buy_market/sell_market，none for all types
-        const markets = await this.loadMarkets ();
-        const market = markets[symbol];
-        symbol = market['id'];
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const orderType = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        await this.loadMarkets ();
+        let market = undefined;
         const request = {
-            'symbol': symbol,
+            'market': orderType,
         };
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
-        const orders = this.parseOrders (response['orders'], market, since, limit);
-        return orders;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetMarketOrderCurrent (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "order_id": "dd3164b333a4afa9d5730bb87f6db8b3",
+        //                 "created_date": 1562303547,
+        //                 "finished_date": 0,
+        //                 "price": 0.1,
+        //                 "amount": 1,
+        //                 "cash_amount": 1,
+        //                 "executed_amount": 0,
+        //                 "avg_price": 0,
+        //                 "status": 1,
+        //                 "type": "buy",
+        //                 "kind": "margin"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // Only supports historical orders of last 3 days
-        // `since` has only date precision in digifinex
-        // exchange-specific non-unified parameters: page, type
-        // page: Page Num, page=1 for 1st page. None for 1st page by default.
-        // type：buy/sell/buy_market/sell_market，none for all types
-        const markets = await this.loadMarkets ();
-        const market = markets[symbol];
-        symbol = market['id'];
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const orderType = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        await this.loadMarkets ();
+        let market = undefined;
         const request = {
-            'symbol': symbol,
+            'market': orderType,
         };
-        if (since) {
-            request['date'] = this.dateUTC8 (since);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        const response = await this.privateGetOrderHistory (params);
-        const filtered = this.parseOrders (response['orders'], market, since, limit);
-        return filtered;
+        if (since !== undefined) {
+            request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 10, max 100
+        }
+        const response = await this.privateGetMarketOrderHistory (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTC_USDT",
+        //                 "order_id": "dd3164b333a4afa9d5730bb87f6db8b3",
+        //                 "created_date": 1562303547,
+        //                 "finished_date": 0,
+        //                 "price": 0.1,
+        //                 "amount": 1,
+        //                 "cash_amount": 1,
+        //                 "executed_amount": 0,
+        //                 "avg_price": 0,
+        //                 "status": 1,
+        //                 "type": "buy",
+        //                 "kind": "margin"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
