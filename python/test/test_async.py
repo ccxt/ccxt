@@ -159,6 +159,11 @@ async def test_ohlcv(exchange, symbol):
 
 
 async def test_tickers(exchange, symbol):
+    ignored_exchanges = [
+        'digifinex',  # requires apiKey to call v2 tickers
+    ]
+    if exchange.id in ignored_exchanges:
+        return
     if exchange.has['fetchTickers']:
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
@@ -215,6 +220,11 @@ async def test_l2_order_books_async(exchange):
 
 
 async def test_ticker(exchange, symbol):
+    ignored_exchanges = [
+        'digifinex',  # requires apiKey to call v2 tickers
+    ]
+    if exchange.id in ignored_exchanges:
+        return
     if exchange.has['fetchTicker']:
         delay = int(exchange.rateLimit / 1000)
         await asyncio.sleep(delay)
