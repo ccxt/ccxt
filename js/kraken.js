@@ -695,7 +695,7 @@ module.exports = class kraken extends Exchange {
     }
 
     async fetchLedgerEntry (id, code = undefined, params = {}) {
-        const items = await this.fetchLedgerEntrysByIds ([ id ], code, params);
+        const items = await this.fetchLedgerEntriesByIds ([ id ], code, params);
         return items[0];
     }
 
