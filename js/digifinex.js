@@ -18,7 +18,6 @@ module.exports = class digifinex extends Exchange {
             // new metainfo interface
             'has': {
                 'cancelOrders': true,
-                'createMarketOrder': false,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchOHLCV': true,
