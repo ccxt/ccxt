@@ -397,6 +397,7 @@ declare module 'ccxt' {
     export class crex24 extends Exchange {}
     export class crypton extends Exchange {}
     export class deribit extends Exchange {}
+    export class digifinex extends Exchange {}
     export class dsx extends liqui {}
     export class dx extends Exchange {}
     export class ethfinex extends bitfinex {}
