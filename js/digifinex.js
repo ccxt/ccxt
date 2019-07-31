@@ -23,6 +23,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchOrder': true,
                 'fetchTickers': true,
                 'fetchMyTrades': true,
+                'fetchLedger': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -1021,6 +1022,95 @@ module.exports = class digifinex extends Exchange {
         //
         const data = this.safeValue (response, 'list', []);
         return this.parseTrades (data, market, since, limit);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {};
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         "currency_mark": "BTC",
+        //         "type": 100234,
+        //         "num": 28457,
+        //         "balance": 0.1,
+        //         "time": 1546272000
+        //     }
+        //
+        const id = this.safeString (item, 'num');
+        const account = undefined;
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        const code = this.safeCurrencyCode (this.safeString (item, 'currency_mark'), currency);
+        const time = this.safeInteger (item, 'time');
+        let timestamp = undefined;
+        if (time !== undefined) {
+            timestamp *= 1000;
+        }
+        const before = undefined;
+        const after = this.safeFloat (item, 'balance');
+        const status = 'ok';
+        return {
+            'info': item,
+            'id': id,
+            'direction': undefined,
+            'account': account,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': undefined,
+            'before': before,
+            'after': after,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const orderType = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        // https://www.kraken.com/features/api#get-ledgers-info
+        await this.loadMarkets ();
+        const request = {
+            'market': orderType,
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency_mark'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = parseInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 100, max 1000
+        }
+        const response = await this.privateGetMarketFinancelog (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "total": 521,
+        //             "finance": [
+        //                 {
+        //                     "currency_mark": "BTC",
+        //                     "type": 100234,
+        //                     "num": 28457,
+        //                     "balance": 0.1,
+        //                     "time": 1546272000
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const items = this.safeValue (data, 'finance', []);
+        return this.parseLedger (items, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
