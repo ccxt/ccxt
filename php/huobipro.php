@@ -50,9 +50,9 @@ class huobipro extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api' => array (
-                    'market' => 'https://api.huobi.pro',
-                    'public' => 'https://api.huobi.pro',
-                    'private' => 'https://api.huobi.pro',
+                    'market' => 'https://{hostname}',
+                    'public' => 'https://{hostname}',
+                    'private' => 'https://{hostname}',
                     'zendesk' => 'https://huobiglobal.zendesk.com/hc/en-us/articles',
                 ),
                 'www' => 'https://www.huobi.pro',
@@ -1015,7 +1015,9 @@ class huobipro extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
             }
         }
-        $url = $this->urls['api'][$api] . $url;
+        $url = $this->implode_params($this->urls['api'][$api], array (
+            'hostname' => $this->hostname,
+        )) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
