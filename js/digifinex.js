@@ -15,7 +15,6 @@ module.exports = class digifinex extends Exchange {
             'countries': [ 'SG' ],
             'version': 'v3',
             'rateLimit': 900, // 300 for posts
-            // new metainfo interface
             'has': {
                 'cancelOrders': true,
                 'fetchBalance': true,
@@ -744,8 +743,8 @@ module.exports = class digifinex extends Exchange {
         let side = this.safeString (order, 'type');
         let type = undefined;
         if (side !== undefined) {
-            let parts = side.split ('_');
-            let numParts = parts.length;
+            const parts = side.split ('_');
+            const numParts = parts.length;
             if (numParts > 1) {
                 side = parts[0];
                 type = parts[1];
