@@ -211,11 +211,13 @@ class bitmart extends Exchange {
             // price_min_precision Minimum price $precision (digit) used to query price and kline
             // price_max_precision Maximum price $precision (digit) used to query price and kline
             //
-            $quoteIncrementAsString = $this->safe_string($market, 'quote_increment');
-            $pricePrecision = $this->precision_from_string($quoteIncrementAsString);
-            $quoteIncrement = floatval ($quoteIncrementAsString);
+            // the docs are wrong => https://github.com/ccxt/ccxt/issues/5612
+            //
+            $quoteIncrement = $this->safe_string($market, 'quote_increment');
+            $amountPrecision = $this->precision_from_string($quoteIncrement);
+            $pricePrecision = $this->safe_integer($market, 'price_max_precision');
             $precision = array (
-                'amount' => 8,
+                'amount' => $amountPrecision,
                 'price' => $pricePrecision,
             );
             $limits = array (
@@ -224,7 +226,7 @@ class bitmart extends Exchange {
                     'max' => $this->safe_float($market, 'base_max_size'),
                 ),
                 'price' => array (
-                    'min' => $quoteIncrement,
+                    'min' => null,
                     'max' => null,
                 ),
                 'cost' => array (
