@@ -24,6 +24,7 @@ module.exports = class idex extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchTransactions': true,
+                'fetchTrades': false,
                 'fetchMyTrades': true,
                 'withdraw': true,
             },
@@ -288,66 +289,118 @@ module.exports = class idex extends Exchange {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const contractAddress = await this.getContractAddress ();
-        let tokenBuy = undefined;
-        let tokenSell = undefined;
-        let amountBuy = undefined;
-        let amountSell = undefined;
-        const quoteAmount = parseFloat (price) * parseFloat (amount);
-        if (side === 'buy') {
-            tokenBuy = market['baseId'];
-            tokenSell = market['quoteId'];
-            amountBuy = this.toWei (amount, 'ether', market['precision']['amount']);
-            amountSell = this.toWei (quoteAmount, 'ether', 18);
-        } else {
-            tokenBuy = market['quoteId'];
-            tokenSell = market['baseId'];
-            amountBuy = this.toWei (quoteAmount, 'ether', 18);
-            amountSell = this.toWei (amount, 'ether', market['precision']['amount']);
+        if (type === 'limit') {
+            const expires = 100000;
+            const contractAddress = await this.getContractAddress ();
+            let tokenBuy = undefined;
+            let tokenSell = undefined;
+            let amountBuy = undefined;
+            let amountSell = undefined;
+            const quoteAmount = parseFloat (price) * parseFloat (amount);
+            if (side === 'buy') {
+                tokenBuy = market['baseId'];
+                tokenSell = market['quoteId'];
+                amountBuy = this.toWei (amount, 'ether', market['precision']['amount']);
+                amountSell = this.toWei (quoteAmount, 'ether', 18);
+            } else {
+                tokenBuy = market['quoteId'];
+                tokenSell = market['baseId'];
+                amountBuy = this.toWei (quoteAmount, 'ether', 18);
+                amountSell = this.toWei (amount, 'ether', market['precision']['amount']);
+            }
+            const nonce = await this.getNonce ();
+            const orderToHash = {
+                'contractAddress': contractAddress,
+                'tokenBuy': tokenBuy,
+                'amountBuy': amountBuy,
+                'tokenSell': tokenSell,
+                'amountSell': amountSell,
+                'expires': expires,
+                'nonce': nonce,
+                'address': this.walletAddress,
+            };
+            const orderHash = this.getIdexCreateOrderHash (orderToHash);
+            const signature = this.signMessage (orderHash, this.privateKey);
+            const request = {
+                'tokenBuy': tokenBuy,
+                'amountBuy': amountBuy,
+                'tokenSell': tokenSell,
+                'amountSell': amountSell,
+                'address': this.walletAddress,
+                'nonce': nonce,
+                'expires': expires,
+            };
+            const response = await this.privatePostOrder (this.extend (request, signature)); // this.extend (request, params) will cause invalid signature
+            // { orderNumber: 1562323021,
+            //   orderHash:
+            //    '0x31c42154a8421425a18d076df400d9ec1ef64d5251285384a71ba3c0ab31beb4',
+            //   timestamp: 1564041428,
+            //   price: '0.00073',
+            //   amount: '210',
+            //   total: '0.1533',
+            //   type: 'buy',
+            //   params:
+            //    { tokenBuy: '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
+            //      buyPrecision: 18,
+            //      amountBuy: '210000000000000000000',
+            //      tokenSell: '0x0000000000000000000000000000000000000000',
+            //      sellPrecision: 18,
+            //      amountSell: '153300000000000000',
+            //      expires: 100000,
+            //      nonce: 1,
+            //      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1' } }
+            return this.parseOrder (response, market);
+        } else if (type === 'market') {
+            if (!('orders' in params)) {
+                throw new ArgumentsRequired (this.id + ' market order requires a list orders as returned from idex.privatePostReturnOrderBook');
+            }
+            const orders = params['orders'];
+            const request = [];
+            for (let i = 0; i < orders.length; i++) {
+                const order = orders[i];
+                // { price: '0.000132247803328924',
+                //   amount: '19980',
+                //   total: '2.6423111105119',
+                //   orderHash:
+                //    '0x5fb3452b3d13fc013585b51c91c43a0fbe4298c211243763c49437848c274749',
+                //   params:
+                //    { tokenBuy: '0x0000000000000000000000000000000000000000',
+                //      buySymbol: 'ETH',
+                //      buyPrecision: 18,
+                //      amountBuy: '2642311110511900000',
+                //      tokenSell: '0xb705268213d593b8fd88d3fdeff93aff5cbdcfae',
+                //      sellSymbol: 'IDEX',
+                //      sellPrecision: 18,
+                //      amountSell: '19980000000000000000000',
+                //      expires: 10000,
+                //      nonce: 1564656561510,
+                //      user: '0xc3f8304270e49b8e8197bfcfd8567b83d9e4479b' } }
+                const orderToSign = {
+                    'orderHash': order['orderHash'],
+                    'amount': order['params']['amountBuy'],
+                    'address': order['params']['user'],
+                    'nonce': order['params']['nonce'],
+                };
+                const orderHash = this.getIdexMarketOrderHash (orderToSign);
+                const signature = this.signMessage (orderHash, this.privateKey);
+                orderToSign['address'] = this.walletAddress;
+                orderToSign['nonce'] = await this.getNonce ();
+                const signedOrder = this.extend (orderToSign, signature);
+                request.push (signedOrder);
+                const response = await this.privatePostTrade (request);
+                //   [ {
+                //     "amount": "0.07",
+                //     "date": "2017-10-13 16:25:36",
+                //     "total": "0.49",
+                //     "market": "ETH_DVIP",
+                //     "type": "buy",
+                //     "price": "7",
+                //     "orderHash": "0xcfe4018c59e50e0e1964c979e6213ce5eb8c751cbc98a44251eb48a0985adc52",
+                //     "uuid": "250d51a0-b033-11e7-9984-a9ab79bb8f35"
+                //   } ]
+                return this.parseOrders (response, market);
+            }
         }
-        const nonce = await this.getNonce ();
-        const expires = 100000;
-        const orderToHash = {
-            'contractAddress': contractAddress,
-            'tokenBuy': tokenBuy,
-            'amountBuy': amountBuy,
-            'tokenSell': tokenSell,
-            'amountSell': amountSell,
-            'expires': expires,
-            'nonce': nonce,
-            'address': this.walletAddress,
-        };
-        const orderHash = this.getIdexCreateOrderHash (orderToHash);
-        const signature = this.signMessage (orderHash, this.privateKey);
-        const request = {
-            'tokenBuy': tokenBuy,
-            'amountBuy': amountBuy,
-            'tokenSell': tokenSell,
-            'amountSell': amountSell,
-            'address': this.walletAddress,
-            'nonce': nonce,
-            'expires': expires,
-        };
-        const response = await this.privatePostOrder (this.extend (request, signature)); // this.extend (request, params) will cause invalid signature
-        // { orderNumber: 1562323021,
-        //   orderHash:
-        //    '0x31c42154a8421425a18d076df400d9ec1ef64d5251285384a71ba3c0ab31beb4',
-        //   timestamp: 1564041428,
-        //   price: '0.00073',
-        //   amount: '210',
-        //   total: '0.1533',
-        //   type: 'buy',
-        //   params:
-        //    { tokenBuy: '0x763fa6806e1acf68130d2d0f0df754c93cc546b2',
-        //      buyPrecision: 18,
-        //      amountBuy: '210000000000000000000',
-        //      tokenSell: '0x0000000000000000000000000000000000000000',
-        //      sellPrecision: 18,
-        //      amountSell: '153300000000000000',
-        //      expires: 100000,
-        //      nonce: 1,
-        //      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1' } }
-        return this.parseOrder (response);
     }
 
     async getNonce () {
@@ -398,6 +451,8 @@ module.exports = class idex extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
         const request = {
             'address': this.walletAddress,
         };
@@ -426,8 +481,8 @@ module.exports = class idex extends Exchange {
         //         '0xab555fc301779dd92fd41ccd143b1d72776ae7b5acfc59ca44a1d376f68fda15',
         //        withdrawalNumber: 1444070,
         //        status: 'COMPLETE' } ] }
-        const deposits = this.parseTransactions (response['deposits']);
-        const withdrawals = this.parseTransactions (response['withdrawals']);
+        const deposits = this.parseTransactions (response['deposits'], currency, since, limit);
+        const withdrawals = this.parseTransactions (response['withdrawals'], currency, since, limit);
         return this.arrayConcat (deposits, withdrawals);
     }
 
@@ -787,7 +842,11 @@ module.exports = class idex extends Exchange {
         const amount = this.safeFloat (trade, 'amount');
         const price = this.safeFloat (trade, 'price');
         const cost = this.safeFloat (trade, 'total');
-        const feeCost = this.safeFloat (trade, feeSide);  // can sometimes be a large negative number...
+        let feeCost = this.safeFloat (trade, feeSide);
+        if (feeCost < 0) {
+            const gasFee = this.safeFloat (trade, 'gasFee');
+            feeCost = this.sum (gasFee, feeCost);
+        }
         const fee = {
             'currency': feeCurrency,
             'cost': feeCost,
@@ -871,6 +930,15 @@ module.exports = class idex extends Exchange {
     getIdexCancelOrderHash (order) {
         return this.soliditySha3 ([
             order['orderHash'], // address
+            order['nonce'], // uint256
+        ]);
+    }
+
+    getIdexMarketOrderHash (order) {
+        return this.soliditySha3 ([
+            order['orderHash'], // address
+            order['amount'], // uint256
+            order['address'], // address
             order['nonce'], // uint256
         ]);
     }
