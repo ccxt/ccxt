@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.997'
+const version = '1.18.998'
 
 Exchange.ccxtVersion = version
 
@@ -39280,7 +39280,7 @@ module.exports = class digifinex extends Exchange {
         //             {
         //                 "currency": "BTC",
         //                 "free": 4723846.89208129,
-        //                 "frozen": 0
+        //                 "total": 0
         //             }
         //         ]
         //     }
@@ -39293,6 +39293,7 @@ module.exports = class digifinex extends Exchange {
             const account = this.account ();
             account['used'] = this.safeFloat (balance, 'frozen');
             account['free'] = this.safeFloat (balance, 'free');
+            account['total'] = this.safeFloat (balance, 'total');
             result[code] = account;
         }
         return this.parseBalance (result);

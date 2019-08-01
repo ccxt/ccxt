@@ -299,7 +299,7 @@ class digifinex (Exchange):
         #             {
         #                 "currency": "BTC",
         #                 "free": 4723846.89208129,
-        #                 "frozen": 0
+        #                 "total": 0
         #             }
         #         ]
         #     }
@@ -312,6 +312,7 @@ class digifinex (Exchange):
             account = self.account()
             account['used'] = self.safe_float(balance, 'frozen')
             account['free'] = self.safe_float(balance, 'free')
+            account['total'] = self.safe_float(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 

@@ -292,7 +292,7 @@ class digifinex extends Exchange {
         //             {
         //                 "currency" => "BTC",
         //                 "free" => 4723846.89208129,
-        //                 "frozen" => 0
+        //                 "total" => 0
         //             }
         //         )
         //     }
@@ -305,6 +305,7 @@ class digifinex extends Exchange {
             $account = $this->account ();
             $account['used'] = $this->safe_float($balance, 'frozen');
             $account['free'] = $this->safe_float($balance, 'free');
+            $account['total'] = $this->safe_float($balance, 'total');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
