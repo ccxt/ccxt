@@ -209,11 +209,11 @@ module.exports = class bitmart extends Exchange {
             // price_min_precision Minimum price precision (digit) used to query price and kline
             // price_max_precision Maximum price precision (digit) used to query price and kline
             //
-            const quoteIncrementAsString = this.safeString (market, 'quote_increment');
-            const pricePrecision = this.precisionFromString (quoteIncrementAsString);
-            const quoteIncrement = parseFloat (quoteIncrementAsString);
+            const quoteIncrement = this.safeString (market, 'quote_increment');
+            const amountPrecision = this.precisionFromString (quoteIncrement);
+            const pricePrecision = this.safeInteger (market, 'price_max_precision');
             const precision = {
-                'amount': 8,
+                'amount': amountPrecision,
                 'price': pricePrecision,
             };
             const limits = {
@@ -222,7 +222,7 @@ module.exports = class bitmart extends Exchange {
                     'max': this.safeFloat (market, 'base_max_size'),
                 },
                 'price': {
-                    'min': quoteIncrement,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
