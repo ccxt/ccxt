@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.996'
+const version = '1.18.998'
 
 Exchange.ccxtVersion = version
 
@@ -14609,11 +14609,13 @@ module.exports = class bitmart extends Exchange {
             // price_min_precision Minimum price precision (digit) used to query price and kline
             // price_max_precision Maximum price precision (digit) used to query price and kline
             //
-            const quoteIncrementAsString = this.safeString (market, 'quote_increment');
-            const pricePrecision = this.precisionFromString (quoteIncrementAsString);
-            const quoteIncrement = parseFloat (quoteIncrementAsString);
+            // the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
+            //
+            const quoteIncrement = this.safeString (market, 'quote_increment');
+            const amountPrecision = this.precisionFromString (quoteIncrement);
+            const pricePrecision = this.safeInteger (market, 'price_max_precision');
             const precision = {
-                'amount': 8,
+                'amount': amountPrecision,
                 'price': pricePrecision,
             };
             const limits = {
@@ -14622,7 +14624,7 @@ module.exports = class bitmart extends Exchange {
                     'max': this.safeFloat (market, 'base_max_size'),
                 },
                 'price': {
-                    'min': quoteIncrement,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
@@ -39278,7 +39280,7 @@ module.exports = class digifinex extends Exchange {
         //             {
         //                 "currency": "BTC",
         //                 "free": 4723846.89208129,
-        //                 "frozen": 0
+        //                 "total": 0
         //             }
         //         ]
         //     }
@@ -39291,6 +39293,7 @@ module.exports = class digifinex extends Exchange {
             const account = this.account ();
             account['used'] = this.safeFloat (balance, 'frozen');
             account['free'] = this.safeFloat (balance, 'free');
+            account['total'] = this.safeFloat (balance, 'total');
             result[code] = account;
         }
         return this.parseBalance (result);
