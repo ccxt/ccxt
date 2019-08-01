@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.998'
+const version = '1.18.999'
 
 Exchange.ccxtVersion = version
 
@@ -39190,6 +39190,8 @@ module.exports = class digifinex extends Exchange {
             // const active = (status === 'TRADING');
             //
             const active = undefined;
+            const spot = (type === 'spot');
+            const margin = (type === 'margin');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -39198,6 +39200,9 @@ module.exports = class digifinex extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
                 'precision': precision,
                 'limits': limits,
                 'info': market,

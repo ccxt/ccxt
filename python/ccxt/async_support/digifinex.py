@@ -213,6 +213,8 @@ class digifinex (Exchange):
             # active = (status == 'TRADING')
             #
             active = None
+            spot = (type == 'spot')
+            margin = (type == 'margin')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -221,6 +223,9 @@ class digifinex (Exchange):
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
+                'type': type,
+                'spot': spot,
+                'margin': margin,
                 'precision': precision,
                 'limits': limits,
                 'info': market,

@@ -195,13 +195,15 @@ class digifinex extends Exchange {
             // The $status is documented in the exchange API docs as follows:
             // TRADING, HALT (delisted), BREAK (trading paused)
             // https://docs.digifinex.vip/en-ww/v3/#/public/spot/symbols
-            // However, all spot $markets actually have $status === 'HALT'
+            // However, all $spot $markets actually have $status === 'HALT'
             // despite that they appear to be $active on the exchange website.
             // Apparently, we can't trust this $status->
             // $status = $this->safe_string($market, 'status');
             // $active = ($status === 'TRADING');
             //
             $active = null;
+            $spot = ($type === 'spot');
+            $margin = ($type === 'margin');
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -210,6 +212,9 @@ class digifinex extends Exchange {
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
                 'active' => $active,
+                'type' => $type,
+                'spot' => $spot,
+                'margin' => $margin,
                 'precision' => $precision,
                 'limits' => $limits,
                 'info' => $market,
