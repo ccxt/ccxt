@@ -103,20 +103,20 @@ class latoken (Exchange):
             },
             'exceptions': {
                 'exact': {
-                    'Signature or ApiKey is not valid': AuthenticationError,  # {"error": {"message": "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400}}
-                    'Request is out of time': InvalidNonce,  # {"error": {"message": "Request is out of time", "errorType": "RequestError", "statusCode":400}}
-                    'Symbol must be specified': BadRequest,  # {"error": {"message": "Symbol must be specified","errorType":"RequestError","statusCode":400}}
+                    'Signature or ApiKey is not valid': AuthenticationError,
+                    'Request is out of time': InvalidNonce,
+                    'Symbol must be specified': BadRequest,
                 },
                 'broad': {
-                    'Request limit reached': DDoSProtection,  # {"message": "Request limit reachednot ", "details": "Request limit reached. Maximum allowed: 1 per 1s. Please try again in 1 second(s)."}
-                    'Pair': BadRequest,  # {"error": {"message": "Pair 370 is not found","errorType":"RequestError","statusCode":400}}
-                    'Price needs to be greater than': InvalidOrder,  # {"error": {"message": "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400}}
-                    'Amount needs to be greater than': InvalidOrder,  # {"error": {"message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400}}
-                    'The Symbol field is required': InvalidOrder,  # {"error": {"message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400}}
-                    'OrderType is not valid': InvalidOrder,  # {"error": {"message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400}}
-                    'Side is not valid': InvalidOrder,  # {"error": {"message": "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400}}
-                    'Cancelable order whit': OrderNotFound,  # {"error": {"message": "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400}}
-                    'Order': OrderNotFound,  # {"error": {"message": "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400}}
+                    'Request limit reached': DDoSProtection,
+                    'Pair': BadRequest,
+                    'Price needs to be greater than': InvalidOrder,
+                    'Amount needs to be greater than': InvalidOrder,
+                    'The Symbol field is required': InvalidOrder,
+                    'OrderType is not valid': InvalidOrder,
+                    'Side is not valid': InvalidOrder,
+                    'Cancelable order whit': OrderNotFound,
+                    'Order': OrderNotFound,
                 },
             },
         })
