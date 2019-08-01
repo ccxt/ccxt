@@ -27,6 +27,7 @@ module.exports = class idex extends Exchange {
                 'fetchTrades': false,
                 'fetchMyTrades': true,
                 'withdraw': true,
+                'fetchOHLCV': false,
             },
             'timeframes': {
                 '1m': 'M1',
