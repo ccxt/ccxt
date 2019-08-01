@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.983';
+$version = '1.18.995';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.983';
+    const VERSION = '1.18.995';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -1776,6 +1776,10 @@ class Exchange {
 
     public function fetchBidsAsks($symbols, $params = array()) {
         return $this->fetch_bids_asks($symbols, $params);
+    }
+
+    public function fetch_ticker($symbol, $params = array()) { // stub
+        throw new NotSupported($this->id . ' fetchTicker not supported yet');
     }
 
     public function fetch_tickers($symbols, $params = array()) { // stub

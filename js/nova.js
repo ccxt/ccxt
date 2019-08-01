@@ -20,6 +20,8 @@ module.exports = class nova extends Exchange {
                 'createMarketOrder': false,
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
+                'fetchDeposits': true,
+                'fetchWithdrawals': true,
             },
             'urls': {
                 'referral': 'https://novaexchange.com/signup/?re=is8vz2hsl3qxewv1uawd',
@@ -62,6 +64,14 @@ module.exports = class nova extends Exchange {
                     ],
                 },
             },
+            'fees': {
+                'trading': {
+                    'tierBased': false,
+                    'percentage': true,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+            },
         });
     }
 
@@ -78,7 +88,7 @@ module.exports = class nova extends Exchange {
             const symbol = base + '/' + quote;
             const disabled = this.safeValue (market, 'disabled', false);
             const active = !disabled;
-            result.push ({
+            result.push (this.extend (this.fees['trading'], {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
@@ -87,7 +97,7 @@ module.exports = class nova extends Exchange {
                 'quoteId': quoteId,
                 'active': active,
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -135,7 +145,25 @@ module.exports = class nova extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'unix_t_datestamp');
+        //
+        // fetchMyTrades
+        //
+        //    {
+        //        basecurrency: 'BTC',
+        //        fee: '0.00000026',
+        //        fromamount: '1079.13354707',
+        //        fromcurrency: 'LINX',
+        //        orig_orderid: 42906337,
+        //        price: '0.00000012',
+        //        toamount: '0.0.00012924',
+        //        tocurrency: 'BTC',
+        //        trade_time: '2019-07-28 13:36',
+        //        tradeid: 21715234,
+        //        tradetype: 'SELL',
+        //        unix_t_trade_time: 1564313790,
+        //    }
+        //
+        let timestamp = this.safeInteger2 (trade, 'unix_t_datestamp', 'unix_t_trade_time');
         if (timestamp !== undefined) {
             timestamp *= 1000;
         }
@@ -150,26 +178,35 @@ module.exports = class nova extends Exchange {
         }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
+        const feeCost = this.safeFloat (trade, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const feeCurrency = (market === undefined) ? undefined : market['quote'];
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
+        const order = this.safeInteger (trade, 'orig_orderid');
+        const id = this.safeInteger (trade, 'tradeid');
         let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = amount * price;
-            }
+        if (price !== undefined && amount !== undefined) {
+            cost = amount * price;
         }
         return {
-            'id': undefined,
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'order': undefined,
+            'order': order,
             'type': type,
             'side': side,
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -180,6 +217,43 @@ module.exports = class nova extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetMarketOrderhistoryPair (this.extend (request, params));
+        return this.parseTrades (response['items'], market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // privatePostTradehistory response
+        //
+        //    {
+        //        items: {
+        //            {
+        //                basecurrency: 'BTC',
+        //                fee: '0.00000026',
+        //                fromamount: '1079.13354707',
+        //                fromcurrency: 'LINX',
+        //                orig_orderid: 42906337,
+        //                price: '0.00000012',
+        //                toamount: '0.0.00012924',
+        //                tocurrency: 'BTC',
+        //                trade_time: '2019-07-28 13:36',
+        //                tradeid: 21715234,
+        //                tradetype: 'SELL',
+        //                unix_t_trade_time: 1564313790,
+        //            },
+        //        },
+        //        message: 'Your trade history with recent first',
+        //        page: 1,
+        //        pages: 1,
+        //        perpage: 100,
+        //        status: 'success',
+        //        total_items: 1
+        //    }
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const response = await this.privatePostTradehistory (params);
         return this.parseTrades (response['items'], market, since, limit);
     }
 
@@ -237,6 +311,103 @@ module.exports = class nova extends Exchange {
         return await this.privatePostCancelorder (this.extend (request, params));
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        //
+        // privatePostMyopenorders response
+        //
+        //    {
+        //        items: {
+        //            {
+        //                fromamount: 1079.13354707,
+        //                fromcurrency: 'LINX',
+        //                market: 'BTC_LINX',
+        //                orderdate: '2019-07-28 10:50',
+        //                orderid: 43102690,
+        //                ordertype: 'SELL',
+        //                price: '0.00000015',
+        //                toamount: '0.00016187',
+        //                tocurrency: 'BTC',
+        //                unix_t_orderdate: 1564303847
+        //            },
+        //        },
+        //        message: 'Your open orders with recent first',
+        //        page: 1,
+        //        pages: 1,
+        //        perpage: 100,
+        //        status: 'success',
+        //        total_items: 1
+        //    }
+        await this.loadMarkets ();
+        const market = undefined;
+        const response = await this.privatePostMyopenorders (params);
+        const orders = this.safeValue (response, 'items', []);
+        return this.parseOrders (orders, market, since, limit, {
+            'status': 'open',
+        });
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // fetchOpenOrders
+        //
+        //    {
+        //        fromamount: 1079.13354707,
+        //        fromcurrency: 'LINX',
+        //        market: 'BTC_LINX',
+        //        orderdate: '2019-07-28 10:50',
+        //        orderid: 43102690,
+        //        ordertype: 'SELL',
+        //        price: '0.00000015',
+        //        toamount: '0.00016187',
+        //        tocurrency: 'BTC',
+        //        unix_t_orderdate: 1564303847
+        //    }
+        //
+        const orderId = this.safeString (order, 'orderid');
+        let symbol = undefined;
+        const marketId = this.safeString (order, 'market');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const baseId = this.safeString (order, 'fromcurrency');
+                const quoteId = this.safeString (order, 'tocurrency');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        const status = this.safeString (order, 'status');
+        let timestamp = this.safeInteger (order, 'unix_t_orderdate');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const amount = this.safeFloat (order, 'fromamount');
+        let side = this.safeString (order, 'ordertype');
+        if (side !== undefined) {
+            side = side.toLowerCase ();
+        }
+        return {
+            'id': orderId,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'type': undefined,
+            'side': side,
+            'price': undefined,
+            'cost': undefined,
+            'amount': amount,
+            'remaining': undefined,
+            'filled': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
+        };
+    }
+
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -271,6 +442,81 @@ module.exports = class nova extends Exchange {
             'tag': tag,
             'info': response,
         };
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        let timestamp = this.safeInteger2 (transaction, 'unix_t_time_seen', 'unix_t_daterequested');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        let updated = this.safeInteger (transaction, 'unix_t_datesent');
+        if (updated !== undefined) {
+            updated *= 1000;
+        }
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        const amount = this.safeFloat (transaction, 'tx_amount');
+        const addressTo = this.safeString (transaction, 'tx_address');
+        const fee = undefined;
+        const txid = this.safeString (transaction, 'tx_txid');
+        const type = this.safeString (transaction, 'type');
+        return {
+            'info': transaction,
+            'id': undefined,
+            'currency': code,
+            'amount': amount,
+            'addressFrom': undefined,
+            'address': addressTo,
+            'addressTo': addressTo,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'status': status,
+            'type': type,
+            'updated': updated,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'Accounted': 'ok',
+            'Confirmed': 'ok',
+            'Incoming': 'pending',
+            'Approved': 'pending',
+            'Sent': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.privatePostGetdeposithistory (params);
+        for (let i = 0; i < response['items'].length; i++) {
+            response['items'][i]['type'] = 'deposit';
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const deposits = this.safeValue (response, 'items', []);
+        return this.parseTransactions (deposits, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const response = await this.privatePostGetwithdrawalhistory (params);
+        for (let i = 0; i < response['items'].length; i++) {
+            response['items'][i]['type'] = 'withdrawal';
+        }
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const withdrawals = this.safeValue (response, 'items', []);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

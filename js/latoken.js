@@ -417,26 +417,32 @@ module.exports = class latoken extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "side":"buy",
-        //         "price":0.022315,
-        //         "amount":0.706,
-        //         "timestamp":1563454655
+        //         side: 'buy',
+        //         price: 0.33634,
+        //         amount: 0.01,
+        //         timestamp: 1564240008000 // milliseconds
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "id": "1555492358.126073.126767@0502:2",
-        //         "orderId": "1555492358.126073.126767@0502:2",
-        //         "commission": 0.012,
-        //         "side": "buy",
-        //         "price": 136.2,
-        //         "amount": 0.7,
-        //         "time": 1555515807369
+        //         id: '1564223032.892829.3.tg15',
+        //         orderId: '1564223032.671436.707548@1379:1',
+        //         commission: 0,
+        //         side: 'buy',
+        //         price: 0.32874,
+        //         amount: 0.607,
+        //         timestamp: 1564223033 // seconds
         //     }
         //
         const type = undefined;
-        const timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        let timestamp = this.safeInteger2 (trade, 'timestamp', 'time');
+        if (timestamp !== undefined) {
+            // 03 Jan 2009 - first block
+            if (timestamp < 1230940800000) {
+                timestamp *= 1000;
+            }
+        }
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const side = this.safeString (trade, 'side');
@@ -494,10 +500,10 @@ module.exports = class latoken extends Exchange {
         //         "tradeCount":51,
         //         "trades": [
         //             {
-        //                 "side":"buy",
-        //                 "price":0.022315,
-        //                 "amount":0.706,
-        //                 "timestamp":1563454655
+        //                 side: 'buy',
+        //                 price: 0.33634,
+        //                 amount: 0.01,
+        //                 timestamp: 1564240008000 // milliseconds
         //             }
         //         ]
         //     }
@@ -523,13 +529,13 @@ module.exports = class latoken extends Exchange {
         //         "tradeCount": 1,
         //         "trades": [
         //             {
-        //                 "id": "1555492358.126073.126767@0502:2",
-        //                 "orderId": "1555492358.126073.126767@0502:2",
-        //                 "commission": 0.012,
-        //                 "side": "buy",
-        //                 "price": 136.2,
-        //                 "amount": 0.7,
-        //                 "time": 1555515807369
+        //                 id: '1564223032.892829.3.tg15',
+        //                 orderId: '1564223032.671436.707548@1379:1',
+        //                 commission: 0,
+        //                 side: 'buy',
+        //                 price: 0.32874,
+        //                 amount: 0.607,
+        //                 timestamp: 1564223033 // seconds
         //             }
         //         ]
         //     }
@@ -582,7 +588,10 @@ module.exports = class latoken extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'orderId');
-        const timestamp = this.safeValue (order, 'timeCreated');
+        let timestamp = this.safeValue (order, 'timeCreated');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
         const marketId = this.safeString (order, 'symbol');
         let symbol = marketId;
         if (marketId in this.markets_by_id) {
@@ -596,7 +605,12 @@ module.exports = class latoken extends Exchange {
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'executedAmount');
-        const remaining = this.safeFloat (order, 'reaminingAmount');
+        let remaining = undefined;
+        if (amount !== undefined) {
+            if (filled !== undefined) {
+                remaining = amount - filled;
+            }
+        }
         const status = this.parseOrderStatus (this.safeString (order, 'orderStatus'));
         let cost = undefined;
         if (filled !== undefined) {
@@ -607,7 +621,7 @@ module.exports = class latoken extends Exchange {
         const timeFilled = this.safeInteger (order, 'timeFilled');
         let lastTradeTimestamp = undefined;
         if (timeFilled !== undefined && timeFilled > 0) {
-            lastTradeTimestamp = timeFilled;
+            lastTradeTimestamp = timeFilled * 1000;
         }
         return {
             'id': id,
@@ -650,7 +664,7 @@ module.exports = class latoken extends Exchange {
 
     async fetchOrdersWithMethod (method, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw ArgumentsRequired (this.id + ' fetchOrdersWithMethod requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersWithMethod requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

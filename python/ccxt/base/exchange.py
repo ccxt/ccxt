@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.983'
+__version__ = '1.18.995'
 
 # -----------------------------------------------------------------------------
 
@@ -1199,6 +1199,9 @@ class Exchange(object):
 
     def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported('API does not allow to fetch all prices at once with a single call to fetch_bids_asks() for now')
+
+    def fetch_ticker(self, symbol, params={}):
+        raise NotSupported('fetch_ticker() not supported yet')
 
     def fetch_tickers(self, symbols=None, params={}):
         raise NotSupported('API does not allow to fetch all tickers at once with a single call to fetch_tickers() for now')

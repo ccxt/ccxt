@@ -669,7 +669,7 @@ class kraken (Exchange):
         return self.parse_ledger(items)
 
     async def fetch_ledger_entry(self, id, code=None, params={}):
-        items = await self.fetchLedgerEntrysByIds([id], code, params)
+        items = await self.fetch_ledger_entries_by_ids([id], code, params)
         return items[0]
 
     def parse_trade(self, trade, market=None):

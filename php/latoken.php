@@ -417,26 +417,32 @@ class latoken extends Exchange {
         // fetchTrades (public)
         //
         //     {
-        //         "$side":"buy",
-        //         "$price":0.022315,
-        //         "$amount":0.706,
-        //         "$timestamp":1563454655
+        //         $side => 'buy',
+        //         $price => 0.33634,
+        //         $amount => 0.01,
+        //         $timestamp => 1564240008000 // milliseconds
         //     }
         //
         // fetchMyTrades (private)
         //
         //     {
-        //         "$id" => "1555492358.126073.126767@0502:2",
-        //         "$orderId" => "1555492358.126073.126767@0502:2",
-        //         "commission" => 0.012,
-        //         "$side" => "buy",
-        //         "$price" => 136.2,
-        //         "$amount" => 0.7,
-        //         "time" => 1555515807369
+        //         $id => '1564223032.892829.3.tg15',
+        //         $orderId => '1564223032.671436.707548@1379:1',
+        //         commission => 0,
+        //         $side => 'buy',
+        //         $price => 0.32874,
+        //         $amount => 0.607,
+        //         $timestamp => 1564223033 // seconds
         //     }
         //
         $type = null;
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'time');
+        if ($timestamp !== null) {
+            // 03 Jan 2009 - first block
+            if ($timestamp < 1230940800000) {
+                $timestamp *= 1000;
+            }
+        }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $side = $this->safe_string($trade, 'side');
@@ -494,10 +500,10 @@ class latoken extends Exchange {
         //         "tradeCount":51,
         //         "$trades" => array (
         //             {
-        //                 "side":"buy",
-        //                 "price":0.022315,
-        //                 "amount":0.706,
-        //                 "timestamp":1563454655
+        //                 side => 'buy',
+        //                 price => 0.33634,
+        //                 amount => 0.01,
+        //                 timestamp => 1564240008000 // milliseconds
         //             }
         //         )
         //     }
@@ -523,13 +529,13 @@ class latoken extends Exchange {
         //         "tradeCount" => 1,
         //         "$trades" => array (
         //             {
-        //                 "id" => "1555492358.126073.126767@0502:2",
-        //                 "orderId" => "1555492358.126073.126767@0502:2",
-        //                 "commission" => 0.012,
-        //                 "side" => "buy",
-        //                 "price" => 136.2,
-        //                 "amount" => 0.7,
-        //                 "time" => 1555515807369
+        //                 id => '1564223032.892829.3.tg15',
+        //                 orderId => '1564223032.671436.707548@1379:1',
+        //                 commission => 0,
+        //                 side => 'buy',
+        //                 price => 0.32874,
+        //                 amount => 0.607,
+        //                 timestamp => 1564223033 // seconds
         //             }
         //         )
         //     }
@@ -583,6 +589,9 @@ class latoken extends Exchange {
         //
         $id = $this->safe_string($order, 'orderId');
         $timestamp = $this->safe_value($order, 'timeCreated');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $marketId = $this->safe_string($order, 'symbol');
         $symbol = $marketId;
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
@@ -596,7 +605,12 @@ class latoken extends Exchange {
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $filled = $this->safe_float($order, 'executedAmount');
-        $remaining = $this->safe_float($order, 'reaminingAmount');
+        $remaining = null;
+        if ($amount !== null) {
+            if ($filled !== null) {
+                $remaining = $amount - $filled;
+            }
+        }
         $status = $this->parse_order_status($this->safe_string($order, 'orderStatus'));
         $cost = null;
         if ($filled !== null) {
@@ -607,7 +621,7 @@ class latoken extends Exchange {
         $timeFilled = $this->safe_integer($order, 'timeFilled');
         $lastTradeTimestamp = null;
         if ($timeFilled !== null && $timeFilled > 0) {
-            $lastTradeTimestamp = $timeFilled;
+            $lastTradeTimestamp = $timeFilled * 1000;
         }
         return array (
             'id' => $id,
@@ -650,7 +664,7 @@ class latoken extends Exchange {
 
     public function fetch_orders_with_method ($method, $symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw ArgumentsRequired ($this->id . ' fetchOrdersWithMethod requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchOrdersWithMethod requires a $symbol argument');
         }
         $this->load_markets();
         $market = $this->market ($symbol);

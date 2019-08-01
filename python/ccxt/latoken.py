@@ -407,26 +407,30 @@ class latoken (Exchange):
         # fetchTrades(public)
         #
         #     {
-        #         "side":"buy",
-        #         "price":0.022315,
-        #         "amount":0.706,
-        #         "timestamp":1563454655
+        #         side: 'buy',
+        #         price: 0.33634,
+        #         amount: 0.01,
+        #         timestamp: 1564240008000  # milliseconds
         #     }
         #
         # fetchMyTrades(private)
         #
         #     {
-        #         "id": "1555492358.126073.126767@0502:2",
-        #         "orderId": "1555492358.126073.126767@0502:2",
-        #         "commission": 0.012,
-        #         "side": "buy",
-        #         "price": 136.2,
-        #         "amount": 0.7,
-        #         "time": 1555515807369
+        #         id: '1564223032.892829.3.tg15',
+        #         orderId: '1564223032.671436.707548@1379:1',
+        #         commission: 0,
+        #         side: 'buy',
+        #         price: 0.32874,
+        #         amount: 0.607,
+        #         timestamp: 1564223033  # seconds
         #     }
         #
         type = None
         timestamp = self.safe_integer_2(trade, 'timestamp', 'time')
+        if timestamp is not None:
+            # 03 Jan 2009 - first block
+            if timestamp < 1230940800000:
+                timestamp *= 1000
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         side = self.safe_string(trade, 'side')
@@ -478,10 +482,10 @@ class latoken (Exchange):
         #         "tradeCount":51,
         #         "trades": [
         #             {
-        #                 "side":"buy",
-        #                 "price":0.022315,
-        #                 "amount":0.706,
-        #                 "timestamp":1563454655
+        #                 side: 'buy',
+        #                 price: 0.33634,
+        #                 amount: 0.01,
+        #                 timestamp: 1564240008000  # milliseconds
         #             }
         #         ]
         #     }
@@ -505,13 +509,13 @@ class latoken (Exchange):
         #         "tradeCount": 1,
         #         "trades": [
         #             {
-        #                 "id": "1555492358.126073.126767@0502:2",
-        #                 "orderId": "1555492358.126073.126767@0502:2",
-        #                 "commission": 0.012,
-        #                 "side": "buy",
-        #                 "price": 136.2,
-        #                 "amount": 0.7,
-        #                 "time": 1555515807369
+        #                 id: '1564223032.892829.3.tg15',
+        #                 orderId: '1564223032.671436.707548@1379:1',
+        #                 commission: 0,
+        #                 side: 'buy',
+        #                 price: 0.32874,
+        #                 amount: 0.607,
+        #                 timestamp: 1564223033  # seconds
         #             }
         #         ]
         #     }
@@ -563,6 +567,8 @@ class latoken (Exchange):
         #
         id = self.safe_string(order, 'orderId')
         timestamp = self.safe_value(order, 'timeCreated')
+        if timestamp is not None:
+            timestamp *= 1000
         marketId = self.safe_string(order, 'symbol')
         symbol = marketId
         if marketId in self.markets_by_id:
@@ -574,7 +580,10 @@ class latoken (Exchange):
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float(order, 'executedAmount')
-        remaining = self.safe_float(order, 'reaminingAmount')
+        remaining = None
+        if amount is not None:
+            if filled is not None:
+                remaining = amount - filled
         status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
         cost = None
         if filled is not None:
@@ -583,7 +592,7 @@ class latoken (Exchange):
         timeFilled = self.safe_integer(order, 'timeFilled')
         lastTradeTimestamp = None
         if timeFilled is not None and timeFilled > 0:
-            lastTradeTimestamp = timeFilled
+            lastTradeTimestamp = timeFilled * 1000
         return {
             'id': id,
             'info': order,
