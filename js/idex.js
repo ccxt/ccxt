@@ -406,7 +406,6 @@ module.exports = class idex extends Exchange {
                 signedOrder['address'] = this.walletAddress;
                 signedOrder['nonce'] = await this.getNonce ();
                 request.push (signedOrder);
-                const response = await this.privatePostTrade (request);
                 //   [ {
                 //     "amount": "0.07",
                 //     "date": "2017-10-13 16:25:36",
@@ -417,8 +416,9 @@ module.exports = class idex extends Exchange {
                 //     "orderHash": "0xcfe4018c59e50e0e1964c979e6213ce5eb8c751cbc98a44251eb48a0985adc52",
                 //     "uuid": "250d51a0-b033-11e7-9984-a9ab79bb8f35"
                 //   } ]
-                return this.parseOrders (response, market);
             }
+            const response = await this.privatePostTrade (request);
+            return this.parseOrders (response, market);
         }
     }
 
