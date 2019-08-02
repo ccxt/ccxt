@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, ArgumentsRequired } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -19,6 +19,7 @@ module.exports = class idex extends Exchange {
             'has': {
                 'fetchOrderBook': true,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchMarkets': true,
                 'fetchBalance': true,
                 'createOrder': true,
@@ -83,7 +84,9 @@ module.exports = class idex extends Exchange {
                 'orderNonce': undefined,
             },
             'exceptions': {
-                '400': BadRequest,
+                'Invalid order signature. Please try again.': AuthenticationError,
+                'You have insufficient funds to match this order. If you believe this is a mistake please refresh and try again.': InsufficientFunds,
+                'Order no longer available.': InvalidOrder,
             },
             'requiredCredentials': {
                 'walletAddress': true,
@@ -159,18 +162,8 @@ module.exports = class idex extends Exchange {
         }
         const baseVolume = this.safeFloat (ticker, 'baseVolume');
         const quoteVolume = this.safeFloat (ticker, 'quoteVolume');
-        const open = this.safeFloat (ticker, 'high');
         const last = this.safeFloat (ticker, 'last');
-        let change = undefined;
-        let percentage = this.safeFloat (ticker, 'percentChange');
-        let average = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-        }
+        const percentage = this.safeFloat (ticker, 'percentChange');
         return {
             'symbol': symbol,
             'timestamp': undefined,
@@ -182,17 +175,42 @@ module.exports = class idex extends Exchange {
             'ask': this.safeFloat (ticker, 'lowestAsk'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
-            'average': average,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
         };
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicPostReturnTicker (params);
+        const ids = Object.keys (response);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            let symbol = undefined;
+            let market = undefined;
+            if (id in this.markets_by_id) {
+                market = this.markets_by_id[id];
+                symbol = market['symbol'];
+            } else {
+                const [ quoteId, baseId ] = id.split ('_');
+                const base = this.commonCurrencyCode (baseId);
+                const quote = this.commonCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+                market = { 'symbol': symbol };
+            }
+            const ticker = response[id];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -384,9 +402,9 @@ module.exports = class idex extends Exchange {
                 };
                 const orderHash = this.getIdexMarketOrderHash (orderToSign);
                 const signature = this.signMessage (orderHash, this.privateKey);
-                orderToSign['address'] = this.walletAddress;
-                orderToSign['nonce'] = await this.getNonce ();
                 const signedOrder = this.extend (orderToSign, signature);
+                signedOrder['address'] = this.walletAddress;
+                signedOrder['nonce'] = await this.getNonce ();
                 request.push (signedOrder);
                 const response = await this.privatePostTrade (request);
                 //   [ {
@@ -958,11 +976,10 @@ module.exports = class idex extends Exchange {
         if (response === undefined) {
             return;
         }
-        const stringCode = code.toString ();
-        if (stringCode in this.exceptions) {
-            throw new this.exceptions[stringCode] (this.id + ' ' + body);
-        }
         if ('error' in response) {
+            if (response['error'] in this.exceptions) {
+                throw new this.exceptions[response['error']] (this.id + ' ' + response['error']);
+            }
             throw new ExchangeError (this.id + ' ' + body);
         }
     }
