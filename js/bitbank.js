@@ -309,14 +309,8 @@ module.exports = class bitbank extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let type = this.safeString (order, 'type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const type = this.safeStringLower (order, 'type');
+        const side = this.safeStringLower (order, 'side');
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),

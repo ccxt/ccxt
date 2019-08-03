@@ -642,23 +642,17 @@ module.exports = class binance extends Exchange {
             }
         }
         const id = this.safeString (order, 'orderId');
-        let type = this.safeString (order, 'type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-            if (type === 'market') {
-                if (price === 0.0) {
-                    if ((cost !== undefined) && (filled !== undefined)) {
-                        if ((cost > 0) && (filled > 0)) {
-                            price = cost / filled;
-                        }
+        const type = this.safeStringLower (order, 'type');
+        if (type === 'market') {
+            if (price === 0.0) {
+                if ((cost !== undefined) && (filled !== undefined)) {
+                    if ((cost > 0) && (filled > 0)) {
+                        price = cost / filled;
                     }
                 }
             }
         }
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'side');
         let fee = undefined;
         let trades = undefined;
         const fills = this.safeValue (order, 'fills');

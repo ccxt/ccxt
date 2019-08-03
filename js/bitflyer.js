@@ -215,17 +215,14 @@ module.exports = class bitflyer extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let side = this.safeString (trade, 'side');
+        let side = this.safeStringLower (trade, 'side');
         if (side !== undefined) {
             if (side.length < 1) {
                 side = undefined;
-            } else {
-                side = side.toLowerCase ();
             }
         }
         let order = undefined;
         if (side !== undefined) {
-            side = side.toLowerCase ();
             const id = side + '_child_order_acceptance_id';
             if (id in trade) {
                 order = trade[id];
@@ -324,14 +321,8 @@ module.exports = class bitflyer extends Exchange {
         const price = this.safeFloat (order, 'price');
         const cost = price * filled;
         const status = this.parseOrderStatus (this.safeString (order, 'child_order_state'));
-        let type = this.safeString (order, 'child_order_type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const type = this.safeStringLower (order, 'child_order_type');
+        const side = this.safeStringLower (order, 'side');
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (order, 'product_code');
