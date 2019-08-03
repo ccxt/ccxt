@@ -293,6 +293,7 @@ module.exports = class liqui extends Exchange {
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'title');
             const precision = this.safeInteger (currency, 'precision');
             // assumes all currencies are active except those listed above
             const enabled = this.safeValue (currency, 'enabled');
@@ -304,7 +305,7 @@ module.exports = class liqui extends Exchange {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': code,
+                'name': name,
                 'active': active,
                 'fee': fee,
                 'precision': precision,
