@@ -2577,6 +2577,8 @@ class okex3 (Exchange):
         feedback = self.id + ' ' + body
         if code == 503:
             raise ExchangeError(feedback)
+        if not response:
+            return  # fallback to default error handler
         exact = self.exceptions['exact']
         message = self.safe_string(response, 'message')
         errorCode = self.safe_string_2(response, 'code', 'error_code')
