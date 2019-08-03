@@ -9,8 +9,7 @@ module.exports = class liqui extends Exchange {
             'id': 'xena',
             'name': 'Xena Exchange',
             'countries': [ 'VC', 'UK' ],
-            'rateLimit': 3000,
-            'version': '3',
+            'rateLimit': 500,
             'has': {
                 'CORS': false,
                 'fetchOrderBook': false,
@@ -433,13 +432,44 @@ module.exports = class liqui extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseTrade (trade, market) {
-        const id = this.safeString (trade, 'tid');
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchMyTrades
+        //
+        //     {
+        //         "account":8263118,
+        //         "clOrdId":"Kw9664m22",
+        //         "orderId":"7aa7f445-89be-47ec-b649-e0671e238609",
+        //         "symbol":"BTC/USDT",
+        //         "ordType":"Limit",
+        //         "price":"8000",
+        //         "transactTime":1557916859727908000,
+        //         "execId":"9aa20f1f-5c73-408d-909d-07f74f04edfd",
+        //         "tradeId":"220143240",
+        //         "side":"Sell",
+        //         "orderQty":"1",
+        //         "leavesQty":"0",
+        //         "cumQty":"1",
+        //         "lastQty":"1",
+        //         "lastPx":"8000",
+        //         "avgPx":"0",
+        //         "calculatedCcyLastQty":"8000",
+        //         "netMoney":"8000",
+        //         "commission":"0",
+        //         "commCurrency":"USDT",
+        //         "positionEffect":"UnknownPositionEffect"
+        //     }
+        //
+        const id = this.safeString (trade, 'tradeId');
+
         let timestamp = this.safeFloat (trade, 'timestamp');
         if (timestamp !== undefined) {
             timestamp = parseInt (timestamp) * 1000;
         }
-        const type = undefined;
+        let type = this.safeString (trade, 'ordType');
+        if (type !== undefined) {
+            type = type.toLowerCase ();
+        }
         let side = this.safeString (trade, 'type');
         if (side !== undefined) {
             side = side.toLowerCase ();
@@ -756,7 +786,7 @@ module.exports = class liqui extends Exchange {
         const timestamp = undefined;
         const txid = this.safeString (transaction, 'txId');
         const currencyId = this.safeString (transaction, 'currency');
-        let code = this.safeCurrencyCode (currencyId);
+        let code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'address');
         let addressFrom = undefined;
         let addressTo = undefined;
@@ -767,9 +797,6 @@ module.exports = class liqui extends Exchange {
         }
         const amount = this.safeFloat (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        if (code === undefined && currency !== undefined) {
-            code = currency['code'];
-        }
         const fee = undefined;
         return {
             'info': transaction,
@@ -849,26 +876,22 @@ module.exports = class liqui extends Exchange {
     parseLedgerEntry (item, currency = undefined) {
         //
         //     {
-        //         'LTFK7F-N2CUX-PNY4SX': {
-        //             refid: "TSJTGT-DT7WN-GPPQMJ",
-        //             time:  1520102320.555,
-        //             type: "trade",
-        //             aclass: "currency",
-        //             asset: "XETH",
-        //             amount: "0.1087194600",
-        //             fee: "0.0000000000",
-        //             balance: "0.2855851000"
-        //         },
-        //         ...
+        //         "accountId":8263118,
+        //         "ts":1551974415000000000,
+        //         "amount":"-1",
+        //         "currency":"BTC",
+        //         "kind":"internal withdrawal",
+        //         "commission":"0",
+        //         "id":96
         //     }
         //
         const id = this.safeString (item, 'id');
         let direction = undefined;
-        const account = undefined;
-        const referenceId = this.safeString (item, 'refid');
+        const account = this.safeString (item, 'accountId');
+        const referenceId = undefined;
         const referenceAccount = undefined;
-        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
-        const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
+        const type = this.parseLedgerEntryType (this.safeString (item, 'kind'));
+        const code = this.safeCurrencyCode (this.safeString (item, 'currency'), currency);
         let amount = this.safeFloat (item, 'amount');
         if (amount < 0) {
             direction = 'out';
@@ -876,13 +899,12 @@ module.exports = class liqui extends Exchange {
         } else {
             direction = 'in';
         }
-        const time = this.safeFloat (item, 'time');
-        let timestamp = undefined;
-        if (time !== undefined) {
-            timestamp = parseInt (time * 1000);
+        let timestamp = this.safeInteger (item, 'ts');
+        if (timestamp !== undefined) {
+            timestamp = parseInt (timestamp / 1e6);
         }
         const fee = {
-            'cost': this.safeFloat (item, 'fee'),
+            'cost': this.safeFloat (item, 'commission'),
             'currency': code,
         };
         const before = undefined;
