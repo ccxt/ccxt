@@ -629,7 +629,7 @@ module.exports = class liqui extends Exchange {
         };
     }
 
-    async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchTransactionsByType (type, code = undefined, since = undefined, limit = undefined, params = {}) {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTransactions() requires a currency `code` argument');
         }
@@ -641,26 +641,54 @@ module.exports = class liqui extends Exchange {
         if (since !== undefined) {
             request['since'] = parseInt (since / 1000);
         }
-        const response = await this.privatePostHistoryMovements (this.extend (request, params));
+        const method = 'privateGetTransfersAccountsAccountId' + this.capitalize (type);
+        const response = await this[method] (this.extend (request, params));
         //
-        //     [
-        //         {
-        //             "id":581183,
-        //             "txid": 123456,
-        //             "currency":"BTC",
-        //             "method":"BITCOIN",
-        //             "type":"WITHDRAWAL",
-        //             "amount":".01",
-        //             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
-        //             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
-        //             "status":"COMPLETED",
-        //             "timestamp":"1443833327.0",
-        //             "timestamp_created": "1443833327.1",
-        //             "fee": 0.1,
-        //         }
-        //     ]
+        //     {
+        //         “withdrawals”: [
+        //             {
+        //                 “withdrawalRequestId”: 47383243,
+        //                 “externalId”: “...”,    // external ID submitted by the client when creating the request
+        //                 “status”: 1,
+        //                 “statusMessage”: ”Pending confirmation”,
+        //                 “amount”: “10.2”,
+        //                 “currency”: “BTC”,
+        //                 “lastUpdated”: <UNIX nanoseconds>,
+        //                 “blockchain”: “Bitcoin”,
+        //                 “address”: “mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9”,
+        //                 “txId”: “0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98”
+        //             }
+        //         ]
+        //     }
         //
-        return this.parseTransactions (response, currency, since, limit);
+        //     {
+        //         “deposits”: [
+        //             {
+        //                 “currency”: “BTC”,
+        //                 “amount”: “1.2”,
+        //                 “status”: 1,
+        //                 “statusMessage”: “Processing”,
+        //                 “blockchain”: “Bitcoin”,
+        //                 “txId”: “0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98”,
+        //                 “address”: “mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9”,
+        //                 “lastUpdated”: <UNIX nanoseconds>
+        //                 “confirmations”: 2,
+        //                 “requiredConfirmations”: 6
+        //             }
+        //         ]
+        //     }
+        //
+        //
+        const transactions = this.safeValue (response, 'withdrawals', []);
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('withdrawals', code, since, limit, params);
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        return await this.fetchTransactionsByType ('deposits', code, since, limit, params);
     }
 
     parseTransaction (transaction, currency = undefined) {
