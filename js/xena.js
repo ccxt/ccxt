@@ -8,10 +8,9 @@ module.exports = class liqui extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'xena',
             'name': 'Xena Exchange',
-            'countries': [ 'UA' ],
+            'countries': [ 'VC', 'UK' ],
             'rateLimit': 3000,
             'version': '3',
-            'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
                 'fetchOrderBook': false,
@@ -34,7 +33,7 @@ module.exports = class liqui extends Exchange {
                     'public': 'https://trading.xena.exchange/api',
                     'private': 'https://api.xena.exchange',
                 },
-                'www': 'https://xena.exchange/',
+                'www': 'https://xena.exchange',
                 'doc': 'https://support.xena.exchange/support/solutions/articles/44000222066-introduction-to-xena-api',
                 'fees': 'https://trading.xena.exchange/en/platform-specification/fee-schedule',
             },
@@ -65,16 +64,17 @@ module.exports = class liqui extends Exchange {
                         'trading/accounts',
                         'trading/accounts/{accountId}/balance',
                         'trading/accounts/{accountId}/trade-history',
-                        'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=220143254',
+                        // 'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=220143254',
                         'transfers/accounts',
                         'transfers/accounts/{accountId}',
                         'transfers/accounts/{accountId}/deposit-address/{currency}',
                         'transfers/accounts/{accountId}/deposits',
                         'transfers/accounts/{accountId}/trusted-addresses',
                         'transfers/accounts/{accountId}/withdrawals',
-                        'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}',
-                        'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}',
-                        'transfers/accounts/{accountId}/balance-history?txid=3e1db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf',
+                        'transfers/accounts/{accountId}/balance-history',
+                        // 'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}',
+                        // 'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}',
+                        // 'transfers/accounts/{accountId}/balance-history?txid=3e1db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf',
                     ],
                     'post': [
                         'transfers/accounts/{accountId}/withdrawals',
@@ -486,11 +486,24 @@ module.exports = class liqui extends Exchange {
         const accountId = await this.getAccountId (params);
         const request = {
             'accountId': accountId,
+            // 'page': 1,
+            // 'limit': integer,
+            // 'from': time,
+            // 'to': time,
+            // 'symbol': currency['id'],
+            // 'trade_id': id,
+            // 'client_order_id': id,
         };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = since * 1e6;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
         const response = await this.privateGetTradingAccountsAccountIdTradeHistory (this.extend (request, params));
         //
@@ -819,6 +832,132 @@ module.exports = class liqui extends Exchange {
         //     }
         //
         return this.parseTransaction (response, currency);
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'deposit': 'transaction',
+            'withdrawal': 'transaction',
+            'internal deposit': 'transfer',
+            'internal withdrawal': 'transfer',
+            'rebate': 'rebate',
+            'reward': 'reward',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //     {
+        //         'LTFK7F-N2CUX-PNY4SX': {
+        //             refid: "TSJTGT-DT7WN-GPPQMJ",
+        //             time:  1520102320.555,
+        //             type: "trade",
+        //             aclass: "currency",
+        //             asset: "XETH",
+        //             amount: "0.1087194600",
+        //             fee: "0.0000000000",
+        //             balance: "0.2855851000"
+        //         },
+        //         ...
+        //     }
+        //
+        const id = this.safeString (item, 'id');
+        let direction = undefined;
+        const account = undefined;
+        const referenceId = this.safeString (item, 'refid');
+        const referenceAccount = undefined;
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        const code = this.safeCurrencyCode (this.safeString (item, 'asset'), currency);
+        let amount = this.safeFloat (item, 'amount');
+        if (amount < 0) {
+            direction = 'out';
+            amount = Math.abs (amount);
+        } else {
+            direction = 'in';
+        }
+        const time = this.safeFloat (item, 'time');
+        let timestamp = undefined;
+        if (time !== undefined) {
+            timestamp = parseInt (time * 1000);
+        }
+        const fee = {
+            'cost': this.safeFloat (item, 'fee'),
+            'currency': code,
+        };
+        const before = undefined;
+        const after = this.safeFloat (item, 'balance');
+        const status = 'ok';
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': account,
+            'referenceId': referenceId,
+            'referenceAccount': referenceAccount,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': fee,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
+        const request = {
+            'accountId': accountId,
+            // 'page': 1,
+            // 'limit': 5000, // max 5000
+            // 'from': time,
+            // 'to': time,
+            // 'symbol': currency['id'],
+            // 'trade_id': id,
+            // 'client_order_id': id,
+            // 'txid': txid,
+            // 'kind': 'deposit', // 'withdrawal, 'internal deposit', 'internal withdrawal', 'rebate', 'reward'
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['symbol'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = since * 1e6;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 5000
+        }
+        const response = await this.privateGetTransfersAccountsAccountIdBalanceHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "accountId":8263118,
+        //             "ts":1551974415000000000,
+        //             "amount":"-1",
+        //             "currency":"BTC",
+        //             "kind":"internal withdrawal",
+        //             "commission":"0",
+        //             "id":96
+        //         },
+        //         {
+        //             "accountId":8263118,
+        //             "ts":1551964677000000000,
+        //             "amount":"-1",
+        //             "currency":"BTC",
+        //             "kind":"internal deposit",
+        //             "commission":"0",
+        //             "id":95
+        //         }
+        //     ]
+        //
+        return this.parseLedger (response, currency, since, limit);
     }
 
     nonce () {
