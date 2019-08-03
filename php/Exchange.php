@@ -224,6 +224,14 @@ class Exchange {
         return (isset($object[$key]) && is_scalar($object[$key])) ? strval($object[$key]) : $default_value;
     }
 
+    public static function safe_string_lower($object, $key, $default_value = null) {
+        return (isset($object[$key]) && is_scalar($object[$key])) ? strtolower(strval($object[$key])) : $default_value;
+    }
+
+    public static function safe_string_upper($object, $key, $default_value = null) {
+        return (isset($object[$key]) && is_scalar($object[$key])) ? strtoupper(strval($object[$key])) : $default_value;
+    }
+
     public static function safe_integer($object, $key, $default_value = null) {
         return (isset($object[$key]) && is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
     }
@@ -243,6 +251,16 @@ class Exchange {
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_string($object, $key1);
         return isset($value) ? $value : static::safe_string($object, $key2, $default_value);
+    }
+
+    public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string_lower($object, $key1);
+        return isset($value) ? $value : static::safe_string_lower($object, $key2, $default_value);
+    }
+
+    public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string_upper($object, $key1);
+        return isset($value) ? $value : static::safe_string_upper($object, $key2, $default_value);
     }
 
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {
