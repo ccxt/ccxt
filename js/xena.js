@@ -20,6 +20,9 @@ module.exports = class liqui extends Exchange {
                 'fetchTrades': false,
                 'createOrder': false,
                 'createMarketOrder': false,
+                'createDepositAddress': true,
+                'fetchDepositAddress': true,
+                'fetchMyTrades': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
@@ -640,35 +643,51 @@ module.exports = class liqui extends Exchange {
 
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
+        const currency = this.currency (code);
         const request = {
-            'renew': 1,
+            'accountId': accountId,
+            'currency': currency['id'],
         };
-        const response = await this.fetchDepositAddress (code, this.extend (request, params));
-        const address = this.safeString (response, 'address');
+        const response = await this.privatePostTransfersAccountsAccountIdDepositAddressCurrency (this.extend (request, params));
+        //
+        //     {
+        //         "address": "mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9",
+        //         "uri": "bitcoin:mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9?message=Xena Exchange",
+        //         "allowsRenewal": true
+        //     }
+        //
+        const address = this.safeValue (response, 'address');
+        const tag = undefined;
         this.checkAddress (address);
         return {
-            'info': response['info'],
             'currency': code,
             'address': address,
-            'tag': undefined,
+            'tag': tag,
+            'info': response,
         };
     }
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        const name = this.getCurrencyName (code);
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
+        const currency = this.currency (code);
         const request = {
-            'method': name,
-            'wallet_name': 'exchange',
-            'renew': 0, // a value of 1 will generate a new address
+            'accountId': accountId,
+            'currency': currency['id'],
         };
-        const response = await this.privatePostDepositNew (this.extend (request, params));
-        let address = this.safeValue (response, 'address');
-        let tag = undefined;
-        if ('address_pool' in response) {
-            tag = address;
-            address = response['address_pool'];
-        }
+        const response = await this.privateGetTransfersAccountsAccountIdDepositAddressCurrency (this.extend (request, params));
+        //
+        //     {
+        //         "address": "mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9",
+        //         "uri": "bitcoin:mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9?message=Xena Exchange",
+        //         "allowsRenewal": true
+        //     }
+        //
+        const address = this.safeValue (response, 'address');
+        const tag = undefined;
         this.checkAddress (address);
         return {
             'currency': code,
