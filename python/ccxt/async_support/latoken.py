@@ -249,7 +249,7 @@ class latoken (Exchange):
             }
         return result
 
-    def calculate_fee(self, symbol, side, amount, price, takerOrMaker='taker'):
+    def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
         market = self.markets[symbol]
         key = 'quote'
         rate = market[takerOrMaker]
