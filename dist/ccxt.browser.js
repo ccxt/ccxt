@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1002'
+const version = '1.18.1003'
 
 Exchange.ccxtVersion = version
 
@@ -5191,6 +5191,8 @@ module.exports =
     , safeInteger: (o, k, $default, n = asInteger (prop (o, k))) => isNumber (n)          ? n          : $default
     , safeValue:   (o, k, $default, x =            prop (o, k) ) => hasProps (x)          ? x          : $default
     , safeString:  (o, k, $default, x =            prop (o, k) ) => isStringCoercible (x) ? String (x) : $default
+    , safeStringLower:  (o, k, $default, x =       prop (o, k) ) => isStringCoercible (x) ? String (x).toLowerCase () : $default
+    , safeStringUpper:  (o, k, $default, x =       prop (o, k) ) => isStringCoercible (x) ? String (x).toUpperCase () : $default
 
     // not using safeFloats with an array argument as we're trying to save some cycles here
     // we're not using safeFloat3 either because those cases are too rare to deserve their own optimization
@@ -5199,6 +5201,8 @@ module.exports =
     , safeInteger2: (o, k1, k2, $default, n = asInteger (prop2 (o, k1, k2))) => isNumber (n)          ? n          : $default
     , safeValue2:   (o, k1, k2, $default, x =            prop2 (o, k1, k2) ) => hasProps (x)          ? x          : $default
     , safeString2:  (o, k1, k2, $default, x =            prop2 (o, k1, k2) ) => isStringCoercible (x) ? String (x) : $default
+    , safeStringLower2:  (o, k1, k2, $default, x =       prop2 (o, k1, k2) ) => isStringCoercible (x) ? String (x).toLowerCase () : $default
+    , safeStringUpper2:  (o, k1, k2, $default, x =       prop2 (o, k1, k2) ) => isStringCoercible (x) ? String (x).toUpperCase () : $default
 
     }
 
@@ -68522,7 +68526,7 @@ module.exports = class okex3 extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
         }
         const suffix = (type === 'account') ? 'Wallet' : 'Accounts';
         const method = type + 'Get' + suffix;
