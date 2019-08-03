@@ -2690,6 +2690,9 @@ module.exports = class okex3 extends Exchange {
         if (code === 503) {
             throw new ExchangeError (feedback);
         }
+        if (!response) {
+            return; // fallback to default error handler
+        }
         const exact = this.exceptions['exact'];
         const message = this.safeString (response, 'message');
         const errorCode = this.safeString2 (response, 'code', 'error_code');
