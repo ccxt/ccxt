@@ -248,7 +248,7 @@ class latoken extends Exchange {
         return $result;
     }
 
-    public function calculate_fee ($symbol, $side, $amount, $price, $takerOrMaker = 'taker') {
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];

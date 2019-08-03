@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.999'
+const version = '1.18.1000'
 
 Exchange.ccxtVersion = version
 
@@ -57125,7 +57125,7 @@ module.exports = class latoken extends Exchange {
         return result;
     }
 
-    calculateFee (symbol, side, amount, price, takerOrMaker = 'taker') {
+    calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         const market = this.markets[symbol];
         let key = 'quote';
         const rate = market[takerOrMaker];
