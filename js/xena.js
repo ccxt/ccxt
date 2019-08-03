@@ -23,6 +23,7 @@ module.exports = class liqui extends Exchange {
                 'createDepositAddress': true,
                 'fetchDepositAddress': true,
                 'fetchMyTrades': true,
+                'fetchCurrencies': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
@@ -249,6 +250,83 @@ module.exports = class liqui extends Exchange {
                     'info': market,
                 });
             }
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCommonCurrencies (params);
+        //
+        //     {
+        //         "BAB": {
+        //             "name":"BAB",
+        //             "title":"Bitcoin ABC",
+        //             "blockchain":{
+        //                 "name":"BAB",
+        //                 "title":"Bitcoin ABC",
+        //                 "deposit":{"confirmations":6},
+        //                 "withdraw":{"confirmations":1},
+        //                 "addressReuseAllowed":false,
+        //                 "view":{
+        //                     "uriTemplate":"bitcoinabc:%s?message=Xena Exchange",
+        //                     "recommendedFee":"0.00001",
+        //                     "transactionUrl":"https://blockchair.com/bitcoin-cash/transaction/${txId}",
+        //                     "walletUrl":"https://blockchair.com/bitcoin-cash/address/${walletId}"
+        //                 }
+        //             },
+        //             "precision":5,
+        //             "withdraw":{"minAmount":"0.01","commission":"0.001"},
+        //             "view":{
+        //                 "color":"#DC7C08",
+        //                 "site":"https://www.bitcoinabc.org"
+        //             },
+        //             "enabled":true
+        //         },
+        //     }
+        const ids = Object.keys (response);
+        const result = {};
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const currency = response[id];
+            // todo: will need to rethink the fees
+            // see: https://support.kraken.com/hc/en-us/articles/201893608-What-are-the-withdrawal-fees-
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeInteger (currency, 'precision');
+            // assumes all currencies are active except those listed above
+            const enabled = this.safeValue (currency, 'enabled');
+            const active = enabled === true;
+            const withdraw = this.safeValue (currency, 'withdraw', {});
+            const minWithdrawAmount = this.safeFloat (withdraw, 'minAmount');
+            const fee = this.safeFloat (withdraw, 'commission');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': active,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision),
+                        'max': Math.pow (10, precision),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': minWithdrawAmount,
+                        'max': Math.pow (10, precision),
+                    },
+                },
+            };
         }
         return result;
     }
@@ -491,156 +569,6 @@ module.exports = class liqui extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'symbol': this.marketId (symbol),
-            'side': side,
-            'amount': this.amountToPrecision (symbol, amount),
-            'type': this.safeString (this.options['orderTypes'], type, type),
-            'ocoorder': false,
-            'buy_price_oco': 0,
-            'sell_price_oco': 0,
-        };
-        if (type === 'market') {
-            request['price'] = this.nonce ().toString ();
-        } else {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        const response = await this.privatePostOrderNew (this.extend (request, params));
-        return this.parseOrder (response);
-    }
-
-    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets ();
-        const order = {
-            'order_id': id,
-        };
-        if (price !== undefined) {
-            order['price'] = this.priceToPrecision (symbol, price);
-        }
-        if (amount !== undefined) {
-            order['amount'] = this.numberToString (amount);
-        }
-        if (symbol !== undefined) {
-            order['symbol'] = this.marketId (symbol);
-        }
-        if (side !== undefined) {
-            order['side'] = side;
-        }
-        if (type !== undefined) {
-            order['type'] = this.safeString (this.options['orderTypes'], type, type);
-        }
-        const response = await this.privatePostOrderCancelReplace (this.extend (order, params));
-        return this.parseOrder (response);
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'order_id': parseInt (id),
-        };
-        return await this.privatePostOrderCancel (this.extend (request, params));
-    }
-
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        return await this.privatePostOrderCancelAll (params);
-    }
-
-    parseOrder (order, market = undefined) {
-        const side = this.safeString (order, 'side');
-        const open = this.safeValue (order, 'is_live');
-        const canceled = this.safeValue (order, 'is_cancelled');
-        let status = undefined;
-        if (open) {
-            status = 'open';
-        } else if (canceled) {
-            status = 'canceled';
-        } else {
-            status = 'closed';
-        }
-        let symbol = undefined;
-        if (market === undefined) {
-            let marketId = this.safeString (order, 'symbol');
-            if (marketId !== undefined) {
-                marketId = marketId.toUpperCase ();
-                if (marketId in this.markets_by_id) {
-                    market = this.markets_by_id[marketId];
-                }
-            }
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        let orderType = order['type'];
-        const exchange = orderType.indexOf ('exchange ') >= 0;
-        if (exchange) {
-            const parts = order['type'].split (' ');
-            orderType = parts[1];
-        }
-        let timestamp = this.safeFloat (order, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp) * 1000;
-        }
-        const id = this.safeString (order, 'id');
-        return {
-            'info': order,
-            'id': id,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': undefined,
-            'symbol': symbol,
-            'type': orderType,
-            'side': side,
-            'price': this.safeFloat (order, 'price'),
-            'average': this.safeFloat (order, 'avg_execution_price'),
-            'amount': this.safeFloat (order, 'original_amount'),
-            'remaining': this.safeFloat (order, 'remaining_amount'),
-            'filled': this.safeFloat (order, 'executed_amount'),
-            'status': status,
-            'fee': undefined,
-        };
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        if (symbol !== undefined) {
-            if (!(symbol in this.markets)) {
-                throw new ExchangeError (this.id + ' has no symbol ' + symbol);
-            }
-        }
-        const response = await this.privatePostOrders (params);
-        let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol !== undefined) {
-            orders = this.filterBy (orders, 'symbol', symbol);
-        }
-        return orders;
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const response = await this.privatePostOrdersHist (this.extend (request, params));
-        let orders = this.parseOrders (response, undefined, since, limit);
-        if (symbol !== undefined) {
-            orders = this.filterBy (orders, 'symbol', symbol);
-        }
-        orders = this.filterByArray (orders, 'status', [ 'closed', 'canceled' ], false);
-        return orders;
-    }
-
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'order_id': parseInt (id),
-        };
-        const response = await this.privatePostOrderStatus (this.extend (request, params));
-        return this.parseOrder (response);
-    }
-
     async createDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
@@ -819,17 +747,25 @@ module.exports = class liqui extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
-        const name = this.getCurrencyName (code);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
+        const currency = this.currency (code);
         const request = {
-            'withdraw_type': name,
-            'walletselected': 'exchange',
-            'amount': amount.toString (),
+            'currency': currency['id'],
+            'accountId': accountId,
+            'amount': this.currencyToPrecision (code, amount),
             'address': address,
+            'id': this.uuid (), // mandatory external ID (string), used by the client to identify his request
         };
-        if (tag !== undefined) {
-            request['payment_id'] = tag;
-        }
-        const responses = await this.privatePostWithdraw (this.extend (request, params));
+        const response = await this.privatePostTransfersAccountsAccountIdWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         “withdrawalRequestId”: 47383243,
+        //         “status”: 1,
+        //         “statusMessage”: “Pending confirmation”
+        //     }
+        //
         const response = responses[0];
         const id = this.safeString (response, 'withdrawal_id');
         const message = this.safeString (response, 'message');
