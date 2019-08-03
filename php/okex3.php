@@ -2691,6 +2691,9 @@ class okex3 extends Exchange {
         if ($code === 503) {
             throw new ExchangeError($feedback);
         }
+        if (!$response) {
+            return; // fallback to default error handler
+        }
         $exact = $this->exceptions['exact'];
         $message = $this->safe_string($response, 'message');
         $errorCode = $this->safe_string_2($response, 'code', 'error_code');
