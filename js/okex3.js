@@ -1319,7 +1319,7 @@ module.exports = class okex3 extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
         }
         const suffix = (type === 'account') ? 'Wallet' : 'Accounts';
         const method = type + 'Get' + suffix;
