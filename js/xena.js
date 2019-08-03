@@ -752,12 +752,15 @@ module.exports = class liqui extends Exchange {
         await this.loadAccounts ();
         const accountId = await this.getAccountId (params);
         const currency = this.currency (code);
+        let uuid = this.uuid ();
+        uuid = uuid.split ('-');
+        uuid = uuid.join ('');
         const request = {
             'currency': currency['id'],
             'accountId': accountId,
             'amount': this.currencyToPrecision (code, amount),
             'address': address,
-            'id': this.uuid (), // mandatory external ID (string), used by the client to identify his request
+            'id': uuid, // mandatory external ID (string), used by the client to identify his request
         };
         const response = await this.privatePostTransfersAccountsAccountIdWithdrawals (this.extend (request, params));
         //
@@ -795,18 +798,6 @@ module.exports = class liqui extends Exchange {
             let nonce = this.nonce ();
             nonce *= 1e6;
             nonce = nonce.toString ();
-            if (method === 'GET') {
-                if (Object.keys (query).length) {
-                    url += '?' + this.urlencode (query);
-                }
-            } else if (method === 'POST') {
-                query = this.extend ({
-                    'nonce': nonce.toString (),
-                    'request': query,
-                }, query);
-                body = this.json (query);
-                query = this.encode (body);
-            }
             const payload = 'AUTH' + nonce;
             const hash = this.hash (this.encode (payload), 'sha256');
             const signature = this.ecdsa (this.encode (hash), this.encode (this.secret));
@@ -816,6 +807,14 @@ module.exports = class liqui extends Exchange {
                 'X-AUTH-API-SIGNATURE': signature,
                 'X-AUTH-API-NONCE': nonce,
             };
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+            } else if (method === 'POST') {
+                body = this.json (query);
+                headers['Content-Type'] = 'application/json';
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
