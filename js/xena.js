@@ -767,21 +767,7 @@ module.exports = class liqui extends Exchange {
         //         “statusMessage”: “Pending confirmation”
         //     }
         //
-        const response = responses[0];
-        const id = this.safeString (response, 'withdrawal_id');
-        const message = this.safeString (response, 'message');
-        const errorMessage = this.findBroadlyMatchedKey (this.exceptions['broad'], message);
-        if (id === 0) {
-            if (errorMessage !== undefined) {
-                const ExceptionClass = this.exceptions['broad'][errorMessage];
-                throw new ExceptionClass (this.id + ' ' + message);
-            }
-            throw new ExchangeError (this.id + ' withdraw returned an id of zero: ' + this.json (response));
-        }
-        return {
-            'info': response,
-            'id': id,
-        };
+        return this.parseTransaction (response, currency);
     }
 
     nonce () {
