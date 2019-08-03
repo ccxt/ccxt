@@ -56,21 +56,22 @@ module.exports = class liqui extends Exchange {
                 'private': {
                     'get': [
                         'trading/accounts',
-                        'accounts/{accountId}',
-                        'accounts/{accountId}/deposit-address/{currency}',
-                        'accounts/{accountId}/deposits',
-                        'accounts/{accountId}/trusted-addresses',
-                        'accounts/{accountId}/withdrawals',
-                        'api/trading/accounts',
                         'trading/accounts/{accountId}/balance',
-                        'trading/accounts/8263118/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=220143254',
+                        'trading/accounts/{accountId}/trade-history',
+                        'trading/accounts/{accountId}/trade-history?symbol=BTC/USDT&client_order_id=EMBB8Veke&trade_id=220143254',
+                        'transfers/accounts',
+                        'transfers/accounts/{accountId}',
+                        'transfers/accounts/{accountId}/deposit-address/{currency}',
+                        'transfers/accounts/{accountId}/deposits',
+                        'transfers/accounts/{accountId}/trusted-addresses',
+                        'transfers/accounts/{accountId}/withdrawals',
                         'transfers/accounts/{accountId}/balance-history?currency={currency}&from={time}&to={time}&kind={kind}&kind={kind}',
                         'transfers/accounts/{accountId}/balance-history?page={page}&limit={limit}',
-                        'transfers/accounts/8263118/balance-history?txid=3e1db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf',
+                        'transfers/accounts/{accountId}/balance-history?txid=3e1db982c4eed2d6355e276c5bae01a52a27c9cef61574b0e8c67ee05fc26ccf',
                     ],
                     'post': [
-                        'accounts/{accountId}/withdrawals',
-                        'accounts/{accountId}/deposit-address/{currency}',
+                        'transfers/accounts/{accountId}/withdrawals',
+                        'transfers/accounts/{accountId}/deposit-address/{currency}',
                     ],
                 },
             },
@@ -93,6 +94,10 @@ module.exports = class liqui extends Exchange {
                 },
                 'broad': {
                 },
+            },
+            'options': {
+                'defaultType': 'spot', // 'margin',
+                'accountId': undefined, // '1012838157',
             },
         });
     }
@@ -282,30 +287,37 @@ module.exports = class liqui extends Exchange {
         const accountsByType = this.groupBy (this.accounts, 'type');
         const accounts = this.safeValue (accountsByType, type);
         if (accounts === undefined) {
-            throw new ExchangeError (this.id + ' findAccountByType() could not find account with type ' + type);
+            throw new ExchangeError (this.id + " findAccountByType() could not find an accountId with type " + type + ", specify the 'accountId' parameter instead"); // eslint-disable-line quotes
         }
         const numAccounts = accounts.length;
         if (numAccounts > 1) {
-            throw new ExchangeError (this.id + ' findAccountByType() found more than one account with type ' + type);
+            throw new ExchangeError (this.id + " findAccountByType() found more than one accountId with type " + type + ", specify the 'accountId' parameter instead"); // eslint-disable-line quotes
         }
         return accounts[0];
+    }
+
+    async getAccountId (params) {
+        await this.loadMarkets ();
+        await this.loadAccounts ();
+        const defaultAccountId = this.safeString (this.options, 'accountId');
+        const accountId = this.safeString (params, 'accountId', defaultAccountId);
+        if (accountId !== undefined) {
+            return accountId;
+        }
+        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + " fetchBalance() requires an 'accountId' parameter or a 'type' parameter ('spot' or 'margin')");
+        }
+        const account = await this.findAccountByType (type);
+        return account['id'];
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const defaultAccountId = this.safeString (this.options, 'accountId');
-        let accountId = this.safeString (params, 'accountId', defaultAccountId);
-        if (accountId === undefined) {
-            const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-            const type = this.safeString (params, 'type', defaultType);
-            params = this.omit (params, 'type');
-            if (type === undefined) {
-                throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter ('spot' or 'margin')");
-            }
-            const account = await this.findAccountByType (type);
-            accountId = account['id'];
-        }
+        const accountId = await this.getAccountId (params);
         const request = {
             'accountId': accountId,
         };
@@ -381,28 +393,75 @@ module.exports = class liqui extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        await this.loadAccounts ();
+        const accountId = await this.getAccountId (params);
         const request = {
-            'symbol': market['id'],
+            'accountId': accountId,
         };
-        if (limit !== undefined) {
-            request['limit_trades'] = limit;
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['timestamp'] = parseInt (since / 1000);
-        }
-        const response = await this.privatePostMytrades (this.extend (request, params));
+        const response = await this.privateGetTradingAccountsAccountIdTradeHistory (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "account":8263118,
+        //             "clOrdId":"Kw9664m22",
+        //             "orderId":"7aa7f445-89be-47ec-b649-e0671e238609",
+        //             "symbol":"BTC/USDT",
+        //             "ordType":"Limit",
+        //             "price":"8000",
+        //             "transactTime":1557916859727908000,
+        //             "execId":"9aa20f1f-5c73-408d-909d-07f74f04edfd",
+        //             "tradeId":"220143240",
+        //             "side":"Sell",
+        //             "orderQty":"1",
+        //             "leavesQty":"0",
+        //             "cumQty":"1",
+        //             "lastQty":"1",
+        //             "lastPx":"8000",
+        //             "avgPx":"0",
+        //             "calculatedCcyLastQty":"8000",
+        //             "netMoney":"8000",
+        //             "commission":"0",
+        //             "commCurrency":"USDT",
+        //             "positionEffect":"UnknownPositionEffect"
+        //         },
+        //         {
+        //             "account":8263118,
+        //             "clOrdId":"8yk33JO4b",
+        //             "orderId":"fcd4d7c2-31c9-4e4b-96bc-bb241ddb392d",
+        //             "symbol":"BTC/USDT",
+        //             "ordType":"Limit",
+        //             "price":"8000",
+        //             "transactTime":1557912994901110000,
+        //             "execId":"cef664d4-f438-4ad5-a7ad-279f725380d3",
+        //             "tradeId":"220143239",
+        //             "side":"Sell",
+        //             "orderQty":"1",
+        //             "leavesQty":"0",
+        //             "cumQty":"1",
+        //             "lastQty":"1",
+        //             "lastPx":"8000",
+        //             "avgPx":"0",
+        //             "calculatedCcyLastQty":"8000",
+        //             "netMoney":"8000",
+        //             "commission":"0",
+        //             "commCurrency":"USDT",
+        //             "positionEffect":"UnknownPositionEffect"
+        //         }
+        //     ]
+        //
         return this.parseTrades (response, market, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         let timestamp = this.safeInteger (ohlcv, '60');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1e6)
+            timestamp = parseInt (timestamp / 1e6);
         }
         return [
             timestamp,
@@ -777,7 +836,7 @@ module.exports = class liqui extends Exchange {
         const EC = require ('elliptic').ec;
         const ecdsa = new EC ('p256');
         const privateKey = secret.slice (14, 78);
-        const signature = ecdsa.sign (message, privateKey, { canonical: true });
+        const signature = ecdsa.sign (message, privateKey, { 'canonical': true });
         const sig = signature.r.toString (16) + signature.s.toString (16);
         return sig;
     }
