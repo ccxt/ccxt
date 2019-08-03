@@ -648,35 +648,35 @@ module.exports = class liqui extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         //     {
-        //         “withdrawals”: [
+        //         "withdrawals": [
         //             {
-        //                 “withdrawalRequestId”: 47383243,
-        //                 “externalId”: “...”,    // external ID submitted by the client when creating the request
-        //                 “status”: 1,
-        //                 “statusMessage”: ”Pending confirmation”,
-        //                 “amount”: “10.2”,
-        //                 “currency”: “BTC”,
-        //                 “lastUpdated”: <UNIX nanoseconds>,
-        //                 “blockchain”: “Bitcoin”,
-        //                 “address”: “mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9”,
-        //                 “txId”: “0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98”
+        //                 "withdrawalRequestId": 47383243,
+        //                 "externalId": "...",    // external ID submitted by the client when creating the request
+        //                 "status": 1,
+        //                 "statusMessage": "Pending confirmation",
+        //                 "amount": "10.2",
+        //                 "currency": "BTC",
+        //                 "lastUpdated": <UNIX nanoseconds>,
+        //                 "blockchain": "Bitcoin",
+        //                 "address": "mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9",
+        //                 "txId": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98"
         //             }
         //         ]
         //     }
         //
         //     {
-        //         “deposits”: [
+        //         "deposits": [
         //             {
-        //                 “currency”: “BTC”,
-        //                 “amount”: “1.2”,
-        //                 “status”: 1,
-        //                 “statusMessage”: “Processing”,
-        //                 “blockchain”: “Bitcoin”,
-        //                 “txId”: “0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98”,
-        //                 “address”: “mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9”,
-        //                 “lastUpdated”: <UNIX nanoseconds>
-        //                 “confirmations”: 2,
-        //                 “requiredConfirmations”: 6
+        //                 "currency": "BTC",
+        //                 "amount": "1.2",
+        //                 "status": 1,
+        //                 "statusMessage": "Processing",
+        //                 "blockchain": "Bitcoin",
+        //                 "txId": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+        //                 "address": "mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9",
+        //                 "lastUpdated": <UNIX nanoseconds>
+        //                 "confirmations": 2,
+        //                 "requiredConfirmations": 6
         //             }
         //         ]
         //     }
@@ -696,77 +696,86 @@ module.exports = class liqui extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        // crypto
+        // withdraw()
         //
         //     {
-        //         "id": 12042490,
-        //         "fee": "-0.02",
-        //         "txid": "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
-        //         "type": "DEPOSIT",
-        //         "amount": "2099.849999",
-        //         "method": "RIPPLE",
-        //         "status": "COMPLETED",
-        //         "address": "2505189261",
-        //         "currency": "XRP",
-        //         "timestamp": "1551730524.0",
-        //         "description": "EA5B5A66000B66855865EFF2494D7C8D1921FCBE996482157EBD749F2C85E13D",
-        //         "timestamp_created": "1551730523.0"
+        //         "withdrawalRequestId": 47383243,
+        //         "status": 1,
+        //         "statusMessage": "Pending confirmation"
         //     }
         //
-        // fiat
+        // fetchWithdrawals
         //
         //     {
-        //         "id": 12725095,
-        //         "fee": "-60.0",
-        //         "txid": null,
-        //         "type": "WITHDRAWAL",
-        //         "amount": "9943.0",
-        //         "method": "WIRE",
-        //         "status": "SENDING",
-        //         "address": null,
-        //         "currency": "EUR",
-        //         "timestamp": "1561802484.0",
-        //         "description": "Name: bob, AccountAddress: some address, Account: someaccountno, Bank: bank address, SWIFT: foo, Country: UK, Details of Payment: withdrawal name, Intermediary Bank Name: , Intermediary Bank Address: , Intermediary Bank City: , Intermediary Bank Country: , Intermediary Bank Account: , Intermediary Bank SWIFT: , Fee: -60.0",
-        //         "timestamp_created": "1561716066.0"
+        //         "withdrawalRequestId": 47383243,
+        //         "externalId": "...",    // external ID submitted by the client when creating the request
+        //         "status": 1,
+        //         "statusMessage": "Pending confirmation",
+        //         "amount": "10.2",
+        //         "currency": "BTC",
+        //         "lastUpdated": <UNIX nanoseconds>,
+        //         "blockchain": "Bitcoin",
+        //         "address": "mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9",
+        //         "txId": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98"
         //     }
         //
-        let timestamp = this.safeFloat (transaction, 'timestamp_created');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp * 1000);
-        }
-        let updated = this.safeFloat (transaction, 'timestamp');
+        // fetchDeposits
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "amount": "1.2",
+        //         "status": 1,
+        //         "statusMessage": "Processing",
+        //         "blockchain": "Bitcoin",
+        //         "txId": "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98",
+        //         "address": "mu5GceHFAG38mGRYCFqafe5ZiNKLX3rKk9",
+        //         "lastUpdated": <UNIX nanoseconds>
+        //         "confirmations": 2,
+        //         "requiredConfirmations": 6
+        //     }
+        //
+        const id = this.safeString (transaction, 'withdrawalRequestId');
+        const type = (id === undefined) ? 'deposit' : 'withdrawal';
+        let updated = this.safeInteger (transaction, 'lastUpdated');
         if (updated !== undefined) {
-            updated = parseInt (updated * 1000);
+            updated = parseInt (updated / 1e6);
         }
+        const timestamp = undefined;
+        const txid = this.safeString (transaction, 'txId');
         const currencyId = this.safeString (transaction, 'currency');
-        const code = this.safeCurrencyCode (currencyId, currency);
-        let type = this.safeString (transaction, 'type'); // DEPOSIT or WITHDRAWAL
-        if (type !== undefined) {
-            type = type.toLowerCase ();
+        let code = this.safeCurrencyCode (currencyId);
+        const address = this.safeString (transaction, 'address');
+        let addressFrom = undefined;
+        let addressTo = undefined;
+        if (type === 'deposit') {
+            addressFrom = address;
+        } else {
+            addressTo = address;
         }
+        const amount = this.safeFloat (transaction, 'amount');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        let feeCost = this.safeFloat (transaction, 'fee');
-        if (feeCost !== undefined) {
-            feeCost = Math.abs (feeCost);
+        if (code === undefined && currency !== undefined) {
+            code = currency['code'];
         }
+        const fee = undefined;
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction, 'txid'),
+            'id': id,
+            'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'address': this.safeString (transaction, 'address'), // todo: this is actually the tag for XRP transfers (the address is missing)
-            'tag': undefined, // refix it properly for the tag from description
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
+            'address': address,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'tag': undefined,
             'type': type,
-            'amount': this.safeFloat (transaction, 'amount'),
+            'amount': amount,
             'currency': code,
             'status': status,
             'updated': updated,
-            'fee': {
-                'currency': code,
-                'cost': feeCost,
-                'rate': undefined,
-            },
+            'fee': fee,
         };
     }
 
@@ -804,9 +813,9 @@ module.exports = class liqui extends Exchange {
         const response = await this.privatePostTransfersAccountsAccountIdWithdrawals (this.extend (request, params));
         //
         //     {
-        //         “withdrawalRequestId”: 47383243,
-        //         “status”: 1,
-        //         “statusMessage”: “Pending confirmation”
+        //         "withdrawalRequestId": 47383243,
+        //         "status": 1,
+        //         "statusMessage": "Pending confirmation"
         //     }
         //
         return this.parseTransaction (response, currency);
