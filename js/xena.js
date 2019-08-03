@@ -24,6 +24,9 @@ module.exports = class liqui extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchMyTrades': true,
                 'fetchCurrencies': true,
+                'withdraw': true,
+                'fetchWithdrawals': true,
+                'fetchDeposits': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27982022-75aea828-63a0-11e7-9511-ca584a8edd74.jpg',
@@ -769,10 +772,15 @@ module.exports = class liqui extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            'SENDING': 'pending',
-            'CANCELED': 'canceled',
-            'ZEROCONFIRMED': 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
-            'COMPLETED': 'ok',
+            '1': 'pending', // new
+            '2': 'ok', // completed
+            '3': 'failed', // duplicate
+            '4': 'failed', // not enough money
+            '5': 'pending', // waiting for manual approval from XENA
+            '100': 'pending', // request is being processed
+            '101': 'pending', // request is being processed
+            '102': 'pending', // request is being processed
+            '103': 'pending', // request is being processed
         };
         return this.safeString (statuses, status, status);
     }
