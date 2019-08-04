@@ -44,7 +44,7 @@ module.exports = class coinfloor extends Exchange {
                 'private': {
                     'post': [
                         '{id}/balance/',
-                        '{symbol}/user_transactions/',
+                        '{id}/user_transactions/',
                         '{id}/open_orders/',
                         '{symbol}/cancel_order/',
                         '{id}/buy/',
@@ -208,7 +208,7 @@ module.exports = class coinfloor extends Exchange {
         if (code) {
             market = this.findMarket (code);
             if (!market) {
-                throw new NotSupported (this.id + ' fetchTransactions requires a market symbol param');
+                throw new NotSupported (this.id + ' fetchTransactions requires a code argument (a market symbol)');
             }
         }
         const request = {
