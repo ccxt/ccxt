@@ -398,7 +398,7 @@ class tidebit (Exchange):
         request = {
             'id': id,
             'currency_type': 'coin',  # or 'cash'
-            'currency': currency.lower(),
+            'currency': currency['id'],
             'body': amount,
             # 'address': address,  # they don't allow withdrawing to direct addresses?
         }

@@ -300,10 +300,7 @@ class fcoin extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($trade, 'ts');
-        $side = $this->safe_string($trade, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');

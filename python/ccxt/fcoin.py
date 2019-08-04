@@ -293,9 +293,7 @@ class fcoin (Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'ts')
-        side = self.safe_string(trade, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')

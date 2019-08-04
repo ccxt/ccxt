@@ -158,10 +158,7 @@ class negociecoins extends Exchange {
         }
         $id = $this->safe_string($trade, 'tid');
         $type = 'limit';
-        $side = $this->safe_string($trade, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'type');
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),

@@ -271,7 +271,7 @@ class itbit (Exchange):
             currency = self.safe_string(item, 'currency')
             destinationAddress = self.safe_string(item, 'destinationAddress')
             txnHash = self.safe_string(item, 'txnHash')
-            transactionType = self.safe_string(item, 'transactionType').lower()
+            transactionType = self.safe_string_lower(item, 'transactionType')
             transactionStatus = self.safe_string(item, 'status')
             status = self.parse_transfer_status(transactionStatus)
             result.append({

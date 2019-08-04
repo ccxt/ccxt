@@ -321,8 +321,7 @@ class rightbtc extends Exchange {
         }
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         $cost = floatval ($cost);
-        $side = $this->safe_string($trade, 'side');
-        $side = strtolower($side);
+        $side = $this->safe_string_lower($trade, 'side');
         if ($side === 'b') {
             $side = 'buy';
         } else if ($side === 's') {
@@ -529,10 +528,7 @@ class rightbtc extends Exchange {
             }
         }
         $type = 'limit';
-        $side = $this->safe_string($order, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'side');
         $feeCost = $this->divide_safe_float ($order, 'min_fee', 1e8);
         $fee = null;
         if ($feeCost !== null) {

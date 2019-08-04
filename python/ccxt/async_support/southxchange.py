@@ -223,9 +223,7 @@ class southxchange (Exchange):
             if remaining is not None:
                 filled = amount - remaining
         type = 'limit'
-        side = self.safe_string(order, 'Type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'Type')
         id = self.safe_string(order, 'Code')
         result = {
             'info': order,

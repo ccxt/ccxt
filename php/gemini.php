@@ -360,10 +360,7 @@ class gemini extends Exchange {
             }
         }
         $type = null;
-        $side = $this->safe_string($trade, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'type');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -451,6 +448,7 @@ class gemini extends Exchange {
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($order, 'order_id');
+        $side = $this->safe_string_lower($order, 'side');
         return array (
             'id' => $id,
             'info' => $order,
@@ -460,7 +458,7 @@ class gemini extends Exchange {
             'status' => $status,
             'symbol' => $symbol,
             'type' => $type,
-            'side' => strtolower($order['side']),
+            'side' => $side,
             'price' => $price,
             'average' => $average,
             'cost' => $cost,
@@ -577,10 +575,7 @@ class gemini extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'destination');
-        $type = $this->safe_string($transaction, 'type');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $type = $this->safe_string_lower($transaction, 'type');
         $status = 'pending';
         // When deposits show as Advanced or Complete they are available for trading.
         if ($transaction['status']) {

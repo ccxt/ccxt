@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1005'
+const version = '1.18.1006'
 
 Exchange.ccxtVersion = version
 
@@ -36299,10 +36299,7 @@ module.exports = class coss extends Exchange {
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeInteger (trade, 'time');
         const orderId = this.safeString (trade, 'order_id');
-        let side = this.safeString (trade, 'order_side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'order_side');
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
         if (marketId !== undefined) {
@@ -36535,10 +36532,7 @@ module.exports = class coss extends Exchange {
             }
         }
         const average = this.safeFloat (order, 'avg');
-        let side = this.safeString (order, 'order_side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'order_side');
         const cost = this.safeFloat (order, 'total');
         const fee = undefined;
         const trades = undefined;
@@ -38737,10 +38731,7 @@ module.exports = class deribit extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let side = this.safeString (order, 'direction');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'direction');
         let feeCost = this.safeFloat (order, 'commission');
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);
@@ -43725,10 +43716,7 @@ module.exports = class fcoin extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (trade, 'ts');
-        let side = this.safeString (trade, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
@@ -46805,10 +46793,7 @@ module.exports = class gemini extends Exchange {
             }
         }
         const type = undefined;
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'type');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -46896,6 +46881,7 @@ module.exports = class gemini extends Exchange {
             symbol = market['symbol'];
         }
         const id = this.safeString (order, 'order_id');
+        const side = this.safeStringLower (order, 'side');
         return {
             'id': id,
             'info': order,
@@ -46905,7 +46891,7 @@ module.exports = class gemini extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'side': order['side'].toLowerCase (),
+            'side': side,
             'price': price,
             'average': average,
             'cost': cost,
@@ -47022,10 +47008,7 @@ module.exports = class gemini extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'destination');
-        let type = this.safeString (transaction, 'type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
+        const type = this.safeStringLower (transaction, 'type');
         let status = 'pending';
         // When deposits show as Advanced or Complete they are available for trading.
         if (transaction['status']) {
@@ -52534,7 +52517,7 @@ module.exports = class itbit extends Exchange {
             const currency = this.safeString (item, 'currency');
             const destinationAddress = this.safeString (item, 'destinationAddress');
             const txnHash = this.safeString (item, 'txnHash');
-            const transactionType = this.safeString (item, 'transactionType').toLowerCase ();
+            const transactionType = this.safeStringLower (item, 'transactionType');
             const transactionStatus = this.safeString (item, 'status');
             const status = this.parseTransferStatus (transactionStatus);
             result.push ({
@@ -60508,10 +60491,7 @@ module.exports = class livecoin extends Exchange {
         }
         const orderId = this.safeString (trade, 'clientorderid');
         const id = this.safeString (trade, 'id');
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'type');
         const amount = this.safeFloat (trade, 'quantity');
         const price = this.safeFloat (trade, 'price');
         let cost = undefined;
@@ -60655,11 +60635,10 @@ module.exports = class livecoin extends Exchange {
                 market = this.markets_by_id[marketId];
             }
         }
-        let type = undefined;
+        let type = this.safeStringLower (order, 'type');
         let side = undefined;
-        if ('type' in order) {
-            const lowercaseType = order['type'].toLowerCase ();
-            const orderType = lowercaseType.split ('_');
+        if (type !== undefined) {
+            const orderType = type.split ('_');
             type = orderType[0];
             side = orderType[1];
         }
@@ -60850,7 +60829,7 @@ module.exports = class livecoin extends Exchange {
         const id = this.safeString (transaction, 'documentId');
         const amount = this.safeFloat (transaction, 'amount');
         const timestamp = this.safeInteger (transaction, 'date');
-        const type = this.safeString (transaction, 'type').toLowerCase ();
+        const type = this.safeStringLower (transaction, 'type');
         const currencyId = this.safeString (transaction, 'fixedCurrency');
         const feeCost = this.safeFloat (transaction, 'fee');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -61582,10 +61561,7 @@ module.exports = class lykke extends Exchange {
         }
         const id = this.safeString (trade, 'id');
         const timestamp = this.parse8601 (this.safeString (trade, 'dateTime'));
-        let side = this.safeString (trade, 'action');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'action');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'volume');
         const cost = price * amount;
@@ -62610,10 +62586,7 @@ module.exports = class mandala extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'Date', 'date'));
-        let side = this.safeString2 (trade, 'Type', 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower2 (trade, 'Type', 'side');
         const id = this.safeString (trade, 'TradeID');
         let symbol = undefined;
         const baseId = this.safeString (trade, 'trade');
@@ -64458,10 +64431,7 @@ module.exports = class negociecoins extends Exchange {
         }
         const id = this.safeString (trade, 'tid');
         const type = 'limit';
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'type');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -64867,10 +64837,7 @@ module.exports = class nova extends Exchange {
             symbol = market['symbol'];
         }
         const type = undefined;
-        let side = this.safeString (trade, 'tradetype');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'tradetype');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const feeCost = this.safeFloat (trade, 'fee');
@@ -65079,10 +65046,7 @@ module.exports = class nova extends Exchange {
             timestamp *= 1000;
         }
         const amount = this.safeFloat (order, 'fromamount');
-        let side = this.safeString (order, 'ordertype');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'ordertype');
         return {
             'id': orderId,
             'symbol': symbol,
@@ -71820,8 +71784,7 @@ module.exports = class rightbtc extends Exchange {
         }
         let cost = this.costToPrecision (symbol, price * amount);
         cost = parseFloat (cost);
-        let side = this.safeString (trade, 'side');
-        side = side.toLowerCase ();
+        let side = this.safeStringLower (trade, 'side');
         if (side === 'b') {
             side = 'buy';
         } else if (side === 's') {
@@ -72029,10 +71992,7 @@ module.exports = class rightbtc extends Exchange {
             }
         }
         const type = 'limit';
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'side');
         const feeCost = this.divideSafeFloat (order, 'min_fee', 1e8);
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -72515,10 +72475,7 @@ module.exports = class southxchange extends Exchange {
             }
         }
         const type = 'limit';
-        let side = this.safeString (order, 'Type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'Type');
         const id = this.safeString (order, 'Code');
         const result = {
             'info': order,
@@ -87162,7 +87119,7 @@ module.exports = class tidebit extends Exchange {
         const request = {
             'id': id,
             'currency_type': 'coin', // or 'cash'
-            'currency': currency.toLowerCase (),
+            'currency': currency['id'],
             'body': amount,
             // 'address': address, // they don't allow withdrawing to direct addresses?
         };
@@ -88758,10 +88715,7 @@ module.exports = class upbit extends Exchange {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
         }
         let side = undefined;
-        let askOrBid = this.safeString2 (trade, 'ask_bid', 'side');
-        if (askOrBid !== undefined) {
-            askOrBid = askOrBid.toLowerCase ();
-        }
+        const askOrBid = this.safeStringLower2 (trade, 'ask_bid', 'side');
         if (askOrBid === 'ask') {
             side = 'sell';
         } else if (askOrBid === 'bid') {

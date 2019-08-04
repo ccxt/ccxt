@@ -153,9 +153,7 @@ class negociecoins (Exchange):
             symbol = market['symbol']
         id = self.safe_string(trade, 'tid')
         type = 'limit'
-        side = self.safe_string(trade, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'type')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
