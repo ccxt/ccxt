@@ -613,7 +613,7 @@ module.exports = class bitbay extends Exchange {
         const currencyId = this.safeString (balance, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const change = this.safeValue (item, 'change', {});
-        const amount = this.safeFloat (change, 'total');
+        let amount = this.safeFloat (change, 'total');
         let direction = 'in';
         if (amount < 0) {
             direction = 'out';
