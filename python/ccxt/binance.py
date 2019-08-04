@@ -606,17 +606,13 @@ class binance (Exchange):
                 if cost is None:
                     cost = price * filled
         id = self.safe_string(order, 'orderId')
-        type = self.safe_string(order, 'type')
-        if type is not None:
-            type = type.lower()
-            if type == 'market':
-                if price == 0.0:
-                    if (cost is not None) and(filled is not None):
-                        if (cost > 0) and(filled > 0):
-                            price = cost / filled
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        type = self.safe_string_lower(order, 'type')
+        if type == 'market':
+            if price == 0.0:
+                if (cost is not None) and(filled is not None):
+                    if (cost > 0) and(filled > 0):
+                        price = cost / filled
+        side = self.safe_string_lower(order, 'side')
         fee = None
         trades = None
         fills = self.safe_value(order, 'fills')

@@ -642,23 +642,17 @@ class binance extends Exchange {
             }
         }
         $id = $this->safe_string($order, 'orderId');
-        $type = $this->safe_string($order, 'type');
-        if ($type !== null) {
-            $type = strtolower($type);
-            if ($type === 'market') {
-                if ($price === 0.0) {
-                    if (($cost !== null) && ($filled !== null)) {
-                        if (($cost > 0) && ($filled > 0)) {
-                            $price = $cost / $filled;
-                        }
+        $type = $this->safe_string_lower($order, 'type');
+        if ($type === 'market') {
+            if ($price === 0.0) {
+                if (($cost !== null) && ($filled !== null)) {
+                    if (($cost > 0) && ($filled > 0)) {
+                        $price = $cost / $filled;
                     }
                 }
             }
         }
-        $side = $this->safe_string($order, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'side');
         $fee = null;
         $trades = null;
         $fills = $this->safe_value($order, 'fills');

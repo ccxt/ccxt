@@ -396,9 +396,7 @@ class bitmart (Exchange):
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'order_time')
         type = None
-        side = self.safe_string(trade, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'type')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
