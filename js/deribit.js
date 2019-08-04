@@ -428,10 +428,7 @@ module.exports = class deribit extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
-        let side = this.safeString (order, 'direction');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'direction');
         let feeCost = this.safeFloat (order, 'commission');
         if (feeCost !== undefined) {
             feeCost = Math.abs (feeCost);

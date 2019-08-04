@@ -359,10 +359,7 @@ module.exports = class gemini extends Exchange {
             }
         }
         const type = undefined;
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'type');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -450,6 +447,7 @@ module.exports = class gemini extends Exchange {
             symbol = market['symbol'];
         }
         const id = this.safeString (order, 'order_id');
+        const side = this.safeStringLower (order, 'side');
         return {
             'id': id,
             'info': order,
@@ -459,7 +457,7 @@ module.exports = class gemini extends Exchange {
             'status': status,
             'symbol': symbol,
             'type': type,
-            'side': order['side'].toLowerCase (),
+            'side': side,
             'price': price,
             'average': average,
             'cost': cost,
@@ -576,10 +574,7 @@ module.exports = class gemini extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'destination');
-        let type = this.safeString (transaction, 'type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
+        const type = this.safeStringLower (transaction, 'type');
         let status = 'pending';
         // When deposits show as Advanced or Complete they are available for trading.
         if (transaction['status']) {
