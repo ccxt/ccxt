@@ -1467,10 +1467,11 @@ class Exchange(object):
         array = self.to_array(data)
         result = []
         for item in array:
-            if isinstance(item, list):
-                result += [self.extend(self.parse_ledger_entry(i, currency), params) for i in item]
+            entry = self.parse_ledger_entry(item, currency)
+            if isinstance(entry, list):
+                result += [self.extend(i, params) for i in entry]
             else:
-                result.append(self.extend(self.parse_ledger_entry(item, currency), params))
+                result.append(self.extend(entry, params))
         result = self.sort_by(result, 'timestamp')
         code = currency['code'] if currency else None
         return self.filter_by_currency_since_limit(result, code, since, limit)
