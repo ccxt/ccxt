@@ -200,10 +200,7 @@ module.exports = class liqui extends Exchange {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            let type = this.safeString (market, 'type');
-            if (type !== undefined) {
-                type = type.toLowerCase ();
-            }
+            const type = this.safeStringLower (market, 'type');
             const margin = (type === 'margin');
             const spot = (type === 'spot');
             if (spot || margin) {
@@ -354,10 +351,7 @@ module.exports = class liqui extends Exchange {
             const accountId = this.safeString (account, 'id');
             const currencyId = this.safeString (account, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            let type = this.safeString (account, 'kind');
-            if (type !== undefined) {
-                type = type.toLowerCase ();
-            }
+            const type = this.safeStringLower (account, 'kind');
             result.push ({
                 'id': accountId,
                 'type': type,
@@ -461,32 +455,40 @@ module.exports = class liqui extends Exchange {
         //     }
         //
         const id = this.safeString (trade, 'tradeId');
-
-        let timestamp = this.safeFloat (trade, 'timestamp');
+        let timestamp = this.safeInteger (trade, 'transactTime');
         if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp) * 1000;
+            timestamp = parseInt (timestamp / 1e6);
         }
-        let type = this.safeString (trade, 'ordType');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
+        const type = this.safeStringLower (trade, 'ordType');
+        const side = this.safeStringLower (trade, 'side');
+        const orderId = this.safeString (trade, 'orderId');
+        let symbol = undefined;
+        const marketId = this.safeString (trade, 'symbol');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[symbol];
+                symbol = market['id'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('/');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
         }
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
-        const orderId = this.safeString (trade, 'order_id');
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
+        const amount = this.safeFloat (trade, 'cumQty');
+        let cost = this.safeFloat (trade, 'netMoney');
+        if (cost === undefined) {
+            if (price !== undefined) {
+                if (amount !== undefined) {
+                    cost = price * amount;
+                }
             }
         }
         let fee = undefined;
         if ('fee_amount' in trade) {
-            const feeCost = -this.safeFloat (trade, 'fee_amount');
-            const feeCurrencyId = this.safeString (trade, 'fee_currency');
+            const feeCost = this.safeFloat (trade, 'commission');
+            const feeCurrencyId = this.safeString (trade, 'commCurrency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
@@ -498,7 +500,7 @@ module.exports = class liqui extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'order': orderId,
             'side': side,
