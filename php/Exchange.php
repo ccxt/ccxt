@@ -1645,7 +1645,14 @@ class Exchange {
         $array = is_array($items) ? array_values($items) : array();
         $result = array();
         foreach ($array as $item) {
-            $result[] = array_replace_recursive($this->parse_ledger_entry($item, $currency), $params);
+            $entry = $this->parse_ledger_entry($item, $currency);
+            if (gettype ($entry) === 'array' && count (array_filter (array_keys ($entry), 'is_string')) == 0) {
+                foreach ($entry as $i) {
+                    $result[] = array_replace_recursive($i, $params);
+                }
+            } else {
+                $result[] = array_replace_recursive($entry, $params);
+            }
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;

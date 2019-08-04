@@ -320,17 +320,28 @@ module.exports = class bitbay extends Exchange {
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = this.extend ({
-            'balanceCurrencies': code ? [this.commonCurrencyCode (code)] : [],
-            'fromTime': since,
-            'limit': limit,
-        }, params);
+        const balanceCurrencies = [];
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            balanceCurrencies.push (currency['id']);
+        }
+        let request = {
+            'balanceCurrencies': balanceCurrencies,
+        };
+        if (since !== undefined) {
+            request['fromTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        request = this.extend (request, params);
         const response = await this.v1_01PrivateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
         const items = response['items'];
         return this.parseLedger (items, undefined, since, limit);
     }
 
     parseLedgerEntry (item, currency = undefined) {
+        //
         //    FUNDS_MIGRATION
         //    {
         //      "historyId": "84ea7a29-7da5-4de5-b0c0-871e83cad765",
@@ -345,21 +356,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1506128252968,
         //      "type": "FUNDS_MIGRATION",
         //      "value": 0.0009957,
-        //      "fundsBefore": {
-        //        "total": 0,
-        //        "available": 0,
-        //        "locked": 0
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0.0009957,
-        //        "available": 0.0009957,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": 0.0009957,
-        //        "available": 0.0009957,
-        //        "locked": 0
-        //      }
+        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
+        //      "fundsAfter": { "total": 0.0009957, "available": 0.0009957, "locked": 0 },
+        //      "change": { "total": 0.0009957, "available": 0.0009957, "locked": 0 }
         //    }
         //
         //    CREATE_BALANCE
@@ -376,21 +375,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1508895244751,
         //      "type": "CREATE_BALANCE",
         //      "value": 0,
-        //      "fundsBefore": {
-        //        "total": null,
-        //        "available": null,
-        //        "locked": null
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0,
-        //        "available": 0,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": 0,
-        //        "available": 0,
-        //        "locked": 0
-        //      }
+        //      "fundsBefore": { "total": null, "available": null, "locked": null },
+        //      "fundsAfter": { "total": 0, "available": 0, "locked": 0 },
+        //      "change": { "total": 0, "available": 0, "locked": 0 }
         //    }
         //
         //    BITCOIN_GOLD_FORK
@@ -407,21 +394,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1508895244778,
         //      "type": "BITCOIN_GOLD_FORK",
         //      "value": 0.00453512,
-        //      "fundsBefore": {
-        //        "total": 0,
-        //        "available": 0,
-        //        "locked": 0
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0.00453512,
-        //        "available": 0.00453512,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": 0.00453512,
-        //        "available": 0.00453512,
-        //        "locked": 0
-        //      }
+        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
+        //      "fundsAfter": { "total": 0.00453512, "available": 0.00453512, "locked": 0 },
+        //      "change": { "total": 0.00453512, "available": 0.00453512, "locked": 0 }
         //    }
         //
         //    ADD_FUNDS
@@ -438,21 +413,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1520631178816,
         //      "type": "ADD_FUNDS",
         //      "value": 0.628405,
-        //      "fundsBefore": {
-        //        "total": 0.00453512,
-        //        "available": 0.00453512,
-        //        "locked": 0
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0.63294012,
-        //        "available": 0.63294012,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": 0.628405,
-        //        "available": 0.628405,
-        //        "locked": 0
-        //      }
+        //      "fundsBefore": { "total": 0.00453512, "available": 0.00453512, "locked": 0 },
+        //      "fundsAfter": { "total": 0.63294012, "available": 0.63294012, "locked": 0 },
+        //      "change": { "total": 0.628405, "available": 0.628405, "locked": 0 }
         //    }
         //
         //    TRANSACTION_PRE_LOCKING
@@ -469,21 +432,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1520706403868,
         //      "type": "TRANSACTION_PRE_LOCKING",
         //      "value": -0.1,
-        //      "fundsBefore": {
-        //        "total": 0.63294012,
-        //        "available": 0.63294012,
-        //        "locked": 0
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0.63294012,
-        //        "available": 0.53294012,
-        //        "locked": 0.1
-        //      },
-        //      "change": {
-        //        "total": 0,
-        //        "available": -0.1,
-        //        "locked": 0.1
-        //      }
+        //      "fundsBefore": { "total": 0.63294012, "available": 0.63294012, "locked": 0 },
+        //      "fundsAfter": { "total": 0.63294012, "available": 0.53294012, "locked": 0.1 },
+        //      "change": { "total": 0, "available": -0.1, "locked": 0.1 }
         //    }
         //
         //    TRANSACTION_POST_OUTCOME
@@ -500,21 +451,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1520706404032,
         //      "type": "TRANSACTION_POST_OUTCOME",
         //      "value": -0.01771415,
-        //      "fundsBefore": {
-        //        "total": 0.63294012,
-        //        "available": 0.53294012,
-        //        "locked": 0.1
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0.61522597,
-        //        "available": 0.53294012,
-        //        "locked": 0.08228585
-        //      },
-        //      "change": {
-        //        "total": -0.01771415,
-        //        "available": 0,
-        //        "locked": -0.01771415
-        //      }
+        //      "fundsBefore": { "total": 0.63294012, "available": 0.53294012, "locked": 0.1 },
+        //      "fundsAfter": { "total": 0.61522597, "available": 0.53294012, "locked": 0.08228585 },
+        //      "change": { "total": -0.01771415, "available": 0, "locked": -0.01771415 }
         //    }
         //
         //    TRANSACTION_POST_INCOME
@@ -531,21 +470,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1520706404035,
         //      "type": "TRANSACTION_POST_INCOME",
         //      "value": 628.78,
-        //      "fundsBefore": {
-        //        "total": 0,
-        //        "available": 0,
-        //        "locked": 0
-        //      },
-        //      "fundsAfter": {
-        //        "total": 628.78,
-        //        "available": 628.78,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": 628.78,
-        //        "available": 628.78,
-        //        "locked": 0
-        //      }
+        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
+        //      "fundsAfter": { "total": 628.78, "available": 628.78, "locked": 0 },
+        //      "change": { "total": 628.78, "available": 628.78, "locked": 0 }
         //    }
         //
         //    TRANSACTION_COMMISSION_OUTCOME
@@ -562,21 +489,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1520706404050,
         //      "type": "TRANSACTION_COMMISSION_OUTCOME",
         //      "value": -2.71,
-        //      "fundsBefore": {
-        //        "total": 766.06,
-        //        "available": 766.06,
-        //        "locked": 0
-        //      },
-        //      "fundsAfter": {
-        //        "total": 763.35,
-        //        "available": 763.35,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": -2.71,
-        //        "available": -2.71,
-        //        "locked": 0
-        //      }
+        //      "fundsBefore": { "total": 766.06, "available": 766.06, "locked": 0 },
+        //      "fundsAfter": { "total": 763.35,"available": 763.35, "locked": 0 },
+        //      "change": { "total": -2.71, "available": -2.71, "locked": 0 }
         //    }
         //
         //    TRANSACTION_OFFER_COMPLETED_RETURN
@@ -593,21 +508,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1520714886425,
         //      "type": "TRANSACTION_OFFER_COMPLETED_RETURN",
         //      "value": 0.00000196,
-        //      "fundsBefore": {
-        //        "total": 0.00941208,
-        //        "available": 0.00941012,
-        //        "locked": 0.00000196
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0.00941208,
-        //        "available": 0.00941208,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": 0,
-        //        "available": 0.00000196,
-        //        "locked": -0.00000196
-        //      }
+        //      "fundsBefore": { "total": 0.00941208, "available": 0.00941012, "locked": 0.00000196 },
+        //      "fundsAfter": { "total": 0.00941208, "available": 0.00941208, "locked": 0 },
+        //      "change": { "total": 0, "available": 0.00000196, "locked": -0.00000196 }
         //    }
         //
         //    WITHDRAWAL_LOCK_FUNDS
@@ -624,21 +527,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1522245654481,
         //      "type": "WITHDRAWAL_LOCK_FUNDS",
         //      "value": -0.8,
-        //      "fundsBefore": {
-        //        "total": 0.8,
-        //        "available": 0.8,
-        //        "locked": 0
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0.8,
-        //        "available": 0,
-        //        "locked": 0.8
-        //      },
-        //      "change": {
-        //        "total": 0,
-        //        "available": -0.8,
-        //        "locked": 0.8
-        //      }
+        //      "fundsBefore": { "total": 0.8, "available": 0.8, "locked": 0 },
+        //      "fundsAfter": { "total": 0.8, "available": 0, "locked": 0.8 },
+        //      "change": { "total": 0, "available": -0.8, "locked": 0.8 }
         //    }
         //
         //    WITHDRAWAL_SUBTRACT_FUNDS
@@ -655,21 +546,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1522246526186,
         //      "type": "WITHDRAWAL_SUBTRACT_FUNDS",
         //      "value": -0.8,
-        //      "fundsBefore": {
-        //        "total": 0.8,
-        //        "available": 0,
-        //        "locked": 0.8
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0,
-        //        "available": 0,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": -0.8,
-        //        "available": 0,
-        //        "locked": -0.8
-        //      }
+        //      "fundsBefore": { "total": 0.8, "available": 0, "locked": 0.8 },
+        //      "fundsAfter": { "total": 0, "available": 0, "locked": 0 },
+        //      "change": { "total": -0.8, "available": 0, "locked": -0.8 }
         //    }
         //
         //    TRANSACTION_OFFER_ABORTED_RETURN
@@ -686,21 +565,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1522512298662,
         //      "type": "TRANSACTION_OFFER_ABORTED_RETURN",
         //      "value": 0.0564931,
-        //      "fundsBefore": {
-        //        "total": 0.44951311,
-        //        "available": 0.39302001,
-        //        "locked": 0.0564931
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0.44951311,
-        //        "available": 0.44951311,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": 0,
-        //        "available": 0.0564931,
-        //        "locked": -0.0564931
-        //      }
+        //      "fundsBefore": { "total": 0.44951311, "available": 0.39302001, "locked": 0.0564931 },
+        //      "fundsAfter": { "total": 0.44951311, "available": 0.44951311, "locked": 0 },
+        //      "change": { "total": 0, "available": 0.0564931, "locked": -0.0564931 }
         //    }
         //
         //    WITHDRAWAL_UNLOCK_FUNDS
@@ -717,21 +584,9 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1527866360785,
         //      "type": "WITHDRAWAL_UNLOCK_FUNDS",
         //      "value": 0.05045,
-        //      "fundsBefore": {
-        //        "total": 0.86001578,
-        //        "available": 0.80956578,
-        //        "locked": 0.05045
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0.86001578,
-        //        "available": 0.86001578,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": 0,
-        //        "available": 0.05045,
-        //        "locked": -0.05045
-        //      }
+        //      "fundsBefore": { "total": 0.86001578, "available": 0.80956578, "locked": 0.05045 },
+        //      "fundsAfter": { "total": 0.86001578, "available": 0.86001578, "locked": 0 },
+        //      "change": { "total": 0, "available": 0.05045, "locked": -0.05045 }
         //    }
         //
         //    TRANSACTION_COMMISSION_RETURN
@@ -748,47 +603,47 @@ module.exports = class bitbay extends Exchange {
         //      "time": 1528304043063,
         //      "type": "TRANSACTION_COMMISSION_RETURN",
         //      "value": 0.6,
-        //      "fundsBefore": {
-        //        "total": 0,
-        //        "available": 0,
-        //        "locked": 0
-        //      },
-        //      "fundsAfter": {
-        //        "total": 0.6,
-        //        "available": 0.6,
-        //        "locked": 0
-        //      },
-        //      "change": {
-        //        "total": 0.6,
-        //        "available": 0.6,
-        //        "locked": 0
-        //      }
+        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
+        //      "fundsAfter": { "total": 0.6, "available": 0.6, "locked": 0 },
+        //      "change": { "total": 0.6, "available": 0.6, "locked": 0 }
         //    }
+        //
         const timestamp = this.safeInteger (item, 'time');
-        const ccy = item['balance']['currency'];
-        const change = this.safeValue (item, 'change');
-        const amount = this.safeFloat (change, 'total');
-        const historyId = this.safeString (item, 'historyId');
-        const detailId = this.safeString2 (item, 'detailId');
+        const balance = this.safeValue (item, 'balance', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const change = this.safeValue (item, 'change', {});
+        let amount = this.safeFloat (change, 'total');
+        let direction = 'in';
+        if (amount < 0) {
+            direction = 'out';
+            amount = -amount;
+        }
+        const id = this.safeString (item, 'historyId');
         // there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
+        const referenceId = this.safeString (item, 'detailId');
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        const fundsBefore = this.safeValue (item, 'fundsBefore', {});
+        const before = this.safeFloat (fundsBefore, 'total');
+        const fundsAfter = this.safeValue (item, 'fundsAfter', {});
+        const after = this.safeFloat (fundsAfter, 'total');
         return {
-            'id': historyId,
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': undefined,
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': 'ok',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': this.commonCurrencyCode (ccy),
-            'amount': amount < 0 ? -amount : amount,
-            'direction': amount < 0 ? 'out' : 'in',
-            'address': undefined,
-            'tag': undefined,
-            'status': 'ok',
-            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
-            'updated': undefined,
-            'txid': undefined,
             'fee': undefined,
-            'referenceId': detailId,
-            'referenceAccount': undefined,
-            'info': item,
         };
     }
 
@@ -801,8 +656,8 @@ module.exports = class bitbay extends Exchange {
             'WITHDRAWAL_LOCK_FUNDS': 'transaction',
             'WITHDRAWAL_SUBTRACT_FUNDS': 'transaction',
             'WITHDRAWAL_UNLOCK_FUNDS': 'transaction',
-            'TRANSACTION_COMMISSION_OUTCOME': 'trade',
-            'TRANSACTION_COMMISSION_RETURN': 'trade',
+            'TRANSACTION_COMMISSION_OUTCOME': 'fee',
+            'TRANSACTION_COMMISSION_RETURN': 'fee',
             'TRANSACTION_OFFER_ABORTED_RETURN': 'trade',
             'TRANSACTION_OFFER_COMPLETED_RETURN': 'trade',
             'TRANSACTION_POST_INCOME': 'trade',
