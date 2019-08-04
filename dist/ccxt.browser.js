@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1004'
+const version = '1.18.1005'
 
 Exchange.ccxtVersion = version
 
@@ -17430,8 +17430,9 @@ module.exports = class bitstamp extends Exchange {
         //         "eur": 0.0
         //     }
         //
-        if ('currency' in transaction) {
-            return transaction['currency'].toLowerCase ();
+        const currencyId = this.safeStringLower (transaction, 'currency');
+        if (currencyId !== undefined) {
+            return currencyId;
         }
         transaction = this.omit (transaction, [
             'fee',
@@ -19434,7 +19435,7 @@ module.exports = class bittrex extends Exchange {
             symbol = base + '/' + quote;
             feeCurrency = quote;
         }
-        const direction = this.safeString (order, 'direction');
+        const direction = this.safeStringLower (order, 'direction');
         const createdAt = this.safeString (order, 'createdAt');
         const updatedAt = this.safeString (order, 'updatedAt');
         const closedAt = this.safeString (order, 'closedAt');
@@ -19445,13 +19446,13 @@ module.exports = class bittrex extends Exchange {
             lastTradeTimestamp = this.parse8601 (updatedAt);
         }
         const timestamp = this.parse8601 (createdAt);
-        const type = this.safeString (order, 'type');
+        const type = this.safeStringLower (order, 'type');
         const quantity = this.safeFloat (order, 'quantity');
         const limit = this.safeFloat (order, 'limit');
         const fillQuantity = this.safeFloat (order, 'fillQuantity');
         const commission = this.safeFloat (order, 'commission');
         const proceeds = this.safeFloat (order, 'proceeds');
-        const status = this.safeString (order, 'status');
+        const status = this.safeStringLower (order, 'status');
         let average = undefined;
         let remaining = undefined;
         if (fillQuantity !== undefined) {
@@ -19472,15 +19473,15 @@ module.exports = class bittrex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': type.toLowerCase (),
-            'side': direction.toLowerCase (),
+            'type': type,
+            'side': direction,
             'price': limit,
             'cost': proceeds,
             'average': average,
             'amount': quantity,
             'filled': fillQuantity,
             'remaining': remaining,
-            'status': status.toLowerCase (),
+            'status': status,
             'fee': {
                 'cost': commission,
                 'currency': feeCurrency,
@@ -23678,10 +23679,7 @@ module.exports = class btcchina extends Exchange {
                 cost = amount * price;
             }
         }
-        let side = this.safeString (trade, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'side');
         return {
             'id': undefined,
             'info': trade,
@@ -25845,10 +25843,7 @@ module.exports = class buda extends Exchange {
             symbol = market['symbol'];
         }
         const type = this.safeString (order, 'price_type');
-        let side = this.safeString (order, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'type');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const amount = parseFloat (order['original_amount'][0]);
         const remaining = parseFloat (order['amount'][0]);
@@ -33746,10 +33741,7 @@ module.exports = class coinmate extends Exchange {
         const tag = this.safeString (item, 'destinationTag');
         const currencyId = this.safeString (item, 'amountCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let type = this.safeString (item, 'transferType');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
+        const type = this.safeStringLower (item, 'transferType');
         const status = this.parseTransactionStatus (this.safeString (item, 'transferStatus'));
         const id = this.safeString (item, 'transactionId');
         return {
@@ -33842,14 +33834,8 @@ module.exports = class coinmate extends Exchange {
                 cost = price * amount;
             }
         }
-        let side = this.safeString2 (trade, 'type', 'tradeType');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
-        let type = this.safeString (trade, 'orderType');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
+        const side = this.safeStringLower2 (trade, 'type', 'tradeType');
+        const type = this.safeStringLower (trade, 'orderType');
         const orderId = this.safeString (trade, 'orderId');
         const id = this.safeString (trade, 'transactionId');
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'createdTimestamp');
@@ -34987,7 +34973,7 @@ module.exports = class cointiger extends huobipro {
         //
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'orderId');
-        const orderType = this.safeString (trade, 'type');
+        const orderType = this.safeStringLower (trade, 'type');
         let type = undefined;
         let side = undefined;
         if (orderType !== undefined) {
@@ -34995,7 +34981,7 @@ module.exports = class cointiger extends huobipro {
             side = parts[0];
             type = parts[1];
         }
-        side = this.safeString (trade, 'side', side);
+        side = this.safeStringLower (trade, 'side', side);
         let amount = undefined;
         let price = undefined;
         let cost = undefined;
@@ -35004,7 +34990,6 @@ module.exports = class cointiger extends huobipro {
             amount = this.safeFloat (trade['volume'], 'amount');
             cost = this.safeFloat (trade['deal_price'], 'amount');
         } else {
-            side = side.toLowerCase ();
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat2 (trade, 'amount', 'volume');
         }
@@ -35346,7 +35331,7 @@ module.exports = class cointiger extends huobipro {
         //                    status:  2              } }
         //
         const id = this.safeString (order, 'id');
-        let side = this.safeString (order, 'side');
+        let side = this.safeStringLower (order, 'side');
         let type = undefined;
         const orderType = this.safeString (order, 'type');
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -35370,7 +35355,6 @@ module.exports = class cointiger extends huobipro {
         let fee = undefined;
         let average = undefined;
         if (side !== undefined) {
-            side = side.toLowerCase ();
             amount = this.safeFloat (order['volume'], 'amount');
             remaining = ('remain_volume' in order) ? this.safeFloat (order['remain_volume'], 'amount') : undefined;
             filled = ('deal_volume' in order) ? this.safeFloat (order['deal_volume'], 'amount') : undefined;

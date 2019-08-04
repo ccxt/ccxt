@@ -299,8 +299,9 @@ class bitstamp (Exchange):
         #         "eur": 0.0
         #     }
         #
-        if 'currency' in transaction:
-            return transaction['currency'].lower()
+        currencyId = self.safe_string_lower(transaction, 'currency')
+        if currencyId is not None:
+            return currencyId
         transaction = self.omit(transaction, [
             'fee',
             'price',

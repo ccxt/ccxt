@@ -880,7 +880,7 @@ class bittrex extends Exchange {
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
-        $direction = $this->safe_string($order, 'direction');
+        $direction = $this->safe_string_lower($order, 'direction');
         $createdAt = $this->safe_string($order, 'createdAt');
         $updatedAt = $this->safe_string($order, 'updatedAt');
         $closedAt = $this->safe_string($order, 'closedAt');
@@ -891,13 +891,13 @@ class bittrex extends Exchange {
             $lastTradeTimestamp = $this->parse8601 ($updatedAt);
         }
         $timestamp = $this->parse8601 ($createdAt);
-        $type = $this->safe_string($order, 'type');
+        $type = $this->safe_string_lower($order, 'type');
         $quantity = $this->safe_float($order, 'quantity');
         $limit = $this->safe_float($order, 'limit');
         $fillQuantity = $this->safe_float($order, 'fillQuantity');
         $commission = $this->safe_float($order, 'commission');
         $proceeds = $this->safe_float($order, 'proceeds');
-        $status = $this->safe_string($order, 'status');
+        $status = $this->safe_string_lower($order, 'status');
         $average = null;
         $remaining = null;
         if ($fillQuantity !== null) {
@@ -918,15 +918,15 @@ class bittrex extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
-            'type' => strtolower($type),
-            'side' => strtolower($direction),
+            'type' => $type,
+            'side' => $direction,
             'price' => $limit,
             'cost' => $proceeds,
             'average' => $average,
             'amount' => $quantity,
             'filled' => $fillQuantity,
             'remaining' => $remaining,
-            'status' => strtolower($status),
+            'status' => $status,
             'fee' => array (
                 'cost' => $commission,
                 'currency' => $feeCurrency,
