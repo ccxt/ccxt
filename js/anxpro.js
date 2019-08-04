@@ -445,8 +445,7 @@ module.exports = class anxpro extends Exchange {
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'tradedCurrencyFillAmount');
         const cost = this.safeFloat (trade, 'settlementCurrencyFillAmount');
-        let side = this.safeString (trade, 'side');
-        side = (side === undefined) ? undefined : side.toLowerCase ();
+        const side = this.safeStringLower (trade, 'side');
         return {
             'id': id,
             'order': orderId,
@@ -465,8 +464,9 @@ module.exports = class anxpro extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.v3publicGetCurrencyStatic (params);
-        const result = {};
-        const currencies = response['currencyStatic']['currencies'];
+        //
+        //   {
+        //     "currencyStatic": {
         //       "currencies": {
         //         "HKD": {
         //           "decimals": 2,
@@ -515,6 +515,35 @@ module.exports = class anxpro extends Exchange {
         //           "assetIcon": "/images/currencies/crypto/ETH.svg"
         //         },
         //       },
+        //       "currencyPairs": {
+        //         "ETHUSD": {
+        //           "priceDecimals": 5,
+        //           "engineSettings": {
+        //             "tradingEnabled": true,
+        //             "displayEnabled": true,
+        //             "cancelOnly": true,
+        //             "verifyRequired": false,
+        //             "restrictedBuy": false,
+        //             "restrictedSell": false
+        //           },
+        //           "minOrderRate": 10.00000000,
+        //           "maxOrderRate": 10000.00000000,
+        //           "displayPriceDecimals": 5,
+        //           "tradedCcy": "ETH",
+        //           "settlementCcy": "USD",
+        //           "preferredMarket": "ANX",
+        //           "chartEnabled": true,
+        //           "simpleTradeEnabled": false
+        //         },
+        //       },
+        //     },
+        //     "timestamp": "1549840691039",
+        //     "resultCode": "OK"
+        //   }
+        //
+        const currencyStatic = this.safeValue (response, 'currencyStatic', {});
+        const currencies = this.safeValue (currencyStatic, 'currencies', {});
+        const result = {};
         const ids = Object.keys (currencies);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -527,10 +556,7 @@ module.exports = class anxpro extends Exchange {
             const active = depositsEnabled && withdrawalsEnabled && displayEnabled;
             const precision = this.safeInteger (currency, 'decimals');
             const fee = this.safeFloat (currency, 'networkFee');
-            let type = this.safeString (currency, 'type');
-            if (type !== 'undefined') {
-                type = type.toLowerCase ();
-            }
+            const type = this.safeStringLower (currency, 'type');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -917,7 +943,7 @@ module.exports = class anxpro extends Exchange {
         let lastTradeTimestamp = undefined;
         const trades = [];
         let filled = 0;
-        const type = this.safeString (order, 'orderType').toLowerCase ();
+        const type = this.safeStringLower (order, 'orderType');
         for (let i = 0; i < order['trades'].length; i++) {
             const trade = order['trades'][i];
             const tradeTimestamp = this.safeInteger (trade, 'timestamp');

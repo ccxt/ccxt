@@ -610,10 +610,7 @@ class bitmex extends Exchange {
         // For withdrawals, $transactTime is submission, $timestamp is processed
         $transactTime = $this->parse8601 ($this->safe_string($transaction, 'transactTime'));
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'timestamp'));
-        $type = $this->safe_string($transaction, 'transactType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $type = $this->safe_string_lower($transaction, 'transactType');
         // Deposits have no from $address or to $address, withdrawals have both
         $address = null;
         $addressFrom = null;
@@ -955,7 +952,7 @@ class bitmex extends Exchange {
         $amount = $this->safe_float_2($trade, 'size', 'lastQty');
         $id = $this->safe_string($trade, 'trdMatchID');
         $order = $this->safe_string($trade, 'orderID');
-        $side = strtolower($this->safe_string($trade, 'side'));
+        $side = $this->safe_string_lower($trade, 'side');
         // $price * $amount doesn't work for all symbols (e.g. XBT, ETH)
         $cost = $this->safe_float($trade, 'execCost');
         if ($cost !== null) {
@@ -988,10 +985,7 @@ class bitmex extends Exchange {
                 $symbol = $marketId;
             }
         }
-        $type = $this->safe_string($trade, 'ordType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $type = $this->safe_string_lower($trade, 'ordType');
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1060,14 +1054,8 @@ class bitmex extends Exchange {
             }
         }
         $id = $this->safe_string($order, 'orderID');
-        $type = $this->safe_string($order, 'ordType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
-        $side = $this->safe_string($order, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $type = $this->safe_string_lower($order, 'ordType');
+        $side = $this->safe_string_lower($order, 'side');
         return array (
             'info' => $order,
             'id' => $id,

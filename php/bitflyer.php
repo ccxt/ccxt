@@ -216,17 +216,14 @@ class bitflyer extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $side = $this->safe_string($trade, 'side');
+        $side = $this->safe_string_lower($trade, 'side');
         if ($side !== null) {
             if (strlen ($side) < 1) {
                 $side = null;
-            } else {
-                $side = strtolower($side);
             }
         }
         $order = null;
         if ($side !== null) {
-            $side = strtolower($side);
             $id = $side . '_child_order_acceptance_id';
             if (is_array($trade) && array_key_exists($id, $trade)) {
                 $order = $trade[$id];
@@ -325,14 +322,8 @@ class bitflyer extends Exchange {
         $price = $this->safe_float($order, 'price');
         $cost = $price * $filled;
         $status = $this->parse_order_status($this->safe_string($order, 'child_order_state'));
-        $type = $this->safe_string($order, 'child_order_type');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
-        $side = $this->safe_string($order, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $type = $this->safe_string_lower($order, 'child_order_type');
+        $side = $this->safe_string_lower($order, 'side');
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'product_code');

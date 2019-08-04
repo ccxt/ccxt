@@ -317,8 +317,7 @@ module.exports = class rightbtc extends Exchange {
         }
         let cost = this.costToPrecision (symbol, price * amount);
         cost = parseFloat (cost);
-        let side = this.safeString (trade, 'side');
-        side = side.toLowerCase ();
+        let side = this.safeStringLower (trade, 'side');
         if (side === 'b') {
             side = 'buy';
         } else if (side === 's') {
@@ -526,10 +525,7 @@ module.exports = class rightbtc extends Exchange {
             }
         }
         const type = 'limit';
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'side');
         const feeCost = this.divideSafeFloat (order, 'min_fee', 1e8);
         let fee = undefined;
         if (feeCost !== undefined) {

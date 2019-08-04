@@ -405,10 +405,7 @@ class bitmart extends Exchange {
         $id = $this->safe_string($trade, 'trade_id');
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'order_time');
         $type = null;
-        $side = $this->safe_string($trade, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'type');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;

@@ -172,10 +172,7 @@ module.exports = class nova extends Exchange {
             symbol = market['symbol'];
         }
         const type = undefined;
-        let side = this.safeString (trade, 'tradetype');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'tradetype');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const feeCost = this.safeFloat (trade, 'fee');
@@ -384,10 +381,7 @@ module.exports = class nova extends Exchange {
             timestamp *= 1000;
         }
         const amount = this.safeFloat (order, 'fromamount');
-        let side = this.safeString (order, 'ordertype');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'ordertype');
         return {
             'id': orderId,
             'symbol': symbol,

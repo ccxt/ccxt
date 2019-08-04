@@ -579,9 +579,7 @@ class bitmex (Exchange):
         # For withdrawals, transactTime is submission, timestamp is processed
         transactTime = self.parse8601(self.safe_string(transaction, 'transactTime'))
         timestamp = self.parse8601(self.safe_string(transaction, 'timestamp'))
-        type = self.safe_string(transaction, 'transactType')
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(transaction, 'transactType')
         # Deposits have no from address or to address, withdrawals have both
         address = None
         addressFrom = None
@@ -904,7 +902,7 @@ class bitmex (Exchange):
         amount = self.safe_float_2(trade, 'size', 'lastQty')
         id = self.safe_string(trade, 'trdMatchID')
         order = self.safe_string(trade, 'orderID')
-        side = self.safe_string(trade, 'side').lower()
+        side = self.safe_string_lower(trade, 'side')
         # price * amount doesn't work for all symbols(e.g. XBT, ETH)
         cost = self.safe_float(trade, 'execCost')
         if cost is not None:
@@ -932,9 +930,7 @@ class bitmex (Exchange):
                 symbol = market['symbol']
             else:
                 symbol = marketId
-        type = self.safe_string(trade, 'ordType')
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(trade, 'ordType')
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -995,12 +991,8 @@ class bitmex (Exchange):
             elif price is not None:
                 cost = price * filled
         id = self.safe_string(order, 'orderID')
-        type = self.safe_string(order, 'ordType')
-        if type is not None:
-            type = type.lower()
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        type = self.safe_string_lower(order, 'ordType')
+        side = self.safe_string_lower(order, 'side')
         return {
             'info': order,
             'id': id,

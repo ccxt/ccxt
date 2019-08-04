@@ -358,9 +358,7 @@ class gemini (Exchange):
             if amount is not None:
                 cost = price * amount
         type = None
-        side = self.safe_string(trade, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'type')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -435,6 +433,7 @@ class gemini (Exchange):
         if market is not None:
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
+        side = self.safe_string_lower(order, 'side')
         return {
             'id': id,
             'info': order,
@@ -444,7 +443,7 @@ class gemini (Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
-            'side': order['side'].lower(),
+            'side': side,
             'price': price,
             'average': average,
             'cost': cost,
@@ -545,9 +544,7 @@ class gemini (Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'destination')
-        type = self.safe_string(transaction, 'type')
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(transaction, 'type')
         status = 'pending'
         # When deposits show as Advanced or Complete they are available for trading.
         if transaction['status']:

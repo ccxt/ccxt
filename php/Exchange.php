@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.1002';
+$version = '1.18.1006';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1002';
+    const VERSION = '1.18.1006';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -224,6 +224,14 @@ class Exchange {
         return (isset($object[$key]) && is_scalar($object[$key])) ? strval($object[$key]) : $default_value;
     }
 
+    public static function safe_string_lower($object, $key, $default_value = null) {
+        return (isset($object[$key]) && is_scalar($object[$key])) ? strtolower(strval($object[$key])) : $default_value;
+    }
+
+    public static function safe_string_upper($object, $key, $default_value = null) {
+        return (isset($object[$key]) && is_scalar($object[$key])) ? strtoupper(strval($object[$key])) : $default_value;
+    }
+
     public static function safe_integer($object, $key, $default_value = null) {
         return (isset($object[$key]) && is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
     }
@@ -243,6 +251,16 @@ class Exchange {
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_string($object, $key1);
         return isset($value) ? $value : static::safe_string($object, $key2, $default_value);
+    }
+
+    public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string_lower($object, $key1);
+        return isset($value) ? $value : static::safe_string_lower($object, $key2, $default_value);
+    }
+
+    public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string_upper($object, $key1);
+        return isset($value) ? $value : static::safe_string_upper($object, $key2, $default_value);
     }
 
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {

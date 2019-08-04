@@ -432,7 +432,7 @@ class tidebit extends Exchange {
         $request = array (
             'id' => $id,
             'currency_type' => 'coin', // or 'cash'
-            'currency' => strtolower($currency),
+            'currency' => $currency['id'],
             'body' => $amount,
             // 'address' => $address, // they don't allow withdrawing to direct addresses?
         );

@@ -692,10 +692,7 @@ class mandala extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601 ($this->safe_string_2($trade, 'Date', 'date'));
-        $side = $this->safe_string_2($trade, 'Type', 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower_2($trade, 'Type', 'side');
         $id = $this->safe_string($trade, 'TradeID');
         $symbol = null;
         $baseId = $this->safe_string($trade, 'trade');

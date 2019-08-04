@@ -643,9 +643,7 @@ class bitfinex (Exchange):
         if timestamp is not None:
             timestamp = int(timestamp) * 1000
         type = None
-        side = self.safe_string(trade, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'type')
         orderId = self.safe_string(trade, 'order_id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
@@ -973,9 +971,7 @@ class bitfinex (Exchange):
             updated = int(updated * 1000)
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string(transaction, 'type')  # DEPOSIT or WITHDRAWAL
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_float(transaction, 'fee')
         if feeCost is not None:

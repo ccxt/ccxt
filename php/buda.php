@@ -545,10 +545,7 @@ class buda extends Exchange {
             $symbol = $market['symbol'];
         }
         $type = $this->safe_string($order, 'price_type');
-        $side = $this->safe_string($order, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'type');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $amount = floatval ($order['original_amount'][0]);
         $remaining = floatval ($order['amount'][0]);

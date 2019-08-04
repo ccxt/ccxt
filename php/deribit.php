@@ -429,10 +429,7 @@ class deribit extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $side = $this->safe_string($order, 'direction');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'direction');
         $feeCost = $this->safe_float($order, 'commission');
         if ($feeCost !== null) {
             $feeCost = abs ($feeCost);

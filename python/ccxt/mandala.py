@@ -675,9 +675,7 @@ class mandala (Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'Date', 'date'))
-        side = self.safe_string_2(trade, 'Type', 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower_2(trade, 'Type', 'side')
         id = self.safe_string(trade, 'TradeID')
         symbol = None
         baseId = self.safe_string(trade, 'trade')

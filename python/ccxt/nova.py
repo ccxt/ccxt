@@ -167,9 +167,7 @@ class nova (Exchange):
         if market is not None:
             symbol = market['symbol']
         type = None
-        side = self.safe_string(trade, 'tradetype')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'tradetype')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         feeCost = self.safe_float(trade, 'fee')
@@ -363,9 +361,7 @@ class nova (Exchange):
         if timestamp is not None:
             timestamp *= 1000
         amount = self.safe_float(order, 'fromamount')
-        side = self.safe_string(order, 'ordertype')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'ordertype')
         return {
             'id': orderId,
             'symbol': symbol,

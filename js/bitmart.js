@@ -403,10 +403,7 @@ module.exports = class bitmart extends Exchange {
         const id = this.safeString (trade, 'trade_id');
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'order_time');
         const type = undefined;
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'type');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;

@@ -308,8 +308,7 @@ class rightbtc (Exchange):
             symbol = market['symbol']
         cost = self.cost_to_precision(symbol, price * amount)
         cost = float(cost)
-        side = self.safe_string(trade, 'side')
-        side = side.lower()
+        side = self.safe_string_lower(trade, 'side')
         if side == 'b':
             side = 'buy'
         elif side == 's':
@@ -494,9 +493,7 @@ class rightbtc (Exchange):
                 if remaining is not None:
                     filled = max(0, amount - remaining)
         type = 'limit'
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'side')
         feeCost = self.divide_safe_float(order, 'min_fee', 1e8)
         fee = None
         if feeCost is not None:

@@ -263,10 +263,7 @@ module.exports = class btcchina extends Exchange {
                 cost = amount * price;
             }
         }
-        let side = this.safeString (trade, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'side');
         return {
             'id': undefined,
             'info': trade,
