@@ -609,30 +609,41 @@ module.exports = class bitbay extends Exchange {
         //    }
         //
         const timestamp = this.safeInteger (item, 'time');
-        const ccy = item['balance']['currency'];
-        const change = this.safeValue (item, 'change');
+        const balance = this.safeValue (item, 'balance', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const change = this.safeValue (item, 'change', {});
         const amount = this.safeFloat (change, 'total');
-        const historyId = this.safeString (item, 'historyId');
-        const detailId = this.safeString2 (item, 'detailId');
+        let direction = 'in';
+        if (amount < 0) {
+            direction = 'out';
+            amount = -amount;
+        }
+        const id = this.safeString (item, 'historyId');
         // there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
+        const referenceId = this.safeString (item, 'detailId');
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        const fundsBefore = this.safeValue (item, 'fundsBefore', {});
+        const before = this.safeFloat (fundsBefore, 'total');
+        const fundsAfter = this.safeValue (item, 'fundsAfter', {});
+        const after = this.safeFloat (fundsAfter, 'total');
         return {
-            'id': historyId,
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': undefined,
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': 'ok',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': this.commonCurrencyCode (ccy),
-            'amount': amount < 0 ? -amount : amount,
-            'direction': amount < 0 ? 'out' : 'in',
-            'address': undefined,
-            'tag': undefined,
-            'status': 'ok',
-            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
-            'updated': undefined,
-            'txid': undefined,
             'fee': undefined,
-            'referenceId': detailId,
-            'referenceAccount': undefined,
-            'info': item,
         };
     }
 
