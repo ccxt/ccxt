@@ -244,9 +244,7 @@ class btcchina (Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
-        side = self.safe_string(trade, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'side')
         return {
             'id': None,
             'info': trade,

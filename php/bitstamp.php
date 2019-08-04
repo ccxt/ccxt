@@ -291,8 +291,9 @@ class bitstamp extends Exchange {
         //         "eur" => 0.0
         //     }
         //
-        if (is_array($transaction) && array_key_exists('currency', $transaction)) {
-            return strtolower($transaction['currency']);
+        $currencyId = $this->safe_string_lower($transaction, 'currency');
+        if ($currencyId !== null) {
+            return $currencyId;
         }
         $transaction = $this->omit ($transaction, array (
             'fee',

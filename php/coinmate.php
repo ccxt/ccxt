@@ -303,10 +303,7 @@ class coinmate extends Exchange {
         $tag = $this->safe_string($item, 'destinationTag');
         $currencyId = $this->safe_string($item, 'amountCurrency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $type = $this->safe_string($item, 'transferType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $type = $this->safe_string_lower($item, 'transferType');
         $status = $this->parse_transaction_status ($this->safe_string($item, 'transferStatus'));
         $id = $this->safe_string($item, 'transactionId');
         return array (
@@ -399,14 +396,8 @@ class coinmate extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        $side = $this->safe_string_2($trade, 'type', 'tradeType');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
-        $type = $this->safe_string($trade, 'orderType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $side = $this->safe_string_lower_2($trade, 'type', 'tradeType');
+        $type = $this->safe_string_lower($trade, 'orderType');
         $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string($trade, 'transactionId');
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'createdTimestamp');

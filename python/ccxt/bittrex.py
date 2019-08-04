@@ -841,7 +841,7 @@ class bittrex (Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             feeCurrency = quote
-        direction = self.safe_string(order, 'direction')
+        direction = self.safe_string_lower(order, 'direction')
         createdAt = self.safe_string(order, 'createdAt')
         updatedAt = self.safe_string(order, 'updatedAt')
         closedAt = self.safe_string(order, 'closedAt')
@@ -851,13 +851,13 @@ class bittrex (Exchange):
         elif updatedAt:
             lastTradeTimestamp = self.parse8601(updatedAt)
         timestamp = self.parse8601(createdAt)
-        type = self.safe_string(order, 'type')
+        type = self.safe_string_lower(order, 'type')
         quantity = self.safe_float(order, 'quantity')
         limit = self.safe_float(order, 'limit')
         fillQuantity = self.safe_float(order, 'fillQuantity')
         commission = self.safe_float(order, 'commission')
         proceeds = self.safe_float(order, 'proceeds')
-        status = self.safe_string(order, 'status')
+        status = self.safe_string_lower(order, 'status')
         average = None
         remaining = None
         if fillQuantity is not None:
@@ -874,15 +874,15 @@ class bittrex (Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': type.lower(),
-            'side': direction.lower(),
+            'type': type,
+            'side': direction,
             'price': limit,
             'cost': proceeds,
             'average': average,
             'amount': quantity,
             'filled': fillQuantity,
             'remaining': remaining,
-            'status': status.lower(),
+            'status': status,
             'fee': {
                 'cost': commission,
                 'currency': feeCurrency,

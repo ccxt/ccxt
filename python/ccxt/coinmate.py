@@ -289,9 +289,7 @@ class coinmate (Exchange):
         tag = self.safe_string(item, 'destinationTag')
         currencyId = self.safe_string(item, 'amountCurrency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string(item, 'transferType')
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(item, 'transferType')
         status = self.parse_transaction_status(self.safe_string(item, 'transferStatus'))
         id = self.safe_string(item, 'transactionId')
         return {
@@ -374,12 +372,8 @@ class coinmate (Exchange):
         if amount is not None:
             if price is not None:
                 cost = price * amount
-        side = self.safe_string_2(trade, 'type', 'tradeType')
-        if side is not None:
-            side = side.lower()
-        type = self.safe_string(trade, 'orderType')
-        if type is not None:
-            type = type.lower()
+        side = self.safe_string_lower_2(trade, 'type', 'tradeType')
+        type = self.safe_string_lower(trade, 'orderType')
         orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string(trade, 'transactionId')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'createdTimestamp')
