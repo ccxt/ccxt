@@ -290,21 +290,20 @@ module.exports = class coinfloor extends Exchange {
         }
         if (this.safeString (item, 'type') === '2') {
             // it's a trade so let make 2 entries
-            const orderId = this.safeString (item, 'order_id');
             return [
-                this.createLedgerItem (baseAmount, baseId, orderId, undefined, item),
-                this.createLedgerItem (quoteAmount, quoteId, orderId, undefined, item),
+                this.createLedgerItem (baseAmount, baseId, undefined, item),
+                this.createLedgerItem (quoteAmount, quoteId, undefined, item),
             ];
         } else {
             const amount = baseAmount !== 0 ? baseAmount : quoteAmount;
             const currencyId = baseAmount !== 0 ? baseId : quoteId;
             const feeCost = this.safeFloat (item, 'fee');
-            return this.createLedgerItem (amount, currencyId, undefined, feeCost, item);
+            return this.createLedgerItem (amount, currencyId, feeCost, item);
         }
     }
 
-    createLedgerItem (amount, currencyId, referenceId, feeCost, item) {
-        const id = this.safeString (item, 'id');
+    createLedgerItem (amount, currencyId, feeCost, item) {
+        const referenceId = this.safeString (item, 'id');
         const timestamp = this.parse8601 (this.safeString (item, 'datetime'));
         const datetime = this.iso8601 (timestamp);
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
@@ -317,7 +316,7 @@ module.exports = class coinfloor extends Exchange {
             };
         }
         return {
-            'id': id,
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': datetime,
             'amount': amount < 0 ? -amount : amount,
