@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1008'
+const version = '1.18.1009'
 
 Exchange.ccxtVersion = version
 
@@ -55052,7 +55052,7 @@ module.exports = class kraken extends Exchange {
             'Initial': 'pending',
             'Pending': 'pending',
             'Success': 'ok',
-            'Settled': 'ok',
+            'Settled': 'pending',
             'Failure': 'failed',
             'Partial': 'ok',
         };
