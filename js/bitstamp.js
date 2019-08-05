@@ -734,6 +734,7 @@ module.exports = class bitstamp extends Exchange {
         //         "datetime": "2018-01-05 15:27:55",
         //         "transaction_id": "001743B03B0C79BA166A064AC0142917B050347B4CB23BA2AB4B91B3C5608F4C"
         //     }
+        //
         const timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
         const id = this.safeString (transaction, 'id');
         const currencyId = this.getCurrencyIdFromTransaction (transaction);
@@ -756,7 +757,7 @@ module.exports = class bitstamp extends Exchange {
         }
         let status = undefined;
         if ('status' in transaction) {
-            status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'));
+            status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         } else {
             status = 'ok';
         }
@@ -810,7 +811,7 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
-    parseTransactionStatusByType (status) {
+    parseTransactionStatus (status) {
         // withdrawals:
         // 0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         const statuses = {
