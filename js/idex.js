@@ -191,6 +191,24 @@ module.exports = class idex extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicPostReturnTicker (params);
+        //  { ETH_BOUNCY:
+        //    { last: '0.000000004000088005',
+        //      high: 'N/A',
+        //      low: 'N/A',
+        //      lowestAsk: '0.00000000599885995',
+        //      highestBid: '0.000000001400500103',
+        //      percentChange: '0',
+        //      baseVolume: '0',
+        //      quoteVolume: '0' },
+        //   ETH_NBAI:
+        //    { last: '0.0000032',
+        //      high: 'N/A',
+        //      low: 'N/A',
+        //      lowestAsk: '0.000004000199999502',
+        //      highestBid: '0.0000016002',
+        //      percentChange: '0',
+        //      baseVolume: '0',
+        //      quoteVolume: '0' }, }
         const ids = Object.keys (response);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
@@ -278,6 +296,13 @@ module.exports = class idex extends Exchange {
         //         "nonce": 18155189676,
         //         "user": "0xb631284dd7b74a846af5b37766ceb1f85d53eca4" } } ] }
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
+    }
+
+    parseBidAsk (bidAsk, priceKey, amountKey) {
+        const price = this.safeFloat (bidAsk, priceKey);
+        const amount = this.safeFloat (bidAsk, amountKey);
+        const info = bidAsk;
+        return [price, amount, info];
     }
 
     async fetchBalance (params = {}) {
@@ -370,54 +395,49 @@ module.exports = class idex extends Exchange {
             //      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1' } }
             return this.parseOrder (response, market);
         } else if (type === 'market') {
-            if (!('orders' in params)) {
-                throw new ArgumentsRequired (this.id + ' market order requires a list orders as returned from idex.privatePostReturnOrderBook');
+            if (!('order' in params)) {
+                throw new ArgumentsRequired (this.id + ' market order requires an order structure such as that in fetchOrderBook()[\'bids\'][0][2], fetchOrder()[\'info\'], or fetchOpenOrders()[0][\'info\']');
             }
-            const orders = params['orders'];
-            const request = [];
-            for (let i = 0; i < orders.length; i++) {
-                const order = orders[i];
-                // { price: '0.000132247803328924',
-                //   amount: '19980',
-                //   total: '2.6423111105119',
-                //   orderHash:
-                //    '0x5fb3452b3d13fc013585b51c91c43a0fbe4298c211243763c49437848c274749',
-                //   params:
-                //    { tokenBuy: '0x0000000000000000000000000000000000000000',
-                //      buySymbol: 'ETH',
-                //      buyPrecision: 18,
-                //      amountBuy: '2642311110511900000',
-                //      tokenSell: '0xb705268213d593b8fd88d3fdeff93aff5cbdcfae',
-                //      sellSymbol: 'IDEX',
-                //      sellPrecision: 18,
-                //      amountSell: '19980000000000000000000',
-                //      expires: 10000,
-                //      nonce: 1564656561510,
-                //      user: '0xc3f8304270e49b8e8197bfcfd8567b83d9e4479b' } }
-                const orderToSign = {
-                    'orderHash': order['orderHash'],
-                    'amount': order['params']['amountBuy'],
-                    'address': order['params']['user'],
-                    'nonce': order['params']['nonce'],
-                };
-                const orderHash = this.getIdexMarketOrderHash (orderToSign);
-                const signature = this.signMessage (orderHash, this.privateKey);
-                const signedOrder = this.extend (orderToSign, signature);
-                signedOrder['address'] = this.walletAddress;
-                signedOrder['nonce'] = await this.getNonce ();
-                request.push (signedOrder);
-                //   [ {
-                //     "amount": "0.07",
-                //     "date": "2017-10-13 16:25:36",
-                //     "total": "0.49",
-                //     "market": "ETH_DVIP",
-                //     "type": "buy",
-                //     "price": "7",
-                //     "orderHash": "0xcfe4018c59e50e0e1964c979e6213ce5eb8c751cbc98a44251eb48a0985adc52",
-                //     "uuid": "250d51a0-b033-11e7-9984-a9ab79bb8f35"
-                //   } ]
-            }
-            const response = await this.privatePostTrade (request);
+            const order = params['order'];
+            // { price: '0.000132247803328924',
+            //   amount: '19980',
+            //   total: '2.6423111105119',
+            //   orderHash:
+            //    '0x5fb3452b3d13fc013585b51c91c43a0fbe4298c211243763c49437848c274749',
+            //   params:
+            //    { tokenBuy: '0x0000000000000000000000000000000000000000',
+            //      buySymbol: 'ETH',
+            //      buyPrecision: 18,
+            //      amountBuy: '2642311110511900000',
+            //      tokenSell: '0xb705268213d593b8fd88d3fdeff93aff5cbdcfae',
+            //      sellSymbol: 'IDEX',
+            //      sellPrecision: 18,
+            //      amountSell: '19980000000000000000000',
+            //      expires: 10000,
+            //      nonce: 1564656561510,
+            //      user: '0xc3f8304270e49b8e8197bfcfd8567b83d9e4479b' } }
+            const orderToSign = {
+                'orderHash': order['orderHash'],
+                'amount': order['params']['amountBuy'],
+                'address': order['params']['user'],
+                'nonce': order['params']['nonce'],
+            };
+            const orderHash = this.getIdexMarketOrderHash (orderToSign);
+            const signature = this.signMessage (orderHash, this.privateKey);
+            const signedOrder = this.extend (orderToSign, signature);
+            signedOrder['address'] = this.walletAddress;
+            signedOrder['nonce'] = await this.getNonce ();
+            //   [ {
+            //     "amount": "0.07",
+            //     "date": "2017-10-13 16:25:36",
+            //     "total": "0.49",
+            //     "market": "ETH_DVIP",
+            //     "type": "buy",
+            //     "price": "7",
+            //     "orderHash": "0xcfe4018c59e50e0e1964c979e6213ce5eb8c751cbc98a44251eb48a0985adc52",
+            //     "uuid": "250d51a0-b033-11e7-9984-a9ab79bb8f35"
+            //   } ]
+            const response = await this.privatePostTrade (signedOrder);
             return this.parseOrders (response, market);
         }
     }
