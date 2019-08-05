@@ -1484,10 +1484,16 @@ class Exchange(object):
 
     def parse_ledger(self, data, currency=None, since=None, limit=None, params={}):
         array = self.to_array(data)
-        array = [self.extend(self.parse_ledger_entry(item, currency), params) for item in array]
-        array = self.sort_by(array, 'timestamp')
+        result = []
+        for item in array:
+            entry = self.parse_ledger_entry(item, currency)
+            if isinstance(entry, list):
+                result += [self.extend(i, params) for i in entry]
+            else:
+                result.append(self.extend(entry, params))
+        result = self.sort_by(result, 'timestamp')
         code = currency['code'] if currency else None
-        return self.filter_by_currency_since_limit(array, code, since, limit)
+        return self.filter_by_currency_since_limit(result, code, since, limit)
 
     def parse_transactions(self, transactions, currency=None, since=None, limit=None, params={}):
         array = self.to_array(transactions)
