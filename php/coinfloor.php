@@ -202,6 +202,183 @@ class coinfloor extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+        // $code is actually a $market symbol in this situation, not a currency $code
+        $this->load_markets();
+        $market = null;
+        if ($code) {
+            $market = $this->find_market($code);
+            if (!$market) {
+                throw new NotSupported($this->id . ' fetchTransactions requires a $code argument (a $market symbol)');
+            }
+        }
+        $request = array (
+            'id' => $market['id'],
+            'limit' => $limit,
+        );
+        $response = $this->privatePostIdUserTransactions (array_merge ($request, $params));
+        return $this->parse_ledger($response, null, $since, $limit);
+    }
+
+    public function parse_ledger_entry_status ($status) {
+        $types = array (
+            'completed' => 'ok',
+        );
+        return $this->safe_string($types, $status, $status);
+    }
+
+    public function parse_ledger_entry_type ($type) {
+        $types = array (
+            '0' => 'transaction', // deposit
+            '1' => 'transaction', // withdrawal
+            '2' => 'trade',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
+    public function parse_ledger_entry ($item, $currency = null) {
+        //
+        // trade
+        //
+        //     {
+        //         "datetime" => "2017-07-25 06:41:24",
+        //         "id" => 1500964884381265,
+        //         "$type" => 2,
+        //         "xbt" => "0.1000",
+        //         "xbt_eur" => "2322.00",
+        //         "eur" => "-232.20",
+        //         "$fee" => "0.00",
+        //         "order_id" => 84696745
+        //     }
+        //
+        // transaction (withdrawal)
+        //
+        //     {
+        //         "datetime" => "2017-07-25 13:19:46",
+        //         "id" => 97669,
+        //         "$type" => 1,
+        //         "xbt" => "-3.0000",
+        //         "xbt_eur" => null,
+        //         "eur" => "0",
+        //         "$fee" => "0.0000",
+        //         "order_id" => null
+        //     }
+        //
+        // transaction (deposit)
+        //
+        //     {
+        //         "datetime" => "2017-07-27 16:44:55",
+        //         "id" => 98277,
+        //         "$type" => 0,
+        //         "xbt" => "0",
+        //         "xbt_eur" => null,
+        //         "eur" => "4970.04",
+        //         "$fee" => "0.00",
+        //         "order_id" => null
+        //     }
+        //
+        $keys = is_array($item) ? array_keys($item) : array();
+        $baseId = null;
+        $quoteId = null;
+        $baseAmount = null;
+        $quoteAmount = null;
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            if (mb_strpos($key, '_') > 0) {
+                $parts = explode('_', $key);
+                $numParts = is_array ($parts) ? count ($parts) : 0;
+                if ($numParts === 2) {
+                    $tmpBaseAmount = $this->safe_float($item, $parts[0]);
+                    $tmpQuoteAmount = $this->safe_float($item, $parts[1]);
+                    if ($tmpBaseAmount !== null && $tmpQuoteAmount !== null) {
+                        $baseId = $parts[0];
+                        $quoteId = $parts[1];
+                        $baseAmount = $tmpBaseAmount;
+                        $quoteAmount = $tmpQuoteAmount;
+                    }
+                }
+            }
+        }
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
+        $referenceId = $this->safe_string($item, 'id');
+        $timestamp = $this->parse8601 ($this->safe_string($item, 'datetime'));
+        $fee = null;
+        $feeCost = $this->safe_float($item, 'fee');
+        $result = array (
+            'id' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'amount' => null,
+            'direction' => null,
+            'currency' => null,
+            'type' => $type,
+            'referenceId' => $referenceId,
+            'referenceAccount' => null,
+            'before' => null,
+            'after' => null,
+            'status' => 'ok',
+            'fee' => $fee,
+            'info' => $item,
+        );
+        if ($type === 'trade') {
+            //
+            // it's a trade so let's make multiple entries, we have several options:
+            //
+            // if $fee is always in $quote $currency (the exchange uses this)
+            // https://github.com/coinfloor/API/blob/master/IMPL-GUIDE.md#how-fees-affect-trade-quantities
+            //
+            if ($feeCost !== null) {
+                $fee = array (
+                    'cost' => $feeCost,
+                    'currency' => $quote,
+                );
+            }
+            return array (
+                array_merge ($result, array( 'currency' => $base, 'amount' => abs ($baseAmount), 'direction' => $baseAmount > 0 ? 'in' : 'out' )),
+                array_merge ($result, array( 'currency' => $quote, 'amount' => abs ($quoteAmount), 'direction' => $quoteAmount > 0 ? 'in' : 'out', 'fee' => $fee )),
+            );
+            //
+            // if $fee is $base or $quote depending on buy/sell side
+            //
+            //     $baseFee = ($baseAmount > 0) ? array( 'currency' => $base, 'cost' => $feeCost ) : null;
+            //     $quoteFee = ($quoteAmount > 0) ? array( 'currency' => $quote, 'cost' => $feeCost ) : null;
+            //     return array (
+            //         array_merge ($result, array( 'currency' => $base, 'amount' => $baseAmount, 'direction' => $baseAmount > 0 ? 'in' : 'out', 'fee' => $baseFee )),
+            //         array_merge ($result, array( 'currency' => $quote, 'amount' => $quoteAmount, 'direction' => $quoteAmount > 0 ? 'in' : 'out', 'fee' => $quoteFee )),
+            //     );
+            //
+            // $fee as the 3rd $item
+            //
+            //     return array (
+            //         array_merge ($result, array( 'currency' => $base, 'amount' => $baseAmount, 'direction' => $baseAmount > 0 ? 'in' : 'out' )),
+            //         array_merge ($result, array( 'currency' => $quote, 'amount' => $quoteAmount, 'direction' => $quoteAmount > 0 ? 'in' : 'out' )),
+            //         array_merge ($result, array( 'currency' => feeCurrency, 'amount' => $feeCost, 'direction' => 'out', 'type' => 'fee' )),
+            //     );
+            //
+        } else {
+            //
+            // it's a regular transaction (deposit or withdrawal)
+            //
+            $amount = $baseAmount === 0 ? $quoteAmount : $baseAmount;
+            $code = $baseAmount === 0 ? $quote : $base;
+            $direction = ($amount > 0) ? 'in' : 'out';
+            if ($feeCost !== null) {
+                $fee = array (
+                    'cost' => $feeCost,
+                    'currency' => $code,
+                );
+            }
+            return array_merge ($result, array (
+                'currency' => $code,
+                'amount' => abs ($amount),
+                'direction' => $direction,
+                'fee' => $fee,
+            ));
+        }
+    }
+
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $request = array (
