@@ -113,7 +113,7 @@ module.exports = class idex extends Exchange {
             const quoteAddress = '0x0000000000000000000000000000000000000000';
             const baseAddress = this.safeString (market, 'address');
             const id = quote + '_' + baseId; // the base and quote are inverted
-            const base = this.commonCurrencyCode (baseId);
+            const base = this.safeCurrencyCode (baseId);
             const symbol = base + '/' + quote;
             const precision = {
                 'price': 18,
@@ -220,8 +220,8 @@ module.exports = class idex extends Exchange {
                 symbol = market['symbol'];
             } else {
                 const [ quoteId, baseId ] = id.split ('_');
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
                 market = { 'symbol': symbol };
             }
@@ -552,7 +552,7 @@ module.exports = class idex extends Exchange {
             addressFrom = this.options['contractAddress'];
             addressTo = this.walletAddress;
         }
-        const code = this.commonCurrencyCode (this.safeString (item, 'currency'));
+        const code = this.safeCurrencyCode (this.safeString (item, 'currency'));
         return {
             'info': item,
             'id': id,
