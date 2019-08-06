@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1011'
+const version = '1.18.1012'
 
 Exchange.ccxtVersion = version
 
@@ -12936,8 +12936,12 @@ module.exports = class bitflyer extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.25 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+                'BTC/JPY': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.15 / 100,
                 },
             },
         });
@@ -12953,14 +12957,6 @@ module.exports = class bitflyer extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'product_code');
-            let spot = true;
-            let future = false;
-            let type = 'spot';
-            if ('alias' in market) {
-                type = 'future';
-                future = true;
-                spot = false;
-            }
             const currencies = id.split ('_');
             let baseId = undefined;
             let quoteId = undefined;
@@ -12980,6 +12976,19 @@ module.exports = class bitflyer extends Exchange {
             base = this.safeCurrencyCode (baseId);
             quote = this.safeCurrencyCode (quoteId);
             const symbol = (numCurrencies === 2) ? (base + '/' + quote) : id;
+            const fees = this.safeValue (this.fees, symbol, this.fees['trading']);
+            let maker = this.safeValue (fees, 'maker', this.fees['trading']['maker']);
+            let taker = this.safeValue (fees, 'taker', this.fees['trading']['taker']);
+            let spot = true;
+            let future = false;
+            let type = 'spot';
+            if (('alias' in market) || (currencies[0] === 'FX')) {
+                type = 'future';
+                future = true;
+                spot = false;
+                maker = 0.0;
+                taker = 0.0;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -12987,6 +12996,8 @@ module.exports = class bitflyer extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'maker': maker,
+                'taker': taker,
                 'type': type,
                 'spot': spot,
                 'future': future,
