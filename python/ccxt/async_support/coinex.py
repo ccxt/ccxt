@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -49,24 +50,18 @@ class coinex (Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
-                'api': {
-                    'public': 'https://api.coinex.com',
-                    'private': 'https://api.coinex.com',
-                    'web': 'https://www.coinex.com',
-                },
+                'api': 'https://api.coinex.com',
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
                 'referral': 'https://www.coinex.com/register?refer_code=yw5fz',
             },
             'api': {
-                'web': {
-                    'get': [
-                        'res/market',
-                    ],
-                },
                 'public': {
                     'get': [
+                        'common/currency/rate',
+                        'common/asset/config',
+                        'market/info',
                         'market/list',
                         'market/ticker',
                         'market/ticker/all',
@@ -77,22 +72,44 @@ class coinex (Exchange):
                 },
                 'private': {
                     'get': [
-                        'balance/coin/withdraw',
                         'balance/coin/deposit',
+                        'balance/coin/withdraw',
                         'balance/info',
+                        'future/account',
+                        'future/config',
+                        'future/limitprice',
+                        'future/loan/history',
+                        'future/market',
+                        'margin/account',
+                        'margin/config',
+                        'margin/loan/history',
+                        'margin/market',
                         'order',
-                        'order/pending',
+                        'order/deals',
                         'order/finished',
                         'order/finished/{id}',
+                        'order/pending',
+                        'order/status',
+                        'order/status/batch',
                         'order/user/deals',
                     ],
                     'post': [
                         'balance/coin/withdraw',
+                        'future/flat',
+                        'future/loan',
+                        'future/transfer',
+                        'margin/flat',
+                        'margin/loan',
+                        'margin/transfer',
+                        'order/batchlimit',
+                        'order/ioc',
                         'order/limit',
                         'order/market',
+                        'sub_account/transfer',
                     ],
                     'delete': [
                         'balance/coin/withdraw',
+                        'order/pending/batch',
                         'order/pending',
                     ],
                 },
@@ -129,25 +146,41 @@ class coinex (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.webGetResMarket(params)
-        markets = self.safe_value(response['data'], 'market_info')
+        response = await self.publicGetMarketInfo(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "WAVESBTC": {
+        #                 "name": "WAVESBTC",
+        #                 "min_amount": "1",
+        #                 "maker_fee_rate": "0.001",
+        #                 "taker_fee_rate": "0.001",
+        #                 "pricing_name": "BTC",
+        #                 "pricing_decimal": 8,
+        #                 "trading_name": "WAVES",
+        #                 "trading_decimal": 8
+        #             }
+        #         }
+        #     }
+        #
+        markets = self.safe_value(response, 'data', {})
         result = []
         keys = list(markets.keys())
         for i in range(0, len(keys)):
             key = keys[i]
             market = markets[key]
-            id = self.safe_string(market, 'market')
-            quoteId = self.safe_string(market, 'buy_asset_type')
-            baseId = self.safe_string(market, 'sell_asset_type')
+            id = self.safe_string(market, 'name')
+            baseId = self.safe_string(market, 'trading_name')
+            quoteId = self.safe_string(market, 'pricing_name')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': self.safe_integer(market, 'sell_asset_type_places'),
-                'price': self.safe_integer(market, 'buy_asset_type_places'),
+                'amount': self.safe_integer(market, 'trading_decimal'),
+                'price': self.safe_integer(market, 'pricing_decimal'),
             }
-            numMergeLevels = len(market['merge'])
-            active = (market['status'] == 'pass')
+            active = None
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -162,11 +195,11 @@ class coinex (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'least_amount'),
+                        'min': self.safe_float(market, 'min_amount'),
                         'max': None,
                     },
                     'price': {
-                        'min': float(market['merge'][numMergeLevels - 1]),
+                        'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
                 },
@@ -778,13 +811,9 @@ class coinex (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         path = self.implode_params(path, params)
-        url = self.urls['api'][api] + '/' + self.version + '/' + path
+        url = self.urls['api'] + '/' + self.version + '/' + path
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
-        elif api == 'web':
-            url = self.urls['api'][api] + '/' + path
             if query:
                 url += '?' + self.urlencode(query)
         else:
