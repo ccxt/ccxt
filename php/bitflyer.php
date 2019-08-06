@@ -79,8 +79,12 @@ class bitflyer extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.25 / 100,
-                    'taker' => 0.25 / 100,
+                    'maker' => 0.2 / 100,
+                    'taker' => 0.2 / 100,
+                ),
+                'BTC/JPY' => array (
+                    'maker' => 0.15 / 100,
+                    'taker' => 0.15 / 100,
                 ),
             ),
         ));
@@ -96,14 +100,6 @@ class bitflyer extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'product_code');
-            $spot = true;
-            $future = false;
-            $type = 'spot';
-            if (is_array($market) && array_key_exists('alias', $market)) {
-                $type = 'future';
-                $future = true;
-                $spot = false;
-            }
             $currencies = explode('_', $id);
             $baseId = null;
             $quoteId = null;
@@ -123,6 +119,19 @@ class bitflyer extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = ($numCurrencies === 2) ? ($base . '/' . $quote) : $id;
+            $fees = $this->safe_value($this->fees, $symbol, $this->fees['trading']);
+            $maker = $this->safe_value($fees, 'maker', $this->fees['trading']['maker']);
+            $taker = $this->safe_value($fees, 'taker', $this->fees['trading']['taker']);
+            $spot = true;
+            $future = false;
+            $type = 'spot';
+            if ((is_array($market) && array_key_exists('alias', $market)) || ($currencies[0] === 'FX')) {
+                $type = 'future';
+                $future = true;
+                $spot = false;
+                $maker = 0.0;
+                $taker = 0.0;
+            }
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -130,6 +139,8 @@ class bitflyer extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'maker' => $maker,
+                'taker' => $taker,
                 'type' => $type,
                 'spot' => $spot,
                 'future' => $future,

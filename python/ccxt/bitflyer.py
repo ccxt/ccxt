@@ -81,8 +81,12 @@ class bitflyer (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.25 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+                'BTC/JPY': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.15 / 100,
                 },
             },
         })
@@ -97,13 +101,6 @@ class bitflyer (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'product_code')
-            spot = True
-            future = False
-            type = 'spot'
-            if 'alias' in market:
-                type = 'future'
-                future = True
-                spot = False
             currencies = id.split('_')
             baseId = None
             quoteId = None
@@ -122,6 +119,18 @@ class bitflyer (Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = (base + '/' + quote) if (numCurrencies == 2) else id
+            fees = self.safe_value(self.fees, symbol, self.fees['trading'])
+            maker = self.safe_value(fees, 'maker', self.fees['trading']['maker'])
+            taker = self.safe_value(fees, 'taker', self.fees['trading']['taker'])
+            spot = True
+            future = False
+            type = 'spot'
+            if ('alias' in list(market.keys())) or (currencies[0] == 'FX'):
+                type = 'future'
+                future = True
+                spot = False
+                maker = 0.0
+                taker = 0.0
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -129,6 +138,8 @@ class bitflyer (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'maker': maker,
+                'taker': taker,
                 'type': type,
                 'spot': spot,
                 'future': future,
