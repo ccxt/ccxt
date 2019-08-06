@@ -55,6 +55,7 @@ module.exports = class idex extends Exchange {
                 'public': {
                     'post': [
                         'returnTicker',
+                        'returnCurrenciesWithPairs', // undocumented
                         'returnCurrencies',
                         'return24Volume',
                         'returnBalances',
@@ -100,49 +101,64 @@ module.exports = class idex extends Exchange {
     async fetchMarkets (params = {}) {
         // idex does not have an endpoint for markets
         // instead we generate the markets from the endpoint for currencies
-        const markets = await this.publicPostReturnCurrencies ();
-        const result = [];
-        const keys = Object.keys (markets);
+        const request = {
+            'includeDelisted': true,
+        };
+        const markets = await this.publicPostReturnCurrenciesWithPairs (this.extend (request, params));
+        const currenciesById = {};
+        const currencies = markets['tokens'];
+        let keys = Object.keys (currencies);
         for (let i = 0; i < keys.length; i++) {
-            const baseId = keys[i];
-            const market = markets[baseId];
-            if (baseId === 'ETH') {
-                continue;
+            const currency = currencies[keys[i]];
+            currenciesById[currency['symbol']] = currency;
+        }
+        const result = [];
+        const limits = {
+            'amount': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'price': {
+                'min': undefined,
+                'max': undefined,
+            },
+            'cost': {
+                'min': undefined,
+                'max': undefined,
+            },
+        };
+        const quotes = markets['pairs'];
+        keys = Object.keys (quotes);
+        for (let i = 0; i < keys.length; i++) {
+            const quoteId = keys[i];
+            const bases = quotes[quoteId];
+            const quote = this.safeCurrencyCode (quoteId);
+            const quoteCurrency = currenciesById[quoteId];
+            for (let j = 0; j < bases.length; j++) {
+                const baseId = bases[j];
+                const id = quoteId + '_' + baseId;
+                const base = this.safeCurrencyCode (baseId);
+                const symbol = base + '/' + quote;
+                const baseCurrency = currenciesById[baseId];
+                const baseAddress = baseCurrency['address'];
+                const quoteAddress = quoteCurrency['address'];
+                const precision = {
+                    'price': this.safeInteger (quoteCurrency, 'decimals'),
+                    'amount': this.safeInteger (baseCurrency, 'decimals'),
+                };
+                result.push ({
+                    'symbol': symbol,
+                    'precision': precision,
+                    'base': base,
+                    'quote': quote,
+                    'baseId': baseAddress,
+                    'quoteId': quoteAddress,
+                    'limits': limits,
+                    'id': id,
+                    'info': baseCurrency,
+                    'tierBased': false,
+                });
             }
-            const quote = 'ETH';
-            const quoteAddress = '0x0000000000000000000000000000000000000000';
-            const baseAddress = this.safeString (market, 'address');
-            const id = quote + '_' + baseId; // the base and quote are inverted
-            const base = this.commonCurrencyCode (baseId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'price': 18,
-                'amount': this.safeInteger (market, 'decimals'),
-            };
-            result.push ({
-                'info': market,
-                'id': id,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'baseId': baseAddress,
-                'quoteId': quoteAddress,
-                'precision': precision,
-                'limits': {
-                    'amount': {
-                        'min': 0.0,
-                        'max': undefined,
-                    },
-                    'price': {
-                        'min': 0.0,
-                        'max': undefined,
-                    },
-                    'cost': {
-                        'min': 0.0,
-                        'max': undefined,
-                    },
-                },
-            });
         }
         return result;
     }
@@ -395,10 +411,9 @@ module.exports = class idex extends Exchange {
             //      user: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1' } }
             return this.parseOrder (response, market);
         } else if (type === 'market') {
-            if (!('order' in params)) {
+            if (!('orderHash' in params)) {
                 throw new ArgumentsRequired (this.id + ' market order requires an order structure such as that in fetchOrderBook()[\'bids\'][0][2], fetchOrder()[\'info\'], or fetchOpenOrders()[0][\'info\']');
             }
-            const order = params['order'];
             // { price: '0.000132247803328924',
             //   amount: '19980',
             //   total: '2.6423111105119',
@@ -417,10 +432,10 @@ module.exports = class idex extends Exchange {
             //      nonce: 1564656561510,
             //      user: '0xc3f8304270e49b8e8197bfcfd8567b83d9e4479b' } }
             const orderToSign = {
-                'orderHash': order['orderHash'],
-                'amount': order['params']['amountBuy'],
-                'address': order['params']['user'],
-                'nonce': order['params']['nonce'],
+                'orderHash': params['orderHash'],
+                'amount': params['params']['amountBuy'],
+                'address': params['params']['user'],
+                'nonce': params['params']['nonce'],
             };
             const orderHash = this.getIdexMarketOrderHash (orderToSign);
             const signature = this.signMessage (orderHash, this.privateKey);
