@@ -61,6 +61,7 @@ module.exports = class coinex extends Exchange {
                 },
                 'public': {
                     'get': [
+                        'market/info',
                         'market/list',
                         'market/ticker',
                         'market/ticker/all',
@@ -124,25 +125,41 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.webGetResMarket (params);
-        const markets = this.safeValue (response['data'], 'market_info');
+        const response = await this.publicGetMarketInfo (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "WAVESBTC": {
+        //                 "name": "WAVESBTC",
+        //                 "min_amount": "1",
+        //                 "maker_fee_rate": "0.001",
+        //                 "taker_fee_rate": "0.001",
+        //                 "pricing_name": "BTC",
+        //                 "pricing_decimal": 8,
+        //                 "trading_name": "WAVES",
+        //                 "trading_decimal": 8
+        //             }
+        //         }
+        //     }
+        //
+        const markets = this.safeValue (response, 'data', {});
         const result = [];
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const market = markets[key];
-            const id = this.safeString (market, 'market');
-            const quoteId = this.safeString (market, 'buy_asset_type');
-            const baseId = this.safeString (market, 'sell_asset_type');
+            const id = this.safeString (market, 'name');
+            const baseId = this.safeString (market, 'trading_name');
+            const quoteId = this.safeString (market, 'pricing_name');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': this.safeInteger (market, 'sell_asset_type_places'),
-                'price': this.safeInteger (market, 'buy_asset_type_places'),
+                'amount': this.safeInteger (market, 'trading_decimal'),
+                'price': this.safeInteger (market, 'pricing_decimal'),
             };
-            const numMergeLevels = market['merge'].length;
-            const active = (market['status'] === 'pass');
+            const active = undefined;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -157,11 +174,11 @@ module.exports = class coinex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'least_amount'),
+                        'min': this.safeFloat (market, 'min_amount'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': parseFloat (market['merge'][numMergeLevels - 1]),
+                        'min': Math.pow (10, -precision['price']),
                         'max': undefined,
                     },
                 },
