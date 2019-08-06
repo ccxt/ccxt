@@ -1854,24 +1854,20 @@ class okex3 extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrdersByState requires a $symbol argument');
         }
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrdersByState', 'defaultType');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchOrdersByState requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
-        }
         $this->load_markets();
         $market = $this->market ($symbol);
-        // '-2' => failed,
-        // '-1' => cancelled,
-        //  '0' => open ,
-        //  '1' => partially filled,
-        //  '2' => fully filled,
-        //  '3' => submitting,
-        //  '4' => cancelling,
-        //  '6' => incomplete（open+partially filled),
-        //  '7' => complete（cancelled+fully filled),
+        $type = $market['type'];
         $request = array (
             'instrument_id' => $market['id'],
+            // '-2' => failed,
+            // '-1' => cancelled,
+            //  '0' => open ,
+            //  '1' => partially filled,
+            //  '2' => fully filled,
+            //  '3' => submitting,
+            //  '4' => cancelling,
+            //  '6' => incomplete（open+partially filled),
+            //  '7' => complete（cancelled+fully filled),
             'state' => $state,
         );
         $method = $type . 'GetOrders';
