@@ -1010,16 +1010,12 @@ module.exports = class bitstamp extends Exchange {
         const v1 = (code === 'BTC');
         let method = v1 ? 'v1' : 'private'; // v1 or v2
         method += 'Post' + this.capitalize (name) + 'Withdrawal';
-        let query = params;
         if (code === 'XRP') {
             if (tag !== undefined) {
                 request['destination_tag'] = tag;
-                query = this.omit (params, 'destination_tag');
-            } else {
-                throw new ExchangeError (this.id + ' withdraw() requires a destination_tag param for ' + code);
             }
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],
