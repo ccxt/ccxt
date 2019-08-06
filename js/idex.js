@@ -236,8 +236,8 @@ module.exports = class idex extends Exchange {
                 symbol = market['symbol'];
             } else {
                 const [ quoteId, baseId ] = id.split ('_');
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
                 market = { 'symbol': symbol };
             }
@@ -567,7 +567,7 @@ module.exports = class idex extends Exchange {
             addressFrom = this.options['contractAddress'];
             addressTo = this.walletAddress;
         }
-        const code = this.commonCurrencyCode (this.safeString (item, 'currency'));
+        const code = this.safeCurrencyCode (this.safeString (item, 'currency'));
         return {
             'info': item,
             'id': id,
