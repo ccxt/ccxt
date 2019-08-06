@@ -130,7 +130,6 @@ module.exports = class bitflyer extends Exchange {
                 spot = false;
                 maker = 0.0;
                 taker = 0.0;
-
             }
             result.push ({
                 'id': id,
