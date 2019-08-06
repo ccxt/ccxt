@@ -1011,16 +1011,12 @@ class bitstamp extends Exchange {
         $v1 = ($code === 'BTC');
         $method = $v1 ? 'v1' : 'private'; // $v1 or v2
         $method .= 'Post' . $this->capitalize ($name) . 'Withdrawal';
-        $query = $params;
         if ($code === 'XRP') {
             if ($tag !== null) {
                 $request['destination_tag'] = $tag;
-                $query = $this->omit ($params, 'destination_tag');
-            } else {
-                throw new ExchangeError($this->id . ' withdraw() requires a destination_tag param for ' . $code);
             }
         }
-        $response = $this->$method (array_merge ($request, $query));
+        $response = $this->$method (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['id'],
