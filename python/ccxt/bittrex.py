@@ -754,17 +754,17 @@ class bittrex (Exchange):
         code = self.safe_currency_code(currencyId, currency)
         status = 'pending'
         if type == 'deposit':
-            if currency is not None:
-                # deposits numConfirmations never reach the minConfirmations number
-                # we set all of them to 'ok', otherwise they'd all be 'pending'
-                #
-                #     numConfirmations = self.safe_integer(transaction, 'Confirmations', 0)
-                #     minConfirmations = self.safe_integer(currency['info'], 'MinConfirmation')
-                #     if numConfirmations >= minConfirmations:
-                #         status = 'ok'
-                #     }
-                #
-                status = 'ok'
+            #
+            # deposits numConfirmations never reach the minConfirmations number
+            # we set all of them to 'ok', otherwise they'd all be 'pending'
+            #
+            #     numConfirmations = self.safe_integer(transaction, 'Confirmations', 0)
+            #     minConfirmations = self.safe_integer(currency['info'], 'MinConfirmation')
+            #     if numConfirmations >= minConfirmations:
+            #         status = 'ok'
+            #     }
+            #
+            status = 'ok'
         else:
             authorized = self.safe_value(transaction, 'Authorized', False)
             pendingPayment = self.safe_value(transaction, 'PendingPayment', False)

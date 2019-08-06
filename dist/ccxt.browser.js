@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1016'
+const version = '1.18.1017'
 
 Exchange.ccxtVersion = version
 
@@ -19711,18 +19711,17 @@ module.exports = class bittrex extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         let status = 'pending';
         if (type === 'deposit') {
-            if (currency !== undefined) {
-                // deposits numConfirmations never reach the minConfirmations number
-                // we set all of them to 'ok', otherwise they'd all be 'pending'
-                //
-                //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
-                //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
-                //     if (numConfirmations >= minConfirmations) {
-                //         status = 'ok';
-                //     }
-                //
-                status = 'ok';
-            }
+            //
+            // deposits numConfirmations never reach the minConfirmations number
+            // we set all of them to 'ok', otherwise they'd all be 'pending'
+            //
+            //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
+            //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
+            //     if (numConfirmations >= minConfirmations) {
+            //         status = 'ok';
+            //     }
+            //
+            status = 'ok';
         } else {
             const authorized = this.safeValue (transaction, 'Authorized', false);
             const pendingPayment = this.safeValue (transaction, 'PendingPayment', false);
