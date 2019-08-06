@@ -873,9 +873,10 @@ module.exports = class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 100, max 500
         }
+        const duration = this.parseTimeframe (timeframe) * 1000;
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
-            const ymdhms = this.ymdhms (since);
+            const ymdhms = this.ymdhms (since + duration);
             request['startTime'] = ymdhms; // starting date filter for results
         }
         const response = await this.publicGetTradeBucketed (this.extend (request, params));
@@ -885,7 +886,7 @@ module.exports = class bitmex extends Exchange {
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
             for (let i = 0; i < result.length; i++) {
-                result[i][0] = result[i][0] - (this.parseTimeframe (timeframe) * 1000);
+                result[i][0] = result[i][0] - duration;
             }
         }
         return result;
