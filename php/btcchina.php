@@ -265,10 +265,7 @@ class btcchina extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        $side = $this->safe_string($trade, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'side');
         return array (
             'id' => null,
             'info' => $trade,

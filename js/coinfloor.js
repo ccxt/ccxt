@@ -236,36 +236,46 @@ module.exports = class coinfloor extends Exchange {
     }
 
     parseLedgerEntry (item, currency = undefined) {
-        // trade:
-        //   {
-        //     "datetime": "2017-07-25 06:41:24",
-        //     "id": 1500964884381265,
-        //     "type": 2,
-        //     "xbt": "0.1000",
-        //     "xbt_eur": "2322.00",
-        //     "eur": "-232.20",
-        //     "fee": "0.00",
-        //     "order_id": 84696745 }
         //
-        // transactions:
-        //   {
-        //     "datetime": "2017-07-25 13:19:46",
-        //     "id": 97669,
-        //     "type": 1,
-        //     "xbt": "-3.0000",
-        //     "xbt_eur": null,
-        //     "eur": "0",
-        //     "fee": "0.0000",
-        //     "order_id": null }
-        //   {
-        //     "datetime": "2017-07-27 16:44:55",
-        //     "id": 98277,
-        //     "type": 0,
-        //     "xbt": "0",
-        //     "xbt_eur": null,
-        //     "eur": "4970.04",
-        //     "fee": "0.00",
-        //     "order_id": null }
+        // trade
+        //
+        //     {
+        //         "datetime": "2017-07-25 06:41:24",
+        //         "id": 1500964884381265,
+        //         "type": 2,
+        //         "xbt": "0.1000",
+        //         "xbt_eur": "2322.00",
+        //         "eur": "-232.20",
+        //         "fee": "0.00",
+        //         "order_id": 84696745
+        //     }
+        //
+        // transaction (withdrawal)
+        //
+        //     {
+        //         "datetime": "2017-07-25 13:19:46",
+        //         "id": 97669,
+        //         "type": 1,
+        //         "xbt": "-3.0000",
+        //         "xbt_eur": null,
+        //         "eur": "0",
+        //         "fee": "0.0000",
+        //         "order_id": null
+        //     }
+        //
+        // transaction (deposit)
+        //
+        //     {
+        //         "datetime": "2017-07-27 16:44:55",
+        //         "id": 98277,
+        //         "type": 0,
+        //         "xbt": "0",
+        //         "xbt_eur": null,
+        //         "eur": "4970.04",
+        //         "fee": "0.00",
+        //         "order_id": null
+        //     }
+        //
         const keys = Object.keys (item);
         let baseId = undefined;
         let quoteId = undefined;
@@ -288,40 +298,20 @@ module.exports = class coinfloor extends Exchange {
                 }
             }
         }
-        if (this.safeString (item, 'type') === '2') {
-            // it's a trade so let make 2 entries
-            return [
-                this.createLedgerItem (baseAmount, baseId, undefined, item),
-                this.createLedgerItem (quoteAmount, quoteId, undefined, item),
-            ];
-        } else {
-            const amount = baseAmount !== 0 ? baseAmount : quoteAmount;
-            const currencyId = baseAmount !== 0 ? baseId : quoteId;
-            const feeCost = this.safeFloat (item, 'fee');
-            return this.createLedgerItem (amount, currencyId, feeCost, item);
-        }
-    }
-
-    createLedgerItem (amount, currencyId, feeCost, item) {
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const referenceId = this.safeString (item, 'id');
         const timestamp = this.parse8601 (this.safeString (item, 'datetime'));
-        const datetime = this.iso8601 (timestamp);
-        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         let fee = undefined;
-        const code = this.safeCurrencyCode (currencyId);
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': code,
-            };
-        }
-        return {
+        const feeCost = this.safeFloat (item, 'fee');
+        const result = {
             'id': undefined,
             'timestamp': timestamp,
-            'datetime': datetime,
-            'amount': amount < 0 ? -amount : amount,
-            'direction': amount < 0 ? 'out' : 'in',
-            'currency': code,
+            'datetime': this.iso8601 (timestamp),
+            'amount': undefined,
+            'direction': undefined,
+            'currency': undefined,
             'type': type,
             'referenceId': referenceId,
             'referenceAccount': undefined,
@@ -331,6 +321,61 @@ module.exports = class coinfloor extends Exchange {
             'fee': fee,
             'info': item,
         };
+        if (type === 'trade') {
+            //
+            // it's a trade so let's make multiple entries, we have several options:
+            //
+            // if fee is always in quote currency (the exchange uses this)
+            // https://github.com/coinfloor/API/blob/master/IMPL-GUIDE.md#how-fees-affect-trade-quantities
+            //
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': quote,
+                };
+            }
+            return [
+                this.extend (result, { 'currency': base, 'amount': Math.abs (baseAmount), 'direction': baseAmount > 0 ? 'in' : 'out' }),
+                this.extend (result, { 'currency': quote, 'amount': Math.abs (quoteAmount), 'direction': quoteAmount > 0 ? 'in' : 'out', 'fee': fee }),
+            ];
+            //
+            // if fee is base or quote depending on buy/sell side
+            //
+            //     const baseFee = (baseAmount > 0) ? { 'currency': base, 'cost': feeCost } : undefined;
+            //     const quoteFee = (quoteAmount > 0) ? { 'currency': quote, 'cost': feeCost } : undefined;
+            //     return [
+            //         this.extend (result, { 'currency': base, 'amount': baseAmount, 'direction': baseAmount > 0 ? 'in' : 'out', 'fee': baseFee }),
+            //         this.extend (result, { 'currency': quote, 'amount': quoteAmount, 'direction': quoteAmount > 0 ? 'in' : 'out', 'fee': quoteFee }),
+            //     ];
+            //
+            // fee as the 3rd item
+            //
+            //     return [
+            //         this.extend (result, { 'currency': base, 'amount': baseAmount, 'direction': baseAmount > 0 ? 'in' : 'out' }),
+            //         this.extend (result, { 'currency': quote, 'amount': quoteAmount, 'direction': quoteAmount > 0 ? 'in' : 'out' }),
+            //         this.extend (result, { 'currency': feeCurrency, 'amount': feeCost, 'direction': 'out', 'type': 'fee' }),
+            //     ];
+            //
+        } else {
+            //
+            // it's a regular transaction (deposit or withdrawal)
+            //
+            const amount = baseAmount === 0 ? quoteAmount : baseAmount;
+            const code = baseAmount === 0 ? quote : base;
+            const direction = (amount > 0) ? 'in' : 'out';
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': code,
+                };
+            }
+            return this.extend (result, {
+                'currency': code,
+                'amount': Math.abs (amount),
+                'direction': direction,
+                'fee': fee,
+            });
+        }
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

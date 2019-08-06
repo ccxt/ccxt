@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.995';
+$version = '1.18.1014';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.995';
+    const VERSION = '1.18.1014';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -80,7 +80,7 @@ class Exchange {
         'tether'     => '1000000000000000000000000000000',
     );
 
-    public static $exchanges = array(
+    public static $exchanges = array (
         '_1btcxe',
         'acx',
         'allcoin',
@@ -101,6 +101,7 @@ class Exchange {
         'bithumb',
         'bitkk',
         'bitlish',
+        'bitmart',
         'bitmex',
         'bitso',
         'bitstamp',
@@ -142,6 +143,7 @@ class Exchange {
         'crex24',
         'crypton',
         'deribit',
+        'digifinex',
         'dsx',
         'dx',
         'ethfinex',
@@ -169,6 +171,7 @@ class Exchange {
         'kucoin2',
         'kuna',
         'lakebtc',
+        'latoken',
         'lbank',
         'liqui',
         'liquid',
@@ -221,6 +224,14 @@ class Exchange {
         return (isset($object[$key]) && is_scalar($object[$key])) ? strval($object[$key]) : $default_value;
     }
 
+    public static function safe_string_lower($object, $key, $default_value = null) {
+        return (isset($object[$key]) && is_scalar($object[$key])) ? strtolower(strval($object[$key])) : $default_value;
+    }
+
+    public static function safe_string_upper($object, $key, $default_value = null) {
+        return (isset($object[$key]) && is_scalar($object[$key])) ? strtoupper(strval($object[$key])) : $default_value;
+    }
+
     public static function safe_integer($object, $key, $default_value = null) {
         return (isset($object[$key]) && is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
     }
@@ -240,6 +251,16 @@ class Exchange {
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_string($object, $key1);
         return isset($value) ? $value : static::safe_string($object, $key2, $default_value);
+    }
+
+    public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string_lower($object, $key1);
+        return isset($value) ? $value : static::safe_string_lower($object, $key2, $default_value);
+    }
+
+    public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string_upper($object, $key1);
+        return isset($value) ? $value : static::safe_string_upper($object, $key2, $default_value);
     }
 
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {

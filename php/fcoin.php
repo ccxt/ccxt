@@ -72,11 +72,26 @@ class fcoin extends Exchange {
                 'private' => array (
                     'get' => array (
                         'accounts/balance',
+                        'broker/otc/suborders',
+                        'broker/otc/suborders/{id}',
+                        'broker/otc/suborders/{id}/payments',
+                        'broker/otc/users',
+                        'broker/otc/users/me/balances',
+                        'broker/otc/users/me/balance',
+                        'broker/leveraged_accounts/account',
+                        'broker/leveraged_accounts',
                         'orders',
                         'orders/{order_id}',
                         'orders/{order_id}/match-results', // check order result
                     ),
                     'post' => array (
+                        'broker/otc/assets/transfer/in',
+                        'broker/otc/assets/transfer/out',
+                        'broker/otc/suborders',
+                        'broker/otc/suborders/{id}/pay_confirm',
+                        'broker/otc/suborders/{id}/cancel',
+                        'broker/leveraged/assets/transfer/in',
+                        'broker/leveraged/assets/transfer/out',
                         'orders',
                         'orders/{order_id}/submit-cancel', // cancel order
                     ),
@@ -285,10 +300,7 @@ class fcoin extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($trade, 'ts');
-        $side = $this->safe_string($trade, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');

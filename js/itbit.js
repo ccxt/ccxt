@@ -288,7 +288,7 @@ module.exports = class itbit extends Exchange {
             const currency = this.safeString (item, 'currency');
             const destinationAddress = this.safeString (item, 'destinationAddress');
             const txnHash = this.safeString (item, 'txnHash');
-            const transactionType = this.safeString (item, 'transactionType').toLowerCase ();
+            const transactionType = this.safeStringLower (item, 'transactionType');
             const transactionStatus = this.safeString (item, 'status');
             const status = this.parseTransferStatus (transactionStatus);
             result.push ({

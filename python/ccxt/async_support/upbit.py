@@ -647,9 +647,7 @@ class upbit (Exchange):
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         side = None
-        askOrBid = self.safe_string_2(trade, 'ask_bid', 'side')
-        if askOrBid is not None:
-            askOrBid = askOrBid.lower()
+        askOrBid = self.safe_string_lower_2(trade, 'ask_bid', 'side')
         if askOrBid == 'ask':
             side = 'sell'
         elif askOrBid == 'bid':

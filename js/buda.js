@@ -544,10 +544,7 @@ module.exports = class buda extends Exchange {
             symbol = market['symbol'];
         }
         const type = this.safeString (order, 'price_type');
-        let side = this.safeString (order, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'type');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const amount = parseFloat (order['original_amount'][0]);
         const remaining = parseFloat (order['amount'][0]);

@@ -10,7 +10,7 @@ use Exception as Exception; // a common import
 class latoken extends Exchange {
 
     public function describe () {
-        return array_replace_recursive (parent::describe (), {
+        return array_replace_recursive (parent::describe (), array (
             'id' => 'latoken',
             'name' => 'Latoken',
             'countries' => array ( 'KY' ), // Cayman Islands
@@ -93,22 +93,22 @@ class latoken extends Exchange {
             'options' => array (
                 'createOrderMethod' => 'private_post_order_new', // private_post_order_test_order
             ),
-            'exceptions' => {
-                'exact' => {
-                    'Signature or ApiKey is not valid' => '\\ccxt\\AuthenticationError', // array( "error" => { "message" => "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 )}
-                    'Request is out of time' => '\\ccxt\\InvalidNonce', // array( "error" => { "message" => "Request is out of time", "errorType" => "RequestError", "statusCode":400 )}
-                    'Symbol must be specified' => '\\ccxt\\BadRequest', // array( "error" => array ( "message" => "Symbol must be specified","errorType":"RequestError","statusCode":400 )}
+            'exceptions' => array (
+                'exact' => array (
+                    'Signature or ApiKey is not valid' => '\\ccxt\\AuthenticationError',
+                    'Request is out of time' => '\\ccxt\\InvalidNonce',
+                    'Symbol must be specified' => '\\ccxt\\BadRequest',
                 ),
-                'broad' => {
-                    'Request limit reached' => '\\ccxt\\DDoSProtection', // array( "message" => "Request limit reached!", "details" => "Request limit reached. Maximum allowed => 1 per 1s. Please try again in 1 second(s)." )
-                    'Pair' => '\\ccxt\\BadRequest', // array( "error" => { "message" => "Pair 370 is not found","errorType":"RequestError","statusCode":400 )}
-                    'Price needs to be greater than' => '\\ccxt\\InvalidOrder', // array( "error" => { "message" => "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 )}
-                    'Amount needs to be greater than' => '\\ccxt\\InvalidOrder', // array( "error" => { "message" => "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 )}
-                    'The Symbol field is required' => '\\ccxt\\InvalidOrder', // array( "error" => { "message" => "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 )}
-                    'OrderType is not valid' => '\\ccxt\\InvalidOrder', // array( "error" => { "message" => "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 )}
-                    'Side is not valid' => '\\ccxt\\InvalidOrder', // array( "error" => array ( "message" => "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 )}
-                    'Cancelable order whit' => '\\ccxt\\OrderNotFound', // array( "error" => array ( "message" => "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 )}
-                    'Order' => '\\ccxt\\OrderNotFound', // array( "error" => array ( "message" => "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 )}
+                'broad' => array (
+                    'Request limit reached' => '\\ccxt\\DDoSProtection',
+                    'Pair' => '\\ccxt\\BadRequest',
+                    'Price needs to be greater than' => '\\ccxt\\InvalidOrder',
+                    'Amount needs to be greater than' => '\\ccxt\\InvalidOrder',
+                    'The Symbol field is required' => '\\ccxt\\InvalidOrder',
+                    'OrderType is not valid' => '\\ccxt\\InvalidOrder',
+                    'Side is not valid' => '\\ccxt\\InvalidOrder',
+                    'Cancelable order whit' => '\\ccxt\\OrderNotFound',
+                    'Order' => '\\ccxt\\OrderNotFound',
                 ),
             ),
         ));
@@ -248,7 +248,7 @@ class latoken extends Exchange {
         return $result;
     }
 
-    public function calculate_fee ($symbol, $side, $amount, $price, $takerOrMaker = 'taker') {
+    public function calculate_fee ($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
         $market = $this->markets[$symbol];
         $key = 'quote';
         $rate = $market[$takerOrMaker];

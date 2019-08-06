@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.995'
+__version__ = '1.18.1014'
 
 # -----------------------------------------------------------------------------
 
@@ -607,6 +607,14 @@ class Exchange(object):
         return str(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
 
     @staticmethod
+    def safe_string_lower(dictionary, key, default_value=None):
+        return str(dictionary[key]).lower() if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+
+    @staticmethod
+    def safe_string_upper(dictionary, key, default_value=None):
+        return str(dictionary[key]).upper() if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+
+    @staticmethod
     def safe_integer(dictionary, key, default_value=None):
         if key is None or (key not in dictionary):
             return default_value
@@ -629,6 +637,14 @@ class Exchange(object):
     @staticmethod
     def safe_string_2(dictionary, key1, key2, default_value=None):
         return Exchange.safe_either(Exchange.safe_string, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_string_lower_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(Exchange.safe_string_lower, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_string_upper_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_either(Exchange.safe_string_upper, dictionary, key1, key2, default_value)
 
     @staticmethod
     def safe_integer_2(dictionary, key1, key2, default_value=None):

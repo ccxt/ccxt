@@ -296,12 +296,8 @@ class bitbank (Exchange):
             if average is not None:
                 cost = filled * average
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        type = self.safe_string(order, 'type')
-        if type is not None:
-            type = type.lower()
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        type = self.safe_string_lower(order, 'type')
+        side = self.safe_string_lower(order, 'side')
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),

@@ -416,9 +416,7 @@ class deribit (Exchange):
             if price is not None:
                 cost = price * filled
         status = self.parse_order_status(self.safe_string(order, 'state'))
-        side = self.safe_string(order, 'direction')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'direction')
         feeCost = self.safe_float(order, 'commission')
         if feeCost is not None:
             feeCost = abs(feeCost)

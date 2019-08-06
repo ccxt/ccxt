@@ -1319,7 +1319,7 @@ module.exports = class okex3 extends Exchange {
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType');
         const type = this.safeString (params, 'type', defaultType);
         if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired (this.id + " fetchBalance requires a type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
         }
         const suffix = (type === 'account') ? 'Wallet' : 'Accounts';
         const method = type + 'Get' + suffix;
@@ -1552,11 +1552,7 @@ module.exports = class okex3 extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelOrder requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
-        }
+        const type = market['type'];
         let method = type + 'PostCancelOrder';
         const request = {
             'instrument_id': market['id'],
@@ -1853,24 +1849,20 @@ module.exports = class okex3 extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByState requires a symbol argument');
         }
-        const defaultType = this.safeString2 (this.options, 'fetchOrdersByState', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrdersByState requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // '-2': failed,
-        // '-1': cancelled,
-        //  '0': open ,
-        //  '1': partially filled,
-        //  '2': fully filled,
-        //  '3': submitting,
-        //  '4': cancelling,
-        //  '6': incomplete（open+partially filled),
-        //  '7': complete（cancelled+fully filled),
+        const type = market['type'];
         const request = {
             'instrument_id': market['id'],
+            // '-2': failed,
+            // '-1': cancelled,
+            //  '0': open ,
+            //  '1': partially filled,
+            //  '2': fully filled,
+            //  '3': submitting,
+            //  '4': cancelling,
+            //  '6': incomplete（open+partially filled),
+            //  '7': complete（cancelled+fully filled),
             'state': state,
         };
         let method = type + 'GetOrders';
@@ -2689,6 +2681,9 @@ module.exports = class okex3 extends Exchange {
         const feedback = this.id + ' ' + body;
         if (code === 503) {
             throw new ExchangeError (feedback);
+        }
+        if (!response) {
+            return; // fallback to default error handler
         }
         const exact = this.exceptions['exact'];
         const message = this.safeString (response, 'message');

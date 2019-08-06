@@ -446,8 +446,7 @@ class anxpro extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'tradedCurrencyFillAmount');
         $cost = $this->safe_float($trade, 'settlementCurrencyFillAmount');
-        $side = $this->safe_string($trade, 'side');
-        $side = ($side === null) ? null : strtolower($side);
+        $side = $this->safe_string_lower($trade, 'side');
         return array (
             'id' => $id,
             'order' => $orderId,
@@ -466,8 +465,9 @@ class anxpro extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->v3publicGetCurrencyStatic ($params);
-        $result = array();
-        $currencies = $response['currencyStatic']['currencies'];
+        //
+        //   {
+        //     "$currencyStatic" => array (
         //       "$currencies" => array (
         //         "HKD" => array (
         //           "decimals" => 2,
@@ -516,6 +516,35 @@ class anxpro extends Exchange {
         //           "assetIcon" => "/images/currencies/crypto/ETH.svg"
         //         ),
         //       ),
+        //       "currencyPairs" => array (
+        //         "ETHUSD" => array (
+        //           "priceDecimals" => 5,
+        //           "$engineSettings" => array (
+        //             "tradingEnabled" => true,
+        //             "$displayEnabled" => true,
+        //             "cancelOnly" => true,
+        //             "verifyRequired" => false,
+        //             "restrictedBuy" => false,
+        //             "restrictedSell" => false
+        //           ),
+        //           "minOrderRate" => 10.00000000,
+        //           "maxOrderRate" => 10000.00000000,
+        //           "displayPriceDecimals" => 5,
+        //           "tradedCcy" => "ETH",
+        //           "settlementCcy" => "USD",
+        //           "preferredMarket" => "ANX",
+        //           "chartEnabled" => true,
+        //           "simpleTradeEnabled" => false
+        //         ),
+        //       ),
+        //     ),
+        //     "timestamp" => "1549840691039",
+        //     "resultCode" => "OK"
+        //   }
+        //
+        $currencyStatic = $this->safe_value($response, 'currencyStatic', array());
+        $currencies = $this->safe_value($currencyStatic, 'currencies', array());
+        $result = array();
         $ids = is_array($currencies) ? array_keys($currencies) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -528,10 +557,7 @@ class anxpro extends Exchange {
             $active = $depositsEnabled && $withdrawalsEnabled && $displayEnabled;
             $precision = $this->safe_integer($currency, 'decimals');
             $fee = $this->safe_float($currency, 'networkFee');
-            $type = $this->safe_string($currency, 'type');
-            if ($type !== 'null') {
-                $type = strtolower($type);
-            }
+            $type = $this->safe_string_lower($currency, 'type');
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -918,7 +944,7 @@ class anxpro extends Exchange {
         $lastTradeTimestamp = null;
         $trades = array();
         $filled = 0;
-        $type = strtolower($this->safe_string($order, 'orderType'));
+        $type = $this->safe_string_lower($order, 'orderType');
         for ($i = 0; $i < count ($order['trades']); $i++) {
             $trade = $order['trades'][$i];
             $tradeTimestamp = $this->safe_integer($trade, 'timestamp');

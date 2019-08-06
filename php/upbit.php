@@ -666,10 +666,7 @@ class upbit extends Exchange {
             $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
         }
         $side = null;
-        $askOrBid = $this->safe_string_2($trade, 'ask_bid', 'side');
-        if ($askOrBid !== null) {
-            $askOrBid = strtolower($askOrBid);
-        }
+        $askOrBid = $this->safe_string_lower_2($trade, 'ask_bid', 'side');
         if ($askOrBid === 'ask') {
             $side = 'sell';
         } else if ($askOrBid === 'bid') {

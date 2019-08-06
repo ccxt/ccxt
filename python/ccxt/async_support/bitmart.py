@@ -213,11 +213,13 @@ class bitmart (Exchange):
             # price_min_precision Minimum price precision(digit) used to query price and kline
             # price_max_precision Maximum price precision(digit) used to query price and kline
             #
-            quoteIncrementAsString = self.safe_string(market, 'quote_increment')
-            pricePrecision = self.precision_from_string(quoteIncrementAsString)
-            quoteIncrement = float(quoteIncrementAsString)
+            # the docs are wrong: https://github.com/ccxt/ccxt/issues/5612
+            #
+            quoteIncrement = self.safe_string(market, 'quote_increment')
+            amountPrecision = self.precision_from_string(quoteIncrement)
+            pricePrecision = self.safe_integer(market, 'price_max_precision')
             precision = {
-                'amount': 8,
+                'amount': amountPrecision,
                 'price': pricePrecision,
             }
             limits = {
@@ -226,7 +228,7 @@ class bitmart (Exchange):
                     'max': self.safe_float(market, 'base_max_size'),
                 },
                 'price': {
-                    'min': quoteIncrement,
+                    'min': None,
                     'max': None,
                 },
                 'cost': {
@@ -394,9 +396,7 @@ class bitmart (Exchange):
         id = self.safe_string(trade, 'trade_id')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'order_time')
         type = None
-        side = self.safe_string(trade, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'type')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None

@@ -43,24 +43,18 @@ module.exports = class coinex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
-                'api': {
-                    'public': 'https://api.coinex.com',
-                    'private': 'https://api.coinex.com',
-                    'web': 'https://www.coinex.com',
-                },
+                'api': 'https://api.coinex.com',
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
                 'referral': 'https://www.coinex.com/register?refer_code=yw5fz',
             },
             'api': {
-                'web': {
-                    'get': [
-                        'res/market',
-                    ],
-                },
                 'public': {
                     'get': [
+                        'common/currency/rate',
+                        'common/asset/config',
+                        'market/info',
                         'market/list',
                         'market/ticker',
                         'market/ticker/all',
@@ -71,22 +65,44 @@ module.exports = class coinex extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'balance/coin/withdraw',
                         'balance/coin/deposit',
+                        'balance/coin/withdraw',
                         'balance/info',
+                        'future/account',
+                        'future/config',
+                        'future/limitprice',
+                        'future/loan/history',
+                        'future/market',
+                        'margin/account',
+                        'margin/config',
+                        'margin/loan/history',
+                        'margin/market',
                         'order',
-                        'order/pending',
+                        'order/deals',
                         'order/finished',
                         'order/finished/{id}',
+                        'order/pending',
+                        'order/status',
+                        'order/status/batch',
                         'order/user/deals',
                     ],
                     'post': [
                         'balance/coin/withdraw',
+                        'future/flat',
+                        'future/loan',
+                        'future/transfer',
+                        'margin/flat',
+                        'margin/loan',
+                        'margin/transfer',
+                        'order/batchlimit',
+                        'order/ioc',
                         'order/limit',
                         'order/market',
+                        'sub_account/transfer',
                     ],
                     'delete': [
                         'balance/coin/withdraw',
+                        'order/pending/batch',
                         'order/pending',
                     ],
                 },
@@ -124,25 +140,41 @@ module.exports = class coinex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.webGetResMarket (params);
-        const markets = this.safeValue (response['data'], 'market_info');
+        const response = await this.publicGetMarketInfo (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "WAVESBTC": {
+        //                 "name": "WAVESBTC",
+        //                 "min_amount": "1",
+        //                 "maker_fee_rate": "0.001",
+        //                 "taker_fee_rate": "0.001",
+        //                 "pricing_name": "BTC",
+        //                 "pricing_decimal": 8,
+        //                 "trading_name": "WAVES",
+        //                 "trading_decimal": 8
+        //             }
+        //         }
+        //     }
+        //
+        const markets = this.safeValue (response, 'data', {});
         const result = [];
         const keys = Object.keys (markets);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             const market = markets[key];
-            const id = this.safeString (market, 'market');
-            const quoteId = this.safeString (market, 'buy_asset_type');
-            const baseId = this.safeString (market, 'sell_asset_type');
+            const id = this.safeString (market, 'name');
+            const baseId = this.safeString (market, 'trading_name');
+            const quoteId = this.safeString (market, 'pricing_name');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': this.safeInteger (market, 'sell_asset_type_places'),
-                'price': this.safeInteger (market, 'buy_asset_type_places'),
+                'amount': this.safeInteger (market, 'trading_decimal'),
+                'price': this.safeInteger (market, 'pricing_decimal'),
             };
-            const numMergeLevels = market['merge'].length;
-            const active = (market['status'] === 'pass');
+            const active = undefined;
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -157,11 +189,11 @@ module.exports = class coinex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'least_amount'),
+                        'min': this.safeFloat (market, 'min_amount'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': parseFloat (market['merge'][numMergeLevels - 1]),
+                        'min': Math.pow (10, -precision['price']),
                         'max': undefined,
                     },
                 },
@@ -832,14 +864,9 @@ module.exports = class coinex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         path = this.implodeParams (path, params);
-        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
+        let url = this.urls['api'] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'web') {
-            url = this.urls['api'][api] + '/' + path;
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }

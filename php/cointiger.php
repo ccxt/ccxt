@@ -317,7 +317,7 @@ class cointiger extends huobipro {
         //
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'orderId');
-        $orderType = $this->safe_string($trade, 'type');
+        $orderType = $this->safe_string_lower($trade, 'type');
         $type = null;
         $side = null;
         if ($orderType !== null) {
@@ -325,7 +325,7 @@ class cointiger extends huobipro {
             $side = $parts[0];
             $type = $parts[1];
         }
-        $side = $this->safe_string($trade, 'side', $side);
+        $side = $this->safe_string_lower($trade, 'side', $side);
         $amount = null;
         $price = null;
         $cost = null;
@@ -334,7 +334,6 @@ class cointiger extends huobipro {
             $amount = $this->safe_float($trade['volume'], 'amount');
             $cost = $this->safe_float($trade['deal_price'], 'amount');
         } else {
-            $side = strtolower($side);
             $price = $this->safe_float($trade, 'price');
             $amount = $this->safe_float_2($trade, 'amount', 'volume');
         }
@@ -676,7 +675,7 @@ class cointiger extends huobipro {
         //                    $status =>  2              } }
         //
         $id = $this->safe_string($order, 'id');
-        $side = $this->safe_string($order, 'side');
+        $side = $this->safe_string_lower($order, 'side');
         $type = null;
         $orderType = $this->safe_string($order, 'type');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -700,7 +699,6 @@ class cointiger extends huobipro {
         $fee = null;
         $average = null;
         if ($side !== null) {
-            $side = strtolower($side);
             $amount = $this->safe_float($order['volume'], 'amount');
             $remaining = (is_array($order) && array_key_exists('remain_volume', $order)) ? $this->safe_float($order['remain_volume'], 'amount') : null;
             $filled = (is_array($order) && array_key_exists('deal_volume', $order)) ? $this->safe_float($order['deal_volume'], 'amount') : null;

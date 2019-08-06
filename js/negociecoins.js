@@ -157,10 +157,7 @@ module.exports = class negociecoins extends Exchange {
         }
         const id = this.safeString (trade, 'tid');
         const type = 'limit';
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'type');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

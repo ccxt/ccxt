@@ -119,9 +119,7 @@ class lykke (Exchange):
             symbol = market['symbol']
         id = self.safe_string(trade, 'id')
         timestamp = self.parse8601(self.safe_string(trade, 'dateTime'))
-        side = self.safe_string(trade, 'action')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'action')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'volume')
         cost = price * amount

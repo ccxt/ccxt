@@ -290,8 +290,9 @@ module.exports = class bitstamp extends Exchange {
         //         "eur": 0.0
         //     }
         //
-        if ('currency' in transaction) {
-            return transaction['currency'].toLowerCase ();
+        const currencyId = this.safeStringLower (transaction, 'currency');
+        if (currencyId !== undefined) {
+            return currencyId;
         }
         transaction = this.omit (transaction, [
             'fee',

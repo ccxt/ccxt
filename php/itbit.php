@@ -289,7 +289,7 @@ class itbit extends Exchange {
             $currency = $this->safe_string($item, 'currency');
             $destinationAddress = $this->safe_string($item, 'destinationAddress');
             $txnHash = $this->safe_string($item, 'txnHash');
-            $transactionType = strtolower($this->safe_string($item, 'transactionType'));
+            $transactionType = $this->safe_string_lower($item, 'transactionType');
             $transactionStatus = $this->safe_string($item, 'status');
             $status = $this->parse_transfer_status ($transactionStatus);
             $result[] = array (

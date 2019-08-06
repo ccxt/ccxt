@@ -1293,7 +1293,7 @@ class okex3 (Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchBalance requires a type parameter(one of 'account', 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " fetchBalance requires a type parameter(one of 'account', 'spot', 'margin', 'futures', 'swap')")
         suffix = 'Wallet' if (type == 'account') else 'Accounts'
         method = type + 'Get' + suffix
         query = self.omit(params, 'type')
@@ -1514,10 +1514,7 @@ class okex3 (Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
-        if type is None:
-            raise ArgumentsRequired(self.id + " cancelOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+        type = market['type']
         method = type + 'PostCancelOrder'
         request = {
             'instrument_id': market['id'],
@@ -1790,23 +1787,20 @@ class okex3 (Exchange):
     def fetch_orders_by_state(self, state, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrdersByState requires a symbol argument')
-        defaultType = self.safe_string_2(self.options, 'fetchOrdersByState', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
-        if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrdersByState requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         self.load_markets()
         market = self.market(symbol)
-        # '-2': failed,
-        # '-1': cancelled,
-        #  '0': open ,
-        #  '1': partially filled,
-        #  '2': fully filled,
-        #  '3': submitting,
-        #  '4': cancelling,
-        #  '6': incomplete（open+partially filled),
-        #  '7': complete（cancelled+fully filled),
+        type = market['type']
         request = {
             'instrument_id': market['id'],
+            # '-2': failed,
+            # '-1': cancelled,
+            #  '0': open ,
+            #  '1': partially filled,
+            #  '2': fully filled,
+            #  '3': submitting,
+            #  '4': cancelling,
+            #  '6': incomplete（open+partially filled),
+            #  '7': complete（cancelled+fully filled),
             'state': state,
         }
         method = type + 'GetOrders'
@@ -2577,6 +2571,8 @@ class okex3 (Exchange):
         feedback = self.id + ' ' + body
         if code == 503:
             raise ExchangeError(feedback)
+        if not response:
+            return  # fallback to default error handler
         exact = self.exceptions['exact']
         message = self.safe_string(response, 'message')
         errorCode = self.safe_string_2(response, 'code', 'error_code')
