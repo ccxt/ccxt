@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1014'
+const version = '1.18.1015'
 
 Exchange.ccxtVersion = version
 
@@ -15828,6 +15828,7 @@ module.exports = class bitmex extends Exchange {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
+                'fetchOHLCVOpenTimestamp': true,
             },
         });
     }
@@ -16543,13 +16544,28 @@ module.exports = class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit; // default 100, max 500
         }
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        const fetchOHLCVOpenTimestamp = this.safeValue (this.options, 'fetchOHLCVOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
-            const ymdhms = this.ymdhms (since);
+            let timestamp = since;
+            if (fetchOHLCVOpenTimestamp) {
+                timestamp = this.sum (timestamp, duration);
+            }
+            const ymdhms = this.ymdhms (timestamp);
             request['startTime'] = ymdhms; // starting date filter for results
         }
         const response = await this.publicGetTradeBucketed (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const result = this.parseOHLCVs (response, market, timeframe, since, limit);
+        if (fetchOHLCVOpenTimestamp) {
+            // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
+            // we can emulate the open timestamp by shifting all the timestamps one place
+            // so the previous close becomes the current open, and we drop the first candle
+            for (let i = 0; i < result.length; i++) {
+                result[i][0] = result[i][0] - duration;
+            }
+        }
+        return result;
     }
 
     parseTrade (trade, market = undefined) {
