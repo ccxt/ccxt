@@ -43,24 +43,17 @@ module.exports = class coinex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
-                'api': {
-                    'public': 'https://api.coinex.com',
-                    'private': 'https://api.coinex.com',
-                    'web': 'https://www.coinex.com',
-                },
+                'api': 'https://api.coinex.com',
                 'www': 'https://www.coinex.com',
                 'doc': 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees': 'https://www.coinex.com/fees',
                 'referral': 'https://www.coinex.com/register?refer_code=yw5fz',
             },
             'api': {
-                'web': {
-                    'get': [
-                        'res/market',
-                    ],
-                },
                 'public': {
                     'get': [
+                        'common/currency/rate',
+                        'common/asset/config',
                         'market/info',
                         'market/list',
                         'market/ticker',
@@ -72,22 +65,44 @@ module.exports = class coinex extends Exchange {
                 },
                 'private': {
                     'get': [
-                        'balance/coin/withdraw',
                         'balance/coin/deposit',
+                        'balance/coin/withdraw',
                         'balance/info',
+                        'future/account',
+                        'future/config',
+                        'future/limitprice',
+                        'future/loan/history',
+                        'future/market',
+                        'margin/account',
+                        'margin/config',
+                        'margin/loan/history',
+                        'margin/market',
                         'order',
-                        'order/pending',
+                        'order/deals',
                         'order/finished',
                         'order/finished/{id}',
+                        'order/pending',
+                        'order/status',
+                        'order/status/batch',
                         'order/user/deals',
                     ],
                     'post': [
                         'balance/coin/withdraw',
+                        'future/flat',
+                        'future/loan',
+                        'future/transfer',
+                        'margin/flat',
+                        'margin/loan',
+                        'margin/transfer',
+                        'order/batchlimit',
+                        'order/ioc',
                         'order/limit',
                         'order/market',
+                        'sub_account/transfer',
                     ],
                     'delete': [
                         'balance/coin/withdraw',
+                        'order/pending/batch',
                         'order/pending',
                     ],
                 },
@@ -849,14 +864,9 @@ module.exports = class coinex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         path = this.implodeParams (path, params);
-        let url = this.urls['api'][api] + '/' + this.version + '/' + path;
+        let url = this.urls['api'] + '/' + this.version + '/' + path;
         let query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'web') {
-            url = this.urls['api'][api] + '/' + path;
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
