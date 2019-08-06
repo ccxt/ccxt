@@ -107,9 +107,8 @@ module.exports = class idex extends Exchange {
         const markets = await this.publicPostReturnCurrenciesWithPairs (this.extend (request, params));
         const currenciesById = {};
         const currencies = markets['tokens'];
-        let keys = Object.keys (currencies);
-        for (let i = 0; i < keys.length; i++) {
-            const currency = currencies[keys[i]];
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
             currenciesById[currency['symbol']] = currency;
         }
         const result = [];
@@ -128,7 +127,7 @@ module.exports = class idex extends Exchange {
             },
         };
         const quotes = markets['pairs'];
-        keys = Object.keys (quotes);
+        const keys = Object.keys (quotes);
         for (let i = 0; i < keys.length; i++) {
             const quoteId = keys[i];
             const bases = quotes[quoteId];
