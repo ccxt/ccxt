@@ -936,14 +936,10 @@ class bitstamp (Exchange):
         v1 = (code == 'BTC')
         method = 'v1' if v1 else 'private'  # v1 or v2
         method += 'Post' + self.capitalize(name) + 'Withdrawal'
-        query = params
         if code == 'XRP':
             if tag is not None:
                 request['destination_tag'] = tag
-                query = self.omit(params, 'destination_tag')
-            else:
-                raise ExchangeError(self.id + ' withdraw() requires a destination_tag param for ' + code)
-        response = await getattr(self, method)(self.extend(request, query))
+        response = await getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],
