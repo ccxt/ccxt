@@ -755,11 +755,9 @@ module.exports = class bitstamp extends Exchange {
             // withdrawals have a negative amount
             amount = Math.abs (amount);
         }
-        let status = undefined;
+        let status = 'ok';
         if ('status' in transaction) {
             status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        } else {
-            status = 'ok';
         }
         let type = undefined;
         if ('type' in transaction) {
