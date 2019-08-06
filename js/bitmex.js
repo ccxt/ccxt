@@ -876,7 +876,7 @@ module.exports = class bitmex extends Exchange {
         const duration = this.parseTimeframe (timeframe) * 1000;
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
-            const ymdhms = this.ymdhms (since + duration);
+            const ymdhms = this.ymdhms (this.sum (since, duration));
             request['startTime'] = ymdhms; // starting date filter for results
         }
         const response = await this.publicGetTradeBucketed (this.extend (request, params));
