@@ -784,6 +784,10 @@ module.exports = class bitstamp extends Exchange {
                 tag = addressParts[1];
             }
         }
+        const addressFrom = undefined;
+        const addressTo = address;
+        const tagFrom = undefined;
+        const tagTo = tag;
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -798,7 +802,11 @@ module.exports = class bitstamp extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
             'address': address,
+            'tagFrom': tagFrom,
+            'tagTo': tagTo,
             'tag': tag,
             'type': type,
             'amount': amount,
