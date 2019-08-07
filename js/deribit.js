@@ -144,12 +144,16 @@ module.exports = class deribit extends Exchange {
             const quoteId = this.safeString (market, 'currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const type = this.safeString (market, 'kind');
+            const future = (type === 'future');
+            const option = (type === 'option');
+            const active = this.safeValue (market, 'isActive');
             result.push ({
                 'id': id,
                 'symbol': id,
                 'base': base,
                 'quote': quote,
-                'active': market['isActive'],
+                'active': active,
                 'precision': {
                     'amount': market['minTradeSize'],
                     'price': market['tickSize'],
@@ -162,10 +166,10 @@ module.exports = class deribit extends Exchange {
                         'min': market['tickSize'],
                     },
                 },
-                'type': market['kind'],
+                'type': type,
                 'spot': false,
-                'future': market['kind'] === 'future',
-                'option': market['kind'] === 'option',
+                'future': future,
+                'option': option,
                 'info': market,
             });
         }
