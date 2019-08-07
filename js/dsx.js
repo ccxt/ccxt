@@ -935,48 +935,6 @@ module.exports = class dsx extends Exchange {
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
-    updateCachedOrders (openOrders, symbol) {
-        // update local cache with open orders
-        // this will add unseen orders and overwrite existing ones
-        for (let j = 0; j < openOrders.length; j++) {
-            const id = openOrders[j]['id'];
-            this.orders[id] = openOrders[j];
-        }
-        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        const cachedOrderIds = Object.keys (this.orders);
-        for (let k = 0; k < cachedOrderIds.length; k++) {
-            // match each cached order to an order in the open orders array
-            // possible reasons why a cached order may be missing in the open orders array:
-            // - order was closed or canceled -> update cache
-            // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            const cachedOrderId = cachedOrderIds[k];
-            let cachedOrder = this.orders[cachedOrderId];
-            if (!(cachedOrderId in openOrdersIndexedById)) {
-                // cached order is not in open orders array
-                // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (symbol !== undefined && symbol !== cachedOrder['symbol']) {
-                    continue;
-                }
-                // cached order is absent from the list of open orders -> mark the cached order as closed
-                if (cachedOrder['status'] === 'open') {
-                    cachedOrder = this.extend (cachedOrder, {
-                        'status': 'closed', // likewise it might have been canceled externally (unnoticed by "us")
-                        'cost': undefined,
-                        'filled': cachedOrder['amount'],
-                        'remaining': 0.0,
-                    });
-                    if (cachedOrder['cost'] === undefined) {
-                        if (cachedOrder['filled'] !== undefined) {
-                            cachedOrder['cost'] = cachedOrder['filled'] * cachedOrder['price'];
-                        }
-                    }
-                    this.orders[cachedOrderId] = cachedOrder;
-                }
-            }
-        }
-        return this.toArray (this.orders);
-    }
-
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const orders = await this.fetchOrders (symbol, since, limit, params);
         return this.filterBy (orders, 'status', 'closed');
