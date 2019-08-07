@@ -164,9 +164,15 @@ module.exports = class deribit extends Exchange {
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'minTradeAmount'),
+                        'max': undefined,
                     },
                     'price': {
                         'min': this.safeFloat (market, 'tickSize'),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
                 'type': type,
