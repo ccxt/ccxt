@@ -173,7 +173,6 @@ class Exchange {
         'lakebtc',
         'latoken',
         'lbank',
-        'liqui',
         'liquid',
         'livecoin',
         'luno',
