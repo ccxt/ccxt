@@ -232,7 +232,6 @@ module.exports = class bitmax extends Exchange {
         if (limit !== undefined) {
             request['n'] = limit; // default = maximum = 100
         }
-
         const response = await this.publicGetDepth (this.extend (request, params));
         const orderbook = this.parseOrderBook (response);
         const timestamp = this.safeInteger (response, 'ts');
