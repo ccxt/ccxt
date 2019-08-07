@@ -139,7 +139,6 @@ module.exports = class bitmax extends Exchange {
             const base = this.commonCurrencyCode (baseId);
             const quote = this.commonCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const s = base + '-' + quote;
             const precision = {
                 'base': market['qtyScale'],
                 'quote': market['qtyScale'],
@@ -151,7 +150,6 @@ module.exports = class bitmax extends Exchange {
             const entry = {
                 'id': id,
                 'symbol': symbol,
-                's': s,
                 'base': base,
                 'quote': quote,
                 'baseId': baseId,
@@ -234,9 +232,13 @@ module.exports = class bitmax extends Exchange {
         if (limit !== undefined) {
             request['n'] = limit; // default = maximum = 100
         }
+
         const response = await this.publicGetDepth (this.extend (request, params));
         const orderbook = this.parseOrderBook (response);
-        orderbook['nonce'] = this.safeInteger (response, 'ts');
+        const timestamp = this.safeInteger (response, 'ts');
+        orderbook['nonce'] = timestamp;
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
     }
 
@@ -310,7 +312,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['s'],
+            'symbol': market['symbol'],
             'interval': this.timeframes[timeframe],
         };
         const now = this.nonce ();
