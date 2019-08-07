@@ -2633,9 +2633,11 @@ class okex3 extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/api' . '/' . $api . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $isArray = gettype ($params) === 'array' && count (array_filter (array_keys ($params), 'is_string')) == 0;
+        $request = '/api/' . $api . '/' . $this->version . '/';
+        $request .= $isArray ? $path : $this->implode_params($path, $params);
+        $query = $isArray ? $params : $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
-        $query = $this->omit ($params, $this->extract_params($path));
         $type = $this->get_path_authentication_type ($path);
         if ($type === 'public') {
             if ($query) {
@@ -2660,7 +2662,7 @@ class okex3 extends Exchange {
                     $auth .= $urlencodedQuery;
                 }
             } else {
-                if ($query) {
+                if ($isArray || $query) {
                     $body = $this->json ($query);
                     $auth .= $body;
                 }

@@ -2529,9 +2529,11 @@ class okex3 (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api' + '/' + api + '/' + self.version + '/' + self.implode_params(path, params)
+        isArray = isinstance(params, list)
+        request = '/api/' + api + '/' + self.version + '/'
+        request += path if isArray else self.implode_params(path, params)
+        query = params if isArray else self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
-        query = self.omit(params, self.extract_params(path))
         type = self.get_path_authentication_type(path)
         if type == 'public':
             if query:
@@ -2554,7 +2556,7 @@ class okex3 (Exchange):
                     url += urlencodedQuery
                     auth += urlencodedQuery
             else:
-                if query:
+                if isArray or query:
                     body = self.json(query)
                     auth += body
                 headers['Content-Type'] = 'application/json'
