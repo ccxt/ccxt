@@ -143,8 +143,8 @@ class livecoin extends Exchange {
             $market = $response[$i];
             $id = $this->safe_string($market, 'symbol');
             list($baseId, $quoteId) = explode('/', $id);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $coinRestrictions = $this->safe_value($restrictionsById, $symbol);
             $precision = array (
@@ -192,7 +192,7 @@ class livecoin extends Exchange {
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $precision = 8; // default $precision, todo => fix "magic constants"
             $walletStatus = $this->safe_string($currency, 'walletStatus');
             $active = ($walletStatus === 'normal');
@@ -259,7 +259,7 @@ class livecoin extends Exchange {
         );
         $currencies[] = array (
             'id' => 'RUR',
-            'code' => $this->common_currency_code('RUR'),
+            'code' => $this->safe_currency_code('RUR'),
             'name' => 'Russian ruble',
         );
         for ($i = 0; $i < count ($currencies); $i++) {
@@ -277,7 +277,7 @@ class livecoin extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = null;
             if (is_array($result) && array_key_exists($code, $result)) {
                 $account = $result[$code];
@@ -386,7 +386,7 @@ class livecoin extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         //
         // fetchTrades (public)
         //
@@ -404,13 +404,13 @@ class livecoin extends Exchange {
         //         "datetime" => 1435844369,
         //         "$id" => 30651619,
         //         "type" => "sell",
-        //         "symbol" => "BTC/EUR",
+        //         "$symbol" => "BTC/EUR",
         //         "$price" => 230,
         //         "quantity" => 0.1,
         //         "commission" => 0,
         //         "clientorderid" => 1472837650
         //     }
-        $timestamp = $this->safe_string_2($trade, 'time', 'datetime');
+        $timestamp = $this->safe_integer_2($trade, 'time', 'datetime');
         if ($timestamp !== null) {
             $timestamp = $timestamp * 1000;
         }
@@ -425,10 +425,7 @@ class livecoin extends Exchange {
         }
         $orderId = $this->safe_string($trade, 'clientorderid');
         $id = $this->safe_string($trade, 'id');
-        $side = $this->safe_string($trade, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'type');
         $amount = $this->safe_float($trade, 'quantity');
         $price = $this->safe_float($trade, 'price');
         $cost = null;
@@ -437,15 +434,20 @@ class livecoin extends Exchange {
                 $cost = $amount * $price;
             }
         }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
-            'id' => $id,
+            'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -567,11 +569,10 @@ class livecoin extends Exchange {
                 $market = $this->markets_by_id[$marketId];
             }
         }
-        $type = null;
+        $type = $this->safe_string_lower($order, 'type');
         $side = null;
-        if (is_array($order) && array_key_exists('type', $order)) {
-            $lowercaseType = strtolower($order['type']);
-            $orderType = explode('_', $lowercaseType);
+        if ($type !== null) {
+            $orderType = explode('_', $type);
             $type = $orderType[0];
             $side = $orderType[1];
         }
@@ -757,21 +758,15 @@ class livecoin extends Exchange {
         //        "externalKey" => "....87diPBy......3hTtuwUT78Yi", ($address on deposits, tx on withdrawals)
         //        "documentId" => 1110662453
         //    ),
-        $code = null;
         $txid = null;
         $address = null;
         $id = $this->safe_string($transaction, 'documentId');
         $amount = $this->safe_float($transaction, 'amount');
         $timestamp = $this->safe_integer($transaction, 'date');
-        $type = strtolower($this->safe_string($transaction, 'type'));
+        $type = $this->safe_string_lower($transaction, 'type');
         $currencyId = $this->safe_string($transaction, 'fixedCurrency');
         $feeCost = $this->safe_float($transaction, 'fee');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         if ($type === 'withdrawal') {
             $txid = $this->safe_string($transaction, 'externalKey');
             $address = $this->safe_string($transaction, 'id');

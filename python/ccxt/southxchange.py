@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-from ccxt.base.errors import ExchangeError
 
 
 class southxchange (Exchange):
@@ -72,8 +71,8 @@ class southxchange (Exchange):
             market = markets[i]
             baseId = market[0]
             quoteId = market[1]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             id = symbol
             result.append({
@@ -91,24 +90,16 @@ class southxchange (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostListBalances(params)
-        if not response:
-            raise ExchangeError(self.id + ' fetchBalance got an unrecognized response')
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
-            currencyId = balance['Currency']
-            uppercaseId = currencyId.upper()
-            code = self.common_currency_code(uppercaseId)
-            free = self.safe_float(balance, 'Available')
+            currencyId = self.safe_string(balance, 'Currency')
+            code = self.safe_currency_code(currencyId)
             deposited = self.safe_float(balance, 'Deposited')
             unconfirmed = self.safe_float(balance, 'Unconfirmed')
-            total = self.sum(deposited, unconfirmed)
-            used = total - free
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'Available')
+            account['total'] = self.sum(deposited, unconfirmed)
             result[code] = account
         return self.parse_balance(result)
 
@@ -199,8 +190,10 @@ class southxchange (Exchange):
             'type': None,
             'side': side,
             'price': price,
+            'takerOrMaker': None,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -216,8 +209,8 @@ class southxchange (Exchange):
         status = 'open'
         baseId = self.safe_string(order, 'ListingCurrency')
         quoteId = self.safe_string(order, 'ReferenceCurrency')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = base + '/' + quote
         timestamp = None
         price = self.safe_float(order, 'LimitPrice')
@@ -230,9 +223,7 @@ class southxchange (Exchange):
             if remaining is not None:
                 filled = amount - remaining
         type = 'limit'
-        side = self.safe_string(order, 'Type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'Type')
         id = self.safe_string(order, 'Code')
         result = {
             'info': order,

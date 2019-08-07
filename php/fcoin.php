@@ -72,11 +72,26 @@ class fcoin extends Exchange {
                 'private' => array (
                     'get' => array (
                         'accounts/balance',
+                        'broker/otc/suborders',
+                        'broker/otc/suborders/{id}',
+                        'broker/otc/suborders/{id}/payments',
+                        'broker/otc/users',
+                        'broker/otc/users/me/balances',
+                        'broker/otc/users/me/balance',
+                        'broker/leveraged_accounts/account',
+                        'broker/leveraged_accounts',
                         'orders',
                         'orders/{order_id}',
                         'orders/{order_id}/match-results', // check order result
                     ),
                     'post' => array (
+                        'broker/otc/assets/transfer/in',
+                        'broker/otc/assets/transfer/out',
+                        'broker/otc/suborders',
+                        'broker/otc/suborders/{id}/pay_confirm',
+                        'broker/otc/suborders/{id}/cancel',
+                        'broker/leveraged/assets/transfer/in',
+                        'broker/leveraged/assets/transfer/out',
                         'orders',
                         'orders/{order_id}/submit-cancel', // cancel order
                     ),
@@ -139,10 +154,8 @@ class fcoin extends Exchange {
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = strtoupper($baseId);
-            $base = $this->common_currency_code($base);
-            $quote = strtoupper($quoteId);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'price' => $market['price_decimal'],
@@ -181,17 +194,12 @@ class fcoin extends Exchange {
         $balances = $this->safe_value($response, 'data');
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $currencyId = $balance['currency'];
-            $code = strtoupper($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($code);
-            }
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            $account['free'] = floatval ($balance['available']);
-            $account['total'] = floatval ($balance['balance']);
-            $account['used'] = floatval ($balance['frozen']);
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'frozen');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -292,21 +300,27 @@ class fcoin extends Exchange {
             $symbol = $market['symbol'];
         }
         $timestamp = $this->safe_integer($trade, 'ts');
-        $side = strtolower($trade['side']);
-        $orderId = $this->safe_string($trade, 'id');
+        $side = $this->safe_string_lower($trade, 'side');
+        $id = $this->safe_string($trade, 'id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
-        $cost = $price * $amount;
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $amount * $price;
+            }
+        }
         $fee = null;
         return array (
-            'id' => $orderId,
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => null,
-            'order' => $orderId,
+            'order' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -459,7 +473,7 @@ class fcoin extends Exchange {
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array( 'states' => 'filled' );
+        $request = array( 'states' => 'partial_canceled,filled' );
         return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 

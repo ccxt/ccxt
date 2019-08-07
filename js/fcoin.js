@@ -71,11 +71,26 @@ module.exports = class fcoin extends Exchange {
                 'private': {
                     'get': [
                         'accounts/balance',
+                        'broker/otc/suborders',
+                        'broker/otc/suborders/{id}',
+                        'broker/otc/suborders/{id}/payments',
+                        'broker/otc/users',
+                        'broker/otc/users/me/balances',
+                        'broker/otc/users/me/balance',
+                        'broker/leveraged_accounts/account',
+                        'broker/leveraged_accounts',
                         'orders',
                         'orders/{order_id}',
                         'orders/{order_id}/match-results', // check order result
                     ],
                     'post': [
+                        'broker/otc/assets/transfer/in',
+                        'broker/otc/assets/transfer/out',
+                        'broker/otc/suborders',
+                        'broker/otc/suborders/{id}/pay_confirm',
+                        'broker/otc/suborders/{id}/cancel',
+                        'broker/leveraged/assets/transfer/in',
+                        'broker/leveraged/assets/transfer/out',
                         'orders',
                         'orders/{order_id}/submit-cancel', // cancel order
                     ],
@@ -138,10 +153,8 @@ module.exports = class fcoin extends Exchange {
             const id = this.safeString (market, 'name');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
-            let base = baseId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            let quote = quoteId.toUpperCase ();
-            quote = this.commonCurrencyCode (quote);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'price': market['price_decimal'],
@@ -180,17 +193,12 @@ module.exports = class fcoin extends Exchange {
         const balances = this.safeValue (response, 'data');
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = balance['currency'];
-            let code = currencyId.toUpperCase ();
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = parseFloat (balance['available']);
-            account['total'] = parseFloat (balance['balance']);
-            account['used'] = parseFloat (balance['frozen']);
+            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'frozen');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -291,21 +299,27 @@ module.exports = class fcoin extends Exchange {
             symbol = market['symbol'];
         }
         const timestamp = this.safeInteger (trade, 'ts');
-        const side = trade['side'].toLowerCase ();
-        const orderId = this.safeString (trade, 'id');
+        const side = this.safeStringLower (trade, 'side');
+        const id = this.safeString (trade, 'id');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
-        const cost = price * amount;
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         const fee = undefined;
         return {
-            'id': orderId,
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'order': orderId,
+            'order': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -458,7 +472,7 @@ module.exports = class fcoin extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = { 'states': 'filled' };
+        const request = { 'states': 'partial_canceled,filled' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 

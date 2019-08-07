@@ -126,8 +126,8 @@ module.exports = class zaif extends Exchange {
             const id = this.safeString (market, 'currency_pair');
             const name = this.safeString (market, 'name');
             const [ baseId, quoteId ] = name.split ('/');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': -Math.log10 (market['item_unit_step']),
@@ -170,13 +170,14 @@ module.exports = class zaif extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
-        const balances = response['return'];
-        const result = { 'info': balances };
-        const currencies = Object.keys (balances['funds']);
-        for (let i = 0; i < currencies.length; i++) {
-            const currencyId = currencies[i];
-            const balance = this.safeValue (balances['funds'], currencyId);
-            const code = this.commonCurrencyCode (currencyId.toUpperCase ());
+        const balances = this.safeValue (response, 'return', {});
+        const result = { 'info': response };
+        const funds = this.safeValue (balances, 'funds', {});
+        const currencyIds = Object.keys (funds);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const balance = this.safeValue (funds, currencyId);
             const account = {
                 'free': balance,
                 'used': 0.0,
@@ -274,9 +275,12 @@ module.exports = class zaif extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 

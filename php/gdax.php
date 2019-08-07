@@ -164,15 +164,15 @@ class gdax extends Exchange {
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $priceLimits = array (
                 'min' => $this->safe_float($market, 'quote_increment'),
                 'max' => null,
             );
             $precision = array (
-                'amount' => 8,
+                'amount' => $this->precision_from_string($this->safe_string($market, 'base_increment')),
                 'price' => $this->precision_from_string($this->safe_string($market, 'quote_increment')),
             );
             $taker = $this->fees['trading']['taker'];  // does not seem right
@@ -234,7 +234,7 @@ class gdax extends Exchange {
             $account = $response[$i];
             $accountId = $this->safe_string($account, 'id');
             $currencyId = $this->safe_string($account, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $result[] = array (
                 'id' => $accountId,
                 'type' => null,
@@ -252,7 +252,7 @@ class gdax extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $this->safe_float($balance, 'hold'),
@@ -421,7 +421,7 @@ class gdax extends Exchange {
 
     public function fetch_time ($params = array ()) {
         $response = $this->publicGetTime ($params);
-        return $this->parse8601 ($this->parse8601 ($response, 'iso'));
+        return $this->parse8601 ($response, 'iso');
     }
 
     public function parse_order_status ($status) {
@@ -459,11 +459,19 @@ class gdax extends Exchange {
             }
         }
         $cost = $this->safe_float($order, 'executed_value');
-        $fee = array (
-            'cost' => $this->safe_float($order, 'fill_fees'),
-            'currency' => null,
-            'rate' => null,
-        );
+        $feeCost = $this->safe_float($order, 'fill_fees');
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyCode = null;
+            if ($market !== null) {
+                $feeCurrencyCode = $market['quote'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+                'rate' => null,
+            );
+        }
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
@@ -687,7 +695,7 @@ class gdax extends Exchange {
         }
         $processed = $this->safe_value($transaction, 'processed_at');
         $completed = $this->safe_value($transaction, 'completed_at');
-        if ($processed && $completed) {
+        if ($completed) {
             return 'ok';
         } else if ($processed && !$completed) {
             return 'failed';
@@ -702,14 +710,8 @@ class gdax extends Exchange {
         $txid = $this->safe_string($details, 'crypto_transaction_hash');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'processed_at'));
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currencyId];
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $fee = null;
         $status = $this->parse_transaction_status ($transaction);
         $amount = $this->safe_float($transaction, 'amount');

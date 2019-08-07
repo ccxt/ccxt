@@ -485,7 +485,6 @@ class hitbtc extends Exchange {
                 ),
             ),
             'commonCurrencies' => array (
-                'BCH' => 'Bitcoin Cash',
                 'BET' => 'DAO.Casino',
                 'CAT' => 'BitClave',
                 'DRK' => 'DASH',
@@ -514,8 +513,8 @@ class hitbtc extends Exchange {
             $quoteId = $this->safe_string($market, 'currency');
             $lot = $this->safe_float($market, 'lot');
             $step = $this->safe_float($market, 'step');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'info' => $market,
@@ -559,21 +558,16 @@ class hitbtc extends Exchange {
         $method .= 'GetBalance';
         $query = $this->omit ($params, 'type');
         $response = $this->$method ($query);
-        $balances = $response['balance'];
-        $result = array( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $code = $balance['currency_code'];
-            $currency = $this->common_currency_code($code);
-            $free = $this->safe_float($balance, 'cash', 0.0);
-            $free = $this->safe_float($balance, 'balance', $free);
-            $used = $this->safe_float($balance, 'reserved', 0.0);
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $this->sum ($free, $used),
-            );
-            $result[$currency] = $account;
+        $balances = $this->safe_value($response, 'balance', array());
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency_code');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float_2($balance, 'cash', 'balance');
+            $account['used'] = $this->safe_float($balance, 'reserved');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -659,9 +653,12 @@ class hitbtc extends Exchange {
         }
         $side = null;
         $tradeLength = is_array ($trade) ? count ($trade) : 0;
-        if ($tradeLength > 3) {
+        if ($tradeLength > 4) {
             $side = $trade[4];
         }
+        $price = floatval ($trade[1]);
+        $amount = floatval ($trade[2]);
+        $cost = $price * $amount;
         return array (
             'info' => $trade,
             'id' => (string) $trade[0],
@@ -670,8 +667,12 @@ class hitbtc extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => floatval ($trade[1]),
-            'amount' => floatval ($trade[2]),
+            'order' => null,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 

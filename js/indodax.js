@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadRequest } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -104,23 +104,36 @@ module.exports = class indodax extends Exchange {
                     'taker': 0.003,
                 },
             },
+            'exceptions': {
+                'exact': {
+                    'invalid_pair': BadRequest, // {"error":"invalid_pair","error_description":"Invalid Pair"}
+                    'Insufficient balance.': InsufficientFunds,
+                    'invalid order.': OrderNotFound,
+                    'Invalid credentials. API not found or session has expired.': AuthenticationError,
+                    'Invalid credentials. Bad sign.': AuthenticationError,
+                },
+                'broad': {
+                    'Minimum price': InvalidOrder,
+                    'Minimum order': InvalidOrder,
+                },
+            },
         });
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privatePostGetInfo (params);
-        const balance = response['return'];
-        const result = { 'info': balance };
-        const codes = Object.keys (this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currency = this.currencies[code];
-            const lowercase = currency['id'];
+        const balances = this.safeValue (response, 'return', {});
+        const free = this.safeValue (balances, 'balance', {});
+        const used = this.safeValue (balances, 'balance_hold', {});
+        const result = { 'info': response };
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeFloat (balance['balance'], lowercase, 0.0);
-            account['used'] = this.safeFloat (balance['balance_hold'], lowercase, 0.0);
-            account['total'] = this.sum (account['free'], account['used']);
+            account['free'] = this.safeFloat (free, currencyId);
+            account['used'] = this.safeFloat (used, currencyId);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -171,18 +184,40 @@ module.exports = class indodax extends Exchange {
         };
     }
 
-    parseTrade (trade, market) {
-        const timestamp = parseInt (trade['date']) * 1000;
+    parseTrade (trade, market = undefined) {
+        let timestamp = this.safeInteger (trade, 'date');
+        if (timestamp !== undefined) {
+            timestamp *= 1000;
+        }
+        const id = this.safeString (trade, 'tid');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const type = undefined;
+        const side = this.safeString (trade, 'type');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         return {
-            'id': trade['tid'],
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'side': trade['type'],
-            'price': this.safeFloat (trade, 'price'),
-            'amount': this.safeFloat (trade, 'amount'),
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
@@ -450,10 +485,11 @@ module.exports = class indodax extends Exchange {
         if (Array.isArray (response)) {
             return; // public endpoints may return []-arrays
         }
-        if (!('success' in response)) {
+        const error = this.safeValue (response, 'error', '');
+        if (!('success' in response) && error === '') {
             return; // no 'success' property on public responses
         }
-        if (response['success'] === 1) {
+        if (this.safeInteger (response, 'success', 0) === 1) {
             // { success: 1, return: { orders: [] }}
             if (!('return' in response)) {
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
@@ -461,22 +497,16 @@ module.exports = class indodax extends Exchange {
                 return;
             }
         }
-        const message = response['error'];
         const feedback = this.id + ' ' + body;
-        // todo: rewrite this for unified this.exceptions (exact/broad)
-        if (message === 'Insufficient balance.') {
-            throw new InsufficientFunds (feedback);
-        } else if (message === 'invalid order.') {
-            throw new OrderNotFound (feedback); // cancelOrder(1)
-        } else if (message.indexOf ('Minimum price ') >= 0) {
-            throw new InvalidOrder (feedback); // price < limits.price.min, on createLimitBuyOrder ('ETH/BTC', 1, 0)
-        } else if (message.indexOf ('Minimum order ') >= 0) {
-            throw new InvalidOrder (feedback); // cost < limits.cost.min on createLimitBuyOrder ('ETH/BTC', 0, 1)
-        } else if (message === 'Invalid credentials. API not found or session has expired.') {
-            throw new AuthenticationError (feedback); // on bad apiKey
-        } else if (message === 'Invalid credentials. Bad sign.') {
-            throw new AuthenticationError (feedback); // on bad secret
+        const exact = this.exceptions['exact'];
+        if (error in exact) {
+            throw new exact[error] (feedback);
         }
-        throw new ExchangeError (this.id + ': unknown error: ' + this.json (response));
+        const broad = this.exceptions['broad'];
+        const broadKey = this.findBroadlyMatchedKey (broad, error);
+        if (broadKey !== undefined) {
+            throw new broad[broadKey] (feedback);
+        }
+        throw new ExchangeError (feedback); // unknown message
     }
 };

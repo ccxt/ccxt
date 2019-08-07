@@ -147,10 +147,8 @@ class kkex extends Exchange {
                     );
                 }
             }
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -288,6 +286,7 @@ class kkex extends Exchange {
             'order' => null,
             'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -313,14 +312,13 @@ class kkex extends Exchange {
         $funds = $this->safe_value($balances, 'funds');
         $free = $this->safe_value($funds, 'free', array());
         $freezed = $this->safe_value($funds, 'freezed', array());
-        $assets = is_array($funds['free']) ? array_keys($funds['free']) : array();
-        for ($i = 0; $i < count ($assets); $i++) {
-            $currencyId = $assets[$i];
-            $code = $this->common_currency_code(strtoupper($currencyId));
+        $currencyIds = is_array($free) ? array_keys($free) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($free, $currencyId);
             $account['used'] = $this->safe_float($freezed, $currencyId);
-            $account['total'] = $account['free'] . $account['used'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -363,7 +361,7 @@ class kkex extends Exchange {
         );
         if ($since !== null) {
             // $since = $this->milliseconds () - $this->parse_timeframe($timeframe) * $limit * 1000;
-            $request['since'] = $since;
+            $request['since'] = intval ($since / 1000);
         }
         if ($limit !== null) {
             $request['size'] = $limit;

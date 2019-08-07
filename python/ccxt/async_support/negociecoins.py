@@ -153,9 +153,7 @@ class negociecoins (Exchange):
             symbol = market['symbol']
         id = self.safe_string(trade, 'tid')
         type = 'limit'
-        side = self.safe_string(trade, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'type')
         return {
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -199,7 +197,7 @@ class negociecoins (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'name')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             openOrders = self.safe_float(balance, 'openOrders')
             withdraw = self.safe_float(balance, 'withdraw')
             account = {
@@ -207,7 +205,6 @@ class negociecoins (Exchange):
                 'used': self.sum(openOrders, withdraw),
                 'total': self.safe_float(balance, 'available'),
             }
-            account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
 
@@ -355,7 +352,7 @@ class negociecoins (Exchange):
                 'Authorization': 'amx ' + auth,
             }
             if method == 'POST':
-                headers['Content-Type'] = 'application/json charset=UTF-8'
+                headers['Content-Type'] = 'application/json; charset=UTF-8'
                 headers['Content-Length'] = len(body)
             elif len(queryString):
                 url += '?' + queryString

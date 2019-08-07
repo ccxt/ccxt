@@ -139,12 +139,11 @@ module.exports = class bit2c extends Exchange {
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             const account = this.account ();
-            const currency = this.currency (code);
-            const uppercase = currency['id'].toUpperCase ();
+            const currencyId = this.currencyId (code);
+            const uppercase = currencyId.toUpperCase ();
             if (uppercase in balance) {
                 account['free'] = this.safeFloat (balance, 'AVAILABLE_' + uppercase);
                 account['total'] = this.safeFloat (balance, uppercase);
-                account['used'] = account['total'] - account['free'];
             }
             result[code] = account;
         }
@@ -301,7 +300,6 @@ module.exports = class bit2c extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        const method = 'privateGetOrderOrderhistory';
         const request = {};
         if (limit !== undefined) {
             request['take'] = limit;
@@ -315,7 +313,7 @@ module.exports = class bit2c extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetOrderOrderHistory (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 

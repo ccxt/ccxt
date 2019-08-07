@@ -54,7 +54,7 @@ module.exports = class bibox extends Exchange {
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
-                'referral': 'https://www.bibox.com/signPage?id=11468678&lang=en',
+                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
             },
             'api': {
                 'public': {
@@ -114,14 +114,45 @@ module.exports = class bibox extends Exchange {
             'cmd': 'marketAll',
         };
         const response = await this.publicGetMdata (this.extend (request, params));
+        //
+        //     {
+        //         "result": [
+        //             {
+        //                 "is_hide":0,
+        //                 "high_cny":"1.9478",
+        //                 "amount":"272.41",
+        //                 "coin_symbol":"BIX",
+        //                 "last":"0.00002487",
+        //                 "currency_symbol":"BTC",
+        //                 "change":"+0.00000073",
+        //                 "low_cny":"1.7408",
+        //                 "base_last_cny":"1.84538041",
+        //                 "area_id":7,
+        //                 "percent":"+3.02%",
+        //                 "last_cny":"1.8454",
+        //                 "high":"0.00002625",
+        //                 "low":"0.00002346",
+        //                 "pair_type":0,
+        //                 "last_usd":"0.2686",
+        //                 "vol24H":"10940613",
+        //                 "id":1,
+        //                 "high_usd":"0.2835",
+        //                 "low_usd":"0.2534"
+        //             }
+        //         ],
+        //         "cmd":"marketAll",
+        //         "ver":"1.1"
+        //     }
+        //
         const markets = this.safeValue (response, 'result');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
+            const numericId = this.safeInteger (market, 'id');
             const baseId = this.safeString (market, 'coin_symbol');
             const quoteId = this.safeString (market, 'currency_symbol');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const id = baseId + '_' + quoteId;
             const precision = {
@@ -130,6 +161,7 @@ module.exports = class bibox extends Exchange {
             };
             result.push ({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -162,13 +194,13 @@ module.exports = class bibox extends Exchange {
         } else {
             const baseId = this.safeString (ticker, 'coin_symbol');
             const quoteId = this.safeString (ticker, 'currency_symbol');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             symbol = base + '/' + quote;
         }
         const last = this.safeFloat (ticker, 'last');
         const change = this.safeFloat (ticker, 'change');
-        const baseVolume = this.safeFloat (ticker, 'vol', 'vol24H');
+        const baseVolume = this.safeFloat2 (ticker, 'vol', 'vol24H');
         let open = undefined;
         if ((last !== undefined) && (change !== undefined)) {
             open = last - change;
@@ -261,17 +293,15 @@ module.exports = class bibox extends Exchange {
             if (feeCurrency in this.currencies_by_id) {
                 feeCurrency = this.currencies_by_id[feeCurrency]['code'];
             } else {
-                feeCurrency = this.commonCurrencyCode (feeCurrency);
+                feeCurrency = this.safeCurrencyCode (feeCurrency);
             }
         }
         const feeRate = undefined; // todo: deduce from market if market is defined
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
-        if (amount !== undefined) {
-            if (cost !== undefined) {
-                cost = price * amount;
-            }
+        if (price !== undefined && amount !== undefined) {
+            cost = price * amount;
         }
         if (feeCost !== undefined) {
             fee = {
@@ -365,7 +395,7 @@ module.exports = class bibox extends Exchange {
             const currency = currencies[i];
             const id = this.safeString (currency, 'symbol');
             const name = this.safeString (currency, 'name');
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             const precision = 8;
             const deposit = this.safeValue (currency, 'enable_deposit');
             const withdraw = this.safeValue (currency, 'enable_withdraw');
@@ -403,10 +433,12 @@ module.exports = class bibox extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
+        const type = this.safeString (params, 'type', 'assets');
+        params = this.omit (params, 'type');
         const request = {
-            'cmd': 'transfer/assets',
+            'cmd': 'transfer/' + type, // assets, mainAssets
             'body': this.extend ({
-                'select': 1,
+                'select': 1, // return full info
             }, params),
         };
         const response = await this.privatePostTransfer (request);
@@ -438,7 +470,6 @@ module.exports = class bibox extends Exchange {
             } else {
                 account['free'] = this.safeFloat (balance, 'balance');
                 account['used'] = this.safeFloat (balance, 'freeze');
-                account['total'] = this.sum (account['free'], account['used']);
             }
             result[code] = account;
         }
@@ -527,16 +558,8 @@ module.exports = class bibox extends Exchange {
         //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'to_address');
-        let code = undefined;
         const currencyId = this.safeString (transaction, 'coin_symbol');
-        if (currencyId in this.currencies_by_id) {
-            currency = this.currencies_by_id[currencyId];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        }
+        const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeString (transaction, 'createdAt');
         let tag = this.safeString (transaction, 'addr_remark');
         const type = this.safeString (transaction, 'type');
@@ -841,7 +864,7 @@ module.exports = class bibox extends Exchange {
             const code = codes[i];
             const currency = this.currency (code);
             const request = {
-                'cmd': 'transfer/transferOutInfo',
+                'cmd': 'transfer/coinConfig',
                 'body': this.extend ({
                     'coin_symbol': currency['id'],
                 }, params),

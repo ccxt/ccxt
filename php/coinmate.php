@@ -17,6 +17,8 @@ class coinmate extends Exchange {
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => true,
+                'fetchMyTrades' => true,
+                'fetchTransactions' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27811229-c1efb510-606c-11e7-9a36-84ba2ce412d8.jpg',
@@ -46,19 +48,46 @@ class coinmate extends Exchange {
                 'private' => array (
                     'post' => array (
                         'balances',
-                        'bitcoinWithdrawal',
+                        'bitcoinCashWithdrawal',
+                        'bitcoinCashDepositAddresses',
                         'bitcoinDepositAddresses',
+                        'bitcoinWithdrawal',
+                        'bitcoinWithdrawalFees',
                         'buyInstant',
                         'buyLimit',
                         'cancelOrder',
                         'cancelOrderWithInfo',
                         'createVoucher',
+                        'dashDepositAddresses',
+                        'dashWithdrawal',
+                        'ethereumWithdrawal',
+                        'ethereumDepositAddresses',
+                        'litecoinWithdrawal',
+                        'litecoinDepositAddresses',
                         'openOrders',
+                        'order',
+                        'orderHistory',
+                        'pusherAuth',
                         'redeemVoucher',
+                        'replaceByBuyLimit',
+                        'replaceByBuyInstant',
+                        'replaceBySellLimit',
+                        'replaceBySellInstant',
+                        'rippleDepositAddresses',
+                        'rippleWithdrawal',
                         'sellInstant',
                         'sellLimit',
                         'transactionHistory',
+                        'traderFees',
+                        'tradeHistory',
+                        'transfer',
+                        'transferHistory',
                         'unconfirmedBitcoinDeposits',
+                        'unconfirmedBitcoinCashDeposits',
+                        'unconfirmedDashDeposits',
+                        'unconfirmedEthereumDeposits',
+                        'unconfirmedLitecoinDeposits',
+                        'unconfirmedRippleDeposits',
                     ),
                 ),
             ),
@@ -99,8 +128,8 @@ class coinmate extends Exchange {
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'firstCurrency');
             $quoteId = $this->safe_string($market, 'secondCurrency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -138,13 +167,13 @@ class coinmate extends Exchange {
         $this->load_markets();
         $response = $this->privatePostBalances ($params);
         $balances = $this->safe_value($response, 'data');
-        $result = array( 'info' => $balances );
-        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $code = $currencies[$i];
-            $currencyId = $this->currencyId ($code);
+        $result = array( 'info' => $response );
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $balance = $this->safe_value($balances, $currencyId);
             $account = $this->account ();
-            $balance = $this->safe_value($balances, $currencyId, array());
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'reserved');
             $account['total'] = $this->safe_float($balance, 'balance');
@@ -204,16 +233,160 @@ class coinmate extends Exchange {
         );
     }
 
+    public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array (
+            'limit' => 1000,
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['timestampFrom'] = $since;
+        }
+        if ($code !== null) {
+            $request['currency'] = $this->currencyId ($code);
+        }
+        $response = $this->privatePostTransferHistory (array_merge ($request, $params));
+        $items = $response['data'];
+        return $this->parseTransactions ($items, null, $since, $limit);
+    }
+
+    public function parse_transaction_status ($status) {
+        $statuses = array (
+            // any other types ?
+            'COMPLETED' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction ($item, $currency = null) {
+        //
+        // deposits
+        //
+        //     {
+        //         transactionId => 1862815,
+        //         $timestamp => 1516803982388,
+        //         amountCurrency => 'LTC',
+        //         $amount => 1,
+        //         $fee => 0,
+        //         walletType => 'LTC',
+        //         transferType => 'DEPOSIT',
+        //         transferStatus => 'COMPLETED',
+        //         $txid:
+        //         'ccb9255dfa874e6c28f1a64179769164025329d65e5201849c2400abd6bce245',
+        //         destination => 'LQrtSKA6LnhcwRrEuiborQJnjFF56xqsFn',
+        //         destinationTag => null
+        //     }
+        //
+        // withdrawals
+        //
+        //     {
+        //         transactionId => 2140966,
+        //         $timestamp => 1519314282976,
+        //         amountCurrency => 'EUR',
+        //         $amount => 8421.7228,
+        //         $fee => 16.8772,
+        //         walletType => 'BANK_WIRE',
+        //         transferType => 'WITHDRAWAL',
+        //         transferStatus => 'COMPLETED',
+        //         $txid => null,
+        //         destination => null,
+        //         destinationTag => null
+        //     }
+        //
+        $timestamp = $this->safe_integer($item, 'timestamp');
+        $amount = $this->safe_float($item, 'amount');
+        $fee = $this->safe_float($item, 'fee');
+        $txid = $this->safe_string($item, 'txid');
+        $address = $this->safe_string($item, 'destination');
+        $tag = $this->safe_string($item, 'destinationTag');
+        $currencyId = $this->safe_string($item, 'amountCurrency');
+        $code = $this->safe_currency_code($currencyId, $currency);
+        $type = $this->safe_string_lower($item, 'transferType');
+        $status = $this->parse_transaction_status ($this->safe_string($item, 'transferStatus'));
+        $id = $this->safe_string($item, 'transactionId');
+        return array (
+            'id' => $id,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'currency' => $code,
+            'amount' => $amount,
+            'type' => $type,
+            'txid' => $txid,
+            'address' => $address,
+            'tag' => $tag,
+            'status' => $status,
+            'fee' => array (
+                'cost' => $fee,
+                'currency' => $currency,
+            ),
+            'info' => $item,
+        );
+    }
+
+    public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        if ($limit === null) {
+            $limit = 1000;
+        }
+        $request = array (
+            'limit' => $limit,
+        );
+        if ($since !== null) {
+            $request['timestampFrom'] = $since;
+        }
+        $response = $this->privatePostTradeHistory (array_merge ($request, $params));
+        $items = $response['data'];
+        return $this->parse_trades($items, null, $since, $limit);
+    }
+
     public function parse_trade ($trade, $market = null) {
+        //
+        // fetchMyTrades (private)
+        //
+        //     {
+        //         transactionId => 2671819,
+        //         createdTimestamp => 1529649127605,
+        //         currencyPair => 'LTC_BTC',
+        //         $type => 'BUY',
+        //         orderType => 'LIMIT',
+        //         $orderId => 101810227,
+        //         $amount => 0.01,
+        //         $price => 0.01406,
+        //         $fee => 0,
+        //         feeType => 'MAKER'
+        //     }
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "$timestamp":1561598833416,
+        //         "transactionId":"4156303",
+        //         "$price":10950.41,
+        //         "$amount":0.004,
+        //         "currencyPair":"BTC_EUR",
+        //         "tradeType":"BUY"
+        //     }
+        //
         $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($trade, 'currencyPair');
+        $marketId = $this->safe_string($trade, 'currencyPair');
+        $quote = null;
+        if ($marketId !== null) {
             if (is_array($this->markets_by_id[$marketId]) && array_key_exists($marketId, $this->markets_by_id[$marketId])) {
                 $market = $this->markets_by_id[$marketId];
+                $quote = $market['quote'];
+            } else {
+                list($baseId, $quoteId) = explode('_', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
             }
         }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
         }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
@@ -223,19 +396,35 @@ class coinmate extends Exchange {
                 $cost = $price * $amount;
             }
         }
+        $side = $this->safe_string_lower_2($trade, 'type', 'tradeType');
+        $type = $this->safe_string_lower($trade, 'orderType');
+        $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string($trade, 'transactionId');
-        $timestamp = $this->safe_integer($trade, 'timestamp');
+        $timestamp = $this->safe_integer_2($trade, 'timestamp', 'createdTimestamp');
+        $fee = null;
+        $feeCost = $this->safe_float($trade, 'fee');
+        if ($feeCost !== null) {
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $quote,
+            );
+        }
+        $takerOrMaker = $this->safe_string($trade, 'feeType');
+        $takerOrMaker = ($takerOrMaker === 'MAKER') ? 'maker' : 'taker';
         return array (
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'type' => null,
-            'side' => null,
+            'type' => $type,
+            'side' => $side,
+            'order' => $orderId,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => $fee,
         );
     }
 
@@ -247,7 +436,24 @@ class coinmate extends Exchange {
             'minutesIntoHistory' => 10,
         );
         $response = $this->publicGetTransactions (array_merge ($request, $params));
-        return $this->parse_trades($response['data'], $market, $since, $limit);
+        //
+        //     {
+        //         "error":false,
+        //         "errorMessage":null,
+        //         "$data":array (
+        //             {
+        //                 "timestamp":1561598833416,
+        //                 "transactionId":"4156303",
+        //                 "price":10950.41,
+        //                 "amount":0.004,
+        //                 "currencyPair":"BTC_EUR",
+        //                 "tradeType":"BUY"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -277,6 +483,10 @@ class coinmate extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         return $this->privatePostCancelOrder (array( 'orderId' => $id ));
+    }
+
+    public function nonce () {
+        return $this->milliseconds ();
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

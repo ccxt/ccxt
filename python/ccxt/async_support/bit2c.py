@@ -148,12 +148,11 @@ class bit2c (Exchange):
         for i in range(0, len(codes)):
             code = codes[i]
             account = self.account()
-            currency = self.currency(code)
-            uppercase = currency['id'].upper()
+            currencyId = self.currencyId(code)
+            uppercase = currencyId.upper()
             if uppercase in balance:
                 account['free'] = self.safe_float(balance, 'AVAILABLE_' + uppercase)
                 account['total'] = self.safe_float(balance, uppercase)
-                account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
 
@@ -292,7 +291,6 @@ class bit2c (Exchange):
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = None
-        method = 'privateGetOrderOrderhistory'
         request = {}
         if limit is not None:
             request['take'] = limit
@@ -303,7 +301,7 @@ class bit2c (Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-        response = await getattr(self, method)(self.extend(request, params))
+        response = await self.privateGetOrderOrderHistory(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):

@@ -14,6 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class deribit (Exchange):
@@ -36,7 +37,6 @@ class deribit (Exchange):
                 'fetchMyTrades': True,
                 'fetchTickers': False,
             },
-            'timeframes': {},
             'urls': {
                 'test': 'https://test.deribit.com',
                 'logo': 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
@@ -138,6 +138,7 @@ class deribit (Exchange):
                 '11030': ExchangeError,  # "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>
                 '11031': ExchangeError,  # "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'fetchTickerQuotes': True,
             },
@@ -152,30 +153,41 @@ class deribit (Exchange):
             id = self.safe_string(market, 'instrumentName')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'currency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            type = self.safe_string(market, 'kind')
+            future = (type == 'future')
+            option = (type == 'option')
+            active = self.safe_value(market, 'isActive')
+            precision = {
+                'amount': self.safe_float(market, 'minTradeAmount'),
+                'price': self.safe_float(market, 'tickSize'),
+            }
             result.append({
                 'id': id,
                 'symbol': id,
                 'base': base,
                 'quote': quote,
-                'active': market['isActive'],
-                'precision': {
-                    'amount': market['minTradeSize'],
-                    'price': market['tickSize'],
-                },
+                'active': active,
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': market['minTradeSize'],
+                        'min': self.safe_float(market, 'minTradeAmount'),
+                        'max': None,
                     },
                     'price': {
-                        'min': market['tickSize'],
+                        'min': self.safe_float(market, 'tickSize'),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
                     },
                 },
-                'type': market['kind'],
+                'type': type,
                 'spot': False,
-                'future': market['kind'] == 'future',
-                'option': market['kind'] == 'option',
+                'future': future,
+                'option': option,
                 'info': market,
             })
         return result
@@ -195,7 +207,7 @@ class deribit (Exchange):
         response = await self.privateGetAccount(params)
         address = self.safe_string(response, 'depositAddress')
         return {
-            'currency': self.common_currency_code('BTC'),
+            'currency': self.safe_currency_code('BTC'),
             'address': address,
             'tag': None,
             'info': response,
@@ -292,20 +304,21 @@ class deribit (Exchange):
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
-            feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
         return {
-            'info': trade,
             'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -416,9 +429,7 @@ class deribit (Exchange):
             if price is not None:
                 cost = price * filled
         status = self.parse_order_status(self.safe_string(order, 'state'))
-        side = self.safe_string(order, 'direction')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'direction')
         feeCost = self.safe_float(order, 'commission')
         if feeCost is not None:
             feeCost = abs(feeCost)

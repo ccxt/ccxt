@@ -116,8 +116,8 @@ class acx extends Exchange {
             }
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             // todo => find out their undocumented $precision and limits
             $precision = array (
                 'amount' => 8,
@@ -145,14 +145,10 @@ class acx extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = strtoupper($currencyId);
-            $code = $this->common_currency_code($code);
-            $account = array (
-                'free' => $this->safe_float($balance, 'balance'),
-                'used' => $this->safe_float($balance, 'locked'),
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'locked');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -227,8 +223,8 @@ class acx extends Exchange {
                 $quote = mb_substr($id, 3, 6 - 3);
                 $base = strtoupper($base);
                 $quote = strtoupper($quote);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safe_currency_code($base);
+                $quote = $this->safe_currency_code($quote);
                 $symbol = $base . '/' . $quote;
             }
             $result[$symbol] = $this->parse_ticker($response[$id], $market);
@@ -249,17 +245,24 @@ class acx extends Exchange {
     public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
         $id = $this->safe_string($trade, 'tid');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
+            'info' => $trade,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null,
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $this->safe_float($trade, 'price'),
             'amount' => $this->safe_float($trade, 'volume'),
             'cost' => $this->safe_float($trade, 'funds'),
-            'info' => $trade,
+            'fee' => null,
         );
     }
 
@@ -296,7 +299,7 @@ class acx extends Exchange {
             'limit' => $limit,
         );
         if ($since !== null) {
-            $request['timestamp'] = $since;
+            $request['timestamp'] = intval ($since / 1000);
         }
         $response = $this->publicGetK (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);

@@ -114,8 +114,8 @@ class btcalpha extends Exchange {
             $id = $this->safe_string($market, 'name');
             $baseId = $this->safe_string($market, 'currency1');
             $quoteId = $this->safe_string($market, 'currency2');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -185,18 +185,19 @@ class btcalpha extends Exchange {
         $side = $this->safe_string_2($trade, 'my_side', 'side');
         $orderId = $this->safe_string($trade, 'o_id');
         return array (
+            'id' => $id,
+            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
             'order' => $orderId,
             'type' => 'limit',
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => null,
-            'info' => $trade,
         );
     }
 
@@ -250,20 +251,11 @@ class btcalpha extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
-            $used = $this->safe_float($balance, 'reserve');
-            $total = $this->safe_float($balance, 'balance');
-            $free = null;
-            if ($used !== null) {
-                if ($total !== null) {
-                    $free = $total - $used;
-                }
-            }
-            $result[$code] = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['used'] = $this->safe_float($balance, 'reserve');
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }

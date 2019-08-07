@@ -137,7 +137,7 @@ class liquid (Exchange):
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'currency')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             active = currency['depositable'] and currency['withdrawable']
             amountPrecision = self.safe_integer(currency, 'display_precision')
             pricePrecision = self.safe_integer(currency, 'quoting_precision')
@@ -211,8 +211,8 @@ class liquid (Exchange):
             id = str(market['id'])
             baseId = market['base_currency']
             quoteId = market['quoted_currency']
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             maker = self.safe_float(market, 'maker_fee')
             taker = self.safe_float(market, 'taker_fee')
@@ -267,18 +267,21 @@ class liquid (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetAccountsBalance(params)
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currencyId = balance['currency']
-            code = self.common_currency_code(currencyId)
-            total = self.safe_float(balance, 'balance')
-            account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
-            }
+        response = await self.privateGetAccountsBalance(params)
+        #
+        #     [
+        #         {"currency":"USD","balance":"0.0"},
+        #         {"currency":"BTC","balance":"0.0"},
+        #         {"currency":"ETH","balance":"0.1651354"}
+        #     ]
+        #
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -309,7 +312,7 @@ class liquid (Exchange):
                 if symbol in self.markets:
                     market = self.markets[symbol]
                 else:
-                    symbol = self.common_currency_code(baseId) + '/' + self.common_currency_code(quoteId)
+                    symbol = self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
         if market is not None:
             symbol = market['symbol']
         change = None
@@ -715,7 +718,7 @@ class liquid (Exchange):
                 'token_id': self.apiKey,
                 'iat': int(math.floor(nonce / 1000)),  # issued at
             }
-            headers['X-Quoine-Auth'] = self.jwt(request, self.secret)
+            headers['X-Quoine-Auth'] = self.jwt(request, self.encode(self.secret))
         else:
             if query:
                 url += '?' + self.urlencode(query)

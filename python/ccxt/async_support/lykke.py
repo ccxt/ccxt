@@ -119,9 +119,7 @@ class lykke (Exchange):
             symbol = market['symbol']
         id = self.safe_string(trade, 'id')
         timestamp = self.parse8601(self.safe_string(trade, 'dateTime'))
-        side = self.safe_string(trade, 'action')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'action')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'volume')
         cost = price * amount
@@ -134,6 +132,7 @@ class lykke (Exchange):
             'type': None,
             'order': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -160,15 +159,11 @@ class lykke (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'AssetId')
-            code = self.common_currency_code(currencyId)
-            total = self.safe_float(balance, 'Balance')
-            used = self.safe_float(balance, 'Reserved')
-            free = total - used
-            result[code] = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'Balance')
+            account['used'] = self.safe_float(balance, 'Reserved')
+            result[code] = account
         return self.parse_balance(result)
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -219,8 +214,8 @@ class lykke (Exchange):
             id = self.safe_string(market, 'Id')
             name = self.safe_string(market, 'Name')
             baseId, quoteId = name.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'Accuracy'),

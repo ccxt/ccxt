@@ -40,7 +40,7 @@ module.exports = class oceanex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchBalance': true,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'createOrder': true,
                 'cancelOrder': true,
                 'cancelAllOrders': true,
@@ -128,8 +128,8 @@ module.exports = class oceanex extends Exchange {
             const id = this.safeValue (market, 'id');
             const name = this.safeValue (market, 'name');
             let [ baseId, quoteId ] = name.split ('/');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             baseId = baseId.toLowerCase ();
             quoteId = quoteId.toLowerCase ();
             const symbol = base + '/' + quote;
@@ -463,29 +463,22 @@ module.exports = class oceanex extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetMembersMe (params);
-        const balances = this.safeValue (this.safeValue (response, 'data'), 'accounts');
-        const result = { 'info': balances };
+        const data = this.safeValue (response, 'data');
+        const balances = this.safeValue (data, 'accounts');
+        const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeValue (balance, 'currency');
-            const uppercaseId = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercaseId);
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            const free = this.safeFloat (balance, 'balance');
-            const used = this.safeFloat (balance, 'locked');
-            const total = this.sum (free, used);
-            account['free'] = free;
-            account['used'] = used;
-            account['total'] = total;
+            account['free'] = this.safeFloat (balance, 'balance');
+            account['used'] = this.safeFloat (balance, 'locked');
             result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit') {
-            throw new InvalidOrder (this.id + ' createOrder supports `limit` orders only.');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -493,8 +486,10 @@ module.exports = class oceanex extends Exchange {
             'side': side,
             'ord_type': type,
             'volume': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
         };
+        if (type === 'limit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.privatePostOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data, market);
@@ -509,7 +504,8 @@ module.exports = class oceanex extends Exchange {
         const request = { 'ids': [id] };
         const response = await this.privateGetOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        if (data === undefined || data.length === 0) {
+        const dataLength = data.length;
+        if (data === undefined || dataLength === 0) {
             throw new OrderNotFound (this.id + ' could not found matching order');
         }
         return this.parseOrder (data[0], market);
@@ -668,7 +664,7 @@ module.exports = class oceanex extends Exchange {
             // to set the private key:
             // const fs = require ('fs')
             // exchange.secret = fs.readFileSync ('oceanex.pem', 'utf8')
-            const jwt_token = this.jwt (request, this.secret, 'RS256');
+            const jwt_token = this.jwt (request, this.encode (this.secret), 'RS256');
             url += '?user_jwt=' + jwt_token;
         }
         headers = { 'Content-Type': 'application/json' };

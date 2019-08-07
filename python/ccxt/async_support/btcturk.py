@@ -69,8 +69,8 @@ class btcturk (Exchange):
             id = self.safe_string(market, 'pair')
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             baseId = baseId.lower()
             quoteId = quoteId.lower()
             symbol = base + '/' + quote
@@ -114,15 +114,15 @@ class btcturk (Exchange):
         for i in range(0, len(codes)):
             code = codes[i]
             currency = self.currencies[code]
-            account = self.account()
             free = currency['id'] + '_available'
             total = currency['id'] + '_balance'
             used = currency['id'] + '_reserved'
             if free in response:
+                account = self.account()
                 account['free'] = self.safe_float(response, free)
                 account['total'] = self.safe_float(response, total)
                 account['used'] = self.safe_float(response, used)
-            result[code] = account
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -189,7 +189,7 @@ class btcturk (Exchange):
         tickers = await self.fetch_tickers(params)
         return self.safe_value_2(tickers, market['id'], symbol)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'date')
         if timestamp is not None:
             timestamp *= 1000
@@ -200,17 +200,23 @@ class btcturk (Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': None,
+            'order': None,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

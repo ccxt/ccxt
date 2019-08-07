@@ -116,13 +116,14 @@ module.exports = class coincheck extends Exchange {
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
-            const currencyId = this.currency (code);
-            const account = this.account ();
-            const reserved = currencyId + '_reserved';
-            account['free'] = this.safeFloat (balances, currencyId);
-            account['used'] = this.safeFloat (balances, reserved);
-            account['total'] = this.sum (account['free'], account['used']);
-            result[code] = account;
+            const currencyId = this.currencyId (code);
+            if (currencyId in balances) {
+                const account = this.account ();
+                const reserved = currencyId + '_reserved';
+                account['free'] = this.safeFloat (balances, currencyId);
+                account['used'] = this.safeFloat (balances, reserved);
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -184,8 +185,8 @@ module.exports = class coincheck extends Exchange {
                 symbol = market['symbol'];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('_');
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
@@ -271,8 +272,8 @@ module.exports = class coincheck extends Exchange {
                 const ids = marketId.split ('_');
                 baseId = ids[0];
                 quoteId = ids[1];
-                const base = this.commonCurrencyCode (baseId);
-                const quote = this.commonCurrencyCode (quoteId);
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }

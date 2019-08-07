@@ -20,6 +20,7 @@ class coingi extends Exchange {
                 'fetchTickers' => true,
             ),
             'urls' => array (
+                'referral' => 'https://www.coingi.com/?r=XTPPMC',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api' => array (
                     'www' => 'https://coingi.com',
@@ -104,8 +105,8 @@ class coingi extends Exchange {
             list($baseId, $quoteId) = explode('-', $id);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -156,14 +157,13 @@ class coingi extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance['currency'], 'name');
-            $code = strtoupper($currencyId);
-            $code = $this->common_currency_code($code);
-            $account = array (
-                'free' => $balance['available'],
-                'used' => $balance['blocked'] . $balance['inOrders'] . $balance['withdrawing'],
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'available');
+            $blocked = $this->safe_float($balance, 'blocked');
+            $inOrders = $this->safe_float($balance, 'inOrders');
+            $withdrawing = $this->safe_float($balance, 'withdrawing');
+            $account['used'] = $this->sum ($blocked, $inOrders, $withdrawing);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -240,9 +240,6 @@ class coingi extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        if ($market === null) {
-            $market = $this->markets_by_id[$trade['currencyPair']];
-        }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -253,17 +250,28 @@ class coingi extends Exchange {
         }
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $id = $this->safe_string($trade, 'id');
+        $marketId = $this->safe_string($trade, 'currencyPair');
+        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+            $market = $this->markets_by_id[$marketId];
+        }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null, // type
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

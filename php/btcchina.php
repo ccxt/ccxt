@@ -103,8 +103,8 @@ class btcchina extends Exchange {
             $quoteId = mb_substr($id, 3, 6 - 3);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -136,7 +136,6 @@ class btcchina extends Exchange {
             if (is_array($balances['frozen']) && array_key_exists($currencyId, $balances['frozen'])) {
                 $account['used'] = floatval ($balances['frozen'][$currencyId]['amount']);
             }
-            $account['free'] = $account['total'] - $account['used'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -266,10 +265,7 @@ class btcchina extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        $side = $this->safe_string($trade, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'side');
         return array (
             'id' => null,
             'info' => $trade,

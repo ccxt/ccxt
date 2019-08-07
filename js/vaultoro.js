@@ -16,6 +16,13 @@ module.exports = class vaultoro extends Exchange {
             'version': '1',
             'has': {
                 'CORS': true,
+                'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchBalance': true,
+                'createOrder': true,
+                'cancelOrder': true,
+                'fetchTrades': true,
+                'fetchTicker': false,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
@@ -64,8 +71,8 @@ module.exports = class vaultoro extends Exchange {
         const market = this.safeValue (response, 'data');
         const baseId = this.safeString (market, 'MarketCurrency');
         const quoteId = this.safeString (market, 'BaseCurrency');
-        const base = this.commonCurrencyCode (baseId);
-        const quote = this.commonCurrencyCode (quoteId);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote;
         const id = this.safeString (market, 'MarketName');
         result.push ({
@@ -87,17 +94,11 @@ module.exports = class vaultoro extends Exchange {
         const result = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = balance['currency_code'];
-            const uppercaseId = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercaseId);
-            const free = this.safeFloat (balance, 'cash');
-            const used = this.safeFloat (balance, 'reserved');
-            const total = this.sum (free, used);
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            const currencyId = this.safeString (balance, 'currency_code');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'cash');
+            account['used'] = this.safeFloat (balance, 'reserved');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -113,53 +114,34 @@ module.exports = class vaultoro extends Exchange {
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
     }
 
-    async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const quote = await this.publicGetBidandask (params);
-        const bidsLength = quote['bids'].length;
-        const bid = quote['bids'][bidsLength - 1];
-        const ask = quote['asks'][0];
-        const response = await this.publicGetMarkets (params);
-        const ticker = this.safeValue (response, 'data');
-        const timestamp = this.milliseconds ();
-        const last = this.safeFloat (ticker, 'LastPrice');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeFloat (ticker, '24hHigh'),
-            'low': this.safeFloat (ticker, '24hLow'),
-            'bid': bid[0],
-            'bidVolume': undefined,
-            'ask': ask[0],
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': last,
-            'last': last,
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeFloat (ticker, '24hVolume'),
-            'info': ticker,
-        };
-    }
-
-    parseTrade (trade, market) {
+    parseTrade (trade, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (trade, 'Time'));
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        const price = this.safeFloat (trade, 'Gold_Price');
+        const amount = this.safeFloat (trade, 'Gold_Amount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = amount * price;
+            }
+        }
         return {
             'id': undefined,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': undefined,
-            'price': trade['Gold_Price'],
-            'amount': trade['Gold_Amount'],
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 

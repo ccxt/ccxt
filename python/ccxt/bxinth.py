@@ -21,6 +21,7 @@ class bxinth (Exchange):
                 'fetchOpenOrders': True,
             },
             'urls': {
+                'referral': 'https://bx.in.th/ref/cYHknT/',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api': 'https://bx.in.th/api',
                 'www': 'https://bx.in.th',
@@ -87,8 +88,8 @@ class bxinth (Exchange):
             baseId = self.safe_string(market, 'secondary_currency')
             quoteId = self.safe_string(market, 'primary_currency')
             active = self.safe_value(market, 'active')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -110,14 +111,11 @@ class bxinth (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_value(balances, currencyId, {})
-            account = {
-                'free': self.safe_float(balance, 'available'),
-                'used': 0.0,
-                'total': self.safe_float(balance, 'total'),
-            }
-            account['used'] = account['total'] - account['free']
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 
@@ -182,7 +180,7 @@ class bxinth (Exchange):
         ticker = self.safe_value(response, id)
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         date = self.safe_string(trade, 'trade_date')
         timestamp = None
         if date is not None:
@@ -197,18 +195,23 @@ class bxinth (Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'info': trade,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
+            'takerOrMaker': None,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

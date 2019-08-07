@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -157,8 +164,7 @@ class braziliex (Exchange):
             id = ids[i]
             currency = response[id]
             precision = self.safe_integer(currency, 'decimal')
-            uppercase = id.upper()
-            code = self.common_currency_code(uppercase)
+            code = self.safe_currency_code(id)
             active = self.safe_integer(currency, 'active') == 1
             maintenance = self.safe_integer(currency, 'under_maintenance')
             if maintenance != 0:
@@ -239,8 +245,8 @@ class braziliex (Exchange):
             baseId, quoteId = id.split('_')
             uppercaseBaseId = baseId.upper()
             uppercaseQuoteId = quoteId.upper()
-            base = self.common_currency_code(uppercaseBaseId)
-            quote = self.common_currency_code(uppercaseQuoteId)
+            base = self.safe_currency_code(uppercaseBaseId)
+            quote = self.safe_currency_code(uppercaseQuoteId)
             symbol = base + '/' + quote
             baseCurrency = self.safe_value(currencies, baseId, {})
             quoteCurrency = self.safe_value(currencies, quoteId, {})
@@ -352,19 +358,21 @@ class braziliex (Exchange):
         orderId = self.safe_string(trade, 'order_number')
         type = 'limit'
         side = self.safe_string(trade, 'type')
+        id = self.safe_string(trade, '_id')
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, '_id'),
             'order': orderId,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -384,13 +392,10 @@ class braziliex (Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             balance = balances[currencyId]
-            code = self.common_currency_code(currencyId)
-            account = {
-                'free': self.safe_float(balance, 'available'),
-                'used': 0.0,
-                'total': self.safe_float(balance, 'total'),
-            }
-            account['used'] = account['total'] - account['free']
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 
@@ -540,6 +545,8 @@ class braziliex (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
+        if (isinstance(response, basestring)) and len((response) < 1):
+            raise ExchangeError(self.id + ' returned empty response')
         if 'success' in response:
             success = self.safe_integer(response, 'success')
             if success == 0:

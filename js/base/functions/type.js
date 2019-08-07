@@ -43,6 +43,8 @@ module.exports =
     , safeInteger: (o, k, $default, n = asInteger (prop (o, k))) => isNumber (n)          ? n          : $default
     , safeValue:   (o, k, $default, x =            prop (o, k) ) => hasProps (x)          ? x          : $default
     , safeString:  (o, k, $default, x =            prop (o, k) ) => isStringCoercible (x) ? String (x) : $default
+    , safeStringLower:  (o, k, $default, x =       prop (o, k) ) => isStringCoercible (x) ? String (x).toLowerCase () : $default
+    , safeStringUpper:  (o, k, $default, x =       prop (o, k) ) => isStringCoercible (x) ? String (x).toUpperCase () : $default
 
     // not using safeFloats with an array argument as we're trying to save some cycles here
     // we're not using safeFloat3 either because those cases are too rare to deserve their own optimization
@@ -51,6 +53,8 @@ module.exports =
     , safeInteger2: (o, k1, k2, $default, n = asInteger (prop2 (o, k1, k2))) => isNumber (n)          ? n          : $default
     , safeValue2:   (o, k1, k2, $default, x =            prop2 (o, k1, k2) ) => hasProps (x)          ? x          : $default
     , safeString2:  (o, k1, k2, $default, x =            prop2 (o, k1, k2) ) => isStringCoercible (x) ? String (x) : $default
+    , safeStringLower2:  (o, k1, k2, $default, x =       prop2 (o, k1, k2) ) => isStringCoercible (x) ? String (x).toLowerCase () : $default
+    , safeStringUpper2:  (o, k1, k2, $default, x =       prop2 (o, k1, k2) ) => isStringCoercible (x) ? String (x).toUpperCase () : $default
 
     }
 

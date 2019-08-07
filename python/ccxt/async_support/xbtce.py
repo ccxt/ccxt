@@ -23,8 +23,10 @@ class xbtce (Exchange):
                 'CORS': False,
                 'fetchTickers': True,
                 'createMarketOrder': False,
+                'fetchOHLCV': False,
             },
             'urls': {
+                'referral': 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
                 'logo': 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
                 'api': 'https://cryptottlivewebapi.xbtce.net:8443/api',
                 'www': 'https://www.xbtce.com',
@@ -118,8 +120,8 @@ class xbtce (Exchange):
             id = self.safe_string(market, 'Symbol')
             baseId = self.safe_string(market, 'MarginCurrency')
             quoteId = self.safe_string(market, 'ProfitCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             symbol = symbol if market['IsTradeAllowed'] else id
             result.append({
@@ -140,12 +142,11 @@ class xbtce (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'Currency')
-            uppercase = currencyId.upper()
-            code = self.common_currency_code(uppercase)
+            code = self.safe_currency_code(currencyId)
             account = {
-                'free': balance['FreeAmount'],
-                'used': balance['LockedAmount'],
-                'total': balance['Amount'],
+                'free': self.safe_float(balance, 'FreeAmount'),
+                'used': self.safe_float(balance, 'LockedAmount'),
+                'total': self.safe_float(balance, 'Amount'),
             }
             result[code] = account
         return self.parse_balance(result)
@@ -216,8 +217,8 @@ class xbtce (Exchange):
             else:
                 baseId = id[0:3]
                 quoteId = id[3:6]
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             ticker = tickers[id]
             result[symbol] = self.parse_ticker(ticker, market)

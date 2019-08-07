@@ -52,6 +52,7 @@ class cobinhood extends Exchange {
                 '1M' => '1M',
             ),
             'urls' => array (
+                'referral' => 'https://cobinhood.com?referrerId=a9d57842-99bb-4d7c-b668-0479a15a458b',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
                 'api' => 'https://api.cobinhood.com',
                 'www' => 'https://cobinhood.com',
@@ -199,7 +200,7 @@ class cobinhood extends Exchange {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'currency');
             $name = $this->safe_string($currency, 'name');
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $minUnit = $this->safe_float($currency, 'min_unit');
             $result[$code] = array (
                 'id' => $id,
@@ -248,8 +249,8 @@ class cobinhood extends Exchange {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'id');
             list($baseId, $quoteId) = explode('-', $id);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -293,8 +294,8 @@ class cobinhood extends Exchange {
                 $market = $this->markets_by_id[$marketId];
             } else {
                 list($baseId, $quoteId) = explode('-', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -391,6 +392,7 @@ class cobinhood extends Exchange {
             'order' => null,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -457,15 +459,10 @@ class cobinhood extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            }
-            $account = array (
-                'used' => floatval ($balance['on_order']),
-                'total' => floatval ($balance['total']),
-            );
-            $account['free'] = floatval ($account['total'] - $account['used']);
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['used'] = $this->safe_float($balance, 'on_order');
+            $account['total'] = $this->safe_float($balance, 'total');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -777,18 +774,8 @@ class cobinhood extends Exchange {
 
     public function parse_transaction ($transaction, $currency = null) {
         $timestamp = $this->safe_integer($transaction, 'created_at');
-        $code = null;
-        if ($currency === null) {
-            $currencyId = $this->safe_string($transaction, 'currency');
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $currency = $this->currencies_by_id[$currencyId];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
         $id = null;
         $withdrawalId = $this->safe_string($transaction, 'withdrawal_id');
         $depositId = $this->safe_string($transaction, 'deposit_id');

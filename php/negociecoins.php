@@ -158,10 +158,7 @@ class negociecoins extends Exchange {
         }
         $id = $this->safe_string($trade, 'tid');
         $type = 'limit';
-        $side = $this->safe_string($trade, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'type');
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -208,7 +205,7 @@ class negociecoins extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'name');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $openOrders = $this->safe_float($balance, 'openOrders');
             $withdraw = $this->safe_float($balance, 'withdraw');
             $account = array (
@@ -216,7 +213,6 @@ class negociecoins extends Exchange {
                 'used' => $this->sum ($openOrders, $withdraw),
                 'total' => $this->safe_float($balance, 'available'),
             );
-            $account['used'] = $account['total'] - $account['free'];
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

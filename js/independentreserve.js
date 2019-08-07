@@ -80,12 +80,10 @@ module.exports = class independentreserve extends Exchange {
         const result = [];
         for (let i = 0; i < baseCurrencies.length; i++) {
             const baseId = baseCurrencies[i];
-            const baseIdUppercase = baseId.toUpperCase ();
-            const base = this.commonCurrencyCode (baseIdUppercase);
+            const base = this.safeCurrencyCode (baseId);
             for (let j = 0; j < quoteCurrencies.length; j++) {
                 const quoteId = quoteCurrencies[j];
-                const quoteIdUppercase = quoteId.toUpperCase ();
-                const quote = this.commonCurrencyCode (quoteIdUppercase);
+                const quote = this.safeCurrencyCode (quoteId);
                 const id = baseId + '/' + quoteId;
                 const symbol = base + '/' + quote;
                 result.push ({
@@ -109,12 +107,10 @@ module.exports = class independentreserve extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'CurrencyCode');
-            const uppercase = currencyId.toUpperCase ();
-            const code = this.commonCurrencyCode (uppercase);
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = balance['AvailableBalance'];
-            account['total'] = balance['TotalBalance'];
-            account['used'] = account['total'] - account['free'];
+            account['free'] = this.safeFloat (balance, 'AvailableBalance');
+            account['total'] = this.safeFloat (balance, 'TotalBalance');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -294,6 +290,12 @@ module.exports = class independentreserve extends Exchange {
         const orderId = this.safeString (trade, 'OrderGuid');
         const price = this.safeFloat2 (trade, 'Price', 'SecondaryCurrencyTradePrice');
         const amount = this.safeFloat2 (trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        let cost = undefined;
+        if (price !== undefined) {
+            if (amount !== undefined) {
+                cost = price * amount;
+            }
+        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -315,8 +317,10 @@ module.exports = class independentreserve extends Exchange {
             'order': orderId,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': undefined,
         };
     }

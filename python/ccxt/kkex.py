@@ -145,10 +145,8 @@ class kkex (Exchange):
                         'min': self.safe_float(p, 'min_bid_amount'),
                         'max': self.safe_float(p, 'max_bid_amount'),
                     }
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -272,6 +270,7 @@ class kkex (Exchange):
             'order': None,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -295,14 +294,13 @@ class kkex (Exchange):
         funds = self.safe_value(balances, 'funds')
         free = self.safe_value(funds, 'free', {})
         freezed = self.safe_value(funds, 'freezed', {})
-        assets = list(funds['free'].keys())
-        for i in range(0, len(assets)):
-            currencyId = assets[i]
-            code = self.common_currency_code(currencyId.upper())
+        currencyIds = list(free.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(free, currencyId)
             account['used'] = self.safe_float(freezed, currencyId)
-            account['total'] = account['free'] + account['used']
             result[code] = account
         return self.parse_balance(result)
 
@@ -339,7 +337,7 @@ class kkex (Exchange):
         }
         if since is not None:
             # since = self.milliseconds() - self.parse_timeframe(timeframe) * limit * 1000
-            request['since'] = since
+            request['since'] = int(since / 1000)
         if limit is not None:
             request['size'] = limit
         response = self.publicGetKline(self.extend(request, params))

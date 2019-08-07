@@ -129,8 +129,8 @@ class zaif (Exchange):
             id = self.safe_string(market, 'currency_pair')
             name = self.safe_string(market, 'name')
             baseId, quoteId = name.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': -math.log10(market['item_unit_step']),
@@ -171,13 +171,14 @@ class zaif (Exchange):
     def fetch_balance(self, params={}):
         self.load_markets()
         response = self.privatePostGetInfo(params)
-        balances = response['return']
-        result = {'info': balances}
-        currencies = list(balances['funds'].keys())
-        for i in range(0, len(currencies)):
-            currencyId = currencies[i]
-            balance = self.safe_value(balances['funds'], currencyId)
-            code = self.common_currency_code(currencyId.upper())
+        balances = self.safe_value(response, 'return', {})
+        result = {'info': response}
+        funds = self.safe_value(balances, 'funds', {})
+        currencyIds = list(funds.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
+            balance = self.safe_value(funds, currencyId)
             account = {
                 'free': balance,
                 'used': 0.0,
@@ -262,9 +263,12 @@ class zaif (Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
+            'order': None,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

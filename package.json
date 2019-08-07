@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.737",
+  "version": "1.18.1020",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -55,7 +55,7 @@
     "browserify": "14.5.0",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
-    "eslint": "4.15.0",
+    "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "12.1.0",
     "eslint-plugin-import": "2.16.0",
     "istanbul": "0.4.5",
@@ -220,8 +220,6 @@
     "coinspot.com.au",
     "Crypto Capital",
     "cryptocapital.co",
-    "Cryptopia",
-    "cryptopia.co.nz",
     "DSX",
     "dsx.uk",
     "EXMO",
@@ -462,7 +460,15 @@
     "dx.exchange",
     "DX.Exchange",
     "oceanex.pro.com",
-    "OceanEx"
+    "OceanEx",
+    "flowbtc.com.br",
+    "foxbit.com.br",
+    "latoken.com",
+    "Latoken",
+    "bitmart.com",
+    "BitMart",
+    "digifinex.vip",
+    "DigiFinex"
   ],
   "collective": {
     "type": "opencollective",

@@ -67,8 +67,8 @@ class btcturk extends Exchange {
             $id = $this->safe_string($market, 'pair');
             $baseId = mb_substr($id, 0, 3 - 0);
             $quoteId = mb_substr($id, 3, 6 - 3);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $baseId = strtolower($baseId);
             $quoteId = strtolower($quoteId);
             $symbol = $base . '/' . $quote;
@@ -114,16 +114,16 @@ class btcturk extends Exchange {
         for ($i = 0; $i < count ($codes); $i++) {
             $code = $codes[$i];
             $currency = $this->currencies[$code];
-            $account = $this->account ();
             $free = $currency['id'] . '_available';
             $total = $currency['id'] . '_balance';
             $used = $currency['id'] . '_reserved';
             if (is_array($response) && array_key_exists($free, $response)) {
+                $account = $this->account ();
                 $account['free'] = $this->safe_float($response, $free);
                 $account['total'] = $this->safe_float($response, $total);
                 $account['used'] = $this->safe_float($response, $used);
+                $result[$code] = $account;
             }
-            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -201,7 +201,7 @@ class btcturk extends Exchange {
         return $this->safe_value_2($tickers, $market['id'], $symbol);
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $this->safe_integer($trade, 'date');
         if ($timestamp !== null) {
             $timestamp *= 1000;
@@ -215,17 +215,24 @@ class btcturk extends Exchange {
                 $cost = $amount * $price;
             }
         }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => null,
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

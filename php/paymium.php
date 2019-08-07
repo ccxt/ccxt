@@ -82,17 +82,14 @@ class paymium extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $code = $currencies[$i];
             $currencyId = $this->currencyId ($code);
-            $account = $this->account ();
-            $balance = 'balance_' . $currencyId;
-            $locked = 'locked_' . $currencyId;
-            if (is_array($response) && array_key_exists($balance, $response)) {
-                $account['free'] = $response[$balance];
+            $free = 'balance_' . $currencyId;
+            if (is_array($response) && array_key_exists($free, $response)) {
+                $account = $this->account ();
+                $used = 'locked_' . $currencyId;
+                $account['free'] = $this->safe_float($response, $free);
+                $account['used'] = $this->safe_float($response, $used);
+                $result[$code] = $account;
             }
-            if (is_array($response) && array_key_exists($locked, $response)) {
-                $account['used'] = $response[$locked];
-            }
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -175,9 +172,11 @@ class paymium extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

@@ -72,7 +72,7 @@ class bibox (Exchange):
                     'https://github.com/Biboxcom/api_reference/wiki/api_reference',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
-                'referral': 'https://www.bibox.com/signPage?id=11468678&lang=en',
+                'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
             },
             'api': {
                 'public': {
@@ -131,14 +131,45 @@ class bibox (Exchange):
             'cmd': 'marketAll',
         }
         response = self.publicGetMdata(self.extend(request, params))
+        #
+        #     {
+        #         "result": [
+        #             {
+        #                 "is_hide":0,
+        #                 "high_cny":"1.9478",
+        #                 "amount":"272.41",
+        #                 "coin_symbol":"BIX",
+        #                 "last":"0.00002487",
+        #                 "currency_symbol":"BTC",
+        #                 "change":"+0.00000073",
+        #                 "low_cny":"1.7408",
+        #                 "base_last_cny":"1.84538041",
+        #                 "area_id":7,
+        #                 "percent":"+3.02%",
+        #                 "last_cny":"1.8454",
+        #                 "high":"0.00002625",
+        #                 "low":"0.00002346",
+        #                 "pair_type":0,
+        #                 "last_usd":"0.2686",
+        #                 "vol24H":"10940613",
+        #                 "id":1,
+        #                 "high_usd":"0.2835",
+        #                 "low_usd":"0.2534"
+        #             }
+        #         ],
+        #         "cmd":"marketAll",
+        #         "ver":"1.1"
+        #     }
+        #
         markets = self.safe_value(response, 'result')
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
+            numericId = self.safe_integer(market, 'id')
             baseId = self.safe_string(market, 'coin_symbol')
             quoteId = self.safe_string(market, 'currency_symbol')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             id = baseId + '_' + quoteId
             precision = {
@@ -147,6 +178,7 @@ class bibox (Exchange):
             }
             result.append({
                 'id': id,
+                'numericId': numericId,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -177,12 +209,12 @@ class bibox (Exchange):
         else:
             baseId = self.safe_string(ticker, 'coin_symbol')
             quoteId = self.safe_string(ticker, 'currency_symbol')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
         last = self.safe_float(ticker, 'last')
         change = self.safe_float(ticker, 'change')
-        baseVolume = self.safe_float(ticker, 'vol', 'vol24H')
+        baseVolume = self.safe_float_2(ticker, 'vol', 'vol24H')
         open = None
         if (last is not None) and(change is not None):
             open = last - change
@@ -262,14 +294,13 @@ class bibox (Exchange):
             if feeCurrency in self.currencies_by_id:
                 feeCurrency = self.currencies_by_id[feeCurrency]['code']
             else:
-                feeCurrency = self.common_currency_code(feeCurrency)
+                feeCurrency = self.safe_currency_code(feeCurrency)
         feeRate = None  # todo: deduce from market if market is defined
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
-        if amount is not None:
-            if cost is not None:
-                cost = price * amount
+        if price is not None and amount is not None:
+            cost = price * amount
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
@@ -353,7 +384,7 @@ class bibox (Exchange):
             currency = currencies[i]
             id = self.safe_string(currency, 'symbol')
             name = self.safe_string(currency, 'name')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             precision = 8
             deposit = self.safe_value(currency, 'enable_deposit')
             withdraw = self.safe_value(currency, 'enable_withdraw')
@@ -389,10 +420,12 @@ class bibox (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
+        type = self.safe_string(params, 'type', 'assets')
+        params = self.omit(params, 'type')
         request = {
-            'cmd': 'transfer/assets',
+            'cmd': 'transfer/' + type,  # assets, mainAssets
             'body': self.extend({
-                'select': 1,
+                'select': 1,  # return full info
             }, params),
         }
         response = self.privatePostTransfer(request)
@@ -421,7 +454,6 @@ class bibox (Exchange):
             else:
                 account['free'] = self.safe_float(balance, 'balance')
                 account['used'] = self.safe_float(balance, 'freeze')
-                account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
         return self.parse_balance(result)
 
@@ -499,14 +531,8 @@ class bibox (Exchange):
         #
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'to_address')
-        code = None
         currencyId = self.safe_string(transaction, 'coin_symbol')
-        if currencyId in self.currencies_by_id:
-            currency = self.currencies_by_id[currencyId]
-        else:
-            code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        code = self.safe_currency_code(currencyId, currency)
         timestamp = self.safe_string(transaction, 'createdAt')
         tag = self.safe_string(transaction, 'addr_remark')
         type = self.safe_string(transaction, 'type')
@@ -781,7 +807,7 @@ class bibox (Exchange):
             code = codes[i]
             currency = self.currency(code)
             request = {
-                'cmd': 'transfer/transferOutInfo',
+                'cmd': 'transfer/coinConfig',
                 'body': self.extend({
                     'coin_symbol': currency['id'],
                 }, params),

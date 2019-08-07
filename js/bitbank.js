@@ -82,8 +82,8 @@ module.exports = class bitbank extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': -0.05 / 100,
-                    'taker': 0.15 / 100,
+                    'maker': -0.02 / 100,
+                    'taker': 0.12 / 100,
                 },
                 'funding': {
                     'withdraw': {
@@ -263,11 +263,8 @@ module.exports = class bitbank extends Exchange {
         const balances = response['data']['assets'];
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const id = balance['asset'];
-            let code = id;
-            if (id in this.currencies_by_id) {
-                code = this.currencies_by_id[id]['code'];
-            }
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
             const account = {
                 'free': this.safeFloat (balance, 'free_amount'),
                 'used': this.safeFloat (balance, 'locked_amount'),
@@ -312,14 +309,8 @@ module.exports = class bitbank extends Exchange {
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let type = this.safeString (order, 'type');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const type = this.safeStringLower (order, 'type');
+        const side = this.safeStringLower (order, 'side');
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),

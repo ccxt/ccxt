@@ -80,8 +80,8 @@ class crypton extends Exchange {
             $market = $markets[$id];
             $baseId = $this->safe_string($market, 'base');
             $quoteId = $this->safe_string($market, 'quote');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -121,16 +121,16 @@ class crypton extends Exchange {
         $this->load_markets();
         $balances = $this->privateGetBalances ($params);
         $result = array( 'info' => $balances );
-        $keys = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($keys); $i++) {
-            $id = $keys[$i];
-            $currency = $this->common_currency_code($id);
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            $balance = $balances[$id];
+            $balance = $balances[$currencyId];
             $account['total'] = $this->safe_float($balance, 'total');
             $account['free'] = $this->safe_float($balance, 'free');
             $account['used'] = $this->safe_float($balance, 'locked');
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -203,8 +203,6 @@ class crypton extends Exchange {
         $marketId = $this->safe_string($trade, 'market');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
             $market = $this->markets_by_id[$marketId];
-        } else {
-            $symbol = $this->parse_symbol ($marketId);
         }
         if ($symbol === null) {
             if ($market !== null) {
@@ -215,7 +213,7 @@ class crypton extends Exchange {
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
-            $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -223,6 +221,15 @@ class crypton extends Exchange {
         }
         $id = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
+        $orderId = $this->safe_string($trade, 'orderId');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'size');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $amount * $price;
+            }
+        }
         return array (
             'id' => $id,
             'info' => $trade,
@@ -231,9 +238,11 @@ class crypton extends Exchange {
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'size'),
-            'order' => $this->safe_string($trade, 'orderId'),
+            'order' => $orderId,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
             'fee' => $fee,
         );
     }
@@ -248,6 +257,20 @@ class crypton extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->publicGetMarketsIdTrades (array_merge ($request, $params));
+        //
+        //     {
+        //         "result":array (
+        //             {
+        //                 "id":4256381,
+        //                 "price":7901.56,
+        //                 "side":"buy",
+        //                 "size":0.75708114,
+        //                 "time":"2019-05-14T16:15:46.781653+00:00"
+        //             }
+        //         ),
+        //         "success":true
+        //     }
+        //
         return $this->parse_trades($response['result'], $market, $since, $limit);
     }
 
@@ -281,7 +304,7 @@ class crypton extends Exchange {
         $fee = null;
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($order, 'feeCurrency');
-            $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -356,8 +379,8 @@ class crypton extends Exchange {
 
     public function parse_symbol ($id) {
         list($base, $quote) = explode('-', $id);
-        $base = $this->common_currency_code($base);
-        $quote = $this->common_currency_code($quote);
+        $base = $this->safe_currency_code($base);
+        $quote = $this->safe_currency_code($quote);
         return $base . '/' . $quote;
     }
 

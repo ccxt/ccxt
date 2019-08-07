@@ -27,7 +27,6 @@ class deribit extends Exchange {
                 'fetchMyTrades' => true,
                 'fetchTickers' => false,
             ),
-            'timeframes' => array(),
             'urls' => array (
                 'test' => 'https://test.deribit.com',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg',
@@ -129,6 +128,7 @@ class deribit extends Exchange {
                 '11030' => '\\ccxt\\ExchangeError', // "other_reject {Reason}" Some rejects which are not considered as very often, more info may be specified in {Reason}
                 '11031' => '\\ccxt\\ExchangeError', // "other_error {Error}" Some errors which are not considered as very often, more info may be specified in {Error}
             ),
+            'precisionMode' => TICK_SIZE,
             'options' => array (
                 'fetchTickerQuotes' => true,
             ),
@@ -144,30 +144,41 @@ class deribit extends Exchange {
             $id = $this->safe_string($market, 'instrumentName');
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'currency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $type = $this->safe_string($market, 'kind');
+            $future = ($type === 'future');
+            $option = ($type === 'option');
+            $active = $this->safe_value($market, 'isActive');
+            $precision = array (
+                'amount' => $this->safe_float($market, 'minTradeAmount'),
+                'price' => $this->safe_float($market, 'tickSize'),
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $id,
                 'base' => $base,
                 'quote' => $quote,
-                'active' => $market['isActive'],
-                'precision' => array (
-                    'amount' => $market['minTradeSize'],
-                    'price' => $market['tickSize'],
-                ),
+                'active' => $active,
+                'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $market['minTradeSize'],
+                        'min' => $this->safe_float($market, 'minTradeAmount'),
+                        'max' => null,
                     ),
                     'price' => array (
-                        'min' => $market['tickSize'],
+                        'min' => $this->safe_float($market, 'tickSize'),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
                     ),
                 ),
-                'type' => $market['kind'],
+                'type' => $type,
                 'spot' => false,
-                'future' => $market['kind'] === 'future',
-                'option' => $market['kind'] === 'option',
+                'future' => $future,
+                'option' => $option,
                 'info' => $market,
             );
         }
@@ -190,7 +201,7 @@ class deribit extends Exchange {
         $response = $this->privateGetAccount ($params);
         $address = $this->safe_string($response, 'depositAddress');
         return array (
-            'currency' => $this->common_currency_code('BTC'),
+            'currency' => $this->safe_currency_code('BTC'),
             'address' => $address,
             'tag' => null,
             'info' => $response,
@@ -293,21 +304,22 @@ class deribit extends Exchange {
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'feeCurrency');
-            $feeCurrencyCode = $this->common_currency_code($feeCurrencyId);
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
             );
         }
         return array (
-            'info' => $trade,
             'id' => $id,
+            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'order' => $orderId,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -429,10 +441,7 @@ class deribit extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
-        $side = $this->safe_string($order, 'direction');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'direction');
         $feeCost = $this->safe_float($order, 'commission');
         if ($feeCost !== null) {
             $feeCost = abs ($feeCost);

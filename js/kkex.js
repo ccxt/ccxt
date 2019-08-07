@@ -146,10 +146,8 @@ module.exports = class kkex extends Exchange {
                     };
                 }
             }
-            let base = baseId.toUpperCase ();
-            let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -287,6 +285,7 @@ module.exports = class kkex extends Exchange {
             'order': undefined,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -312,14 +311,13 @@ module.exports = class kkex extends Exchange {
         const funds = this.safeValue (balances, 'funds');
         const free = this.safeValue (funds, 'free', {});
         const freezed = this.safeValue (funds, 'freezed', {});
-        const assets = Object.keys (funds['free']);
-        for (let i = 0; i < assets.length; i++) {
-            const currencyId = assets[i];
-            const code = this.commonCurrencyCode (currencyId.toUpperCase ());
+        const currencyIds = Object.keys (free);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['free'] = this.safeFloat (free, currencyId);
             account['used'] = this.safeFloat (freezed, currencyId);
-            account['total'] = account['free'] + account['used'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -362,7 +360,7 @@ module.exports = class kkex extends Exchange {
         };
         if (since !== undefined) {
             // since = this.milliseconds () - this.parseTimeframe (timeframe) * limit * 1000;
-            request['since'] = since;
+            request['since'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['size'] = limit;

@@ -34,7 +34,7 @@ class exx (Exchange):
                 'www': 'https://www.exx.com/',
                 'doc': 'https://www.exx.com/help/restApi',
                 'fees': 'https://www.exx.com/help/rate',
-                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f',
+                'referral': 'https://www.exx.com/r/fde4260159e53ab8a58cc9186d35501f?recommQd=1',
             },
             'api': {
                 'public': {
@@ -103,10 +103,8 @@ class exx (Exchange):
             id = ids[i]
             market = response[id]
             baseId, quoteId = id.split('_')
-            upper = id.upper()
-            base, quote = upper.split('_')
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = market['isOpen'] is True
             precision = {
@@ -205,25 +203,35 @@ class exx (Exchange):
         return self.parse_order_book(response, response['timestamp'])
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date') * 1000
+        timestamp = self.safe_integer(trade, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        symbol = market['symbol']
-        cost = self.cost_to_precision(symbol, price * amount)
-        type = self.safe_string(trade, 'type')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        type = 'limit'
+        side = self.safe_string(trade, 'type')
+        id = self.safe_string(trade, 'tid')
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'tid'),
             'order': None,
-            'type': 'limit',
-            'side': type,
+            'type': type,
+            'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -244,7 +252,7 @@ class exx (Exchange):
         for i in range(0, len(currencies)):
             currencyId = currencies[i]
             balance = balances[currencyId]
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'balance'),
                 'used': self.safe_float(balance, 'freeze'),

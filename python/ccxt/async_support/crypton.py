@@ -80,8 +80,8 @@ class crypton (Exchange):
             market = markets[id]
             baseId = self.safe_string(market, 'base')
             quoteId = self.safe_string(market, 'quote')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -119,16 +119,16 @@ class crypton (Exchange):
         await self.load_markets()
         balances = await self.privateGetBalances(params)
         result = {'info': balances}
-        keys = list(balances.keys())
-        for i in range(0, len(keys)):
-            id = keys[i]
-            currency = self.common_currency_code(id)
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            balance = balances[id]
+            balance = balances[currencyId]
             account['total'] = self.safe_float(balance, 'total')
             account['free'] = self.safe_float(balance, 'free')
             account['used'] = self.safe_float(balance, 'locked')
-            result[currency] = account
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -193,8 +193,6 @@ class crypton (Exchange):
         marketId = self.safe_string(trade, 'market')
         if marketId in self.markets_by_id:
             market = self.markets_by_id[marketId]
-        else:
-            symbol = self.parse_symbol(marketId)
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
@@ -202,13 +200,20 @@ class crypton (Exchange):
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
-            feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
             }
         id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
+        orderId = self.safe_string(trade, 'orderId')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'size')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         return {
             'id': id,
             'info': trade,
@@ -217,9 +222,11 @@ class crypton (Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'size'),
-            'order': self.safe_string(trade, 'orderId'),
+            'order': orderId,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': fee,
         }
 
@@ -232,6 +239,20 @@ class crypton (Exchange):
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetMarketsIdTrades(self.extend(request, params))
+        #
+        #     {
+        #         "result":[
+        #             {
+        #                 "id":4256381,
+        #                 "price":7901.56,
+        #                 "side":"buy",
+        #                 "size":0.75708114,
+        #                 "time":"2019-05-14T16:15:46.781653+00:00"
+        #             }
+        #         ],
+        #         "success":true
+        #     }
+        #
         return self.parse_trades(response['result'], market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -261,7 +282,7 @@ class crypton (Exchange):
         fee = None
         if feeCost is not None:
             feeCurrencyId = self.safe_string(order, 'feeCurrency')
-            feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -329,8 +350,8 @@ class crypton (Exchange):
 
     def parse_symbol(self, id):
         base, quote = id.split('-')
-        base = self.common_currency_code(base)
-        quote = self.common_currency_code(quote)
+        base = self.safe_currency_code(base)
+        quote = self.safe_currency_code(quote)
         return base + '/' + quote
 
     async def fetch_deposit_address(self, code, params={}):

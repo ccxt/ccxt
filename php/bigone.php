@@ -19,7 +19,7 @@ class bigone extends Exchange {
                 'cancelAllOrders' => true,
                 'createMarketOrder' => false,
                 'fetchDepositAddress' => true,
-                'fetchMyTrades' => true,
+                'fetchMyTrades' => false,
                 'fetchOHLCV' => false,
                 'fetchOpenOrders' => true,
                 'fetchTickers' => true,
@@ -127,8 +127,8 @@ class bigone extends Exchange {
             $quoteAsset = $this->safe_value($market, 'quoteAsset', array());
             $baseId = $this->safe_string($baseAsset, 'symbol');
             $quoteId = $this->safe_string($quoteAsset, 'symbol');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'baseScale'),
@@ -290,6 +290,8 @@ class bigone extends Exchange {
                 $cost = $this->cost_to_precision($symbol, $price * $amount);
             }
         }
+        // taker $side is not related to buy/sell $side
+        // the following code is probably a mistake
         $side = null;
         if ($node['taker_side'] === 'ASK') {
             $side = 'sell';
@@ -305,6 +307,7 @@ class bigone extends Exchange {
             'order' => null,
             'type' => 'limit',
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => floatval ($cost),
@@ -378,21 +381,10 @@ class bigone extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset_id');
-            $code = $this->common_currency_code($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            }
-            $total = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'locked_balance');
-            $free = null;
-            if ($total !== null && $used !== null) {
-                $free = $total - $used;
-            }
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'locked_balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -664,7 +656,7 @@ class bigone extends Exchange {
                 'sub' => $this->apiKey,
                 'nonce' => $nonce,
             );
-            $jwt = $this->jwt ($request, $this->secret);
+            $jwt = $this->jwt ($request, $this->encode ($this->secret));
             $headers = array (
                 'Authorization' => 'Bearer ' . $jwt,
             );

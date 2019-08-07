@@ -399,13 +399,13 @@ class exmo extends Exchange {
             $parts = explode('<td class="th_fees_2" colspan="2">', $response);
             $numParts = is_array ($parts) ? count ($parts) : 0;
             if ($numParts !== 2) {
-                throw new ExchangeError($this->id . ' fetchTradingFees format has changed');
+                throw new NotSupported($this->id . ' fetchTradingFees format has changed');
             }
             $rest = $parts[1];
             $parts = explode('</td>', $rest);
             $numParts = is_array ($parts) ? count ($parts) : 0;
             if ($numParts < 2) {
-                throw new ExchangeError($this->id . ' fetchTradingFees format has changed');
+                throw new NotSupported($this->id . ' fetchTradingFees format has changed');
             }
             $fee = floatval (str_replace('%', '', $parts[0])) * 0.01;
             $taker = $fee;
@@ -452,7 +452,7 @@ class exmo extends Exchange {
         $items = $groupsByGroup['crypto']['items'];
         for ($i = 0; $i < count ($items); $i++) {
             $item = $items[$i];
-            $code = $this->common_currency_code($this->safe_string($item, 'prov'));
+            $code = $this->safe_currency_code($this->safe_string($item, 'prov'));
             $withdrawalFee = $this->safe_string($item, 'wd');
             $depositFee = $this->safe_string($item, 'dep');
             if ($withdrawalFee !== null) {
@@ -469,7 +469,7 @@ class exmo extends Exchange {
         // sets fiat fees to null
         $fiatGroups = $this->to_array($this->omit ($groupsByGroup, 'crypto'));
         for ($i = 0; $i < count ($fiatGroups); $i++) {
-            $code = $this->common_currency_code($this->safe_string($fiatGroups[$i], 'title'));
+            $code = $this->safe_currency_code($this->safe_string($fiatGroups[$i], 'title'));
             $withdraw[$code] = null;
             $deposit[$code] = null;
         }
@@ -499,8 +499,8 @@ class exmo extends Exchange {
             $marketId = $marketIds[$i];
             $limit = $limitsByMarketId[$marketId];
             list($baseId, $quoteId) = explode('/', $marketId);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $maxAmount = $this->safe_float($limit, 'max_q');
             $maxPrice = $this->safe_float($limit, 'max_p');
             $maxCost = $this->safe_float($limit, 'max_a');
@@ -517,7 +517,7 @@ class exmo extends Exchange {
         $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $fee = $this->safe_value($fees['withdraw'], $code);
             $active = true;
             $result[$code] = array (
@@ -557,8 +557,8 @@ class exmo extends Exchange {
             $market = $response[$id];
             $symbol = str_replace('_', '/', $id);
             list($baseId, $quoteId) = explode('/', $symbol);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -597,18 +597,18 @@ class exmo extends Exchange {
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
         $result = array( 'info' => $response );
-        $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currency = $currencies[$i];
+        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        for ($i = 0; $i < count ($codes); $i++) {
+            $code = $codes[$i];
+            $currencyId = $this->currencyId ($code);
             $account = $this->account ();
-            if (is_array($response['balances']) && array_key_exists($currency, $response['balances'])) {
-                $account['free'] = $this->safe_float($response['balances'], $currency);
+            if (is_array($response['balances']) && array_key_exists($currencyId, $response['balances'])) {
+                $account['free'] = $this->safe_float($response['balances'], $currencyId);
             }
-            if (is_array($response['reserved']) && array_key_exists($currency, $response['reserved'])) {
-                $account['used'] = $this->safe_float($response['reserved'], $currency);
+            if (is_array($response['reserved']) && array_key_exists($currencyId, $response['reserved'])) {
+                $account['used'] = $this->safe_float($response['reserved'], $currencyId);
             }
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -747,6 +747,7 @@ class exmo extends Exchange {
             'order' => $orderId,
             'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -761,29 +762,57 @@ class exmo extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetTrades (array_merge ($request, $params));
-        return $this->parse_trades($response[$market['id']], $market, $since, $limit);
+        $data = $this->safe_value($response, $market['id'], array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        // their docs does not mention it, but if you don't supply a $symbol
-        // their API will return an empty $response as if you don't have any trades
-        // therefore we make it required here as calling it without a $symbol is useless
+        // a $symbol is required but it can be a single string, or a non-empty array
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument (a single $symbol or an array)');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $pair = null;
+        $market = null;
+        if (gettype ($symbol) === 'array' && count (array_filter (array_keys ($symbol), 'is_string')) == 0) {
+            $numSymbols = is_array ($symbol) ? count ($symbol) : 0;
+            if ($numSymbols < 1) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a non-empty $symbol array');
+            }
+            $marketIds = $this->market_ids($symbol);
+            $pair = implode(',', $marketIds);
+        } else {
+            $market = $this->market ($symbol);
+            $pair = $market['id'];
+        }
         $request = array (
-            'pair' => $market['id'],
+            'pair' => $pair,
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $response = $this->privatePostUserTrades (array_merge ($request, $params));
-        if ($market !== null) {
-            $response = $response[$market['id']];
+        $result = array();
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count ($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $symbol = null;
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                list($baseId, $quoteId) = explode('_', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+            $items = $response[$marketId];
+            $trades = $this->parse_trades($items, $market, $since, $limit, array (
+                'symbol' => $symbol,
+            ));
+            $result = $this->array_concat($result, $trades);
         }
-        return $this->parse_trades($response, $market, $since, $limit);
+        return $this->filter_by_since_limit($result, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1216,15 +1245,8 @@ class exmo extends Exchange {
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $txid = $this->safe_string($transaction, 'txid');
         $type = $this->safe_string($transaction, 'type');
-        $code = $this->safe_string($transaction, 'curr');
-        if ($currency === null) {
-            $currency = $this->safe_value($this->currencies_by_id, $code);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($code);
-        }
+        $currencyId = $this->safe_string($transaction, 'curr');
+        $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'account');
         if ($address !== null) {
             $parts = explode(':', $address);

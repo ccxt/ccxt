@@ -26,8 +26,8 @@ class foxbit (Exchange):
                     'public': 'https://api.blinktrade.com/api',
                     'private': 'https://api.blinktrade.com/tapi',
                 },
-                'www': 'https://foxbit.exchange',
-                'doc': 'https://blinktrade.com/docs',
+                'www': 'https://foxbit.com.br/exchange',
+                'doc': 'https://foxbit.com.br/api/',
             },
             'comment': 'Blinktrade API',
             'api': {
@@ -78,15 +78,19 @@ class foxbit (Exchange):
             currencyIds = list(self.currencies_by_id.keys())
             for i in range(0, len(currencyIds)):
                 currencyId = currencyIds[i]
-                currency = self.currencies_by_id[currencyId]
-                code = currency['code']
+                code = self.safe_currency_code(currencyId)
                 # we only set the balance for the currency if that currency is present in response
                 # otherwise we will lose the info if the currency balance has been funded or traded or not
                 if currencyId in balances:
                     account = self.account()
-                    account['used'] = float(balances[currencyId + '_locked']) * 1e-8
-                    account['total'] = float(balances[currencyId]) * 1e-8
-                    account['free'] = account['total'] - account['used']
+                    used = self.safe_float(balances, currencyId + '_locked')
+                    if used is not None:
+                        used *= 1e-8
+                    total = self.safe_float(balances, currencyId)
+                    if total is not None:
+                        total *= 1e-8
+                    account['used'] = used
+                    account['total'] = total
                     result[code] = account
         return self.parse_balance(result)
 
@@ -135,18 +139,35 @@ class foxbit (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'date') * 1000
+    def parse_trade(self, trade, market=None):
+        timestamp = self.safe_integer(trade, 'date')
+        if timestamp is not None:
+            timestamp *= 1000
+        id = self.safe_string(trade, 'tid')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
+        side = self.safe_string(trade, 'side')
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'amount')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         return {
-            'id': self.safe_string(trade, 'tid'),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
-            'side': self.safe_string(trade, 'side'),
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'amount'),
+            'side': side,
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

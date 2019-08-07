@@ -239,8 +239,8 @@ module.exports = class bitz extends Exchange {
             const quoteId = this.safeString (market, 'coinTo');
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'numberFloat'),
@@ -307,12 +307,7 @@ module.exports = class bitz extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'name');
-            let code = currencyId.toUpperCase ();
-            if (currencyId in this.markets_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            } else {
-                code = this.commonCurrencyCode (code);
-            }
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             account['used'] = this.safeFloat (balance, 'lock');
             account['total'] = this.safeFloat (balance, 'num');
@@ -495,10 +490,8 @@ module.exports = class bitz extends Exchange {
                     symbol = market['symbol'];
                 } else {
                     const [ baseId, quoteId ] = id.split ('_');
-                    let base = baseId.toUpperCase ();
-                    let quote = quoteId.toUpperCase ();
-                    base = this.commonCurrencyCode (baseId);
-                    quote = this.commonCurrencyCode (quoteId);
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
                     symbol = base + '/' + quote;
                 }
             }
@@ -579,6 +572,7 @@ module.exports = class bitz extends Exchange {
             'order': undefined,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -681,7 +675,11 @@ module.exports = class bitz extends Exchange {
         //       microtime:   "0.56462100 1535973435",
         //          source:   "api"                                                    }
         //
-        return this.parseOHLCVs (response['data']['bars'], market, timeframe, since, limit);
+        const bars = this.safeValue (response['data'], 'bars', undefined);
+        if (bars === undefined) {
+            return [];
+        }
+        return this.parseOHLCVs (bars, market, timeframe, since, limit);
     }
 
     parseOrderStatus (status) {
@@ -721,10 +719,8 @@ module.exports = class bitz extends Exchange {
                 if (marketId in this.markets_by_id) {
                     market = this.safeValue (this.markets_by_id, marketId);
                 } else {
-                    let base = baseId.toUpperCase ();
-                    let quote = quoteId.toUpperCase ();
-                    base = this.commonCurrencyCode (base);
-                    quote = this.commonCurrencyCode (quote);
+                    const base = this.safeCurrencyCode (baseId);
+                    const quote = this.safeCurrencyCode (quoteId);
                     symbol = base + '/' + quote;
                 }
             }

@@ -135,21 +135,14 @@ class coinone (Exchange):
             'result',
             'normalWallets',
         ])
-        ids = list(balances.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            balance = balances[id]
-            code = id.upper()
-            if id in self.currencies_by_id:
-                code = self.currencies_by_id[id]['code']
-            free = self.safe_float(balance, 'avail')
-            total = self.safe_float(balance, 'balance')
-            used = total - free
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            balance = balances[currencyId]
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'avail')
+            account['total'] = self.safe_float(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -225,7 +218,9 @@ class coinone (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'timestamp') * 1000
+        timestamp = self.safe_integer(trade, 'timestamp')
+        if timestamp is not None:
+            timestamp *= 1000
         symbol = market['symbol'] if (market is not None) else None
         is_ask = self.safe_string(trade, 'is_ask')
         side = None
@@ -233,18 +228,26 @@ class coinone (Exchange):
             side = 'sell'
         elif is_ask == '0':
             side = 'buy'
+        price = self.safe_float(trade, 'price')
+        amount = self.safe_float(trade, 'qty')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = price * amount
         return {
             'id': None,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'order': None,
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': self.safe_float(trade, 'price'),
-            'amount': self.safe_float(trade, 'qty'),
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

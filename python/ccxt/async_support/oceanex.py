@@ -48,7 +48,7 @@ class oceanex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchClosedOrders': True,
                 'fetchBalance': True,
-                'createMarketOrder': False,
+                'createMarketOrder': True,
                 'createOrder': True,
                 'cancelOrder': True,
                 'cancelAllOrders': True,
@@ -135,8 +135,8 @@ class oceanex (Exchange):
             id = self.safe_value(market, 'id')
             name = self.safe_value(market, 'name')
             baseId, quoteId = name.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             baseId = baseId.lower()
             quoteId = quoteId.lower()
             symbol = base + '/' + quote
@@ -440,26 +440,20 @@ class oceanex (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privateGetMembersMe(params)
-        balances = self.safe_value(self.safe_value(response, 'data'), 'accounts')
-        result = {'info': balances}
+        data = self.safe_value(response, 'data')
+        balances = self.safe_value(data, 'accounts')
+        result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_value(balance, 'currency')
-            uppercaseId = currencyId.upper()
-            code = self.common_currency_code(uppercaseId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            free = self.safe_float(balance, 'balance')
-            used = self.safe_float(balance, 'locked')
-            total = self.sum(free, used)
-            account['free'] = free
-            account['used'] = used
-            account['total'] = total
+            account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        if type != 'limit':
-            raise InvalidOrder(self.id + ' createOrder supports `limit` orders only.')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -467,8 +461,9 @@ class oceanex (Exchange):
             'side': side,
             'ord_type': type,
             'volume': self.amount_to_precision(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
         }
+        if type == 'limit':
+            request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
         return self.parse_order(data, market)
@@ -481,7 +476,8 @@ class oceanex (Exchange):
         request = {'ids': [id]}
         response = await self.privateGetOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
-        if data is None or len(data) == 0:
+        dataLength = len(data)
+        if data is None or dataLength == 0:
             raise OrderNotFound(self.id + ' could not found matching order')
         return self.parse_order(data[0], market)
 
@@ -618,7 +614,7 @@ class oceanex (Exchange):
             # to set the private key:
             # fs = require('fs')
             # exchange.secret = fs.readFileSync('oceanex.pem', 'utf8')
-            jwt_token = self.jwt(request, self.secret, 'RS256')
+            jwt_token = self.jwt(request, self.encode(self.secret), 'RS256')
             url += '?user_jwt=' + jwt_token
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

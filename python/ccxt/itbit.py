@@ -153,7 +153,7 @@ class itbit (Exchange):
         #         "rate": "250.53000000",
         #         "commissionPaid": "0.00000000",   # net trade fee paid after using any available rebate balance
         #         "commissionCurrency": "USD",
-        #         "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        #         "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book; positive values represent amount of rebate balance earned from trades adding liquidity to order book
         #         "rebateCurrency": "USD",
         #         "executionId": "23132"
         #     }
@@ -164,12 +164,12 @@ class itbit (Exchange):
         orderId = self.safe_string(trade, 'orderId')
         feeCost = self.safe_float(trade, 'commissionPaid')
         feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
-        feeCurrency = self.common_currency_code(feeCurrencyId)
+        feeCurrency = self.safe_currency_code(feeCurrencyId)
         rebatesApplied = self.safe_float(trade, 'rebatesApplied')
         if rebatesApplied is not None:
             rebatesApplied = -rebatesApplied
         rebateCurrencyId = self.safe_string(trade, 'rebateCurrency')
-        rebateCurrency = self.common_currency_code(rebateCurrencyId)
+        rebateCurrency = self.safe_currency_code(rebateCurrencyId)
         price = self.safe_float_2(trade, 'price', 'rate')
         amount = self.safe_float_2(trade, 'currency1Amount', 'amount')
         cost = None
@@ -184,8 +184,8 @@ class itbit (Exchange):
             else:
                 baseId = self.safe_string(trade, 'currency1')
                 quoteId = self.safe_string(trade, 'currency2')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:
@@ -199,6 +199,7 @@ class itbit (Exchange):
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -227,6 +228,9 @@ class itbit (Exchange):
                     'cost': feeCost,
                     'currency': feeCurrency,
                 }
+        if not('fee' in list(result.keys())):
+            if not('fees' in list(result.keys())):
+                result['fee'] = None
         return result
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
@@ -267,14 +271,14 @@ class itbit (Exchange):
             currency = self.safe_string(item, 'currency')
             destinationAddress = self.safe_string(item, 'destinationAddress')
             txnHash = self.safe_string(item, 'txnHash')
-            transactionType = self.safe_string(item, 'transactionType').lower()
+            transactionType = self.safe_string_lower(item, 'transactionType')
             transactionStatus = self.safe_string(item, 'status')
             status = self.parse_transfer_status(transactionStatus)
             result.append({
                 'id': self.safe_string(item, 'withdrawalId'),
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
-                'currency': self.common_currency_code(currency),
+                'currency': self.safe_currency_code(currency),
                 'address': destinationAddress,
                 'tag': None,
                 'txid': txnHash,
@@ -325,7 +329,7 @@ class itbit (Exchange):
         #                 "rate": "250.53000000",
         #                 "commissionPaid": "0.00000000",   # net trade fee paid after using any available rebate balance
         #                 "commissionCurrency": "USD",
-        #                 "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book positive values represent amount of rebate balance earned from trades adding liquidity to order book
+        #                 "rebatesApplied": "-0.000125265",  # negative values represent amount of rebate balance used for trades removing liquidity from order book; positive values represent amount of rebate balance earned from trades adding liquidity to order book
         #                 "rebateCurrency": "USD",
         #                 "executionId": "23132"
         #             },
@@ -369,13 +373,10 @@ class itbit (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
-            account = {
-                'free': self.safe_float(balance, 'availableBalance'),
-                'used': 0.0,
-                'total': self.safe_float(balance, 'totalBalance'),
-            }
-            account['used'] = account['total'] - account['free']
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'availableBalance')
+            account['total'] = self.safe_float(balance, 'totalBalance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -502,13 +503,12 @@ class itbit (Exchange):
             url += '?' + self.urlencode(query)
         if method == 'POST' and query:
             body = self.json(query)
-        else:
-            body = ''
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             timestamp = nonce
-            auth = [method, url, body, nonce, timestamp]
+            authBody = body if (method == 'POST') else ''
+            auth = [method, url, authBody, nonce, timestamp]
             message = nonce + self.json(auth).replace('\\/', '/')
             hash = self.hash(self.encode(message), 'sha256', 'binary')
             binaryUrl = self.encode(url)

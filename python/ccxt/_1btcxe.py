@@ -107,9 +107,8 @@ class _1btcxe (Exchange):
             currency = self.currency(code)
             currencyId = currency['id']
             account = self.account()
-            account['free'] = self.safe_float(balance['available'], currencyId, 0.0)
-            account['used'] = self.safe_float(balance['on_hold'], currencyId, 0.0)
-            account['total'] = self.sum(account['free'], account['used'])
+            account['free'] = self.safe_float(balance['available'], currencyId)
+            account['used'] = self.safe_float(balance['on_hold'], currencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -194,9 +193,11 @@ class _1btcxe (Exchange):
             'order': None,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):

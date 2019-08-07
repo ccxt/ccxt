@@ -25,7 +25,7 @@ class coinegg (Exchange):
                 'fetchOrder': True,
                 'fetchOrders': True,
                 'fetchOpenOrders': 'emulated',
-                'fetchMyTrades': True,
+                'fetchMyTrades': False,
                 'fetchTickers': False,
             },
             'urls': {
@@ -37,7 +37,7 @@ class coinegg (Exchange):
                 'www': 'https://www.coinegg.com',
                 'doc': 'https://www.coinegg.com/explain.api.html',
                 'fees': 'https://www.coinegg.com/fee.html',
-                'referral': 'http://www.coinegg.com/user/register?invite=523218',
+                'referral': 'https://www.coinegg.com/user/register?invite=523218',
             },
             'api': {
                 'web': {
@@ -173,8 +173,8 @@ class coinegg (Exchange):
                 baseId = id.split('_')[0]
                 base = baseId.upper()
                 quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(base)
+                quote = self.safe_currency_code(quote)
                 symbol = base + '/' + quote
                 precision = {
                     'amount': 8,
@@ -276,19 +276,21 @@ class coinegg (Exchange):
                 cost = self.cost_to_precision(symbol, price * amount)
         type = 'limit'
         side = self.safe_string(trade, 'type')
+        id = self.safe_string(trade, 'tid')
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'tid'),
             'order': None,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -304,31 +306,24 @@ class coinegg (Exchange):
     async def fetch_balance(self, params={}):
         await self.load_markets()
         response = await self.privatePostBalance(params)
-        result = {}
-        balances = self.omit(response['data'], 'uid')
+        result = {'info': response}
+        data = self.safe_value(response, 'data', {})
+        balances = self.omit(data, 'uid')
         keys = list(balances.keys())
         for i in range(0, len(keys)):
             key = keys[i]
             currencyId, accountType = key.split('_')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
+            code = self.safe_currency_code(currencyId)
             if not(code in list(result.keys())):
-                result[code] = {
-                    'free': None,
-                    'used': None,
-                    'total': None,
-                }
+                result[code] = self.account()
             type = 'used' if (accountType == 'lock') else 'free'
             result[code][type] = self.safe_float(balances, key)
-        currencies = list(result.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            result[currency]['total'] = self.sum(result[currency]['free'], result[currency]['used'])
-        return self.parse_balance(self.extend({'info': response}, result))
+        return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
-        symbol = market['symbol']
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(order, 'datetime'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount_original')
@@ -343,15 +338,18 @@ class coinegg (Exchange):
         else:
             status = 'open' if remaining else 'closed'
         info = self.safe_value(order, 'info', order)
+        type = 'limit'
+        side = self.safe_string(order, 'type')
+        id = self.safe_string(order, 'id')
         return {
-            'id': self.safe_string(order, 'id'),
+            'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': 'limit',
-            'side': order['type'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': None,
             'amount': amount,

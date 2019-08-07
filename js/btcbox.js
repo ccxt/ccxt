@@ -84,8 +84,7 @@ module.exports = class btcbox extends Exchange {
                 const used = currencyId + '_lock';
                 account['free'] = this.safeFloat (response, free);
                 account['used'] = this.safeFloat (response, used);
-                account['total'] = this.sum (account['free'], account['used']);
-                result[currency] = account;
+                result[code] = account;
             }
         }
         return this.parseBalance (result);
@@ -175,9 +174,11 @@ module.exports = class btcbox extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': undefined,
         };
     }
 

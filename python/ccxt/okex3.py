@@ -433,6 +433,7 @@ class okex3 (Exchange):
                     '35031': InvalidOrder,  # {"code": 35031, "message": "Cancel order size too large"}
                     '35032': ExchangeError,  # {"code": 35032, "message": "Invalid user status"}
                     '35039': ExchangeError,  # {"code": 35039, "message": "Open order quantity exceeds limit"}
+                    '35040': InvalidOrder,  # {"error_message":"Invalid order type","result":"true","error_code":"35040","order_id":"-1"}
                     '35044': ExchangeError,  # {"code": 35044, "message": "Invalid order status"}
                     '35046': InsufficientFunds,  # {"code": 35046, "message": "Negative account balance"}
                     '35047': InsufficientFunds,  # {"code": 35047, "message": "Insufficient account balance"}
@@ -566,8 +567,8 @@ class okex3 (Exchange):
                 marketType = 'futures'
                 baseId = self.safe_string(market, 'underlying_index')
         quoteId = self.safe_string(market, 'quote_currency')
-        base = self.common_currency_code(baseId)
-        quote = self.common_currency_code(quoteId)
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
         symbol = (base + '/' + quote) if spot else id
         amountPrecision = self.safe_string(market, 'size_increment')
         if amountPrecision is not None:
@@ -579,14 +580,13 @@ class okex3 (Exchange):
             'amount': amountPrecision,
             'price': pricePrecision,
         }
-        minAmount = self.safe_float(market, 'base_min_size')
+        minAmount = self.safe_float_2(market, 'min_size', 'base_min_size')
         minPrice = self.safe_float(market, 'tick_size')
         if precision['price'] is not None:
             minPrice = math.pow(10, -precision['price'])
-        minCost = self.safe_float(market, 'min_size')
-        if minCost is None:
-            if minAmount is not None and minPrice is not None:
-                minCost = minAmount * minPrice
+        minCost = None
+        if minAmount is not None and minPrice is not None:
+            minCost = minAmount * minPrice
         active = True
         fees = self.safe_value_2(self.fees, marketType, 'trading', {})
         return self.extend(fees, {
@@ -684,7 +684,7 @@ class okex3 (Exchange):
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'currency')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
             name = self.safe_string(currency, 'name')
             canDeposit = self.safe_integer(currency, 'can_deposit')
@@ -764,10 +764,8 @@ class okex3 (Exchange):
             numParts = len(parts)
             if numParts == 2:
                 baseId, quoteId = parts
-                base = baseId.upper()
-                quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             else:
                 symbol = marketId
@@ -1128,17 +1126,11 @@ class okex3 (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            total = self.safe_float(balance, 'balance')
-            used = self.safe_float(balance, 'hold')
-            free = self.safe_float(balance, 'available')
-            if free is None:
-                if (total is not None) and(used is not None):
-                    free = total - used
-            account['total'] = total
-            account['used'] = used
-            account['free'] = free
+            account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'hold')
+            account['free'] = self.safe_float(balance, 'available')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1181,8 +1173,8 @@ class okex3 (Exchange):
             symbol = None
             if market is None:
                 baseId, quoteId = marketId.split('-')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             else:
                 symbol = market['symbol']
@@ -1201,17 +1193,11 @@ class okex3 (Exchange):
                 if key.find(':') >= 0:
                     parts = key.split(':')
                     currencyId = parts[1]
-                    code = self.common_currency_code(currencyId)
+                    code = self.safe_currency_code(currencyId)
                     account = self.account()
-                    total = self.safe_float(marketBalance, 'balance')
-                    used = self.safe_float(marketBalance, 'hold')
-                    free = self.safe_float(marketBalance, 'available')
-                    if free is None:
-                        if (total is not None) and(used is not None):
-                            free = total - used
-                    account['total'] = total
-                    account['used'] = used
-                    account['free'] = free
+                    account['total'] = self.safe_float(marketBalance, 'balance')
+                    account['used'] = self.safe_float(marketBalance, 'hold')
+                    account['free'] = self.safe_float(marketBalance, 'available')
                     accounts[code] = account
                 else:
                     raise NotSupported(self.id + ' margin balance response format has changednot ')
@@ -1254,22 +1240,15 @@ class okex3 (Exchange):
         # their root field name is "info", so our info will contain their info
         result = {'info': response}
         info = self.safe_value(response, 'info', {})
-        lowercaseIds = list(info.keys())
-        for i in range(0, len(lowercaseIds)):
-            lowercaseId = lowercaseIds[i]
-            id = lowercaseId.upper()
-            code = self.common_currency_code(id)
-            balance = self.safe_value(info, lowercaseId, {})
+        ids = list(info.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = self.safe_currency_code(id)
+            balance = self.safe_value(info, id, {})
             account = self.account()
             # it may be incorrect to use total, free and used for swap accounts
-            total = self.safe_float(balance, 'equity')
-            free = self.safe_float(balance, 'total_avail_balance')
-            used = None
-            if (total is not None) and(free is not None):
-                used = max(0, total - free)
-            account['total'] = total
-            account['used'] = used
-            account['free'] = free
+            account['total'] = self.safe_float(balance, 'equity')
+            account['free'] = self.safe_float(balance, 'total_avail_balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -1295,24 +1274,18 @@ class okex3 (Exchange):
         #
         # their root field name is "info", so our info will contain their info
         result = {'info': response}
-        info = self.safe_value(response, 'info', {})
-        lowercaseIds = list(info.keys())
-        for i in range(0, len(lowercaseIds)):
-            lowercaseId = lowercaseIds[i]
-            id = lowercaseId.upper()
-            code = self.common_currency_code(id)
-            balance = self.safe_value(info, lowercaseId, {})
+        info = self.safe_value(response, 'info', [])
+        for i in range(0, len(info)):
+            balance = info[i]
+            marketId = self.safe_string(balance, 'instrument_id')
+            symbol = marketId
+            if marketId in self.markets_by_id:
+                symbol = self.markets_by_id[marketId]['symbol']
             account = self.account()
             # it may be incorrect to use total, free and used for swap accounts
-            total = self.safe_float(balance, 'equity')
-            free = self.safe_float(balance, 'total_avail_balance')
-            used = None
-            if (total is not None) and(free is not None):
-                used = max(0, total - free)
-            account['total'] = total
-            account['used'] = used
-            account['free'] = free
-            result[code] = account
+            account['total'] = self.safe_float(balance, 'equity')
+            account['free'] = self.safe_float(balance, 'total_avail_balance')
+            result[symbol] = account
         return self.parse_balance(result)
 
     def fetch_balance(self, params={}):
@@ -1320,7 +1293,7 @@ class okex3 (Exchange):
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType')
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
-            raise ArgumentsRequired(self.id + " fetchBalance requires a type parameter(one of 'account', 'spot', 'margin', 'futures', 'swap').")
+            raise ArgumentsRequired(self.id + " fetchBalance requires a type parameter(one of 'account', 'spot', 'margin', 'futures', 'swap')")
         suffix = 'Wallet' if (type == 'account') else 'Accounts'
         method = type + 'Get' + suffix
         query = self.omit(params, 'type')
@@ -1541,10 +1514,7 @@ class okex3 (Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
-        if type is None:
-            raise ArgumentsRequired(self.id + " cancelOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+        type = market['type']
         method = type + 'PostCancelOrder'
         request = {
             'instrument_id': market['id'],
@@ -1746,12 +1716,12 @@ class okex3 (Exchange):
     def fetch_order(self, id, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
-        defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType')
+        self.load_markets()
+        market = self.market(symbol)
+        defaultType = self.safe_string_2(self.options, 'fetchOrder', 'defaultType', market['type'])
         type = self.safe_string(params, 'type', defaultType)
         if type is None:
             raise ArgumentsRequired(self.id + " fetchOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
-        self.load_markets()
-        market = self.market(symbol)
         instrumentId = 'InstrumentId' if (market['futures'] or market['swap']) else ''
         method = type + 'GetOrders' + instrumentId
         request = {
@@ -1817,23 +1787,20 @@ class okex3 (Exchange):
     def fetch_orders_by_state(self, state, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrdersByState requires a symbol argument')
-        defaultType = self.safe_string_2(self.options, 'fetchOrdersByState', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
-        if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrdersByState requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         self.load_markets()
         market = self.market(symbol)
-        # '-2': failed,
-        # '-1': cancelled,
-        #  '0': open ,
-        #  '1': partially filled,
-        #  '2': fully filled,
-        #  '3': submitting,
-        #  '4': cancelling,
-        #  '6': incomplete（open+partially filled),
-        #  '7': complete（cancelled+fully filled),
+        type = market['type']
         request = {
             'instrument_id': market['id'],
+            # '-2': failed,
+            # '-1': cancelled,
+            #  '0': open ,
+            #  '1': partially filled,
+            #  '2': fully filled,
+            #  '3': submitting,
+            #  '4': cancelling,
+            #  '6': incomplete（open+partially filled),
+            #  '7': complete（cancelled+fully filled),
             'state': state,
         }
         method = type + 'GetOrders'
@@ -1963,9 +1930,7 @@ class okex3 (Exchange):
         tag = self.safe_string_2(depositAddress, 'tag', 'payment_id')
         tag = self.safe_string(depositAddress, 'memo', tag)
         currencyId = self.safe_string(depositAddress, 'currency')
-        code = None
-        if currencyId is not None:
-            code = self.common_currency_code(currencyId.upper())
+        code = self.safe_currency_code(currencyId)
         self.check_address(address)
         return {
             'currency': code,
@@ -2145,16 +2110,20 @@ class okex3 (Exchange):
             type = 'deposit'
             address = addressFrom
         currencyId = self.safe_string(transaction, 'currency')
-        if currencyId is not None:
-            currencyId = currencyId.upper()
-        code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId)
         amount = self.safe_float(transaction, 'amount')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         txid = self.safe_string(transaction, 'txid')
         timestamp = self.parse8601(self.safe_string(transaction, 'timestamp'))
-        feeCost = self.safe_float(transaction, 'fee')
+        feeCost = None
         if type == 'deposit':
             feeCost = 0
+        else:
+            if currencyId is not None:
+                feeWithCurrencyId = self.safe_string(transaction, 'fee')
+                if feeWithCurrencyId is not None:
+                    feeWithoutCurrencyId = feeWithCurrencyId.replace(currencyId, '')
+                    feeCost = float(feeWithoutCurrencyId)
         # todo parse tags
         return {
             'info': transaction,
@@ -2532,7 +2501,7 @@ class okex3 (Exchange):
         referenceId = self.safe_string(details, 'order_id')
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        code = self.safeCurrencyCode(item, 'currency', currency)
+        code = self.safe_currency_code(self.safe_string(item, 'currency'), currency)
         amount = self.safe_float(item, 'amount')
         timestamp = self.parse8601(self.safe_string(item, 'timestamp'))
         fee = {
@@ -2560,9 +2529,11 @@ class okex3 (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api' + '/' + api + '/' + self.version + '/' + self.implode_params(path, params)
+        isArray = isinstance(params, list)
+        request = '/api/' + api + '/' + self.version + '/'
+        request += path if isArray else self.implode_params(path, params)
+        query = params if isArray else self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
-        query = self.omit(params, self.extract_params(path))
         type = self.get_path_authentication_type(path)
         if type == 'public':
             if query:
@@ -2585,10 +2556,9 @@ class okex3 (Exchange):
                     url += urlencodedQuery
                     auth += urlencodedQuery
             else:
-                if query:
-                    jsonQuery = self.json(query)
-                    body = jsonQuery
-                    auth += jsonQuery
+                if isArray or query:
+                    body = self.json(query)
+                    auth += body
                 headers['Content-Type'] = 'application/json'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['OK-ACCESS-SIGN'] = self.decode(signature)
@@ -2603,6 +2573,8 @@ class okex3 (Exchange):
         feedback = self.id + ' ' + body
         if code == 503:
             raise ExchangeError(feedback)
+        if not response:
+            return  # fallback to default error handler
         exact = self.exceptions['exact']
         message = self.safe_string(response, 'message')
         errorCode = self.safe_string_2(response, 'code', 'error_code')

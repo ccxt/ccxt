@@ -573,8 +573,8 @@ class hitbtc2 (hitbtc):
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             lot = self.safe_float(market, 'quantityIncrement')
             step = self.safe_float(market, 'tickSize')
@@ -625,7 +625,7 @@ class hitbtc2 (hitbtc):
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
             precision = 8  # default precision, todo: fix "magic constants"
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             payin = self.safe_value(currency, 'payinEnabled')
             payout = self.safe_value(currency, 'payoutEnabled')
             transfer = self.safe_value(currency, 'transferEnabled')
@@ -699,13 +699,10 @@ class hitbtc2 (hitbtc):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
-            account = {
-                'free': float(balance['available']),
-                'used': float(balance['reserved']),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            account['used'] = self.safe_float(balance, 'reserved')
             result[code] = account
         return self.parse_balance(result)
 
@@ -795,10 +792,14 @@ class hitbtc2 (hitbtc):
         result = {}
         for i in range(0, len(response)):
             ticker = response[i]
-            id = ticker['symbol']
-            market = self.markets_by_id[id]
-            symbol = market['symbol']
-            result[symbol] = self.parse_ticker(ticker, market)
+            marketId = self.safe_string(ticker, 'symbol')
+            if marketId is not None:
+                if marketId in self.markets_by_id:
+                    market = self.markets_by_id[marketId]
+                    symbol = market['symbol']
+                    result[symbol] = self.parse_ticker(ticker, market)
+                else:
+                    result[marketId] = self.parse_ticker(ticker)
         return result
 
     def fetch_ticker(self, symbol, params={}):
@@ -861,6 +862,7 @@ class hitbtc2 (hitbtc):
             'symbol': symbol,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -927,23 +929,23 @@ class hitbtc2 (hitbtc):
         #         address: '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
         #     }
         #
+        #     {
+        #         "id": "4f351f4f-a8ee-4984-a468-189ed590ddbd",
+        #         "index": 3112719565,
+        #         "type": "withdraw",
+        #         "status": "success",
+        #         "currency": "BCHOLD",
+        #         "amount": "0.02423133",
+        #         "createdAt": "2019-07-16T16:52:04.494Z",
+        #         "updatedAt": "2019-07-16T16:54:07.753Z"
+        #     }
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
         updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
-        code = None
         currencyId = self.safe_string(transaction, 'currency')
-        if currencyId in self.currencies_by_id:
-            currency = self.currencies_by_id[currencyId]
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_float(transaction, 'amount')
-        type = self.safe_string(transaction, 'type')
-        if type == 'payin':
-            type = 'deposit'
-        elif type == 'payout':
-            type = 'withdrawal'
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'hash')
         fee = None
@@ -953,6 +955,7 @@ class hitbtc2 (hitbtc):
                 'cost': feeCost,
                 'currency': code,
             }
+        type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         return {
             'info': transaction,
             'id': id,
@@ -975,7 +978,15 @@ class hitbtc2 (hitbtc):
             'failed': 'failed',
             'success': 'ok',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'payin': 'deposit',
+            'payout': 'withdrawal',
+            'withdraw': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
@@ -1120,8 +1131,8 @@ class hitbtc2 (hitbtc):
             for i in range(0, numTrades):
                 if feeCost is None:
                     feeCost = 0
-                tradesCost += trades[i]['cost']
-                feeCost += trades[i]['fee']['cost']
+                tradesCost = self.sum(tradesCost, trades[i]['cost'])
+                feeCost = self.sum(feeCost, trades[i]['fee']['cost'])
             cost = tradesCost
             if (filled is not None) and(filled > 0):
                 average = cost / filled

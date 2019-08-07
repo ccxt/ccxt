@@ -31,6 +31,7 @@ class coinexchange (Exchange):
                 'fetchTickers': True,
             },
             'urls': {
+                'referral': 'https://www.coinexchange.io/?r=a1669e56',
                 'logo': 'https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg',
                 'api': 'https://www.coinexchange.io/api/v1',
                 'www': 'https://www.coinexchange.io',
@@ -573,7 +574,7 @@ class coinexchange (Exchange):
         for i in range(0, len(currencies)):
             currency = currencies[i]
             id = self.safe_string(currency, 'CurrencyID')
-            code = self.common_currency_code(self.safe_string(currency, 'TickerCode'))
+            code = self.safe_currency_code(self.safe_string(currency, 'TickerCode'))
             walletStatus = self.safe_string(currency, 'WalletStatus')
             active = walletStatus == 'online'
             name = self.safe_string(currency, 'Name')
@@ -615,8 +616,8 @@ class coinexchange (Exchange):
             baseId = self.safe_string(market, 'MarketAssetCode')
             quoteId = self.safe_string(market, 'BaseCurrencyCode')
             if baseId is not None and quoteId is not None:
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
                 result.append({
                     'id': id,

@@ -103,8 +103,8 @@ class btcchina (Exchange):
             quoteId = id[3:6]
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -132,7 +132,6 @@ class btcchina (Exchange):
                 account['total'] = float(balances['balance'][currencyId]['amount'])
             if currencyId in balances['frozen']:
                 account['used'] = float(balances['frozen'][currencyId]['amount'])
-            account['free'] = account['total'] - account['used']
             result[code] = account
         return self.parse_balance(result)
 
@@ -245,9 +244,7 @@ class btcchina (Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
-        side = self.safe_string(trade, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'side')
         return {
             'id': None,
             'info': trade,

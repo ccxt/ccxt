@@ -83,11 +83,26 @@ class fcoin (Exchange):
                 'private': {
                     'get': [
                         'accounts/balance',
+                        'broker/otc/suborders',
+                        'broker/otc/suborders/{id}',
+                        'broker/otc/suborders/{id}/payments',
+                        'broker/otc/users',
+                        'broker/otc/users/me/balances',
+                        'broker/otc/users/me/balance',
+                        'broker/leveraged_accounts/account',
+                        'broker/leveraged_accounts',
                         'orders',
                         'orders/{order_id}',
                         'orders/{order_id}/match-results',  # check order result
                     ],
                     'post': [
+                        'broker/otc/assets/transfer/in',
+                        'broker/otc/assets/transfer/out',
+                        'broker/otc/suborders',
+                        'broker/otc/suborders/{id}/pay_confirm',
+                        'broker/otc/suborders/{id}/cancel',
+                        'broker/leveraged/assets/transfer/in',
+                        'broker/leveraged/assets/transfer/out',
                         'orders',
                         'orders/{order_id}/submit-cancel',  # cancel order
                     ],
@@ -149,10 +164,8 @@ class fcoin (Exchange):
             id = self.safe_string(market, 'name')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
-            base = baseId.upper()
-            base = self.common_currency_code(base)
-            quote = quoteId.upper()
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'price': market['price_decimal'],
@@ -188,16 +201,12 @@ class fcoin (Exchange):
         balances = self.safe_value(response, 'data')
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['currency']
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = float(balance['available'])
-            account['total'] = float(balance['balance'])
-            account['used'] = float(balance['frozen'])
+            account['free'] = self.safe_float(balance, 'available')
+            account['total'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'frozen')
             result[code] = account
         return self.parse_balance(result)
 
@@ -284,21 +293,25 @@ class fcoin (Exchange):
         if market is not None:
             symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'ts')
-        side = trade['side'].lower()
-        orderId = self.safe_string(trade, 'id')
+        side = self.safe_string_lower(trade, 'side')
+        id = self.safe_string(trade, 'id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
-        cost = price * amount
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = amount * price
         fee = None
         return {
-            'id': orderId,
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
-            'order': orderId,
+            'order': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -430,7 +443,7 @@ class fcoin (Exchange):
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        request = {'states': 'filled'}
+        request = {'states': 'partial_canceled,filled'}
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):

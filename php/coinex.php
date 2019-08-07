@@ -44,24 +44,18 @@ class coinex extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/38046312-0b450aac-32c8-11e8-99ab-bc6b136b6cc7.jpg',
-                'api' => array (
-                    'public' => 'https://api.coinex.com',
-                    'private' => 'https://api.coinex.com',
-                    'web' => 'https://www.coinex.com',
-                ),
+                'api' => 'https://api.coinex.com',
                 'www' => 'https://www.coinex.com',
                 'doc' => 'https://github.com/coinexcom/coinex_exchange_api/wiki',
                 'fees' => 'https://www.coinex.com/fees',
-                'referral' => 'https://www.coinex.com/account/signup?refer_code=yw5fz',
+                'referral' => 'https://www.coinex.com/register?refer_code=yw5fz',
             ),
             'api' => array (
-                'web' => array (
-                    'get' => array (
-                        'res/market',
-                    ),
-                ),
                 'public' => array (
                     'get' => array (
+                        'common/currency/rate',
+                        'common/asset/config',
+                        'market/info',
                         'market/list',
                         'market/ticker',
                         'market/ticker/all',
@@ -72,22 +66,44 @@ class coinex extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
-                        'balance/coin/withdraw',
                         'balance/coin/deposit',
+                        'balance/coin/withdraw',
                         'balance/info',
+                        'future/account',
+                        'future/config',
+                        'future/limitprice',
+                        'future/loan/history',
+                        'future/market',
+                        'margin/account',
+                        'margin/config',
+                        'margin/loan/history',
+                        'margin/market',
                         'order',
-                        'order/pending',
+                        'order/deals',
                         'order/finished',
                         'order/finished/{id}',
+                        'order/pending',
+                        'order/status',
+                        'order/status/batch',
                         'order/user/deals',
                     ),
                     'post' => array (
                         'balance/coin/withdraw',
+                        'future/flat',
+                        'future/loan',
+                        'future/transfer',
+                        'margin/flat',
+                        'margin/loan',
+                        'margin/transfer',
+                        'order/batchlimit',
+                        'order/ioc',
                         'order/limit',
                         'order/market',
+                        'sub_account/transfer',
                     ),
                     'delete' => array (
                         'balance/coin/withdraw',
+                        'order/pending/batch',
                         'order/pending',
                     ),
                 ),
@@ -125,25 +141,41 @@ class coinex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->webGetResMarket ($params);
-        $markets = $this->safe_value($response['data'], 'market_info');
+        $response = $this->publicGetMarketInfo ($params);
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "WAVESBTC" => {
+        //                 "name" => "WAVESBTC",
+        //                 "min_amount" => "1",
+        //                 "maker_fee_rate" => "0.001",
+        //                 "taker_fee_rate" => "0.001",
+        //                 "pricing_name" => "BTC",
+        //                 "pricing_decimal" => 8,
+        //                 "trading_name" => "WAVES",
+        //                 "trading_decimal" => 8
+        //             }
+        //         }
+        //     }
+        //
+        $markets = $this->safe_value($response, 'data', array());
         $result = array();
         $keys = is_array($markets) ? array_keys($markets) : array();
         for ($i = 0; $i < count ($keys); $i++) {
             $key = $keys[$i];
             $market = $markets[$key];
-            $id = $this->safe_string($market, 'market');
-            $quoteId = $this->safe_string($market, 'buy_asset_type');
-            $baseId = $this->safe_string($market, 'sell_asset_type');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $id = $this->safe_string($market, 'name');
+            $baseId = $this->safe_string($market, 'trading_name');
+            $quoteId = $this->safe_string($market, 'pricing_name');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => $this->safe_integer($market, 'sell_asset_type_places'),
-                'price' => $this->safe_integer($market, 'buy_asset_type_places'),
+                'amount' => $this->safe_integer($market, 'trading_decimal'),
+                'price' => $this->safe_integer($market, 'pricing_decimal'),
             );
-            $numMergeLevels = is_array ($market['merge']) ? count ($market['merge']) : 0;
-            $active = ($market['status'] === 'pass');
+            $active = null;
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -158,11 +190,11 @@ class coinex extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $this->safe_float($market, 'least_amount'),
+                        'min' => $this->safe_float($market, 'min_amount'),
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => floatval ($market['merge'][$numMergeLevels - 1]),
+                        'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
                 ),
@@ -173,8 +205,11 @@ class coinex extends Exchange {
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->safe_integer($ticker, 'date');
-        $symbol = $market['symbol'];
-        $ticker = $ticker['ticker'];
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $ticker = $this->safe_value($ticker, 'ticker', array());
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -216,15 +251,19 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data');
         $timestamp = $this->safe_integer($data, 'date');
         $tickers = $this->safe_value($data, 'ticker');
-        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $marketIds = is_array($tickers) ? array_keys($tickers) : array();
         $result = array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
-            $symbol = $market['symbol'];
+        for ($i = 0; $i < count ($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $symbol = $marketId;
+            $market = null;
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            }
             $ticker = array (
                 'date' => $timestamp,
-                'ticker' => $tickers[$id],
+                'ticker' => $tickers[$marketId],
             );
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
@@ -271,11 +310,7 @@ class coinex extends Exchange {
         $feeCost = $this->safe_float($trade, 'fee');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_asset');
-            $feeCurrency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
-            $feeCurrencyCode = null;
-            if ($feeCurrency !== null) {
-                $feeCurrencyCode = $feeCurrency['code'];
-            }
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array (
                 'cost' => $feeCost,
                 'currency' => $feeCurrencyCode,
@@ -357,17 +392,14 @@ class coinex extends Exchange {
         //
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response, 'data');
-        $currencies = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($currencies); $i++) {
-            $currencyId = $currencies[$i];
-            $balance = $balances[$currencyId];
-            $code = $this->common_currency_code($currencyId);
-            $account = array (
-                'free' => floatval ($balance['available']),
-                'used' => floatval ($balance['frozen']),
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $balance = $this->safe_value($balances, $currencyId, array());
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['used'] = $this->safe_float($balance, 'frozen');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -420,12 +452,8 @@ class coinex extends Exchange {
         $symbol = null;
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_value($this->markets_by_id, $marketId);
-        $feeCurrency = null;
         $feeCurrencyId = $this->safe_string($order, 'fee_asset');
-        $currency = $this->safe_value($this->currencies_by_id, $feeCurrencyId);
-        if ($currency !== null) {
-            $feeCurrency = $currency['code'];
-        }
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         if ($market !== null) {
             $symbol = $market['symbol'];
             if ($feeCurrency === null) {
@@ -694,16 +722,8 @@ class coinex extends Exchange {
                 $txid = null;
             }
         }
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'coin_type');
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currencyId];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_integer($transaction, 'create_time');
         if ($timestamp !== null) {
             $timestamp = $timestamp * 1000;
@@ -845,14 +865,9 @@ class coinex extends Exchange {
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $path = $this->implode_params($path, $params);
-        $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $path;
+        $url = $this->urls['api'] . '/' . $this->version . '/' . $path;
         $query = $this->omit ($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
-                $url .= '?' . $this->urlencode ($query);
-            }
-        } else if ($api === 'web') {
-            $url = $this->urls['api'][$api] . '/' . $path;
             if ($query) {
                 $url .= '?' . $this->urlencode ($query);
             }

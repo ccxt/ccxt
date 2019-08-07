@@ -115,8 +115,8 @@ class acx (Exchange):
                 quoteId = ids[1].lower()
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             # todo: find out their undocumented precision and limits
             precision = {
                 'amount': 8,
@@ -142,14 +142,10 @@ class acx (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId.upper()
-            code = self.common_currency_code(code)
-            account = {
-                'free': self.safe_float(balance, 'balance'),
-                'used': self.safe_float(balance, 'locked'),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'balance')
+            account['used'] = self.safe_float(balance, 'locked')
             result[code] = account
         return self.parse_balance(result)
 
@@ -216,8 +212,8 @@ class acx (Exchange):
                 quote = id[3:6]
                 base = base.upper()
                 quote = quote.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(base)
+                quote = self.safe_currency_code(quote)
                 symbol = base + '/' + quote
             result[symbol] = self.parse_ticker(response[id], market)
         return result
@@ -234,17 +230,23 @@ class acx (Exchange):
     def parse_trade(self, trade, market=None):
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         id = self.safe_string(trade, 'tid')
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
+            'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': None,
+            'order': None,
+            'takerOrMaker': None,
             'price': self.safe_float(trade, 'price'),
             'amount': self.safe_float(trade, 'volume'),
             'cost': self.safe_float(trade, 'funds'),
-            'info': trade,
+            'fee': None,
         }
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -277,7 +279,7 @@ class acx (Exchange):
             'limit': limit,
         }
         if since is not None:
-            request['timestamp'] = since
+            request['timestamp'] = int(since / 1000)
         response = self.publicGetK(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 

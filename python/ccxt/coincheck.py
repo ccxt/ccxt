@@ -117,13 +117,13 @@ class coincheck (Exchange):
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
-            currencyId = self.currency(code)
-            account = self.account()
-            reserved = currencyId + '_reserved'
-            account['free'] = self.safe_float(balances, currencyId)
-            account['used'] = self.safe_float(balances, reserved)
-            account['total'] = self.sum(account['free'], account['used'])
-            result[code] = account
+            currencyId = self.currencyId(code)
+            if currencyId in balances:
+                account = self.account()
+                reserved = currencyId + '_reserved'
+                account['free'] = self.safe_float(balances, currencyId)
+                account['used'] = self.safe_float(balances, reserved)
+                result[code] = account
         return self.parse_balance(result)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -177,8 +177,8 @@ class coincheck (Exchange):
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         return {
             'id': id,
@@ -256,8 +256,8 @@ class coincheck (Exchange):
                 ids = marketId.split('_')
                 baseId = ids[0]
                 quoteId = ids[1]
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:

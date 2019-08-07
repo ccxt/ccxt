@@ -47,6 +47,12 @@ class buda (Exchange):
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
             },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -161,8 +167,8 @@ class buda (Exchange):
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             baseInfo = await self.fetch_currency_info(baseId, currencies)
             quoteInfo = await self.fetch_currency_info(quoteId, currencies)
             symbol = base + '/' + quote
@@ -207,7 +213,7 @@ class buda (Exchange):
             if not currency['managed']:
                 continue
             id = self.safe_string(currency, 'id')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             precision = self.safe_float(currency, 'input_decimals')
             minimum = math.pow(10, -precision)
             result[code] = {
@@ -381,6 +387,7 @@ class buda (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -419,14 +426,10 @@ class buda (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'id')
-            code = self.common_currency_code(currencyId)
-            total = float(balance['amount'][0])
-            free = float(balance['available_amount'][0])
-            account = {
-                'free': free,
-                'used': total - free,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = float(balance['available_amount'][0])
+            account['total'] = float(balance['amount'][0])
             result[code] = account
         return self.parse_balance(result)
 
@@ -508,9 +511,7 @@ class buda (Exchange):
         if market is not None:
             symbol = market['symbol']
         type = self.safe_string(order, 'price_type')
-        side = self.safe_string(order, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         amount = float(order['original_amount'][0])
         remaining = float(order['amount'][0])
@@ -611,15 +612,8 @@ class buda (Exchange):
     def parse_transaction(self, transaction, currency=None):
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
-        code = None
-        currencyId = None
-        if currency is None:
-            currencyId = self.safe_string(transaction, 'currency')
-            currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
         amount = float(transaction['amount'][0])
         fee = float(transaction['fee'][0])
         feeCurrency = transaction['fee'][1]

@@ -489,7 +489,6 @@ class hitbtc (Exchange):
                 },
             },
             'commonCurrencies': {
-                'BCH': 'Bitcoin Cash',
                 'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
                 'DRK': 'DASH',
@@ -517,8 +516,8 @@ class hitbtc (Exchange):
             quoteId = self.safe_string(market, 'currency')
             lot = self.safe_float(market, 'lot')
             step = self.safe_float(market, 'step')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'info': market,
@@ -560,21 +559,16 @@ class hitbtc (Exchange):
         method += 'GetBalance'
         query = self.omit(params, 'type')
         response = getattr(self, method)(query)
-        balances = response['balance']
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            code = balance['currency_code']
-            currency = self.common_currency_code(code)
-            free = self.safe_float(balance, 'cash', 0.0)
-            free = self.safe_float(balance, 'balance', free)
-            used = self.safe_float(balance, 'reserved', 0.0)
-            account = {
-                'free': free,
-                'used': used,
-                'total': self.sum(free, used),
-            }
-            result[currency] = account
+        balances = self.safe_value(response, 'balance', [])
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency_code')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float_2(balance, 'cash', 'balance')
+            account['used'] = self.safe_float(balance, 'reserved')
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -648,8 +642,11 @@ class hitbtc (Exchange):
             symbol = market['symbol']
         side = None
         tradeLength = len(trade)
-        if tradeLength > 3:
+        if tradeLength > 4:
             side = trade[4]
+        price = float(trade[1])
+        amount = float(trade[2])
+        cost = price * amount
         return {
             'info': trade,
             'id': str(trade[0]),
@@ -658,8 +655,12 @@ class hitbtc (Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': float(trade[1]),
-            'amount': float(trade[2]),
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def parse_order_trade(self, trade, market=None):

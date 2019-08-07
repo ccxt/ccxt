@@ -144,9 +144,8 @@ class rightbtc (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetTradingPairs(params)
         # zh = await self.publicGetGetAssetsTradingPairsZh()
-        markets = self.extend(response['status']['message'])
+        markets = await self.publicGetTradingPairs(params)
         marketIds = list(markets.keys())
         result = []
         for i in range(0, len(marketIds)):
@@ -154,8 +153,8 @@ class rightbtc (Exchange):
             market = markets[id]
             baseId = self.safe_string(market, 'bid_asset_symbol')
             quoteId = self.safe_string(market, 'ask_asset_symbol')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'bid_asset_decimals'),
@@ -309,25 +308,25 @@ class rightbtc (Exchange):
             symbol = market['symbol']
         cost = self.cost_to_precision(symbol, price * amount)
         cost = float(cost)
-        side = self.safe_string(trade, 'side')
-        side = side.lower()
+        side = self.safe_string_lower(trade, 'side')
         if side == 'b':
             side = 'buy'
         elif side == 's':
             side = 'sell'
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': None,
-            'info': trade,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
@@ -341,12 +340,12 @@ class rightbtc (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
-            ohlcv[0],
-            ohlcv[2] / 1e8,
-            ohlcv[3] / 1e8,
-            ohlcv[4] / 1e8,
-            ohlcv[5] / 1e8,
-            ohlcv[1] / 1e8,
+            int(ohlcv[0]),
+            float(ohlcv[2]) / 1e8,
+            float(ohlcv[3]) / 1e8,
+            float(ohlcv[4]) / 1e8,
+            float(ohlcv[5]) / 1e8,
+            float(ohlcv[1]) / 1e8,
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -385,30 +384,15 @@ class rightbtc (Exchange):
         #     }
         #
         result = {'info': response}
-        balances = response['result']
+        balances = self.safe_value(response, 'result', [])
         for i in range(0, len(balances)):
             balance = balances[i]
-            currencyId = balance['asset']
-            code = self.common_currency_code(currencyId)
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            free = self.divide_safe_float(balance, 'balance', 1e8)
-            used = self.divide_safe_float(balance, 'frozen', 1e8)
-            total = self.sum(free, used)
-            #
+            currencyId = self.safe_string(balance, 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
             # https://github.com/ccxt/ccxt/issues/3873
-            #
-            #     if total is not None:
-            #         if used is not None:
-            #             free = total - used
-            #         }
-            #     }
-            #
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            account['free'] = self.divide_safe_float(balance, 'balance', 1e8)
+            account['used'] = self.divide_safe_float(balance, 'frozen', 1e8)
             result[code] = account
         return self.parse_balance(result)
 
@@ -509,9 +493,7 @@ class rightbtc (Exchange):
                 if remaining is not None:
                     filled = max(0, amount - remaining)
         type = 'limit'
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'side')
         feeCost = self.divide_safe_float(order, 'min_fee', 1e8)
         fee = None
         if feeCost is not None:

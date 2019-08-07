@@ -101,9 +101,8 @@ class _1btcxe extends Exchange {
             $currency = $this->currency ($code);
             $currencyId = $currency['id'];
             $account = $this->account ();
-            $account['free'] = $this->safe_float($balance['available'], $currencyId, 0.0);
-            $account['used'] = $this->safe_float($balance['on_hold'], $currencyId, 0.0);
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+            $account['free'] = $this->safe_float($balance['available'], $currencyId);
+            $account['used'] = $this->safe_float($balance['on_hold'], $currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -198,9 +197,11 @@ class _1btcxe extends Exchange {
             'order' => null,
             'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

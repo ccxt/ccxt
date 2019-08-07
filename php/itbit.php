@@ -167,13 +167,13 @@ class itbit extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $feeCost = $this->safe_float($trade, 'commissionPaid');
         $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
-        $feeCurrency = $this->common_currency_code($feeCurrencyId);
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $rebatesApplied = $this->safe_float($trade, 'rebatesApplied');
         if ($rebatesApplied !== null) {
             $rebatesApplied = -$rebatesApplied;
         }
         $rebateCurrencyId = $this->safe_string($trade, 'rebateCurrency');
-        $rebateCurrency = $this->common_currency_code($rebateCurrencyId);
+        $rebateCurrency = $this->safe_currency_code($rebateCurrencyId);
         $price = $this->safe_float_2($trade, 'price', 'rate');
         $amount = $this->safe_float_2($trade, 'currency1Amount', 'amount');
         $cost = null;
@@ -190,8 +190,8 @@ class itbit extends Exchange {
             } else {
                 $baseId = $this->safe_string($trade, 'currency1');
                 $quoteId = $this->safe_string($trade, 'currency2');
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -209,6 +209,7 @@ class itbit extends Exchange {
             'order' => $orderId,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -238,6 +239,11 @@ class itbit extends Exchange {
                     'cost' => $feeCost,
                     'currency' => $feeCurrency,
                 );
+            }
+        }
+        if (!(is_array($result) && array_key_exists('fee', $result))) {
+            if (!(is_array($result) && array_key_exists('fees', $result))) {
+                $result['fee'] = null;
             }
         }
         return $result;
@@ -283,14 +289,14 @@ class itbit extends Exchange {
             $currency = $this->safe_string($item, 'currency');
             $destinationAddress = $this->safe_string($item, 'destinationAddress');
             $txnHash = $this->safe_string($item, 'txnHash');
-            $transactionType = strtolower($this->safe_string($item, 'transactionType'));
+            $transactionType = $this->safe_string_lower($item, 'transactionType');
             $transactionStatus = $this->safe_string($item, 'status');
             $status = $this->parse_transfer_status ($transactionStatus);
             $result[] = array (
                 'id' => $this->safe_string($item, 'withdrawalId'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601 ($timestamp),
-                'currency' => $this->common_currency_code($currency),
+                'currency' => $this->safe_currency_code($currency),
                 'address' => $destinationAddress,
                 'tag' => null,
                 'txid' => $txnHash,
@@ -394,13 +400,10 @@ class itbit extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
-            $account = array (
-                'free' => $this->safe_float($balance, 'availableBalance'),
-                'used' => 0.0,
-                'total' => $this->safe_float($balance, 'totalBalance'),
-            );
-            $account['used'] = $account['total'] - $account['free'];
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'availableBalance');
+            $account['total'] = $this->safe_float($balance, 'totalBalance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -546,14 +549,13 @@ class itbit extends Exchange {
         }
         if ($method === 'POST' && $query) {
             $body = $this->json ($query);
-        } else {
-            $body = '';
         }
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $timestamp = $nonce;
-            $auth = array ( $method, $url, $body, $nonce, $timestamp );
+            $authBody = ($method === 'POST') ? $body : '';
+            $auth = array ( $method, $url, $authBody, $nonce, $timestamp );
             $message = $nonce . str_replace('\\/', '/', $this->json ($auth));
             $hash = $this->hash ($this->encode ($message), 'sha256', 'binary');
             $binaryUrl = $this->encode ($url);

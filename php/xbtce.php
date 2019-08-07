@@ -20,8 +20,10 @@ class xbtce extends Exchange {
                 'CORS' => false,
                 'fetchTickers' => true,
                 'createMarketOrder' => false,
+                'fetchOHLCV' => false,
             ),
             'urls' => array (
+                'referral' => 'https://xbtce.com/?agent=XX97BTCXXXG687021000B',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/28059414-e235970c-662c-11e7-8c3a-08e31f78684b.jpg',
                 'api' => 'https://cryptottlivewebapi.xbtce.net:8443/api',
                 'www' => 'https://www.xbtce.com',
@@ -116,8 +118,8 @@ class xbtce extends Exchange {
             $id = $this->safe_string($market, 'Symbol');
             $baseId = $this->safe_string($market, 'MarginCurrency');
             $quoteId = $this->safe_string($market, 'ProfitCurrency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $symbol = $market['IsTradeAllowed'] ? $symbol : $id;
             $result[] = array (
@@ -140,12 +142,11 @@ class xbtce extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'Currency');
-            $uppercase = strtoupper($currencyId);
-            $code = $this->common_currency_code($uppercase);
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
-                'free' => $balance['FreeAmount'],
-                'used' => $balance['LockedAmount'],
-                'total' => $balance['Amount'],
+                'free' => $this->safe_float($balance, 'FreeAmount'),
+                'used' => $this->safe_float($balance, 'LockedAmount'),
+                'total' => $this->safe_float($balance, 'Amount'),
             );
             $result[$code] = $account;
         }
@@ -226,8 +227,8 @@ class xbtce extends Exchange {
             } else {
                 $baseId = mb_substr($id, 0, 3 - 0);
                 $quoteId = mb_substr($id, 3, 6 - 3);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
             $ticker = $tickers[$id];

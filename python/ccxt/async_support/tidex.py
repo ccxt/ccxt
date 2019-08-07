@@ -82,6 +82,7 @@ class tidex (Exchange):
                 },
                 'private': {
                     'post': [
+                        'getInfoExt',
                         'getInfo',
                         'Trade',
                         'ActiveOrders',
@@ -144,8 +145,7 @@ class tidex (Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             precision = currency['amountPoint']
-            code = id.upper()
-            code = self.common_currency_code(code)
+            code = self.safe_currency_code(id)
             active = currency['visible'] is True
             canWithdraw = currency['withdrawEnable'] is True
             canDeposit = currency['depositEnable'] is True
@@ -219,10 +219,8 @@ class tidex (Exchange):
             id = keys[i]
             market = markets[id]
             baseId, quoteId = id.split('_')
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -260,26 +258,19 @@ class tidex (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostGetInfo(params)
+        response = await self.privatePostGetInfoExt(params)
         balances = self.safe_value(response, 'return')
         result = {'info': balances}
-        funds = balances['funds']
-        currencies = list(funds.keys())
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            uppercase = currency.upper()
-            uppercase = self.common_currency_code(uppercase)
-            total = None
-            used = None
-            if balances['open_orders'] == 0:
-                total = funds[currency]
-                used = 0.0
-            account = {
-                'free': funds[currency],
-                'used': used,
-                'total': total,
-            }
-            result[uppercase] = account
+        funds = self.safe_value(balances, 'funds', {})
+        currencyIds = list(funds.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            code = self.safe_currency_code(currencyId)
+            balance = self.safe_value(funds, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'value')
+            account['used'] = self.safe_float(balance, 'inOrders')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -421,13 +412,7 @@ class tidex (Exchange):
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
-            feeCurrencyId = feeCurrencyId.upper()
-            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
-            feeCurrencyCode = None
-            if feeCurrency is not None:
-                feeCurrencyCode = feeCurrency['code']
-            else:
-                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -439,6 +424,10 @@ class tidex (Exchange):
                 takerOrMaker = 'maker'
             if fee is None:
                 fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
         return {
             'id': id,
             'order': orderId,
@@ -450,6 +439,7 @@ class tidex (Exchange):
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': fee,
             'info': trade,
         }

@@ -42,6 +42,12 @@ class bcex (Exchange):
                 'fees': 'https://bcex.udesk.cn/hc/articles/57085',
                 'referral': 'https://www.bcex.top/register?invite_code=758978&lang=en',
             },
+            'status': {
+                'status': 'error',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -298,8 +304,8 @@ class bcex (Exchange):
                 quoteId = self.safe_string(market, 'coin_to')
                 base = baseId.upper()
                 quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(base)
+                quote = self.safe_currency_code(quote)
                 id = baseId + '2' + quoteId
                 symbol = base + '/' + quote
                 active = True
@@ -392,11 +398,7 @@ class bcex (Exchange):
             parts = key.split('_')
             currencyId = parts[0]
             lockOrOver = parts[1]
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            code = self.safe_currency_code(currencyId)
             if not(code in list(result.keys())):
                 result[code] = self.account()
             if lockOrOver == 'lock':

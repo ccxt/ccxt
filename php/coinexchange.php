@@ -30,6 +30,7 @@ class coinexchange extends Exchange {
                 'fetchTickers' => true,
             ),
             'urls' => array (
+                'referral' => 'https://www.coinexchange.io/?r=a1669e56',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/34842303-29c99fca-f71c-11e7-83c1-09d900cb2334.jpg',
                 'api' => 'https://www.coinexchange.io/api/v1',
                 'www' => 'https://www.coinexchange.io',
@@ -573,7 +574,7 @@ class coinexchange extends Exchange {
         for ($i = 0; $i < count ($currencies); $i++) {
             $currency = $currencies[$i];
             $id = $this->safe_string($currency, 'CurrencyID');
-            $code = $this->common_currency_code($this->safe_string($currency, 'TickerCode'));
+            $code = $this->safe_currency_code($this->safe_string($currency, 'TickerCode'));
             $walletStatus = $this->safe_string($currency, 'WalletStatus');
             $active = $walletStatus === 'online';
             $name = $this->safe_string($currency, 'Name');
@@ -617,8 +618,8 @@ class coinexchange extends Exchange {
             $baseId = $this->safe_string($market, 'MarketAssetCode');
             $quoteId = $this->safe_string($market, 'BaseCurrencyCode');
             if ($baseId !== null && $quoteId !== null) {
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
                 $result[] = array (
                     'id' => $id,

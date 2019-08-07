@@ -39,6 +39,12 @@ module.exports = class buda extends Exchange {
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
             },
+            'status': {
+                'status': 'error',
+                'updated': undefined,
+                'eta': undefined,
+                'url': undefined,
+            },
             'api': {
                 'public': {
                     'get': [
@@ -158,8 +164,8 @@ module.exports = class buda extends Exchange {
             const id = this.safeString (market, 'id');
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quote_currency');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const baseInfo = await this.fetchCurrencyInfo (baseId, currencies);
             const quoteInfo = await this.fetchCurrencyInfo (quoteId, currencies);
             const symbol = base + '/' + quote;
@@ -207,7 +213,7 @@ module.exports = class buda extends Exchange {
                 continue;
             }
             const id = this.safeString (currency, 'id');
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             const precision = this.safeFloat (currency, 'input_decimals');
             const minimum = Math.pow (10, -precision);
             result[code] = {
@@ -396,6 +402,7 @@ module.exports = class buda extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -438,14 +445,10 @@ module.exports = class buda extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'id');
-            const code = this.commonCurrencyCode (currencyId);
-            const total = parseFloat (balance['amount'][0]);
-            const free = parseFloat (balance['available_amount'][0]);
-            const account = {
-                'free': free,
-                'used': total - free,
-                'total': total,
-            };
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = parseFloat (balance['available_amount'][0]);
+            account['total'] = parseFloat (balance['amount'][0]);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -541,10 +544,7 @@ module.exports = class buda extends Exchange {
             symbol = market['symbol'];
         }
         const type = this.safeString (order, 'price_type');
-        let side = this.safeString (order, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'type');
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const amount = parseFloat (order['original_amount'][0]);
         const remaining = parseFloat (order['amount'][0]);
@@ -657,17 +657,8 @@ module.exports = class buda extends Exchange {
     parseTransaction (transaction, currency = undefined) {
         const id = this.safeString (transaction, 'id');
         const timestamp = this.parse8601 (this.safeString (transaction, 'created_at'));
-        let code = undefined;
-        let currencyId = undefined;
-        if (currency === undefined) {
-            currencyId = this.safeString (transaction, 'currency');
-            currency = this.safeValue (this.currencies_by_id, currencyId);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (currencyId);
-        }
+        const currencyId = this.safeString (transaction, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
         const amount = parseFloat (transaction['amount'][0]);
         const fee = parseFloat (transaction['fee'][0]);
         const feeCurrency = transaction['fee'][1];

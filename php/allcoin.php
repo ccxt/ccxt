@@ -29,6 +29,12 @@ class allcoin extends okcoinusd {
                 'doc' => 'https://www.allcoin.com/api_market/market',
                 'referral' => 'https://www.allcoin.com',
             ),
+            'status' => array (
+                'status' => 'error',
+                'updated' => null,
+                'eta' => null,
+                'url' => null,
+            ),
             'api' => array (
                 'web' => array (
                     'get' => array (
@@ -72,8 +78,8 @@ class allcoin extends okcoinusd {
                 $quote = $this->safe_string($market, 'Secondary');
                 $baseId = strtolower($base);
                 $quoteId = strtolower($quote);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safe_currency_code($base);
+                $quote = $this->safe_currency_code($quote);
                 $id = $baseId . '_' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $active = $market['TradeEnabled'] && $market['BuyEnabled'] && $market['SellEnabled'];

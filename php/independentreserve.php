@@ -82,12 +82,10 @@ class independentreserve extends Exchange {
         $result = array();
         for ($i = 0; $i < count ($baseCurrencies); $i++) {
             $baseId = $baseCurrencies[$i];
-            $baseIdUppercase = strtoupper($baseId);
-            $base = $this->common_currency_code($baseIdUppercase);
+            $base = $this->safe_currency_code($baseId);
             for ($j = 0; $j < count ($quoteCurrencies); $j++) {
                 $quoteId = $quoteCurrencies[$j];
-                $quoteIdUppercase = strtoupper($quoteId);
-                $quote = $this->common_currency_code($quoteIdUppercase);
+                $quote = $this->safe_currency_code($quoteId);
                 $id = $baseId . '/' . $quoteId;
                 $symbol = $base . '/' . $quote;
                 $result[] = array (
@@ -111,12 +109,10 @@ class independentreserve extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'CurrencyCode');
-            $uppercase = strtoupper($currencyId);
-            $code = $this->common_currency_code($uppercase);
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            $account['free'] = $balance['AvailableBalance'];
-            $account['total'] = $balance['TotalBalance'];
-            $account['used'] = $account['total'] - $account['free'];
+            $account['free'] = $this->safe_float($balance, 'AvailableBalance');
+            $account['total'] = $this->safe_float($balance, 'TotalBalance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -296,6 +292,12 @@ class independentreserve extends Exchange {
         $orderId = $this->safe_string($trade, 'OrderGuid');
         $price = $this->safe_float_2($trade, 'Price', 'SecondaryCurrencyTradePrice');
         $amount = $this->safe_float_2($trade, 'VolumeTraded', 'PrimaryCurrencyAmount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -317,8 +319,10 @@ class independentreserve extends Exchange {
             'order' => $orderId,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
+            'cost' => $cost,
             'fee' => null,
         );
     }

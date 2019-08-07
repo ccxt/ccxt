@@ -43,7 +43,7 @@ class lbank extends Exchange {
                 'www' => 'https://www.lbank.info',
                 'doc' => 'https://github.com/LBank-exchange/lbank-official-api-docs',
                 'fees' => 'https://lbankinfo.zendesk.com/hc/zh-cn/articles/115002295114--%E8%B4%B9%E7%8E%87%E8%AF%B4%E6%98%8E',
-                'referral' => 'https://www.lbex.io/sign-up.html?icode=7QCY&lang=en-US',
+                'referral' => 'https://www.lbex.io/invite?icode=7QCY',
             ),
             'api' => array (
                 'public' => array (
@@ -129,8 +129,8 @@ class lbank extends Exchange {
                 $baseId = $parts[0];
                 $quoteId = $parts[1];
             }
-            $base = $this->common_currency_code(strtoupper($baseId));
-            $quote = $this->common_currency_code(strtoupper($quoteId));
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'quantityAccuracy'),
@@ -185,8 +185,8 @@ class lbank extends Exchange {
                     $baseId = $parts[0];
                     $quoteId = $parts[1];
                 }
-                $base = $this->common_currency_code(strtoupper($baseId));
-                $quote = $this->common_currency_code(strtoupper($quoteId));
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -195,10 +195,19 @@ class lbank extends Exchange {
         $ticker = $info['ticker'];
         $last = $this->safe_float($ticker, 'latest');
         $percentage = $this->safe_float($ticker, 'change');
-        $relativeChange = $percentage / 100;
-        $open = $last / $this->sum (1, $relativeChange);
-        $change = $last - $open;
-        $average = $this->sum ($last, $open) / 2;
+        $open = null;
+        if ($percentage !== null) {
+            $relativeChange = $this->sum (1, $percentage / 100);
+            if ($relativeChange > 0) {
+                $open = $last / $this->sum (1, $relativeChange);
+            }
+        }
+        $change = null;
+        $average = null;
+        if ($last !== null && $open !== null) {
+            $change = $last - $open;
+            $average = $this->sum ($last, $open) / 2;
+        }
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
@@ -276,26 +285,26 @@ class lbank extends Exchange {
         $cost = null;
         if ($price !== null) {
             if ($amount !== null) {
-                $cost = $this->cost_to_precision($symbol, $price * $amount);
-                $cost = floatval ($cost);
+                $cost = floatval ($this->cost_to_precision($symbol, $price * $amount));
             }
         }
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
         return array (
+            'id' => $id,
+            'info' => $this->safe_value($trade, 'info', $trade),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
             'order' => null,
             'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
             'fee' => null,
-            'info' => $this->safe_value($trade, 'info', $trade),
         );
     }
 
@@ -349,20 +358,41 @@ class lbank extends Exchange {
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
         $response = $this->privatePostUserInfo ($params);
+        //
+        //     {
+        //         "$result":"true",
+        //         "$info":{
+        //             "$freeze":array (
+        //                 "iog":"0.00000000",
+        //                 "ssc":"0.00000000",
+        //                 "eon":"0.00000000",
+        //             ),
+        //             "$asset":array (
+        //                 "iog":"0.00000000",
+        //                 "ssc":"0.00000000",
+        //                 "eon":"0.00000000",
+        //             ),
+        //             "$free":array (
+        //                 "iog":"0.00000000",
+        //                 "ssc":"0.00000000",
+        //                 "eon":"0.00000000",
+        //             ),
+        //         }
+        //     }
+        //
         $result = array( 'info' => $response );
         $info = $this->safe_value($response, 'info', array());
         $free = $this->safe_value($info, 'free', array());
         $freeze = $this->safe_value($info, 'freeze', array());
-        $ids = is_array(array_merge ($free, $freeze)) ? array_keys(array_merge ($free, $freeze)) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $code = $this->common_currency_code(strtoupper($id));
-            $account = array (
-                'free' => $this->safe_float($free, $id, 0.0),
-                'used' => $this->safe_float($freeze, $id, 0.0),
-                'total' => null,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
+        $asset = $this->safe_value($info, 'asset', array());
+        $currencyIds = is_array($free) ? array_keys($free) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($free, $currencyId);
+            $account['used'] = $this->safe_float($freeze, $currencyId);
+            $account['total'] = $this->safe_float($asset, $currencyId);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -567,7 +597,7 @@ class lbank extends Exchange {
             } else {
                 $pem = $this->convert_secret_to_pem ($this->secret);
             }
-            $sign = $this->binaryToBase64 ($this->rsa ($message, $pem, 'RS256'));
+            $sign = $this->binaryToBase64 ($this->rsa ($message, $this->encode ($pem), 'RS256'));
             $query['sign'] = $sign;
             $body = $this->urlencode ($query);
             $headers = array( 'Content-Type' => 'application/x-www-form-urlencoded' );

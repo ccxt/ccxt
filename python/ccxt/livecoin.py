@@ -154,8 +154,8 @@ class livecoin (Exchange):
             market = response[i]
             id = self.safe_string(market, 'symbol')
             baseId, quoteId = id.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             coinRestrictions = self.safe_value(restrictionsById, symbol)
             precision = {
@@ -200,7 +200,7 @@ class livecoin (Exchange):
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
             walletStatus = self.safe_string(currency, 'walletStatus')
             active = (walletStatus == 'normal')
@@ -265,7 +265,7 @@ class livecoin (Exchange):
         ]
         currencies.append({
             'id': 'RUR',
-            'code': self.common_currency_code('RUR'),
+            'code': self.safe_currency_code('RUR'),
             'name': 'Russian ruble',
         })
         for i in range(0, len(currencies)):
@@ -281,7 +281,7 @@ class livecoin (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = None
             if code in result:
                 account = result[code]
@@ -375,7 +375,7 @@ class livecoin (Exchange):
         ticker = self.publicGetExchangeTicker(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
         #
@@ -399,7 +399,7 @@ class livecoin (Exchange):
         #         "commission": 0,
         #         "clientorderid": 1472837650
         #     }
-        timestamp = self.safe_string_2(trade, 'time', 'datetime')
+        timestamp = self.safe_integer_2(trade, 'time', 'datetime')
         if timestamp is not None:
             timestamp = timestamp * 1000
         fee = None
@@ -412,24 +412,26 @@ class livecoin (Exchange):
             }
         orderId = self.safe_string(trade, 'clientorderid')
         id = self.safe_string(trade, 'id')
-        side = self.safe_string(trade, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'type')
         amount = self.safe_float(trade, 'quantity')
         price = self.safe_float(trade, 'price')
         cost = None
         if amount is not None:
             if price is not None:
                 cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'id': id,
+            'symbol': symbol,
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -539,11 +541,10 @@ class livecoin (Exchange):
             marketId = self.safe_string(order, 'symbol', marketId)
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-        type = None
+        type = self.safe_string_lower(order, 'type')
         side = None
-        if 'type' in order:
-            lowercaseType = order['type'].lower()
-            orderType = lowercaseType.split('_')
+        if type is not None:
+            orderType = type.split('_')
             type = orderType[0]
             side = orderType[1]
         price = self.safe_float(order, 'price')
@@ -704,20 +705,15 @@ class livecoin (Exchange):
         #        "externalKey": "....87diPBy......3hTtuwUT78Yi",(address on deposits, tx on withdrawals)
         #        "documentId": 1110662453
         #    },
-        code = None
         txid = None
         address = None
         id = self.safe_string(transaction, 'documentId')
         amount = self.safe_float(transaction, 'amount')
         timestamp = self.safe_integer(transaction, 'date')
-        type = self.safe_string(transaction, 'type').lower()
+        type = self.safe_string_lower(transaction, 'type')
         currencyId = self.safe_string(transaction, 'fixedCurrency')
         feeCost = self.safe_float(transaction, 'fee')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         if type == 'withdrawal':
             txid = self.safe_string(transaction, 'externalKey')
             address = self.safe_string(transaction, 'id')

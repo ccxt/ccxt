@@ -92,8 +92,8 @@ class virwox (Exchange):
             id = self.safe_string(market, 'instrumentID')
             baseId = self.safe_string(market, 'longCurrency')
             quoteId = self.safe_string(market, 'shortCurrency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -114,13 +114,9 @@ class virwox (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
-            total = self.safe_float(balance, 'balance')
-            account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -189,7 +185,7 @@ class virwox (Exchange):
             'info': ticker,
         }
 
-    def parse_trade(self, trade, symbol=None):
+    def parse_trade(self, trade, market=None):
         timestamp = self.safe_integer(trade, 'time')
         if timestamp is not None:
             timestamp *= 1000
@@ -200,6 +196,9 @@ class virwox (Exchange):
         if price is not None:
             if amount is not None:
                 cost = price * amount
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'timestamp': timestamp,
@@ -208,6 +207,7 @@ class virwox (Exchange):
             'symbol': symbol,
             'type': None,
             'side': None,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -218,13 +218,14 @@ class virwox (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetGetRawTradeData(self.extend({
+        request = {
             'instrument': symbol,
             'timespan': 3600,
-        }, params))
+        }
+        response = self.publicGetGetRawTradeData(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         trades = self.safe_value(result, 'data', [])
-        return self.parse_trades(trades, market)
+        return self.parse_trades(trades, market, since, limit)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()

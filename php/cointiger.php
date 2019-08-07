@@ -39,7 +39,7 @@ class cointiger extends huobipro {
                     'v2' => 'https://api.{hostname}/exchange/trading/api/v2',
                 ),
                 'www' => 'https://www.cointiger.pro',
-                'referral' => 'https://www.cointiger.pro/exchange/register.html?refCode=FfvDtt',
+                'referral' => 'https://www.cointiger.one/#/register?refCode=FfvDtt',
                 'doc' => 'https://github.com/cointiger/api-docs-en/wiki',
             ),
             'api' => array (
@@ -156,10 +156,8 @@ class cointiger extends huobipro {
                 $market = $partition[$j];
                 $baseId = $this->safe_string($market, 'baseCurrency');
                 $quoteId = $this->safe_string($market, 'quoteCurrency');
-                $base = strtoupper($baseId);
-                $quote = strtoupper($quoteId);
-                $base = $this->common_currency_code($base);
-                $quote = $this->common_currency_code($quote);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $id = $baseId . $quoteId;
                 $uppercaseId = strtoupper($id);
                 $symbol = $base . '/' . $quote;
@@ -319,7 +317,7 @@ class cointiger extends huobipro {
         //
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'orderId');
-        $orderType = $this->safe_string($trade, 'type');
+        $orderType = $this->safe_string_lower($trade, 'type');
         $type = null;
         $side = null;
         if ($orderType !== null) {
@@ -327,7 +325,7 @@ class cointiger extends huobipro {
             $side = $parts[0];
             $type = $parts[1];
         }
-        $side = $this->safe_string($trade, 'side', $side);
+        $side = $this->safe_string_lower($trade, 'side', $side);
         $amount = null;
         $price = null;
         $cost = null;
@@ -336,7 +334,6 @@ class cointiger extends huobipro {
             $amount = $this->safe_float($trade['volume'], 'amount');
             $cost = $this->safe_float($trade['deal_price'], 'amount');
         } else {
-            $side = strtolower($side);
             $price = $this->safe_float($trade, 'price');
             $amount = $this->safe_float_2($trade, 'amount', 'volume');
         }
@@ -370,14 +367,15 @@ class cointiger extends huobipro {
             $symbol = $market['symbol'];
         }
         return array (
-            'info' => $trade,
             'id' => $id,
+            'info' => $trade,
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -488,16 +486,11 @@ class cointiger extends huobipro {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
-            $id = $balance['coin'];
-            $code = strtoupper($id);
-            $code = $this->common_currency_code($code);
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$id]['code'];
-            }
+            $currencyId = $this->safe_string($balance, 'coin');
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['used'] = $this->safe_float($balance, 'lock');
             $account['free'] = $this->safe_float($balance, 'normal');
-            $account['total'] = $this->sum ($account['used'], $account['free']);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -682,7 +675,7 @@ class cointiger extends huobipro {
         //                    $status =>  2              } }
         //
         $id = $this->safe_string($order, 'id');
-        $side = $this->safe_string($order, 'side');
+        $side = $this->safe_string_lower($order, 'side');
         $type = null;
         $orderType = $this->safe_string($order, 'type');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -706,7 +699,6 @@ class cointiger extends huobipro {
         $fee = null;
         $average = null;
         if ($side !== null) {
-            $side = strtolower($side);
             $amount = $this->safe_float($order['volume'], 'amount');
             $remaining = (is_array($order) && array_key_exists('remain_volume', $order)) ? $this->safe_float($order['remain_volume'], 'amount') : null;
             $filled = (is_array($order) && array_key_exists('deal_volume', $order)) ? $this->safe_float($order['deal_volume'], 'amount') : null;

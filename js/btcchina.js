@@ -101,8 +101,8 @@ module.exports = class btcchina extends Exchange {
             const quoteId = id.slice (3, 6);
             let base = baseId.toUpperCase ();
             let quote = quoteId.toUpperCase ();
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
             const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
@@ -134,7 +134,6 @@ module.exports = class btcchina extends Exchange {
             if (currencyId in balances['frozen']) {
                 account['used'] = parseFloat (balances['frozen'][currencyId]['amount']);
             }
-            account['free'] = account['total'] - account['used'];
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -264,10 +263,7 @@ module.exports = class btcchina extends Exchange {
                 cost = amount * price;
             }
         }
-        let side = this.safeString (trade, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'side');
         return {
             'id': undefined,
             'info': trade,

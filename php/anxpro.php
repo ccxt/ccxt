@@ -144,6 +144,7 @@ class anxpro extends Exchange {
     }
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
+        // todo => migrate this to fetchLedger
         $this->load_markets();
         $request = array();
         if ($since !== null) {
@@ -206,8 +207,8 @@ class anxpro extends Exchange {
         //     }
         //
         $transactions = $this->safe_value($response, 'transactions', array());
-        $grouped = $this->group_by($transactions, 'transactionType');
-        $depositsAndWithdrawals = $this->array_concat($grouped['DEPOSIT'], $grouped['WITHDRAWAL']);
+        $grouped = $this->group_by($transactions, 'transactionType', array());
+        $depositsAndWithdrawals = $this->array_concat($this->safe_value($grouped, 'DEPOSIT', array()), $this->safe_value($grouped, 'WITHDRAWAL', array()));
         return $this->parseTransactions ($depositsAndWithdrawals, $currency, $since, $limit);
     }
 
@@ -301,7 +302,7 @@ class anxpro extends Exchange {
             $type = 'deposit';
         }
         $currencyId = $this->safe_string($transaction, 'ccy');
-        $code = $this->common_currency_code($currencyId);
+        $code = $this->safe_currency_code($currencyId);
         $transactionState = $this->safe_string($transaction, 'transactionState');
         $status = $this->parse_transaction_status ($transactionState);
         $feeCost = $this->safe_float($transaction, 'fee');
@@ -445,8 +446,7 @@ class anxpro extends Exchange {
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'tradedCurrencyFillAmount');
         $cost = $this->safe_float($trade, 'settlementCurrencyFillAmount');
-        $side = $this->safe_string($trade, 'side');
-        $side = ($side === null) ? null : strtolower($side);
+        $side = $this->safe_string_lower($trade, 'side');
         return array (
             'id' => $id,
             'order' => $orderId,
@@ -465,8 +465,9 @@ class anxpro extends Exchange {
 
     public function fetch_currencies ($params = array ()) {
         $response = $this->v3publicGetCurrencyStatic ($params);
-        $result = array();
-        $currencies = $response['currencyStatic']['currencies'];
+        //
+        //   {
+        //     "$currencyStatic" => array (
         //       "$currencies" => array (
         //         "HKD" => array (
         //           "decimals" => 2,
@@ -515,11 +516,40 @@ class anxpro extends Exchange {
         //           "assetIcon" => "/images/currencies/crypto/ETH.svg"
         //         ),
         //       ),
+        //       "currencyPairs" => array (
+        //         "ETHUSD" => array (
+        //           "priceDecimals" => 5,
+        //           "$engineSettings" => array (
+        //             "tradingEnabled" => true,
+        //             "$displayEnabled" => true,
+        //             "cancelOnly" => true,
+        //             "verifyRequired" => false,
+        //             "restrictedBuy" => false,
+        //             "restrictedSell" => false
+        //           ),
+        //           "minOrderRate" => 10.00000000,
+        //           "maxOrderRate" => 10000.00000000,
+        //           "displayPriceDecimals" => 5,
+        //           "tradedCcy" => "ETH",
+        //           "settlementCcy" => "USD",
+        //           "preferredMarket" => "ANX",
+        //           "chartEnabled" => true,
+        //           "simpleTradeEnabled" => false
+        //         ),
+        //       ),
+        //     ),
+        //     "timestamp" => "1549840691039",
+        //     "resultCode" => "OK"
+        //   }
+        //
+        $currencyStatic = $this->safe_value($response, 'currencyStatic', array());
+        $currencies = $this->safe_value($currencyStatic, 'currencies', array());
+        $result = array();
         $ids = is_array($currencies) ? array_keys($currencies) : array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
             $currency = $currencies[$id];
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $engineSettings = $this->safe_value($currency, 'engineSettings');
             $depositsEnabled = $this->safe_value($engineSettings, 'depositsEnabled');
             $withdrawalsEnabled = $this->safe_value($engineSettings, 'withdrawalsEnabled');
@@ -527,10 +557,7 @@ class anxpro extends Exchange {
             $active = $depositsEnabled && $withdrawalsEnabled && $displayEnabled;
             $precision = $this->safe_integer($currency, 'decimals');
             $fee = $this->safe_float($currency, 'networkFee');
-            $type = $this->safe_string($currency, 'type');
-            if ($type !== 'null') {
-                $type = strtolower($type);
-            }
+            $type = $this->safe_string_lower($currency, 'type');
             $result[$code] = array (
                 'id' => $id,
                 'code' => $code,
@@ -673,8 +700,8 @@ class anxpro extends Exchange {
             //
             $baseId = $this->safe_string($market, 'tradedCcy');
             $quoteId = $this->safe_string($market, 'settlementCcy');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $baseCurrency = $this->safe_value($currencies, $baseId, array());
             $quoteCurrency = $this->safe_value($currencies, $quoteId, array());
@@ -719,19 +746,16 @@ class anxpro extends Exchange {
         $this->load_markets();
         $response = $this->privatePostMoneyInfo ($params);
         $balance = $this->safe_value($response, 'data', array());
-        $wallets = $balance['Wallets'];
-        $currencies = is_array($wallets) ? array_keys($wallets) : array();
+        $wallets = $this->safe_value($balance, 'Wallets', array());
+        $currencyIds = is_array($wallets) ? array_keys($wallets) : array();
         $result = array( 'info' => $balance );
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $currencyId = $currencies[$c];
-            $code = $this->common_currency_code($currencyId);
+        for ($c = 0; $c < count ($currencyIds); $c++) {
+            $currencyId = $currencyIds[$c];
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            if (is_array($wallets) && array_key_exists($currencyId, $wallets)) {
-                $wallet = $wallets[$currencyId];
-                $account['free'] = $this->safe_float($wallet['Available_Balance'], 'value');
-                $account['total'] = $this->safe_float($wallet['Balance'], 'value');
-                $account['used'] = $account['total'] - $account['free'];
-            }
+            $wallet = $this->safe_value($wallets, $currencyId);
+            $account['free'] = $this->safe_float($wallet['Available_Balance'], 'value');
+            $account['total'] = $this->safe_float($wallet['Balance'], 'value');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -920,7 +944,7 @@ class anxpro extends Exchange {
         $lastTradeTimestamp = null;
         $trades = array();
         $filled = 0;
-        $type = strtolower($this->safe_string($order, 'orderType'));
+        $type = $this->safe_string_lower($order, 'orderType');
         for ($i = 0; $i < count ($order['trades']); $i++) {
             $trade = $order['trades'][$i];
             $tradeTimestamp = $this->safe_integer($trade, 'timestamp');

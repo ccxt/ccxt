@@ -28,6 +28,7 @@ class coingi (Exchange):
                 'fetchTickers': True,
             },
             'urls': {
+                'referral': 'https://www.coingi.com/?r=XTPPMC',
                 'logo': 'https://user-images.githubusercontent.com/1294454/28619707-5c9232a8-7212-11e7-86d6-98fe5d15cc6e.jpg',
                 'api': {
                     'www': 'https://coingi.com',
@@ -111,8 +112,8 @@ class coingi (Exchange):
             baseId, quoteId = id.split('-')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -160,14 +161,13 @@ class coingi (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance['currency'], 'name')
-            code = currencyId.upper()
-            code = self.common_currency_code(code)
-            account = {
-                'free': balance['available'],
-                'used': balance['blocked'] + balance['inOrders'] + balance['withdrawing'],
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'available')
+            blocked = self.safe_float(balance, 'blocked')
+            inOrders = self.safe_float(balance, 'inOrders')
+            withdrawing = self.safe_float(balance, 'withdrawing')
+            account['used'] = self.sum(blocked, inOrders, withdrawing)
             result[code] = account
         return self.parse_balance(result)
 
@@ -234,8 +234,6 @@ class coingi (Exchange):
         raise ExchangeError(self.id + ' return did not contain ' + symbol)
 
     def parse_trade(self, trade, market=None):
-        if market is None:
-            market = self.markets_by_id[trade['currencyPair']]
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -244,17 +242,26 @@ class coingi (Exchange):
                 cost = price * amount
         timestamp = self.safe_integer(trade, 'timestamp')
         id = self.safe_string(trade, 'id')
+        marketId = self.safe_string(trade, 'currencyPair')
+        if marketId in self.markets_by_id:
+            market = self.markets_by_id[marketId]
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': None,  # type
+            'order': None,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
+            'fee': None,
         }
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

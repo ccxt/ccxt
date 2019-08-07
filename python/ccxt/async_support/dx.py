@@ -184,9 +184,9 @@ class dx (Exchange):
             base, quote = fullName.split('/')
             amountPrecision = 0
             if instrument['meQuantityMultiplier'] != 0:
-                amountPrecision = math.log10(instrument['meQuantityMultiplier'])
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+                amountPrecision = int(math.log10(instrument['meQuantityMultiplier']))
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             baseId = self.safe_string(asset, 'baseCurrencyId')
             quoteId = self.safe_string(asset, 'quotedCurrencyId')
             baseNumericId = self.safe_integer(asset, 'baseCurrencyId')
@@ -404,19 +404,16 @@ class dx (Exchange):
         response = await self.privatePostBalanceGet(params)
         result = {'info': response}
         balances = self.safe_value(response['result'], 'balance')
-        ids = list(balances.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            balance = balances[id]
-            code = None
-            if id in self.currencies_by_id:
-                code = self.currencies_by_id[id]['code']
+        currencyIds = list(balances.keys())
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            balance = self.safe_value(balances, currencyId, {})
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'available'),
                 'used': self.safe_float(balance, 'frozen'),
                 'total': self.safe_float(balance, 'total'),
             }
-            account['total'] = self.sum(account['free'], account['used'])
             result[code] = account
         return self.parse_balance(result)
 

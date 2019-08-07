@@ -122,10 +122,7 @@ class lykke extends Exchange {
         }
         $id = $this->safe_string($trade, 'id');
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'dateTime'));
-        $side = $this->safe_string($trade, 'action');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'action');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
         $cost = $price * $amount;
@@ -138,6 +135,7 @@ class lykke extends Exchange {
             'type' => null,
             'order' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -167,15 +165,11 @@ class lykke extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'AssetId');
-            $code = $this->common_currency_code($currencyId);
-            $total = $this->safe_float($balance, 'Balance');
-            $used = $this->safe_float($balance, 'Reserved');
-            $free = $total - $used;
-            $result[$code] = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'Balance');
+            $account['used'] = $this->safe_float($balance, 'Reserved');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -231,8 +225,8 @@ class lykke extends Exchange {
             $id = $this->safe_string($market, 'Id');
             $name = $this->safe_string($market, 'Name');
             list($baseId, $quoteId) = explode('/', $name);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'Accuracy'),

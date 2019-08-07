@@ -26,8 +26,8 @@ class foxbit extends Exchange {
                     'public' => 'https://api.blinktrade.com/api',
                     'private' => 'https://api.blinktrade.com/tapi',
                 ),
-                'www' => 'https://foxbit.exchange',
-                'doc' => 'https://blinktrade.com/docs',
+                'www' => 'https://foxbit.com.br/exchange',
+                'doc' => 'https://foxbit.com.br/api/',
             ),
             'comment' => 'Blinktrade API',
             'api' => array (
@@ -79,15 +79,21 @@ class foxbit extends Exchange {
             $currencyIds = is_array($this->currencies_by_id) ? array_keys($this->currencies_by_id) : array();
             for ($i = 0; $i < count ($currencyIds); $i++) {
                 $currencyId = $currencyIds[$i];
-                $currency = $this->currencies_by_id[$currencyId];
-                $code = $currency['code'];
-                // we only set the balance for the $currency if that $currency is present in $response
-                // otherwise we will lose the info if the $currency balance has been funded or traded or not
+                $code = $this->safe_currency_code($currencyId);
+                // we only set the balance for the currency if that currency is present in $response
+                // otherwise we will lose the info if the currency balance has been funded or traded or not
                 if (is_array($balances) && array_key_exists($currencyId, $balances)) {
                     $account = $this->account ();
-                    $account['used'] = floatval ($balances[$currencyId . '_locked']) * 1e-8;
-                    $account['total'] = floatval ($balances[$currencyId]) * 1e-8;
-                    $account['free'] = $account['total'] - $account['used'];
+                    $used = $this->safe_float($balances, $currencyId . '_locked');
+                    if ($used !== null) {
+                        $used *= 1e-8;
+                    }
+                    $total = $this->safe_float($balances, $currencyId);
+                    if ($total !== null) {
+                        $total *= 1e-8;
+                    }
+                    $account['used'] = $used;
+                    $account['total'] = $total;
                     $result[$code] = $account;
                 }
             }
@@ -142,18 +148,39 @@ class foxbit extends Exchange {
         );
     }
 
-    public function parse_trade ($trade, $market) {
-        $timestamp = $this->safe_integer($trade, 'date') * 1000;
+    public function parse_trade ($trade, $market = null) {
+        $timestamp = $this->safe_integer($trade, 'date');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
+        $id = $this->safe_string($trade, 'tid');
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
+        $side = $this->safe_string($trade, 'side');
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'amount');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $amount * $price;
+            }
+        }
         return array (
-            'id' => $this->safe_string($trade, 'tid'),
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
-            'side' => $this->safe_string($trade, 'side'),
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'amount'),
+            'side' => $side,
+            'order' => null,
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
     }
 

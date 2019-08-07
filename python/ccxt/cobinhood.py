@@ -58,6 +58,7 @@ class cobinhood (Exchange):
                 '1M': '1M',
             },
             'urls': {
+                'referral': 'https://cobinhood.com?referrerId=a9d57842-99bb-4d7c-b668-0479a15a458b',
                 'logo': 'https://user-images.githubusercontent.com/1294454/35755576-dee02e5c-0878-11e8-989f-1595d80ba47f.jpg',
                 'api': 'https://api.cobinhood.com',
                 'www': 'https://cobinhood.com',
@@ -204,7 +205,7 @@ class cobinhood (Exchange):
             currency = currencies[i]
             id = self.safe_string(currency, 'currency')
             name = self.safe_string(currency, 'name')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             minUnit = self.safe_float(currency, 'min_unit')
             result[code] = {
                 'id': id,
@@ -251,8 +252,8 @@ class cobinhood (Exchange):
             market = markets[i]
             id = self.safe_string(market, 'id')
             baseId, quoteId = id.split('-')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': 8,
@@ -294,8 +295,8 @@ class cobinhood (Exchange):
                 market = self.markets_by_id[marketId]
             else:
                 baseId, quoteId = marketId.split('-')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
@@ -380,6 +381,7 @@ class cobinhood (Exchange):
             'order': None,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -441,14 +443,10 @@ class cobinhood (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            account = {
-                'used': float(balance['on_order']),
-                'total': float(balance['total']),
-            }
-            account['free'] = float(account['total'] - account['used'])
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['used'] = self.safe_float(balance, 'on_order')
+            account['total'] = self.safe_float(balance, 'total')
             result[code] = account
         return self.parse_balance(result)
 
@@ -726,15 +724,8 @@ class cobinhood (Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'created_at')
-        code = None
-        if currency is None:
-            currencyId = self.safe_string(transaction, 'currency')
-            if currencyId in self.currencies_by_id:
-                currency = self.currencies_by_id[currencyId]
-            else:
-                code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
         id = None
         withdrawalId = self.safe_string(transaction, 'withdrawal_id')
         depositId = self.safe_string(transaction, 'deposit_id')
@@ -783,7 +774,7 @@ class cobinhood (Exchange):
             if len(query):
                 url += '?' + query
         else:
-            headers['Content-type'] = 'application/json charset=UTF-8'
+            headers['Content-type'] = 'application/json; charset=UTF-8'
             body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

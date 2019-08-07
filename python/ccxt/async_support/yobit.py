@@ -230,14 +230,10 @@ class yobit (Exchange):
         currencyIds = list(self.extend(free, total).keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.common_currency_code(currencyId.upper())
-            account = {
-                'free': self.safe_float(free, currencyId),
-                'used': None,
-                'total': self.safe_float(total, currencyId),
-            }
-            if account['total'] is not None and account['free'] is not None:
-                account['used'] = account['total'] - account['free']
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(free, currencyId)
+            account['total'] = self.safe_float(total, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -252,8 +248,8 @@ class yobit (Exchange):
             baseId, quoteId = id.split('_')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -435,13 +431,7 @@ class yobit (Exchange):
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
-            feeCurrencyId = feeCurrencyId.upper()
-            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
-            feeCurrencyCode = None
-            if feeCurrency is not None:
-                feeCurrencyCode = feeCurrency['code']
-            else:
-                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -453,6 +443,10 @@ class yobit (Exchange):
                 takerOrMaker = 'maker'
             if fee is None:
                 fee = self.calculate_fee(symbol, type, side, amount, price, takerOrMaker)
+        cost = None
+        if amount is not None:
+            if price is not None:
+                cost = amount * price
         return {
             'id': id,
             'order': order,
@@ -464,6 +458,7 @@ class yobit (Exchange):
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
+            'cost': cost,
             'fee': fee,
             'info': trade,
         }

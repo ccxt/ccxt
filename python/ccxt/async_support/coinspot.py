@@ -30,7 +30,7 @@ class coinspot (Exchange):
                 },
                 'www': 'https://www.coinspot.com.au',
                 'doc': 'https://www.coinspot.com.au/api',
-                'referral': 'https://www.coinspot.com.au/join/FSM11C',
+                'referral': 'https://www.coinspot.com.au/register?code=PJURCU',
             },
             'api': {
                 'public': {
@@ -73,14 +73,9 @@ class coinspot (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            uppercase = currencyId.upper()
-            code = self.common_currency_code(uppercase)
-            total = self.safe_float(balances, currencyId)
-            account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balances, currencyId)
             result[code] = account
         return self.parse_balance(result)
 
@@ -126,10 +121,13 @@ class coinspot (Exchange):
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'cointype': self.market_id(symbol),
+            'cointype': market['id'],
         }
-        return await self.privatePostOrdersHistory(self.extend(request, params))
+        response = await self.privatePostOrdersHistory(self.extend(request, params))
+        trades = self.safe_value(response, 'orders', [])
+        return self.parse_trades(trades, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()

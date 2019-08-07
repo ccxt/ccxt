@@ -178,10 +178,10 @@ class dx extends Exchange {
             list($base, $quote) = explode('/', $fullName);
             $amountPrecision = 0;
             if ($instrument['meQuantityMultiplier'] !== 0) {
-                $amountPrecision = log10 ($instrument['meQuantityMultiplier']);
+                $amountPrecision = intval (log10 ($instrument['meQuantityMultiplier']));
             }
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $baseId = $this->safe_string($asset, 'baseCurrencyId');
             $quoteId = $this->safe_string($asset, 'quotedCurrencyId');
             $baseNumericId = $this->safe_integer($asset, 'baseCurrencyId');
@@ -418,20 +418,16 @@ class dx extends Exchange {
         $response = $this->privatePostBalanceGet ($params);
         $result = array( 'info' => $response );
         $balances = $this->safe_value($response['result'], 'balance');
-        $ids = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $balance = $balances[$id];
-            $code = null;
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$id]['code'];
-            }
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $balance = $this->safe_value($balances, $currencyId, array());
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $this->safe_float($balance, 'frozen'),
                 'total' => $this->safe_float($balance, 'total'),
             );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);

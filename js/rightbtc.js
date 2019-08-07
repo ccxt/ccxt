@@ -134,9 +134,8 @@ module.exports = class rightbtc extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetTradingPairs (params);
         // let zh = await this.publicGetGetAssetsTradingPairsZh ();
-        const markets = this.extend (response['status']['message']);
+        const markets = await this.publicGetTradingPairs (params);
         const marketIds = Object.keys (markets);
         const result = [];
         for (let i = 0; i < marketIds.length; i++) {
@@ -144,8 +143,8 @@ module.exports = class rightbtc extends Exchange {
             const market = markets[id];
             const baseId = this.safeString (market, 'bid_asset_symbol');
             const quoteId = this.safeString (market, 'ask_asset_symbol');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (market, 'bid_asset_decimals'),
@@ -318,26 +317,26 @@ module.exports = class rightbtc extends Exchange {
         }
         let cost = this.costToPrecision (symbol, price * amount);
         cost = parseFloat (cost);
-        let side = this.safeString (trade, 'side');
-        side = side.toLowerCase ();
+        let side = this.safeStringLower (trade, 'side');
         if (side === 'b') {
             side = 'buy';
         } else if (side === 's') {
             side = 'sell';
         }
         return {
+            'id': id,
+            'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
             'fee': undefined,
-            'info': trade,
         };
     }
 
@@ -353,12 +352,12 @@ module.exports = class rightbtc extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
-            ohlcv[0],
-            ohlcv[2] / 1e8,
-            ohlcv[3] / 1e8,
-            ohlcv[4] / 1e8,
-            ohlcv[5] / 1e8,
-            ohlcv[1] / 1e8,
+            parseInt (ohlcv[0]),
+            parseFloat (ohlcv[2]) / 1e8,
+            parseFloat (ohlcv[3]) / 1e8,
+            parseFloat (ohlcv[4]) / 1e8,
+            parseFloat (ohlcv[5]) / 1e8,
+            parseFloat (ohlcv[1]) / 1e8,
         ];
     }
 
@@ -399,31 +398,15 @@ module.exports = class rightbtc extends Exchange {
         //     }
         //
         const result = { 'info': response };
-        const balances = response['result'];
+        const balances = this.safeValue (response, 'result', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = balance['asset'];
-            let code = this.commonCurrencyCode (currencyId);
-            if (currencyId in this.currencies_by_id) {
-                code = this.currencies_by_id[currencyId]['code'];
-            }
-            const free = this.divideSafeFloat (balance, 'balance', 1e8);
-            const used = this.divideSafeFloat (balance, 'frozen', 1e8);
-            const total = this.sum (free, used);
-            //
+            const currencyId = this.safeString (balance, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
             // https://github.com/ccxt/ccxt/issues/3873
-            //
-            //     if (total !== undefined) {
-            //         if (used !== undefined) {
-            //             free = total - used;
-            //         }
-            //     }
-            //
-            const account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            };
+            account['free'] = this.divideSafeFloat (balance, 'balance', 1e8);
+            account['used'] = this.divideSafeFloat (balance, 'frozen', 1e8);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -542,10 +525,7 @@ module.exports = class rightbtc extends Exchange {
             }
         }
         const type = 'limit';
-        let side = this.safeString (order, 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'side');
         const feeCost = this.divideSafeFloat (order, 'min_fee', 1e8);
         let fee = undefined;
         if (feeCost !== undefined) {

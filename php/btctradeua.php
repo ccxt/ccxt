@@ -21,6 +21,7 @@ class btctradeua extends Exchange {
                 'fetchOpenOrders' => true,
             ),
             'urls' => array (
+                'referral' => 'https://btc-trade.com.ua/registration/22689',
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27941483-79fc7350-62d9-11e7-9f61-ac47f28fcd96.jpg',
                 'api' => 'https://btc-trade.com.ua/api',
                 'www' => 'https://btc-trade.com.ua',
@@ -93,17 +94,14 @@ class btctradeua extends Exchange {
         $this->load_markets();
         $response = $this->privatePostBalance ($params);
         $result = array( 'info' => $response );
-        $accounts = $this->safe_value($response, 'accounts');
-        for ($i = 0; $i < count ($accounts); $i++) {
-            $account = $accounts[$i];
-            $currencyId = $account['currency'];
-            $code = $this->common_currency_code($currencyId);
-            $balance = $this->safe_float($account, 'balance');
-            $result[$code] = array (
-                'free' => $balance,
-                'used' => 0.0,
-                'total' => $balance,
-            );
+        $balances = $this->safe_value($response, 'accounts');
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -240,7 +238,7 @@ class btctradeua extends Exchange {
         return $timestamp - 10800000;
     }
 
-    public function parse_trade ($trade, $market) {
+    public function parse_trade ($trade, $market = null) {
         $timestamp = $this->parse_cyrillic_datetime ($this->safe_string($trade, 'pub_date'));
         $id = $this->safe_string($trade, 'id');
         $type = 'limit';
@@ -253,17 +251,24 @@ class btctradeua extends Exchange {
                 $cost = $price * $amount;
             }
         }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
+            'order' => null,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

@@ -248,8 +248,8 @@ class bitz (Exchange):
             quoteId = self.safe_string(market, 'coinTo')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'numberFloat'),
@@ -314,11 +314,7 @@ class bitz (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'name')
-            code = currencyId.upper()
-            if currencyId in self.markets_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['used'] = self.safe_float(balance, 'lock')
             account['total'] = self.safe_float(balance, 'num')
@@ -490,10 +486,8 @@ class bitz (Exchange):
                     symbol = market['symbol']
                 else:
                     baseId, quoteId = id.split('_')
-                    base = baseId.upper()
-                    quote = quoteId.upper()
-                    base = self.common_currency_code(baseId)
-                    quote = self.common_currency_code(quoteId)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
             if symbol is not None:
                 result[symbol] = self.extend(ticker, {
@@ -564,6 +558,7 @@ class bitz (Exchange):
             'order': None,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -660,7 +655,10 @@ class bitz (Exchange):
         #       microtime:   "0.56462100 1535973435",
         #          source:   "api"                                                    }
         #
-        return self.parse_ohlcvs(response['data']['bars'], market, timeframe, since, limit)
+        bars = self.safe_value(response['data'], 'bars', None)
+        if bars is None:
+            return []
+        return self.parse_ohlcvs(bars, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
         statuses = {
@@ -698,10 +696,8 @@ class bitz (Exchange):
                 if marketId in self.markets_by_id:
                     market = self.safe_value(self.markets_by_id, marketId)
                 else:
-                    base = baseId.upper()
-                    quote = quoteId.upper()
-                    base = self.common_currency_code(base)
-                    quote = self.common_currency_code(quote)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']

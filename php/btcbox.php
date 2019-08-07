@@ -85,8 +85,7 @@ class btcbox extends Exchange {
                 $used = $currencyId . '_lock';
                 $account['free'] = $this->safe_float($response, $free);
                 $account['used'] = $this->safe_float($response, $used);
-                $account['total'] = $this->sum ($account['free'], $account['used']);
-                $result[$currency] = $account;
+                $result[$code] = $account;
             }
         }
         return $this->parse_balance($result);
@@ -176,9 +175,11 @@ class btcbox extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
+            'fee' => null,
         );
     }
 

@@ -117,13 +117,14 @@ class coincheck extends Exchange {
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count ($codes); $i++) {
             $code = $codes[$i];
-            $currencyId = $this->currency ($code);
-            $account = $this->account ();
-            $reserved = $currencyId . '_reserved';
-            $account['free'] = $this->safe_float($balances, $currencyId);
-            $account['used'] = $this->safe_float($balances, $reserved);
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$code] = $account;
+            $currencyId = $this->currencyId ($code);
+            if (is_array($balances) && array_key_exists($currencyId, $balances)) {
+                $account = $this->account ();
+                $reserved = $currencyId . '_reserved';
+                $account['free'] = $this->safe_float($balances, $currencyId);
+                $account['used'] = $this->safe_float($balances, $reserved);
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
@@ -185,8 +186,8 @@ class coincheck extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -272,8 +273,8 @@ class coincheck extends Exchange {
                 $ids = explode('_', $marketId);
                 $baseId = $ids[0];
                 $quoteId = $ids[1];
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }

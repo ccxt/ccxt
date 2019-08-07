@@ -130,22 +130,14 @@ class coinone extends Exchange {
             'result',
             'normalWallets',
         ));
-        $ids = is_array($balances) ? array_keys($balances) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $balance = $balances[$id];
-            $code = strtoupper($id);
-            if (is_array($this->currencies_by_id) && array_key_exists($id, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$id]['code'];
-            }
-            $free = $this->safe_float($balance, 'avail');
-            $total = $this->safe_float($balance, 'balance');
-            $used = $total - $free;
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
+        $currencyIds = is_array($balances) ? array_keys($balances) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $balance = $balances[$currencyId];
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'avail');
+            $account['total'] = $this->safe_float($balance, 'balance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -230,7 +222,10 @@ class coinone extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'timestamp') * 1000;
+        $timestamp = $this->safe_integer($trade, 'timestamp');
+        if ($timestamp !== null) {
+            $timestamp *= 1000;
+        }
         $symbol = ($market !== null) ? $market['symbol'] : null;
         $is_ask = $this->safe_string($trade, 'is_ask');
         $side = null;
@@ -239,18 +234,28 @@ class coinone extends Exchange {
         } else if ($is_ask === '0') {
             $side = 'buy';
         }
+        $price = $this->safe_float($trade, 'price');
+        $amount = $this->safe_float($trade, 'qty');
+        $cost = null;
+        if ($price !== null) {
+            if ($amount !== null) {
+                $cost = $price * $amount;
+            }
+        }
         return array (
             'id' => null,
+            'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'order' => null,
             'symbol' => $symbol,
             'type' => null,
             'side' => $side,
-            'price' => $this->safe_float($trade, 'price'),
-            'amount' => $this->safe_float($trade, 'qty'),
+            'takerOrMaker' => null,
+            'price' => $price,
+            'amount' => $amount,
+            'cost' => $cost,
             'fee' => null,
-            'info' => $trade,
         );
     }
 
