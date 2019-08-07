@@ -735,6 +735,7 @@ module.exports = class bitstamp extends Exchange {
         //         "datetime": "2018-01-05 15:27:55",
         //         "transaction_id": "001743B03B0C79BA166A064AC0142917B050347B4CB23BA2AB4B91B3C5608F4C"
         //     }
+        //
         const timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
         const id = this.safeString (transaction, 'id');
         const currencyId = this.getCurrencyIdFromTransaction (transaction);
@@ -755,11 +756,9 @@ module.exports = class bitstamp extends Exchange {
             // withdrawals have a negative amount
             amount = Math.abs (amount);
         }
-        let status = undefined;
+        let status = 'ok';
         if ('status' in transaction) {
-            status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'));
-        } else {
-            status = 'ok';
+            status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         }
         let type = undefined;
         if ('type' in transaction) {
@@ -780,11 +779,16 @@ module.exports = class bitstamp extends Exchange {
         if (address !== undefined) {
             // dt (destination tag) is embedded into the address field
             const addressParts = address.split ('?dt=');
-            if (addressParts.length === 2) {
+            const numParts = addressParts.length;
+            if (numParts > 1) {
                 address = addressParts[0];
                 tag = addressParts[1];
             }
         }
+        const addressFrom = undefined;
+        const addressTo = address;
+        const tagFrom = undefined;
+        const tagTo = tag;
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -799,7 +803,11 @@ module.exports = class bitstamp extends Exchange {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
             'address': address,
+            'tagFrom': tagFrom,
+            'tagTo': tagTo,
             'tag': tag,
             'type': type,
             'amount': amount,
@@ -810,7 +818,7 @@ module.exports = class bitstamp extends Exchange {
         };
     }
 
-    parseTransactionStatusByType (status) {
+    parseTransactionStatus (status) {
         // withdrawals:
         // 0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         const statuses = {
@@ -1042,16 +1050,12 @@ module.exports = class bitstamp extends Exchange {
         const v1 = (code === 'BTC');
         let method = v1 ? 'v1' : 'private'; // v1 or v2
         method += 'Post' + this.capitalize (name) + 'Withdrawal';
-        let query = params;
         if (code === 'XRP') {
             if (tag !== undefined) {
                 request['destination_tag'] = tag;
-                query = this.omit (params, 'destination_tag');
-            } else {
-                throw new ExchangeError (this.id + ' withdraw() requires a destination_tag param for ' + code);
             }
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         return {
             'info': response,
             'id': response['id'],

@@ -778,18 +778,17 @@ class bittrex extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = 'pending';
         if ($type === 'deposit') {
-            if ($currency !== null) {
-                // deposits $numConfirmations never reach the $minConfirmations number
-                // we set all of them to 'ok', otherwise they'd all be 'pending'
-                //
-                //     $numConfirmations = $this->safe_integer($transaction, 'Confirmations', 0);
-                //     $minConfirmations = $this->safe_integer($currency['info'], 'MinConfirmation');
-                //     if ($numConfirmations >= $minConfirmations) {
-                //         $status = 'ok';
-                //     }
-                //
-                $status = 'ok';
-            }
+            //
+            // deposits $numConfirmations never reach the $minConfirmations number
+            // we set all of them to 'ok', otherwise they'd all be 'pending'
+            //
+            //     $numConfirmations = $this->safe_integer($transaction, 'Confirmations', 0);
+            //     $minConfirmations = $this->safe_integer($currency['info'], 'MinConfirmation');
+            //     if ($numConfirmations >= $minConfirmations) {
+            //         $status = 'ok';
+            //     }
+            //
+            $status = 'ok';
         } else {
             $authorized = $this->safe_value($transaction, 'Authorized', false);
             $pendingPayment = $this->safe_value($transaction, 'PendingPayment', false);

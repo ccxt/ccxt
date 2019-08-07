@@ -686,6 +686,17 @@ class bitstamp (Exchange):
         #         transaction_id: 'xxxx',
         #     }
         #
+        #     {
+        #         "id": 3386432,
+        #         "type": 14,
+        #         "amount": "863.21332500",
+        #         "status": 2,
+        #         "address": "rE1sdh25BJQ3qFwngiTBwaq3zPGGYcrjp1?dt=1455",
+        #         "currency": "XRP",
+        #         "datetime": "2018-01-05 15:27:55",
+        #         "transaction_id": "001743B03B0C79BA166A064AC0142917B050347B4CB23BA2AB4B91B3C5608F4C"
+        #     }
+        #
         timestamp = self.parse8601(self.safe_string(transaction, 'datetime'))
         id = self.safe_string(transaction, 'id')
         currencyId = self.get_currency_id_from_transaction(transaction)
@@ -693,7 +704,9 @@ class bitstamp (Exchange):
         feeCost = self.safe_float(transaction, 'fee')
         feeCurrency = None
         amount = None
-        if currency is not None:
+        if 'amount' in transaction:
+            amount = self.safe_float(transaction, 'amount')
+        elif currency is not None:
             amount = self.safe_float(transaction, currency['id'], amount)
             feeCurrency = currency['code']
         elif (code is not None) and(currencyId is not None):
@@ -702,39 +715,62 @@ class bitstamp (Exchange):
         if amount is not None:
             # withdrawals have a negative amount
             amount = abs(amount)
-        status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'))
-        type = self.safe_string(transaction, 'type')
-        if status is None:
-            if type == '0':
+        status = 'ok'
+        if 'status' in transaction:
+            status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
+        type = None
+        if 'type' in transaction:
+            # from fetchTransactions
+            rawType = self.safe_string(transaction, 'type')
+            if rawType == '0':
                 type = 'deposit'
-            elif type == '1':
+            elif rawType == '1':
                 type = 'withdrawal'
         else:
+            # from fetchWithdrawals
             type = 'withdrawal'
         txid = self.safe_string(transaction, 'transaction_id')
+        tag = None
         address = self.safe_string(transaction, 'address')
-        tag = None  # not documented
+        if address is not None:
+            # dt(destination tag) is embedded into the address field
+            addressParts = address.split('?dt=')
+            numParts = len(addressParts)
+            if numParts > 1:
+                address = addressParts[0]
+                tag = addressParts[1]
+        addressFrom = None
+        addressTo = address
+        tagFrom = None
+        tagTo = tag
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+                'rate': None,
+            }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
             'address': address,
+            'tagFrom': tagFrom,
+            'tagTo': tagTo,
             'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
             'updated': None,
-            'fee': {
-                'currency': feeCurrency,
-                'cost': feeCost,
-                'rate': None,
-            },
+            'fee': fee,
         }
 
-    def parse_transaction_status_by_type(self, status):
+    def parse_transaction_status(self, status):
         # withdrawals:
         # 0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
         statuses = {
@@ -936,14 +972,10 @@ class bitstamp (Exchange):
         v1 = (code == 'BTC')
         method = 'v1' if v1 else 'private'  # v1 or v2
         method += 'Post' + self.capitalize(name) + 'Withdrawal'
-        query = params
         if code == 'XRP':
             if tag is not None:
                 request['destination_tag'] = tag
-                query = self.omit(params, 'destination_tag')
-            else:
-                raise ExchangeError(self.id + ' withdraw() requires a destination_tag param for ' + code)
-        response = await getattr(self, method)(self.extend(request, query))
+        response = await getattr(self, method)(self.extend(request, params))
         return {
             'info': response,
             'id': response['id'],

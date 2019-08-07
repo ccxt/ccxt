@@ -154,6 +154,7 @@ class bitmex extends Exchange {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires' => 5, // in seconds
+                'fetchOHLCVOpenTimestamp' => true,
             ),
         ));
     }
@@ -869,13 +870,28 @@ class bitmex extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 100, max 500
         }
+        $duration = $this->parse_timeframe($timeframe) * 1000;
+        $fetchOHLCVOpenTimestamp = $this->safe_value($this->options, 'fetchOHLCVOpenTimestamp', true);
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
-            $ymdhms = $this->ymdhms ($since);
+            $timestamp = $since;
+            if ($fetchOHLCVOpenTimestamp) {
+                $timestamp = $this->sum ($timestamp, $duration);
+            }
+            $ymdhms = $this->ymdhms ($timestamp);
             $request['startTime'] = $ymdhms; // starting date $filter for results
         }
         $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $result = $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        if ($fetchOHLCVOpenTimestamp) {
+            // bitmex returns the candle's close $timestamp - https://github.com/ccxt/ccxt/issues/4446
+            // we can emulate the open $timestamp by shifting all the timestamps one place
+            // so the previous close becomes the current open, and we drop the first candle
+            for ($i = 0; $i < count ($result); $i++) {
+                $result[$i][0] = $result[$i][0] - $duration;
+            }
+        }
+        return $result;
     }
 
     public function parse_trade ($trade, $market = null) {
