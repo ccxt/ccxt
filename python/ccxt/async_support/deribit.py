@@ -14,6 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class deribit (Exchange):
@@ -137,6 +138,7 @@ class deribit (Exchange):
                 '11030': ExchangeError,  # "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>
                 '11031': ExchangeError,  # "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'fetchTickerQuotes': True,
             },
@@ -153,28 +155,39 @@ class deribit (Exchange):
             quoteId = self.safe_string(market, 'currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            type = self.safe_string(market, 'kind')
+            future = (type == 'future')
+            option = (type == 'option')
+            active = self.safe_value(market, 'isActive')
+            precision = {
+                'amount': self.safe_float(market, 'minTradeAmount'),
+                'price': self.safe_float(market, 'tickSize'),
+            }
             result.append({
                 'id': id,
                 'symbol': id,
                 'base': base,
                 'quote': quote,
-                'active': market['isActive'],
-                'precision': {
-                    'amount': market['minTradeSize'],
-                    'price': market['tickSize'],
-                },
+                'active': active,
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': market['minTradeSize'],
+                        'min': self.safe_float(market, 'minTradeAmount'),
+                        'max': None,
                     },
                     'price': {
-                        'min': market['tickSize'],
+                        'min': self.safe_float(market, 'tickSize'),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
                     },
                 },
-                'type': market['kind'],
+                'type': type,
                 'spot': False,
-                'future': market['kind'] == 'future',
-                'option': market['kind'] == 'option',
+                'future': future,
+                'option': option,
                 'info': market,
             })
         return result

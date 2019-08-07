@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1017'
+const version = '1.18.1018'
 
 Exchange.ccxtVersion = version
 
@@ -38901,6 +38901,7 @@ module.exports = class crypton extends Exchange {
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
+const { TICK_SIZE } = require ('./base/functions/number');
 const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, DDoSProtection, NotSupported, ExchangeNotAvailable, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
@@ -39025,6 +39026,7 @@ module.exports = class deribit extends Exchange {
                 '11030': ExchangeError, // "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>
                 '11031': ExchangeError, // "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'fetchTickerQuotes': true,
             },
@@ -39042,28 +39044,39 @@ module.exports = class deribit extends Exchange {
             const quoteId = this.safeString (market, 'currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const type = this.safeString (market, 'kind');
+            const future = (type === 'future');
+            const option = (type === 'option');
+            const active = this.safeValue (market, 'isActive');
+            const precision = {
+                'amount': this.safeFloat (market, 'minTradeAmount'),
+                'price': this.safeFloat (market, 'tickSize'),
+            };
             result.push ({
                 'id': id,
                 'symbol': id,
                 'base': base,
                 'quote': quote,
-                'active': market['isActive'],
-                'precision': {
-                    'amount': market['minTradeSize'],
-                    'price': market['tickSize'],
-                },
+                'active': active,
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': market['minTradeSize'],
+                        'min': this.safeFloat (market, 'minTradeAmount'),
+                        'max': undefined,
                     },
                     'price': {
-                        'min': market['tickSize'],
+                        'min': this.safeFloat (market, 'tickSize'),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
                     },
                 },
-                'type': market['kind'],
+                'type': type,
                 'spot': false,
-                'future': market['kind'] === 'future',
-                'option': market['kind'] === 'option',
+                'future': future,
+                'option': option,
                 'info': market,
             });
         }
@@ -39544,7 +39557,7 @@ module.exports = class deribit extends Exchange {
     }
 };
 
-},{"./base/Exchange":7,"./base/errors":9}],79:[function(require,module,exports){
+},{"./base/Exchange":7,"./base/errors":9,"./base/functions/number":15}],79:[function(require,module,exports){
 'use strict';
 
 //  ---------------------------------------------------------------------------
