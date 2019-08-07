@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, InsufficientFunds, OrderNotFound, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, BadRequest, InsufficientFunds, PermissionDenied, DDoSProtection, InvalidOrder, AuthenticationError } = require ('./base/errors');
 
 // ---------------------------------------------------------------------------
 
@@ -99,17 +99,13 @@ module.exports = class dsx extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '803': InvalidOrder, // "Count could not be less than 0.001." (selling below minAmount)
-                    '804': InvalidOrder, // "Count could not be more than 10000." (buying above maxAmount)
-                    '805': InvalidOrder, // "price could not be less than X." (minPrice violation on buy & sell)
-                    '806': InvalidOrder, // "price could not be more than X." (maxPrice violation on buy & sell)
-                    '807': InvalidOrder, // "cost could not be less than X." (minCost violation on buy & sell)
-                    '831': InsufficientFunds, // "Not enougth X to create buy order." (buying with balance.quote < order.cost)
-                    '832': InsufficientFunds, // "Not enougth X to create sell order." (selling with balance.base < order.amount)
-                    '833': OrderNotFound, // "Order with id X was not found." (cancelling non-existent, closed and cancelled order)
-                    "Order wasn't cancelled": InvalidOrder, // non-existent order
+                    'Sign is invalid': AuthenticationError, // {"success":0,"error":"Sign is invalid"}
+                    'Order was rejected. Incorrect price.': InvalidOrder, // {"success":0,"error":"Order was rejected. Incorrect price."}
+                    "Order was rejected. You don't have enough money.": InsufficientFunds, // {"success":0,"error":"Order was rejected. You don't have enough money."}
+                    'This method is blocked for your pair of keys': PermissionDenied, // {"success":0,"error":"This method is blocked for your pair of keys"}
                 },
                 'broad': {
+                    'INVALID_PARAMETER': BadRequest,
                     'Invalid pair name': ExchangeError, // {"success":0,"error":"Invalid pair name: btc_eth"}
                     'invalid api key': AuthenticationError,
                     'invalid sign': AuthenticationError,
@@ -1143,18 +1139,36 @@ module.exports = class dsx extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
+        const commission = this.safeValue (params, 'commission');
+        if (commission === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a `commission` (withdrawal fee) parameter (string)');
+        }
+        params = this.omit (params, commission);
         const request = {
-            'coinName': currency['id'],
+            'currency': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
+            'commission': commission,
         };
         if (tag !== undefined) {
             request['address'] += ':' + tag;
         }
-        const response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        const response = await this.dwapiPostWithdrawCrypto (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "success": 1,
+        //             "return": {
+        //                 "transactionId": 2863073
+        //             }
+        //         }
+        //     ]
+        //
+        const data = this.safeValue (response, 'return', {});
+        const id = this.safeString (data, 'transactionId');
         return {
             'info': response,
-            'id': response['return']['tId'],
+            'id': id,
         };
     }
 
