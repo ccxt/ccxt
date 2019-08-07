@@ -725,6 +725,17 @@ module.exports = class bitstamp extends Exchange {
         //         transaction_id: 'xxxx',
         //     }
         //
+        //     {
+        //         "id": 3386432,
+        //         "type": 14,
+        //         "amount": "863.21332500",
+        //         "status": 2,
+        //         "address": "rE1sdh25BJQ3qFwngiTBwaq3zPGGYcrjp1?dt=1455",
+        //         "currency": "XRP",
+        //         "datetime": "2018-01-05 15:27:55",
+        //         "transaction_id": "001743B03B0C79BA166A064AC0142917B050347B4CB23BA2AB4B91B3C5608F4C"
+        //     }
+        //
         const timestamp = this.parse8601 (this.safeString (transaction, 'datetime'));
         const id = this.safeString (transaction, 'id');
         const currencyId = this.getCurrencyIdFromTransaction (transaction);
@@ -732,7 +743,9 @@ module.exports = class bitstamp extends Exchange {
         const feeCost = this.safeFloat (transaction, 'fee');
         let feeCurrency = undefined;
         let amount = undefined;
-        if (currency !== undefined) {
+        if ('amount' in transaction) {
+            amount = this.safeFloat (transaction, 'amount');
+        } else if (currency !== undefined) {
             amount = this.safeFloat (transaction, currency['id'], amount);
             feeCurrency = currency['code'];
         } else if ((code !== undefined) && (currencyId !== undefined)) {
@@ -743,42 +756,69 @@ module.exports = class bitstamp extends Exchange {
             // withdrawals have a negative amount
             amount = Math.abs (amount);
         }
-        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'));
-        let type = this.safeString (transaction, 'type');
-        if (status === undefined) {
-            if (type === '0') {
+        let status = 'ok';
+        if ('status' in transaction) {
+            status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
+        }
+        let type = undefined;
+        if ('type' in transaction) {
+            // from fetchTransactions
+            const rawType = this.safeString (transaction, 'type');
+            if (rawType === '0') {
                 type = 'deposit';
-            } else if (type === '1') {
+            } else if (rawType === '1') {
                 type = 'withdrawal';
             }
         } else {
+            // from fetchWithdrawals
             type = 'withdrawal';
         }
         const txid = this.safeString (transaction, 'transaction_id');
-        const address = this.safeString (transaction, 'address');
-        const tag = undefined; // not documented
+        let tag = undefined;
+        let address = this.safeString (transaction, 'address');
+        if (address !== undefined) {
+            // dt (destination tag) is embedded into the address field
+            const addressParts = address.split ('?dt=');
+            const numParts = addressParts.length;
+            if (numParts > 1) {
+                address = addressParts[0];
+                tag = addressParts[1];
+            }
+        }
+        const addressFrom = undefined;
+        const addressTo = address;
+        const tagFrom = undefined;
+        const tagTo = tag;
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'currency': feeCurrency,
+                'cost': feeCost,
+                'rate': undefined,
+            };
+        }
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
             'address': address,
+            'tagFrom': tagFrom,
+            'tagTo': tagTo,
             'tag': tag,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
             'updated': undefined,
-            'fee': {
-                'currency': feeCurrency,
-                'cost': feeCost,
-                'rate': undefined,
-            },
+            'fee': fee,
         };
     }
 
-    parseTransactionStatusByType (status) {
+    parseTransactionStatus (status) {
         // withdrawals:
         // 0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         const statuses = {
