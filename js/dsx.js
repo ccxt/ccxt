@@ -18,6 +18,7 @@ module.exports = class dsx extends Exchange {
             'has': {
                 'CORS': false,
                 'createMarketOrder': false,
+                'fetchOHLCV': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -50,15 +51,20 @@ module.exports = class dsx extends Exchange {
                     'taker': 0.25 / 100,
                 },
             },
+            'timeframes': {
+                '1m': 'm',
+                '1h': 'h',
+                '1d': 'd',
+            },
             'api': {
                 // market data (public)
                 'public': {
                     'get': [
-                        'barsFromMoment/{id}/{period}/{start}', // empty reply :\
+                        'barsFromMoment/{pair}/{period}/{start}',
                         'depth/{pair}',
                         'info',
-                        'lastBars/{id}/{period}/{amount}', // period is 'm', 'h' or 'd'
-                        'periodBars/{id}/{period}/{start}/{end}',
+                        'lastBars/{pair}/{period}/{amount}', // period is 'm', 'h' or 'd'
+                        'periodBars/{pair}/{period}/{start}/{end}',
                         'ticker/{pair}',
                         'trades/{pair}',
                     ],
@@ -72,7 +78,7 @@ module.exports = class dsx extends Exchange {
                         'history/orders',
                         'orders',
                         'order/cancel',
-                        'order/cancel/all',
+                        // 'order/cancel/all',
                         'order/status',
                         'order/new',
                         'volume',
@@ -86,7 +92,7 @@ module.exports = class dsx extends Exchange {
                         'withdraw/crypto',
                         'withdraw/fiat',
                         'withdraw/submit',
-                        'withdraw/cancel',
+                        // 'withdraw/cancel',
                         'transaction/status', // see 'history/transactions' in private tapi above
                     ],
                 },
@@ -537,6 +543,81 @@ module.exports = class dsx extends Exchange {
         return this.parseTrades (response[market['id']], market, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "high" : 0.01955,
+        //         "open" : 0.01955,
+        //         "low" : 0.01955,
+        //         "close" : 0.01955,
+        //         "amount" : 2.5,
+        //         "timestamp" : 1565155740000
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 'timestamp'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'amount'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'pair': market['id'],
+            'period': this.timeframes[timeframe],
+        };
+        let method = 'publicGetLastBarsPairPeriodAmount';
+        if (since === undefined) {
+            if (limit === undefined) {
+                limit = 100; // required, max 2000
+            }
+            request['amount'] = limit;
+        } else {
+            method = 'publicGetPeriodBarsPairPeriodStartEnd';
+            // in their docs they expect milliseconds
+            // but it returns empty arrays with milliseconds
+            // however, it does work properly with seconds
+            request['start'] = parseInt (since / 1000);
+            if (limit === undefined) {
+                request['end'] = this.seconds ();
+            } else {
+                const duration = this.parseTimeframe (timeframe) * 1000;
+                const end = this.sum (since, duration * limit);
+                request['end'] = parseInt (end / 1000);
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "ethbtc": [
+        //             {
+        //                 "high" : 0.01955,
+        //                 "open" : 0.01955,
+        //                 "low" : 0.01955,
+        //                 "close" : 0.01955,
+        //                 "amount" : 2.5,
+        //                 "timestamp" : 1565155740000
+        //             },
+        //             {
+        //                 "high" : 0.01967,
+        //                 "open" : 0.01967,
+        //                 "low" : 0.01967,
+        //                 "close" : 0.01967,
+        //                 "amount" : 0,
+        //                 "timestamp" : 1565155680000
+        //             }
+        //         ]
+        //     }
+        //
+        const candles = this.safeValue (response, market['id'], []);
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -691,7 +772,7 @@ module.exports = class dsx extends Exchange {
                 if (feeCost === undefined) {
                     feeCost = 0;
                 }
-                feeCost += trade['fee']['cost'];
+                feeCost = this.sum (feeCost, trade['fee']['cost']);
                 feeCurrency = trade['fee']['currency'];
                 lastTradeTimestamp = trade['timestamp'];
             }
@@ -1086,7 +1167,6 @@ module.exports = class dsx extends Exchange {
             const nonce = this.nonce ();
             body = this.urlencode (this.extend ({
                 'nonce': nonce,
-                'method': path,
             }, query));
             const signature = this.decode (this.hmac (this.encode (body), this.encode (this.secret), 'sha512', 'base64'));
             headers = {
