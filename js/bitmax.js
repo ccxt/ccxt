@@ -102,17 +102,17 @@ module.exports = class bitmax extends Exchange {
                 'accountGroup': -1,
                 'fetchTradesMethod': 'publicGetAggTrades',
                 'fetchTickersMethod': 'publicGetTicker24hr',
-                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultLimitOrderType': 'limit', // or 'limit_maker'
+                'defaultTimeInForce': 'GTC',
+                'defaultLimitOrderType': 'limit',
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
-                'recvWindow': 5 * 1000, // 5 sec, binance default
-                'timeDifference': 0, // the difference between system clock and Binance clock
-                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
+                'recvWindow': 5 * 1000,
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
+                'parseOrderToPrecision': false,
                 'newOrderRespType': {
-                    'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-                    'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
+                    'market': 'FULL',
+                    'limit': 'RESULT',
                 },
             },
             'exceptions': {},
@@ -295,6 +295,7 @@ module.exports = class bitmax extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        // this exchange return data is wrong, sometimes open > high
         return [
             ohlcv['t'],
             parseFloat (ohlcv['o']),
@@ -320,39 +321,25 @@ module.exports = class bitmax extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger2 (trade, 't', 'time');
-        const price = this.safeFloat (trade, 'p', 'price');
-        const amount = this.safeFloat (trade, 'q', 'qty');
-        const id = market['id'];
-        const side = undefined;
-        const orderId = this.safeString (trade, 'orderId');
-        const fee = undefined;
-        let takerOrMaker = undefined;
-        if ('bm' in trade) {
-            takerOrMaker = trade['bm'] ? 'maker' : 'taker';
-        }
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (trade, 'symbol');
-            market = this.safeValue (this.markets_by_id, marketId);
-        }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        const timestamp = this.safeInteger (trade, 't');
+        const price = this.safeFloat (trade, 'p');
+        const amount = this.safeFloat (trade, 'q');
+        const takerOrMaker = trade['bm'] ? 'maker' : 'taker';
+        const symbol = market['symbol'];
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': id,
-            'order': orderId,
+            'id': undefined,
+            'order': undefined,
             'type': undefined,
             'takerOrMaker': takerOrMaker,
-            'side': side,
+            'side': undefined,
             'price': price,
             'amount': amount,
             'cost': price * amount,
-            'fee': fee,
+            'fee': undefined,
         };
     }
 
