@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1021'
+__version__ = '1.18.1022'
 
 # -----------------------------------------------------------------------------
 
@@ -138,7 +138,6 @@ from ccxt.async_support.kuna import kuna                                  # noqa
 from ccxt.async_support.lakebtc import lakebtc                            # noqa: F401
 from ccxt.async_support.latoken import latoken                            # noqa: F401
 from ccxt.async_support.lbank import lbank                                # noqa: F401
-from ccxt.async_support.liqui import liqui                                # noqa: F401
 from ccxt.async_support.liquid import liquid                              # noqa: F401
 from ccxt.async_support.livecoin import livecoin                          # noqa: F401
 from ccxt.async_support.luno import luno                                  # noqa: F401
@@ -265,7 +264,6 @@ exchanges = [
     'lakebtc',
     'latoken',
     'lbank',
-    'liqui',
     'liquid',
     'livecoin',
     'luno',
