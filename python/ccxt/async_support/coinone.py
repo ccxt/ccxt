@@ -337,10 +337,8 @@ class coinone (Exchange):
 
     def parse_order(self, order, market=None):
         info = self.safe_value(order, 'info')
-        id = self.safe_string(info, 'orderId')
-        if id is not None:
-            id = id.upper()
-        timestamp = self.safe_integer(info, 'timestamp') * 1000
+        id = self.safe_string_upper(info, 'orderId')
+        timestamp = self.safe_timestamp(info, 'timestamp')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         cost = None
         side = self.safe_string(info, 'type')

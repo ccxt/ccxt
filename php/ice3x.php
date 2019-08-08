@@ -306,7 +306,7 @@ class ice3x extends Exchange {
             $market = $this->marketsById[$pairId];
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($order, 'created') * 1000;
+        $timestamp = $this->safe_timestamp($order, 'created');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'volume');
         $status = $this->safe_integer($order, 'active');

@@ -356,11 +356,8 @@ class coinone extends Exchange {
 
     public function parse_order ($order, $market = null) {
         $info = $this->safe_value($order, 'info');
-        $id = $this->safe_string($info, 'orderId');
-        if ($id !== null) {
-            $id = strtoupper($id);
-        }
-        $timestamp = $this->safe_integer($info, 'timestamp') * 1000;
+        $id = $this->safe_string_upper($info, 'orderId');
+        $timestamp = $this->safe_timestamp($info, 'timestamp');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $cost = null;
         $side = $this->safe_string($info, 'type');

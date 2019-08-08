@@ -416,7 +416,7 @@ class cex (Exchange):
         if limit is not None:
             request['depth'] = limit
         response = await self.publicGetOrderBookPair(self.extend(request, params))
-        timestamp = response['timestamp'] * 1000
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -454,9 +454,7 @@ class cex (Exchange):
                 return []
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = None
-        if 'timestamp' in ticker:
-            timestamp = int(ticker['timestamp']) * 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         volume = self.safe_float(ticker, 'volume')
         high = self.safe_float(ticker, 'high')
         low = self.safe_float(ticker, 'low')

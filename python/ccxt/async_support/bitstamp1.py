@@ -81,7 +81,7 @@ class bitstamp1 (Exchange):
             raise ExchangeError(self.id + ' ' + self.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only')
         await self.load_markets()
         orderbook = await self.publicGetOrderBook(params)
-        timestamp = int(orderbook['timestamp']) * 1000
+        timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, timestamp)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -89,7 +89,7 @@ class bitstamp1 (Exchange):
             raise ExchangeError(self.id + ' ' + self.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only')
         await self.load_markets()
         ticker = await self.publicGetTicker(params)
-        timestamp = int(ticker['timestamp']) * 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None

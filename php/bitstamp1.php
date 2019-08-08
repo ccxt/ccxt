@@ -82,7 +82,7 @@ class bitstamp1 extends Exchange {
         }
         $this->load_markets();
         $orderbook = $this->publicGetOrderBook ($params);
-        $timestamp = intval ($orderbook['timestamp']) * 1000;
+        $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $timestamp);
     }
 
@@ -92,7 +92,7 @@ class bitstamp1 extends Exchange {
         }
         $this->load_markets();
         $ticker = $this->publicGetTicker ($params);
-        $timestamp = intval ($ticker['timestamp']) * 1000;
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;

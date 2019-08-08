@@ -286,7 +286,7 @@ class ice3x (Exchange):
         if pairId and not market and(pairId in list(self.marketsById.keys())):
             market = self.marketsById[pairId]
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'created') * 1000
+        timestamp = self.safe_timestamp(order, 'created')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')
         status = self.safe_integer(order, 'active')

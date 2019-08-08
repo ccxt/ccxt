@@ -641,7 +641,7 @@ class exmo (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'updated') * 1000
+        timestamp = self.safe_timestamp(ticker, 'updated')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -689,7 +689,7 @@ class exmo (Exchange):
         return self.parse_ticker(response[market['id']], market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date') * 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         fee = None
         symbol = None
         id = self.safe_string(trade, 'trade_id')

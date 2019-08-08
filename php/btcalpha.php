@@ -214,14 +214,14 @@ class btcalpha extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
-        return [
-            $ohlcv['time'] * 1000,
-            $ohlcv['open'],
-            $ohlcv['high'],
-            $ohlcv['low'],
-            $ohlcv['close'],
-            $ohlcv['volume'],
-        ];
+        return array (
+            $this->safe_timestamp($ohlcv, 'time'),
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'volume'),
+        );
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {

@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1034'
+const version = '1.18.1035'
 
 Exchange.ccxtVersion = version
 
@@ -18723,7 +18723,7 @@ module.exports = class bitstamp1 extends Exchange {
         }
         await this.loadMarkets ();
         const orderbook = await this.publicGetOrderBook (params);
-        const timestamp = parseInt (orderbook['timestamp']) * 1000;
+        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, timestamp);
     }
 
@@ -18733,7 +18733,7 @@ module.exports = class bitstamp1 extends Exchange {
         }
         await this.loadMarkets ();
         const ticker = await this.publicGetTicker (params);
-        const timestamp = parseInt (ticker['timestamp']) * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const vwap = this.safeFloat (ticker, 'vwap');
         const baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = undefined;
@@ -23178,12 +23178,12 @@ module.exports = class btcalpha extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
-            ohlcv['time'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['volume'],
+            this.safeTimestamp (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 
@@ -27210,7 +27210,7 @@ module.exports = class cex extends Exchange {
             request['depth'] = limit;
         }
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
-        const timestamp = response['timestamp'] * 1000;
+        const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, timestamp);
     }
 
@@ -27255,10 +27255,7 @@ module.exports = class cex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = undefined;
-        if ('timestamp' in ticker) {
-            timestamp = parseInt (ticker['timestamp']) * 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const volume = this.safeFloat (ticker, 'volume');
         const high = this.safeFloat (ticker, 'high');
         const low = this.safeFloat (ticker, 'low');
@@ -34844,11 +34841,8 @@ module.exports = class coinone extends Exchange {
 
     parseOrder (order, market = undefined) {
         const info = this.safeValue (order, 'info');
-        let id = this.safeString (info, 'orderId');
-        if (id !== undefined) {
-            id = id.toUpperCase ();
-        }
-        const timestamp = this.safeInteger (info, 'timestamp') * 1000;
+        const id = this.safeStringUpper (info, 'orderId');
+        const timestamp = this.safeTimestamp (info, 'timestamp');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let cost = undefined;
         let side = this.safeString (info, 'type');
@@ -35618,12 +35612,12 @@ module.exports = class cointiger extends huobipro {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv['id'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['vol'],
+            this.safeTimestamp (ohlcv, 'id'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'vol'),
         ];
     }
 
@@ -42134,8 +42128,21 @@ module.exports = class dx extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "date":1546878960,
+        //         "open":0.038064,
+        //         "high":0.038064,
+        //         "low":0.038064,
+        //         "close":0.038064,
+        //         "volume":0.00755418,
+        //         "id":169042,
+        //         "instrumentId":1015,
+        //         "type":"1m"
+        //     }
+        //
         return [
-            this.safeFloat (ohlcv, 'date') * 1000,
+            this.safeTimestamp (ohlcv, 'date'),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
@@ -42158,6 +42165,23 @@ module.exports = class dx extends Exchange {
             },
         };
         const response = await this.publicPostAssetManagementHistory (this.extend (request, params));
+        //
+        //     {
+        //         "id":"1.565248994048e+12",
+        //         "result":{
+        //             "assets":[
+        //                 {"date":1546878960,"open":0.038064,"high":0.038064,"low":0.038064,"close":0.038064,"volume":0.00755418,"id":169042,"instrumentId":1015,"type":"1m"},
+        //                 {"date":1546878660,"open":0.037863,"high":0.037863,"low":0.037863,"close":0.037863,"volume":0.0075726,"id":169028,"instrumentId":1015,"type":"1m"},
+        //                 {"date":1546860360,"open":0.03864,"high":0.03864,"low":0.03864,"close":0.03864,"volume":0.0013524,"id":168924,"instrumentId":1015,"type":"1m"},
+        //                 {"date":1546848480,"open":0.038969,"high":0.038969,"low":0.038969,"close":0.038969,"volume":0.01654819,"id":168880,"instrumentId":1015,"type":"1m"},
+        //             ],
+        //             "total":{
+        //                 "count":52838
+        //             }
+        //         },
+        //         "error":null
+        //     }
+        //
         return this.parseOHLCVs (response['result']['assets'], market, timeframe, since, limit);
     }
 
@@ -42227,7 +42251,7 @@ module.exports = class dx extends Exchange {
         if (order['orderType'] === this.options['orderTypes']['market']) {
             orderType = 'market';
         }
-        const timestamp = order['time'] * 1000;
+        const timestamp = this.safeTimestamp (order, 'time');
         const quantity = this.objectToNumber (order['quantity']);
         const filledQuantity = this.objectToNumber (order['filledQuantity']);
         const id = this.safeString (order, 'externalOrderId');
@@ -43117,7 +43141,7 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeInteger (ticker, 'updated') * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -43170,7 +43194,7 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'date') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'date');
         let fee = undefined;
         let symbol = undefined;
         const id = this.safeString (trade, 'trade_id');
@@ -44794,12 +44818,12 @@ module.exports = class fcoin extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv['id'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['base_vol'],
+            this.safeTimestamp (ohlcv, 'id'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'base_vol'),
         ];
     }
 
@@ -45084,7 +45108,7 @@ module.exports = class flowbtc extends Exchange {
     }
 
     parseTrade (trade, market) {
-        const timestamp = this.safeInteger (trade, 'unixtime') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'unixtime');
         const side = (trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         const id = this.safeString (trade, 'tid');
         const price = this.safeFloat (trade, 'px');
@@ -50973,12 +50997,12 @@ module.exports = class huobipro extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            ohlcv['id'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['amount'],
+            this.safeTimestamp (ohlcv, 'id'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'amount'),
         ];
     }
 
@@ -51997,7 +52021,7 @@ module.exports = class ice3x extends Exchange {
             market = this.marketsById[pairId];
             symbol = market['symbol'];
         }
-        const timestamp = this.safeInteger (order, 'created') * 1000;
+        const timestamp = this.safeTimestamp (order, 'created');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'volume');
         let status = this.safeInteger (order, 'active');

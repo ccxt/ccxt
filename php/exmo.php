@@ -656,7 +656,7 @@ class exmo extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'updated') * 1000;
+        $timestamp = $this->safe_timestamp($ticker, 'updated');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -709,7 +709,7 @@ class exmo extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date') * 1000;
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $fee = null;
         $symbol = null;
         $id = $this->safe_string($trade, 'trade_id');
