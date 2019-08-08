@@ -417,8 +417,7 @@ module.exports = class oceanex extends Exchange {
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
-        const timestamp = this.safeInteger (response, 'data');
-        return timestamp * 1000;
+        return this.safeTimestamp (response, 'data');
     }
 
     async fetchAllTradingFees (params = {}) {
