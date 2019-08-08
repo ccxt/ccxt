@@ -1175,10 +1175,7 @@ module.exports = class kraken extends Exchange {
         //
         const id = this.safeString (transaction, 'refid');
         const txid = this.safeString (transaction, 'txid');
-        let timestamp = this.safeInteger (transaction, 'time');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (transaction, 'time');
         const currencyId = this.safeString (transaction, 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'info');
