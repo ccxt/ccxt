@@ -168,10 +168,7 @@ module.exports = class _1btcxe extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
