@@ -588,10 +588,7 @@ module.exports = class latoken extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'orderId');
-        let timestamp = this.safeValue (order, 'timeCreated');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'timeCreated');
         const marketId = this.safeString (order, 'symbol');
         let symbol = marketId;
         if (marketId in this.markets_by_id) {
