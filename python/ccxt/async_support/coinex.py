@@ -424,9 +424,7 @@ class coinex (Exchange):
         #         "type": "sell",
         #     }
         #
-        timestamp = self.safe_integer(order, 'create_time')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'create_time')
         price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'deal_money')
         amount = self.safe_float(order, 'amount')
