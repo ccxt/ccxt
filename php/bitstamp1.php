@@ -125,10 +125,7 @@ class bitstamp1 extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer_2($trade, 'date', 'datetime');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp_2($trade, 'date', 'datetime');
         $side = ($trade['type'] === 0) ? 'buy' : 'sell';
         $orderId = $this->safe_string($trade, 'order_id');
         if (is_array($trade) && array_key_exists('currency_pair', $trade)) {

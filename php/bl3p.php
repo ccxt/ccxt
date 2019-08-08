@@ -109,10 +109,7 @@ class bl3p extends Exchange {
             'market' => $this->market_id($symbol),
         );
         $ticker = $this->publicGetMarketTicker (array_merge ($request, $params));
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,

@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1024'
+const version = '1.18.1025'
 
 Exchange.ccxtVersion = version
 
@@ -353,7 +353,7 @@ module.exports = class _1btcxe extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
@@ -648,12 +648,12 @@ module.exports = class acx extends Exchange {
             request['limit'] = limit; // default = 300
         }
         const orderbook = await this.publicGetDepth (this.extend (request, params));
-        const timestamp = this.safeIntegerProduct (orderbook, 'timestamp', 1000);
+        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeIntegerProduct (ticker, 'at', 1000);
+        const timestamp = this.safeTimestamp (ticker, 'at');
         ticker = ticker['ticker'];
         let symbol = undefined;
         if (market) {
@@ -1113,6 +1113,7 @@ module.exports = class anxpro extends Exchange {
             'name': 'ANXPro',
             'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
             'rateLimit': 1500,
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
                 'fetchCurrencies': true,
@@ -1866,8 +1867,7 @@ module.exports = class anxpro extends Exchange {
         };
         const response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data', {});
-        const t = this.safeInteger (orderbook, 'dataUpdateTime');
-        const timestamp = (t === undefined) ? t : parseInt (t / 1000);
+        const timestamp = this.safeIntegerProduct (orderbook, 'dataUpdateTime', 0.001);
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -1878,8 +1878,7 @@ module.exports = class anxpro extends Exchange {
         };
         const response = await this.publicGetCurrencyPairMoneyTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'data', {});
-        const t = this.safeInteger (ticker, 'dataUpdateTime');
-        const timestamp = (t === undefined) ? t : parseInt (t / 1000);
+        const timestamp = this.safeIntegerProduct (ticker, 'dataUpdateTime', 0.001);
         const bid = this.safeFloat (ticker['buy'], 'value');
         const ask = this.safeFloat (ticker['sell'], 'value');
         const baseVolume = this.safeFloat (ticker['vol'], 'value');
@@ -5211,6 +5210,7 @@ module.exports = {
     , safeFloat:          (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? n                         : $default)
     , safeInteger:        (o, k,          $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? n                         : $default)
     , safeIntegerProduct: (o, k, $factor, $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
+    , safeTimestamp:      (o, k,          $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? parseInt (n * 1000)       : $default)
     , safeValue:          (o, k,          $default, x =            prop (o, k))  => (hasProps (x)          ? x                         : $default)
     , safeString:         (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x)                : $default)
     , safeStringLower:    (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x).toLowerCase () : $default)
@@ -5222,6 +5222,7 @@ module.exports = {
     , safeFloat2:          (o, k1, k2,          $default, n =   asFloat (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
     , safeInteger2:        (o, k1, k2,          $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
     , safeIntegerProduct2: (o, k1, k2, $factor, $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
+    , safeTimestamp2:      (o, k1, k2,          $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? parseInt (n * 1000)       : $default)
     , safeValue2:          (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (hasProps (x)          ? x                         : $default)
     , safeString2:         (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x)                : $default)
     , safeStringLower2:    (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x).toLowerCase () : $default)
@@ -5584,10 +5585,7 @@ module.exports = class bcex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let timestamp = this.safeInteger2 (trade, 'date', 'created');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'date', 'created');
         const id = this.safeString (trade, 'tid');
         const orderId = this.safeString (trade, 'order_id');
         const amount = this.safeFloat2 (trade, 'number', 'amount');
@@ -5704,10 +5702,7 @@ module.exports = class bcex extends Exchange {
         };
         const response = await this.publicPostApiOrderDepth (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        let timestamp = this.safeInteger (data, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (data, 'date');
         return this.parseOrderBook (data, timestamp);
     }
 
@@ -5742,10 +5737,7 @@ module.exports = class bcex extends Exchange {
         };
         const response = await this.privatePostApiOrderOrderInfo (this.extend (request, params));
         const order = this.safeValue (response, 'data');
-        let timestamp = this.safeInteger (order, 'created');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'created');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let side = this.safeString (order, 'flag');
         if (side === 'sale') {
@@ -5774,10 +5766,7 @@ module.exports = class bcex extends Exchange {
 
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
-        let timestamp = this.safeInteger (order, 'datetime');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'datetime');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -9353,7 +9342,7 @@ module.exports = class bit2c extends Exchange {
         let side = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
-            timestamp = this.safeInteger (trade, 'ticks') * 1000;
+            timestamp = this.safeTimestamp (trade, 'ticks');
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains: 'pair|orderId|tradeId'
@@ -9375,7 +9364,7 @@ module.exports = class bit2c extends Exchange {
             }
             feeCost = this.safeFloat (trade, 'feeAmount');
         } else {
-            timestamp = this.safeInteger (trade, 'date') * 1000;
+            timestamp = this.safeTimestamp (trade, 'date');
             id = this.safeString (trade, 'tid');
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'amount');
@@ -10781,10 +10770,7 @@ module.exports = class bitbay extends Exchange {
         //         "tid":"0"
         //     }
         //
-        let timestamp = this.safeInteger (trade, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         const side = this.safeString (trade, 'type');
@@ -13709,14 +13695,9 @@ module.exports = class bitforex extends Exchange {
             request['size'] = limit;
         }
         const response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
-        const data = response['data'];
-        const timestamp = response['time'];
-        const bidsKey = 'bids';
-        const asksKey = 'asks';
-        const priceKey = 'price';
-        const amountKey = 'amount';
-        const orderbook = this.parseOrderBook (data, timestamp, bidsKey, asksKey, priceKey, amountKey);
-        return orderbook;
+        const data = this.safeValue (response, 'data');
+        const timestamp = this.safeInteger (response, 'time');
+        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOrderStatus (status) {
@@ -17740,10 +17721,7 @@ module.exports = class bitstamp extends Exchange {
             'pair': this.marketId (symbol),
         };
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
-        let timestamp = this.safeInteger (response, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeIntegerProduct (response, 'timestamp', 1000);
         return this.parseOrderBook (response, timestamp);
     }
 
@@ -17753,10 +17731,7 @@ module.exports = class bitstamp extends Exchange {
             'pair': this.marketId (symbol),
         };
         const ticker = await this.publicGetTickerPair (this.extend (request, params));
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 1000);
         const vwap = this.safeFloat (ticker, 'vwap');
         const baseVolume = this.safeFloat (ticker, 'volume');
         let quoteVolume = undefined;
@@ -18791,10 +18766,7 @@ module.exports = class bitstamp1 extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger2 (trade, 'date', 'datetime');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'date', 'datetime');
         const side = (trade['type'] === 0) ? 'buy' : 'sell';
         const orderId = this.safeString (trade, 'order_id');
         if ('currency_pair' in trade) {
@@ -21557,10 +21529,7 @@ module.exports = class bl3p extends Exchange {
             'market': this.marketId (symbol),
         };
         const ticker = await this.publicGetMarketTicker (this.extend (request, params));
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
