@@ -179,10 +179,7 @@ class southxchange extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->safe_integer($trade, 'At');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'At');
         $price = $this->safe_float($trade, 'Price');
         $amount = $this->safe_float($trade, 'Amount');
         $cost = null;
