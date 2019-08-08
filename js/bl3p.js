@@ -107,10 +107,7 @@ module.exports = class bl3p extends Exchange {
             'market': this.marketId (symbol),
         };
         const ticker = await this.publicGetMarketTicker (this.extend (request, params));
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
