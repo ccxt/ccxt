@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1030'
+const version = '1.18.1031'
 
 Exchange.ccxtVersion = version
 
@@ -16215,7 +16215,7 @@ module.exports = class bitmex extends Exchange {
             request['count'] = limit;
         }
         const response = await this.privateGetUserWalletHistory (this.extend (request, params));
-        const transactions = this.filterByArray (response, [ 'Withdrawal', 'Deposit' ], false);
+        const transactions = this.filterByArray (response, 'transactType', [ 'Withdrawal', 'Deposit' ], false);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
