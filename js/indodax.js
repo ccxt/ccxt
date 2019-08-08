@@ -155,8 +155,22 @@ module.exports = class indodax extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTicker (this.extend (request, params));
+        //
+        //     {
+        //         "ticker": {
+        //             "high":"0.01951",
+        //             "low":"0.01877",
+        //             "vol_eth":"39.38839319",
+        //             "vol_btc":"0.75320886",
+        //             "last":"0.01896",
+        //             "buy":"0.01896",
+        //             "sell":"0.019",
+        //             "server_time":1565248908
+        //         }
+        //     }
+        //
         const ticker = response['ticker'];
-        const timestamp = this.safeFloat (ticker, 'server_time') * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'server_time');
         const baseVolume = 'vol_' + market['baseId'].toLowerCase ();
         const quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
         const last = this.safeFloat (ticker, 'last');
