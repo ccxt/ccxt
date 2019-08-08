@@ -636,17 +636,18 @@ module.exports = class fcoin extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/';
-        const openapi = (api === 'openapi');
-        request += openapi ? (api + '/') : '';
+        const openAPI = (api === 'openapi');
+        const privateAPI = (api === 'private');
+        request += openAPI ? (api + '/') : '';
         request += this.version + '/';
-        request += ((api === 'private') || openapi) ? '' : (api + '/');
+        request += (privateAPI || openAPI) ? '' : (api + '/');
         request += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
         let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         });
         url += request;
-        if (api === 'private') {
+        if (privateAPI) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             query = this.keysort (query);
