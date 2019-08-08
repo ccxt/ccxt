@@ -163,18 +163,12 @@ module.exports = class acx extends Exchange {
             request['limit'] = limit; // default = 300
         }
         const orderbook = await this.publicGetDepth (this.extend (request, params));
-        let timestamp = this.safeInteger (orderbook, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeIntegerProduct (orderbook, 'timestamp', 1000);
         return this.parseOrderBook (orderbook, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'at');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeIntegerProduct (ticker, 'at', 1000);
         ticker = ticker['ticker'];
         let symbol = undefined;
         if (market) {
