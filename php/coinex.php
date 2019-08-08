@@ -440,10 +440,7 @@ class coinex extends Exchange {
         //         "$type" => "sell",
         //     }
         //
-        $timestamp = $this->safe_integer($order, 'create_time');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'create_time');
         $price = $this->safe_float($order, 'price');
         $cost = $this->safe_float($order, 'deal_money');
         $amount = $this->safe_float($order, 'amount');
