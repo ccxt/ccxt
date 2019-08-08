@@ -329,9 +329,7 @@ class mercado (Exchange):
         filled = self.safe_float(order, 'executed_quantity')
         remaining = amount - filled
         cost = filled * average
-        lastTradeTimestamp = self.safe_integer(order, 'updated_timestamp')
-        if lastTradeTimestamp is not None:
-            lastTradeTimestamp = lastTradeTimestamp * 1000
+        lastTradeTimestamp = self.safe_timestamp(order, 'updated_timestamp')
         return {
             'info': order,
             'id': id,

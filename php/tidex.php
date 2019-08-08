@@ -328,7 +328,7 @@ class tidex extends Exchange {
         //        sell => 0.03377798,
         //     updated => 1537522009          }
         //
-        $timestamp = $ticker['updated'] * 1000;
+        $timestamp = $this->safe_timestamp($ticker, 'updated');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

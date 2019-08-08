@@ -587,10 +587,8 @@ class latoken (Exchange):
         if filled is not None:
             if price is not None:
                 cost = filled * price
-        timeFilled = self.safe_integer(order, 'timeFilled')
-        lastTradeTimestamp = None
-        if timeFilled is not None and timeFilled > 0:
-            lastTradeTimestamp = timeFilled * 1000
+        timeFilled = self.safe_timestamp(order, 'timeFilled')
+        lastTradeTimestamp = timeFilled if (timeFilled > 0) else None
         return {
             'id': id,
             'info': order,

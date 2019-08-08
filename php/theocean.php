@@ -175,7 +175,7 @@ class theocean extends Exchange {
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         $baseDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
         return array (
-            $this->safe_integer($ohlcv, 'startTime') * 1000,
+            $this->safe_timestamp($ohlcv, 'startTime'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),

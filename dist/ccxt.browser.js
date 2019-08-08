@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1033'
+const version = '1.18.1034'
 
 Exchange.ccxtVersion = version
 
@@ -52734,8 +52734,22 @@ module.exports = class indodax extends Exchange {
             'pair': market['id'],
         };
         const response = await this.publicGetPairTicker (this.extend (request, params));
+        //
+        //     {
+        //         "ticker": {
+        //             "high":"0.01951",
+        //             "low":"0.01877",
+        //             "vol_eth":"39.38839319",
+        //             "vol_btc":"0.75320886",
+        //             "last":"0.01896",
+        //             "buy":"0.01896",
+        //             "sell":"0.019",
+        //             "server_time":1565248908
+        //         }
+        //     }
+        //
         const ticker = response['ticker'];
-        const timestamp = this.safeFloat (ticker, 'server_time') * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'server_time');
         const baseVolume = 'vol_' + market['baseId'].toLowerCase ();
         const quoteVolume = 'vol_' + market['quoteId'].toLowerCase ();
         const last = this.safeFloat (ticker, 'last');
@@ -54963,7 +54977,7 @@ module.exports = class kraken extends Exchange {
         if ('ordertxid' in trade) {
             order = trade['ordertxid'];
             id = this.safeString2 (trade, 'id', 'postxid');
-            timestamp = parseInt (trade['time'] * 1000);
+            timestamp = this.safeTimestamp (trade, 'time');
             side = trade['type'];
             type = trade['ordertype'];
             price = this.safeFloat (trade, 'price');
@@ -55168,7 +55182,7 @@ module.exports = class kraken extends Exchange {
             // delisted market ids go here
             market = this.getDelistedMarketById (marketId);
         }
-        const timestamp = this.safeInteger (order, 'opentm') * 1000;
+        const timestamp = this.safeTimestamp (order, 'opentm');
         const amount = this.safeFloat (order, 'vol');
         const filled = this.safeFloat (order, 'vol_exec');
         const remaining = amount - filled;
@@ -58314,11 +58328,8 @@ module.exports = class latoken extends Exchange {
                 cost = filled * price;
             }
         }
-        const timeFilled = this.safeInteger (order, 'timeFilled');
-        let lastTradeTimestamp = undefined;
-        if (timeFilled !== undefined && timeFilled > 0) {
-            lastTradeTimestamp = timeFilled * 1000;
-        }
+        const timeFilled = this.safeTimestamp (order, 'timeFilled');
+        const lastTradeTimestamp = (timeFilled > 0) ? timeFilled : undefined;
         return {
             'id': id,
             'info': order,
@@ -59628,7 +59639,7 @@ module.exports = class liquid extends Exchange {
         //       taker_side: "sell",
         //       created_at:  1512345678,
         //          my_side: "buy"           }
-        const timestamp = this.safeInteger (trade, 'created_at') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'created_at');
         const orderId = this.safeString (trade, 'order_id');
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         const takerSide = this.safeString (trade, 'taker_side');
@@ -63871,10 +63882,7 @@ module.exports = class mercado extends Exchange {
         const filled = this.safeFloat (order, 'executed_quantity');
         const remaining = amount - filled;
         const cost = filled * average;
-        let lastTradeTimestamp = this.safeInteger (order, 'updated_timestamp');
-        if (lastTradeTimestamp !== undefined) {
-            lastTradeTimestamp = lastTradeTimestamp * 1000;
-        }
+        const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
         return {
             'info': order,
             'id': id,
@@ -64354,7 +64362,7 @@ module.exports = class negociecoins extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = ticker['date'] * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'date');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         const last = this.safeFloat (ticker, 'last');
         return {
@@ -64401,7 +64409,7 @@ module.exports = class negociecoins extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = trade['date'] * 1000;
+        const timestamp = this.safeTimestamp (trade, 'date');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -65609,8 +65617,7 @@ module.exports = class oceanex extends Exchange {
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
-        const timestamp = this.safeInteger (response, 'data');
-        return timestamp * 1000;
+        return this.safeTimestamp (response, 'data');
     }
 
     async fetchAllTradingFees (params = {}) {
@@ -70258,12 +70265,12 @@ module.exports = class poloniex extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         return [
-            ohlcv['date'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['quoteVolume'],
+            this.safeTimestamp (ohlcv, 'date'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'quoteVolume'),
         ];
     }
 
@@ -84637,7 +84644,7 @@ module.exports = class theocean extends Exchange {
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         const baseDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
         return [
-            this.safeInteger (ohlcv, 'startTime') * 1000,
+            this.safeTimestamp (ohlcv, 'startTime'),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
@@ -87442,7 +87449,7 @@ module.exports = class tidex extends Exchange {
         //        sell: 0.03377798,
         //     updated: 1537522009          }
         //
-        const timestamp = ticker['updated'] * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

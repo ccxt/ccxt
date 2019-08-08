@@ -349,10 +349,7 @@ class mercado extends Exchange {
         $filled = $this->safe_float($order, 'executed_quantity');
         $remaining = $amount - $filled;
         $cost = $filled * $average;
-        $lastTradeTimestamp = $this->safe_integer($order, 'updated_timestamp');
-        if ($lastTradeTimestamp !== null) {
-            $lastTradeTimestamp = $lastTradeTimestamp * 1000;
-        }
+        $lastTradeTimestamp = $this->safe_timestamp($order, 'updated_timestamp');
         return array (
             'info' => $order,
             'id' => $id,
