@@ -119,10 +119,7 @@ module.exports = class mercado extends Exchange {
         };
         const response = await this.publicGetCoinTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'ticker', {});
-        let timestamp = this.safeInteger (ticker, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'date');
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -149,10 +146,7 @@ module.exports = class mercado extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
