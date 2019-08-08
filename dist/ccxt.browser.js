@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1023'
+const version = '1.18.1024'
 
 Exchange.ccxtVersion = version
 
@@ -353,10 +353,7 @@ module.exports = class _1btcxe extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeIntegerProduct (trade, 'timestamp', 1000);
         const id = this.safeString (trade, 'id');
         let symbol = undefined;
         if (market !== undefined) {
@@ -651,18 +648,12 @@ module.exports = class acx extends Exchange {
             request['limit'] = limit; // default = 300
         }
         const orderbook = await this.publicGetDepth (this.extend (request, params));
-        let timestamp = this.safeInteger (orderbook, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeIntegerProduct (orderbook, 'timestamp', 1000);
         return this.parseOrderBook (orderbook, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'at');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeIntegerProduct (ticker, 'at', 1000);
         ticker = ticker['ticker'];
         let symbol = undefined;
         if (market) {
