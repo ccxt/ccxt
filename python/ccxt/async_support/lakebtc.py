@@ -156,9 +156,7 @@ class lakebtc (Exchange):
         return self.parse_ticker(tickers[market['id']], market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'tid')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')

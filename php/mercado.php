@@ -120,10 +120,7 @@ class mercado extends Exchange {
         );
         $response = $this->publicGetCoinTicker (array_merge ($request, $params));
         $ticker = $this->safe_value($response, 'ticker', array());
-        $timestamp = $this->safe_integer($ticker, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'date');
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -150,10 +147,7 @@ class mercado extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
