@@ -14,6 +14,7 @@ module.exports = class anxpro extends Exchange {
             'name': 'ANXPro',
             'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
             'rateLimit': 1500,
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
                 'fetchCurrencies': true,
