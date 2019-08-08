@@ -257,10 +257,7 @@ module.exports = class dsx extends Exchange {
         //     updated:  1537521993,
         //        pair: "ethbtc"       }
         //
-        let timestamp = this.safeInteger (ticker, 'updated');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'pair');
         if (marketId in this.markets_by_id) {
