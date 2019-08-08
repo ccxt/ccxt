@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1022'
+const version = '1.18.1023'
 
 Exchange.ccxtVersion = version
 
@@ -5184,17 +5184,15 @@ module.exports =
 
 const isNumber          = Number.isFinite
     , isArray           = Array.isArray
+    , hasProps          = o => ((o !== undefined) && (o !== null))
     , isString          = s =>                 (typeof s === 'string')
-    , isObject          = o => (o !== null) && (typeof o === 'object')
+    , isObject          = o => ((o !== null) && (typeof o === 'object'))
     , isDictionary      = o => (isObject (o) && !isArray (o))
-    , isStringCoercible = x => (hasProps (x) && x.toString) || isNumber (x)
+    , isStringCoercible = x => ((hasProps (x) && x.toString) || isNumber (x))
 
 /*  .............................................   */
 
-const hasProps = o => (o !== undefined) &&
-                      (o !== null)
-
-    , prop = (o, k) => (isObject (o) ? o[k] : undefined)
+const prop = (o, k) => (isObject (o) ? o[k] : undefined)
     , prop2 = (o, k1, k2) => (!isObject (o) ? undefined : ((k1 in o) ? o[k1] : o[k2]))
 
 /*  .............................................   */
@@ -5204,9 +5202,9 @@ const asFloat   = x => ((isNumber (x) || isString (x)) ? parseFloat (x)     : Na
 
 /*  .............................................   */
 
-module.exports =
+module.exports = {
 
-    { isNumber
+    isNumber
     , isArray
     , isObject
     , isString
@@ -5219,24 +5217,26 @@ module.exports =
     , asFloat
     , asInteger
 
-    , safeFloat:   (o, k, $default, n =   asFloat (prop (o, k))) => isNumber (n)          ? n          : $default
-    , safeInteger: (o, k, $default, n = asInteger (prop (o, k))) => isNumber (n)          ? n          : $default
-    , safeValue:   (o, k, $default, x =            prop (o, k) ) => hasProps (x)          ? x          : $default
-    , safeString:  (o, k, $default, x =            prop (o, k) ) => isStringCoercible (x) ? String (x) : $default
-    , safeStringLower:  (o, k, $default, x =       prop (o, k) ) => isStringCoercible (x) ? String (x).toLowerCase () : $default
-    , safeStringUpper:  (o, k, $default, x =       prop (o, k) ) => isStringCoercible (x) ? String (x).toUpperCase () : $default
+    , safeFloat:          (o, k,          $default, n =   asFloat (prop (o, k))) => (isNumber (n)          ? n                         : $default)
+    , safeInteger:        (o, k,          $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? n                         : $default)
+    , safeIntegerProduct: (o, k, $factor, $default, n = asInteger (prop (o, k))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
+    , safeValue:          (o, k,          $default, x =            prop (o, k))  => (hasProps (x)          ? x                         : $default)
+    , safeString:         (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x)                : $default)
+    , safeStringLower:    (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x).toLowerCase () : $default)
+    , safeStringUpper:    (o, k,          $default, x =            prop (o, k))  => (isStringCoercible (x) ? String (x).toUpperCase () : $default)
 
     // not using safeFloats with an array argument as we're trying to save some cycles here
     // we're not using safeFloat3 either because those cases are too rare to deserve their own optimization
 
-    , safeFloat2:   (o, k1, k2, $default, n =   asFloat (prop2 (o, k1, k2))) => isNumber (n)          ? n          : $default
-    , safeInteger2: (o, k1, k2, $default, n = asInteger (prop2 (o, k1, k2))) => isNumber (n)          ? n          : $default
-    , safeValue2:   (o, k1, k2, $default, x =            prop2 (o, k1, k2) ) => hasProps (x)          ? x          : $default
-    , safeString2:  (o, k1, k2, $default, x =            prop2 (o, k1, k2) ) => isStringCoercible (x) ? String (x) : $default
-    , safeStringLower2:  (o, k1, k2, $default, x =       prop2 (o, k1, k2) ) => isStringCoercible (x) ? String (x).toLowerCase () : $default
-    , safeStringUpper2:  (o, k1, k2, $default, x =       prop2 (o, k1, k2) ) => isStringCoercible (x) ? String (x).toUpperCase () : $default
+    , safeFloat2:          (o, k1, k2,          $default, n =   asFloat (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
+    , safeInteger2:        (o, k1, k2,          $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? n                         : $default)
+    , safeIntegerProduct2: (o, k1, k2, $factor, $default, n = asInteger (prop2 (o, k1, k2))) => (isNumber (n)          ? parseInt (n * $factor)    : $default)
+    , safeValue2:          (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (hasProps (x)          ? x                         : $default)
+    , safeString2:         (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x)                : $default)
+    , safeStringLower2:    (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x).toLowerCase () : $default)
+    , safeStringUpper2:    (o, k1, k2,          $default, x =            prop2 (o, k1, k2))  => (isStringCoercible (x) ? String (x).toUpperCase () : $default)
 
-    }
+}
 
 /*  ------------------------------------------------------------------------ */
 
