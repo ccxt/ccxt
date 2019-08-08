@@ -268,7 +268,7 @@ module.exports = class binancedex extends Exchange {
             const locked = this.safeFloat (balance, 'locked');
             account['free'] = free;
             account['used'] = locked;
-            account['total'] = free + frozen + locked;
+            account['total'] = this.sum (free, frozen, locked);
             result[code] = account;
         }
         return this.parseBalance (result);
