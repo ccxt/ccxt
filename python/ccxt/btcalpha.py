@@ -166,9 +166,7 @@ class btcalpha (Exchange):
             market = self.safe_value(self.marketsById, trade['pair'])
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -258,9 +256,7 @@ class btcalpha (Exchange):
             market = self.safe_value(self.marketsById, order['pair'])
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'date')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
