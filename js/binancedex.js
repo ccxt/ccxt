@@ -124,7 +124,8 @@ module.exports = class binancedex extends Exchange {
     async fetchMarkets (params = {}) {
         const markets = await this.publicGetMarkets (params);
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
+        const marketsLen = markets.length;
+        for (let i = 0; i < marketsLen; i++) {
             const market = markets[i];
             const baseSymbol = this.safeString (market, 'base_asset_symbol');
             const quoteSymbol = this.safeString (market, 'quote_asset_symbol');
@@ -205,7 +206,8 @@ module.exports = class binancedex extends Exchange {
 
     parseTickers (rawTickers, symbols = undefined) {
         const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
+        const rawTickersLen = rawTickers.length;
+        for (let i = 0; i < rawTickersLen; i++) {
             tickers.push (this.parseTicker (rawTickers[i]));
         }
         return this.filterByArray (tickers, 'symbol', symbols);
@@ -255,7 +257,8 @@ module.exports = class binancedex extends Exchange {
         const response = await this.publicGetAccountAddress (this.extend (request, params));
         const balances = response['balances'];
         const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
+        const balancesLen = balances.length;
+        for (let i = 0; i < balancesLen; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'symbol');
             const code = this.safeCurrencyCode (currencyId);
@@ -331,13 +334,15 @@ module.exports = class binancedex extends Exchange {
         let feeCurrency = undefined;
         let feeCost = 0;
         const feeData = this.safeString (order, 'fee').split (';');
-        const feeInfoField = feeData.length - 2;
+        const feeDataLen = feeData.length;
+        const feeInfoField = feeDataLen - 2;
         if (feeInfoField >= 0) {
             const feeInfo = feeData[feeInfoField].split (':');
-            if (feeInfo.length > 0) {
+            const feeInfoLen = feeInfo.length;
+            if (feeInfoLen > 0) {
                 feeCurrency = feeInfo[0];
             }
-            if (feeInfo.length > 1) {
+            if (feeInfoLen > 1) {
                 feeCost = parseFloat (feeInfo[1].replace (';', ''));
             }
         }
@@ -368,14 +373,17 @@ module.exports = class binancedex extends Exchange {
         const request = {
             'id': id,
         };
+        const market = this.market (symbol);
         const response = await this.publicGetOrdersId (this.extend (request, params));
-        return this.parseOrder (response, symbol);
+        return this.parseOrder (response, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + 'api/v1/' + this.implodeParams (path, params);
         if (method === 'GET') {
-            if (Object.keys (params).length) {
+            const keys = Object.keys (params);
+            const keysLength = keys.length;
+            if (keysLength) {
                 url += '?' + this.urlencode (params);
             }
         } else {
