@@ -47,13 +47,23 @@ class fcoin extends Exchange {
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
-                'api' => 'https://api.{hostname}',
+                'api' => array (
+                    'public' => 'https://api.{hostname}',
+                    'private' => 'https://api.{hostname}',
+                    'market' => 'https://api.{hostname}',
+                    'openapi' => 'https://www.{hostname}',
+                ),
                 'www' => 'https://www.fcoin.com',
                 'referral' => 'https://www.fcoin.com/i/Z5P7V',
                 'doc' => 'https://developer.fcoin.com',
                 'fees' => 'https://fcoinjp.zendesk.com/hc/en-us/articles/360018727371',
             ),
             'api' => array (
+                'openapi' => array (
+                    'get' => array (
+                        'symbols',
+                    ),
+                ),
                 'market' => array (
                     'get' => array (
                         'ticker/{symbol}',
@@ -110,6 +120,7 @@ class fcoin extends Exchange {
             ),
             'options' => array (
                 'createMarketBuyOrderRequiresPrice' => true,
+                'fetchMarketsMethod' => 'fetch_markets_from_open_api', // or 'fetch_markets_from_api'
                 'limits' => array (
                     'BTM/USDT' => array( 'amount' => array ( 'min' => 0.1, 'max' => 10000000 )),
                     'ETC/USDT' => array( 'amount' => array ( 'min' => 0.001, 'max' => 400000 )),
@@ -146,7 +157,107 @@ class fcoin extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
+        $method = $this->safe_string($this->options, 'fetchMarketsMethod', 'fetch_markets_from_open_api');
+        return $this->$method ($params);
+    }
+
+    public function fetch_markets_from_open_api ($params = array ()) {
+        // https://github.com/ccxt/ccxt/issues/5648
+        $response = $this->openapiGetSymbols ($params);
+        //
+        //     {
+        //         "status":"ok",
+        //         "$data":{
+        //             "categories":array ( "fone::coinforce", ... ),
+        //             "symbols":{
+        //                 "mdaeth":array (
+        //                     "price_decimal":8,
+        //                     "amount_decimal":2,
+        //                     "base_currency":"mda",
+        //                     "quote_currency":"eth",
+        //                     "$symbol":"mdaeth",
+        //                     "category":"fone::bitangel",
+        //                     "leveraged_multiple":null,
+        //                     "tradeable":false,
+        //                     "market_order_enabled":false,
+        //                     "limit_amount_min":"1",
+        //                     "limit_amount_max":"10000000",
+        //                     "main_tag":"",
+        //                     "daily_open_at":"",
+        //                     "daily_close_at":""
+        //                 ),
+        //             }
+        //             "category_ref":{
+        //                 "fone::coinforce":array ( "btcusdt", ... ),
+        //             }
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $markets = $this->safe_value($data, 'symbols', array());
+        $keys = is_array($markets) ? array_keys($markets) : array();
+        $result = array();
+        for ($i = 0; $i < count ($keys); $i++) {
+            $key = $keys[$i];
+            $market = $markets[$key];
+            $id = $this->safe_string($market, 'symbol');
+            $baseId = $this->safe_string($market, 'base_currency');
+            $quoteId = $this->safe_string($market, 'quote_currency');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $precision = array (
+                'price' => $this->safe_integer($market, 'price_decimal'),
+                'amount' => $this->safe_integer($market, 'amount_decimal'),
+            );
+            $limits = array (
+                'amount' => array (
+                    'min' => $this->safe_float($market, 'limit_amount_min'),
+                    'max' => $this->safe_float($market, 'limit_amount_max'),
+                ),
+                'price' => array (
+                    'min' => pow(10, -$precision['price']),
+                    'max' => pow(10, $precision['price']),
+                ),
+                'cost' => array (
+                    'min' => null,
+                    'max' => null,
+                ),
+            );
+            $active = $this->safe_value($market, 'tradable', false);
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => $active,
+                'precision' => $precision,
+                'limits' => $limits,
+                'info' => $market,
+            );
+        }
+        return $result;
+    }
+
+    public function fetch_markets_from_api ($params = array ()) {
         $response = $this->publicGetSymbols ($params);
+        //
+        //     {
+        //         "status":0,
+        //         "data":array (
+        //             array (
+        //                 "name":"dapusdt",
+        //                 "base_currency":"dap",
+        //                 "quote_currency":"usdt",
+        //                 "price_decimal":6,
+        //                 "amount_decimal":2,
+        //                 "tradable":true
+        //             ),
+        //         )
+        //     }
+        //
         $result = array();
         $markets = $this->safe_value($response, 'data');
         for ($i = 0; $i < count ($markets); $i++) {
@@ -525,19 +636,19 @@ class fcoin extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/' . $this->version . '/';
-        $request .= ($api === 'private') ? '' : ($api . '/');
+        $request = '/';
+        $openAPI = ($api === 'openapi');
+        $privateAPI = ($api === 'private');
+        $request .= $openAPI ? ($api . '/') : '';
+        $request .= $this->version . '/';
+        $request .= ($privateAPI || $openAPI) ? '' : ($api . '/');
         $request .= $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        $url = $this->implode_params($this->urls['api'], array (
+        $url = $this->implode_params($this->urls['api'][$api], array (
             'hostname' => $this->hostname,
         ));
         $url .= $request;
-        if (($api === 'public') || ($api === 'market')) {
-            if ($query) {
-                $url .= '?' . $this->urlencode ($query);
-            }
-        } else if ($api === 'private') {
+        if ($privateAPI) {
             $this->check_required_credentials();
             $timestamp = (string) $this->nonce ();
             $query = $this->keysort ($query);
@@ -563,6 +674,10 @@ class fcoin extends Exchange {
                 'FC-ACCESS-TIMESTAMP' => $timestamp,
                 'Content-Type' => 'application/json',
             );
+        } else {
+            if ($query) {
+                $url .= '?' . $this->urlencode ($query);
+            }
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
@@ -572,7 +687,7 @@ class fcoin extends Exchange {
             return; // fallback to default error handler
         }
         $status = $this->safe_string($response, 'status');
-        if ($status !== '0') {
+        if ($status !== '0' && $status !== 'ok') {
             $feedback = $this->id . ' ' . $body;
             if (is_array($this->exceptions) && array_key_exists($status, $this->exceptions)) {
                 $exceptions = $this->exceptions;
