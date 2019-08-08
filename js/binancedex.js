@@ -235,7 +235,7 @@ module.exports = class binancedex extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            'interval': timeframe,
+            'interval': this.timeframes[timeframe],
         };
         // default = 300, max = 1000
         if (limit !== undefined) {
