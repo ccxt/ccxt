@@ -305,7 +305,7 @@ module.exports = class ice3x extends Exchange {
             market = this.marketsById[pairId];
             symbol = market['symbol'];
         }
-        const timestamp = this.safeInteger (order, 'created') * 1000;
+        const timestamp = this.safeTimestamp (order, 'created');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'volume');
         let status = this.safeInteger (order, 'active');
