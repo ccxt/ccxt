@@ -323,7 +323,7 @@ module.exports = class tidex extends Exchange {
         //        sell: 0.03377798,
         //     updated: 1537522009          }
         //
-        const timestamp = ticker['updated'] * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
