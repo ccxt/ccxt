@@ -124,10 +124,7 @@ module.exports = class bitstamp1 extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger2 (trade, 'date', 'datetime');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'date', 'datetime');
         const side = (trade['type'] === 0) ? 'buy' : 'sell';
         const orderId = this.safeString (trade, 'order_id');
         if ('currency_pair' in trade) {
