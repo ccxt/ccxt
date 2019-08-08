@@ -348,10 +348,7 @@ module.exports = class mercado extends Exchange {
         const filled = this.safeFloat (order, 'executed_quantity');
         const remaining = amount - filled;
         const cost = filled * average;
-        let lastTradeTimestamp = this.safeInteger (order, 'updated_timestamp');
-        if (lastTradeTimestamp !== undefined) {
-            lastTradeTimestamp = lastTradeTimestamp * 1000;
-        }
+        const lastTradeTimestamp = this.safeTimestamp (order, 'updated_timestamp');
         return {
             'info': order,
             'id': id,
