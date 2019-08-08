@@ -1028,10 +1028,7 @@ module.exports = class exmo extends Exchange {
         //     }
         //
         let id = this.safeString (order, 'order_id');
-        let timestamp = this.safeInteger (order, 'created');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        let timestamp = this.safeTimestamp (order, 'created');
         let symbol = undefined;
         const side = this.safeString (order, 'type');
         if (market === undefined) {
