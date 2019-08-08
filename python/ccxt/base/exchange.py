@@ -624,6 +624,16 @@ class Exchange(object):
         return default_value
 
     @staticmethod
+    def safe_integer_product(dictionary, key, factor, default_value=None):
+        if key is None or (key not in dictionary):
+            return default_value
+        value = dictionary[key]
+        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
+            return int(value * factor)
+        return default_value
+
+
+    @staticmethod
     def safe_value(dictionary, key, default_value=None):
         return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
 
@@ -649,6 +659,11 @@ class Exchange(object):
     @staticmethod
     def safe_integer_2(dictionary, key1, key2, default_value=None):
         return Exchange.safe_either(Exchange.safe_integer, dictionary, key1, key2, default_value)
+
+    @staticmethod
+    def safe_integer_product_2(dictionary, key1, key2, factor, default_value=None):
+        value = Exchange.safe_integer_product(dictionary, key1, factor)
+        return value if value is not None else Exchange.safe_integer_product(dictionary, key2, factor, default_value)
 
     @staticmethod
     def safe_value_2(dictionary, key1, key2, default_value=None):
