@@ -221,10 +221,7 @@ module.exports = class coinone extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         const is_ask = this.safeString (trade, 'is_ask');
         let side = undefined;
