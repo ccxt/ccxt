@@ -5,7 +5,8 @@
 const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
 const { capitalize } = require ('./string')
 const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
-const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA');
+const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA')
+const EC = require ('./../../static_dependencies/elliptic').ec
 
 /*  ------------------------------------------------------------------------ */
 
@@ -67,6 +68,16 @@ function jwt (request, secret, alg = 'HS256') {
     return [ token, signature ].join ('.')
 }
 
+function ecdsa (request, secret, algorithm) {
+    const curve = new EC (algorithm.toLowerCase ())
+    const signature = curve.sign (request, secret, 'hex')
+    return {
+        'r': signature.r.toString (16),
+        's': signature.s.toString (16),
+        'v': signature.recoveryParam.toString (16),
+    }
+}
+
 /*  ------------------------------------------------------------------------ */
 
 const totp = (secret) => {
@@ -112,6 +123,7 @@ module.exports = {
     jwt,
     totp,
     rsa,
+    ecdsa,
 }
 
 /*  ------------------------------------------------------------------------ */

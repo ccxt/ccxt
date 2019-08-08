@@ -16,6 +16,7 @@ from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
+from ccxt.base.errors import ArgumentsRequired
 
 # -----------------------------------------------------------------------------
 
@@ -30,6 +31,11 @@ from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
+# -----------------------------------------------------------------------------
+
+# ecdsa signing
+from static_dependencies import ecdsa
 
 # -----------------------------------------------------------------------------
 
@@ -1045,6 +1051,32 @@ class Exchange(object):
         algorithm = algorithms[alg]
         priv_key = load_pem_private_key(secret, None, backends.default_backend())
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
+
+    @staticmethod
+    def ecdsa(request, secret, algorithm):
+        algorithms = {
+            'P192': ecdsa.NIST192p,
+            'P224': ecdsa.NIST224p,
+            'P256': ecdsa.NIST256p,
+            'P384': ecdsa.NIST384p,
+            'P512': ecdsa.NIST256p,
+        }
+        if algorithm not in algorithms:
+            raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
+        curve = algorithms[algorithm]
+        hash_function = None
+        if algorithm[0] == 'P':
+            hash_function = getattr(hashlib, 'sha' + algorithm[1:])
+        else:
+            # not sure what the hash_function should be here
+            pass
+        key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve)
+        r_binary, s_binary = key.sign_digest_deterministic(base64.b16decode(Exchange.encode(request), casefold=True), hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
+        r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
+        return {
+            'r': r,
+            's': s,
+        }
 
     @staticmethod
     def unjson(input):
