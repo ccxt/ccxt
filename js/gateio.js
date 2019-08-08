@@ -736,10 +736,7 @@ module.exports = class gateio extends Exchange {
         const txid = this.safeString (transaction, 'txid');
         const amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
-        let timestamp = this.safeInteger (transaction, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const type = this.parseTransactionType (id[0]);
         return {
