@@ -230,10 +230,7 @@ class ice3x extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'created');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'created');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
         $cost = null;

@@ -121,9 +121,7 @@ class mercado (Exchange):
         }
         response = await self.publicGetCoinTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'ticker', {})
-        timestamp = self.safe_integer(ticker, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'date')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -149,9 +147,7 @@ class mercado (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         symbol = None
         if market is not None:
             symbol = market['symbol']

@@ -542,7 +542,7 @@ class bitmex (Exchange):
         if limit is not None:
             request['count'] = limit
         response = await self.privateGetUserWalletHistory(self.extend(request, params))
-        transactions = self.filter_by_array(response, ['Withdrawal', 'Deposit'], False)
+        transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
         currency = None
         if code is not None:
             currency = self.currency(code)

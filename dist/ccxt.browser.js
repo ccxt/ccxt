@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1029'
+const version = '1.18.1031'
 
 Exchange.ccxtVersion = version
 
@@ -16215,7 +16215,7 @@ module.exports = class bitmex extends Exchange {
             request['count'] = limit;
         }
         const response = await this.privateGetUserWalletHistory (this.extend (request, params));
-        const transactions = this.filterByArray (response, [ 'Withdrawal', 'Deposit' ], false);
+        const transactions = this.filterByArray (response, 'transactType', [ 'Withdrawal', 'Deposit' ], false);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -51952,10 +51952,7 @@ module.exports = class ice3x extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'created');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'created');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'volume');
         let cost = undefined;
@@ -52798,10 +52795,7 @@ module.exports = class indodax extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'tid');
         let symbol = undefined;
         if (market !== undefined) {
@@ -53875,10 +53869,7 @@ module.exports = class kkex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'date');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -57621,10 +57612,7 @@ module.exports = class lakebtc extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'tid');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
@@ -58333,10 +58321,7 @@ module.exports = class latoken extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'orderId');
-        let timestamp = this.safeValue (order, 'timeCreated');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'timeCreated');
         const marketId = this.safeString (order, 'symbol');
         let symbol = marketId;
         if (marketId in this.markets_by_id) {
@@ -63697,10 +63682,7 @@ module.exports = class mercado extends Exchange {
         };
         const response = await this.publicGetCoinTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'ticker', {});
-        let timestamp = this.safeInteger (ticker, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'date');
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -63727,10 +63709,7 @@ module.exports = class mercado extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

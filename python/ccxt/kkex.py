@@ -163,9 +163,7 @@ class kkex (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'date')
         symbol = None
         if market is not None:
             symbol = market['symbol']
