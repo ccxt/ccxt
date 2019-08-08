@@ -547,10 +547,7 @@ module.exports = class bitz extends Exchange {
         //       s: "buy"         },
         //
         const id = this.safeString (trade, 'id');
-        let timestamp = this.safeInteger (trade, 'T');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'T');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -738,10 +735,7 @@ module.exports = class bitz extends Exchange {
         const filled = this.safeFloat (order, 'numberDeal');
         let timestamp = this.safeInteger (order, 'timestamp');
         if (timestamp === undefined) {
-            timestamp = this.safeInteger (order, 'created');
-            if (timestamp !== undefined) {
-                timestamp = timestamp * 1000;
-            }
+            timestamp = this.safeTimestamp (order, 'created');
         }
         let cost = this.safeFloat (order, 'orderTotalPrice');
         if (price !== undefined) {
