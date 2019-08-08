@@ -120,9 +120,7 @@ class bitstamp1 (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer_2(trade, 'date', 'datetime')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp_2(trade, 'date', 'datetime')
         side = 'buy' if (trade['type'] == 0) else 'sell'
         orderId = self.safe_string(trade, 'order_id')
         if 'currency_pair' in trade:

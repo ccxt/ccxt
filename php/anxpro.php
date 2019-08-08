@@ -15,6 +15,7 @@ class anxpro extends Exchange {
             'name' => 'ANXPro',
             'countries' => array ( 'JP', 'SG', 'HK', 'NZ' ),
             'rateLimit' => 1500,
+            'userAgent' => $this->userAgents['chrome'],
             'has' => array (
                 'CORS' => false,
                 'fetchCurrencies' => true,
@@ -768,8 +769,7 @@ class anxpro extends Exchange {
         );
         $response = $this->publicGetCurrencyPairMoneyDepthFull (array_merge ($request, $params));
         $orderbook = $this->safe_value($response, 'data', array());
-        $t = $this->safe_integer($orderbook, 'dataUpdateTime');
-        $timestamp = ($t === null) ? $t : intval ($t / 1000);
+        $timestamp = $this->safe_integer_product($orderbook, 'dataUpdateTime', 0.001);
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -780,8 +780,7 @@ class anxpro extends Exchange {
         );
         $response = $this->publicGetCurrencyPairMoneyTicker (array_merge ($request, $params));
         $ticker = $this->safe_value($response, 'data', array());
-        $t = $this->safe_integer($ticker, 'dataUpdateTime');
-        $timestamp = ($t === null) ? $t : intval ($t / 1000);
+        $timestamp = $this->safe_integer_product($ticker, 'dataUpdateTime', 0.001);
         $bid = $this->safe_float($ticker['buy'], 'value');
         $ask = $this->safe_float($ticker['sell'], 'value');
         $baseVolume = $this->safe_float($ticker['vol'], 'value');

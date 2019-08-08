@@ -25,6 +25,7 @@ class anxpro (Exchange):
             'name': 'ANXPro',
             'countries': ['JP', 'SG', 'HK', 'NZ'],
             'rateLimit': 1500,
+            'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
                 'fetchCurrencies': True,
@@ -756,8 +757,7 @@ class anxpro (Exchange):
         }
         response = await self.publicGetCurrencyPairMoneyDepthFull(self.extend(request, params))
         orderbook = self.safe_value(response, 'data', {})
-        t = self.safe_integer(orderbook, 'dataUpdateTime')
-        timestamp = t if (t is None) else int(t / 1000)
+        timestamp = self.safe_integer_product(orderbook, 'dataUpdateTime', 0.001)
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
@@ -767,8 +767,7 @@ class anxpro (Exchange):
         }
         response = await self.publicGetCurrencyPairMoneyTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'data', {})
-        t = self.safe_integer(ticker, 'dataUpdateTime')
-        timestamp = t if (t is None) else int(t / 1000)
+        timestamp = self.safe_integer_product(ticker, 'dataUpdateTime', 0.001)
         bid = self.safe_float(ticker['buy'], 'value')
         ask = self.safe_float(ticker['sell'], 'value')
         baseVolume = self.safe_float(ticker['vol'], 'value')
