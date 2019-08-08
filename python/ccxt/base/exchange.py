@@ -632,7 +632,6 @@ class Exchange(object):
             return int(value * factor)
         return default_value
 
-
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
         return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
