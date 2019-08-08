@@ -495,7 +495,7 @@ const data = {
 // convert to integer if the underlying value is already in milliseconds
 const timestamp = this.safeInteger (data, 'unixTimestampInMilliseconds'); // === 1565242530165
 
-// convert to integer and multiply by a thousand if the value is in seconds
+// convert to integer and multiply by a thousand if the value is a UNIX timestamp in seconds
 const timestamp = this.safeTimestamp (data, 'unixTimestampInSeconds'); // === 1565242530000
 
 // convert to integer and multiply by a thousand if the value is in seconds
