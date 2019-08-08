@@ -1552,11 +1552,7 @@ module.exports = class okex3 extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " cancelOrder requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
-        }
+        const type = market['type'];
         let method = type + 'PostCancelOrder';
         const request = {
             'instrument_id': market['id'],
@@ -1853,24 +1849,20 @@ module.exports = class okex3 extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersByState requires a symbol argument');
         }
-        const defaultType = this.safeString2 (this.options, 'fetchOrdersByState', 'defaultType');
-        const type = this.safeString (params, 'type', defaultType);
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + " fetchOrdersByState requires a type parameter (one of 'spot', 'margin', 'futures', 'swap').");
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // '-2': failed,
-        // '-1': cancelled,
-        //  '0': open ,
-        //  '1': partially filled,
-        //  '2': fully filled,
-        //  '3': submitting,
-        //  '4': cancelling,
-        //  '6': incomplete（open+partially filled),
-        //  '7': complete（cancelled+fully filled),
+        const type = market['type'];
         const request = {
             'instrument_id': market['id'],
+            // '-2': failed,
+            // '-1': cancelled,
+            //  '0': open ,
+            //  '1': partially filled,
+            //  '2': fully filled,
+            //  '3': submitting,
+            //  '4': cancelling,
+            //  '6': incomplete（open+partially filled),
+            //  '7': complete（cancelled+fully filled),
             'state': state,
         };
         let method = type + 'GetOrders';
@@ -2640,9 +2632,11 @@ module.exports = class okex3 extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const request = '/api' + '/' + api + '/' + this.version + '/' + this.implodeParams (path, params);
+        const isArray = Array.isArray (params);
+        let request = '/api/' + api + '/' + this.version + '/';
+        request += isArray ? path : this.implodeParams (path, params);
+        const query = isArray ? params : this.omit (params, this.extractParams (path));
         let url = this.urls['api'] + request;
-        const query = this.omit (params, this.extractParams (path));
         const type = this.getPathAuthenticationType (path);
         if (type === 'public') {
             if (Object.keys (query).length) {
@@ -2667,7 +2661,7 @@ module.exports = class okex3 extends Exchange {
                     auth += urlencodedQuery;
                 }
             } else {
-                if (Object.keys (query).length) {
+                if (isArray || Object.keys (query).length) {
                     body = this.json (query);
                     auth += body;
                 }

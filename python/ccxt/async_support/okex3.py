@@ -1514,10 +1514,7 @@ class okex3 (Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        defaultType = self.safe_string_2(self.options, 'cancelOrder', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
-        if type is None:
-            raise ArgumentsRequired(self.id + " cancelOrder requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
+        type = market['type']
         method = type + 'PostCancelOrder'
         request = {
             'instrument_id': market['id'],
@@ -1790,23 +1787,20 @@ class okex3 (Exchange):
     async def fetch_orders_by_state(self, state, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrdersByState requires a symbol argument')
-        defaultType = self.safe_string_2(self.options, 'fetchOrdersByState', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
-        if type is None:
-            raise ArgumentsRequired(self.id + " fetchOrdersByState requires a type parameter(one of 'spot', 'margin', 'futures', 'swap').")
         await self.load_markets()
         market = self.market(symbol)
-        # '-2': failed,
-        # '-1': cancelled,
-        #  '0': open ,
-        #  '1': partially filled,
-        #  '2': fully filled,
-        #  '3': submitting,
-        #  '4': cancelling,
-        #  '6': incomplete（open+partially filled),
-        #  '7': complete（cancelled+fully filled),
+        type = market['type']
         request = {
             'instrument_id': market['id'],
+            # '-2': failed,
+            # '-1': cancelled,
+            #  '0': open ,
+            #  '1': partially filled,
+            #  '2': fully filled,
+            #  '3': submitting,
+            #  '4': cancelling,
+            #  '6': incomplete（open+partially filled),
+            #  '7': complete（cancelled+fully filled),
             'state': state,
         }
         method = type + 'GetOrders'
@@ -2535,9 +2529,11 @@ class okex3 (Exchange):
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api' + '/' + api + '/' + self.version + '/' + self.implode_params(path, params)
+        isArray = isinstance(params, list)
+        request = '/api/' + api + '/' + self.version + '/'
+        request += path if isArray else self.implode_params(path, params)
+        query = params if isArray else self.omit(params, self.extract_params(path))
         url = self.urls['api'] + request
-        query = self.omit(params, self.extract_params(path))
         type = self.get_path_authentication_type(path)
         if type == 'public':
             if query:
@@ -2560,7 +2556,7 @@ class okex3 (Exchange):
                     url += urlencodedQuery
                     auth += urlencodedQuery
             else:
-                if query:
+                if isArray or query:
                     body = self.json(query)
                     auth += body
                 headers['Content-Type'] = 'application/json'

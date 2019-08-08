@@ -588,10 +588,7 @@ module.exports = class latoken extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'orderId');
-        let timestamp = this.safeValue (order, 'timeCreated');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'timeCreated');
         const marketId = this.safeString (order, 'symbol');
         let symbol = marketId;
         if (marketId in this.markets_by_id) {
@@ -618,11 +615,8 @@ module.exports = class latoken extends Exchange {
                 cost = filled * price;
             }
         }
-        const timeFilled = this.safeInteger (order, 'timeFilled');
-        let lastTradeTimestamp = undefined;
-        if (timeFilled !== undefined && timeFilled > 0) {
-            lastTradeTimestamp = timeFilled * 1000;
-        }
+        const timeFilled = this.safeTimestamp (order, 'timeFilled');
+        const lastTradeTimestamp = (timeFilled > 0) ? timeFilled : undefined;
         return {
             'id': id,
             'info': order,

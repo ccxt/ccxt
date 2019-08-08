@@ -656,7 +656,7 @@ class exmo extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'updated') * 1000;
+        $timestamp = $this->safe_timestamp($ticker, 'updated');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -709,7 +709,7 @@ class exmo extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date') * 1000;
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $fee = null;
         $symbol = null;
         $id = $this->safe_string($trade, 'trade_id');
@@ -1029,10 +1029,7 @@ class exmo extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
-        $timestamp = $this->safe_integer($order, 'created');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'created');
         $symbol = null;
         $side = $this->safe_string($order, 'type');
         if ($market === null) {
@@ -1234,10 +1231,7 @@ class exmo extends Exchange {
         //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
-        $timestamp = $this->safe_float($transaction, 'dt');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'dt');
         $amount = $this->safe_float($transaction, 'amount');
         if ($amount !== null) {
             $amount = abs ($amount);

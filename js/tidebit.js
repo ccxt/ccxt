@@ -190,18 +190,12 @@ module.exports = class tidebit extends Exchange {
         }
         request['market'] = market['id'];
         const response = await this.publicGetDepth (this.extend (request, params));
-        let timestamp = this.safeInteger (response, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'at');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'at');
         ticker = this.safeValue (ticker, 'ticker', {});
         let symbol = undefined;
         if (market !== undefined) {

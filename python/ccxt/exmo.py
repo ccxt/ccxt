@@ -641,7 +641,7 @@ class exmo (Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'updated') * 1000
+        timestamp = self.safe_timestamp(ticker, 'updated')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -689,7 +689,7 @@ class exmo (Exchange):
         return self.parse_ticker(response[market['id']], market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date') * 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         fee = None
         symbol = None
         id = self.safe_string(trade, 'trade_id')
@@ -974,9 +974,7 @@ class exmo (Exchange):
         #     }
         #
         id = self.safe_string(order, 'order_id')
-        timestamp = self.safe_integer(order, 'created')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'created')
         symbol = None
         side = self.safe_string(order, 'type')
         if market is None:
@@ -1148,9 +1146,7 @@ class exmo (Exchange):
         #            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
         #          }
         #
-        timestamp = self.safe_float(transaction, 'dt')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(transaction, 'dt')
         amount = self.safe_float(transaction, 'amount')
         if amount is not None:
             amount = abs(amount)

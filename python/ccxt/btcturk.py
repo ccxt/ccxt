@@ -132,18 +132,14 @@ class btcturk (Exchange):
             'pairSymbol': market['id'],
         }
         response = self.publicGetOrderbook(self.extend(request, params))
-        timestamp = self.safe_integer(response, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         symbol = None
         if market:
             symbol = market['symbol']
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -190,9 +186,7 @@ class btcturk (Exchange):
         return self.safe_value_2(tickers, market['id'], symbol)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'tid')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')

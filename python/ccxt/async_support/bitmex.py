@@ -163,6 +163,7 @@ class bitmex (Exchange):
                 # https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 # https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5,  # in seconds
+                'fetchOHLCVOpenTimestamp': True,
             },
         })
 
@@ -541,7 +542,7 @@ class bitmex (Exchange):
         if limit is not None:
             request['count'] = limit
         response = await self.privateGetUserWalletHistory(self.extend(request, params))
-        transactions = self.filter_by_array(response, ['Withdrawal', 'Deposit'], False)
+        transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -821,12 +822,24 @@ class bitmex (Exchange):
         }
         if limit is not None:
             request['count'] = limit  # default 100, max 500
+        duration = self.parse_timeframe(timeframe) * 1000
+        fetchOHLCVOpenTimestamp = self.safe_value(self.options, 'fetchOHLCVOpenTimestamp', True)
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
-            ymdhms = self.ymdhms(since)
+            timestamp = since
+            if fetchOHLCVOpenTimestamp:
+                timestamp = self.sum(timestamp, duration)
+            ymdhms = self.ymdhms(timestamp)
             request['startTime'] = ymdhms  # starting date filter for results
         response = await self.publicGetTradeBucketed(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        result = self.parse_ohlcvs(response, market, timeframe, since, limit)
+        if fetchOHLCVOpenTimestamp:
+            # bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
+            # we can emulate the open timestamp by shifting all the timestamps one place
+            # so the previous close becomes the current open, and we drop the first candle
+            for i in range(0, len(result)):
+                result[i][0] = result[i][0] - duration
+        return result
 
     def parse_trade(self, trade, market=None):
         #

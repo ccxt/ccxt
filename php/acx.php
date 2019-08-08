@@ -164,18 +164,12 @@ class acx extends Exchange {
             $request['limit'] = $limit; // default = 300
         }
         $orderbook = $this->publicGetDepth (array_merge ($request, $params));
-        $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $timestamp);
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'at');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $ticker['ticker'];
         $symbol = null;
         if ($market) {

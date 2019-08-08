@@ -176,10 +176,8 @@ class coinmarketcap extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'last_updated');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        } else {
+        $timestamp = $this->safe_timestamp($ticker, 'last_updated');
+        if ($timestamp === null) {
             $timestamp = $this->milliseconds ();
         }
         $change = $this->safe_float($ticker, 'percent_change_24h');

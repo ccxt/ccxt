@@ -221,10 +221,7 @@ module.exports = class coinone extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         const is_ask = this.safeString (trade, 'is_ask');
         let side = undefined;
@@ -358,11 +355,8 @@ module.exports = class coinone extends Exchange {
 
     parseOrder (order, market = undefined) {
         const info = this.safeValue (order, 'info');
-        let id = this.safeString (info, 'orderId');
-        if (id !== undefined) {
-            id = id.toUpperCase ();
-        }
-        const timestamp = this.safeInteger (info, 'timestamp') * 1000;
+        const id = this.safeStringUpper (info, 'orderId');
+        const timestamp = this.safeTimestamp (info, 'timestamp');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let cost = undefined;
         let side = this.safeString (info, 'type');

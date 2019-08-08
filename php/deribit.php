@@ -128,6 +128,7 @@ class deribit extends Exchange {
                 '11030' => '\\ccxt\\ExchangeError', // "other_reject {Reason}" Some rejects which are not considered as very often, more info may be specified in {Reason}
                 '11031' => '\\ccxt\\ExchangeError', // "other_error {Error}" Some errors which are not considered as very often, more info may be specified in {Error}
             ),
+            'precisionMode' => TICK_SIZE,
             'options' => array (
                 'fetchTickerQuotes' => true,
             ),
@@ -145,28 +146,39 @@ class deribit extends Exchange {
             $quoteId = $this->safe_string($market, 'currency');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            $type = $this->safe_string($market, 'kind');
+            $future = ($type === 'future');
+            $option = ($type === 'option');
+            $active = $this->safe_value($market, 'isActive');
+            $precision = array (
+                'amount' => $this->safe_float($market, 'minTradeAmount'),
+                'price' => $this->safe_float($market, 'tickSize'),
+            );
             $result[] = array (
                 'id' => $id,
                 'symbol' => $id,
                 'base' => $base,
                 'quote' => $quote,
-                'active' => $market['isActive'],
-                'precision' => array (
-                    'amount' => $market['minTradeSize'],
-                    'price' => $market['tickSize'],
-                ),
+                'active' => $active,
+                'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $market['minTradeSize'],
+                        'min' => $this->safe_float($market, 'minTradeAmount'),
+                        'max' => null,
                     ),
                     'price' => array (
-                        'min' => $market['tickSize'],
+                        'min' => $this->safe_float($market, 'tickSize'),
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => null,
+                        'max' => null,
                     ),
                 ),
-                'type' => $market['kind'],
+                'type' => $type,
                 'spot' => false,
-                'future' => $market['kind'] === 'future',
-                'option' => $market['kind'] === 'option',
+                'future' => $future,
+                'option' => $option,
                 'info' => $market,
             );
         }

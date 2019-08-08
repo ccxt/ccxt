@@ -166,10 +166,7 @@ module.exports = class kkex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'date');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];

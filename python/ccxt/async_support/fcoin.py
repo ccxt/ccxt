@@ -462,12 +462,12 @@ class fcoin (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
-            ohlcv['id'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['base_vol'],
+            self.safe_timestamp(ohlcv, 'id'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'base_vol'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=100, params={}):

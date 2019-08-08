@@ -174,7 +174,7 @@ module.exports = class flowbtc extends Exchange {
     }
 
     parseTrade (trade, market) {
-        const timestamp = this.safeInteger (trade, 'unixtime') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'unixtime');
         const side = (trade['incomingOrderSide'] === 0) ? 'buy' : 'sell';
         const id = this.safeString (trade, 'tid');
         const price = this.safeFloat (trade, 'px');

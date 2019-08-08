@@ -339,10 +339,7 @@ class yobit extends Exchange {
         //        sell => 0.03377798,
         //     updated => 1537522009          }
         //
-        $timestamp = $this->safe_integer($ticker, 'updated');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'updated');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -413,10 +410,7 @@ class yobit extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $side = $this->safe_string($trade, 'type');
         if ($side === 'ask') {
             $side = 'sell';
@@ -574,10 +568,7 @@ class yobit extends Exchange {
     public function parse_order ($order, $market = null) {
         $id = $this->safe_string($order, 'id');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $timestamp = $this->safe_integer($order, 'timestamp_created');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'timestamp_created');
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'pair');

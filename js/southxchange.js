@@ -177,10 +177,7 @@ module.exports = class southxchange extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = this.safeInteger (trade, 'At');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'At');
         const price = this.safeFloat (trade, 'Price');
         const amount = this.safeFloat (trade, 'Amount');
         let cost = undefined;

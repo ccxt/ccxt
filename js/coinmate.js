@@ -189,10 +189,7 @@ module.exports = class coinmate extends Exchange {
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const orderbook = response['data'];
-        let timestamp = this.safeInteger (orderbook, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -203,10 +200,7 @@ module.exports = class coinmate extends Exchange {
         };
         const response = await this.publicGetTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'data');
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,

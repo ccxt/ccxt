@@ -379,9 +379,7 @@ class gateio (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer_2(trade, 'timestamp', 'time_unix')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp_2(trade, 'timestamp', 'time_unix')
         id = self.safe_string_2(trade, 'tradeID', 'id')
         # take either of orderid or orderId
         orderId = self.safe_string_2(trade, 'orderid', 'orderNumber')
@@ -467,9 +465,7 @@ class gateio (Exchange):
             market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'timestamp')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
         price = self.safe_float(order, 'filledRate')
@@ -691,9 +687,7 @@ class gateio (Exchange):
         txid = self.safe_string(transaction, 'txid')
         amount = self.safe_float(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
-        timestamp = self.safe_integer(transaction, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(transaction, 'timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         type = self.parse_transaction_type(id[0])
         return {

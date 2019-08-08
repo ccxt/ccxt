@@ -229,10 +229,7 @@ module.exports = class ice3x extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'created');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'created');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'volume');
         let cost = undefined;
@@ -308,7 +305,7 @@ module.exports = class ice3x extends Exchange {
             market = this.marketsById[pairId];
             symbol = market['symbol'];
         }
-        const timestamp = this.safeInteger (order, 'created') * 1000;
+        const timestamp = this.safeTimestamp (order, 'created');
         const price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'volume');
         let status = this.safeInteger (order, 'active');
