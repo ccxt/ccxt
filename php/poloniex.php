@@ -1263,10 +1263,7 @@ class poloniex extends Exchange {
         //         "withdrawalNumber" => 11162900
         //     }
         //
-        $timestamp = $this->safe_integer($transaction, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $status = $this->safe_string($transaction, 'status', 'pending');

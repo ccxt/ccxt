@@ -184,15 +184,11 @@ class tidebit (Exchange):
             request['limit'] = limit  # default = 300
         request['market'] = market['id']
         response = await self.publicGetDepth(self.extend(request, params))
-        timestamp = self.safe_integer(response, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'at')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'at')
         ticker = self.safe_value(ticker, 'ticker', {})
         symbol = None
         if market is not None:

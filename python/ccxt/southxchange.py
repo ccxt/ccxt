@@ -167,9 +167,7 @@ class southxchange (Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'At')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(trade, 'At')
         price = self.safe_float(trade, 'Price')
         amount = self.safe_float(trade, 'Amount')
         cost = None

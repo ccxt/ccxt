@@ -1158,9 +1158,7 @@ class poloniex (Exchange):
         #         "withdrawalNumber": 11162900
         #     }
         #
-        timestamp = self.safe_integer(transaction, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         status = self.safe_string(transaction, 'status', 'pending')
