@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1037'
+const version = '1.18.1038'
 
 Exchange.ccxtVersion = version
 
@@ -44417,6 +44417,8 @@ module.exports = class fcoin extends Exchange {
                         'orders/{order_id}/match-results', // check order result
                     ],
                     'post': [
+                        'assets/accounts/assets-to-spot',
+                        'accounts/spot-to-assets',
                         'broker/otc/assets/transfer/in',
                         'broker/otc/assets/transfer/out',
                         'broker/otc/suborders',

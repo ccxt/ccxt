@@ -106,6 +106,8 @@ class fcoin (Exchange):
                         'orders/{order_id}/match-results',  # check order result
                     ],
                     'post': [
+                        'assets/accounts/assets-to-spot',
+                        'accounts/spot-to-assets',
                         'broker/otc/assets/transfer/in',
                         'broker/otc/assets/transfer/out',
                         'broker/otc/suborders',
