@@ -170,7 +170,7 @@ module.exports = class theocean extends Exchange {
     parseOHLCV (ohlcv, market = undefined, timeframe = '5m', since = undefined, limit = undefined) {
         const baseDecimals = this.safeInteger (this.options['decimals'], market['base'], 18);
         return [
-            this.safeInteger (ohlcv, 'startTime') * 1000,
+            this.safeTimestamp (ohlcv, 'startTime'),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
