@@ -30,7 +30,7 @@ module.exports = class binancedex extends Exchange {
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchFundingFees': false,
@@ -97,6 +97,7 @@ module.exports = class binancedex extends Exchange {
                         'klines',
                         'orders/{id}',
                         'account/{address}',
+                        'tokens',
                     ],
                 },
             },
@@ -119,6 +120,44 @@ module.exports = class binancedex extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetTokens (params);
+        const responseLen = response.length;
+        const result = {};
+        for (let i = 0; i < responseLen; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'symbol');
+            const symbol = this.safeString (currency, 'original_symbol');
+            result[symbol] = {
+                'id': id,
+                'code': symbol,
+                'info': this.safeString (currency, 'name'),
+                'name': symbol,
+                'active': true,
+                'fee': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                }
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
