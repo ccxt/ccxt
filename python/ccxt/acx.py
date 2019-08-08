@@ -158,15 +158,11 @@ class acx (Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 300
         orderbook = self.publicGetDepth(self.extend(request, params))
-        timestamp = self.safe_integer(orderbook, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_integer_product(orderbook, 'timestamp', 1000)
         return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'at')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_integer_product(ticker, 'at', 1000)
         ticker = ticker['ticker']
         symbol = None
         if market:
