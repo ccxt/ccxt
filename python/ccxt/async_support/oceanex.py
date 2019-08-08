@@ -248,9 +248,7 @@ class oceanex (Exchange):
         #         }
         #
         ticker = self.safe_value(data, 'ticker', {})
-        timestamp = self.safe_integer(data, 'at')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(data, 'at')
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -303,9 +301,7 @@ class oceanex (Exchange):
         #     }
         #
         orderbook = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(orderbook, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, timestamp)
 
     async def fetch_order_books(self, symbols=None, limit=None, params={}):
@@ -349,9 +345,7 @@ class oceanex (Exchange):
             marketId = self.safe_string(orderbook, 'market')
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
-            timestamp = self.safe_integer(orderbook, 'timestamp')
-            if timestamp is not None:
-                timestamp = timestamp * 1000
+            timestamp = self.safe_timestamp(orderbook, 'timestamp')
             result[symbol] = self.parse_order_book(orderbook, timestamp)
         return result
 
@@ -384,11 +378,9 @@ class oceanex (Exchange):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
-        timestamp = self.safe_integer(trade, 'created_on')
+        timestamp = self.safe_timestamp(trade, 'created_on')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        else:
-            timestamp = timestamp * 1000
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -530,11 +522,9 @@ class oceanex (Exchange):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'created_on')
+        timestamp = self.safe_timestamp(order, 'created_on')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        else:
-            timestamp = timestamp * 1000
         return {
             'info': order,
             'id': self.safe_string(order, 'id'),

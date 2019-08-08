@@ -326,10 +326,7 @@ class dsx extends Exchange {
         //         "commissionCurrency" => "btc"
         //     }
         //
-        $timestamp = $this->safe_integer($trade, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $side = $this->safe_string($trade, 'type');
         if ($side === 'ask') {
             $side = 'sell';
@@ -729,10 +726,7 @@ class dsx extends Exchange {
         //
         $id = $this->safe_string($order, 'id');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $timestamp = $this->safe_integer($order, 'timestampCreated');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'timestampCreated');
         $marketId = $this->safe_string($order, 'pair');
         $market = $this->safe_value($this->markets_by_id, $marketId, $market);
         $symbol = null;
@@ -1031,10 +1025,7 @@ class dsx extends Exchange {
         //         "commission" => 0.0001
         //     }
         //
-        $timestamp = $this->safe_integer($transaction, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $type = $this->safe_string($transaction, 'type');
         if ($type !== null) {
             if ($type === 'Incoming') {

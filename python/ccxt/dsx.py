@@ -333,9 +333,7 @@ class dsx (Exchange):
         #         "commissionCurrency": "btc"
         #     }
         #
-        timestamp = self.safe_integer(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         side = self.safe_string(trade, 'type')
         if side == 'ask':
             side = 'sell'
@@ -693,9 +691,7 @@ class dsx (Exchange):
         #
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        timestamp = self.safe_integer(order, 'timestampCreated')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(order, 'timestampCreated')
         marketId = self.safe_string(order, 'pair')
         market = self.safe_value(self.markets_by_id, marketId, market)
         symbol = None
@@ -965,9 +961,7 @@ class dsx (Exchange):
         #         "commission": 0.0001
         #     }
         #
-        timestamp = self.safe_integer(transaction, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(transaction, 'timestamp')
         type = self.safe_string(transaction, 'type')
         if type is not None:
             if type == 'Incoming':

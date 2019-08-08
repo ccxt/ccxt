@@ -596,10 +596,7 @@ class liquid extends Exchange {
         //     }
         //
         $orderId = $this->safe_string($order, 'id');
-        $timestamp = $this->safe_integer($order, 'created_at');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'created_at');
         $marketId = $this->safe_string($order, 'product_id');
         $market = $this->safe_value($this->markets_by_id, $marketId);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));

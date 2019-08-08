@@ -160,9 +160,7 @@ class nova (Exchange):
         #        unix_t_trade_time: 1564313790,
         #    }
         #
-        timestamp = self.safe_integer_2(trade, 'unix_t_datestamp', 'unix_t_trade_time')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp_2(trade, 'unix_t_datestamp', 'unix_t_trade_time')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -357,9 +355,7 @@ class nova (Exchange):
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         status = self.safe_string(order, 'status')
-        timestamp = self.safe_integer(order, 'unix_t_orderdate')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'unix_t_orderdate')
         amount = self.safe_float(order, 'fromamount')
         side = self.safe_string_lower(order, 'ordertype')
         return {
@@ -416,12 +412,8 @@ class nova (Exchange):
         }
 
     def parse_transaction(self, transaction, currency=None):
-        timestamp = self.safe_integer_2(transaction, 'unix_t_time_seen', 'unix_t_daterequested')
-        if timestamp is not None:
-            timestamp *= 1000
-        updated = self.safe_integer(transaction, 'unix_t_datesent')
-        if updated is not None:
-            updated *= 1000
+        timestamp = self.safe_timestamp_2(transaction, 'unix_t_time_seen', 'unix_t_daterequested')
+        updated = self.safe_timestamp(transaction, 'unix_t_datesent')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))

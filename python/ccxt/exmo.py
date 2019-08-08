@@ -1146,9 +1146,7 @@ class exmo (Exchange):
         #            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
         #          }
         #
-        timestamp = self.safe_float(transaction, 'dt')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(transaction, 'dt')
         amount = self.safe_float(transaction, 'amount')
         if amount is not None:
             amount = abs(amount)

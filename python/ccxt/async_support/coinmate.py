@@ -195,9 +195,7 @@ class coinmate (Exchange):
         }
         response = await self.publicGetTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'data')
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,

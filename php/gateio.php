@@ -737,10 +737,7 @@ class gateio extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $amount = $this->safe_float($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
-        $timestamp = $this->safe_integer($transaction, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $type = $this->parse_transaction_type ($id[0]);
         return array (

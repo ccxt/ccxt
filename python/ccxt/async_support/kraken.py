@@ -1097,9 +1097,7 @@ class kraken (Exchange):
         #
         id = self.safe_string(transaction, 'refid')
         txid = self.safe_string(transaction, 'txid')
-        timestamp = self.safe_integer(transaction, 'time')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(transaction, 'time')
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'info')

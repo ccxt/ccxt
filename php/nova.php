@@ -164,10 +164,7 @@ class nova extends Exchange {
         //        unix_t_trade_time => 1564313790,
         //    }
         //
-        $timestamp = $this->safe_integer_2($trade, 'unix_t_datestamp', 'unix_t_trade_time');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp_2($trade, 'unix_t_datestamp', 'unix_t_trade_time');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -377,10 +374,7 @@ class nova extends Exchange {
             }
         }
         $status = $this->safe_string($order, 'status');
-        $timestamp = $this->safe_integer($order, 'unix_t_orderdate');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'unix_t_orderdate');
         $amount = $this->safe_float($order, 'fromamount');
         $side = $this->safe_string_lower($order, 'ordertype');
         return array (
@@ -440,14 +434,8 @@ class nova extends Exchange {
     }
 
     public function parse_transaction ($transaction, $currency = null) {
-        $timestamp = $this->safe_integer_2($transaction, 'unix_t_time_seen', 'unix_t_daterequested');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
-        $updated = $this->safe_integer($transaction, 'unix_t_datesent');
-        if ($updated !== null) {
-            $updated *= 1000;
-        }
+        $timestamp = $this->safe_timestamp_2($transaction, 'unix_t_time_seen', 'unix_t_daterequested');
+        $updated = $this->safe_timestamp($transaction, 'unix_t_datesent');
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));

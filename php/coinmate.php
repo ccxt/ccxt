@@ -201,10 +201,7 @@ class coinmate extends Exchange {
         );
         $response = $this->publicGetTicker (array_merge ($request, $params));
         $ticker = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,

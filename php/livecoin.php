@@ -410,10 +410,7 @@ class livecoin extends Exchange {
         //         "commission" => 0,
         //         "clientorderid" => 1472837650
         //     }
-        $timestamp = $this->safe_integer_2($trade, 'time', 'datetime');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp_2($trade, 'time', 'datetime');
         $fee = null;
         $feeCost = $this->safe_float($trade, 'commission');
         if ($feeCost !== null) {

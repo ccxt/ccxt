@@ -1231,10 +1231,7 @@ class exmo extends Exchange {
         //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
-        $timestamp = $this->safe_float($transaction, 'dt');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'dt');
         $amount = $this->safe_float($transaction, 'amount');
         if ($amount !== null) {
             $amount = abs ($amount);
