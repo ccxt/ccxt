@@ -175,10 +175,8 @@ module.exports = class coinmarketcap extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'last_updated');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        } else {
+        let timestamp = this.safeTimestamp (ticker, 'last_updated');
+        if (timestamp === undefined) {
             timestamp = this.milliseconds ();
         }
         const change = this.safeFloat (ticker, 'percent_change_24h');
