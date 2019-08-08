@@ -306,15 +306,11 @@ class btcmarkets (Exchange):
             'id': market['id'],
         }
         response = self.publicGetMarketIdOrderbook(self.extend(request, params))
-        timestamp = self.safe_integer(response, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -352,9 +348,7 @@ class btcmarkets (Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         symbol = None
         if market is not None:
             symbol = market['symbol']
