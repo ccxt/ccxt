@@ -633,6 +633,10 @@ class Exchange(object):
         return default_value
 
     @staticmethod
+    def safe_timestamp(dictionary, key, default_value=None):
+        return Exchange.safe_integer_product(dictionary, key, 1000, default_value)
+
+    @staticmethod
     def safe_value(dictionary, key, default_value=None):
         return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
 
@@ -663,6 +667,10 @@ class Exchange(object):
     def safe_integer_product_2(dictionary, key1, key2, factor, default_value=None):
         value = Exchange.safe_integer_product(dictionary, key1, factor)
         return value if value is not None else Exchange.safe_integer_product(dictionary, key2, factor, default_value)
+
+    @staticmethod
+    def safe_timestamp_2(dictionary, key1, key2, default_value=None):
+        return Exchange.safe_integer_product_2(dictionary, key1, key2, 1000, default_value)
 
     @staticmethod
     def safe_value_2(dictionary, key1, key2, default_value=None):
