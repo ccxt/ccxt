@@ -1230,10 +1230,7 @@ module.exports = class exmo extends Exchange {
         //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
-        let timestamp = this.safeFloat (transaction, 'dt');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (transaction, 'dt');
         let amount = this.safeFloat (transaction, 'amount');
         if (amount !== undefined) {
             amount = Math.abs (amount);
