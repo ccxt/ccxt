@@ -156,8 +156,22 @@ class indodax extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetPairTicker (array_merge ($request, $params));
+        //
+        //     {
+        //         "$ticker" => {
+        //             "high":"0.01951",
+        //             "low":"0.01877",
+        //             "vol_eth":"39.38839319",
+        //             "vol_btc":"0.75320886",
+        //             "$last":"0.01896",
+        //             "buy":"0.01896",
+        //             "sell":"0.019",
+        //             "server_time":1565248908
+        //         }
+        //     }
+        //
         $ticker = $response['ticker'];
-        $timestamp = $this->safe_float($ticker, 'server_time') * 1000;
+        $timestamp = $this->safe_timestamp($ticker, 'server_time');
         $baseVolume = 'vol_' . strtolower($market['baseId']);
         $quoteVolume = 'vol_' . strtolower($market['quoteId']);
         $last = $this->safe_float($ticker, 'last');

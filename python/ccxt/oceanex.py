@@ -402,8 +402,7 @@ class oceanex (Exchange):
         #
         #     {"code":0,"message":"Operation successful","data":1559433420}
         #
-        timestamp = self.safe_integer(response, 'data')
-        return timestamp * 1000
+        return self.safe_timestamp(response, 'data')
 
     def fetch_all_trading_fees(self, params={}):
         response = self.publicGetFeesTrading(params)

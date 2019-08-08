@@ -390,7 +390,7 @@ class liquid extends Exchange {
         //       taker_side => "sell",
         //       created_at =>  1512345678,
         //          my_side => "buy"           }
-        $timestamp = $this->safe_integer($trade, 'created_at') * 1000;
+        $timestamp = $this->safe_timestamp($trade, 'created_at');
         $orderId = $this->safe_string($trade, 'order_id');
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         $takerSide = $this->safe_string($trade, 'taker_side');

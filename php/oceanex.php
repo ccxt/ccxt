@@ -418,8 +418,7 @@ class oceanex extends Exchange {
         //
         //     array("code":0,"message":"Operation successful","data":1559433420)
         //
-        $timestamp = $this->safe_integer($response, 'data');
-        return $timestamp * 1000;
+        return $this->safe_timestamp($response, 'data');
     }
 
     public function fetch_all_trading_fees ($params = array ()) {

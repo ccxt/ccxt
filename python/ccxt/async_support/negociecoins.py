@@ -97,7 +97,7 @@ class negociecoins (Exchange):
         })
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['date'] * 1000
+        timestamp = self.safe_timestamp(ticker, 'date')
         symbol = market['symbol'] if (market is not None) else None
         last = self.safe_float(ticker, 'last')
         return {
@@ -141,7 +141,7 @@ class negociecoins (Exchange):
         return self.parse_order_book(response, None, 'bid', 'ask', 'price', 'quantity')
 
     def parse_trade(self, trade, market=None):
-        timestamp = trade['date'] * 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
