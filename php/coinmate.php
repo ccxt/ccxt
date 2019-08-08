@@ -190,10 +190,7 @@ class coinmate extends Exchange {
         );
         $response = $this->publicGetOrderBook (array_merge ($request, $params));
         $orderbook = $response['data'];
-        $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
