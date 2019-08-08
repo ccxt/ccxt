@@ -1029,10 +1029,7 @@ class exmo extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
-        $timestamp = $this->safe_integer($order, 'created');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'created');
         $symbol = null;
         $side = $this->safe_string($order, 'type');
         if ($market === null) {

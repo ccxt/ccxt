@@ -346,9 +346,7 @@ class digifinex (Exchange):
         #         "code":0
         #     }
         #
-        timestamp = self.safe_integer(response, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(response, 'date')
         return self.parse_order_book(response, timestamp)
 
     def fetch_tickers(self, symbols=None, params={}):
@@ -457,9 +455,7 @@ class digifinex (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(ticker, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'date')
         last = self.safe_float(ticker, 'last')
         percentage = self.safe_float(ticker, 'change')
         return {
@@ -514,9 +510,7 @@ class digifinex (Exchange):
         #
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
-        timestamp = self.safe_integer_2(trade, 'date', 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
@@ -768,12 +762,8 @@ class digifinex (Exchange):
         #     }
         #
         id = self.safe_string(order, 'order_id')
-        timestamp = self.safe_integer(order, 'created_date')
-        if timestamp is not None:
-            timestamp *= 1000
-        lastTradeTimestamp = self.safe_integer(order, 'finished_date')
-        if lastTradeTimestamp is not None:
-            lastTradeTimestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'created_date')
+        lastTradeTimestamp = self.safe_timestamp(order, 'finished_date')
         side = self.safe_string(order, 'type')
         type = None
         if side is not None:
@@ -998,10 +988,7 @@ class digifinex (Exchange):
         account = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         code = self.safe_currency_code(self.safe_string(item, 'currency_mark'), currency)
-        time = self.safe_integer(item, 'time')
-        timestamp = None
-        if time is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(item, 'time')
         before = None
         after = self.safe_float(item, 'balance')
         status = 'ok'

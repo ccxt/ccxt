@@ -185,9 +185,7 @@ class coinmate (Exchange):
         }
         response = self.publicGetOrderBook(self.extend(request, params))
         orderbook = response['data']
-        timestamp = self.safe_integer(orderbook, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):

@@ -270,9 +270,7 @@ class dsx (Exchange):
         #     updated:  1537521993,
         #        pair: "ethbtc"       }
         #
-        timestamp = self.safe_integer(ticker, 'updated')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'updated')
         symbol = None
         marketId = self.safe_string(ticker, 'pair')
         if marketId in self.markets_by_id:

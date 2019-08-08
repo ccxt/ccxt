@@ -258,10 +258,7 @@ class dsx extends Exchange {
         //     updated =>  1537521993,
         //        pair => "ethbtc"       }
         //
-        $timestamp = $this->safe_integer($ticker, 'updated');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'updated');
         $symbol = null;
         $marketId = $this->safe_string($ticker, 'pair');
         if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
