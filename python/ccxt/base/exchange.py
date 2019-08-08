@@ -629,7 +629,7 @@ class Exchange(object):
             return default_value
         value = dictionary[key]
         if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
-            return int(int(value) * factor)
+            return int(value) * factor
         return default_value
 
     @staticmethod
