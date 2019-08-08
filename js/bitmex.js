@@ -570,7 +570,7 @@ module.exports = class bitmex extends Exchange {
             request['count'] = limit;
         }
         const response = await this.privateGetUserWalletHistory (this.extend (request, params));
-        const transactions = this.filterByArray (response, [ 'Withdrawal', 'Deposit' ], false);
+        const transactions = this.filterByArray (response, 'transactType', [ 'Withdrawal', 'Deposit' ], false);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
