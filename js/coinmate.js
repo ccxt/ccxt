@@ -189,10 +189,7 @@ module.exports = class coinmate extends Exchange {
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const orderbook = response['data'];
-        let timestamp = this.safeInteger (orderbook, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
