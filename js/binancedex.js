@@ -154,7 +154,7 @@ module.exports = class binancedex extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                }
+                },
             };
         }
         return result;
@@ -382,7 +382,8 @@ module.exports = class binancedex extends Exchange {
         const id = this.safeString (order, 'orderId');
         let feeCurrency = undefined;
         let feeCost = 0;
-        const feeData = this.safeString (order, 'fee').split (';');
+        const fee = this.safeString (order, 'fee');
+        const feeData = fee.split (';');
         const feeDataLen = feeData.length;
         const feeInfoField = feeDataLen - 2;
         if (feeInfoField >= 0) {
@@ -422,9 +423,8 @@ module.exports = class binancedex extends Exchange {
         const request = {
             'id': id,
         };
-        const market = this.market (symbol);
         const response = await this.publicGetOrdersId (this.extend (request, params));
-        return this.parseOrder (response, market);
+        return this.parseOrder (response, undefined);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
