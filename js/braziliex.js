@@ -20,6 +20,7 @@ module.exports = class braziliex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'fetchDepositAddress': true,
+                'fetchOrderStatus': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -49,6 +50,7 @@ module.exports = class braziliex extends Exchange {
                         'sell',
                         'buy',
                         'cancel_order',
+                        'order_status',
                     ],
                 },
             },
@@ -503,6 +505,15 @@ module.exports = class braziliex extends Exchange {
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
+    
+    async fetchOrderStatus (id, symbol = undefined, params = {}) {
+      await this.loadMarkets ();
+      let market = this.market (symbol);
+      let result = await this.privatePostOrderStatus (this.extend ({
+          'order_number': id,
+          'market': market['id'],
+      }, params));
+      return result;
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
