@@ -170,8 +170,10 @@ module.exports = class binancedex extends Exchange {
             const quoteSymbol = this.safeString (market, 'quote_asset_symbol');
             const lotSize = this.safeFloat (market, 'lot_size');
             const tickSize = this.safeFloat (market, 'tick_size');
-            const originalBaseSymbol = baseSymbol.split ('-')[0];
-            const originalQuoteSymbol = quoteSymbol.split ('-')[0];
+            const parsedBase = baseSymbol.split ('-')[0];
+            const parsedQuote = quoteSymbol.split ('-')[0];
+            const originalBaseSymbol = this.safeCurrencyCode (parsedBase);
+            const originalQuoteSymbol = this.safeCurrencyCode (parsedQuote);
             const symbol = originalBaseSymbol + '/' + originalQuoteSymbol;
             const id = baseSymbol + '_' + quoteSymbol;
             result.push ({
@@ -209,8 +211,16 @@ module.exports = class binancedex extends Exchange {
         const lastPrice = this.safeFloat (ticker, 'lastPrice');
         const weightedAvgPrice = this.safeFloat (ticker, 'weightedAvgPrice');
         const timestamp = this.safeInteger (ticker, 'closeTime');
+        const exchangeSymbol = this.safeString (ticker, 'symbol');
+        let symbol = undefined;
+        if (exchangeSymbol in this.markets_by_id) {
+            market = this.markets_by_id[exchangeSymbol];
+        }
+        if (market !== undefined) {
+            symbol = this.safeString (market, 'symbol');
+        }
         return {
-            'symbol': this.markets_by_id[this.safeString (ticker, 'symbol')]['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'highPrice'),
