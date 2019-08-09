@@ -33,6 +33,15 @@ namespace ccxt;
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
+use Elliptic\EC;
+
+spl_autoload_register(function ($class) {
+    // used to include static dependencies (currently only elliptic-php)
+    $PATH = 'static_dependencies/elliptic-php/lib/';
+    $className = str_replace('Elliptic\\', '', $class);
+    $className = str_replace('\\', DIRECTORY_SEPARATOR, $className);
+    include_once $PATH . $className . '.php';
+});
 
 $version = '1.18.1036';
 
@@ -1102,6 +1111,17 @@ class Exchange {
         $algName = $algorithms[$alg];
         $signature = null;
         \openssl_sign($request, $signature, $secret, $algName);
+        return $signature;
+    }
+
+    public static function ecdsa($request, $secret, $algorithm) {
+        $ec = new EC(strtolower($algorithm));
+        $key = $ec->keyFromPrivate($secret);
+        $ellipticSignature = $key->sign($request);
+        $signature = array();
+        $signature['r'] = $ellipticSignature->r->bi->toHex();
+        $signature['s'] = $ellipticSignature->s->bi->toHex();
+        $signature['v'] = gmp_strval($ellipticSignature->recoveryParam, 16);
         return $signature;
     }
 

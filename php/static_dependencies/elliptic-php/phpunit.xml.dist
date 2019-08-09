@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         stopOnFailure="false"
+         syntaxCheck="true"
+         verbose="true"
+>
+    <testsuites>
+        <testsuite>
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">lib/</directory>
+        </whitelist>
+    </filter>
+</phpunit>

@@ -1,0 +1,10 @@
+{
+    "bootstrap": "vendor/autoload.php",
+    "path": "benchmarks",
+    "reports": {
+        "simple": {
+            "generator": "table",
+            "cols": ["subject", "mode", "rstdev", "its", "revs"]
+        }
+    }
+}

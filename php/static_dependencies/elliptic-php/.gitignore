@@ -1,0 +1,7 @@
+.vscode
+/vendor/
+node_modules
+composer.lock
+.project
+.settings
+.buildpath
