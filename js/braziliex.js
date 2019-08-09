@@ -514,6 +514,7 @@ module.exports = class braziliex extends Exchange {
           'market': market['id'],
       }, params));
       return result;
+}
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
