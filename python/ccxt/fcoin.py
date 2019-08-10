@@ -93,6 +93,7 @@ class fcoin (Exchange):
                 'private': {
                     'get': [
                         'accounts/balance',
+                        'assets/accounts/balance',
                         'broker/otc/suborders',
                         'broker/otc/suborders/{id}',
                         'broker/otc/suborders/{id}/payments',

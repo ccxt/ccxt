@@ -82,6 +82,7 @@ class fcoin extends Exchange {
                 'private' => array (
                     'get' => array (
                         'accounts/balance',
+                        'assets/accounts/balance',
                         'broker/otc/suborders',
                         'broker/otc/suborders/{id}',
                         'broker/otc/suborders/{id}/payments',
