@@ -19,9 +19,11 @@ RUN sed -i 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.l
 # Python 2
     && apt-get install -y python-pip \
     && pip2 install --upgrade setuptools \
+    && pip2 install tox \
 # Python 3
     && apt-get install -y python3 python3-pip \
     && pip3 install --upgrade setuptools \
+    && pip3 install tox \
 # Copy files to workdir to && install scripts against it (will be replaced with a live-mounted volume at startup)
 && mkdir -p /ccxt \
 && rm -rf /ccxt/node_modules \
