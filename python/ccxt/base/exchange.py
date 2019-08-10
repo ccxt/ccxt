@@ -1054,18 +1054,6 @@ class Exchange(object):
 
     @staticmethod
     def ecdsa(request, secret, algorithm):
-        def truncate_hex(string):
-            """convert an arbitary string to hex as done in elliptic.js"""
-            string = string.lower()
-            result = 0
-            for i in range(0, len(string)):
-                c = string[-i-1]
-                if c == '=':
-                    continue
-                hexvalue = (16 ** i) * (ord(c) % 16 + (9 if 'a' <= c <= 'f' else 0))
-                result += hexvalue
-            return Exchange.dec_to_bytes(result)
-
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
             'p224': [ecdsa.NIST224p, 'sha256'],
@@ -1081,8 +1069,7 @@ class Exchange(object):
         else:
             hash_function = hashlib.sha1
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
-        hexish = truncate_hex(request)
-        r_binary, s_binary = key.sign_digest_deterministic(hexish, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
+        r_binary, s_binary = key.sign_digest_deterministic(base64.b16decode(Exchange.encode(request), casefold=True), hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
         return {
             'r': r,
@@ -2007,14 +1994,13 @@ class Exchange(object):
             raise ExchangeError(self.id + ' set .twofa to use this feature')
 
     @staticmethod
-    def dec_to_bytes(n):
-        if n > 0:
-            return Exchange.dec_to_bytes(n // 256) + bytes([n % 256])
-        else:
-            return b''
-
-    @staticmethod
     def totp(key):
+        def dec_to_bytes(n):
+            if n > 0:
+                return dec_to_bytes(n // 256) + bytes([n % 256])
+            else:
+                return b''
+
         def hex_to_dec(n):
             return int(n, base=16)
 
@@ -2025,7 +2011,7 @@ class Exchange(object):
             return base64.b32decode(padded)  # throws an error if the key is invalid
 
         epoch = int(time.time()) // 30
-        hmac_res = Exchange.hmac(Exchange.dec_to_bytes(epoch).rjust(8, b'\x00'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
+        hmac_res = Exchange.hmac(dec_to_bytes(epoch).rjust(8, b'\x00'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
