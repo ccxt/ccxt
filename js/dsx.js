@@ -257,10 +257,7 @@ module.exports = class dsx extends Exchange {
         //     updated:  1537521993,
         //        pair: "ethbtc"       }
         //
-        let timestamp = this.safeInteger (ticker, 'updated');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'pair');
         if (marketId in this.markets_by_id) {
@@ -328,10 +325,7 @@ module.exports = class dsx extends Exchange {
         //         "commissionCurrency": "btc"
         //     }
         //
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         let side = this.safeString (trade, 'type');
         if (side === 'ask') {
             side = 'sell';
@@ -731,10 +725,7 @@ module.exports = class dsx extends Exchange {
         //
         const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let timestamp = this.safeInteger (order, 'timestampCreated');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'timestampCreated');
         const marketId = this.safeString (order, 'pair');
         market = this.safeValue (this.markets_by_id, marketId, market);
         let symbol = undefined;
@@ -1033,10 +1024,7 @@ module.exports = class dsx extends Exchange {
         //         "commission": 0.0001
         //     }
         //
-        let timestamp = this.safeInteger (transaction, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
         let type = this.safeString (transaction, 'type');
         if (type !== undefined) {
             if (type === 'Incoming') {

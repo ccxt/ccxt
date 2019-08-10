@@ -168,7 +168,7 @@ class flowbtc (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'unixtime') * 1000
+        timestamp = self.safe_timestamp(trade, 'unixtime')
         side = 'buy' if (trade['incomingOrderSide'] == 0) else 'sell'
         id = self.safe_string(trade, 'tid')
         price = self.safe_float(trade, 'px')

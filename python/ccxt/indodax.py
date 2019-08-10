@@ -159,8 +159,22 @@ class indodax (Exchange):
             'pair': market['id'],
         }
         response = self.publicGetPairTicker(self.extend(request, params))
+        #
+        #     {
+        #         "ticker": {
+        #             "high":"0.01951",
+        #             "low":"0.01877",
+        #             "vol_eth":"39.38839319",
+        #             "vol_btc":"0.75320886",
+        #             "last":"0.01896",
+        #             "buy":"0.01896",
+        #             "sell":"0.019",
+        #             "server_time":1565248908
+        #         }
+        #     }
+        #
         ticker = response['ticker']
-        timestamp = self.safe_float(ticker, 'server_time') * 1000
+        timestamp = self.safe_timestamp(ticker, 'server_time')
         baseVolume = 'vol_' + market['baseId'].lower()
         quoteVolume = 'vol_' + market['quoteId'].lower()
         last = self.safe_float(ticker, 'last')
@@ -188,9 +202,7 @@ class indodax (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'tid')
         symbol = None
         if market is not None:

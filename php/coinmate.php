@@ -190,10 +190,7 @@ class coinmate extends Exchange {
         );
         $response = $this->publicGetOrderBook (array_merge ($request, $params));
         $orderbook = $response['data'];
-        $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -204,10 +201,7 @@ class coinmate extends Exchange {
         );
         $response = $this->publicGetTicker (array_merge ($request, $params));
         $ticker = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,

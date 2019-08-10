@@ -479,6 +479,29 @@ if ('foo' in params) {
 }
 ```
 
+#### Timestamps
+
+**All timestamps throughout all unified structures within this library are integer timestamp _in milliseconds_!**
+
+In order to convert to milliseconds timestamps, CCXT implementes the following methods:
+
+```JavaScript
+const data = {
+   'unixTimestampInSeconds': 1565242530,
+   'unixTimestampInMilliseconds': 1565242530165,
+   'stringInSeconds': '1565242530',
+};
+
+// convert to integer if the underlying value is already in milliseconds
+const timestamp = this.safeInteger (data, 'unixTimestampInMilliseconds'); // === 1565242530165
+
+// convert to integer and multiply by a thousand if the value is a UNIX timestamp in seconds
+const timestamp = this.safeTimestamp (data, 'unixTimestampInSeconds'); // === 1565242530000
+
+// convert to integer and multiply by a thousand if the value is in seconds
+const timestamp = this.safeTimestamp (data, 'stringInSeconds'); // === 1565242530000
+```
+
 #### Working With Array Lengths
 
 In JavaScript the common syntax to get a length of a string or an array is to reference the `.length` property like shown here:

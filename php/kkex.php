@@ -167,10 +167,7 @@ class kkex extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'date');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

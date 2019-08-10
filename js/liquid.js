@@ -389,7 +389,7 @@ module.exports = class liquid extends Exchange {
         //       taker_side: "sell",
         //       created_at:  1512345678,
         //          my_side: "buy"           }
-        const timestamp = this.safeInteger (trade, 'created_at') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'created_at');
         const orderId = this.safeString (trade, 'order_id');
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         const takerSide = this.safeString (trade, 'taker_side');
@@ -595,10 +595,7 @@ module.exports = class liquid extends Exchange {
         //     }
         //
         const orderId = this.safeString (order, 'id');
-        let timestamp = this.safeInteger (order, 'created_at');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'created_at');
         const marketId = this.safeString (order, 'product_id');
         market = this.safeValue (this.markets_by_id, marketId);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));

@@ -570,7 +570,7 @@ class bitmex extends Exchange {
             $request['count'] = $limit;
         }
         $response = $this->privateGetUserWalletHistory (array_merge ($request, $params));
-        $transactions = $this->filter_by_array($response, array ( 'Withdrawal', 'Deposit' ), false);
+        $transactions = $this->filter_by_array($response, 'transactType', array ( 'Withdrawal', 'Deposit' ), false);
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency ($code);

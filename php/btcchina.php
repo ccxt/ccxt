@@ -154,18 +154,12 @@ class btcchina extends Exchange {
         $method = $market['api'] . 'GetOrderbook';
         $request = $this->create_market_request ($market);
         $response = $this->$method (array_merge ($request, $params));
-        $timestamp = $this->safe_integer($response, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($response, 'date');
         return $this->parse_order_book($response, $timestamp);
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = $this->safe_integer($ticker, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'date');
         $last = $this->safe_float($ticker, 'last');
         return array (
             'timestamp' => $timestamp,
@@ -228,10 +222,7 @@ class btcchina extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;

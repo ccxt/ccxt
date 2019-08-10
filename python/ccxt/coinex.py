@@ -281,11 +281,9 @@ class coinex (Exchange):
 
     def parse_trade(self, trade, market=None):
         # self method parses both public and private trades
-        timestamp = self.safe_integer(trade, 'create_time')
+        timestamp = self.safe_timestamp(trade, 'create_time')
         if timestamp is None:
             timestamp = self.safe_integer(trade, 'date_ms')
-        else:
-            timestamp = timestamp * 1000
         tradeId = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
         price = self.safe_float(trade, 'price')
@@ -424,9 +422,7 @@ class coinex (Exchange):
         #         "type": "sell",
         #     }
         #
-        timestamp = self.safe_integer(order, 'create_time')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'create_time')
         price = self.safe_float(order, 'price')
         cost = self.safe_float(order, 'deal_money')
         amount = self.safe_float(order, 'amount')
@@ -680,9 +676,7 @@ class coinex (Exchange):
                 txid = None
         currencyId = self.safe_string(transaction, 'coin_type')
         code = self.safe_currency_code(currencyId, currency)
-        timestamp = self.safe_integer(transaction, 'create_time')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(transaction, 'create_time')
         type = 'withdraw' if ('coin_withdraw_id' in list(transaction.keys())) else 'deposit'
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'), type)
         amount = self.safe_float(transaction, 'amount')

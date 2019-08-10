@@ -427,7 +427,6 @@ declare module 'ccxt' {
     export class lakebtc extends Exchange {}
     export class latoken extends Exchange {}
     export class lbank extends Exchange {}
-    export class liqui extends Exchange {}
     export class liquid extends Exchange {}
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}

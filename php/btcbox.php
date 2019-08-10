@@ -147,10 +147,7 @@ class btcbox extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000; // GMT time
-        }
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

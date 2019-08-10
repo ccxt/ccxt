@@ -285,11 +285,9 @@ module.exports = class coinex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         // this method parses both public and private trades
-        let timestamp = this.safeInteger (trade, 'create_time');
+        let timestamp = this.safeTimestamp (trade, 'create_time');
         if (timestamp === undefined) {
             timestamp = this.safeInteger (trade, 'date_ms');
-        } else {
-            timestamp = timestamp * 1000;
         }
         const tradeId = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
@@ -439,10 +437,7 @@ module.exports = class coinex extends Exchange {
         //         "type": "sell",
         //     }
         //
-        let timestamp = this.safeInteger (order, 'create_time');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'create_time');
         const price = this.safeFloat (order, 'price');
         const cost = this.safeFloat (order, 'deal_money');
         const amount = this.safeFloat (order, 'amount');
@@ -723,10 +718,7 @@ module.exports = class coinex extends Exchange {
         }
         const currencyId = this.safeString (transaction, 'coin_type');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let timestamp = this.safeInteger (transaction, 'create_time');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (transaction, 'create_time');
         const type = ('coin_withdraw_id' in transaction) ? 'withdraw' : 'deposit';
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'), type);
         const amount = this.safeFloat (transaction, 'amount');

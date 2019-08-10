@@ -373,7 +373,7 @@ class liquid (Exchange):
         #       taker_side: "sell",
         #       created_at:  1512345678,
         #          my_side: "buy"           }
-        timestamp = self.safe_integer(trade, 'created_at') * 1000
+        timestamp = self.safe_timestamp(trade, 'created_at')
         orderId = self.safe_string(trade, 'order_id')
         # 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         takerSide = self.safe_string(trade, 'taker_side')
@@ -562,9 +562,7 @@ class liquid (Exchange):
         #     }
         #
         orderId = self.safe_string(order, 'id')
-        timestamp = self.safe_integer(order, 'created_at')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(order, 'created_at')
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_value(self.markets_by_id, marketId)
         status = self.parse_order_status(self.safe_string(order, 'status'))

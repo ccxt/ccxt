@@ -169,9 +169,7 @@ class _1btcxe (Exchange):
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         id = self.safe_string(trade, 'id')
         symbol = None
         if market is not None:

@@ -521,9 +521,7 @@ class okcoinusd (Exchange):
         request = {}
         response = await self.publicGetTickers(self.extend(request, params))
         tickers = response['tickers']
-        timestamp = self.safe_integer(response, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(response, 'date')
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
@@ -631,9 +629,8 @@ class okcoinusd (Exchange):
         ticker = self.safe_value(response, 'ticker')
         if ticker is None:
             raise ExchangeError(self.id + ' fetchTicker returned an empty response: ' + self.json(response))
-        timestamp = self.safe_integer(response, 'date')
+        timestamp = self.safe_timestamp(response, 'date')
         if timestamp is not None:
-            timestamp *= 1000
             ticker = self.extend(ticker, {'timestamp': timestamp})
         return self.parse_ticker(ticker, market)
 

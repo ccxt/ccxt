@@ -372,14 +372,9 @@ module.exports = class bitforex extends Exchange {
             request['size'] = limit;
         }
         const response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
-        const data = response['data'];
-        const timestamp = response['time'];
-        const bidsKey = 'bids';
-        const asksKey = 'asks';
-        const priceKey = 'price';
-        const amountKey = 'amount';
-        const orderbook = this.parseOrderBook (data, timestamp, bidsKey, asksKey, priceKey, amountKey);
-        return orderbook;
+        const data = this.safeValue (response, 'data');
+        const timestamp = this.safeInteger (response, 'time');
+        return this.parseOrderBook (data, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOrderStatus (status) {

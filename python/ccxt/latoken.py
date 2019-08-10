@@ -566,9 +566,7 @@ class latoken (Exchange):
         #     }
         #
         id = self.safe_string(order, 'orderId')
-        timestamp = self.safe_value(order, 'timeCreated')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'timeCreated')
         marketId = self.safe_string(order, 'symbol')
         symbol = marketId
         if marketId in self.markets_by_id:
@@ -589,10 +587,8 @@ class latoken (Exchange):
         if filled is not None:
             if price is not None:
                 cost = filled * price
-        timeFilled = self.safe_integer(order, 'timeFilled')
-        lastTradeTimestamp = None
-        if timeFilled is not None and timeFilled > 0:
-            lastTradeTimestamp = timeFilled * 1000
+        timeFilled = self.safe_timestamp(order, 'timeFilled')
+        lastTradeTimestamp = timeFilled if (timeFilled > 0) else None
         return {
             'id': id,
             'info': order,

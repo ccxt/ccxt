@@ -342,10 +342,7 @@ class digifinex extends Exchange {
         //         "code":0
         //     }
         //
-        $timestamp = $this->safe_integer($response, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($response, 'date');
         return $this->parse_order_book($response, $timestamp);
     }
 
@@ -462,10 +459,7 @@ class digifinex extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($ticker, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'date');
         $last = $this->safe_float($ticker, 'last');
         $percentage = $this->safe_float($ticker, 'change');
         return array (
@@ -521,10 +515,7 @@ class digifinex extends Exchange {
         //
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
-        $timestamp = $this->safe_integer_2($trade, 'date', 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'date', 'timestamp');
         $side = $this->safe_string_2($trade, 'type', 'side');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
@@ -797,14 +788,8 @@ class digifinex extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
-        $timestamp = $this->safe_integer($order, 'created_date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
-        $lastTradeTimestamp = $this->safe_integer($order, 'finished_date');
-        if ($lastTradeTimestamp !== null) {
-            $lastTradeTimestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'created_date');
+        $lastTradeTimestamp = $this->safe_timestamp($order, 'finished_date');
         $side = $this->safe_string($order, 'type');
         $type = null;
         if ($side !== null) {
@@ -1044,18 +1029,14 @@ class digifinex extends Exchange {
         //         "$type" => 100234,
         //         "num" => 28457,
         //         "balance" => 0.1,
-        //         "$time" => 1546272000
+        //         "time" => 1546272000
         //     }
         //
         $id = $this->safe_string($item, 'num');
         $account = null;
         $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
         $code = $this->safe_currency_code($this->safe_string($item, 'currency_mark'), $currency);
-        $time = $this->safe_integer($item, 'time');
-        $timestamp = null;
-        if ($time !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($item, 'time');
         $before = null;
         $after = $this->safe_float($item, 'balance');
         $status = 'ok';

@@ -163,10 +163,7 @@ module.exports = class nova extends Exchange {
         //        unix_t_trade_time: 1564313790,
         //    }
         //
-        let timestamp = this.safeInteger2 (trade, 'unix_t_datestamp', 'unix_t_trade_time');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'unix_t_datestamp', 'unix_t_trade_time');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -376,10 +373,7 @@ module.exports = class nova extends Exchange {
             }
         }
         const status = this.safeString (order, 'status');
-        let timestamp = this.safeInteger (order, 'unix_t_orderdate');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'unix_t_orderdate');
         const amount = this.safeFloat (order, 'fromamount');
         const side = this.safeStringLower (order, 'ordertype');
         return {
@@ -439,14 +433,8 @@ module.exports = class nova extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        let timestamp = this.safeInteger2 (transaction, 'unix_t_time_seen', 'unix_t_daterequested');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
-        let updated = this.safeInteger (transaction, 'unix_t_datesent');
-        if (updated !== undefined) {
-            updated *= 1000;
-        }
+        const timestamp = this.safeTimestamp2 (transaction, 'unix_t_time_seen', 'unix_t_daterequested');
+        const updated = this.safeTimestamp (transaction, 'unix_t_datesent');
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));

@@ -655,7 +655,7 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeInteger (ticker, 'updated') * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -708,7 +708,7 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'date') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'date');
         let fee = undefined;
         let symbol = undefined;
         const id = this.safeString (trade, 'trade_id');
@@ -1028,10 +1028,7 @@ module.exports = class exmo extends Exchange {
         //     }
         //
         let id = this.safeString (order, 'order_id');
-        let timestamp = this.safeInteger (order, 'created');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        let timestamp = this.safeTimestamp (order, 'created');
         let symbol = undefined;
         const side = this.safeString (order, 'type');
         if (market === undefined) {
@@ -1233,10 +1230,7 @@ module.exports = class exmo extends Exchange {
         //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
-        let timestamp = this.safeFloat (transaction, 'dt');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (transaction, 'dt');
         let amount = this.safeFloat (transaction, 'amount');
         if (amount !== undefined) {
             amount = Math.abs (amount);

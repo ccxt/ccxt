@@ -341,10 +341,7 @@ module.exports = class digifinex extends Exchange {
         //         "code":0
         //     }
         //
-        let timestamp = this.safeInteger (response, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (response, 'date');
         return this.parseOrderBook (response, timestamp);
     }
 
@@ -461,10 +458,7 @@ module.exports = class digifinex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let timestamp = this.safeInteger (ticker, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'date');
         const last = this.safeFloat (ticker, 'last');
         const percentage = this.safeFloat (ticker, 'change');
         return {
@@ -520,10 +514,7 @@ module.exports = class digifinex extends Exchange {
         //
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order_id');
-        let timestamp = this.safeInteger2 (trade, 'date', 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date', 'timestamp');
         const side = this.safeString2 (trade, 'type', 'side');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
@@ -796,14 +787,8 @@ module.exports = class digifinex extends Exchange {
         //     }
         //
         const id = this.safeString (order, 'order_id');
-        let timestamp = this.safeInteger (order, 'created_date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
-        let lastTradeTimestamp = this.safeInteger (order, 'finished_date');
-        if (lastTradeTimestamp !== undefined) {
-            lastTradeTimestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'created_date');
+        const lastTradeTimestamp = this.safeTimestamp (order, 'finished_date');
         let side = this.safeString (order, 'type');
         let type = undefined;
         if (side !== undefined) {
@@ -1050,11 +1035,7 @@ module.exports = class digifinex extends Exchange {
         const account = undefined;
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const code = this.safeCurrencyCode (this.safeString (item, 'currency_mark'), currency);
-        const time = this.safeInteger (item, 'time');
-        let timestamp = undefined;
-        if (time !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (item, 'time');
         const before = undefined;
         const after = this.safeFloat (item, 'balance');
         const status = 'ok';

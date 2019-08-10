@@ -723,7 +723,7 @@ class kraken extends Exchange {
         if (is_array($trade) && array_key_exists('ordertxid', $trade)) {
             $order = $trade['ordertxid'];
             $id = $this->safe_string_2($trade, 'id', 'postxid');
-            $timestamp = intval ($trade['time'] * 1000);
+            $timestamp = $this->safe_timestamp($trade, 'time');
             $side = $trade['type'];
             $type = $trade['ordertype'];
             $price = $this->safe_float($trade, 'price');
@@ -928,7 +928,7 @@ class kraken extends Exchange {
             // delisted $market ids go here
             $market = $this->get_delisted_market_by_id ($marketId);
         }
-        $timestamp = $this->safe_integer($order, 'opentm') * 1000;
+        $timestamp = $this->safe_timestamp($order, 'opentm');
         $amount = $this->safe_float($order, 'vol');
         $filled = $this->safe_float($order, 'vol_exec');
         $remaining = $amount - $filled;
@@ -1175,10 +1175,7 @@ class kraken extends Exchange {
         //
         $id = $this->safe_string($transaction, 'refid');
         $txid = $this->safe_string($transaction, 'txid');
-        $timestamp = $this->safe_integer($transaction, 'time');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'time');
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'info');

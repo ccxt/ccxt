@@ -14,6 +14,7 @@ module.exports = class anxpro extends Exchange {
             'name': 'ANXPro',
             'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
             'rateLimit': 1500,
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
                 'fetchCurrencies': true,
@@ -839,8 +840,7 @@ module.exports = class anxpro extends Exchange {
         };
         const response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data', {});
-        const t = this.safeInteger (orderbook, 'dataUpdateTime');
-        const timestamp = (t === undefined) ? t : parseInt (t / 1000);
+        const timestamp = this.safeIntegerProduct (orderbook, 'dataUpdateTime', 0.001);
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -851,8 +851,7 @@ module.exports = class anxpro extends Exchange {
         };
         const response = await this.publicGetCurrencyPairMoneyTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'data', {});
-        const t = this.safeInteger (ticker, 'dataUpdateTime');
-        const timestamp = (t === undefined) ? t : parseInt (t / 1000);
+        const timestamp = this.safeIntegerProduct (ticker, 'dataUpdateTime', 0.001);
         const bid = this.safeFloat (ticker['buy'], 'value');
         const ask = this.safeFloat (ticker['sell'], 'value');
         const baseVolume = this.safeFloat (ticker['vol'], 'value');

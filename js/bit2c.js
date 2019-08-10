@@ -327,7 +327,7 @@ module.exports = class bit2c extends Exchange {
         let side = undefined;
         const reference = this.safeString (trade, 'reference');
         if (reference !== undefined) {
-            timestamp = this.safeInteger (trade, 'ticks') * 1000;
+            timestamp = this.safeTimestamp (trade, 'ticks');
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'firstAmount');
             const reference_parts = reference.split ('|'); // reference contains: 'pair|orderId|tradeId'
@@ -349,7 +349,7 @@ module.exports = class bit2c extends Exchange {
             }
             feeCost = this.safeFloat (trade, 'feeAmount');
         } else {
-            timestamp = this.safeInteger (trade, 'date') * 1000;
+            timestamp = this.safeTimestamp (trade, 'date');
             id = this.safeString (trade, 'tid');
             price = this.safeFloat (trade, 'price');
             amount = this.safeFloat (trade, 'amount');

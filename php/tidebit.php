@@ -191,18 +191,12 @@ class tidebit extends Exchange {
         }
         $request['market'] = $market['id'];
         $response = $this->publicGetDepth (array_merge ($request, $params));
-        $timestamp = $this->safe_integer($response, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($response, 'timestamp');
         return $this->parse_order_book($response, $timestamp);
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'at');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'at');
         $ticker = $this->safe_value($ticker, 'ticker', array());
         $symbol = null;
         if ($market !== null) {

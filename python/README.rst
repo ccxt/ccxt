@@ -57,7 +57,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 125 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
 
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -244,8 +244,6 @@ The ccxt library currently supports the following 125 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | lbank              | `LBank <https://www.lbex.io/invite?icode=7QCY>`__                                          | 1   | `API <https://github.com/LBank-exchange/lbank-official-api-docs>`__                             |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| liqui              | `Liqui <https://liqui.io>`__                                                               | 3   | `API <https://liqui.io/api>`__                                                                  |                                                                      |
-+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | liquid             | `Liquid <https://www.liquid.com?affiliate=SbzC62lt30976>`__                                | 2   | `API <https://developers.liquid.com>`__                                                         |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | livecoin           | `LiveCoin <https://livecoin.net/?from=Livecoin-CQ1hfx44>`__                                | \*  | `API <https://www.livecoin.net/api?lang=en>`__                                                  |                                                                      |
@@ -360,14 +358,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1021/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.1021/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1041/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.1041/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1021/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1041/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
