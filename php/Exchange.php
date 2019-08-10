@@ -1117,7 +1117,7 @@ class Exchange {
     public static function ecdsa($request, $secret, $algorithm) {
         $ec = new EC(strtolower($algorithm));
         $key = $ec->keyFromPrivate($secret);
-        $ellipticSignature = $key->sign($request);
+        $ellipticSignature = $key->sign($request, false, array('canonical' => true));
         $signature = array();
         $signature['r'] = $ellipticSignature->r->bi->toHex();
         $signature['s'] = $ellipticSignature->s->bi->toHex();

@@ -285,6 +285,9 @@ class SigningKey:
             except RSZeroError:
                 retry_gen += 1
 
+        # add support for canonical mode (comment out to set to false)
+        if s > self.privkey.order / 2:
+            s = self.privkey.order - s
         return sigencode(r, s, order)
 
     def sign(self, data, entropy=None, hashfunc=None, sigencode=sigencode_string, k=None):

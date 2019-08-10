@@ -69,11 +69,11 @@ function jwt (request, secret, alg = 'HS256') {
 }
 
 function ecdsa (request, secret, algorithm) {
-    const curve = new EC (algorithm.toLowerCase ())
-    const signature = curve.sign (request, secret, 'hex')
+    const curve = new EC (algorithm)
+    const signature = curve.sign (request, secret, 'hex',  { 'canonical': true })
     return {
-        'r': signature.r.toString (16),
-        's': signature.s.toString (16),
+        'r': signature.r.toString (16).padStart (64, '0'),
+        's': signature.s.toString (16).padStart (64, '0'),
         'v': signature.recoveryParam.toString (16),
     }
 }
