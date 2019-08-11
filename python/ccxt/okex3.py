@@ -1996,7 +1996,7 @@ class okex3 (Exchange):
         #
         return {
             'info': response,
-            'id': self.safe_string(response, 'withdraw_id'),
+            'id': self.safe_string(response, 'withdrawal_id'),
         }
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):

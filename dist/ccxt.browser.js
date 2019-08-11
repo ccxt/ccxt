@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1041'
+const version = '1.18.1042'
 
 Exchange.ccxtVersion = version
 
@@ -69320,7 +69320,7 @@ module.exports = class okex3 extends Exchange {
         //
         return {
             'info': response,
-            'id': this.safeString (response, 'withdraw_id'),
+            'id': this.safeString (response, 'withdrawal_id'),
         };
     }
 
