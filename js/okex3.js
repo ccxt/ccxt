@@ -2075,7 +2075,7 @@ module.exports = class okex3 extends Exchange {
         //
         return {
             'info': response,
-            'id': this.safeString (response, 'withdraw_id'),
+            'id': this.safeString (response, 'withdrawal_id'),
         };
     }
 
