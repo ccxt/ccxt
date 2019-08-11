@@ -2076,7 +2076,7 @@ class okex3 extends Exchange {
         //
         return array (
             'info' => $response,
-            'id' => $this->safe_string($response, 'withdraw_id'),
+            'id' => $this->safe_string($response, 'withdrawal_id'),
         );
     }
 
