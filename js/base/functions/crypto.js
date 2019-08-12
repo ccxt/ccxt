@@ -7,6 +7,8 @@ const { capitalize } = require ('./string')
 const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
 const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA')
 const EC = require ('./../../static_dependencies/elliptic').ec
+const { ArgumentsRequired } = require ('./../errors')
+
 
 /*  ------------------------------------------------------------------------ */
 
@@ -70,6 +72,12 @@ function jwt (request, secret, alg = 'HS256') {
 
 function ecdsa (request, secret, algorithm) {
     const curve = new EC (algorithm)
+    for (let character of request) {
+        if ((character >= 'a' && character <= 'f') || (character >= '1' && character <= '9')) {
+            continue
+        }
+        throw new ArgumentsRequired ('Invalid character ' + character + ', is not a valid hex character')
+    }
     const signature = curve.sign (request, secret, 'hex',  { 'canonical': true })
     return {
         'r': signature.r.toString (16).padStart (64, '0'),
