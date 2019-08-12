@@ -67,6 +67,16 @@ try {
     // nothing
 }
 
+
+// bytetrade imports
+
+let BytetradeCryptoJS = undefined
+try {
+    BytetradeCryptoJS = require ('../static_dependencies/crypto-js/bytetrade-crypto-js')
+ } catch (e) {
+     console.log("can not load ../static_dependencies/crypto-js/bytetrade-crypto-js")
+ }
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports = class Exchange {
@@ -1546,6 +1556,38 @@ module.exports = class Exchange {
             'orderHash': orderHash,
             'signature': this.convertECSignatureToSignatureHex (signature),
         })
+    }
+
+    signExTransactionV1 (trans_type, ob, privateKey) {
+        const dapp_name = 'Sagittarius';
+        let tr = new BytetradeCryptoJS.TransactionBuilder();
+        if (trans_type == 'create_order') {
+           tr.add_type_operation("order_create", ob);
+        } else if (trans_type == 'cancel_order') {
+            tr.add_type_operation("order_cancel", ob);
+        } else if (trans_type == 'transfer') {
+            tr.add_type_operation("transfer", ob);
+        } else if (trans_type == 'withdraw') {
+            tr.add_type_operation("withdraw", ob);
+            tr.propose({ fee: '300000000000000',
+                proposaler: ob['from'],
+                expiration_time: this.seconds (),
+                proposed_ops: []
+            });
+        }
+        else if (trans_type == 'btc_withdraw') {
+            tr.add_type_operation("withdraw2", ob);
+        }
+        tr.timestamp = this.seconds ();
+        tr.dapp = dapp_name;
+        tr.validate_type = 0;
+        tr.add_signer(BytetradeCryptoJS.PrivateKey.fromHex(privateKey));
+        tr.finalize();
+        if (!tr.signed) {
+            tr.sign();
+        }
+        var trObj = tr.toObject();
+        return this.json (trObj)
     }
 
     convertECSignatureToSignatureHex (signature) {
