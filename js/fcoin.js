@@ -226,7 +226,7 @@ module.exports = class fcoin extends Exchange {
                     'max': undefined,
                 },
             };
-            const active = this.safeValue (market, 'tradable', false);
+            const active = this.safeValue (market, 'tradeable', false);
             result.push ({
                 'id': id,
                 'symbol': symbol,
