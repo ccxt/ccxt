@@ -236,7 +236,7 @@ class fcoin (Exchange):
                     'max': None,
                 },
             }
-            active = self.safe_value(market, 'tradable', False)
+            active = self.safe_value(market, 'tradeable', False)
             result.append({
                 'id': id,
                 'symbol': symbol,
