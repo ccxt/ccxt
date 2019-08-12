@@ -820,8 +820,7 @@ def getOperationIdForClass(name):
 
 # --  objects  --
 class Operation(GrapheneOperation):
-    """ Need to overwrite a few attributes to load proper operations from
-        bitshares
+    """ Need to overwrite a few attributes to load proper operations from  bytetrade
     """
     operations = operations
 
