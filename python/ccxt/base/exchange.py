@@ -1053,7 +1053,7 @@ class Exchange(object):
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
-    def ecdsa(request, secret, algorithm):
+    def ecdsa(request, secret, algorithm='p256', hash='sha256'):
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
             'p224': [ecdsa.NIST224p, 'sha256'],
@@ -1068,8 +1068,9 @@ class Exchange(object):
             hash_function = getattr(hashlib, curve_info[1])
         else:
             hash_function = hashlib.sha1
+        digest = Exchange.hash(Exchange.encode(request), hash, 'binary')
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
-        r_binary, s_binary = key.sign_digest_deterministic(base64.b16decode(Exchange.encode(request), casefold=True), hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
+        r_binary, s_binary = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
         return {
             'r': r,

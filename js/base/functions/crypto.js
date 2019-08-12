@@ -70,15 +70,10 @@ function jwt (request, secret, alg = 'HS256') {
     return [ token, signature ].join ('.')
 }
 
-function ecdsa (request, secret, algorithm) {
+function ecdsa (request, secret, algorithm = 'p256', hash = 'sha256') {
+    const digest = this.hash (request, hash, 'hex')
     const curve = new EC (algorithm)
-    for (let character of request) {
-        if ((character >= 'a' && character <= 'f') || (character >= '1' && character <= '9')) {
-            continue
-        }
-        throw new ArgumentsRequired ('Invalid character ' + character + ', is not a valid hex character')
-    }
-    const signature = curve.sign (request, secret, 'hex',  { 'canonical': true })
+    const signature = curve.sign (digest, secret, 'hex',  { 'canonical': true })
     return {
         'r': signature.r.toString (16).padStart (64, '0'),
         's': signature.s.toString (16).padStart (64, '0'),
