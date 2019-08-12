@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = exports;
-var BN = require('./BN/bn');
+var BN = require('../BN/bn');
 
 utils.assert = function (condition, errorMessage) {
   if (!condition) {
