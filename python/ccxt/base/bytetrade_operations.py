@@ -791,7 +791,7 @@ def getOperationNameForId(i):
     return "Unknown Operation ID %d" % i
 
 
-def getOperationName(id: str):
+def getOperationName(id):
     """ This method returns the name representation of an operation given
         its value as used in the API
     """
