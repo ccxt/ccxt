@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1043'
+const version = '1.18.1044'
 
 Exchange.ccxtVersion = version
 
@@ -44607,7 +44607,7 @@ module.exports = class fcoin extends Exchange {
                     'max': undefined,
                 },
             };
-            const active = this.safeValue (market, 'tradable', false);
+            const active = this.safeValue (market, 'tradeable', false);
             result.push ({
                 'id': id,
                 'symbol': symbol,
