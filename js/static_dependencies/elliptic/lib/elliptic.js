@@ -2,6 +2,16 @@
 
 var elliptic = exports;
 
+// hello ladies ;)
+function inherits (ctor, superCtor) {
+    ctor.super_ = superCtor;
+    var TempCtor = function () {};
+    TempCtor.prototype = superCtor.prototype;
+    ctor.prototype = new TempCtor();
+    ctor.prototype.constructor = ctor;
+}
+
+elliptic.inherits = inherits
 elliptic.version = require('../package.json').version;
 elliptic.utils = require('./elliptic/utils');
 elliptic.curve = require('./elliptic/curve');

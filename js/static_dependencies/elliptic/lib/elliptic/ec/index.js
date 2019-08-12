@@ -1,7 +1,7 @@
 'use strict';
 
-var BN = require('bn.js');
-var HmacDRBG = require('hmac-drbg');
+var BN = require('../BN/bn');
+var HmacDRBG = require('../../hmac-drbg/hmac-drbg');
 var elliptic = require('../../elliptic');
 var utils = elliptic.utils;
 var assert = utils.assert;

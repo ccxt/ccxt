@@ -1,8 +1,8 @@
 'use strict';
 
 var curve = require('../curve');
-var BN = require('bn.js');
-var inherits = require('inherits');
+var BN = require('../BN/bn');
+var inherits = require('../../elliptic').inherits;
 var Base = curve.base;
 
 var elliptic = require('../../elliptic');

@@ -1,6 +1,6 @@
 'use strict';
 
-var BN = require('bn.js');
+var BN = require('../BN/bn');
 var elliptic = require('../../elliptic');
 var utils = elliptic.utils;
 var getNAF = utils.getNAF;

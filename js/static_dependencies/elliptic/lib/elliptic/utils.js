@@ -1,15 +1,13 @@
 'use strict';
 
 var utils = exports;
-var BN = require('bn.js');
-var minAssert = require('minimalistic-assert');
-var minUtils = require('minimalistic-crypto-utils');
+var BN = require('./BN/bn');
 
-utils.assert = minAssert;
-utils.toArray = minUtils.toArray;
-utils.zero2 = minUtils.zero2;
-utils.toHex = minUtils.toHex;
-utils.encode = minUtils.encode;
+utils.assert = function (condition, errorMessage) {
+  if (!condition) {
+    throw new Error(errorMessage)
+  }
+};
 
 // Represent num in a w-NAF form
 function getNAF(num, w) {

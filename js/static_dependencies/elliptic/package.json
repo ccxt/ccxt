@@ -37,12 +37,6 @@
     "url": "https://github.com/indutny/elliptic/issues"
   },
   "dependencies": {
-    "bn.js": "^4.4.0",
-    "hash.js": "^1.0.0",
-    "hmac-drbg": "^1.0.0",
-    "inherits": "^2.0.1",
-    "minimalistic-assert": "^1.0.0",
-    "minimalistic-crypto-utils": "^1.0.0"
   },
   "description": "EC cryptography",
   "devDependencies": {
