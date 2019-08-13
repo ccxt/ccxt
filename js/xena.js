@@ -998,8 +998,11 @@ module.exports = class xena extends Exchange {
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
-            nonce *= 1e6;
+            // php does not format it properly
+            // therefore we use string concatenation here
+            // nonce *= 1e6;
             nonce = nonce.toString ();
+            nonce = nonce + '000000'; // see the comment a few lines above
             const payload = 'AUTH' + nonce;
             const secret = this.secret.slice (14, 78);
             const ecdsa = this.ecdsa (payload, secret);
