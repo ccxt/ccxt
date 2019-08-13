@@ -773,7 +773,7 @@ module.exports = class bytetrade extends Exchange {
         const amountMiddleAfterTruncate = parseInt (amountChainWithoutTruncate / TruncateValue);
         const amountChain = parseInt (amountMiddleAfterTruncate * TruncateValue);
         const ob = {
-            'fee': '900000000000000',
+            'fee': '300000000000000',
             'from': this.apiKey,
             'to': to,
             'asset_type': parseInt (currency['id']),
@@ -980,6 +980,7 @@ module.exports = class bytetrade extends Exchange {
         const middleAddress = this.safeString (addressResponse, 'address');
         const chainTypeString = this.safeString (addressResponse, 'chainType');
         let chainType = 0;
+        let assetFee = 0;
         if (chainTypeString === 'ethereum') {
             chainType = 1;
         } else if (chainTypeString === 'bitcoin') {
@@ -996,13 +997,14 @@ module.exports = class bytetrade extends Exchange {
         const amountChain = parseInt (amountFloat * Math.pow (10, currency['info']['externalPrecision']));
         let signedTransaction = '';
         if (chainTypeString === 'bitcoin') {
+            assetFee = currency['info']['fee'];
             const ob = {
                 'fee': '300000000000000',
                 'from': this.apiKey,
                 'to_external_address': middleAddress,
                 'asset_type': parseInt (coinId),
                 'amount': amountChain.toString (),
-                'asset_fee': '18000',
+                'asset_fee': assetFee.toString (),
             };
             signedTransaction = await this.signExTransactionV1 ('btc_withdraw', ob, this.secret);
         } else {
