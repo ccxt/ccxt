@@ -12,7 +12,7 @@ function inherits (ctor, superCtor) {
 }
 
 elliptic.inherits = inherits
-elliptic.version = require('../package.json').version;
+elliptic.version = '6.5.0';
 elliptic.utils = require('./elliptic/utils');
 elliptic.curve = require('./elliptic/curve');
 elliptic.curves = require('./elliptic/curves');
