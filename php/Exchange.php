@@ -35,14 +35,6 @@ use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 use Elliptic\EC;
 
-spl_autoload_register(function ($class) {
-    // used to include static dependencies (currently only elliptic-php)
-    $PATH = 'static_dependencies/elliptic-php/lib/';
-    $className = str_replace('Elliptic\\', '', $class);
-    $className = str_replace('\\', DIRECTORY_SEPARATOR, $className);
-    include_once $PATH . $className . '.php';
-});
-
 $version = '1.18.1036';
 
 // rounding mode
