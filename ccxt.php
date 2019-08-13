@@ -38,7 +38,6 @@ spl_autoload_register(function ($class) {
     $class_name = str_replace('Elliptic\\', '', $class);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
     $file = $PATH . $class_name . '.php';
-    echo $file . "\n";
     if (file_exists ($file))
         require_once $file;
 });
