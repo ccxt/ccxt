@@ -33,6 +33,7 @@ namespace ccxt;
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
+use Elliptic\EC;
 
 $version = '1.18.1050';
 
@@ -1102,6 +1103,18 @@ class Exchange {
         $algName = $algorithms[$alg];
         $signature = null;
         \openssl_sign($request, $signature, $secret, $algName);
+        return $signature;
+    }
+
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = 'sha256') {
+        $digest = static::hash($request, $hash, 'hex');
+        $ec = new EC(strtolower($algorithm));
+        $key = $ec->keyFromPrivate($secret);
+        $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
+        $signature = array();
+        $signature['r'] = $ellipticSignature->r->bi->toHex();
+        $signature['s'] = $ellipticSignature->s->bi->toHex();
+        $signature['v'] = gmp_strval($ellipticSignature->recoveryParam, 16);
         return $signature;
     }
 
