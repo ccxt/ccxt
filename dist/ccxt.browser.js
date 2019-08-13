@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1047'
+const version = '1.18.1048'
 
 Exchange.ccxtVersion = version
 
@@ -48890,6 +48890,9 @@ module.exports = class hitbtc extends Exchange {
         };
         const timestamp = this.safeInteger (trade, 'timestamp');
         const id = this.safeString (trade, 'tradeId');
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const orderId = this.safeString (trade, 'clientOrderId');
         const side = this.safeString (trade, 'side');
         return {
@@ -48972,6 +48975,9 @@ module.exports = class hitbtc extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -49044,6 +49050,9 @@ module.exports = class hitbtc extends Exchange {
             'currency': feeCurrency,
             'rate': undefined,
         };
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
@@ -49068,6 +49077,9 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -49117,6 +49129,9 @@ module.exports = class hitbtc extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -50070,6 +50085,9 @@ module.exports = class hitbtc2 extends hitbtc {
                 'currency': feeCurrency,
             };
         }
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const orderId = this.safeString (trade, 'clientOrderId');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
@@ -50239,6 +50257,9 @@ module.exports = class hitbtc2 extends hitbtc {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
@@ -50269,6 +50290,9 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
@@ -50292,6 +50316,9 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -50352,6 +50379,9 @@ module.exports = class hitbtc2 extends hitbtc {
         const amount = this.safeFloat (order, 'quantity');
         const filled = this.safeFloat (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         let price = this.safeFloat (order, 'price');
         if (price === undefined) {
@@ -50425,6 +50455,9 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -50438,6 +50471,9 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
