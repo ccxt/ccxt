@@ -12,12 +12,12 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def test(loop):
-    bittrex = ccxt.bittrex({
+    exchange = ccxt.bittrex({
         'asyncio_loop': loop,
         'enableRateLimit': True,  # as required by https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
     })
-    print(await bittrex.fetch_ticker('ETH/BTC'))
-    await bittrex.close()
+    print(await exchange.fetch_ticker('ETH/BTC'))
+    await exchange.close()
 
 
 def functionInNewThread():
