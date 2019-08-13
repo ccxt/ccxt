@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1044'
+const version = '1.18.1046'
 
 Exchange.ccxtVersion = version
 
@@ -15023,8 +15023,8 @@ module.exports = class bitmart extends Exchange {
             'change': undefined,
             'percentage': percentage * 100,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'base_volume'),
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'base_volume'),
             'info': ticker,
         };
     }
@@ -67485,7 +67485,7 @@ module.exports = class okex3 extends Exchange {
                         'fills',
                         // public
                         'instruments',
-                        'instruments/{instrument_id}/depth?size=50',
+                        'instruments/{instrument_id}/depth',
                         'instruments/ticker',
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
