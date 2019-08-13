@@ -282,8 +282,8 @@ class bitmart (Exchange):
             'change': None,
             'percentage': percentage * 100,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'base_volume'),
-            'quoteVolume': self.safe_float(ticker, 'volume'),
+            'baseVolume': self.safe_float(ticker, 'volume'),
+            'quoteVolume': self.safe_float(ticker, 'base_volume'),
             'info': ticker,
         }
 

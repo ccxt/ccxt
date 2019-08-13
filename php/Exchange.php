@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 
-$version = '1.18.1035';
+$version = '1.18.1049';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +51,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1035';
+    const VERSION = '1.18.1049';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -80,7 +80,7 @@ class Exchange {
         'tether'     => '1000000000000000000000000000000',
     );
 
-    public static $exchanges = array (
+    public static $exchanges = array(
         '_1btcxe',
         'acx',
         'allcoin',

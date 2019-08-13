@@ -46,13 +46,23 @@ module.exports = class fcoin extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
+                    'market': 'https://api.{hostname}',
+                    'openapi': 'https://www.{hostname}',
+                },
                 'www': 'https://www.fcoin.com',
                 'referral': 'https://www.fcoin.com/i/Z5P7V',
                 'doc': 'https://developer.fcoin.com',
                 'fees': 'https://fcoinjp.zendesk.com/hc/en-us/articles/360018727371',
             },
             'api': {
+                'openapi': {
+                    'get': [
+                        'symbols',
+                    ],
+                },
                 'market': {
                     'get': [
                         'ticker/{symbol}',
@@ -71,6 +81,7 @@ module.exports = class fcoin extends Exchange {
                 'private': {
                     'get': [
                         'accounts/balance',
+                        'assets/accounts/balance',
                         'broker/otc/suborders',
                         'broker/otc/suborders/{id}',
                         'broker/otc/suborders/{id}/payments',
@@ -84,6 +95,8 @@ module.exports = class fcoin extends Exchange {
                         'orders/{order_id}/match-results', // check order result
                     ],
                     'post': [
+                        'assets/accounts/assets-to-spot',
+                        'accounts/spot-to-assets',
                         'broker/otc/assets/transfer/in',
                         'broker/otc/assets/transfer/out',
                         'broker/otc/suborders',
@@ -109,6 +122,7 @@ module.exports = class fcoin extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'fetchMarketsMethod': 'fetch_markets_from_open_api', // or 'fetch_markets_from_api'
                 'limits': {
                     'BTM/USDT': { 'amount': { 'min': 0.1, 'max': 10000000 }},
                     'ETC/USDT': { 'amount': { 'min': 0.001, 'max': 400000 }},
@@ -145,7 +159,107 @@ module.exports = class fcoin extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        const method = this.safeString (this.options, 'fetchMarketsMethod', 'fetch_markets_from_open_api');
+        return await this[method] (params);
+    }
+
+    async fetchMarketsFromOpenAPI (params = {}) {
+        // https://github.com/ccxt/ccxt/issues/5648
+        const response = await this.openapiGetSymbols (params);
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":{
+        //             "categories":[ "fone::coinforce", ... ],
+        //             "symbols":{
+        //                 "mdaeth":{
+        //                     "price_decimal":8,
+        //                     "amount_decimal":2,
+        //                     "base_currency":"mda",
+        //                     "quote_currency":"eth",
+        //                     "symbol":"mdaeth",
+        //                     "category":"fone::bitangel",
+        //                     "leveraged_multiple":null,
+        //                     "tradeable":false,
+        //                     "market_order_enabled":false,
+        //                     "limit_amount_min":"1",
+        //                     "limit_amount_max":"10000000",
+        //                     "main_tag":"",
+        //                     "daily_open_at":"",
+        //                     "daily_close_at":""
+        //                 },
+        //             }
+        //             "category_ref":{
+        //                 "fone::coinforce":[ "btcusdt", ... ],
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const markets = this.safeValue (data, 'symbols', {});
+        const keys = Object.keys (markets);
+        const result = [];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const market = markets[key];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quote_currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
+                'price': this.safeInteger (market, 'price_decimal'),
+                'amount': this.safeInteger (market, 'amount_decimal'),
+            };
+            const limits = {
+                'amount': {
+                    'min': this.safeFloat (market, 'limit_amount_min'),
+                    'max': this.safeFloat (market, 'limit_amount_max'),
+                },
+                'price': {
+                    'min': Math.pow (10, -precision['price']),
+                    'max': Math.pow (10, precision['price']),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
+            const active = this.safeValue (market, 'tradeable', false);
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchMarketsFromAPI (params = {}) {
         const response = await this.publicGetSymbols (params);
+        //
+        //     {
+        //         "status":0,
+        //         "data":[
+        //             {
+        //                 "name":"dapusdt",
+        //                 "base_currency":"dap",
+        //                 "quote_currency":"usdt",
+        //                 "price_decimal":6,
+        //                 "amount_decimal":2,
+        //                 "tradable":true
+        //             },
+        //         ]
+        //     }
+        //
         const result = [];
         const markets = this.safeValue (response, 'data');
         for (let i = 0; i < markets.length; i++) {
@@ -524,19 +638,19 @@ module.exports = class fcoin extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.version + '/';
-        request += (api === 'private') ? '' : (api + '/');
+        let request = '/';
+        const openAPI = (api === 'openapi');
+        const privateAPI = (api === 'private');
+        request += openAPI ? (api + '/') : '';
+        request += this.version + '/';
+        request += (privateAPI || openAPI) ? '' : (api + '/');
         request += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        let url = this.implodeParams (this.urls['api'], {
+        let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         });
         url += request;
-        if ((api === 'public') || (api === 'market')) {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'private') {
+        if (privateAPI) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             query = this.keysort (query);
@@ -562,6 +676,10 @@ module.exports = class fcoin extends Exchange {
                 'FC-ACCESS-TIMESTAMP': timestamp,
                 'Content-Type': 'application/json',
             };
+        } else {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -571,7 +689,7 @@ module.exports = class fcoin extends Exchange {
             return; // fallback to default error handler
         }
         const status = this.safeString (response, 'status');
-        if (status !== '0') {
+        if (status !== '0' && status !== 'ok') {
             const feedback = this.id + ' ' + body;
             if (status in this.exceptions) {
                 const exceptions = this.exceptions;

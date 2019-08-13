@@ -43,7 +43,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.18.1035'
+const version = '1.18.1049'
 
 Exchange.ccxtVersion = version
 
@@ -11275,6 +11275,7 @@ module.exports = class bitfinex extends Exchange {
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
+                'DRK': 'DRK',
                 'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
@@ -15022,8 +15023,8 @@ module.exports = class bitmart extends Exchange {
             'change': undefined,
             'percentage': percentage * 100,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'base_volume'),
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'base_volume'),
             'info': ticker,
         };
     }
@@ -21826,6 +21827,10 @@ module.exports = class bleutrade extends bittrex {
                 'Invalid apikey or apisecret': AuthenticationError,
             },
             'options': {
+                // price precision by quote currency code
+                'pricePrecisionByCode': {
+                    'USD': 3,
+                },
                 'parseOrderStatus': true,
                 'disableNonce': false,
                 'symbolSeparator': '_',
@@ -21833,6 +21838,59 @@ module.exports = class bleutrade extends bittrex {
         });
         // bittrex inheritance override
         result['timeframes'] = timeframes;
+        return result;
+    }
+
+    async fetchMarkets (params = {}) {
+        // https://github.com/ccxt/ccxt/issues/5668
+        const response = await this.publicGetMarkets (params);
+        const result = [];
+        const markets = this.safeValue (response, 'result');
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'MarketName');
+            const baseId = this.safeString (market, 'MarketCurrency');
+            const quoteId = this.safeString (market, 'BaseCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            let pricePrecision = 8;
+            if (quote in this.options['pricePrecisionByCode']) {
+                pricePrecision = this.options['pricePrecisionByCode'][quote];
+            }
+            const precision = {
+                'amount': 8,
+                'price': pricePrecision,
+            };
+            // bittrex uses boolean values, bleutrade uses strings
+            let active = this.safeValue (market, 'IsActive', false);
+            if ((active !== 'false') && active) {
+                active = true;
+            } else {
+                active = false;
+            }
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (market, 'MinTradeSize'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                },
+            });
+        }
         return result;
     }
 
@@ -44369,13 +44427,23 @@ module.exports = class fcoin extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/42244210-c8c42e1e-7f1c-11e8-8710-a5fb63b165c4.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'public': 'https://api.{hostname}',
+                    'private': 'https://api.{hostname}',
+                    'market': 'https://api.{hostname}',
+                    'openapi': 'https://www.{hostname}',
+                },
                 'www': 'https://www.fcoin.com',
                 'referral': 'https://www.fcoin.com/i/Z5P7V',
                 'doc': 'https://developer.fcoin.com',
                 'fees': 'https://fcoinjp.zendesk.com/hc/en-us/articles/360018727371',
             },
             'api': {
+                'openapi': {
+                    'get': [
+                        'symbols',
+                    ],
+                },
                 'market': {
                     'get': [
                         'ticker/{symbol}',
@@ -44394,6 +44462,7 @@ module.exports = class fcoin extends Exchange {
                 'private': {
                     'get': [
                         'accounts/balance',
+                        'assets/accounts/balance',
                         'broker/otc/suborders',
                         'broker/otc/suborders/{id}',
                         'broker/otc/suborders/{id}/payments',
@@ -44407,6 +44476,8 @@ module.exports = class fcoin extends Exchange {
                         'orders/{order_id}/match-results', // check order result
                     ],
                     'post': [
+                        'assets/accounts/assets-to-spot',
+                        'accounts/spot-to-assets',
                         'broker/otc/assets/transfer/in',
                         'broker/otc/assets/transfer/out',
                         'broker/otc/suborders',
@@ -44432,6 +44503,7 @@ module.exports = class fcoin extends Exchange {
             },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'fetchMarketsMethod': 'fetch_markets_from_open_api', // or 'fetch_markets_from_api'
                 'limits': {
                     'BTM/USDT': { 'amount': { 'min': 0.1, 'max': 10000000 }},
                     'ETC/USDT': { 'amount': { 'min': 0.001, 'max': 400000 }},
@@ -44468,7 +44540,107 @@ module.exports = class fcoin extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        const method = this.safeString (this.options, 'fetchMarketsMethod', 'fetch_markets_from_open_api');
+        return await this[method] (params);
+    }
+
+    async fetchMarketsFromOpenAPI (params = {}) {
+        // https://github.com/ccxt/ccxt/issues/5648
+        const response = await this.openapiGetSymbols (params);
+        //
+        //     {
+        //         "status":"ok",
+        //         "data":{
+        //             "categories":[ "fone::coinforce", ... ],
+        //             "symbols":{
+        //                 "mdaeth":{
+        //                     "price_decimal":8,
+        //                     "amount_decimal":2,
+        //                     "base_currency":"mda",
+        //                     "quote_currency":"eth",
+        //                     "symbol":"mdaeth",
+        //                     "category":"fone::bitangel",
+        //                     "leveraged_multiple":null,
+        //                     "tradeable":false,
+        //                     "market_order_enabled":false,
+        //                     "limit_amount_min":"1",
+        //                     "limit_amount_max":"10000000",
+        //                     "main_tag":"",
+        //                     "daily_open_at":"",
+        //                     "daily_close_at":""
+        //                 },
+        //             }
+        //             "category_ref":{
+        //                 "fone::coinforce":[ "btcusdt", ... ],
+        //             }
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const markets = this.safeValue (data, 'symbols', {});
+        const keys = Object.keys (markets);
+        const result = [];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const market = markets[key];
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'base_currency');
+            const quoteId = this.safeString (market, 'quote_currency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const precision = {
+                'price': this.safeInteger (market, 'price_decimal'),
+                'amount': this.safeInteger (market, 'amount_decimal'),
+            };
+            const limits = {
+                'amount': {
+                    'min': this.safeFloat (market, 'limit_amount_min'),
+                    'max': this.safeFloat (market, 'limit_amount_max'),
+                },
+                'price': {
+                    'min': Math.pow (10, -precision['price']),
+                    'max': Math.pow (10, precision['price']),
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            };
+            const active = this.safeValue (market, 'tradeable', false);
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': limits,
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchMarketsFromAPI (params = {}) {
         const response = await this.publicGetSymbols (params);
+        //
+        //     {
+        //         "status":0,
+        //         "data":[
+        //             {
+        //                 "name":"dapusdt",
+        //                 "base_currency":"dap",
+        //                 "quote_currency":"usdt",
+        //                 "price_decimal":6,
+        //                 "amount_decimal":2,
+        //                 "tradable":true
+        //             },
+        //         ]
+        //     }
+        //
         const result = [];
         const markets = this.safeValue (response, 'data');
         for (let i = 0; i < markets.length; i++) {
@@ -44847,19 +45019,19 @@ module.exports = class fcoin extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = '/' + this.version + '/';
-        request += (api === 'private') ? '' : (api + '/');
+        let request = '/';
+        const openAPI = (api === 'openapi');
+        const privateAPI = (api === 'private');
+        request += openAPI ? (api + '/') : '';
+        request += this.version + '/';
+        request += (privateAPI || openAPI) ? '' : (api + '/');
         request += this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
-        let url = this.implodeParams (this.urls['api'], {
+        let url = this.implodeParams (this.urls['api'][api], {
             'hostname': this.hostname,
         });
         url += request;
-        if ((api === 'public') || (api === 'market')) {
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
-        } else if (api === 'private') {
+        if (privateAPI) {
             this.checkRequiredCredentials ();
             const timestamp = this.nonce ().toString ();
             query = this.keysort (query);
@@ -44885,6 +45057,10 @@ module.exports = class fcoin extends Exchange {
                 'FC-ACCESS-TIMESTAMP': timestamp,
                 'Content-Type': 'application/json',
             };
+        } else {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -44894,7 +45070,7 @@ module.exports = class fcoin extends Exchange {
             return; // fallback to default error handler
         }
         const status = this.safeString (response, 'status');
-        if (status !== '0') {
+        if (status !== '0' && status !== 'ok') {
             const feedback = this.id + ' ' + body;
             if (status in this.exceptions) {
                 const exceptions = this.exceptions;
@@ -48714,6 +48890,9 @@ module.exports = class hitbtc extends Exchange {
         };
         const timestamp = this.safeInteger (trade, 'timestamp');
         const id = this.safeString (trade, 'tradeId');
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const orderId = this.safeString (trade, 'clientOrderId');
         const side = this.safeString (trade, 'side');
         return {
@@ -48796,6 +48975,9 @@ module.exports = class hitbtc extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -48868,6 +49050,9 @@ module.exports = class hitbtc extends Exchange {
             'currency': feeCurrency,
             'rate': undefined,
         };
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         const type = this.safeString (order, 'type');
         const side = this.safeString (order, 'side');
@@ -48892,6 +49077,9 @@ module.exports = class hitbtc extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -48941,6 +49129,9 @@ module.exports = class hitbtc extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -49894,6 +50085,9 @@ module.exports = class hitbtc2 extends hitbtc {
                 'currency': feeCurrency,
             };
         }
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const orderId = this.safeString (trade, 'clientOrderId');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'quantity');
@@ -50063,6 +50257,9 @@ module.exports = class hitbtc2 extends hitbtc {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
@@ -50093,6 +50290,9 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
         const uuid = this.uuid ();
         const parts = uuid.split ('-');
@@ -50116,6 +50316,9 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -50176,6 +50379,9 @@ module.exports = class hitbtc2 extends hitbtc {
         const amount = this.safeFloat (order, 'quantity');
         const filled = this.safeFloat (order, 'cumQuantity');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const id = this.safeString (order, 'clientOrderId');
         let price = this.safeFloat (order, 'price');
         if (price === undefined) {
@@ -50249,6 +50455,9 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -50262,6 +50471,9 @@ module.exports = class hitbtc2 extends hitbtc {
 
     async fetchOpenOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
+        // we use clientOrderId as the order id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here: https://github.com/ccxt/ccxt/issues/5674
         const request = {
             'clientOrderId': id,
         };
@@ -53689,7 +53901,7 @@ module.exports = class itbit extends Exchange {
             const binhash = this.binaryConcat (binaryUrl, hash);
             const signature = this.hmac (binhash, this.encode (this.secret), 'sha512', 'base64');
             headers = {
-                'Authorization': this.apiKey + ':' + signature,
+                'Authorization': this.apiKey + ':' + this.decode (signature),
                 'Content-Type': 'application/json',
                 'X-Auth-Timestamp': timestamp,
                 'X-Auth-Nonce': nonce,
@@ -54998,7 +55210,17 @@ module.exports = class kraken extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        if ('ordertxid' in trade) {
+        if (Array.isArray (trade)) {
+            timestamp = parseInt (trade[2] * 1000);
+            side = (trade[3] === 's') ? 'sell' : 'buy';
+            type = (trade[4] === 'l') ? 'limit' : 'market';
+            price = parseFloat (trade[0]);
+            amount = parseFloat (trade[1]);
+            const tradeLength = trade.length;
+            if (tradeLength > 6) {
+                id = trade[6]; // artificially added as per #1794
+            }
+        } else if ('ordertxid' in trade) {
             order = trade['ordertxid'];
             id = this.safeString2 (trade, 'id', 'postxid');
             timestamp = this.safeTimestamp (trade, 'time');
@@ -55015,16 +55237,6 @@ module.exports = class kraken extends Exchange {
                     'cost': this.safeFloat (trade, 'fee'),
                     'currency': currency,
                 };
-            }
-        } else {
-            timestamp = parseInt (trade[2] * 1000);
-            side = (trade[3] === 's') ? 'sell' : 'buy';
-            type = (trade[4] === 'l') ? 'limit' : 'market';
-            price = parseFloat (trade[0]);
-            amount = parseFloat (trade[1]);
-            const tradeLength = trade.length;
-            if (tradeLength > 6) {
-                id = trade[6]; // artificially added as per #1794
             }
         }
         return {
@@ -55051,6 +55263,11 @@ module.exports = class kraken extends Exchange {
         const request = {
             'pair': id,
         };
+        // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
+        // https://github.com/ccxt/ccxt/issues/5677
+        if (since !== undefined) {
+            request['since'] = since * 1000000; // expected to be in nanoseconds
+        }
         const response = await this.publicGetTrades (this.extend (request, params));
         //
         //     {
@@ -67309,7 +67526,7 @@ module.exports = class okex3 extends Exchange {
                         'fills',
                         // public
                         'instruments',
-                        'instruments/{instrument_id}/depth?size=50',
+                        'instruments/{instrument_id}/depth',
                         'instruments/ticker',
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
@@ -69201,7 +69418,7 @@ module.exports = class okex3 extends Exchange {
         //
         return {
             'info': response,
-            'id': this.safeString (response, 'withdraw_id'),
+            'id': this.safeString (response, 'withdrawal_id'),
         };
     }
 

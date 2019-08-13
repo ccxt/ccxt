@@ -5,6 +5,7 @@
 
 from ccxt.async_support.bittrex import bittrex
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -180,6 +181,10 @@ class bleutrade (bittrex):
                 'Invalid apikey or apisecret': AuthenticationError,
             },
             'options': {
+                # price precision by quote currency code
+                'pricePrecisionByCode': {
+                    'USD': 3,
+                },
                 'parseOrderStatus': True,
                 'disableNonce': False,
                 'symbolSeparator': '_',
@@ -187,6 +192,55 @@ class bleutrade (bittrex):
         })
         # bittrex inheritance override
         result['timeframes'] = timeframes
+        return result
+
+    async def fetch_markets(self, params={}):
+        # https://github.com/ccxt/ccxt/issues/5668
+        response = await self.publicGetMarkets(params)
+        result = []
+        markets = self.safe_value(response, 'result')
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'MarketName')
+            baseId = self.safe_string(market, 'MarketCurrency')
+            quoteId = self.safe_string(market, 'BaseCurrency')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            pricePrecision = 8
+            if quote in self.options['pricePrecisionByCode']:
+                pricePrecision = self.options['pricePrecisionByCode'][quote]
+            precision = {
+                'amount': 8,
+                'price': pricePrecision,
+            }
+            # bittrex uses boolean values, bleutrade uses strings
+            active = self.safe_value(market, 'IsActive', False)
+            if (active != 'false') and active:
+                active = True
+            else:
+                active = False
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(market, 'MinTradeSize'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                },
+            })
         return result
 
     def parse_order_status(self, status):
