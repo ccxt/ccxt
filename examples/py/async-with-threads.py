@@ -21,8 +21,7 @@ async def test(loop):
 
 
 def functionInNewThread():
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
     loop.run_until_complete(test(loop))
 
 thread = threading.Thread(target=functionInNewThread)
