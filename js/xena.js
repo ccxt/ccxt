@@ -3,7 +3,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, InsufficientFunds, InvalidAddress } = require ('./base/errors');
 
-module.exports = class liqui extends Exchange {
+module.exports = class xena extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'xena',
@@ -788,7 +788,7 @@ module.exports = class liqui extends Exchange {
         const timestamp = undefined;
         const txid = this.safeString (transaction, 'txId');
         const currencyId = this.safeString (transaction, 'currency');
-        let code = this.safeCurrencyCode (currencyId, currency);
+        const code = this.safeCurrencyCode (currencyId, currency);
         const address = this.safeString (transaction, 'address');
         let addressFrom = undefined;
         let addressTo = undefined;
@@ -988,18 +988,9 @@ module.exports = class liqui extends Exchange {
         return this.milliseconds ();
     }
 
-    ecdsa (message, secret) {
-        const EC = require ('elliptic').ec;
-        const ecdsa = new EC ('p256');
-        const privateKey = secret.slice (14, 78);
-        const signature = ecdsa.sign (message, privateKey, { 'canonical': true });
-        const sig = signature.r.toString (16) + signature.s.toString (16);
-        return sig;
-    }
-
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -1010,8 +1001,9 @@ module.exports = class liqui extends Exchange {
             nonce *= 1e6;
             nonce = nonce.toString ();
             const payload = 'AUTH' + nonce;
-            const hash = this.hash (this.encode (payload), 'sha256');
-            const signature = this.ecdsa (this.encode (hash), this.encode (this.secret));
+            const secret = this.secret.slice (14, 78);
+            const ecdsa = this.ecdsa (payload, secret);
+            const signature = ecdsa['r'] + ecdsa['s'];
             headers = {
                 'X-AUTH-API-KEY': this.apiKey,
                 'X-AUTH-API-PAYLOAD': payload,
