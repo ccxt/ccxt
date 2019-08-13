@@ -691,7 +691,16 @@ class kraken (Exchange):
             market = self.get_delisted_market_by_id(marketId)
         if market is not None:
             symbol = market['symbol']
-        if 'ordertxid' in trade:
+        if isinstance(trade, list):
+            timestamp = int(trade[2] * 1000)
+            side = 'sell' if (trade[3] == 's') else 'buy'
+            type = 'limit' if (trade[4] == 'l') else 'market'
+            price = float(trade[0])
+            amount = float(trade[1])
+            tradeLength = len(trade)
+            if tradeLength > 6:
+                id = trade[6]  # artificially added as per  #1794
+        elif 'ordertxid' in trade:
             order = trade['ordertxid']
             id = self.safe_string_2(trade, 'id', 'postxid')
             timestamp = self.safe_timestamp(trade, 'time')
@@ -707,15 +716,6 @@ class kraken (Exchange):
                     'cost': self.safe_float(trade, 'fee'),
                     'currency': currency,
                 }
-        else:
-            timestamp = int(trade[2] * 1000)
-            side = 'sell' if (trade[3] == 's') else 'buy'
-            type = 'limit' if (trade[4] == 'l') else 'market'
-            price = float(trade[0])
-            amount = float(trade[1])
-            tradeLength = len(trade)
-            if tradeLength > 6:
-                id = trade[6]  # artificially added as per  #1794
         return {
             'id': id,
             'order': order,
@@ -739,6 +739,10 @@ class kraken (Exchange):
         request = {
             'pair': id,
         }
+        # https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
+        # https://github.com/ccxt/ccxt/issues/5677
+        if since is not None:
+            request['since'] = since * 1000000  # expected to be in nanoseconds
         response = await self.publicGetTrades(self.extend(request, params))
         #
         #     {
