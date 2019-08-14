@@ -284,8 +284,8 @@ class bitmart extends Exchange {
             'change' => null,
             'percentage' => $percentage * 100,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'base_volume'),
-            'quoteVolume' => $this->safe_float($ticker, 'volume'),
+            'baseVolume' => $this->safe_float($ticker, 'volume'),
+            'quoteVolume' => $this->safe_float($ticker, 'base_volume'),
             'info' => $ticker,
         );
     }

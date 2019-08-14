@@ -32,6 +32,16 @@ namespace ccxt;
 
 define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 
+spl_autoload_register(function ($class) {
+    // used to include static dependencies (currently only elliptic-php)
+    $PATH = PATH_TO_CCXT . 'static_dependencies/elliptic-php/lib/';
+    $class_name = str_replace('Elliptic\\', '', $class);
+    $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
+    $file = $PATH . $class_name . '.php';
+    if (file_exists ($file))
+        require_once $file;
+});
+
 require_once PATH_TO_CCXT . 'errors.php';
 
 spl_autoload_register (function ($class_name) {
