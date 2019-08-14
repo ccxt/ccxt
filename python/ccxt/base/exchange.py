@@ -39,7 +39,7 @@ from static_dependencies import ecdsa
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.bytetrade_operations import operations
+from ccxt.base import bytetrade_operations
 
 
 __all__ = [
@@ -1937,7 +1937,7 @@ class Exchange(object):
         expiration = (datetime.datetime.utcnow() + datetime.timedelta(days=0, hours=0, minutes=0, seconds=10)).strftime("%Y-%m-%dT%H:%M:%S")
 
         if (trans_type == "create_order"):
-            op = operations.Order_create(
+            op = bytetrade_operations.Order_create(
                 **{
                     "fee": str(trans_info['fee']),
                     "creator": str(trans_info['creator']),
@@ -1954,7 +1954,7 @@ class Exchange(object):
                 }
             )
         elif (trans_type == "cancel_order"):
-            op = operations.Order_cancel(
+            op = bytetrade_operations.Order_cancel(
                 **{
                     "fee": str(trans_info['fee']),
                     "creator": str(trans_info['creator']),
@@ -1965,7 +1965,7 @@ class Exchange(object):
                 }
             )
         elif (trans_type == "transfer"):
-            op = operations.Transfer(
+            op = bytetrade_operations.Transfer(
                 **{
                     "fee": str(trans_info['fee']),
                     "from": str(trans_info['from']),
@@ -1975,7 +1975,7 @@ class Exchange(object):
                 }
             )
         elif (trans_type == "withdraw"):
-            withdraw_op = operations.Withdraw(
+            withdraw_op = bytetrade_operations.Withdraw(
                 **{
                     "fee": str(trans_info['fee']),
                     "from": str(trans_info['from']),
@@ -1984,18 +1984,18 @@ class Exchange(object):
                     "amount": str(trans_info['amount']),
                 }
             )
-            op = operations.Proposal_Withdraw(
+            op = bytetrade_operations.Proposal_Withdraw(
                 **{
                     "fee": str(trans_info['fee']),
                     "proposaler": str(trans_info['from']),
                     "expiration_time": expiration,
-                    "proposed_ops": [operations.Op_wrapper(**{
+                    "proposed_ops": [bytetrade_operations.Op_wrapper(**{
                         "op": withdraw_op,
                     })],
                 }
             )
         elif (trans_type == "btc_withdraw"):
-            op = operations.Withdraw_Btc(
+            op = bytetrade_operations.Withdraw_Btc(
                 **{
                     "fee": str(trans_info['fee']),
                     "from": trans_info['from'],
@@ -2005,8 +2005,8 @@ class Exchange(object):
                     "asset_fee": str(trans_info['asset_fee'])
                 }
             )
-        ops = [operations.Operation(op)]
-        tx = operations.Signed_Transaction(
+        ops = [bytetrade_operations.Operation(op)]
+        tx = bytetrade_operations.Signed_Transaction(
             timestamp=timestamp,
             expiration=expiration,
             operations=ops,

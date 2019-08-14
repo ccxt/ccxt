@@ -706,7 +706,7 @@ module.exports = class bytetrade extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async cancelOrder (id, symbol, params = {}) {
+    async cancelOrder (id, symbol = undefined, params = {}) {
         if (this.apiKey === undefined) {
             throw new ArgumentsRequired ('cancelOrder requires hasAlreadyAuthenticatedSuccessfully');
         }

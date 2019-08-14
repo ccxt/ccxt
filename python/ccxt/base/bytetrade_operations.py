@@ -7,9 +7,10 @@ from collections import OrderedDict
 from calendar import timegm
 from binascii import hexlify, unhexlify
 import hashlib
-import ecdsa
 import string
 import logging
+# ecdsa signing
+from static_dependencies import ecdsa
 
 log = logging.getLogger(__name__)
 
