@@ -423,6 +423,7 @@ module.exports = class binance extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const finalresponse = [];
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -434,8 +435,22 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        const response = await this.publicGetKlines (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        for (;;) {
+            const response = await this.publicGetKlines (this.extend (request, params));
+            const rl = response.length;
+            finalresponse.extend (response);
+            if (limit !== undefined) {
+                if (rl !== limit) {
+                    break;
+                }
+            } else {
+                if (rl !== 500) {
+                    break;
+                }
+            }
+            request['startTime'] = response[-1][0] + 1;
+        }
+        return this.parseOHLCVs (finalresponse, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
