@@ -97,9 +97,7 @@ except ImportError:
 # web3/0x imports
 
 try:
-    # from web3.auto import w3
     from web3 import Web3, HTTPProvider
-    from web3.utils.encoding import hex_encode_abi_type
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 
@@ -1801,13 +1799,6 @@ class Exchange(object):
         types = self.solidityTypes(values)
         return self.web3.soliditySha3(types, values).hex()
 
-    def soliditySha256(self, values):
-        types = self.solidityTypes(values)
-        solidity_values = self.solidityValues(values)
-        encoded_values = [hex_encode_abi_type(abi_type, value)[2:] for abi_type, value in zip(types, solidity_values)]
-        hex_string = '0x' + ''.join(encoded_values)
-        return '0x' + self.hash(self.encode(self.web3.toText(hex_string)), 'sha256')
-
     def solidityTypes(self, array):
         return ['address' if self.web3.isAddress(value) else 'uint256' for value in array]
 
@@ -1996,12 +1987,6 @@ class Exchange(object):
 
     @staticmethod
     def totp(key):
-        def dec_to_bytes(n):
-            if n > 0:
-                return dec_to_bytes(n // 256) + bytes([n % 256])
-            else:
-                return b''
-
         def hex_to_dec(n):
             return int(n, base=16)
 
@@ -2012,7 +1997,7 @@ class Exchange(object):
             return base64.b32decode(padded)  # throws an error if the key is invalid
 
         epoch = int(time.time()) // 30
-        hmac_res = Exchange.hmac(dec_to_bytes(epoch).rjust(8, b'\x00'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
+        hmac_res = Exchange.hmac(epoch.to_bytes(8, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
