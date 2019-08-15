@@ -518,7 +518,7 @@ module.exports = class braziliex extends Exchange {
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
-    
+
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
