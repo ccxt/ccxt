@@ -409,6 +409,18 @@ module.exports = class braziliex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "order_number":"58ee441d05f8233fadabfb07",
+        //         "type":"buy",
+        //         "market":"ltc_btc",
+        //         "price":"0.01000000",
+        //         "amount":"0.00200000",
+        //         "total":"0.00002000",
+        //         "progress":"1.0000",
+        //         "date":"2017-03-12 15:13:33"
+        //     }
+        //
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (order, 'market');
@@ -435,6 +447,7 @@ module.exports = class braziliex extends Exchange {
         }
         const id = this.safeString (order, 'order_number');
         const fee = this.safeValue (order, 'fee'); // propagated from createOrder
+        const status = (filledPercentage === 1.0) ? 'closed' : 'open';
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
