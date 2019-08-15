@@ -97,9 +97,7 @@ except ImportError:
 # web3/0x imports
 
 try:
-    # from web3.auto import w3
     from web3 import Web3, HTTPProvider
-    from web3.utils.encoding import hex_encode_abi_type
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 
