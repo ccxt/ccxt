@@ -400,6 +400,18 @@ class braziliex (Exchange):
         return self.parse_balance(result)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         "order_number":"58ee441d05f8233fadabfb07",
+        #         "type":"buy",
+        #         "market":"ltc_btc",
+        #         "price":"0.01000000",
+        #         "amount":"0.00200000",
+        #         "total":"0.00002000",
+        #         "progress":"1.0000",
+        #         "date":"2017-03-12 15:13:33"
+        #     }
+        #
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'market')
@@ -421,12 +433,13 @@ class braziliex (Exchange):
             info = order['info']
         id = self.safe_string(order, 'order_number')
         fee = self.safe_value(order, 'fee')  # propagated from createOrder
+        status = 'closed' if (filledPercentage == 1.0) else 'open'
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': order['type'],
