@@ -518,7 +518,7 @@ module.exports = class braziliex extends Exchange {
         };
         const response = await this.privatePostOrderStatus (this.extend (request, params));
         return this.parseOrder (response, market);
-}
+    }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
