@@ -227,7 +227,7 @@ class fcoin extends Exchange {
                     'max' => null,
                 ),
             );
-            $active = $this->safe_value($market, 'tradable', false);
+            $active = $this->safe_value($market, 'tradeable', false);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,

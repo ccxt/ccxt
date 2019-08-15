@@ -33,8 +33,9 @@ namespace ccxt;
 use kornrunner\Eth;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
+use Elliptic\EC;
 
-$version = '1.18.1041';
+$version = '1.18.1055';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -51,7 +52,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1041';
+    const VERSION = '1.18.1055';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -80,7 +81,7 @@ class Exchange {
         'tether'     => '1000000000000000000000000000000',
     );
 
-    public static $exchanges = array (
+    public static $exchanges = array(
         '_1btcxe',
         'acx',
         'allcoin',
@@ -1102,6 +1103,18 @@ class Exchange {
         $algName = $algorithms[$alg];
         $signature = null;
         \openssl_sign($request, $signature, $secret, $algName);
+        return $signature;
+    }
+
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = 'sha256') {
+        $digest = static::hash($request, $hash, 'hex');
+        $ec = new EC(strtolower($algorithm));
+        $key = $ec->keyFromPrivate($secret);
+        $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
+        $signature = array();
+        $signature['r'] = $ellipticSignature->r->bi->toHex();
+        $signature['s'] = $ellipticSignature->s->bi->toHex();
+        $signature['v'] = gmp_strval($ellipticSignature->recoveryParam, 16);
         return $signature;
     }
 

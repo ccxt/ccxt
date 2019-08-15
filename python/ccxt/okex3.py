@@ -208,7 +208,7 @@ class okex3 (Exchange):
                         'fills',
                         # public
                         'instruments',
-                        'instruments/{instrument_id}/depth?size=50',
+                        'instruments/{instrument_id}/depth',
                         'instruments/ticker',
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
@@ -1996,7 +1996,7 @@ class okex3 (Exchange):
         #
         return {
             'info': response,
-            'id': self.safe_string(response, 'withdraw_id'),
+            'id': self.safe_string(response, 'withdrawal_id'),
         }
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):

@@ -282,8 +282,8 @@ module.exports = class bitmart extends Exchange {
             'change': undefined,
             'percentage': percentage * 100,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'base_volume'),
-            'quoteVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': this.safeFloat (ticker, 'base_volume'),
             'info': ticker,
         };
     }

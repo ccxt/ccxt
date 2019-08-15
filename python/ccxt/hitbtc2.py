@@ -847,6 +847,9 @@ class hitbtc2 (hitbtc):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string(trade, 'clientOrderId')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'quantity')
@@ -1005,6 +1008,9 @@ class hitbtc2 (hitbtc):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         # their max accepted length is 32 characters
         uuid = self.uuid()
         parts = uuid.split('-')
@@ -1032,6 +1038,9 @@ class hitbtc2 (hitbtc):
 
     def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         # their max accepted length is 32 characters
         uuid = self.uuid()
         parts = uuid.split('-')
@@ -1052,6 +1061,9 @@ class hitbtc2 (hitbtc):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
             'clientOrderId': id,
         }
@@ -1106,6 +1118,9 @@ class hitbtc2 (hitbtc):
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         id = self.safe_string(order, 'clientOrderId')
         price = self.safe_float(order, 'price')
         if price is None:
@@ -1166,6 +1181,9 @@ class hitbtc2 (hitbtc):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
             'clientOrderId': id,
         }
@@ -1177,6 +1195,9 @@ class hitbtc2 (hitbtc):
 
     def fetch_open_order(self, id, symbol=None, params={}):
         self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
             'clientOrderId': id,
         }
