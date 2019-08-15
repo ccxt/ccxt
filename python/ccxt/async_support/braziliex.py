@@ -15,6 +15,7 @@ import hashlib
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 
 
@@ -32,6 +33,7 @@ class braziliex (Exchange):
                 'fetchOpenOrders': True,
                 'fetchMyTrades': True,
                 'fetchDepositAddress': True,
+                'fetchOrder': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -61,6 +63,7 @@ class braziliex (Exchange):
                         'sell',
                         'buy',
                         'cancel_order',
+                        'order_status',
                     ],
                 },
             },
@@ -498,6 +501,18 @@ class braziliex (Exchange):
             'market': market['id'],
         }
         return await self.privatePostCancelOrder(self.extend(request, params))
+
+    async def fetch_order(self, id, symbol=None, params={}):
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'order_number': id,
+            'market': market['id'],
+        }
+        response = await self.privatePostOrderStatus(self.extend(request, params))
+        return self.parse_order(response, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()

@@ -21,6 +21,7 @@ class braziliex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchMyTrades' => true,
                 'fetchDepositAddress' => true,
+                'fetchOrder' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -50,6 +51,7 @@ class braziliex extends Exchange {
                         'sell',
                         'buy',
                         'cancel_order',
+                        'order_status',
                     ),
                 ),
             ),
@@ -516,6 +518,20 @@ class braziliex extends Exchange {
             'market' => $market['id'],
         );
         return $this->privatePostCancelOrder (array_merge ($request, $params));
+    }
+
+    public function fetch_order ($id, $symbol = null, $params = array ()) {
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'order_number' => $id,
+            'market' => $market['id'],
+        );
+        $response = $this->privatePostOrderStatus (array_merge ($request, $params));
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
