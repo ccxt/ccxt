@@ -47,5 +47,5 @@ module.exports = subclass (
     // Root class
     Error,
     // Derived class hierarchy
-    errorHierarchy,
+    errorHierarchy
 )
