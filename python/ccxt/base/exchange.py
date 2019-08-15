@@ -99,7 +99,7 @@ except ImportError:
 try:
     # from web3.auto import w3
     from web3 import Web3, HTTPProvider
-    from web3.utils.encoding import hex_encode_abi_type
+    #from web3.utils.encoding import hex_encode_abi_type <- import error
 except ImportError:
     Web3 = HTTPProvider = None  # web3/0x not supported in Python 2
 
@@ -369,7 +369,6 @@ class Exchange(object):
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
 
         if self.requiresWeb3 and Web3 and not self.web3:
-            # self.web3 = w3 if w3 else Web3(HTTPProvider())
             self.web3 = Web3(HTTPProvider())
 
     def __del__(self):
@@ -1053,7 +1052,7 @@ class Exchange(object):
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
-    def ecdsa(request, secret, algorithm='p256', hash='sha256'):
+    def ecdsa(request, secret, algorithm='p256', hash=None):
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
             'p224': [ecdsa.NIST224p, 'sha256'],
@@ -1068,7 +1067,9 @@ class Exchange(object):
             hash_function = getattr(hashlib, curve_info[1])
         else:
             hash_function = hashlib.sha1
-        digest = Exchange.hash(Exchange.encode(request), hash, 'binary')
+        digest = base64.b16decode(Exchange.encode(request), casefold=True)
+        if hash is not None:
+            digest = Exchange.hash(Exchange.encode(request), hash, 'binary')
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
         r_binary, s_binary = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()

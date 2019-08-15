@@ -31,7 +31,6 @@ SOFTWARE.
 namespace ccxt;
 
 use kornrunner\Eth;
-use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 use Elliptic\EC;
 
@@ -1106,15 +1105,18 @@ class Exchange {
         return $signature;
     }
 
-    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = 'sha256') {
-        $digest = static::hash($request, $hash, 'hex');
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null) {
+        $digest = $request;
+        if ($hash !== null) {
+            $digest = static::hash($request, $hash, 'hex');
+        }
         $ec = new EC(strtolower($algorithm));
         $key = $ec->keyFromPrivate($secret);
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
         $signature = array();
         $signature['r'] = $ellipticSignature->r->bi->toHex();
         $signature['s'] = $ellipticSignature->s->bi->toHex();
-        $signature['v'] = gmp_strval($ellipticSignature->recoveryParam, 16);
+        $signature['v'] = $ellipticSignature->recoveryParam;
         return $signature;
     }
 
@@ -2715,12 +2717,11 @@ class Exchange {
     }
 
     public function signHash($hash, $privateKey) {
-        $secp256k1 = new Secp256k1();
-        $signature = $secp256k1->sign($hash, $privateKey);
+        $signature = static::ecdsa($hash, $privateKey, 'secp256k1', null);
         return array(
-            'v' => $signature->getRecoveryParam() + 27, // integer
-            'r' => '0x' . gmp_strval($signature->getR(), 16), // '0x'-prefixed hex string
-            's' => '0x' . gmp_strval($signature->getS(), 16), // '0x'-prefixed hex string
+            'r' => '0x' . $signature['r'],
+            's' => '0x' . $signature['s'],
+            'v' => 27 + $signature['v'],
         );
     }
 
