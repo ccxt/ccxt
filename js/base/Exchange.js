@@ -1432,12 +1432,6 @@ module.exports = class Exchange {
         return '0x' +  ethAbi.soliditySHA3 (types, values).toString ('hex')
     }
 
-    soliditySha256 (array) {
-        const values = this.solidityValues (array);
-        const types = this.solidityTypes (values);
-        return '0x' +  ethAbi.soliditySHA256 (types, values).toString ('hex')
-    }
-
     solidityTypes (array) {
         return array.map (value => (this.web3.utils.isAddress (value) ? 'address' : 'uint256'))
     }

@@ -13,7 +13,12 @@ const { ArgumentsRequired } = require ('./../errors')
 /*  ------------------------------------------------------------------------ */
 
 const hash = (request, hash = 'md5', digest = 'hex') => {
-    const result = CryptoJS[hash.toUpperCase ()] (request)
+    const options = {}
+    if (hash === 'keccak') {
+        hash = 'SHA3'
+        options['outputLength'] = 256
+    }
+    const result = CryptoJS[hash.toUpperCase ()] (request, options)
     return (digest === 'binary') ? result : result.toString (CryptoJS.enc[capitalize (digest)])
 }
 
