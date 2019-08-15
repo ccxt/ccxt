@@ -735,10 +735,10 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         let market = undefined;
         let pair = undefined;
         if (symbol !== undefined) {
-            await this.loadMarkets ();
             market = this.market (symbol);
             pair = market['id'];
         }
