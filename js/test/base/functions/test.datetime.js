@@ -51,8 +51,8 @@ assert (exchange.round_timeframe('10m', exchange.parse8601('2019-08-12 13:22:08'
 assert (exchange.round_timeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), 'down') === exchange.parse8601('2019-08-12 13:00:00'))
 assert (exchange.round_timeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), 'down') === exchange.parse8601('2019-08-12 00:00:00'))
 
-assert (exchange.round_timeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), 'up') === exchange.parse8601('2019-08-12 13:30:00'))
+assert (exchange.round_timeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), 'up') === exchange.parse8601('2019-08-12 13:25:00'))
 assert (exchange.round_timeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), 'up') === exchange.parse8601('2019-08-12 13:30:00'))
 assert (exchange.round_timeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), 'up') === exchange.parse8601('2019-08-12 13:30:00'))
-assert (exchange.round_timeframe('1h', exchange.parse8601('2019-08-12 13:22:08'), 'up') === exchange.parse8601('2019-08-12 13:30:00'))
+assert (exchange.round_timeframe('1h', exchange.parse8601('2019-08-12 13:22:08'), 'up') === exchange.parse8601('2019-08-12 14:00:00'))
 assert (exchange.round_timeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), 'up') === exchange.parse8601('2019-08-13 00:00:00'))
