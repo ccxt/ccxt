@@ -2703,7 +2703,7 @@ class Exchange {
     public function hashMessage($message) {
         $buffer = unpack('C*', hex2bin($message));
         $prefix = bin2hex("\u{0019}Ethereum Signed Message:\n" . sizeof($buffer));
-        return Keccak::hash(hex2bin($prefix . $message), 256);
+        return '0x' . Keccak::hash(hex2bin($prefix . $message), 256);
     }
 
     public function signHash($hash, $privateKey) {

@@ -33,10 +33,11 @@ namespace ccxt;
 define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 
 spl_autoload_register(function ($class) {
-    // used to include static dependencies (currently only elliptic-php)
+    // used to include static dependencies
     $PATH = PATH_TO_CCXT . 'static_dependencies';
     $class_name = str_replace('Elliptic\\', '/elliptic-php/lib/', $class);
-    $class_name = preg_replace('/\w+\\/', '', $class_name);
+    $class_name = str_replace('kornrunner\\Solidity', '/kornrunner/solidity/src/Solidity', $class_name);
+    $class_name = str_replace('kornrunner\\Keccak', '/kornrunner/keccak/src/Keccak', $class_name);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
     $file = $PATH . $class_name . '.php';
     if (file_exists ($file))
