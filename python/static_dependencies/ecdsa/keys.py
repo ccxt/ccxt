@@ -290,8 +290,8 @@ class SigningKey:
         if s > self.privkey.order / 2:
             s = self.privkey.order - s
             v ^= 1
-        retVal = sigencode(r, s, order)
-        return retVal + (v,)
+        r_and_s_tuple = sigencode(r, s, order)
+        return r_and_s_tuple + (v,)
 
     def sign(self, data, entropy=None, hashfunc=None, sigencode=sigencode_string, k=None):
         """
