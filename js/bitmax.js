@@ -540,7 +540,7 @@ module.exports = class bitmax extends Exchange {
         let url = this.urls['api'][api];
         // fix sign params
         if (this.options['accountGroup'] !== -1) {
-            url = url.replace ('/api/', '/' + this.options['accountGroup'] + '/api/');
+            url = url.replace ('/api/', '/' + this.number_to_string (this.options['accountGroup']) + '/api/');
         }
         url += '/' + this.implodeParams (path, params);
         // fix sign error
@@ -556,7 +556,7 @@ module.exports = class bitmax extends Exchange {
             if ('time' in params) {
                 timestamp = params['time'];
             }
-            timestamp = this.decimalToPrecision (timestamp, 13);
+            timestamp = this.number_to_string (timestamp);
             let query = timestamp + '+' + path;
             if (method !== 'GET') {
                 query += '+' + coid;
