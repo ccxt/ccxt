@@ -395,7 +395,7 @@ class coinex (Exchange):
             'done': 'closed',
             'cancel': 'canceled',
         }
-        return self.safe_float(statuses, status, status)
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #

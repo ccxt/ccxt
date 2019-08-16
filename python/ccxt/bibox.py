@@ -691,10 +691,10 @@ class bibox (Exchange):
         return self.safe_string(statuses, status, status)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        self.load_markets()
         market = None
         pair = None
         if symbol is not None:
-            self.load_markets()
             market = self.market(symbol)
             pair = market['id']
         size = limit if (limit) else 200
