@@ -285,10 +285,13 @@ class SigningKey:
             except RSZeroError:
                 retry_gen += 1
 
+        v = s % 2 or (2 if r == k else 0)
         # add support for canonical mode (comment out to set to false)
         if s > self.privkey.order / 2:
             s = self.privkey.order - s
-        return sigencode(r, s, order)
+            v ^= 1
+        r_and_s_tuple = sigencode(r, s, order)
+        return r_and_s_tuple + (v,)
 
     def sign(self, data, entropy=None, hashfunc=None, sigencode=sigencode_string, k=None):
         """
