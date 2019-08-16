@@ -26,6 +26,8 @@ Current feature list:
 ## See Also
 
 - <sub>[![Nomics API](https://user-images.githubusercontent.com/1294454/53875704-2ffbcc80-4016-11e9-828b-337409955609.png)](https://p.nomics.com/cryptocurrency-bitcoin-api)</sub>&nbsp; **[Nomics API](https://p.nomics.com/cryptocurrency-bitcoin-api)**&nbsp;&mdash;&nbsp;enterprise-grade [crypto market cap & pricing data](https://nomics.com) API for your fund, smart contract, or app.
+- <sub>[![CoinGecko API](https://user-images.githubusercontent.com/1294454/61426409-fbccdc80-a922-11e9-9198-2364acf56bd1.png)](https://www.coingecko.com/api)</sub>&nbsp; **[CoinGecko API](https://www.coingecko.com/api)**&nbsp;&mdash;&nbsp;free, reliable, and complete cryptocurrency data for your app. No keys required!
+
 
 ## Certified Cryptocurrency Exchanges
 
