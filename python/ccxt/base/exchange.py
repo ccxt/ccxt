@@ -1060,23 +1060,22 @@ class Exchange(object):
             'p256': [ecdsa.NIST256p, 'sha256'],
             'p384': [ecdsa.NIST384p, 'sha384'],
             'p521': [ecdsa.NIST521p, 'sha512'],
+            'secp256k1': [ecdsa.SECP256k1, 'sha256'],
         }
         if algorithm not in algorithms:
             raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
         curve_info = algorithms[algorithm]
-        if algorithm[0] == 'p':
-            hash_function = getattr(hashlib, curve_info[1])
-        else:
-            hash_function = hashlib.sha1
+        hash_function = getattr(hashlib, curve_info[1])
         digest = base64.b16decode(Exchange.encode(request), casefold=True)
         if hash is not None:
             digest = Exchange.hash(Exchange.encode(request), hash, 'binary')
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
-        r_binary, s_binary = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
+        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
         return {
             'r': r,
             's': s,
+            'v': v,
         }
 
     @staticmethod
@@ -1949,11 +1948,11 @@ class Exchange(object):
         return self.web3.sha3(b"\x19Ethereum Signed Message:\n" + str(len(message_bytes)).encode() + message_bytes).hex()
 
     def signHash(self, hash, privateKey):
-        signature = self.web3.eth.account.signHash(hash[-64:], private_key=privateKey[-64:])
+        signature = self.ecdsa(hash, privateKey, 'secp256k1', None)
         return {
-            'v': signature.v,  # integer
-            'r': self.web3.toHex(signature.r),  # '0x'-prefixed hex string
-            's': self.web3.toHex(signature.s),  # '0x'-prefixed hex string
+            'r': '0x' + signature['r'],
+            's': '0x' + signature['s'],
+            'v': 27 + signature['v'],
         }
 
     def signMessage(self, message, privateKey):
