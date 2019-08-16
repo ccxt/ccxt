@@ -490,7 +490,6 @@ module.exports = class bitmax extends Exchange {
         const response = await this.privateGetOrderHistory (this.extend (request, params));
         let orders = this.safeValue (response, 'data', {});
         orders = this.safeValue (orders, 'data', {});
-        orders = this.safeValue (orders, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -506,8 +505,9 @@ module.exports = class bitmax extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const orders = await this.fetchOrders (symbol, since, limit, params);
-        return this.filterBy (orders, 'status', 'closed');
+        const request = { 'status': 'Filled' };
+        const orders = await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        return orders;
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
