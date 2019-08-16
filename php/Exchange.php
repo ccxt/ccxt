@@ -349,6 +349,17 @@ class Exchange {
         return $amount * $scale;
     }
 
+    public static function round_timeframe($timeframe, $timestamp, $direction='down') {
+        $ms = static::parse_timeframe($timeframe) * 1000;
+        // Get offset based on timeframe in milliseconds
+        $offset = $timestamp % $ms;
+        if ($direction === 'up') {
+            return $timestamp - $offset + $ms;
+        } else {
+            return $timestamp - $offset;
+        }
+    }
+
     // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
     public static function build_ohlcv($trades, $timeframe = '1m', $since = PHP_INT_MIN, $limits = PHP_INT_MAX) {
         if (empty($trades) || !is_array($trades)) {

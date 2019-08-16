@@ -1526,6 +1526,16 @@ class Exchange(object):
             scale = 60  # 1m by default
         return amount * scale
 
+    @staticmethod
+    def round_timeframe(timeframe, timestamp, direction='down'):
+        ms = Exchange.parse_timeframe(timeframe) * 1000
+        # Get offset based on timeframe in milliseconds
+        offset = timestamp % ms
+        if direction == 'up':
+            return timestamp - offset + ms
+        else:
+            return timestamp - offset
+
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
         array = [self.extend(self.parse_trade(trade, market), params) for trade in array]

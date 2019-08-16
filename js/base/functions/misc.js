@@ -23,6 +23,17 @@ const parseTimeframe = (timeframe) => {
     return amount * scale
 }
 
+const round_timeframe = (timeframe, timestamp, direction = 'down') => {
+    const ms = parseTimeframe(timeframe) * 1000
+    // Get offset based on timeframe in milliseconds
+    let offset = timestamp % ms
+    if (direction === 'up') {
+        return timestamp - offset + ms
+    } else {
+        return timestamp - offset
+    }
+}
+
 // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
 const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infinity) => {
     let ms = parseTimeframe (timeframe) * 1000;
@@ -77,6 +88,7 @@ module.exports = {
     },
 
     parseTimeframe,
+    round_timeframe,
     buildOHLCVC,
 }
 
