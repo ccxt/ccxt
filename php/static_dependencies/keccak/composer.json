@@ -1,0 +1,24 @@
+{
+    "name": "kornrunner/keccak",
+    "description": "Pure PHP implementation of Keccak",
+    "keywords": ["keccak", "sha-3"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Boris Momcilovic",
+            "homepage": "https://github.com/kornrunner/php-keccak"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "kornrunner\\": "src"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~7",
+        "satooshi/php-coveralls": "~2"
+    }
+}

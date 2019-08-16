@@ -1785,14 +1785,11 @@ class Exchange(object):
                 unit = self.eth_unit(decimals)
         return str(Web3.toWei(amount, unit))
 
-    def decryptAccountFromJSON(self, value, password):
-        return self.decryptAccount(json.loads(value) if isinstance(value, basestring) else value, password)
-
-    def decryptAccount(self, key, password):
-        return self.web3.eth.accounts.decrypt(key, password)
-
-    def decryptAccountFromPrivateKey(self, privateKey):
-        return self.web3.eth.accounts.privateKeyToAccount(privateKey)
+    def privateKeyToAddress(self, privateKey):
+        private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
+        public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
+        public_key_hash = self.web3.sha3(public_key_bytes)
+        return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
 
     def soliditySha3(self, array):
         values = self.solidityValues(array)
@@ -1926,10 +1923,9 @@ class Exchange(object):
         if v != 27 and v != 28:
             v = v + 27
         return (
-            "0x" +
-            self.remove_0x_prefix(hex(v)) +
-            self.remove_0x_prefix(signature["r"]) +
-            self.remove_0x_prefix(signature["s"]) +
+            hex(v) +
+            signature["r"][-64:] +
+            signature["s"][-64:] +
             "03"
         )
 

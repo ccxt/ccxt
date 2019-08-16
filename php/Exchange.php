@@ -30,7 +30,7 @@ SOFTWARE.
 
 namespace ccxt;
 
-use kornrunner\Eth;
+use kornrunner\Keccak;
 use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 use Elliptic\EC;
@@ -2639,18 +2639,6 @@ class Exchange {
         return (string) (int) (('wei' === $unit) ? $amount : bcmul($amount, Exchange::$eth_units[$unit]));
     }
 
-    // decryptAccountFromJSON (json, password) {
-    //     return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)
-    // }
-
-    // decryptAccount (key, password) {
-    //     return this.web3.eth.accounts.decrypt (key, password)
-    // }
-
-    // decryptAccountFromPrivateKey (privateKey) {
-    //     return this.web3.eth.accounts.privateKeyToAccount (privateKey)
-    // }
-
     public function getZeroExOrderHash($order) {
         // $unpacked = array (
         //     "0x90fe2af704b34e0224bf2299c838e04d4dcf1364", // exchangeContractAddress
@@ -2711,7 +2699,9 @@ class Exchange {
     }
 
     public function hashMessage($message) {
-        return '0x' . Eth::hashPersonalMessage($message);
+        $buffer = unpack('C*', hex2bin($message));
+        $prefix = bin2hex("\u{0019}Ethereum Signed Message:\n" . sizeof($buffer));
+        return Keccak::hash(hex2bin($prefix . $message), 256);
     }
 
     public function signHash($hash, $privateKey) {

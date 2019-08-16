@@ -1,10 +1,6 @@
-<?php
-
-/*
-
 MIT License
 
-Copyright (c) 2017 Igor Kroitor
+Copyright (c) 2018 Boris Momčilović
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-*/
-
-//-----------------------------------------------------------------------------
-
-namespace ccxt;
-
-define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
-
-spl_autoload_register(function ($class) {
-    // used to include static dependencies (currently only elliptic-php)
-    $PATH = PATH_TO_CCXT . 'static_dependencies';
-    $class_name = str_replace('Elliptic\\', '/elliptic-php/lib/', $class);
-    $class_name = preg_replace('/\w+\\/', '', $class_name);
-    $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
-    $file = $PATH . $class_name . '.php';
-    if (file_exists ($file))
-        require_once $file;
-});
-
-require_once PATH_TO_CCXT . 'errors.php';
-
-spl_autoload_register (function ($class_name) {
-    $class_name = str_replace ("ccxt\\", "", $class_name);
-    $file = PATH_TO_CCXT . $class_name . '.php';
-    if (file_exists ($file))
-        require_once $file;
-});
