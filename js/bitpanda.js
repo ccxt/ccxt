@@ -1,6 +1,7 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
+const { parse8601 } = require ('./base/functions/time');
 
 module.exports = class bitpanda extends Exchange {
     describe () {
@@ -8,42 +9,51 @@ module.exports = class bitpanda extends Exchange {
             'id': 'bitpanda',
             'name': 'Bitpanda Global Exchange',
             'countries': ['AT'], // Austria
-            // 'rateLimit': 500,
-            // new metainfo interface
-            // 'has': {
-            //     'fetchDepositAddress': true,
-            //     'CORS': false,
-            //     'fetchBidsAsks': true,
-            //     'fetchTickers': true,
-            //     'fetchOHLCV': true,
-            //     'fetchMyTrades': true,
-            //     'fetchOrder': true,
-            //     'fetchOrders': true,
-            //     'fetchOpenOrders': true,
-            //     'fetchClosedOrders': true,
-            //     'withdraw': true,
-            //     'fetchFundingFees': true,
-            //     'fetchDeposits': true,
-            //     'fetchWithdrawals': true,
-            //     'fetchTransactions': false,
-            // },
-            // 'timeframes': {
-            //     '1m': '1m',
-            //     '3m': '3m',
-            //     '5m': '5m',
-            //     '15m': '15m',
-            //     '30m': '30m',
-            //     '1h': '1h',
-            //     '2h': '2h',
-            //     '4h': '4h',
-            //     '6h': '6h',
-            //     '8h': '8h',
-            //     '12h': '12h',
-            //     '1d': '1d',
-            //     '3d': '3d',
-            //     '1w': '1w',
-            //     '1M': '1M',
-            // },
+            'rateLimit': 500,
+            'has': {
+                // 'fetchDepositAddress': true,
+                'CORS': false,
+                // 'fetchBidsAsks': true,
+                // 'fetchTickers': true,
+                // 'fetchOHLCV': true,
+                // 'fetchMyTrades': true,
+                // 'fetchOrder': true,
+                // 'fetchOrders': true,
+                // 'fetchOpenOrders': true,
+                // 'fetchClosedOrders': true,
+                // 'withdraw': true,
+                // 'fetchFundingFees': true,
+                // 'fetchDeposits': true,
+                // 'fetchWithdrawals': true,
+                // 'fetchTransactions': false,
+            },
+            'timeframes': {
+                '1m': '1m',
+                '4m': '4m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '5h': '5h',
+                '15h': '15h',
+                '30h': '30h',
+                '1d': '1d',
+                '4d': '4d',
+                '5d': '5d',
+                '15d': '15d',
+                '30d': '30d',
+                '1w': '1w',
+                '4w': '4w',
+                '5w': '5w',
+                '15w': '15w',
+                '30w': '30w',
+                '1M': '1M',
+                '4M': '4M',
+                '5M': '5M',
+                '15M': '15M',
+                '30M': '30M',
+            },
             'version': 'v1',
             'urls': {
                 'api': {
@@ -61,6 +71,7 @@ module.exports = class bitpanda extends Exchange {
                 'public': {
                     'get': [
                         'instruments',
+                        'order-book/{instrument}',
                     ],
                 },
             },
@@ -72,10 +83,6 @@ module.exports = class bitpanda extends Exchange {
                     'maker': 0.1 / 100,
                 },
             },
-            // 'commonCurrencies': {
-            //     'BCC': 'BCC', // kept for backward-compatibility https://github.com/ccxt/ccxt/issues/4848
-            //     'YOYO': 'YOYOW',
-            // },
             // exchange-specific options
             'options': {
                 // 'fetchTradesMethod': 'publicGetAggTrades',
@@ -123,7 +130,7 @@ module.exports = class bitpanda extends Exchange {
             const quoteId = this.safeString (market['quote'], 'code');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const id = base + quote;
+            const id = base + '_' + quote;
             const symbol = base + '/' + quote;
             const active = this.safeString (market, 'state') === 'ACTIVE';
             const precision = {
@@ -137,6 +144,7 @@ module.exports = class bitpanda extends Exchange {
                 },
                 'price': {
                     'min': Math.pow (10, -precision['price']),
+                    // TODO: Not sure about this
                     'max': Math.pow (10, precision['price']),
                 },
             };
@@ -160,9 +168,58 @@ module.exports = class bitpanda extends Exchange {
         return result;
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'instrument': this.marketId (symbol),
+        };
+        // TODO: How to implement?
+        // if (limit !== undefined) {
+        //     request['limit_bids'] = limit;
+        //     request['limit_asks'] = limit;
+        // }
+        const response = await this.publicGetOrderBookInstrument (this.extend (request, params));
+        const time = this.safeString (response, 'time');
+        return this.parseOrderBook (response, parse8601 (time), 'bids', 'asks', 'price', 'amount');
+    }
+
+    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'instrument': this.marketId (symbol),
+            'level': 2,
+        };
+        // TODO: How to implement?
+        // if (limit !== undefined) {
+        //     request['limit_bids'] = limit;
+        //     request['limit_asks'] = limit;
+        // }
+        const response = await this.publicGetOrderBookInstrument (this.extend (request, params));
+        const time = this.safeString (response, 'time');
+        return this.parseOrderBook (response, parse8601 (time), 'bids', 'asks', 'price', 'amount');
+    }
+
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        // TODO: Needs a price ticker from the exchange bois
+        // const market = this.market (symbol);
+        // const request = {
+        //     'symbol': market['id'],
+        // };
+        // const ticker = await this.publicGetPubtickerSymbol (this.extend (request, params));
+        // return this.parseTicker (ticker, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const request = '/' + this.implodeParams (path, params);
-        const url = this.urls['api'][this.version] + this.version + request;
+        let url = this.urls['api'][api] + this.version + request;
+        const query = this.omit (params, this.extractParams (path));
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        }
+        console.log ('Calling: ' + url);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
@@ -189,91 +246,6 @@ module.exports = class bitpanda extends Exchange {
 //         return this.options['timeDifference'];
 //     }
 //
-//     async fetchMarkets (params = {}) {
-//         const response = await this.publicGetExchangeInfo (params);
-//         if (this.options['adjustForTimeDifference']) {
-//             await this.loadTimeDifference ();
-//         }
-//         const markets = this.safeValue (response, 'symbols');
-//         const result = [];
-//         for (let i = 0; i < markets.length; i++) {
-//             const market = markets[i];
-//             const id = this.safeString (market, 'symbol');
-//             // "123456" is a "test symbol/market"
-//             if (id === '123456') {
-//                 continue;
-//             }
-//             const baseId = market['baseAsset'];
-//             const quoteId = market['quoteAsset'];
-//             const base = this.safeCurrencyCode (baseId);
-//             const quote = this.safeCurrencyCode (quoteId);
-//             const symbol = base + '/' + quote;
-//             const filters = this.indexBy (market['filters'], 'filterType');
-//             const precision = {
-//                 'base': market['baseAssetPrecision'],
-//                 'quote': market['quotePrecision'],
-//                 'amount': market['baseAssetPrecision'],
-//                 'price': market['quotePrecision'],
-//             };
-//             const status = this.safeString (market, 'status');
-//             const active = (status === 'TRADING');
-//             const entry = {
-//                 'id': id,
-//                 'symbol': symbol,
-//                 'base': base,
-//                 'quote': quote,
-//                 'baseId': baseId,
-//                 'quoteId': quoteId,
-//                 'info': market,
-//                 'active': active,
-//                 'precision': precision,
-//                 'limits': {
-//                     'amount': {
-//                         'min': Math.pow (10, -precision['amount']),
-//                         'max': undefined,
-//                     },
-//                     'price': {
-//                         'min': undefined,
-//                         'max': undefined,
-//                     },
-//                     'cost': {
-//                         'min': -1 * Math.log10 (precision['amount']),
-//                         'max': undefined,
-//                     },
-//                 },
-//             };
-//             if ('PRICE_FILTER' in filters) {
-//                 const filter = filters['PRICE_FILTER'];
-//                 // PRICE_FILTER reports zero values for maxPrice
-//                 // since they updated filter types in November 2018
-//                 // https://github.com/ccxt/ccxt/issues/4286
-//                 // therefore limits['price']['max'] doesn't have any meaningful value except undefined
-//                 entry['limits']['price'] = {
-//                     'min': this.safeFloat (filter, 'minPrice'),
-//                     'max': undefined,
-//                 };
-//                 const maxPrice = this.safeFloat (filter, 'maxPrice');
-//                 if ((maxPrice !== undefined) && (maxPrice > 0)) {
-//                     entry['limits']['price']['max'] = maxPrice;
-//                 }
-//                 entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
-//             }
-//             if ('LOT_SIZE' in filters) {
-//                 const filter = this.safeValue (filters, 'LOT_SIZE', {});
-//                 const stepSize = this.safeString (filter, 'stepSize');
-//                 entry['precision']['amount'] = this.precisionFromString (stepSize);
-//                 entry['limits']['amount'] = {
-//                     'min': this.safeFloat (filter, 'minQty'),
-//                     'max': this.safeFloat (filter, 'maxQty'),
-//                 };
-//             }
-//             if ('MIN_NOTIONAL' in filters) {
-//                 entry['limits']['cost']['min'] = this.safeFloat (filters['MIN_NOTIONAL'], 'minNotional');
-//             }
-//             result.push (entry);
-//         }
-//         return result;
-//     }
 //
 //     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
 //         const market = this.markets[symbol];
