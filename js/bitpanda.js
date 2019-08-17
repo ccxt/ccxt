@@ -18,7 +18,7 @@ module.exports = class bitpanda extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'bitpanda',
             'name': 'Bitpanda Global Exchange',
-            'countries': ['AT'], // Austria
+            'countries': ['AT'],
             'rateLimit': 500,
             'has': {
                 'cancelAllOrders': true,
@@ -34,7 +34,7 @@ module.exports = class bitpanda extends Exchange {
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchFundingFees': false,
@@ -48,13 +48,13 @@ module.exports = class bitpanda extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
-                'fetchStatus': false,
+                'fetchStatus': 'emulated',
                 'fetchTicker': false,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTradingLimits': false,
                 'fetchTransactions': false,
                 'fetchWithdrawals': false,
@@ -89,17 +89,21 @@ module.exports = class bitpanda extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'candlesticks/{instrument}',
+                        'currencies',
                         'instruments',
                         'order-book/{instrument}',
-                        'candlesticks/{instrument}',
+                        'time',
                     ],
                 },
                 'private': {
                     'get': [
                         'account/balances',
+                        'account/fees',
                         'account/orders',
                         'account/orders/{id}',
                         'account/trades',
+                        'account/trading-volume',
                     ],
                     'post': [
                         'account/orders',
@@ -230,6 +234,59 @@ module.exports = class bitpanda extends Exchange {
         return result;
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'code');
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeInteger (currency, 'precision');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': undefined,
+                'fee': undefined,
+                'precision': precision,
+                'limits': undefined,
+            };
+        }
+        return result;
+    }
+
+    async fetchTradingFees (params = {}) {
+        await this.loadMarkets ();
+        const volumeResponse = await this.privateGetAccountTradingVolume (params);
+        const volume = this.safeFloat (volumeResponse, 'volume');
+        const feeResponse = await this.privateGetAccountFees (params);
+        const tiers = this.safeValue (feeResponse, 'fee_tiers');
+        for (let i = 0; i < tiers.length - 1; i++) {
+            const firstTier = tiers[i];
+            const secondTier = tiers[i + 1];
+            const firstTierVolume = this.safeFloat (firstTier, 'volume');
+            const secondTierVolume = this.safeFloat (secondTier, 'volume');
+            if (volume >= firstTierVolume && volume < secondTierVolume) {
+                return {
+                    'info': feeResponse,
+                    'maker': this.safeFloat (firstTier, 'maker_fee') / 100,
+                    'taker': this.safeFloat (firstTier, 'taker_fee') / 100,
+                };
+            }
+        }
+        return {
+            'info': feeResponse,
+            'maker': this.fees.trading.maker,
+            'taker': this.fees.trading.taker,
+        };
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        return this.safeInteger (response, 'epoch_millis');
+    }
+
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {
@@ -251,11 +308,6 @@ module.exports = class bitpanda extends Exchange {
         const response = await this.publicGetOrderBookInstrument (this.extend (request, params));
         const time = this.safeString (response, 'time');
         return this.parseOrderBook (response, this.parse8601 (time), 'bids', 'asks', 'price', 'amount');
-    }
-
-    async fetchTicker (symbol, params = {}) {
-        // TODO: Needs a price ticker from the exchange bois
-        await this.loadMarkets ();
     }
 
     async fetchBalance (params = {}) {
