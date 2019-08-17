@@ -1,8 +1,17 @@
 'use strict';
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, OrderNotFound, InsufficientFunds } = require ('./base/errors');
-const { iso8601, parse8601, microseconds } = require ('./base/functions/time');
+const {
+    AuthenticationError,
+    PermissionDenied,
+    BadRequest,
+    ArgumentsRequired,
+    OrderNotFound,
+    InsufficientFunds,
+    ExchangeNotAvailable,
+    DDoSProtection,
+    ExchangeError,
+} = require ('./base/errors');
 
 module.exports = class bitpanda extends Exchange {
     describe () {
@@ -96,8 +105,59 @@ module.exports = class bitpanda extends Exchange {
                 'with_cancelled_and_rejected': true,
             },
             'exceptions': {
+                'INVALID_CREDENTIALS': AuthenticationError,
+                'MISSING_CREDENTIALS': AuthenticationError,
+                'INVALID_APIKEY': AuthenticationError,
+                'INVALID_SCOPES': AuthenticationError,
+                'INVALID_SUBJECT': AuthenticationError,
+                'INVALID_ISSUER': AuthenticationError,
+                'INVALID_AUDIENCE': AuthenticationError,
+                'INVALID_DEVICE_ID': AuthenticationError,
+                'INVALID_IP_RESTRICTION': AuthenticationError,
+                'APIKEY_REVOKED': AuthenticationError,
+                'APIKEY_EXPIRED': AuthenticationError,
+                'SYNCHRONIZER_TOKEN_MISMATCH': AuthenticationError,
+                'SESSION_EXPIRED': AuthenticationError,
+                'INTERNAL_ERROR': AuthenticationError,
+                'CLIENT_IP_BLOCKED': PermissionDenied,
+                'MISSING_PERMISSION': PermissionDenied,
+                'ILLEGAL_CHARS': BadRequest,
+                'UNSUPPORTED_MEDIA_TYPE': BadRequest,
+                'INVALID_INSTRUMENT_CODE': BadRequest,
+                'INVALID_ORDER_TYPE': BadRequest,
+                'INVALID_UNIT': BadRequest,
+                'INVALID_PERIOD': BadRequest,
+                'INVALID_TIME': BadRequest,
+                'INVALID_DATE': BadRequest,
+                'INVALID_CURRENCY': BadRequest,
+                'INVALID_AMOUNT': BadRequest,
+                'INVALID_PRICE': BadRequest,
+                'INVALID_LIMIT': BadRequest,
+                'INVALID_QUERY': BadRequest,
+                'INVALID_CURSOR': BadRequest,
+                'INVALID_ACCOUNT_ID': BadRequest,
+                'INVALID_SIDE': BadRequest,
+                'NEGATIVE_AMOUNT': BadRequest,
+                'NEGATIVE_PRICE': BadRequest,
+                'MIN_SIZE_NOT_SATISFIED': BadRequest,
+                'BAD_AMOUNT_PRECISION': BadRequest,
+                'BAD_PRICE_PRECISION': BadRequest,
+                'BAD_TRIGGER_PRICE_PRECISION': BadRequest,
+                'MAX_OPEN_ORDERS_EXCEEDED': BadRequest,
+                'MISSING_PRICE': ArgumentsRequired,
+                'MISSING_INSTRUMENT_CODE': ArgumentsRequired,
+                'MISSING_ORDER_TYPE': ArgumentsRequired,
+                'MISSING_SIDE': ArgumentsRequired,
+                'INVALID_ORDER_ID': OrderNotFound,
                 'NOT_FOUND': OrderNotFound,
+                'INSUFFICIENT_LIQUIDITY': InsufficientFunds,
                 'INSUFFICIENT_FUNDS': InsufficientFunds,
+                'NO_TRADING': ExchangeNotAvailable,
+                'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
+                'GATEWAY_TIMEOUT': ExchangeNotAvailable,
+                'RATELIMIT': DDoSProtection,
+                'CF_RATELIMIT': DDoSProtection,
+                'INTERNAL_SERVER_ERROR': ExchangeError,
             },
         });
     }
@@ -169,7 +229,7 @@ module.exports = class bitpanda extends Exchange {
     async parseBook (request, params) {
         const response = await this.publicGetOrderBookInstrument (this.extend (request, params));
         const time = this.safeString (response, 'time');
-        return this.parseOrderBook (response, parse8601 (time), 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, this.parse8601 (time), 'bids', 'asks', 'price', 'amount');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -237,18 +297,20 @@ module.exports = class bitpanda extends Exchange {
             'with_cancelled_and_rejected': this.options['with_cancelled_and_rejected'],
             'with_just_filled_inactive': this.options['with_just_filled_inactive'],
         };
+        let market = undefined;
         if (symbol !== undefined) {
-            request['instrument_code'] = this.marketId (symbol);
+            market = this.market (symbol);
+            request['instrument_code'] = market['id'];
         }
         if (since !== undefined) {
-            request['from'] = iso8601 (since);
+            request['from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
         const response = await this.privateGetAccountOrders (this.extend (request, params));
         const orders = this.safeValue (response, 'order_history');
-        return this.parseOrders (orders);
+        return this.parseOrders (orders, market, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -266,21 +328,23 @@ module.exports = class bitpanda extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
         if (symbol !== undefined) {
-            request['instrument_code'] = this.marketId (symbol);
+            market = this.market (symbol);
+            request['instrument_code'] = market['id'];
         }
         if (since !== undefined) {
-            request['from'] = iso8601 (since);
+            request['from'] = this.iso8601 (since);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
         const response = await this.privateGetAccountTrades (this.extend (request, params));
         const trades = this.safeValue (response, 'trade_history');
-        return this.parseTrades (trades);
+        return this.parseTrades (trades, market, since, limit);
     }
 
-    parseOrders (orders) {
+    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
         const result = [];
         for (let i = 0; i < orders.length; i++) {
             const order = this.safeValue (orders[i], 'order');
@@ -321,7 +385,7 @@ module.exports = class bitpanda extends Exchange {
         };
     }
 
-    parseTrades (trades) {
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
         const result = [];
         for (let i = 0; i < trades.length; i++) {
             const trade = this.safeValue (trades[i], 'trade');
@@ -378,15 +442,15 @@ module.exports = class bitpanda extends Exchange {
         };
         if (since === undefined) {
             // TODO: Discuss if error or no error
-            request['from'] = iso8601 (1565175600000);
+            request['from'] = this.iso8601 (1565175600000);
         } else {
-            request['from'] = iso8601 (since);
+            request['from'] = this.iso8601 (since);
         }
         if (params['to'] === undefined) {
-            request['to'] = iso8601 (microseconds ());
+            request['to'] = this.iso8601 (this.microseconds ());
         } else {
             // TODO: Should ccxt handle extra params?
-            request['to'] = iso8601 (params['to']);
+            request['to'] = this.iso8601 (params['to']);
         }
         const response = await this.publicGetCandlesticksInstrument (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
