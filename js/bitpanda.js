@@ -21,7 +21,7 @@ module.exports = class bitpanda extends Exchange {
             'countries': ['AT'], // Austria
             'rateLimit': 500,
             'has': {
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
                 'CORS': false,
@@ -105,6 +105,7 @@ module.exports = class bitpanda extends Exchange {
                         'account/orders',
                     ],
                     'delete': [
+                        'account/orders',
                         'account/orders/{id}',
                     ],
                 },
@@ -121,7 +122,6 @@ module.exports = class bitpanda extends Exchange {
                 'apiKey': true,
                 'secret': false,
             },
-            // exchange-specific options
             'options': {
                 'with_just_filled_inactive': true,
                 'with_cancelled_and_rejected': true,
@@ -207,8 +207,7 @@ module.exports = class bitpanda extends Exchange {
                 },
                 'price': {
                     'min': Math.pow (10, -precision['price']),
-                    // TODO: Not sure about this
-                    'max': Math.pow (10, precision['price']),
+                    'max': undefined,
                 },
             };
             limits['cost'] = {
@@ -255,8 +254,8 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
         // TODO: Needs a price ticker from the exchange bois
+        await this.loadMarkets ();
     }
 
     async fetchBalance (params = {}) {
@@ -301,6 +300,15 @@ module.exports = class bitpanda extends Exchange {
             'id': id,
         };
         return await this.privateDeleteAccountOrdersId (this.extend (request, params));
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            request['instrument_code'] = this.marketId (symbol);
+        }
+        return await this.privateDeleteAccountOrders (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -387,6 +395,7 @@ module.exports = class bitpanda extends Exchange {
         const filled = this.safeFloat (order, 'filled_amount');
         const cost = price * amount;
         const remaining = amount - filled;
+        const fills = this.safeValue (order, 'fills');
         return {
             'id': id,
             'datetime': time,
@@ -400,8 +409,7 @@ module.exports = class bitpanda extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            // TODO: Not sure
-            'trades': undefined,
+            'fills': fills,
             'fee': undefined,
             'info': order,
         };
@@ -463,16 +471,14 @@ module.exports = class bitpanda extends Exchange {
             'unit': unit,
         };
         if (since === undefined) {
-            // TODO: Discuss if error or no error
-            request['from'] = this.iso8601 (1565175600000);
+            throw new ExchangeError (this.id + ' since needs to defined for OHLC');
         } else {
             request['from'] = this.iso8601 (since);
         }
         if (params['to'] === undefined) {
             request['to'] = this.iso8601 (this.microseconds ());
         } else {
-            // TODO: Should ccxt handle extra params?
-            request['to'] = this.iso8601 (params['to']);
+            params['to'] = this.iso8601 (params['to']);
         }
         const response = await this.publicGetCandlesticksInstrument (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -485,7 +491,7 @@ module.exports = class bitpanda extends Exchange {
         if (headers === undefined) {
             headers = {};
         }
-        if (method === 'GET') {
+        if (method === 'GET' || method === 'DELETE') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
@@ -510,8 +516,7 @@ module.exports = class bitpanda extends Exchange {
         const errorKey = response['error'];
         const exception = this.exceptions[errorKey];
         if (exception !== undefined) {
-            // eslint-disable-next-line new-cap
-            throw new exception (errorKey);
+            throw new this.exceptions[errorKey] (errorKey);
         }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
