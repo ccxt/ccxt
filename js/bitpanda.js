@@ -188,6 +188,96 @@ module.exports = class bitpanda extends Exchange {
         });
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (symbol !== undefined) {
+            request['instrument_code'] = this.marketId (symbol);
+        }
+        return await this.privateDeleteAccountOrders (this.extend (request, params));
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        return await this.privateDeleteAccountOrdersId (this.extend (request, params));
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const request = {
+            'instrument_code': this.marketId (symbol),
+            'side': side.toUpperCase (),
+            'type': type.toUpperCase (),
+            'amount': this.amountToPrecision (symbol, amount),
+        };
+        if (type === 'limit' || params['type'] === 'stoplimit') {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (params['type'] === 'stoplimit') {
+            request['trigger_price'] = this.priceToPrecision (symbol, params['stopPrice']);
+        }
+        const response = await this.privatePostAccountOrders (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privateGetAccountBalances (params);
+        const balances = this.safeValue (response, 'balances');
+        const result = {
+            'info': response,
+        };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyCode = this.safeString (balance, 'currency_code');
+            const code = this.safeCurrencyCode (currencyCode);
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['used'] = this.safeFloat (balance, 'locked');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        params['with_cancelled_and_rejected'] = false;
+        params['with_just_filled_inactive'] = true;
+        return await this.fetchOrders (symbol, since, limit, params);
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetCurrencies (params);
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'code');
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeInteger (currency, 'precision');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': undefined,
+                'fee': undefined,
+                'precision': precision,
+                'limits': undefined,
+            };
+        }
+        return result;
+    }
+
+    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'instrument': this.marketId (symbol),
+            'level': 2,
+        };
+        return this.parseBook (request, params);
+    }
+
     async fetchMarkets (params = {}) {
         const response = await this.publicGetInstruments ();
         const result = [];
@@ -234,26 +324,108 @@ module.exports = class bitpanda extends Exchange {
         return result;
     }
 
-    async fetchCurrencies (params = {}) {
-        const response = await this.publicGetCurrencies (params);
-        const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'code');
-            const code = this.safeCurrencyCode (id);
-            const precision = this.safeInteger (currency, 'precision');
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': code,
-                'active': undefined,
-                'fee': undefined,
-                'precision': precision,
-                'limits': undefined,
-            };
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument_code'] = market['id'];
         }
-        return result;
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['max_page_size'] = limit;
+        }
+        const response = await this.privateGetAccountTrades (this.extend (request, params));
+        const tradeHistory = this.safeValue (response, 'trade_history');
+        const trades = [];
+        for (let i = 0; i < tradeHistory.length; i++) {
+            const trade = this.safeValue (tradeHistory[i], 'trade');
+            trades.push (trade);
+        }
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const time = this.timeframes[timeframe];
+        if (time === undefined) {
+            throw new ExchangeError (this.id + ' does not have the timeframe option: ' + timeframe);
+        }
+        const market = this.market (symbol);
+        const period = time.substring (0, 1);
+        const unit = time.substring (1, time.length);
+        const request = {
+            'instrument': market['id'],
+            'period': period,
+            'unit': unit,
+        };
+        if (since === undefined) {
+            throw new ExchangeError (this.id + ' since needs to defined for OHLC');
+        } else {
+            request['from'] = this.iso8601 (since);
+        }
+        if (params['to'] === undefined) {
+            request['to'] = this.iso8601 (this.microseconds ());
+        } else {
+            params['to'] = this.iso8601 (params['to']);
+        }
+        const response = await this.publicGetCandlesticksInstrument (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        params['with_cancelled_and_rejected'] = false;
+        params['with_just_filled_inactive'] = false;
+        return await this.fetchOrders (symbol, since, limit, params);
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'id': id,
+        };
+        const response = await this.privateGetAccountOrdersId (this.extend (request, params));
+        const order = this.safeValue (response, 'order');
+        return this.parseOrder (order);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'instrument': this.marketId (symbol),
+        };
+        return this.parseBook (request, params);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {
+            'with_cancelled_and_rejected': this.options['with_cancelled_and_rejected'],
+            'with_just_filled_inactive': this.options['with_just_filled_inactive'],
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['instrument_code'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['max_page_size'] = limit;
+        }
+        const response = await this.privateGetAccountOrders (this.extend (request, params));
+        const orderHistory = this.safeValue (response, 'order_history');
+        const orders = this.safeValue (orderHistory, 'orders');
+        return this.parseOrders (orders, market, since, limit, params);
+    }
+
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        return this.safeInteger (response, 'epoch_millis');
     }
 
     async fetchTradingFees (params = {}) {
@@ -282,157 +454,10 @@ module.exports = class bitpanda extends Exchange {
         };
     }
 
-    async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
-        return this.safeInteger (response, 'epoch_millis');
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'instrument': this.marketId (symbol),
-        };
-        return this.parseBook (request, params);
-    }
-
-    async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'instrument': this.marketId (symbol),
-            'level': 2,
-        };
-        return this.parseBook (request, params);
-    }
-
     async parseBook (request, params) {
         const response = await this.publicGetOrderBookInstrument (this.extend (request, params));
         const time = this.safeString (response, 'time');
         return this.parseOrderBook (response, this.parse8601 (time), 'bids', 'asks', 'price', 'amount');
-    }
-
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privateGetAccountBalances (params);
-        const balances = this.safeValue (response, 'balances');
-        const result = {
-            'info': response,
-        };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyCode = this.safeString (balance, 'currency_code');
-            const code = this.safeCurrencyCode (currencyCode);
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'locked');
-            result[code] = account;
-        }
-        return this.parseBalance (result);
-    }
-
-    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        const request = {
-            'instrument_code': this.marketId (symbol),
-            'side': side.toUpperCase (),
-            'type': type.toUpperCase (),
-            'amount': this.amountToPrecision (symbol, amount),
-        };
-        if (type === 'limit' || params['type'] === 'stoplimit') {
-            request['price'] = this.priceToPrecision (symbol, price);
-        }
-        if (params['type'] === 'stoplimit') {
-            request['trigger_price'] = this.priceToPrecision (symbol, params['stopPrice']);
-        }
-        const response = await this.privatePostAccountOrders (this.extend (request, params));
-        return this.parseOrder (response);
-    }
-
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'id': id,
-        };
-        return await this.privateDeleteAccountOrdersId (this.extend (request, params));
-    }
-
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        if (symbol !== undefined) {
-            request['instrument_code'] = this.marketId (symbol);
-        }
-        return await this.privateDeleteAccountOrders (this.extend (request, params));
-    }
-
-    async fetchOrder (id, symbol = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'id': id,
-        };
-        const response = await this.privateGetAccountOrdersId (this.extend (request, params));
-        const order = this.safeValue (response, 'order');
-        return this.parseOrder (order);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {
-            'with_cancelled_and_rejected': this.options['with_cancelled_and_rejected'],
-            'with_just_filled_inactive': this.options['with_just_filled_inactive'],
-        };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['instrument_code'] = market['id'];
-        }
-        if (since !== undefined) {
-            request['from'] = this.iso8601 (since);
-        }
-        if (limit !== undefined) {
-            request['max_page_size'] = limit;
-        }
-        const response = await this.privateGetAccountOrders (this.extend (request, params));
-        const orders = this.safeValue (response, 'order_history');
-        return this.parseOrders (orders, market, since, limit, params);
-    }
-
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['with_cancelled_and_rejected'] = false;
-        params['with_just_filled_inactive'] = false;
-        return await this.fetchOrders (symbol, since, limit, params);
-    }
-
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['with_cancelled_and_rejected'] = false;
-        params['with_just_filled_inactive'] = true;
-        return await this.fetchOrders (symbol, since, limit, params);
-    }
-
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['instrument_code'] = market['id'];
-        }
-        if (since !== undefined) {
-            request['from'] = this.iso8601 (since);
-        }
-        if (limit !== undefined) {
-            request['max_page_size'] = limit;
-        }
-        const response = await this.privateGetAccountTrades (this.extend (request, params));
-        const trades = this.safeValue (response, 'trade_history');
-        return this.parseTrades (trades, market, since, limit);
-    }
-
-    parseOrders (orders, market = undefined, since = undefined, limit = undefined, params = {}) {
-        const result = [];
-        for (let i = 0; i < orders.length; i++) {
-            const order = this.safeValue (orders[i], 'order');
-            result.push (this.parseOrder (order));
-        }
-        return result;
     }
 
     parseOrder (order) {
@@ -467,15 +492,6 @@ module.exports = class bitpanda extends Exchange {
         };
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
-        const result = [];
-        for (let i = 0; i < trades.length; i++) {
-            const trade = this.safeValue (trades[i], 'trade');
-            result.push (this.parseTrade (trade));
-        }
-        return result;
-    }
-
     parseTrade (trade) {
         const id = this.safeString (trade, 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
@@ -496,7 +512,6 @@ module.exports = class bitpanda extends Exchange {
             'datetime': time,
             'timestamp': this.parse8601 (time),
             'symbol': market['symbol'],
-            // TODO: Clarify
             'type': undefined,
             'order': orderId,
             'side': side,
@@ -506,34 +521,6 @@ module.exports = class bitpanda extends Exchange {
             'cost': cost,
             'fee': fee,
         };
-    }
-
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const time = this.timeframes[timeframe];
-        if (time === undefined) {
-            throw new ExchangeError (this.id + ' does not have the timeframe option: ' + timeframe);
-        }
-        const market = this.market (symbol);
-        const period = time.substring (0, 1);
-        const unit = time.substring (1, time.length);
-        const request = {
-            'instrument': market['id'],
-            'period': period,
-            'unit': unit,
-        };
-        if (since === undefined) {
-            throw new ExchangeError (this.id + ' since needs to defined for OHLC');
-        } else {
-            request['from'] = this.iso8601 (since);
-        }
-        if (params['to'] === undefined) {
-            request['to'] = this.iso8601 (this.microseconds ());
-        } else {
-            params['to'] = this.iso8601 (params['to']);
-        }
-        const response = await this.publicGetCandlesticksInstrument (this.extend (request, params));
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
