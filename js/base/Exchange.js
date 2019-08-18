@@ -560,6 +560,7 @@ module.exports = class Exchange {
             const ddosProtection = body.match (/cloudflare|incapsula|overload|ddos/i)
             if (maintenance) {
                 ErrorClass = ExchangeNotAvailable
+                details += ' offline, on maintenance, or unreachable from this location at the moment'
             }
             if (ddosProtection) {
                 ErrorClass = DDoSProtection
