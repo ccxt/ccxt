@@ -554,7 +554,7 @@ module.exports = class Exchange {
 
     defaultErrorHandler (code, reason, url, method, headers, body, response) {
         let details = body
-        let ErrorClass = this.httpExceptions[code.toString ()]
+        let ErrorClass = this.httpExceptions[code.toString ()] || (code < 200 || code > 299) ? ExchangeError : undefined
         if (response === undefined) {
             const maintenance = body.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
             const ddosProtection = body.match (/cloudflare|incapsula|overload|ddos/i)
