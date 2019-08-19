@@ -89,6 +89,8 @@ module.exports = {
 
     parseTimeframe,
     buildOHLCVC,
+    ROUND_UP,
+    ROUND_DOWN
 }
 
 /*  ------------------------------------------------------------------------ */
