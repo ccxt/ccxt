@@ -23,7 +23,7 @@ const parseTimeframe = (timeframe) => {
     return amount * scale
 }
 
-const round_timeframe = (timeframe, timestamp, direction = 'down') => {
+const roundTimeframe = (timeframe, timestamp, direction = 'down') => {
     const ms = parseTimeframe(timeframe) * 1000
     // Get offset based on timeframe in milliseconds
     let offset = timestamp % ms
@@ -88,7 +88,7 @@ module.exports = {
     },
 
     parseTimeframe,
-    round_timeframe,
+    roundTimeframe,
     buildOHLCVC,
 }
 
