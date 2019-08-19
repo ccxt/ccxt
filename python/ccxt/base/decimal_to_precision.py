@@ -20,7 +20,7 @@ __all__ = [
 # rounding mode
 TRUNCATE = 0
 ROUND = 1
-ROUND_UP = 2,
+ROUND_UP = 2
 ROUND_DOWN = 3
 
 # digits counting mode
