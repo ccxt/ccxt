@@ -75,10 +75,10 @@ function jwt (request, secret, alg = 'HS256') {
     return [ token, signature ].join ('.')
 }
 
-function ecdsa (request, secret, algorithm = 'p256', hash = undefined) {
+function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined) {
     let digest = request
-    if (hash !== undefined) {
-        digest = this.hash (request, hash, 'hex')
+    if (hashFunction !== undefined) {
+        digest = hash (request, hashFunction, 'hex')
     }
     const curve = new EC (algorithm)
     const signature = curve.sign (digest, secret, 'hex',  { 'canonical': true })

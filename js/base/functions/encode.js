@@ -29,6 +29,8 @@ module.exports =
 
     , urlencode: object => qs.stringify (object)
     , rawencode: object => qs.stringify (object, { encode: false })
+    , encode: x => x
+    , decode: x => x
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 

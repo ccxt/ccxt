@@ -947,6 +947,65 @@ function number_to_string ($x) {\n\
 
 //-----------------------------------------------------------------------------
 
+function transpileCryptoTests () {
+    const jsFile = './js/test/base/functions/test.crypto.js'
+    const pyFile = './python/test/test_crypto.py'
+    const phpFile = './php/test/test_crypto.php'
+
+    log.magenta ('Transpiling from', jsFile.yellow)
+    let js = fs.readFileSync (jsFile).toString ()
+
+    js = regexAll (js, [
+        [ /\'use strict\';?\s+/g, '' ],
+        [ /[^\n]+require[^\n]+\n/g, '' ],
+        [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
+    ])
+
+    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+    python2Body = python2Body.replace (/`/g, "'''")
+    phpBody = phpBody.replace (/`/g, "'")
+
+    const pythonHeader = "\
+import ccxt\n\n\
+hash = ccxt.Exchange.hash\n\
+ecdsa = ccxt.Exchange.ecdsa\n\
+jwt = ccxt.Exchange.jwt\n\
+encode = ccxt.Exchange.encode\n\
+equals = lambda x, y: x == y\
+"
+    const phpHeader = `
+function hash(...$args) {
+    return Exchange::hash(...$args);
+}
+
+function encode(...$args) {
+    return Exchange::encode(...$args);
+}
+
+function ecdsa(...$args) {
+    return Exchange::ecdsa(...$args);
+}
+
+function jwt(...$args) {
+    return Exchange::jwt(...$args);
+}
+
+function equals($a, $b) {
+    return $a === $b;
+}`
+
+    const python = pyPreamble + pythonHeader + python2Body
+    const php = phpPreamble + phpHeader + phpBody
+
+    log.magenta ('→', pyFile.yellow)
+    log.magenta ('→', phpFile.yellow)
+
+    overwriteFile (pyFile, python)
+    overwriteFile (phpFile, php)
+}
+
+//-----------------------------------------------------------------------------
+
 function transpileErrorHierarchy () {
 
     const errorHierarchyFilename = './js/base/errorHierarchy.js'
@@ -984,8 +1043,8 @@ exportTypeScriptDeclarations (classes)  // we use typescript?
 transpileErrorHierarchy ()
 transpilePrecisionTests ()
 transpileDateTimeTests ()
+transpileCryptoTests ()
 transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
-// transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
 
 //-----------------------------------------------------------------------------
 

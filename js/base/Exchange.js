@@ -220,9 +220,6 @@ module.exports = class Exchange {
     } // describe ()
 
     constructor (userConfig = {}) {
-
-        Object.assign (this, functions, { encode: string => string, decode: string => string })
-
         // if (isNode) {
         //     this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //     this.userAgent = {
