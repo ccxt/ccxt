@@ -1562,9 +1562,9 @@ module.exports = class Exchange {
         const dapp_name = 'Sagittarius';
         let tr = new BytetradeCryptoJS.TransactionBuilder();
         if (trans_type == 'create_order') {
-           tr.add_type_operation("order_create", ob);
+           tr.add_type_operation("order_create3", ob);
         } else if (trans_type == 'cancel_order') {
-            tr.add_type_operation("order_cancel", ob);
+            tr.add_type_operation("order_cancel2", ob);
         } else if (trans_type == 'transfer') {
             tr.add_type_operation("transfer", ob);
         } else if (trans_type == 'withdraw') {
