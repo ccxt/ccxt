@@ -49,3 +49,15 @@ assert ($exchange->parse8601 (33) === null);
 assert ($exchange->parse_date('1986-04-26 00:00:00') === 514857600000);
 assert ($exchange->parse_date('1986-04-26T01:23:47.000Z') === 514862627000);
 assert ($exchange->parse_date('1986-13-13 00:00:00') === null);
+
+
+assert ($exchange->round_timeframe('5m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === $exchange->parse8601('2019-08-12 13:20:00'));
+assert ($exchange->round_timeframe('10m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === $exchange->parse8601('2019-08-12 13:20:00'));
+assert ($exchange->round_timeframe('30m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === $exchange->parse8601('2019-08-12 13:00:00'));
+assert ($exchange->round_timeframe('1d', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === $exchange->parse8601('2019-08-12 00:00:00'));
+
+assert ($exchange->round_timeframe('5m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_UP) === $exchange->parse8601('2019-08-12 13:25:00'));
+assert ($exchange->round_timeframe('10m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_UP) === $exchange->parse8601('2019-08-12 13:30:00'));
+assert ($exchange->round_timeframe('30m', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_UP) === $exchange->parse8601('2019-08-12 13:30:00'));
+assert ($exchange->round_timeframe('1h', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_UP) === $exchange->parse8601('2019-08-12 14:00:00'));
+assert ($exchange->round_timeframe('1d', $exchange->parse8601('2019-08-12 13:22:08'), ROUND_UP) === $exchange->parse8601('2019-08-13 00:00:00'));

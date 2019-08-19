@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1068'
+__version__ = '1.18.1070'
 
 # -----------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ from ccxt.base.errors import ArgumentsRequired
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
 
 # -----------------------------------------------------------------------------
@@ -1525,6 +1525,13 @@ class Exchange(object):
         else:
             scale = 60  # 1m by default
         return amount * scale
+
+    @staticmethod
+    def round_timeframe(timeframe, timestamp, direction=ROUND_DOWN):
+        ms = Exchange.parse_timeframe(timeframe) * 1000
+        # Get offset based on timeframe in milliseconds
+        offset = timestamp % ms
+        return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
