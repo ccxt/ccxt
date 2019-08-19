@@ -39,6 +39,8 @@ $version = '1.18.1068';
 // rounding mode
 const TRUNCATE = 0;
 const ROUND = 1;
+const ROUND_UP = 2;
+const ROUND_DOWN = 3;
 
 // digits counting mode
 const DECIMAL_PLACES = 0;
@@ -347,6 +349,13 @@ class Exchange {
             $scale = 60;
         }
         return $amount * $scale;
+    }
+
+    public static function round_timeframe($timeframe, $timestamp, $direction=ROUND_DOWN) {
+        $ms = static::parse_timeframe($timeframe) * 1000;
+        // Get offset based on timeframe in milliseconds
+        $offset = $timestamp % $ms;
+        return $timestamp - $offset + (($direction === ROUND_UP) ? $ms : 0);
     }
 
     // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
