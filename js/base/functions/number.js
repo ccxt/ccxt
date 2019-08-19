@@ -168,7 +168,7 @@ const decimalToPrecision = (x, roundingMode
       , digitsStart = -1                // significant digits
       , digitsEnd   = -1
 
-    for (let i = 1, j = strStart; j < strEnd; j++, i++) {
+    for (var i = 1, j = strStart; j < strEnd; j++, i++) {
 
         const c = str.charCodeAt (j)
 
