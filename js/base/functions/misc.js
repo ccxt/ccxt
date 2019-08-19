@@ -29,7 +29,7 @@ const roundTimeframe = (timeframe, timestamp, direction = ROUND_DOWN) => {
     const ms = parseTimeframe (timeframe) * 1000
     // Get offset based on timeframe in milliseconds
     const offset = timestamp % ms
-    return timestamp - offset + (direction === ROUND_UP) ? ms : 0;
+    return timestamp - offset + ((direction === ROUND_UP) ? ms : 0);
 }
 
 // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
