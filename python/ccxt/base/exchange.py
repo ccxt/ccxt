@@ -1531,7 +1531,7 @@ class Exchange(object):
         ms = Exchange.parse_timeframe(timeframe) * 1000
         # Get offset based on timeframe in milliseconds
         offset = timestamp % ms
-        return timestamp - offset + ms if direction == ROUND_UP else 0
+        return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
