@@ -863,6 +863,8 @@ function transpileDateTimeTests () {
     const pythonHeader =
 "\n\
 import ccxt  # noqa: F402\n\
+from ccxt.base.decimal_to_precision import ROUND_UP              # noqa F401\n\
+from ccxt.base.decimal_to_precision import ROUND_DOWN            # noqa F401\n\
 \n\
 # ----------------------------------------------------------------------------\n\
 \n"
