@@ -12,6 +12,7 @@ sys.path.append(root + '/python')
 # -----------------------------------------------------------------------------
 
 import ccxt  # noqa: E402
+from ccxt.base.decimal_to_precision import ROUND_UP  # noqa: E402
 
 # -----------------------------------------------------------------------------
 # common constants
@@ -37,7 +38,7 @@ while True:
     try:
 
         print(exchange.milliseconds(), 'Fetching candles')
-        since = exchange.round_timeframe(timeframe, exchange.milliseconds(), 'up') - (limit * interval)
+        since = exchange.round_timeframe(timeframe, exchange.milliseconds(), ROUND_UP) - (limit * interval)
         ohlcv = exchange.fetch_ohlcv('ETH/BTC', timeframe, since=since, limit=limit)
         print(exchange.milliseconds(), 'Fetched', len(ohlcv), 'candles')
         first = ohlcv[0][0]
@@ -45,7 +46,7 @@ while True:
         print('First candle epoch', first, exchange.iso8601(first))
         print('Last candle epoch', last, exchange.iso8601(last))
         # Calculate time to next candle and sleep for that many seconds
-        sleeptime = (exchange.round_timeframe(timeframe, last, 'up') - exchange.milliseconds()) / 1000
+        sleeptime = (exchange.round_timeframe(timeframe, last, ROUND_UP) - exchange.milliseconds()) / 1000
         print('sleeping for: ', sleeptime, 's', sleeptime // 60, 'min')
         time.sleep(sleeptime)
     except (ccxt.ExchangeError, ccxt.AuthenticationError, ccxt.ExchangeNotAvailable, ccxt.RequestTimeout) as error:
