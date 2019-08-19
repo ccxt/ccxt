@@ -21,7 +21,7 @@ from ccxt.base.errors import ArgumentsRequired
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
 
 # -----------------------------------------------------------------------------
@@ -1527,14 +1527,11 @@ class Exchange(object):
         return amount * scale
 
     @staticmethod
-    def round_timeframe(timeframe, timestamp, direction='down'):
+    def round_timeframe(timeframe, timestamp, direction=ROUND_DOWN):
         ms = Exchange.parse_timeframe(timeframe) * 1000
         # Get offset based on timeframe in milliseconds
         offset = timestamp % ms
-        if direction == 'up':
-            return timestamp - offset + ms
-        else:
-            return timestamp - offset
+        return timestamp - offset + ms if direction == ROUND_UP else 0
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)
