@@ -220,6 +220,7 @@ module.exports = class Exchange {
     } // describe ()
 
     constructor (userConfig = {}) {
+        Object.assign (this, functions)
         // if (isNode) {
         //     this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //     this.userAgent = {
