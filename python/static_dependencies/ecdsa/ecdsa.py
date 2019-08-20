@@ -65,9 +65,10 @@ class RSZeroError(RuntimeError):
 class Signature(object):
   """ECDSA signature.
   """
-  def __init__(self, r, s):
+  def __init__(self, r, s, recovery_param):
     self.r = r
     self.s = s
+    self.recovery_param = recovery_param
 
   def recover_public_keys(self, hash, generator):
     """Returns two public keys for which the signature is valid
@@ -179,7 +180,12 @@ class Private_key(object):
          (hash + (self.secret_multiplier * r) % n)) % n
     if s == 0:
       raise RSZeroError("amazingly unlucky random number s")
-    return Signature(r, s)
+    recovery_param = p1.y() % 2 or (2 if p1.x() == k else 0)
+    # add support for canonical mode (comment out to set to false)
+    if s > self.order / 2:
+        s = self.order - s
+        recovery_param ^= 1
+    return Signature(r, s, recovery_param)
 
 
 def int_to_string(x):
