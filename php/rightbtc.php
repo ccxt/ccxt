@@ -232,7 +232,7 @@ class rightbtc extends Exchange {
         );
         $response = $this->publicGetTickerTradingPair (array_merge ($request, $params));
         $result = $this->safe_value($response, 'result');
-        if (!$result) {
+        if ($result === null) {
             throw new ExchangeError($this->id . ' fetchTicker returned an empty $response for $symbol ' . $symbol);
         }
         return $this->parse_ticker($result, $market);
