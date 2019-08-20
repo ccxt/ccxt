@@ -1063,9 +1063,11 @@ class Exchange(object):
             raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
         curve_info = algorithms[algorithm]
         hash_function = getattr(hashlib, curve_info[1])
-        digest = base64.b16decode(Exchange.encode(request), casefold=True)
+        encoded_request = Exchange.encode(request)
         if hash is not None:
-            digest = Exchange.hash(Exchange.encode(request), hash, 'binary')
+            digest = Exchange.hash(encoded_request, hash, 'binary')
+        else:
+            digest = base64.b16decode(encoded_request, casefold=True)
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
         r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
