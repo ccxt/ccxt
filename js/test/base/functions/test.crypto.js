@@ -56,35 +56,37 @@ assert (equals (ecdsa (privateKey, privateKey, 'secp256k1', undefined), {
 
 // ---------------------------------------------------------------------------------------------------------------------
 
-const pemKey = `
------BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEAqUtXQXv2uSm9zPvdJTRpu5/65rBjAoHmIiowAs+u7fY0QP9O
-+T8CZRQjvZrfPomBiccjCxDo8mm7GkmL67rs9s7VOMQFvpTTtMBeglNSEbXJ3wTt
-7WM5gD3ZAbhfGtwWdGpcOMX0hV5/d/fiw1zQk0+AooayTryZ7HV+DQcD1sGTYYir
-LePUGkKV2NCvKtGOQfRAtuo0ccigMxMvEhWuExCc9Fhd077OpXMc0n7OiFqA2JWN
-jlocM9S71Srvw/lDos8a7lGaFUV8gP1CsQY/4qTju6hhsRd4lFujVr5J9FqmDbnv
-wQ79SSu6+lT0+ToFdDHiYOorBK2ESFR7EzlyLwIDAQABAoIBAEobQMbZjNbg/sSM
-O/HdT6tiDGKPM8gVNLgf34RbhSeFbrpFCDzy6Al3F24YLUEi0CGPmjdt34q93blU
-GHvIB5LCV3PR2vHiFAo7ayOBdZtrCEMn1T7lAHaynBu0qW0IiovLQzNW9AKtqv7I
-8+qw5lyVoKmEbOkqhfaMN/Fb8MJAo3yEVyhyp4EjtFhqDQ9DuHEjp1jGthnMgm+4
-qFyELf0DXZSAN+R9IGDqWPyo78lOcPW4pgeLuoLQ6Nn/2JAEGHFt1a7zMEw5yYbR
-XB89Bh0dheSmopBN6Heay4YuhnNKua37OlL1/nhKpLGUNE3z/UOXeiUiMeE1C2i+
-GjK+xgECgYEA4XH63rJ3VYDHHWUGlWffFWkEpgR4BDEkZ8MyVYQoUjQA2TpCvQ2+
-bR7aAIGXhBnRTrIBNu9m4+am0aUfi1hVmVHqt1b2vFgEb9uKuO4U62tCFpeji+Rz
-8C8QJyu5v5OUWdQZ4EA0d7ljeoTl50g8tpcGsDhnImLt+/jvJuFt8dECgYEAwD0n
-rhlkEjKVHxu1xwKeczxYCqqcUV9Quq8HnPh4VJQ77ljfZ57V7sAKrFDi5XfVD9jS
-oJPwxjw6za134VobhdvCM6WNs6AJmbR8E/b5kDMbGaZn27vt+/8JfnGaWBqpDi6W
-a5xoJOqmcMBQBK1YleZDoY4PLbk+onVKLMfGI/8CgYEAkyUIv8euGdGWpHnm5SdJ
-tLi5vv4Vs267uzntJWG/y3+DukTLgIdy7dgAI+pxkVgkg/+syUVSW5eU9CqZPyLl
-o8+Sqh2Jp36vTq71iSRj5RA5r3ND3K+8eFzPZzGj6AWUA1lrljFxzV7kLfiF8gH1
-FpvWUrhNoGT/vcFJno/uabECgYAecRC5hxfLserfVDoC261PvjyK492BHUDhbxob
-h1U2v4qGAdjOxd5Gwm5uPxjPEZzRt5oTB5pXKe5953xWWTiGh/hGyW6ZBTy/9E65
-sqBub0lZVHqZ1zamcwqD1WWFkiM3NbVoMQpk3iuhKzMAqpqekiofiSlqKi16+GvY
-j4IW7QKBgQCrIUckPZ6IY3ERIN1IL4TIcK2gOJcznp7fLWpC+sv35ya3OhtDXKFt
-GjIHmwLuiUNc0iPzA9Rw89W0zIkKWmWcxM88/ithdxh3MEeNDUGSnd4hQ9SECwxB
-Wem3eBT7I4VtFYoaTE3/bX1SKfgBdTzIRqWKSDpgBNZg/P2Tc+s11g==
------END RSA PRIVATE KEY-----
-`;
+const pemKeyArray = [
+    '-----BEGIN RSA PRIVATE KEY-----',
+    'MIIEpAIBAAKCAQEAqUtXQXv2uSm9zPvdJTRpu5/65rBjAoHmIiowAs+u7fY0QP9O',
+    '+T8CZRQjvZrfPomBiccjCxDo8mm7GkmL67rs9s7VOMQFvpTTtMBeglNSEbXJ3wTt',
+    '7WM5gD3ZAbhfGtwWdGpcOMX0hV5/d/fiw1zQk0+AooayTryZ7HV+DQcD1sGTYYir',
+    'LePUGkKV2NCvKtGOQfRAtuo0ccigMxMvEhWuExCc9Fhd077OpXMc0n7OiFqA2JWN',
+    'jlocM9S71Srvw/lDos8a7lGaFUV8gP1CsQY/4qTju6hhsRd4lFujVr5J9FqmDbnv',
+    'wQ79SSu6+lT0+ToFdDHiYOorBK2ESFR7EzlyLwIDAQABAoIBAEobQMbZjNbg/sSM',
+    'O/HdT6tiDGKPM8gVNLgf34RbhSeFbrpFCDzy6Al3F24YLUEi0CGPmjdt34q93blU',
+    'GHvIB5LCV3PR2vHiFAo7ayOBdZtrCEMn1T7lAHaynBu0qW0IiovLQzNW9AKtqv7I',
+    '8+qw5lyVoKmEbOkqhfaMN/Fb8MJAo3yEVyhyp4EjtFhqDQ9DuHEjp1jGthnMgm+4',
+    'qFyELf0DXZSAN+R9IGDqWPyo78lOcPW4pgeLuoLQ6Nn/2JAEGHFt1a7zMEw5yYbR',
+    'XB89Bh0dheSmopBN6Heay4YuhnNKua37OlL1/nhKpLGUNE3z/UOXeiUiMeE1C2i+',
+    'GjK+xgECgYEA4XH63rJ3VYDHHWUGlWffFWkEpgR4BDEkZ8MyVYQoUjQA2TpCvQ2+',
+    'bR7aAIGXhBnRTrIBNu9m4+am0aUfi1hVmVHqt1b2vFgEb9uKuO4U62tCFpeji+Rz',
+    '8C8QJyu5v5OUWdQZ4EA0d7ljeoTl50g8tpcGsDhnImLt+/jvJuFt8dECgYEAwD0n',
+    'rhlkEjKVHxu1xwKeczxYCqqcUV9Quq8HnPh4VJQ77ljfZ57V7sAKrFDi5XfVD9jS',
+    'oJPwxjw6za134VobhdvCM6WNs6AJmbR8E/b5kDMbGaZn27vt+/8JfnGaWBqpDi6W',
+    'a5xoJOqmcMBQBK1YleZDoY4PLbk+onVKLMfGI/8CgYEAkyUIv8euGdGWpHnm5SdJ',
+    'tLi5vv4Vs267uzntJWG/y3+DukTLgIdy7dgAI+pxkVgkg/+syUVSW5eU9CqZPyLl',
+    'o8+Sqh2Jp36vTq71iSRj5RA5r3ND3K+8eFzPZzGj6AWUA1lrljFxzV7kLfiF8gH1',
+    'FpvWUrhNoGT/vcFJno/uabECgYAecRC5hxfLserfVDoC261PvjyK492BHUDhbxob',
+    'h1U2v4qGAdjOxd5Gwm5uPxjPEZzRt5oTB5pXKe5953xWWTiGh/hGyW6ZBTy/9E65',
+    'sqBub0lZVHqZ1zamcwqD1WWFkiM3NbVoMQpk3iuhKzMAqpqekiofiSlqKi16+GvY',
+    'j4IW7QKBgQCrIUckPZ6IY3ERIN1IL4TIcK2gOJcznp7fLWpC+sv35ya3OhtDXKFt',
+    'GjIHmwLuiUNc0iPzA9Rw89W0zIkKWmWcxM88/ithdxh3MEeNDUGSnd4hQ9SECwxB',
+    'Wem3eBT7I4VtFYoaTE3/bX1SKfgBdTzIRqWKSDpgBNZg/P2Tc+s11g==',
+    '-----END RSA PRIVATE KEY-----',
+];
 
-assert (jwt ({'chicken': 'salad'}, encode (pemKey), 'RS256') ===  'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ');
+const pemKey = pemKeyArray.join ("\n");
+
+assert (jwt ({'chicken': 'salad'}, encode (pemKey), 'RS256') === 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjaGlja2VuIjoic2FsYWQifQ.FSKD5Y6RNzkHTuHdvG3753U7QNZ-u-GUSPfP1FMjEaK0Rr_iyQTSSmHhkdYSFFnmBvrrN_l-UwKwir52WlsgmQm9HYm0kidxbj7fWwrK2E1oe0P7OjupFjv1BZxc5W69WeaHtOPWe28tiHiON1LCnax6HgfI5lcIBsESGIIBZMVeaioQn9gDVwea7JxJvAlrhDIWZowIHTIdCQocXip7g5jREWHeEIuJNug67mwnfAFxCjvTRiTd0Bw6oBwjM3FLya-RyEyWrejQOWSuC8CNWVUHISaSmEyZ7uM6wTi2m_58TaE9mQwlef32OPErPvvBpgL5pZIyQ4ymwrCIFQLBQQ');
 assert (jwt ({'lil': 'xan'}, encode ('betrayed'), 'HS256') === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaWwiOiJ4YW4ifQ.md-oFvZagA-NXmZoRNyJOQ7zwK-PWUMmMQ_LI9ZOKaM');
