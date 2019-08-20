@@ -369,9 +369,7 @@ class bit2c (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         if api == 'public':
-            # lasttrades is the only endpoint that doesn't require the .json extension/suffix
-            if path.find('lasttrades') < 0:
-                url += '.json'
+            url += '.json'
         else:
             self.check_required_credentials()
             nonce = self.nonce()
