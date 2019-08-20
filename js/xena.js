@@ -1005,7 +1005,7 @@ module.exports = class xena extends Exchange {
             nonce = nonce + '000000'; // see the comment a few lines above
             const payload = 'AUTH' + nonce;
             const secret = this.secret.slice (14, 78);
-            const ecdsa = this.ecdsa (payload, secret);
+            const ecdsa = this.ecdsa (payload, this.encode (secret), 'p256', 'sha256');
             const signature = ecdsa['r'] + ecdsa['s'];
             headers = {
                 'X-AUTH-API-KEY': this.apiKey,
