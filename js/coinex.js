@@ -409,7 +409,7 @@ module.exports = class coinex extends Exchange {
             'done': 'closed',
             'cancel': 'canceled',
         };
-        return this.safeFloat (statuses, status, status);
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {

@@ -547,7 +547,7 @@ In case your calls hit a rate limit or get nonce errors, the ccxt library will t
 - `DDoSProtectionError`
 - `ExchangeNotAvailable`
 - `ExchangeError`
-– `InvalidNonce`
+- `InvalidNonce`
 
 A later retry is usually enough to handle that. More on that here:
 

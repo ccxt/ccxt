@@ -410,7 +410,7 @@ class coinex extends Exchange {
             'done' => 'closed',
             'cancel' => 'canceled',
         );
-        return $this->safe_float($statuses, $status, $status);
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_order ($order, $market = null) {
