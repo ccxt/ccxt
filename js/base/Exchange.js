@@ -558,7 +558,7 @@ module.exports = class Exchange {
         let ErrorClass = undefined
         if (codeAsString in this.httpExceptions) {
             ErrorClass = this.httpExceptions[codeAsString]
-        } else if ((code < 200 || code > 299)) {
+        } else if (code < 200 || code > 299) {
             ErrorClass = ExchangeError
         }
         if (response === undefined) {
