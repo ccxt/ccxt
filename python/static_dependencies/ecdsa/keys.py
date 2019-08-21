@@ -271,8 +271,8 @@ class SigningKey:
         """
         secexp = self.privkey.secret_multiplier
 
-        def simple_r_s(r, s, order):
-            return r, s, order
+        def simple_r_s(r, s, order, v):
+            return r, s, order, v
 
         retry_gen = 0
         while True:
@@ -285,8 +285,7 @@ class SigningKey:
             except RSZeroError:
                 retry_gen += 1
 
-        r_and_s_tuple = sigencode(r, s, order)
-        return r_and_s_tuple + (v,)
+        return sigencode(r, s, order, v)
 
     def sign(self, data, entropy=None, hashfunc=None, sigencode=sigencode_string, k=None):
         """
@@ -312,7 +311,7 @@ class SigningKey:
                                                            8 * len(digest)))
         number = string_to_number(digest)
         r, s, v = self.sign_number(number, entropy, k)
-        return sigencode(r, s, self.privkey.order) + (v,)
+        return sigencode(r, s, self.privkey.order, v)
 
     def sign_number(self, number, entropy=None, k=None):
         # returns a pair of numbers

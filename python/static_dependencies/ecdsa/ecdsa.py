@@ -181,10 +181,6 @@ class Private_key(object):
     if s == 0:
       raise RSZeroError("amazingly unlucky random number s")
     recovery_param = p1.y() % 2 or (2 if p1.x() == k else 0)
-    # add support for canonical mode (comment out to set to false)
-    if s > self.order / 2:
-        s = self.order - s
-        recovery_param ^= 1
     return Signature(r, s, recovery_param)
 
 
