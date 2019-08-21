@@ -163,7 +163,6 @@ module.exports = class Exchange {
                 'eta': undefined,
                 'url': undefined,
             },
-            'skipJsonOnStatusCodes': [], // array of http status codes which override requirement for JSON response
             'exceptions': undefined,
             'httpExceptions': {
                 '422': ExchangeError,
@@ -528,41 +527,13 @@ module.exports = class Exchange {
     }
 
     parseJson (jsonString) {
-        return JSON.parse (jsonString)
-    }
-
-    parseRestResponse (response, responseBody, url, method) {
         try {
-
-            return (responseBody.length > 0) ? this.parseJson (responseBody) : {} // empty object for empty body
-
-        } catch (e) {
-
-            if (this.verbose)
-                console.log ('parseJson:\n', this.id, method, url, response.status, 'error', e, "response body:\n'" + responseBody + "'\n")
-
-            let title = undefined
-            const match = responseBody.match (/<title>([^<]+)/i)
-            if (match)
-                title = match[1].trim ();
-
-            const maintenance = responseBody.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
-            const ddosProtection = responseBody.match (/cloudflare|incapsula|overload|ddos/i)
-
-            if (e instanceof SyntaxError) {
-
-                let ExceptionClass = ExchangeNotAvailable
-                let details = 'not accessible from this location at the moment'
-                if (maintenance)
-                    details = 'offline, on maintenance, or unreachable from this location at the moment'
-                // http error codes proxied by cloudflare are not really DDoSProtection errors (mostly)
-                if ((response.status < 500) && (ddosProtection)) {
-                    ExceptionClass = DDoSProtection
-                }
-                throw new ExceptionClass ([ this.id, method, url, response.status, title, details ].join (' '))
+            if (this.isJsonEncodedObject (jsonString)) {
+                return JSON.parse (jsonString)
             }
-
-            throw e
+        } catch (e) {
+            // SyntaxError
+            return undefined
         }
     }
 
@@ -581,30 +552,39 @@ module.exports = class Exchange {
         // override me
     }
 
-    defaultErrorHandler (code, reason, responseBody, url, method) {
-        if ((code >= 200) && (code <= 299))
-            return
+    defaultErrorHandler (code, reason, url, method, headers, body, response) {
+        let details = body
+        const codeAsString = code.toString ()
         let ErrorClass = undefined
-        let details = responseBody
-        const match = responseBody.match (/<title>([^<]+)/i)
-        if (match)
-            details = match[1].trim ();
-        ErrorClass = this.httpExceptions[code.toString ()] || ExchangeError
-        if (ErrorClass === ExchangeNotAvailable) {
-            if (responseBody.match (/cloudflare|incapsula|overload|ddos/i)) {
+        if (codeAsString in this.httpExceptions) {
+            ErrorClass = this.httpExceptions[codeAsString]
+        } else if (code < 200 || code > 299) {
+            ErrorClass = ExchangeError
+        }
+        if (response === undefined) {
+            const maintenance = body.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
+            const ddosProtection = body.match (/cloudflare|incapsula|overload|ddos/i)
+            if (maintenance) {
+                ErrorClass = ExchangeNotAvailable
+                details += ' offline, on maintenance, or unreachable from this location at the moment'
+            }
+            if (ddosProtection) {
                 ErrorClass = DDoSProtection
-            } else {
-                details += ' (possible reasons: ' + [
-                    'invalid API keys',
-                    'bad or old nonce',
-                    'exchange is down or offline',
-                    'on maintenance',
-                    'DDoS protection',
-                    'rate-limiting',
-                ].join (', ') + ')'
             }
         }
-        throw new ErrorClass ([ this.id, method, url, code, reason, details ].join (' '))
+        if (ErrorClass === ExchangeNotAvailable) {
+            details += ' (possible reasons: ' + [
+                'invalid API keys',
+                'bad or old nonce',
+                'exchange is down or offline',
+                'on maintenance',
+                'DDoS protection',
+                'rate-limiting',
+            ].join (', ') + ')'
+        }
+        if (ErrorClass !== undefined) {
+            throw new ErrorClass ([ this.id, method, url, code, reason, details ].join (' '))
+        }
     }
 
     isJsonEncodedObject (object) {
@@ -626,8 +606,7 @@ module.exports = class Exchange {
 
         return response.text ().then ((responseBody) => {
 
-            const shouldParseJson = this.isJsonEncodedObject (responseBody) && !this.skipJsonOnStatusCodes.includes (response.status)
-            const json = shouldParseJson ? this.parseRestResponse (response, responseBody, url, method) : undefined
+            const json = this.parseJson (responseBody)
 
             const responseHeaders = this.getResponseHeaders (response)
 
@@ -647,7 +626,7 @@ module.exports = class Exchange {
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
 
             this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
-            this.defaultErrorHandler (response.status, response.statusText, responseBody, url, method)
+            this.defaultErrorHandler (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
 
             return json || responseBody
         })
