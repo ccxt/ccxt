@@ -787,11 +787,12 @@ module.exports = class cex extends Exchange {
                 const tradeTimestamp = this.parse8601 (tradeTime);
                 const tradeAmount = this.safeFloat (item, 'amount');
                 const tradePrice = this.safeFloat (item, 'price');
+                const feeCost = this.safeFloat (item, 'fee_amount');
                 let absTradeAmount = tradeAmount < 0 ? -tradeAmount : tradeAmount;
                 let tradeCost = undefined;
                 if (tradeSide === 'sell') {
                     tradeCost = absTradeAmount;
-                    absTradeAmount = tradeCost / tradePrice;
+                    absTradeAmount = (feeCost + tradeCost) / tradePrice;
                 } else {
                     tradeCost = absTradeAmount * tradePrice;
                 }
@@ -806,7 +807,7 @@ module.exports = class cex extends Exchange {
                     'cost': tradeCost,
                     'side': tradeSide,
                     'fee': {
-                        'cost': this.safeFloat (item, 'fee_amount'),
+                        'cost': feeCost,
                         'currency': market['quote'],
                     },
                     'info': item,
