@@ -152,6 +152,7 @@ class gateio (Exchange):
                 '21': 'You don\'t have enough fund',
             },
             'options': {
+                'fetchTradesMethod': 'public_get_tradehistory_id',  # 'public_get_tradehistory_id_tid'
                 'limits': {
                     'cost': {
                         'min': {
@@ -415,7 +416,8 @@ class gateio (Exchange):
         request = {
             'id': market['id'],
         }
-        response = self.publicGetTradeHistoryId(self.extend(request, params))
+        method = self.safe_string(self.options, 'fetchTradesMethod', 'public_get_tradehistory_id')
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):

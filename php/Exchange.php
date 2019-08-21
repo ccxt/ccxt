@@ -31,15 +31,16 @@ SOFTWARE.
 namespace ccxt;
 
 use kornrunner\Eth;
-use kornrunner\Secp256k1;
 use kornrunner\Solidity;
 use Elliptic\EC;
 
-$version = '1.18.1055';
+$version = '1.18.1078';
 
 // rounding mode
 const TRUNCATE = 0;
 const ROUND = 1;
+const ROUND_UP = 2;
+const ROUND_DOWN = 3;
 
 // digits counting mode
 const DECIMAL_PLACES = 0;
@@ -52,7 +53,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1055';
+    const VERSION = '1.18.1078';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -348,6 +349,13 @@ class Exchange {
             $scale = 60;
         }
         return $amount * $scale;
+    }
+
+    public static function round_timeframe($timeframe, $timestamp, $direction=ROUND_DOWN) {
+        $ms = static::parse_timeframe($timeframe) * 1000;
+        // Get offset based on timeframe in milliseconds
+        $offset = $timestamp % $ms;
+        return $timestamp - $offset + (($direction === ROUND_UP) ? $ms : 0);
     }
 
     // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
@@ -1106,15 +1114,18 @@ class Exchange {
         return $signature;
     }
 
-    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = 'sha256') {
-        $digest = static::hash($request, $hash, 'hex');
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null) {
+        $digest = $request;
+        if ($hash !== null) {
+            $digest = static::hash($request, $hash, 'hex');
+        }
         $ec = new EC(strtolower($algorithm));
         $key = $ec->keyFromPrivate($secret);
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
         $signature = array();
         $signature['r'] = $ellipticSignature->r->bi->toHex();
         $signature['s'] = $ellipticSignature->s->bi->toHex();
-        $signature['v'] = gmp_strval($ellipticSignature->recoveryParam, 16);
+        $signature['v'] = $ellipticSignature->recoveryParam;
         return $signature;
     }
 
@@ -2715,12 +2726,11 @@ class Exchange {
     }
 
     public function signHash($hash, $privateKey) {
-        $secp256k1 = new Secp256k1();
-        $signature = $secp256k1->sign($hash, $privateKey);
+        $signature = static::ecdsa($hash, $privateKey, 'secp256k1', null);
         return array(
-            'v' => $signature->getRecoveryParam() + 27, // integer
-            'r' => '0x' . gmp_strval($signature->getR(), 16), // '0x'-prefixed hex string
-            's' => '0x' . gmp_strval($signature->getS(), 16), // '0x'-prefixed hex string
+            'r' => '0x' . $signature['r'],
+            's' => '0x' . $signature['s'],
+            'v' => 27 + $signature['v'],
         );
     }
 

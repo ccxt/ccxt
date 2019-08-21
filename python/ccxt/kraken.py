@@ -742,7 +742,15 @@ class kraken (Exchange):
         # https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         # https://github.com/ccxt/ccxt/issues/5677
         if since is not None:
-            request['since'] = since * 1000000  # expected to be in nanoseconds
+            # php does not format it properly
+            # therefore we use string concatenation here
+            request['since'] = since * 1e6
+            request['since'] = str(since) + '000000'  # expected to be in nanoseconds
+        # https://github.com/ccxt/ccxt/issues/5698
+        if limit is not None and limit != 1000:
+            fetchTradesWarning = self.safe_value(self.options, 'fetchTradesWarning', True)
+            if fetchTradesWarning:
+                raise ExchangeError(self.id + ' fetchTrades() cannot serve ' + str(limit) + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge self warning and silence it.")
         response = self.publicGetTrades(self.extend(request, params))
         #
         #     {
