@@ -208,7 +208,7 @@ class okex3 (Exchange):
                         'fills',
                         # public
                         'instruments',
-                        'instruments/{instrument_id}/depth?size=50',
+                        'instruments/{instrument_id}/depth',
                         'instruments/ticker',
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
@@ -475,6 +475,7 @@ class okex3 (Exchange):
                 'HSR': 'HC',
                 'MAG': 'Maggie',
                 'YOYO': 'YOYOW',
+                'WIN': 'WinToken',  # https://github.com/ccxt/ccxt/issues/5701
             },
         })
 

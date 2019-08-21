@@ -720,7 +720,17 @@ class kraken extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        if (is_array($trade) && array_key_exists('ordertxid', $trade)) {
+        if (gettype ($trade) === 'array' && count (array_filter (array_keys ($trade), 'is_string')) == 0) {
+            $timestamp = intval ($trade[2] * 1000);
+            $side = ($trade[3] === 's') ? 'sell' : 'buy';
+            $type = ($trade[4] === 'l') ? 'limit' : 'market';
+            $price = floatval ($trade[0]);
+            $amount = floatval ($trade[1]);
+            $tradeLength = is_array ($trade) ? count ($trade) : 0;
+            if ($tradeLength > 6) {
+                $id = $trade[6]; // artificially added as per #1794
+            }
+        } else if (is_array($trade) && array_key_exists('ordertxid', $trade)) {
             $order = $trade['ordertxid'];
             $id = $this->safe_string_2($trade, 'id', 'postxid');
             $timestamp = $this->safe_timestamp($trade, 'time');
@@ -737,16 +747,6 @@ class kraken extends Exchange {
                     'cost' => $this->safe_float($trade, 'fee'),
                     'currency' => $currency,
                 );
-            }
-        } else {
-            $timestamp = intval ($trade[2] * 1000);
-            $side = ($trade[3] === 's') ? 'sell' : 'buy';
-            $type = ($trade[4] === 'l') ? 'limit' : 'market';
-            $price = floatval ($trade[0]);
-            $amount = floatval ($trade[1]);
-            $tradeLength = is_array ($trade) ? count ($trade) : 0;
-            if ($tradeLength > 6) {
-                $id = $trade[6]; // artificially added as per #1794
             }
         }
         return array (
@@ -773,6 +773,21 @@ class kraken extends Exchange {
         $request = array (
             'pair' => $id,
         );
+        // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
+        // https://github.com/ccxt/ccxt/issues/5677
+        if ($since !== null) {
+            // php does not format it properly
+            // therefore we use string concatenation here
+            $request['since'] = $since * 1e6;
+            $request['since'] = (string) $since . '000000'; // expected to be in nanoseconds
+        }
+        // https://github.com/ccxt/ccxt/issues/5698
+        if ($limit !== null && $limit !== 1000) {
+            $fetchTradesWarning = $this->safe_value($this->options, 'fetchTradesWarning', true);
+            if ($fetchTradesWarning) {
+                throw new ExchangeError($this->id . ' fetchTrades() cannot serve ' . (string) $limit . " $trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
+            }
+        }
         $response = $this->publicGetTrades (array_merge ($request, $params));
         //
         //     {

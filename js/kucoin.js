@@ -493,12 +493,25 @@ module.exports = class kucoin extends Exchange {
         const marketId = market['id'];
         const request = {
             'symbol': marketId,
-            'endAt': this.seconds (), // required param
             'type': this.timeframes[timeframe],
         };
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        let endAt = this.milliseconds (); // required param
         if (since !== undefined) {
-            request['startAt'] = Math.floor (since / 1000);
+            request['startAt'] = parseInt (Math.floor (since / 1000));
+            if (limit === undefined) {
+                // https://docs.kucoin.com/#get-klines
+                // https://docs.kucoin.com/#details
+                // For each query, the system would return at most 1500 pieces of data.
+                // To obtain more data, please page the data by time.
+                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', 1500);
+            }
+            endAt = this.sum (since, limit * duration);
+        } else if (limit !== undefined) {
+            since = endAt - limit * duration;
+            request['startAt'] = parseInt (Math.floor (since / 1000));
         }
+        request['endAt'] = parseInt (Math.floor (endAt / 1000));
         const response = await this.publicGetMarketCandles (this.extend (request, params));
         const responseData = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (responseData, market, timeframe, since, limit);

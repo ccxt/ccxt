@@ -233,7 +233,7 @@ class rightbtc (Exchange):
         }
         response = await self.publicGetTickerTradingPair(self.extend(request, params))
         result = self.safe_value(response, 'result')
-        if not result:
+        if result is None:
             raise ExchangeError(self.id + ' fetchTicker returned an empty response for symbol ' + symbol)
         return self.parse_ticker(result, market)
 

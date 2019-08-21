@@ -390,10 +390,7 @@ module.exports = class bit2c extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
         if (api === 'public') {
-            // lasttrades is the only endpoint that doesn't require the .json extension/suffix
-            if (path.indexOf ('lasttrades') < 0) {
-                url += '.json';
-            }
+            url += '.json';
         } else {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ();

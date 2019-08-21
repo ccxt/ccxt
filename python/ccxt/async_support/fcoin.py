@@ -158,6 +158,7 @@ class fcoin (Exchange):
                 '429': DDoSProtection,  # Too Many Requests, exceed api request limit
                 '1002': ExchangeNotAvailable,  # System busy
                 '1016': InsufficientFunds,
+                '2136': AuthenticationError,  # The API key is expired
                 '3008': InvalidOrder,
                 '6004': InvalidNonce,
                 '6005': AuthenticationError,  # Illegal API Signature
@@ -236,7 +237,7 @@ class fcoin (Exchange):
                     'max': None,
                 },
             }
-            active = self.safe_value(market, 'tradable', False)
+            active = self.safe_value(market, 'tradeable', False)
             result.append({
                 'id': id,
                 'symbol': symbol,

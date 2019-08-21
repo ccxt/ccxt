@@ -147,6 +147,7 @@ class fcoin extends Exchange {
                 '429' => '\\ccxt\\DDoSProtection', // Too Many Requests, exceed api request limit
                 '1002' => '\\ccxt\\ExchangeNotAvailable', // System busy
                 '1016' => '\\ccxt\\InsufficientFunds',
+                '2136' => '\\ccxt\\AuthenticationError', // The API key is expired
                 '3008' => '\\ccxt\\InvalidOrder',
                 '6004' => '\\ccxt\\InvalidNonce',
                 '6005' => '\\ccxt\\AuthenticationError', // Illegal API Signature
@@ -227,7 +228,7 @@ class fcoin extends Exchange {
                     'max' => null,
                 ),
             );
-            $active = $this->safe_value($market, 'tradable', false);
+            $active = $this->safe_value($market, 'tradeable', false);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
