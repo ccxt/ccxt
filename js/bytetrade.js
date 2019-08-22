@@ -48,12 +48,11 @@ module.exports = class bytetrade extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/246404/60647143-9c28f880-9e6f-11e9-8b94-fbdd0d3f2c5d.png',
                 'api': {
                     'market': 'https://api-v2.bytetrade.com',
-                    'public': 'https://api-v2.bytetrade.com',
+                    'public': 'https://api-v2-test.bytetrade.com',
                 },
                 'www': 'https://www.bytetrade.com',
                 'referral': '',
                 'doc': 'https://github.com/Bytetrade/bytetrade-official-api-docs/wiki',
-                'fees': '0.0008',
             },
             'api': {
                 'market': {
@@ -100,55 +99,8 @@ module.exports = class bytetrade extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'BTT@1': 'BTT',
-                'ETH@2': 'ETH',
-                'KCASH@3': 'KCASH',
-                'OMG@4': 'OMG',
-                'IOST@5': 'IOST',
-                'ZIL@6': 'ZIL',
-                'ELF@7': 'ELF',
-                'TNB@8': 'TNB',
-                'ADX@9': 'ADX',
-                'DGD@10': 'DGD',
-                'ZRX@11': 'ZRX',
-                'ENG@12': 'ENG',
-                'THETA@13': 'THETA',
-                'MANA@14': 'MANA',
-                'APPC@15': 'APPC',
-                'BLZ@16': 'BLZ',
-                'MCO@17': 'MCO',
-                'CMT@18': 'CMT@18',
-                'BNB@19': 'BNB',
-                'AE@20': 'AE',
-                'BTM@21': 'BTM',
-                'BAT@22': 'BAT',
-                'GNT@23': 'GNT',
-                'WTC@24': 'WTC',
-                'SNT@25': 'SNT',
-                'KEX@26': 'KEX',
-                'SUB@27': 'SUB',
-                'WISH@28': 'WISH',
-                'KICK@29': 'KICK',
-                'BITX@30': 'BITX',
-                'GUSD@31': 'GUSD',
-                'BTC@32': 'BTC',
-                'USDT@33': 'USDT',
-                'MT@34': 'MT',
-                'CMT@35': 'CMT',
-                'HRP@36': 'HRP',
-                'DT@37': 'DT',
-                'BWL@38': 'BWL',
-                'VROS@39': 'VROS',
-                'ONOT@40': 'ONOT',
-                'NAKA@41': 'NAKA',
-                'NASH@42': 'NASH',
-                'GAME@43': 'GAME',
-                'BHT@44': 'BHT',
-                'BTA@45': 'BTA',
-                'HLB@46': 'HLB',
-                'B95@47': 'B95',
+                '48': 'Blocktonic',
             },
-            // exchange-specific options
             'options': {
             },
             'exceptions': {
@@ -165,16 +117,18 @@ module.exports = class bytetrade extends Exchange {
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
             const id = this.safeString (currency, 'code');
-            const name = this.safeValue (currency, 'name');
-            const nameId = name + '@' + id;
-            currency['code'] = nameId;
+            let code = undefined;
+            if (id in this.commonCurrencies) {
+                code = this.commonCurrencies[id];
+            } else {
+                code = this.safeString (currency, 'name');
+            }
+            const name = this.safeString (currency, 'fullname');
             // in bytetrade.com DEX, request https://api-v2.bytetrade.com/currencies will return currencies,
             // the api doc is https://github.com/Bytetrade/bytetrade-official-api-docs/wiki/rest-api#get-currencies-get-currencys-supported-in-bytetradecom
             // we can see the coin name is none-unique in the result, the coin which code is 18 is the CyberMiles ERC20, and the coin which code is 35 is the CyberMiles main chain, but their name is same.
             // that is because bytetrade is a DEX, supports people create coin with the same name, but the id(code) of coin is unique, so we should use the id or name and id as the identity of coin.
             // For coin name and symbol is same with CCXT, I use name@id as the key of commonCurrencies dict.
-            // If the name@id is in commonCurrencies, safeCurrencyCode() call will return the commonCurrencies[name@id], for example, CMT@18 will return code CMT@18, CMT@35 will return CMT as the code, Satisfy CCXT's Naming Consistency;
-            // If the name@id is not in commonCurrencies, safeCurrencyCode() call will return name@id, for example if a new coin is created, whose name is CMT, and code is 99, it will return CMT@99 as the code.
             // [{
             //     "name": "CMT",      // currency name, non-unique
             //     "code": "18",       // currency id, unique
@@ -220,27 +174,39 @@ module.exports = class bytetrade extends Exchange {
             //     }
             //   }
             //   ]
-            const code = this.safeCurrencyCode (nameId, currency);
-            const active = currency['active'];
+            const active = this.safeValue (currency, 'active');
             const limits = this.safeValue (currency, 'limits');
             const deposit = this.safeValue (limits, 'deposit');
+            const precision = this.safeInteger (currency, 'basePrecision');
             let maxDeposit = this.safeFloat (deposit, 'max');
-            if (maxDeposit === -1) {
+            if (maxDeposit === -1.0) {
                 maxDeposit = undefined;
             }
             const withdraw = this.safeValue (limits, 'withdraw');
             let maxWithdraw = this.safeFloat (withdraw, 'max');
-            if (maxWithdraw === -1) {
+            if (maxWithdraw === -1.0) {
                 maxWithdraw = undefined;
             }
             result[code] = {
                 'id': id,
                 'code': code,
-                'type': 'crypto',
                 'name': name,
                 'active': active,
+                'precision': precision,
                 'fee': undefined,
                 'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
                     'deposit': {
                         'min': this.safeFloat (deposit, 'min'),
                         'max': maxDeposit,
@@ -262,25 +228,20 @@ module.exports = class bytetrade extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
+            const base = this.safeCurrencyCode (this.safeString (market, 'baseName'));
+            const quote = this.safeCurrencyCode (this.safeString (market, 'quoteName'));
             const baseId = this.safeString (market, 'base');
-            const baseName = this.safeString (market, 'baseName');
-            const baseNameAndId = baseName + '@' + baseId;
             const quoteId = this.safeString (market, 'quote');
-            const quoteName = this.safeString (market, 'quoteName');
-            const quoteNameAndId = quoteName + '@' + quoteId;
-            const base = this.safeCurrencyCode (baseNameAndId);
-            const quote = this.safeCurrencyCode (quoteNameAndId);
             const symbol = base + '/' + quote;
             const amountMin = this.safeFloat (market['limits']['amount'], 'min');
             const amountMax = this.safeFloat (market['limits']['amount'], 'max');
             const priceMin = this.safeFloat (market['limits']['price'], 'min');
             const priceMax = this.safeFloat (market['limits']['price'], 'max');
             const precision = {
-                'amount': market['precision']['amount'],
-                'price': market['precision']['price'],
+                'amount': this.safeInteger (market['precision'], 'amount'),
+                'price': this.safeInteger (market['precision'], 'price'),
             };
-            const status = this.safeString (market, 'active');
-            const active = (status === true);
+            const active = this.safeString (market, 'active');
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -316,15 +277,11 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('fetchDeposits requires hasAlreadyAuthenticatedSuccessfully or userid argument');
         }
         await this.loadMarkets ();
-        const request = {};
-        if ('userid' in params) {
-            request['userid'] = params['userid'];
-        } else {
-            request['userid'] = this.apiKey;
-        }
-        const balances = await this.publicGetBalance (request);
+        const request = {
+            'userid': this.apiKey,
+        };
+        const balances = await this.publicGetBalance (this.extend (request, params));
         const result = { 'info': balances };
-        // const balances = this.safeValue (response, 'list', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'code');
@@ -565,8 +522,8 @@ module.exports = class bytetrade extends Exchange {
         const priceTruncateValue = parseInt (Math.pow (10, quoteCurrency['info']['basePrecision'] - market['precision']['price']));
         const priceMiddleAfterTruncate = parseInt (priceChainWithoutTruncate / priceTruncateValue);
         const priceChain = parseInt (priceMiddleAfterTruncate * priceTruncateValue);
-        const now = this.seconds ();
-        const expiration = now + 10;
+        //const now = this.seconds ();
+        //const expiration = now + 10;
         const ob = {
             'fee': '300000000000000',
             'creator': this.apiKey,
@@ -575,18 +532,22 @@ module.exports = class bytetrade extends Exchange {
             'market_name': marketName,
             'amount': amountChain.toString (),
             'price': priceChain.toString (),
-            'now': now,
-            'expiration': expiration,
+            'now': 1566407874,
+            'expiration': 1566407874,
             'use_btt_as_fee': false,
             'freeze_btt_fee': 0,
             'custom_no_btt_fee_rate': 8,
             'money_id': parseInt (quoteId),
             'stock_id': parseInt (baseId),
         };
+        console.log (ob)
+        //const ecdsa = this.ecdsa (JSON.stringify (ob), this.secret, 'secp256k1', 'sha256');
         const signedTransaction = await this.signExTransactionV1 ('create_order', ob, this.secret);
         const request = {
             'trObj': signedTransaction,
         };
+        console.log (JSON.parse (signedTransaction)['signatures'])
+        process.exit ()
         const response = await this.publicPostTransactionCreateorder (request);
         const timestamp = this.milliseconds ();
         const statusCode = this.safe_string (response, 'code');
@@ -1032,27 +993,8 @@ module.exports = class bytetrade extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         url += '/' + path;
-        if ((api === 'private')) {
-            this.checkRequiredCredentials ();
-            let query = this.urlencode (this.extend ({
-                'timestamp': this.nonce (),
-                'recvWindow': this.options['recvWindow'],
-            }, params));
-            const signature = this.hmac (this.encode (query), this.encode (this.secret));
-            query += '&' + 'signature=' + signature;
-            headers = {
-                'X-MBX-APIKEY': this.apiKey,
-            };
-            if ((method === 'GET') || (method === 'DELETE') || (api === 'wapi')) {
-                url += '?' + query;
-            } else {
-                body = query;
-                headers['Content-Type'] = 'application/x-www-form-urlencoded';
-            }
-        } else {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
-            }
+        if (Object.keys (params).length) {
+            url += '?' + this.urlencode (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
