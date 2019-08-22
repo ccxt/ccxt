@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, InvalidOrder, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,6 +20,7 @@ module.exports = class braziliex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchMyTrades': true,
                 'fetchDepositAddress': true,
+                'fetchOrder': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/34703593-c4498674-f504-11e7-8d14-ff8e44fb78c1.jpg',
@@ -49,6 +50,7 @@ module.exports = class braziliex extends Exchange {
                         'sell',
                         'buy',
                         'cancel_order',
+                        'order_status',
                     ],
                 },
             },
@@ -409,6 +411,18 @@ module.exports = class braziliex extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         "order_number":"58ee441d05f8233fadabfb07",
+        //         "type":"buy",
+        //         "market":"ltc_btc",
+        //         "price":"0.01000000",
+        //         "amount":"0.00200000",
+        //         "total":"0.00002000",
+        //         "progress":"1.0000",
+        //         "date":"2017-03-12 15:13:33"
+        //     }
+        //
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (order, 'market');
@@ -435,12 +449,13 @@ module.exports = class braziliex extends Exchange {
         }
         const id = this.safeString (order, 'order_number');
         const fee = this.safeValue (order, 'fee'); // propagated from createOrder
+        const status = (filledPercentage === 1.0) ? 'closed' : 'open';
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'status': 'open',
+            'status': status,
             'symbol': symbol,
             'type': 'limit',
             'side': order['type'],
@@ -502,6 +517,20 @@ module.exports = class braziliex extends Exchange {
             'market': market['id'],
         };
         return await this.privatePostCancelOrder (this.extend (request, params));
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'order_number': id,
+            'market': market['id'],
+        };
+        const response = await this.privatePostOrderStatus (this.extend (request, params));
+        return this.parseOrder (response, market);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {

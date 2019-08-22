@@ -42,6 +42,9 @@ let files = [
 
     'python/test/test.py',
 
+    'wiki/Exchange-Markets-By-Country.md',
+    'wiki/Exchange-Markets.md',
+
     'doc/FAQ.rst',
     'doc/README.rst',
     'doc/exchanges-by-country.rst',
@@ -66,7 +69,7 @@ try {
     files = files.filter (f => !untrackedFiles.has (f))
 
 } catch (e) {
-    
+
     // There is a legit case when we're not in a git repo (happens on AppVeyor)
     if (!e.message.toLowerCase ().includes ('not a git repository')) {
         log.bright.red (e)
@@ -79,7 +82,7 @@ if (process.argv.includes ('--unignore')) {
     gitUpdateIndex ('no-assume-unchanged', files)
 
 } else {
-    
+
     log.bright.cyan (`Disabling the git changes tracking for ${files.length} generated files...`)
     gitUpdateIndex ('assume-unchanged', files)
 }
