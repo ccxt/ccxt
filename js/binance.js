@@ -80,6 +80,7 @@ module.exports = class binance extends Exchange {
                 'sapi': {
                     'get': [
                         'asset/assetDividend',
+                        'asset/dust',
                     ],
                 },
                 'wapi': {
