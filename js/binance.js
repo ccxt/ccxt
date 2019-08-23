@@ -77,6 +77,11 @@ module.exports = class binance extends Exchange {
                         'assetWithdraw/getAllAsset.html',
                     ],
                 },
+                'sapi': {
+                    'get': [
+                        'asset/assetDividend',
+                    ],
+                },
                 'wapi': {
                     'post': [
                         'withdraw',
@@ -96,11 +101,6 @@ module.exports = class binance extends Exchange {
                         'sub-account/transfer/history',
                         'sub-account/assets',
                     ],
-                },
-                'sapi': {
-                  'get': [
-                      'asset/assetDividend',
-                  ],
                 },
                 'v3': {
                     'get': [
