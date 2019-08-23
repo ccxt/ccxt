@@ -474,5 +474,6 @@
     "type": "opencollective",
     "url": "https://opencollective.com/ccxt",
     "logo": "https://opencollective.com/ccxt/logo.txt"
-  }
+  },
+  "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd"
 }
