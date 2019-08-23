@@ -522,9 +522,9 @@ module.exports = class bytetrade extends Exchange {
         const priceTruncateValue = parseInt (Math.pow (10, quoteCurrency['info']['basePrecision'] - market['precision']['price']));
         const priceMiddleAfterTruncate = parseInt (priceChainWithoutTruncate / priceTruncateValue);
         const priceChain = parseInt (priceMiddleAfterTruncate * priceTruncateValue);
-        //const now = this.seconds ();
-        //const expiration = now + 10;
-        const ob = {
+        const now = this.seconds ();
+        const expiration = now + 10;
+        const operation = {
             'fee': '300000000000000',
             'creator': this.apiKey,
             'side': sideNum,
@@ -532,22 +532,38 @@ module.exports = class bytetrade extends Exchange {
             'market_name': marketName,
             'amount': amountChain.toString (),
             'price': priceChain.toString (),
-            'now': 1566407874,
-            'expiration': 1566407874,
+            'now': now,
+            'expiration': expiration,
             'use_btt_as_fee': false,
-            'freeze_btt_fee': 0,
+            'freeze_btt_fee': '0',
             'custom_no_btt_fee_rate': 8,
             'money_id': parseInt (quoteId),
             'stock_id': parseInt (baseId),
         };
-        console.log (ob)
         //const ecdsa = this.ecdsa (JSON.stringify (ob), this.secret, 'secp256k1', 'sha256');
-        const signedTransaction = await this.signExTransactionV1 ('create_order', ob, this.secret);
-        const request = {
-            'trObj': signedTransaction,
+        const signedTransaction = await this.signExTransactionV1 ('create_order', operation, this.secret);
+        console.log (signedTransaction)
+        operation['now'] = JSON.parse (signedTransaction)['operations'][0][1]['now']
+        operation['expiration'] = JSON.parse (signedTransaction)['operations'][0][1]['expiration']
+        const fatty = {
+            'timestamp': JSON.parse (signedTransaction)['timestamp'],
+            'expiration': JSON.parse (signedTransaction)['expiration'],
+            'operations': [
+                [
+                    32,
+                    operation,
+                ],
+            ],
+            'validate_type': 0,
+            'dapp': 'Sagittarius',
+            'signatures': [
+                JSON.parse (signedTransaction)['signatures'][0],
+            ],
         };
-        console.log (JSON.parse (signedTransaction)['signatures'])
-        process.exit ()
+        console.log (JSON.stringify (fatty))
+        const request = {
+            'trObj': fatty,
+        };
         const response = await this.publicPostTransactionCreateorder (request);
         const timestamp = this.milliseconds ();
         const statusCode = this.safe_string (response, 'code');
