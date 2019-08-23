@@ -56,6 +56,7 @@ module.exports = class binance extends Exchange {
                 'api': {
                     'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
+                    'sapi': 'https://api.binance.com/sapi/v1',
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
@@ -95,6 +96,11 @@ module.exports = class binance extends Exchange {
                         'sub-account/transfer/history',
                         'sub-account/assets',
                     ],
+                },
+                'sapi': {
+                  'get': [
+                      'asset/assetDividend',
+                  ],
                 },
                 'v3': {
                     'get': [
