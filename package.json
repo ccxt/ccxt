@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.1080",
+  "version": "1.18.1081",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -474,5 +474,6 @@
     "type": "opencollective",
     "url": "https://opencollective.com/ccxt",
     "logo": "https://opencollective.com/ccxt/logo.txt"
-  }
+  },
+  "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd"
 }

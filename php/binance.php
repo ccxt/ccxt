@@ -56,6 +56,7 @@ class binance extends Exchange {
                 'api' => array (
                     'web' => 'https://www.binance.com',
                     'wapi' => 'https://api.binance.com/wapi/v3',
+                    'sapi' => 'https://api.binance.com/sapi/v1',
                     'public' => 'https://api.binance.com/api/v1',
                     'private' => 'https://api.binance.com/api/v3',
                     'v3' => 'https://api.binance.com/api/v3',
@@ -74,6 +75,14 @@ class binance extends Exchange {
                     'get' => array (
                         'exchange/public/product',
                         'assetWithdraw/getAllAsset.html',
+                    ),
+                ),
+                'sapi' => array (
+                    'get' => array (
+                        'asset/assetDividend',
+                    ),
+                    'post' => array (
+                        'asset/dust',
                     ),
                 ),
                 'wapi' => array (
@@ -1240,7 +1249,7 @@ class binance extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        if (($api === 'private') || ($api === 'wapi' && $path !== 'systemStatus')) {
+        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus')) {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge (array (
                 'timestamp' => $this->nonce (),
