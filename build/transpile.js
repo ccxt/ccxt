@@ -961,18 +961,20 @@ function transpileCryptoTests () {
     ])
 
     let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
-    python2Body = python2Body.replace (/`/g, "'''")
-    phpBody = phpBody.replace (/`/g, "'")
 
-    const pythonHeader = "\
-import ccxt  # noqa: F402\n\
-hash = ccxt.Exchange.hash\n\
-ecdsa = ccxt.Exchange.ecdsa\n\
-jwt = ccxt.Exchange.jwt\n\
-encode = ccxt.Exchange.encode\n\n\n\
-def equals(a, b):\n\
-    return a == b\
-"
+    const pythonHeader = `
+import ccxt  # noqa: F402
+
+Exchange = ccxt.Exchange
+hash = Exchange.hash
+ecdsa = Exchange.ecdsa
+jwt = Exchange.jwt
+encode = Exchange.encode
+
+
+def equals(a, b):
+    return a == b
+`
     const phpHeader = `
 function hash(...$args) {
     return Exchange::hash(...$args);

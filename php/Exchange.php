@@ -2693,20 +2693,20 @@ class Exchange {
 
     public function signZeroExOrder($order, $privateKey) {
         $orderHash = $this->getZeroExOrderHash($order);
-        $signature = $this->signMessage($orderHash, privateKey);
+        $signature = $this->signMessage($orderHash, $privateKey);
         return array_merge($order, array(
             'orderHash' => $orderHash,
             'ecSignature' => $signature, // todo fix v if needed
         ));
     }
 
-    public function hashMessage($message) {
+    public static function hashMessage($message) {
         $buffer = unpack('C*', hex2bin($message));
         $prefix = bin2hex("\u{0019}Ethereum Signed Message:\n" . sizeof($buffer));
         return '0x' . Keccak::hash(hex2bin($prefix . $message), 256);
     }
 
-    public function signHash($hash, $privateKey) {
+    public static function signHash($hash, $privateKey) {
         $signature = static::ecdsa($hash, $privateKey, 'secp256k1', null);
         return array(
             'r' => '0x' . $signature['r'],
@@ -2715,8 +2715,8 @@ class Exchange {
         );
     }
 
-    public function signMessage($message, $privateKey) {
-        return $this->signHash($this->hashMessage($message), $privateKey);
+    public static function signMessage($message, $privateKey) {
+        return static::signHash(static::hashMessage($message), $privateKey);
     }
 
     public function oath() {
