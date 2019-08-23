@@ -177,7 +177,7 @@ class bibox extends Exchange {
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => null,
+                        'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
                 ),

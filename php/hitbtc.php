@@ -84,8 +84,8 @@ class hitbtc extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => -0.01 / 100,
-                    'taker' => 0.1 / 100,
+                    'maker' => 0.07 / 100,
+                    'taker' => 0.07 / 100,
                 ),
                 'funding' => array (
                     'tierBased' => false,

@@ -781,6 +781,13 @@ class kraken extends Exchange {
             $request['since'] = $since * 1e6;
             $request['since'] = (string) $since . '000000'; // expected to be in nanoseconds
         }
+        // https://github.com/ccxt/ccxt/issues/5698
+        if ($limit !== null && $limit !== 1000) {
+            $fetchTradesWarning = $this->safe_value($this->options, 'fetchTradesWarning', true);
+            if ($fetchTradesWarning) {
+                throw new ExchangeError($this->id . ' fetchTrades() cannot serve ' . (string) $limit . " $trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
+            }
+        }
         $response = $this->publicGetTrades (array_merge ($request, $params));
         //
         //     {

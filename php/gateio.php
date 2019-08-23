@@ -137,6 +137,7 @@ class gateio extends Exchange {
                 '21' => 'You don\'t have enough fund',
             ),
             'options' => array (
+                'fetchTradesMethod' => 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
                 'limits' => array (
                     'cost' => array (
                         'min' => array (
@@ -430,7 +431,8 @@ class gateio extends Exchange {
         $request = array (
             'id' => $market['id'],
         );
-        $response = $this->publicGetTradeHistoryId (array_merge ($request, $params));
+        $method = $this->safe_string($this->options, 'fetchTradesMethod', 'public_get_tradehistory_id');
+        $response = $this->$method (array_merge ($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 

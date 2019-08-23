@@ -31,6 +31,10 @@ market = {
     'quote': 'BAR',
     'taker': taker,
     'maker': maker,
+    'precision': {
+        'price': 8,
+        'amount': 8,
+    }
 }
 
 exchange = ccxt.Exchange({
