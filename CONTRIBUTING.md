@@ -481,7 +481,7 @@ if ('foo' in params) {
 
 #### Using Base Class Cryptography Methods For Authentication
 
-**Do not reinvent the wheel. Always use base-class methods for cryptography.**
+Do not reinvent the wheel. Always use base-class methods for cryptography.
 
 The CCXT library supports the following authentication algorithms and cryptography algorithms:
 
@@ -496,11 +496,11 @@ The CCXT library supports the following authentication algorithms and cryptograp
 The base `Exchange` class offers several methods that are key to practically all cryptography in this lib. Derived exchange implementations must not use external dependencies for cryptography, everything should be done with base methods only.
 
 - `hash (message, hash = 'md5', digest = 'hex')`
-- `hmac (message, secret, hash = 'sha256', digest = 'hex')` HMAC authentication
-- `jwt (message, secret, hash = 'HS256')` JSON Web Token Authentication
-- `rsa (message, secret, alg = 'RS256')` RSA asymmetric cryptography
-- `ecdsa (request, secret, algorithm = 'p256', hash = undefined)` Ellyptic Curve Cryptography
-- `totp (secret)` OTP / 2FA authentication
+- `hmac (message, secret, hash = 'sha256', digest = 'hex')`
+- `jwt (message, secret, hash = 'HS256')`
+- `rsa (message, secret, alg = 'RS256')`
+- `ecdsa (request, secret, algorithm = 'p256', hash = undefined)`
+- `totp (secret)`
 - `stringToBase64()`, `base64ToBinary()`, `binaryToBase64()`...
 
 The `hash()` method supports the following `hash` algorithms:
@@ -518,7 +518,7 @@ The `digest` encoding argument accepts the following values:
 - `'hex'`
 - `'binary'`
 
-The `hmac()` method also supports `'base64'` for the `digest` argument. This for `hmac()` only, other implementations should use `'binary'` with `binaryToBase64()`.
+The `hmac()` method also supports `'base64'` for the `digest` argument. This is for `hmac()` only, other implementations should use `'binary'` with `binaryToBase64()`.
 
 #### Timestamps
 
