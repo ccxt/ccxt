@@ -21,7 +21,9 @@ Current feature list:
 
 ## Sponsored Promotion
 
-[![Poloniex CCXT-Certified](https://user-images.githubusercontent.com/1294454/59405577-9893db80-8db3-11e9-8912-c2652680362c.gif)](https://www.poloniex.com/?utm_source=ccxt&utm_medium=image)
+Want this place? Contact us: info@ccxt.trade	
+
+[![Placehodler](https://user-images.githubusercontent.com/1707/48204972-43569e00-e37c-11e8-9cf3-b86e3dc19ee9.png)](https://ccxt.trade/advertise/)
 
 ## See Also
 
