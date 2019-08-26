@@ -317,7 +317,7 @@ module.exports = class idex extends Exchange {
         return this.parseOrderBook (response, undefined, 'bids', 'asks', 'price', 'amount');
     }
 
-    parseBidAsk (bidAsk, priceKey, amountKey) {
+    parseBidAsk (bidAsk, priceKey = 0, amountKey = 1) {
         const price = this.safeFloat (bidAsk, priceKey);
         const amount = this.safeFloat (bidAsk, amountKey);
         const info = bidAsk;
