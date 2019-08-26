@@ -720,7 +720,7 @@ module.exports = class idex extends Exchange {
         if ('market' in order) {
             const marketId = order['market'];
             symbol = this.markets_by_id[marketId]['symbol'];
-        } else if (side !== undefined && 'params' in order) {
+        } else if ((side !== undefined) && ('params' in order)) {
             const params = order['params'];
             const buy = this.safeCurrencyCode (this.safeString (params, 'tokenBuy'));
             const sell = this.safeCurrencyCode (this.safeString (params, 'tokenSell'));
