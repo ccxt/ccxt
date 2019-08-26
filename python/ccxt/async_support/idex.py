@@ -20,7 +20,6 @@ class idex (Exchange):
             'name': 'IDEX',
             'countries': ['US'],
             'rateLimit': 1500,
-            'version': '0',
             'certified': True,
             'requiresWeb3': True,
             'has': {
