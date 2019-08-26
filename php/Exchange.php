@@ -1521,11 +1521,11 @@ class Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 0) {
+    public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
         return array(floatval($bidask[$price_key]), floatval($bidask[$amount_key]));
     }
 
-    public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 1) {
         $result = array();
         $array = is_array($bidasks) ? array_values($bidasks) : array();
         foreach ($array as $bidask) {
@@ -1534,11 +1534,11 @@ class Exchange {
         return $result;
     }
 
-    public function parseBidAsk($bidask, $price_key = 0, $amount_key = 0) {
+    public function parseBidAsk($bidask, $price_key = 0, $amount_key = 1) {
         return $this->parse_bid_ask($bidask, $price_key, $amount_key);
     }
 
-    public function parseBidsAsks($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parseBidsAsks($bidasks, $price_key = 0, $amount_key = 1) {
         return $this->parse_bids_asks($bidasks, $price_key, $amount_key);
     }
 
