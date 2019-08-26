@@ -602,7 +602,7 @@ module.exports = class idex extends Exchange {
         return this.safeString (statuses, status);
     }
 
-    async fetchOpenOrders (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a walletAddress');
         }
