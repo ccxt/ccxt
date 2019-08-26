@@ -163,14 +163,18 @@ module.exports = class idex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        // { last: '0.0016550916',
-        //   high: 'N/A',
-        //   low: 'N/A',
-        //   lowestAsk: '0.0016743368',
-        //   highestBid: '0.001163726270773897',
-        //   percentChange: '0',
-        //   baseVolume: '0',
-        //   quoteVolume: '0' }
+        //
+        //     {
+        //         last: '0.0016550916',
+        //         high: 'N/A',
+        //         low: 'N/A',
+        //         lowestAsk: '0.0016743368',
+        //         highestBid: '0.001163726270773897',
+        //         percentChange: '0',
+        //         baseVolume: '0',
+        //         quoteVolume: '0'
+        //     }
+        //
         let symbol = undefined;
         if (market) {
             symbol = market['symbol'];
