@@ -142,6 +142,7 @@ class Exchange(BaseExchange):
                 http_status_code = response.status
                 http_status_text = response.reason
                 json_response = self.parse_json(http_response)
+                raw_response = response.content
                 headers = response.headers
                 if self.enableLastHttpResponse:
                     self.last_http_response = http_response
@@ -149,6 +150,8 @@ class Exchange(BaseExchange):
                     self.last_response_headers = headers
                 if self.enableLastJsonResponse:
                     self.last_json_response = json_response
+                if self.enableLastRawResponse:
+                    self.last_raw_response = raw_response
                 if self.verbose:
                     print("\nResponse:", method, url, http_status_code, headers, http_response)
                 self.logger.debug("%s %s, Response: %s %s %s", method, url, http_status_code, headers, http_response)

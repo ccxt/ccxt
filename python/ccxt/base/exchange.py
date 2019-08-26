@@ -290,9 +290,11 @@ class Exchange(object):
     rateLimitUpdateTime = 0
     enableLastHttpResponse = True
     enableLastJsonResponse = True
+    enableLastRawResponse = True
     enableLastResponseHeaders = True
     last_http_response = None
     last_json_response = None
+    last_raw_response = None
     last_response_headers = None
 
     requiresWeb3 = False
@@ -524,12 +526,15 @@ class Exchange(object):
             http_status_code = response.status_code
             http_status_text = response.reason
             json_response = self.parse_json(http_response)
+            raw_response = response.content
             headers = response.headers
             # FIXME remove last_x_responses from subclasses
             if self.enableLastHttpResponse:
                 self.last_http_response = http_response
             if self.enableLastJsonResponse:
                 self.last_json_response = json_response
+            if self.enableLastRawResponse:
+                self.last_raw_response = raw_response
             if self.enableLastResponseHeaders:
                 self.last_response_headers = headers
             if self.verbose:
