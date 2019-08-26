@@ -476,7 +476,7 @@ class Exchange(object):
                 return key
         return None
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body):
         pass
 
     def prepare_request_headers(self, headers=None):
@@ -501,6 +501,7 @@ class Exchange(object):
             print("\nRequest:", method, url, request_headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
+        request_body = body
         if body:
             body = body.encode()
 
@@ -547,7 +548,7 @@ class Exchange(object):
             raise ExchangeError(method + ' ' + url)
 
         except HTTPError as e:
-            self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
+            self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
             self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
             raise ExchangeError(method + ' ' + url)
 
@@ -558,7 +559,7 @@ class Exchange(object):
             else:
                 raise ExchangeError(method + ' ' + url)
 
-        self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
+        self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_rest_response(http_response, json_response, url, method)
         if json_response is not None:
             return json_response
