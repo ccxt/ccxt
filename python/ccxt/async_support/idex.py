@@ -965,7 +965,7 @@ class idex (Exchange):
             request['nonce'],  # uint256
         ])
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         if 'error' in response:

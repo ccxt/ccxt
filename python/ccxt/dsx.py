@@ -1080,7 +1080,7 @@ class dsx (Exchange):
                     }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'success' in response:

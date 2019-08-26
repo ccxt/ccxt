@@ -1288,7 +1288,7 @@ class kraken (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code == 520:
             raise ExchangeNotAvailable(self.id + ' ' + str(code) + ' ' + reason)
         # todo: rewrite self for "broad" exceptions matching
