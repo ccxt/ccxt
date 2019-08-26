@@ -43,10 +43,10 @@ module.exports = class idex extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'test': 'https://api.idex.market/',
-                'logo': 'https://oracconstimes.com/wp-content/uploads/2018/05/IDEX.market.png',
-                'api': 'https://api.idex.market/',
-                'www': 'https://idex.market/',
+                'test': 'https://api.idex.market',
+                'logo': 'https://user-images.githubusercontent.com/1294454/63693236-3415e380-c81c-11e9-8600-ba1634f1407d.jpg',
+                'api': 'https://api.idex.market',
+                'www': 'https://idex.market',
                 'doc': [
                     'https://github.com/AuroraDAO/idex-api-docs',
                 ],
@@ -963,7 +963,7 @@ module.exports = class idex extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         body = this.json (params);  // all methods are POST
-        const url = this.urls['api'] + path;
+        const url = this.urls['api'] + '/' + path;
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
