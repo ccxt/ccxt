@@ -275,46 +275,58 @@ class idex extends Exchange {
         $id = $market['quote'] . '_' . $market['base'];
         $request = array (
             'market' => $id,
-            'count' => 100,  // the default will only return one trade
+            'count' => 100, // the default will only return one trade
         );
         if ($limit !== null) {
             $request['count'] = $limit;
         }
         $response = $this->publicPostReturnOrderBook (array_merge ($request, $params));
-        // { "asks" => array ( {
-        //       "price" => "0.001675282799999",
-        //       "amount" => "206.163978911921061732",
-        //       "total" => "0.345382967850497906",
-        //       "orderHash" => "0xfdf12c124a6a7fa4a8e1866b324da888c8e1b3ad209f5050d3a23df3397a5cb7",
-        //       "$params" => {
-        //         "tokenBuy" => "0x0000000000000000000000000000000000000000",
-        //         "buySymbol" => "ETH",
-        //         "buyPrecision" => 18,
-        //         "amountBuy" => "345382967850497906",
-        //         "tokenSell" => "0xb98d4c97425d9908e66e53a6fdf673acca0be986",
-        //         "sellSymbol" => "ABT",
-        //         "sellPrecision" => 18,
-        //         "amountSell" => "206163978911921061732",
-        //         "expires" => 10000,
-        //         "nonce" => 13489307413,
-        //         "user" => "0x9e8ef79316a4a79bbf55a5f9c16b3e068fff65c6" } } ),
-        //   "bids" => array ( {
-        //       "price" => "0.001161865193232242",
-        //       "amount" => "854.393661648355",
-        //       "total" => "0.992690256787469029",
-        //       "orderHash" => "0x2f2baaf982085e4096f9e23e376214885fa74b2939497968e92222716fc2c86d",
-        //       "$params" => {
-        //         "tokenBuy" => "0xb98d4c97425d9908e66e53a6fdf673acca0be986",
-        //         "buySymbol" => "ABT",
-        //         "buyPrecision" => 18,
-        //         "amountBuy" => "854393661648355000000",
-        //         "tokenSell" => "0x0000000000000000000000000000000000000000",
-        //         "sellSymbol" => "ETH",
-        //         "sellPrecision" => 18,
-        //         "amountSell" => "992690256787469029",
-        //         "expires" => 10000,
-        //         "nonce" => 18155189676,
-        //         "user" => "0xb631284dd7b74a846af5b37766ceb1f85d53eca4" } } ) }
+        //
+        //     {
+        //         "asks" => array (
+        //             {
+        //                 "price" => "0.001675282799999",
+        //                 "amount" => "206.163978911921061732",
+        //                 "total" => "0.345382967850497906",
+        //                 "orderHash" => "0xfdf12c124a6a7fa4a8e1866b324da888c8e1b3ad209f5050d3a23df3397a5cb7",
+        //                 "$params" => {
+        //                     "tokenBuy" => "0x0000000000000000000000000000000000000000",
+        //                     "buySymbol" => "ETH",
+        //                     "buyPrecision" => 18,
+        //                     "amountBuy" => "345382967850497906",
+        //                     "tokenSell" => "0xb98d4c97425d9908e66e53a6fdf673acca0be986",
+        //                     "sellSymbol" => "ABT",
+        //                     "sellPrecision" => 18,
+        //                     "amountSell" => "206163978911921061732",
+        //                     "expires" => 10000,
+        //                     "nonce" => 13489307413,
+        //                     "user" => "0x9e8ef79316a4a79bbf55a5f9c16b3e068fff65c6"
+        //                 }
+        //             }
+        //         ),
+        //         "bids" => array (
+        //             {
+        //                 "price" => "0.001161865193232242",
+        //                 "amount" => "854.393661648355",
+        //                 "total" => "0.992690256787469029",
+        //                 "orderHash" => "0x2f2baaf982085e4096f9e23e376214885fa74b2939497968e92222716fc2c86d",
+        //                 "$params" => {
+        //                     "tokenBuy" => "0xb98d4c97425d9908e66e53a6fdf673acca0be986",
+        //                     "buySymbol" => "ABT",
+        //                     "buyPrecision" => 18,
+        //                     "amountBuy" => "854393661648355000000",
+        //                     "tokenSell" => "0x0000000000000000000000000000000000000000",
+        //                     "sellSymbol" => "ETH",
+        //                     "sellPrecision" => 18,
+        //                     "amountSell" => "992690256787469029",
+        //                     "expires" => 10000,
+        //                     "nonce" => 18155189676,
+        //                     "user" => "0xb631284dd7b74a846af5b37766ceb1f85d53eca4"
+        //                 }
+        //             }
+        //         )
+        //     }
+        //
         return $this->parse_order_book($response, null, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -330,10 +342,11 @@ class idex extends Exchange {
             'address' => $this->walletAddress,
         );
         $response = $this->publicPostReturnCompleteBalances (array_merge ($request, $params));
-        //    { ETH:
-        //         { available => '0.0167',
-        //           onOrders => '0.1533' }
-        //    }
+        //
+        //     {
+        //         ETH => array( available => '0.0167', onOrders => '0.1533' )
+        //     }
+        //
         $result = array (
             'info' => $response,
         );
