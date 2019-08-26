@@ -1838,14 +1838,14 @@ Notes On Ticker Structure
 
 Timestamp and datetime are both Universal Time Coordinated (UTC) in milliseconds.
 
--  ``ticker['timestamp']`` is the time when the exchange generated this response (before replying it back to you). This may be missing (``undefined/None/null``), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is the UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
+-  ``ticker['timestamp']`` is the time when the exchange generated this response (before replying it back to you). It may be missing (``undefined/None/null``), as documented in the Manual, not all exchanges provide a timestamp there. If it is defined, then it is a UTC timestamp **in milliseconds** since 1 Jan 1970 00:00:00.
 -  ``exchange.last_response_headers['Date']`` is the date-time string of the last HTTP response received (from HTTP headers). The ‘Date’ parser should respect the timezone designated there. The precision of the date-time is 1 second, 1000 milliseconds. This date should be set by the exchange server when the message originated according to the following standards:
 
    -  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.18
    -  https://tools.ietf.org/html/rfc1123#section-5.2.14
    -  https://tools.ietf.org/html/rfc822#section-5
 
-Although some exchanges do mix-in orderbook’s top bid/ask prices into their tickers (and some even top bid/asks volumes) you should not treat a ticker as a ``fetchOrderBook`` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as “live 24h OHLCV”. It is known that exchanges discourage frequent ``fetchTicker`` requests by imposing stricter rate limits on these queries. If you need a unified way to access bid/asks you should use ``fetchL[123]OrderBook`` family instead.
+Although some exchanges do mix-in orderbook’s top bid/ask prices into their tickers (and some exchanges even serve top bid/ask volumes) you should not treat a ticker as a ``fetchOrderBook`` replacement. The main purpose of a ticker is to serve statistical data, as such, treat it as “live 24h OHLCV”. It is known that exchanges discourage frequent ``fetchTicker`` requests by imposing stricter rate limits on these queries. If you need a unified way to access bids and asks you should use ``fetchL[123]OrderBook`` family instead.
 
 To get historical prices and volumes use the unified ```fetchOHLCV`` <https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts>`__ method where available.
 
@@ -1857,7 +1857,7 @@ Methods for fetching tickers:
 Individually By Symbol
 ~~~~~~~~~~~~~~~~~~~~~~
 
-To get the individual ticker data from an exchange for each particular trading pair or symbol call the ``fetchTicker (symbol)``:
+To get the individual ticker data from an exchange for a particular trading pair or a specific symbol – call the ``fetchTicker (symbol)``:
 
 .. code:: javascript
 
@@ -1913,9 +1913,9 @@ Some exchanges (not all of them) also support fetching all tickers at once. See 
        var_dump ($exchange->fetch_tickers ()); // all tickers indexed by their symbols
    }
 
-Fetching all tickers requires more traffic than fetching a single ticker. Also, note that some exchanges impose higher rate-limits on subsequent fetches of all tickers (see their docs on corresponding endpoints for details). **The cost of fetchTickers call in terms of rate limit is often higher than average**. If you only need one ticker, fetching by a particular symbol is faster as well. You probably want to fetch all tickers only if you really need all of them and, most likely, you don’t want to fetchTickers more frequently than once a minute or so.
+Fetching all tickers requires more traffic than fetching a single ticker. Also, note that some exchanges impose higher rate-limits on subsequent fetches of all tickers (see their docs on corresponding endpoints for details). **The cost of the ``fetchTickers()`` call in terms of rate limit is often higher than average**. If you only need one ticker, fetching by a particular symbol is faster as well. You probably want to fetch all tickers only if you really need all of them and, most likely, you don’t want to fetchTickers more frequently than once in a minute or so.
 
-Also, some exchanges may impose additional requirements on fetchTickers call, sometimes you can’t fetch tickers for all symbols because of API limitations of the exchange in question. Some exchanges allow specifying a list of symbols in HTTP URL query params, however, because URL length is limited, and in extreme cases exchanges can have thousands of markets – a list of all their symbols simply would not fit in the URL, so it has to be a limited subset of their symbols. Sometimes, there are other reasons for requiring a list of symbols, and there may be a limit on the number of symbols you can fetch at once, but whatever the limitation, please, blame the exchange. To pass the symbols of interest to the exchange, once can simply supply a list of strings as the first argument to fetchTickers:
+Also, some exchanges may impose additional requirements on the ``fetchTickers()`` call, sometimes you can’t fetch the tickers for all symbols because of the API limitations of the exchange in question. Some exchanges accept a list of symbols in HTTP URL query params, however, because URL length is limited, and in extreme cases exchanges can have thousands of markets – a list of all their symbols simply would not fit in the URL, so it has to be a limited subset of their symbols. Sometimes, there are other reasons for requiring a list of symbols, and there may be a limit on the number of symbols you can fetch at once, but whatever the limitation, please, blame the exchange. To pass the symbols of interest to the exchange, you can supply a list of strings as the first argument to fetchTickers:
 
 .. code:: javascript
 
