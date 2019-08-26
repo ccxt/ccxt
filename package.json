@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.1088",
+  "version": "1.18.1089",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -468,7 +468,9 @@
     "bitmart.com",
     "BitMart",
     "digifinex.vip",
-    "DigiFinex"
+    "DigiFinex",
+    "idex.market",
+    "IDEX"
   ],
   "collective": {
     "type": "opencollective",
