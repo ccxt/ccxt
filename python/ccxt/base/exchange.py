@@ -36,6 +36,10 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # ecdsa signing
 try:
+    ModuleNotFoundError
+except NameError:
+    ModuleNotFoundError = ImportError
+try:
     import ecdsa
 except ModuleNotFoundError:
     from static_dependencies import ecdsa
