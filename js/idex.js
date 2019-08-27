@@ -353,7 +353,8 @@ module.exports = class idex extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const currency = keys[i];
             const balance = response[currency];
-            result[currency] = {
+            const code = this.safeCurrencyCode (currency);
+            result[code] = {
                 'free': this.safeFloat (balance, 'available'),
                 'used': this.safeFloat (balance, 'onOrders'),
             };
