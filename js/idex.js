@@ -362,7 +362,7 @@ module.exports = class idex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        this.checkRequiredCredentials ();
+        this.checkRequiredDependencies ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'limit') {
@@ -496,7 +496,6 @@ module.exports = class idex extends Exchange {
     }
 
     async cancelOrder (orderId, symbol = undefined, params = {}) {
-        this.checkRequiredCredentials ();
         const nonce = await this.getNonce ();
         const orderToHash = {
             'orderHash': orderId,
@@ -944,7 +943,7 @@ module.exports = class idex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkRequiredCredentials ();
+        this.checkRequiredDependencies ();
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -981,6 +980,10 @@ module.exports = class idex extends Exchange {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         };
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            headers['API-Key'] = this.apiKey;
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
