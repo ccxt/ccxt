@@ -2570,7 +2570,7 @@ class okex3 (Exchange):
         key = self.findBroadlyMatchedKey(auth, path)
         return self.safe_string(auth, key, 'private')
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         feedback = self.id + ' ' + body
         if code == 503:
             raise ExchangeError(feedback)
