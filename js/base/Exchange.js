@@ -1537,9 +1537,17 @@ module.exports = class Exchange {
         return '0x' + v.toString (16) + signature['r'].slice (-64) + signature['s'].slice (-64) + '03'
     }
 
+    static remove0xPrefix (hexData) {
+        if (hexData.slice (0, 2) === '0x') {
+            return hexData.slice (2)
+        } else {
+            return hexData
+        }
+    }
+
     hashMessage (message) {
         // takes a hex encoded message
-        const binaryMessage = this.base16ToBinary (message)
+        const binaryMessage = this.base16ToBinary (this.remove0xPrefix (message))
         const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
         return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
     }
