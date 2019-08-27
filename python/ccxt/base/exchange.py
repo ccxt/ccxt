@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1063'
+__version__ = '1.18.1080'
 
 # -----------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ from ccxt.base.errors import ArgumentsRequired
 # -----------------------------------------------------------------------------
 
 from ccxt.base.decimal_to_precision import decimal_to_precision
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN
 from ccxt.base.decimal_to_precision import number_to_string
 
 # -----------------------------------------------------------------------------
@@ -576,7 +576,7 @@ class Exchange(object):
             raise error(' '.join([method, url, string_code, http_status_text, body]))
 
     def handle_rest_response(self, response, json_response, url, method):
-        if self.is_json_encoded_object(response) and json_response is None:
+        if json_response is None:
             ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
             if ddos_protection:
@@ -1063,9 +1063,11 @@ class Exchange(object):
             raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
         curve_info = algorithms[algorithm]
         hash_function = getattr(hashlib, curve_info[1])
-        digest = base64.b16decode(Exchange.encode(request), casefold=True)
+        encoded_request = Exchange.encode(request)
         if hash is not None:
-            digest = Exchange.hash(Exchange.encode(request), hash, 'binary')
+            digest = Exchange.hash(encoded_request, hash, 'binary')
+        else:
+            digest = base64.b16decode(encoded_request, casefold=True)
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
         r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
@@ -1525,6 +1527,13 @@ class Exchange(object):
         else:
             scale = 60  # 1m by default
         return amount * scale
+
+    @staticmethod
+    def round_timeframe(timeframe, timestamp, direction=ROUND_DOWN):
+        ms = Exchange.parse_timeframe(timeframe) * 1000
+        # Get offset based on timeframe in milliseconds
+        offset = timestamp % ms
+        return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
     def parse_trades(self, trades, market=None, since=None, limit=None, params={}):
         array = self.to_array(trades)

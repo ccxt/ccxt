@@ -136,6 +136,7 @@ const commonRegexes = [
     [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
     [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
     [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
+    [ /\.roundTimeframe/g, '.round_timeframe'],
     [ /errorHierarchy/g, 'error_hierarchy'],
     [ /\'use strict\';?\s+/g, '' ],
 ]
@@ -861,6 +862,7 @@ function transpileDateTimeTests () {
     const pythonHeader =
 "\n\
 import ccxt  # noqa: F402\n\
+from ccxt.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401\n\
 \n\
 # ----------------------------------------------------------------------------\n\
 \n"

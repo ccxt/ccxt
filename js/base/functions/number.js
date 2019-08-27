@@ -1,7 +1,7 @@
 'use strict'
 
 const { isString, isNumber } = require ('./type')
-const { max } = Math
+    , { max } = Math
 
 /*  ------------------------------------------------------------------------
 
@@ -16,8 +16,10 @@ const { max } = Math
 
             decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)                     */
 
-const ROUND    = 0                  // rounding mode
-    , TRUNCATE = 1
+const ROUND      = 0                // rounding mode
+    , TRUNCATE   = 1
+    , ROUND_UP   = 2
+    , ROUND_DOWN = 3
 
 const DECIMAL_PLACES     = 0        // digits counting mode
     , SIGNIFICANT_DIGITS = 1
@@ -49,7 +51,7 @@ function numberToString (x) { // avoids scientific notation for too large and to
         const e = parseInt (s.split ('e-')[1])
         const neg = (s[0] === '-')
         if (e) {
-            x *= Math.pow (10, e-1)
+            x *= Math.pow (10, e - 1)
             x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + x.toString ().substring (neg ? 3 : 2)
         }
     } else {
@@ -57,7 +59,7 @@ function numberToString (x) { // avoids scientific notation for too large and to
         if (e > 20) {
             e -= 20
             x /= Math.pow (10, e)
-            x += (new Array (e+1)).join ('0')
+            x += (new Array (e + 1)).join ('0')
         }
     }
     return x.toString ()
@@ -70,8 +72,8 @@ const truncate_regExpCache = []
     , truncate_to_string = (num, precision = 0) => {
         num = numberToString (num)
         if (precision > 0) {
-            const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
-            const [,result] = num.toString ().match (re) || [null, num]
+            const re = truncate_regExpCache[precision] || (truncate_regExpCache[precision] = new RegExp ("([-]*\\d+\\.\\d{" + precision + "})(\\d)"))
+            const [ , result] = num.toString ().match (re) || [null, num]
             return result.toString ()
         }
         return parseInt (num).toString ()
@@ -94,7 +96,7 @@ const decimalToPrecision = (x, roundingMode
         if (countingMode === TICK_SIZE) {
             throw new Error (`TICK_SIZE cant be used with negative numPrecisionDigits`)
         }
-        let toNearest = Math.pow (10, -numPrecisionDigits)
+        const toNearest = Math.pow (10, -numPrecisionDigits)
         if (roundingMode === ROUND) {
             return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
         }
@@ -107,7 +109,7 @@ const decimalToPrecision = (x, roundingMode
     if (countingMode === TICK_SIZE) {
         const missing = x % numPrecisionDigits
         const reminder = x / numPrecisionDigits
-        if (reminder !== Math.floor(reminder)) {
+        if (reminder !== Math.floor (reminder)) {
             if (roundingMode === ROUND) {
                 if (x > 0) {
                     if (missing >= numPrecisionDigits / 2) {
@@ -117,9 +119,9 @@ const decimalToPrecision = (x, roundingMode
                     }
                 } else {
                     if (missing >= numPrecisionDigits / 2) {
-                        x = Number(x) - missing
+                        x = Number (x) - missing
                     } else {
-                        x = Number(x) - missing - numPrecisionDigits
+                        x = Number (x) - missing - numPrecisionDigits
                     }
                 }
             } else if (roundingMode === TRUNCATE) {
@@ -293,6 +295,8 @@ module.exports = {
     precisionConstants,
     ROUND,
     TRUNCATE,
+    ROUND_UP,
+    ROUND_DOWN,
     DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
     TICK_SIZE,

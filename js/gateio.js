@@ -136,6 +136,7 @@ module.exports = class gateio extends Exchange {
                 '21': 'You don\'t have enough fund',
             },
             'options': {
+                'fetchTradesMethod': 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
                 'limits': {
                     'cost': {
                         'min': {
@@ -429,7 +430,8 @@ module.exports = class gateio extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const response = await this.publicGetTradeHistoryId (this.extend (request, params));
+        const method = this.safeString (this.options, 'fetchTradesMethod', 'public_get_tradehistory_id');
+        const response = await this[method] (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
