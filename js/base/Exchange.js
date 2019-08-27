@@ -553,13 +553,14 @@ module.exports = class Exchange {
     }
 
     defaultErrorHandler (code, reason, url, method, headers, body, response) {
+        if ((code >= 200) && (code <= 299)) {
+            return
+        }
         let details = body
         const codeAsString = code.toString ()
         let ErrorClass = undefined
         if (codeAsString in this.httpExceptions) {
             ErrorClass = this.httpExceptions[codeAsString]
-        } else if (code < 200 || code > 299) {
-            ErrorClass = ExchangeError
         }
         if (response === undefined) {
             const maintenance = body.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
