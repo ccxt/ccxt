@@ -898,15 +898,6 @@ module.exports = class cex extends Exchange {
     }
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires a id argument');
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires a symbol argument');
-        }
-        if (type === undefined) {
-            throw new ArgumentsRequired (this.id + ' editOrder requires a type argument');
-        }
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder requires a amount argument');
         }
