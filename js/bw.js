@@ -30,7 +30,7 @@ module.exports = class bw extends Exchange {
                 'fetchBalance': false,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchFundingFees': false,
@@ -104,6 +104,7 @@ module.exports = class bw extends Exchange {
                 'public': {
                     'get': [
                         'config/controller/website/marketcontroller/getByWebId',
+                        'config/controller/website/currencycontroller/getCurrencyList',
                     ],
                 },
                 'private': {
@@ -120,8 +121,8 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const exchangeResult = await this.publicGetConfigControllerWebsiteMarketcontrollerGetByWebId (params);
-        const markets = exchangeResult['datas'];
+        const response = await this.publicGetConfigControllerWebsiteMarketcontrollerGetByWebId (params);
+        const markets = this.safeValue (response, 'datas', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -169,6 +170,47 @@ module.exports = class bw extends Exchange {
                     },
                 },
             });
+        }
+        return result;
+    }
+
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetConfigControllerWebsiteCurrencycontrollerGetCurrencyList (params);
+        const currencies = this.safeValue (response, 'datas', []);
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'currencyId');
+            const code = this.safeCurrencyCode (this.safeStringUpper (currency, 'name'));
+            const state = this.safeInteger (currency, 'state');
+            const active = state === 1;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': code,
+                'active': active,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': parseFloat (this.safeInteger(currency, 'limitAmount')),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': parseFloat (this.safeInteger(currency, 'onceDrawLimit')),
+                    },
+                },
+            };
         }
         return result;
     }
