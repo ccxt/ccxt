@@ -59,7 +59,7 @@ module.exports = class bw extends Exchange {
             'timeframes': {
             },
             'urls': {
-                'api': 'https://www.bw.com/exchange/',
+                'api': 'https://www.bw.com/',
                 'www': 'https://www.bw.com',
                 'doc': 'https://www.bw.com/restApi',
                 'fees': 'https://www.bw.com/feesRate',
@@ -103,8 +103,9 @@ module.exports = class bw extends Exchange {
             'api': {
                 'public': {
                     'get': [
-                        'config/controller/website/marketcontroller/getByWebId',
-                        'config/controller/website/currencycontroller/getCurrencyList',
+                        'exchange/config/controller/website/marketcontroller/getByWebId',
+                        'exchange/config/controller/website/currencycontroller/getCurrencyList',
+                        'api/data/v1/entrusts',
                     ],
                 },
                 'private': {
@@ -121,7 +122,7 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetConfigControllerWebsiteMarketcontrollerGetByWebId (params);
+        const response = await this.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId (params);
         const markets = this.safeValue (response, 'datas', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -136,7 +137,7 @@ module.exports = class bw extends Exchange {
             const quoteId = this.safeString (market, 'sellerCurrencyId');
             const baseNumericId = parseInt (baseId);
             const quoteNumericId = parseInt (quoteId);
-            const symbol = base + '/' + quote;
+            const symbol = quote + '/' + base;
             const state = this.safeInteger (market, 'state');
             const active = state === 1;
             result.push ({
@@ -175,7 +176,7 @@ module.exports = class bw extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        const response = await this.publicGetConfigControllerWebsiteCurrencycontrollerGetCurrencyList (params);
+        const response = await this.publicGetExchangeConfigControllerWebsiteCurrencycontrollerGetCurrencyList (params);
         const currencies = this.safeValue (response, 'datas', []);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
@@ -215,8 +216,28 @@ module.exports = class bw extends Exchange {
         return result;
     }
 
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+        };
+        if (limit !== undefined) {
+            request['dataSize'] = limit;
+        }
+        const response = await this.publicGetApiDataV1Entrusts (this.extend (request, params));
+        const orderbook = this.safeValue (response, 'datas', []);
+        const ts = this.safeTimestamp (orderbook, 'timestamp');
+        return this.parseOrderBook (orderbook, ts, 'bids', 'asks', 0, 1);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + path;
+        if (method === 'GET') {
+            if (Object.keys (params).length) {
+                url += '?' + this.urlencode (params);
+            }
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
