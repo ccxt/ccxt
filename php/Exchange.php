@@ -2477,7 +2477,7 @@ class Exchange {
             $dotPosition = $dotIndex ?: 0;
             if ($countingMode === DECIMAL_PLACES) {
                 if ($dotIndex) {
-                    list($before, $after) = explode('.', $x);
+                    list($before, $after) = explode('.', static::number_to_string($x));
                     $result = $before . '.' . substr($after, 0, $numPrecisionDigits);
                 } else {
                     $result = $x;
@@ -2504,7 +2504,7 @@ class Exchange {
             $result = rtrim($result, '.');
         }
 
-        $hasDot = false !== strpos($result, '.');
+        $hasDot = (false !== strpos($result, '.'));
         if ($paddingMode === NO_PADDING) {
             if (($result === '')  && ($numPrecisionDigits === 0)) {
                 return '0';
