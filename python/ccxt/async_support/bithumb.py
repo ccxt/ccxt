@@ -186,6 +186,9 @@ class bithumb (Exchange):
             average = self.sum(open, close) / 2
         vwap = self.safe_float(ticker, 'average_price')
         baseVolume = self.safe_float(ticker, 'volume_1day')
+        quoteVolume = None
+        if vwap is not None and baseVolume is not None:
+            quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -205,7 +208,7 @@ class bithumb (Exchange):
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
-            'quoteVolume': baseVolume * vwap,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
