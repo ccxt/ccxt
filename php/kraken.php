@@ -53,7 +53,7 @@ class kraken extends Exchange {
                 'api' => array (
                     'public' => 'https://api.kraken.com',
                     'private' => 'https://api.kraken.com',
-                    'zendesk' => 'https://support.kraken.com/hc/en-us/articles/',
+                    'zendesk' => 'https://support.kraken.com/hc/en-us/articles',
                 ),
                 'www' => 'https://www.kraken.com',
                 'doc' => 'https://www.kraken.com/features/api',
@@ -1390,7 +1390,7 @@ class kraken extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code === 520) {
             throw new ExchangeNotAvailable($this->id . ' ' . (string) $code . ' ' . $reason);
         }

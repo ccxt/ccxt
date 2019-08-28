@@ -270,7 +270,7 @@ class virwox (Exchange):
             })
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code == 200:
             if (body[0] == '{') or (body[0] == '['):
                 if 'result' in response:

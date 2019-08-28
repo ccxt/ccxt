@@ -85,7 +85,7 @@ module.exports = class bl3p extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseBidAsk (bidask, priceKey = 0, amountKey = 0) {
+    parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
         return [
             bidask[priceKey] / 100000.0,
             bidask[amountKey] / 100000000.0,

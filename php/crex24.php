@@ -1168,7 +1168,7 @@ class crex24 extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$this->is_json_encoded_object($body)) {
             return; // fallback to default error handler
         }

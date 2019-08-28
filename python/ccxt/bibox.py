@@ -193,7 +193,7 @@ class bibox (Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': None,
+                        'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
                 },
@@ -841,7 +841,7 @@ class bibox (Exchange):
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         if 'error' in response:

@@ -479,6 +479,47 @@ if ('foo' in params) {
 }
 ```
 
+#### Using Base Class Cryptography Methods For Authentication
+
+Do not reinvent the wheel. Always use base-class methods for cryptography.
+
+The CCXT library supports the following authentication algorithms and cryptography algorithms:
+
+- HMAC
+- JWT (JSON Web Token)
+- RSA
+- ECDSA Elliptic Curve Cryptography
+  - NIST P256
+  - secp256k1
+- OTP 2FA (one-time password 2-factor authentication)
+
+The base `Exchange` class offers several methods that are key to practically all cryptography in this lib. Derived exchange implementations must not use external dependencies for cryptography, everything should be done with base methods only.
+
+- `hash (message, hash = 'md5', digest = 'hex')`
+- `hmac (message, secret, hash = 'sha256', digest = 'hex')`
+- `jwt (message, secret, hash = 'HS256')`
+- `rsa (message, secret, alg = 'RS256')`
+- `ecdsa (request, secret, algorithm = 'p256', hash = undefined)`
+- `totp (secret)`
+- `stringToBase64()`, `base64ToBinary()`, `binaryToBase64()`...
+
+The `hash()` method supports the following `hash` algorithms:
+
+- `'md5'`
+- `'sha1'`
+- `'sha3'`
+- `'sha256'`
+- `'sha384'`
+- `'sha512'`
+- `'keccak'`
+
+The `digest` encoding argument accepts the following values:
+
+- `'hex'`
+- `'binary'`
+
+The `hmac()` method also supports `'base64'` for the `digest` argument. This is for `hmac()` only, other implementations should use `'binary'` with `binaryToBase64()`.
+
 #### Timestamps
 
 **All timestamps throughout all unified structures within this library are integer timestamp _in milliseconds_!**
