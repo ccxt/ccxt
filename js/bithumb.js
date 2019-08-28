@@ -191,6 +191,10 @@ module.exports = class bithumb extends Exchange {
         }
         const vwap = this.safeFloat (ticker, 'average_price');
         const baseVolume = this.safeFloat (ticker, 'volume_1day');
+        let quoteVolume = undefined;
+        if (vwap !== undefined && baseVolume !== undefined) {
+            quoteVolume = baseVolume * vwap;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -210,7 +214,7 @@ module.exports = class bithumb extends Exchange {
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
-            'quoteVolume': baseVolume * vwap,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
