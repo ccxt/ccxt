@@ -817,7 +817,7 @@ module.exports = class cex extends Exchange {
                 let tradeCost = undefined;
                 if (tradeSide === 'sell') {
                     tradeCost = absTradeAmount;
-                    absTradeAmount = (feeCost + tradeCost) / tradePrice;
+                    absTradeAmount = this.sum (feeCost, tradeCost) / tradePrice;
                 } else {
                     tradeCost = absTradeAmount * tradePrice;
                 }
