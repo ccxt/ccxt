@@ -345,14 +345,15 @@ class idex (Exchange):
         for i in range(0, len(keys)):
             currency = keys[i]
             balance = response[currency]
-            result[currency] = {
+            code = self.safe_currency_code(currency)
+            result[code] = {
                 'free': self.safe_float(balance, 'available'),
                 'used': self.safe_float(balance, 'onOrders'),
             }
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        self.check_required_credentials()
+        self.check_required_dependencies()
         await self.load_markets()
         market = self.market(symbol)
         if type == 'limit':
@@ -478,7 +479,6 @@ class idex (Exchange):
         return self.options['contractAddress']
 
     async def cancel_order(self, orderId, symbol=None, params={}):
-        self.check_required_credentials()
         nonce = await self.get_nonce()
         orderToHash = {
             'orderHash': orderId,
@@ -892,7 +892,7 @@ class idex (Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
-        self.check_required_credentials()
+        self.check_required_dependencies()
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
@@ -928,6 +928,9 @@ class idex (Exchange):
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
+        if api == 'private':
+            self.check_required_credentials()
+            headers['API-Key'] = self.apiKey
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_idex_create_order_hash(self, order):
