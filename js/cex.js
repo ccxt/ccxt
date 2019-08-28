@@ -915,7 +915,7 @@ module.exports = class cex extends Exchange {
             'order_id': id,
         };
         const response = await this.privatePostCancelReplaceOrderPair (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     nonce () {
