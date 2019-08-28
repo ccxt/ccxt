@@ -23,11 +23,14 @@ module.exports =
     , base64ToBinary: string => CryptoJS.enc.Base64.parse (string)
     , base64ToString: string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
     , binaryToBase64: binary => binary.toString (CryptoJS.enc.Base64)
+    , base16ToBinary: string => CryptoJS.enc.Hex.parse (string)
 
     , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
 
     , urlencode: object => qs.stringify (object)
     , rawencode: object => qs.stringify (object, { encode: false })
+    , encode: x => x
+    , decode: x => x
 
     // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 

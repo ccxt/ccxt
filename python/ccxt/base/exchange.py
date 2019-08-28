@@ -1070,7 +1070,7 @@ class Exchange(object):
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
-        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
+        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
         return {
             'r': r,
@@ -1795,14 +1795,11 @@ class Exchange(object):
                 unit = self.eth_unit(decimals)
         return str(Web3.toWei(amount, unit))
 
-    def decryptAccountFromJSON(self, value, password):
-        return self.decryptAccount(json.loads(value) if isinstance(value, basestring) else value, password)
-
-    def decryptAccount(self, key, password):
-        return self.web3.eth.accounts.decrypt(key, password)
-
-    def decryptAccountFromPrivateKey(self, privateKey):
-        return self.web3.eth.accounts.privateKeyToAccount(privateKey)
+    def privateKeyToAddress(self, privateKey):
+        private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
+        public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
+        public_key_hash = self.web3.sha3(public_key_bytes)
+        return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
 
     def soliditySha3(self, array):
         values = self.solidityValues(array)
@@ -1862,7 +1859,8 @@ class Exchange(object):
         ]
         return self.web3.soliditySha3(types, unpacked).hex()
 
-    def remove_0x_prefix(self, value):
+    @staticmethod
+    def remove_0x_prefix(value):
         if value[:2] == '0x':
             return value[2:]
         return value
@@ -1936,19 +1934,20 @@ class Exchange(object):
         if v != 27 and v != 28:
             v = v + 27
         return (
-            "0x" +
-            self.remove_0x_prefix(hex(v)) +
-            self.remove_0x_prefix(signature["r"]) +
-            self.remove_0x_prefix(signature["s"]) +
+            hex(v) +
+            signature["r"][-64:] +
+            signature["s"][-64:] +
             "03"
         )
 
     def hashMessage(self, message):
-        message_bytes = bytes.fromhex(message)
-        return self.web3.sha3(b"\x19Ethereum Signed Message:\n" + str(len(message_bytes)).encode() + message_bytes).hex()
+        message_bytes = base64.b16decode(Exchange.encode(Exchange.remove_0x_prefix(message)), True)
+        hash_bytes = self.web3.sha3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
+        return '0x' + Exchange.decode(base64.b16encode(hash_bytes)).lower()
 
-    def signHash(self, hash, privateKey):
-        signature = self.ecdsa(hash, privateKey, 'secp256k1', None)
+    @staticmethod
+    def signHash(hash, privateKey):
+        signature = Exchange.ecdsa(hash[-64:], privateKey, 'secp256k1', None)
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
@@ -1996,6 +1995,16 @@ class Exchange(object):
             raise ExchangeError(self.id + ' set .twofa to use this feature')
 
     @staticmethod
+    def decimal_to_bytes(n, endian='big'):
+        """int.from_bytes and int.to_bytes don't work in python2"""
+        if n > 0:
+            next_byte = Exchange.decimal_to_bytes(n // 256, endian)
+            remainder = bytes([n % 256])
+            return next_byte + remainder if endian == 'big' else remainder + next_byte
+        else:
+            return b''
+
+    @staticmethod
     def totp(key):
         def hex_to_dec(n):
             return int(n, base=16)
@@ -2007,7 +2016,7 @@ class Exchange(object):
             return base64.b32decode(padded)  # throws an error if the key is invalid
 
         epoch = int(time.time()) // 30
-        hmac_res = Exchange.hmac(epoch.to_bytes(8, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
+        hmac_res = Exchange.hmac(Exchange.decimal_to_bytes(epoch, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
