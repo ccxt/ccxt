@@ -2681,7 +2681,7 @@ class okex3 extends Exchange {
         return $this->safe_string($auth, $key, 'private');
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
             throw new ExchangeError($feedback);

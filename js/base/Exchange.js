@@ -548,18 +548,19 @@ module.exports = class Exchange {
         return undefined;
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response) {
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         // override me
     }
 
     defaultErrorHandler (code, reason, url, method, headers, body, response) {
+        if ((code >= 200) && (code <= 299)) {
+            return
+        }
         let details = body
         const codeAsString = code.toString ()
         let ErrorClass = undefined
         if (codeAsString in this.httpExceptions) {
             ErrorClass = this.httpExceptions[codeAsString]
-        } else if (code < 200 || code > 299) {
-            ErrorClass = ExchangeError
         }
         if (response === undefined) {
             const maintenance = body.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
@@ -625,7 +626,7 @@ module.exports = class Exchange {
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
 
-            this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
+            this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
             this.defaultErrorHandler (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
 
             return json || responseBody

@@ -348,7 +348,7 @@ class btcbox (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}

@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Solidity;
 use Elliptic\EC;
 
-$version = '1.18.1078';
+$version = '1.18.1095';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -53,7 +53,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1078';
+    const VERSION = '1.18.1095';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -164,6 +164,7 @@ class Exchange {
         'huobipro',
         'huobiru',
         'ice3x',
+        'idex',
         'independentreserve',
         'indodax',
         'itbit',
@@ -1167,7 +1168,7 @@ class Exchange {
         return null;
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $request_headers, $request_body) {
         // it's a stub function, does nothing in base code
     }
 
@@ -1338,7 +1339,7 @@ class Exchange {
             print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
-        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response);
+        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
 
         if ($result === false) {
             if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
@@ -1521,11 +1522,11 @@ class Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 0) {
+    public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
         return array(floatval($bidask[$price_key]), floatval($bidask[$amount_key]));
     }
 
-    public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 1) {
         $result = array();
         $array = is_array($bidasks) ? array_values($bidasks) : array();
         foreach ($array as $bidask) {
@@ -1534,11 +1535,11 @@ class Exchange {
         return $result;
     }
 
-    public function parseBidAsk($bidask, $price_key = 0, $amount_key = 0) {
+    public function parseBidAsk($bidask, $price_key = 0, $amount_key = 1) {
         return $this->parse_bid_ask($bidask, $price_key, $amount_key);
     }
 
-    public function parseBidsAsks($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parseBidsAsks($bidasks, $price_key = 0, $amount_key = 1) {
         return $this->parse_bids_asks($bidasks, $price_key, $amount_key);
     }
 

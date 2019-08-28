@@ -87,7 +87,7 @@ class bl3p extends Exchange {
         return $this->parse_balance($result);
     }
 
-    public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 0) {
+    public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {
         return [
             $bidask[$priceKey] / 100000.0,
             $bidask[$amountKey] / 100000000.0,

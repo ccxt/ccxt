@@ -2680,7 +2680,7 @@ module.exports = class okex3 extends Exchange {
         return this.safeString (auth, key, 'private');
     }
 
-    handleErrors (code, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         const feedback = this.id + ' ' + body;
         if (code === 503) {
             throw new ExchangeError (feedback);

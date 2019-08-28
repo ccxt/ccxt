@@ -731,7 +731,7 @@ class stronghold extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to base error handler by default
         }

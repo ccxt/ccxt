@@ -831,7 +831,7 @@ module.exports = class gdax extends Exchange {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 400) || (code === 404)) {
             if (body[0] === '{') {
                 const message = response['message'];
