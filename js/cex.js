@@ -897,6 +897,36 @@ module.exports = class cex extends Exchange {
         return this.parseOrder (response['data']);
     }
 
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (id === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires a id argument');
+        }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires a symbol argument');
+        }
+        if (type === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires a type argument');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires a amount argument');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires a price argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // see: https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest
+        const request = {
+            'pair': market['id'],
+            'type': side,
+            'amount': amount,
+            'price': price,
+            'order_id': id,
+        };
+        const response = await this.privatePostCancelReplaceOrderPair (this.extend (request, params));
+        return this.parseOrder (response);
+    }
+
     nonce () {
         return this.milliseconds ();
     }
