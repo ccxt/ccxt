@@ -34,7 +34,7 @@ use kornrunner\Eth;
 use kornrunner\Solidity;
 use Elliptic\EC;
 
-$version = '1.18.1094';
+$version = '1.18.1095';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -53,7 +53,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1094';
+    const VERSION = '1.18.1095';
 
     public static $eth_units = array (
         'wei'        => '1',
