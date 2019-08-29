@@ -27,7 +27,7 @@ module.exports = class bw extends Exchange {
                 'createOrder': false,
                 'deposit': false,
                 'editOrder': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchClosedOrders': false,
                 'fetchCurrencies': true,
@@ -41,7 +41,7 @@ module.exports = class bw extends Exchange {
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchTicker': false,
@@ -110,6 +110,7 @@ module.exports = class bw extends Exchange {
                 },
                 'private': {
                     'post': [
+                        'exchange/fund/controller/website/fundcontroller/findbypage',
                     ],
                 },
             },
@@ -231,12 +232,45 @@ module.exports = class bw extends Exchange {
         return this.parseOrderBook (orderbook, ts, 'bids', 'asks', 0, 1);
     }
 
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const response = await this.privatePostExchangeFundControllerWebsiteFundcontrollerFindbypage (params);
+        const data = this.safeValue (response, 'datas', {});
+        const balances = this.safeValue (data, 'list', []);
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            let symbol = this.safeInteger (balance, 'currencyTypeId');
+            if (symbol in this.currencies_by_id) {
+                symbol = this.currencies_by_id[symbol]['code'];
+            }
+            const account = this.account ();
+            const amount = this.safeFloat (balance, 'amount');
+            account['free'] = amount;
+            account['total'] = amount;
+            account['used'] = 0;
+            result[symbol] = account;
+        }
+        return this.parseBalance (result);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'] + path;
         if (method === 'GET') {
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
+        } else {
+            body = this.json (params);
+            const ms = this.milliseconds ();
+            const signing = this.apiKey + ms + body + this.secret;
+            const hash = this.hash (signing, 'md5');
+            if (!headers) {
+                headers = {};
+            }
+            headers['Apiid'] = this.apiKey;
+            headers['Timestamp'] = ms;
+            headers['Sign'] = hash;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
