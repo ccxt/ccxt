@@ -907,8 +907,8 @@ module.exports = class livecoin extends Exchange {
                 if (broadKey !== undefined) {
                     throw new broad[broadKey] (feedback);
                 }
-                throw new ExchangeError (feedback);
             }
+            throw new ExchangeError (feedback);
         }
     }
 };
