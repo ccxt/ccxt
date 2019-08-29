@@ -2123,7 +2123,7 @@ class okex3 (Exchange):
             if currencyId is not None:
                 feeWithCurrencyId = self.safe_string(transaction, 'fee')
                 if feeWithCurrencyId is not None:
-                    feeWithoutCurrencyId = feeWithCurrencyId.replace(currencyId, '')
+                    feeWithoutCurrencyId = feeWithCurrencyId.lower().replace(currencyId.lower(), '')
                     feeCost = float(feeWithoutCurrencyId)
         # todo parse tags
         return {
