@@ -22,9 +22,9 @@ module.exports = class bw extends Exchange {
                 'cancelOrders': false,
                 'CORS': false,
                 'createDepositAddress': false,
-                'createLimitOrder': false,
+                'createLimitOrder': true,
                 'createMarketOrder': false,
-                'createOrder': false,
+                'createOrder': true,
                 'deposit': false,
                 'editOrder': false,
                 'fetchBalance': true,
@@ -111,6 +111,7 @@ module.exports = class bw extends Exchange {
                 'private': {
                     'post': [
                         'exchange/fund/controller/website/fundcontroller/findbypage',
+                        'exchange/entrust/controller/website/EntrustController/addEntrust',
                     ],
                 },
             },
@@ -252,6 +253,30 @@ module.exports = class bw extends Exchange {
             result[symbol] = account;
         }
         return this.parseBalance (result);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        if (price === undefined) {
+            throw new ExchangeError (this.id + ' allows limit orders only');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+            'type': 0, // sell
+            'rangeType': 0, // limit order
+            'marketId': market['id'],
+        };
+        if (type.toLowerCase () === 'buy') {
+            request['type'] = 1; // buy
+        }
+        const response = await this.privatePostExchangeEntrustControllerWebsiteEntrustControllerAddEntrust (this.extend (request, params));
+        const data = this.safeValue (response, 'datas');
+        return {
+            'id': this.safeString (data, 'entrustId'),
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
