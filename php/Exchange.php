@@ -1983,8 +1983,8 @@ class Exchange {
         return $this->fetch_currencies();
     }
 
-    public function fetchBalance() {
-        return $this->fetch_balance();
+    public function fetchBalance($params = array()) {
+        return $this->fetch_balance($params);
     }
 
     public function fetch_balance($params = array()) {
