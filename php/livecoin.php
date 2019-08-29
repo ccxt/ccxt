@@ -126,6 +126,7 @@ class livecoin extends Exchange {
                     '503' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array (
+                    'insufficient funds' => '\\ccxt\\InsufficientFunds', // https://github.com/ccxt/ccxt/issues/5749
                     'NOT FOUND' => '\\ccxt\\OrderNotFound',
                     'Cannot find order' => '\\ccxt\\OrderNotFound',
                     'Minimal amount is' => '\\ccxt\\InvalidOrder',
