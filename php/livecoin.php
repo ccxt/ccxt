@@ -901,15 +901,12 @@ class livecoin extends Exchange {
         if (!$success) {
             $feedback = $this->id . ' ' . $body;
             $broad = $this->exceptions['broad'];
-            $message = $this->safe_string($response, 'message');
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
-            $exception = $this->safe_string($response, 'exception');
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $exception);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
+            $message = $this->safe_string_2($response, 'message', 'exception');
+            if ($message !== null) {
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                if ($broadKey !== null) {
+                    throw new $broad[$broadKey]($feedback);
+                }
             }
             throw new ExchangeError($feedback);
         }
