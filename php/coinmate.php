@@ -190,10 +190,7 @@ class coinmate extends Exchange {
         );
         $response = $this->publicGetOrderBook (array_merge ($request, $params));
         $orderbook = $response['data'];
-        $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -204,10 +201,7 @@ class coinmate extends Exchange {
         );
         $response = $this->publicGetTicker (array_merge ($request, $params));
         $ticker = $this->safe_value($response, 'data');
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -303,10 +297,7 @@ class coinmate extends Exchange {
         $tag = $this->safe_string($item, 'destinationTag');
         $currencyId = $this->safe_string($item, 'amountCurrency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $type = $this->safe_string($item, 'transferType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $type = $this->safe_string_lower($item, 'transferType');
         $status = $this->parse_transaction_status ($this->safe_string($item, 'transferStatus'));
         $id = $this->safe_string($item, 'transactionId');
         return array (
@@ -399,14 +390,8 @@ class coinmate extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        $side = $this->safe_string_2($trade, 'type', 'tradeType');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
-        $type = $this->safe_string($trade, 'orderType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $side = $this->safe_string_lower_2($trade, 'type', 'tradeType');
+        $type = $this->safe_string_lower($trade, 'orderType');
         $orderId = $this->safe_string($trade, 'orderId');
         $id = $this->safe_string($trade, 'transactionId');
         $timestamp = $this->safe_integer_2($trade, 'timestamp', 'createdTimestamp');

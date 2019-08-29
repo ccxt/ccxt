@@ -6,6 +6,8 @@ import re
 __all__ = [
     'TRUNCATE',
     'ROUND',
+    'ROUND_UP',
+    'ROUND_DOWN',
     'DECIMAL_PLACES',
     'SIGNIFICANT_DIGITS',
     'TICK_SIZE',
@@ -18,6 +20,8 @@ __all__ = [
 # rounding mode
 TRUNCATE = 0
 ROUND = 1
+ROUND_UP = 2
+ROUND_DOWN = 3
 
 # digits counting mode
 DECIMAL_PLACES = 2

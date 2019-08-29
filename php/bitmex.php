@@ -154,6 +154,7 @@ class bitmex extends Exchange {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires' => 5, // in seconds
+                'fetchOHLCVOpenTimestamp' => true,
             ),
         ));
     }
@@ -569,7 +570,7 @@ class bitmex extends Exchange {
             $request['count'] = $limit;
         }
         $response = $this->privateGetUserWalletHistory (array_merge ($request, $params));
-        $transactions = $this->filter_by_array($response, array ( 'Withdrawal', 'Deposit' ), false);
+        $transactions = $this->filter_by_array($response, 'transactType', array ( 'Withdrawal', 'Deposit' ), false);
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency ($code);
@@ -610,10 +611,7 @@ class bitmex extends Exchange {
         // For withdrawals, $transactTime is submission, $timestamp is processed
         $transactTime = $this->parse8601 ($this->safe_string($transaction, 'transactTime'));
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'timestamp'));
-        $type = $this->safe_string($transaction, 'transactType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $type = $this->safe_string_lower($transaction, 'transactType');
         // Deposits have no from $address or to $address, withdrawals have both
         $address = null;
         $addressFrom = null;
@@ -872,13 +870,28 @@ class bitmex extends Exchange {
         if ($limit !== null) {
             $request['count'] = $limit; // default 100, max 500
         }
+        $duration = $this->parse_timeframe($timeframe) * 1000;
+        $fetchOHLCVOpenTimestamp = $this->safe_value($this->options, 'fetchOHLCVOpenTimestamp', true);
         // if $since is not set, they will return candles starting from 2017-01-01
         if ($since !== null) {
-            $ymdhms = $this->ymdhms ($since);
+            $timestamp = $since;
+            if ($fetchOHLCVOpenTimestamp) {
+                $timestamp = $this->sum ($timestamp, $duration);
+            }
+            $ymdhms = $this->ymdhms ($timestamp);
             $request['startTime'] = $ymdhms; // starting date $filter for results
         }
         $response = $this->publicGetTradeBucketed (array_merge ($request, $params));
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        $result = $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        if ($fetchOHLCVOpenTimestamp) {
+            // bitmex returns the candle's close $timestamp - https://github.com/ccxt/ccxt/issues/4446
+            // we can emulate the open $timestamp by shifting all the timestamps one place
+            // so the previous close becomes the current open, and we drop the first candle
+            for ($i = 0; $i < count ($result); $i++) {
+                $result[$i][0] = $result[$i][0] - $duration;
+            }
+        }
+        return $result;
     }
 
     public function parse_trade ($trade, $market = null) {
@@ -955,7 +968,7 @@ class bitmex extends Exchange {
         $amount = $this->safe_float_2($trade, 'size', 'lastQty');
         $id = $this->safe_string($trade, 'trdMatchID');
         $order = $this->safe_string($trade, 'orderID');
-        $side = strtolower($this->safe_string($trade, 'side'));
+        $side = $this->safe_string_lower($trade, 'side');
         // $price * $amount doesn't work for all symbols (e.g. XBT, ETH)
         $cost = $this->safe_float($trade, 'execCost');
         if ($cost !== null) {
@@ -988,10 +1001,7 @@ class bitmex extends Exchange {
                 $symbol = $marketId;
             }
         }
-        $type = $this->safe_string($trade, 'ordType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $type = $this->safe_string_lower($trade, 'ordType');
         return array (
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1060,14 +1070,8 @@ class bitmex extends Exchange {
             }
         }
         $id = $this->safe_string($order, 'orderID');
-        $type = $this->safe_string($order, 'ordType');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
-        $side = $this->safe_string($order, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $type = $this->safe_string_lower($order, 'ordType');
+        $side = $this->safe_string_lower($order, 'side');
         return array (
             'info' => $order,
             'id' => $id,
@@ -1213,7 +1217,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }
@@ -1258,8 +1262,7 @@ class bitmex extends Exchange {
             }
         }
         $url = $this->urls['api'] . $query;
-        if ($api === 'private') {
-            $this->check_required_credentials();
+        if ($this->apiKey && $this->secret) {
             $auth = $method . $query;
             $expires = $this->safe_integer($this->options, 'api-expires');
             $headers = array (

@@ -177,7 +177,7 @@ class bibox extends Exchange {
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => null,
+                        'min' => pow(10, -$precision['price']),
                         'max' => null,
                     ),
                 ),
@@ -736,10 +736,10 @@ class bibox extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
         $market = null;
         $pair = null;
         if ($symbol !== null) {
-            $this->load_markets();
             $market = $this->market ($symbol);
             $pair = $market['id'];
         }
@@ -905,7 +905,7 @@ class bibox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

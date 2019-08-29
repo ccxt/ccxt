@@ -82,8 +82,8 @@ const pad = function (string, n) {
     },
     {
         file: './php/Exchange.php',
-        regex: /public static \$exchanges \= array \([^\)]+\)/,
-        replacement: "public static $exchanges = array (\n        '" + ids.join ("',\n        '") + "',\n    )",
+        regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
+        replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
     },
 
 ].forEach (({ file, regex, replacement }) => {

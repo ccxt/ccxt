@@ -346,9 +346,7 @@ class bcex (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer_2(trade, 'date', 'created')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp_2(trade, 'date', 'created')
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
         amount = self.safe_float_2(trade, 'number', 'amount')
@@ -453,9 +451,7 @@ class bcex (Exchange):
         }
         response = self.publicPostApiOrderDepth(self.extend(request, params))
         data = self.safe_value(response, 'data')
-        timestamp = self.safe_integer(data, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(data, 'date')
         return self.parse_order_book(data, timestamp)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -486,9 +482,7 @@ class bcex (Exchange):
         }
         response = self.privatePostApiOrderOrderInfo(self.extend(request, params))
         order = self.safe_value(response, 'data')
-        timestamp = self.safe_integer(order, 'created')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'created')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'flag')
         if side == 'sale':
@@ -515,9 +509,7 @@ class bcex (Exchange):
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
-        timestamp = self.safe_integer(order, 'datetime')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'datetime')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -623,7 +615,7 @@ class bcex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         errorCode = self.safe_value(response, 'code')

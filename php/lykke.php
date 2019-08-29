@@ -122,10 +122,7 @@ class lykke extends Exchange {
         }
         $id = $this->safe_string($trade, 'id');
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'dateTime'));
-        $side = $this->safe_string($trade, 'action');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'action');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
         $cost = $price * $amount;

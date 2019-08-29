@@ -95,7 +95,23 @@ class bleutrade extends bittrex {
                 ),
                 'v3Private' => array (
                     'get' => array (
+                        'getbalance',
+                        'getbalances',
+                        'buylimit',
+                        'selllimit',
+                        'buylimitami',
+                        'selllimitami',
+                        'buystoplimit',
+                        'sellstoplimit',
+                        'ordercancel',
+                        'getopenorders',
+                        'getdeposithistory',
+                        'getdepositaddress',
                         'getmytransactions',
+                        'withdraw',
+                        'directtransfer',
+                        'getwithdrawhistory',
+                        'getlimits',
                     ),
                 ),
             ),
@@ -160,6 +176,10 @@ class bleutrade extends bittrex {
                 'Invalid apikey or apisecret' => '\\ccxt\\AuthenticationError',
             ),
             'options' => array (
+                // price precision by quote currency code
+                'pricePrecisionByCode' => array (
+                    'USD' => 3,
+                ),
                 'parseOrderStatus' => true,
                 'disableNonce' => false,
                 'symbolSeparator' => '_',
@@ -167,6 +187,59 @@ class bleutrade extends bittrex {
         ));
         // bittrex inheritance override
         $result['timeframes'] = $timeframes;
+        return $result;
+    }
+
+    public function fetch_markets ($params = array ()) {
+        // https://github.com/ccxt/ccxt/issues/5668
+        $response = $this->publicGetMarkets ($params);
+        $result = array();
+        $markets = $this->safe_value($response, 'result');
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'MarketName');
+            $baseId = $this->safe_string($market, 'MarketCurrency');
+            $quoteId = $this->safe_string($market, 'BaseCurrency');
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $symbol = $base . '/' . $quote;
+            $pricePrecision = 8;
+            if (is_array($this->options['pricePrecisionByCode']) && array_key_exists($quote, $this->options['pricePrecisionByCode'])) {
+                $pricePrecision = $this->options['pricePrecisionByCode'][$quote];
+            }
+            $precision = array (
+                'amount' => 8,
+                'price' => $pricePrecision,
+            );
+            // bittrex uses boolean values, bleutrade uses strings
+            $active = $this->safe_value($market, 'IsActive', false);
+            if (($active !== 'false') && $active) {
+                $active = true;
+            } else {
+                $active = false;
+            }
+            $result[] = array (
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'active' => $active,
+                'info' => $market,
+                'precision' => $precision,
+                'limits' => array (
+                    'amount' => array (
+                        'min' => $this->safe_float($market, 'MinTradeSize'),
+                        'max' => null,
+                    ),
+                    'price' => array (
+                        'min' => pow(10, -$precision['price']),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
         return $result;
     }
 
@@ -299,7 +372,7 @@ class bleutrade extends bittrex {
         } else if ($trade['OrderType'] === 'SELL') {
             $side = 'sell';
         }
-        $id = $this->safe_string($trade, 'TradeID');
+        $id = $this->safe_string_2($trade, 'TradeID', 'ID');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];

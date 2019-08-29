@@ -9,7 +9,7 @@ sys.path.append(root + '/python')
 
 import ccxt  # noqa: E402
 
-id = 'cryptopia'
+id = 'poloniex'
 
 # instantiate the exchange by id
 exchange = getattr(ccxt, id)({

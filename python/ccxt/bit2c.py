@@ -314,7 +314,7 @@ class bit2c (Exchange):
         side = None
         reference = self.safe_string(trade, 'reference')
         if reference is not None:
-            timestamp = self.safe_integer(trade, 'ticks') * 1000
+            timestamp = self.safe_timestamp(trade, 'ticks')
             price = self.safe_float(trade, 'price')
             amount = self.safe_float(trade, 'firstAmount')
             reference_parts = reference.split('|')  # reference contains: 'pair|orderId|tradeId'
@@ -333,7 +333,7 @@ class bit2c (Exchange):
                 side = 'sell'
             feeCost = self.safe_float(trade, 'feeAmount')
         else:
-            timestamp = self.safe_integer(trade, 'date') * 1000
+            timestamp = self.safe_timestamp(trade, 'date')
             id = self.safe_string(trade, 'tid')
             price = self.safe_float(trade, 'price')
             amount = self.safe_float(trade, 'amount')
@@ -369,9 +369,7 @@ class bit2c (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.implode_params(path, params)
         if api == 'public':
-            # lasttrades is the only endpoint that doesn't require the .json extension/suffix
-            if path.find('lasttrades') < 0:
-                url += '.json'
+            url += '.json'
         else:
             self.check_required_credentials()
             nonce = self.nonce()

@@ -355,6 +355,7 @@ declare module 'ccxt' {
     export class bithumb extends Exchange {}
     export class bitkk extends zb {}
     export class bitlish extends Exchange {}
+    export class bitmart extends Exchange {}
     export class bitmex extends Exchange {}
     export class bitso extends Exchange {}
     export class bitstamp extends Exchange {}
@@ -396,7 +397,8 @@ declare module 'ccxt' {
     export class crex24 extends Exchange {}
     export class crypton extends Exchange {}
     export class deribit extends Exchange {}
-    export class dsx extends liqui {}
+    export class digifinex extends Exchange {}
+    export class dsx extends Exchange {}
     export class dx extends Exchange {}
     export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
@@ -414,6 +416,7 @@ declare module 'ccxt' {
     export class huobipro extends Exchange {}
     export class huobiru extends huobipro {}
     export class ice3x extends Exchange {}
+    export class idex extends Exchange {}
     export class independentreserve extends Exchange {}
     export class indodax extends Exchange {}
     export class itbit extends Exchange {}
@@ -423,8 +426,8 @@ declare module 'ccxt' {
     export class kucoin2 extends kucoin {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
+    export class latoken extends Exchange {}
     export class lbank extends Exchange {}
-    export class liqui extends Exchange {}
     export class liquid extends Exchange {}
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}

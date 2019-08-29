@@ -50,9 +50,9 @@ class huobipro extends Exchange {
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766569-15aa7b9a-5edd-11e7-9e7f-44791f4ee49c.jpg',
                 'api' => array (
-                    'market' => 'https://api.huobi.pro',
-                    'public' => 'https://api.huobi.pro',
-                    'private' => 'https://api.huobi.pro',
+                    'market' => 'https://{hostname}',
+                    'public' => 'https://{hostname}',
+                    'private' => 'https://{hostname}',
                     'zendesk' => 'https://huobiglobal.zendesk.com/hc/en-us/articles',
                 ),
                 'www' => 'https://www.huobi.pro',
@@ -501,14 +501,14 @@ class huobipro extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
-        return [
-            $ohlcv['id'] * 1000,
-            $ohlcv['open'],
-            $ohlcv['high'],
-            $ohlcv['low'],
-            $ohlcv['close'],
-            $ohlcv['amount'],
-        ];
+        return array (
+            $this->safe_timestamp($ohlcv, 'id'),
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'amount'),
+        );
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
@@ -1015,11 +1015,13 @@ class huobipro extends Exchange {
                 $url .= '?' . $this->urlencode ($params);
             }
         }
-        $url = $this->urls['api'][$api] . $url;
+        $url = $this->implode_params($this->urls['api'][$api], array (
+            'hostname' => $this->hostname,
+        )) . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

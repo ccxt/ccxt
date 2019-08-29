@@ -5,6 +5,7 @@
 
 from ccxt.async_support.bittrex import bittrex
 import hashlib
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
@@ -99,7 +100,23 @@ class bleutrade (bittrex):
                 },
                 'v3Private': {
                     'get': [
+                        'getbalance',
+                        'getbalances',
+                        'buylimit',
+                        'selllimit',
+                        'buylimitami',
+                        'selllimitami',
+                        'buystoplimit',
+                        'sellstoplimit',
+                        'ordercancel',
+                        'getopenorders',
+                        'getdeposithistory',
+                        'getdepositaddress',
                         'getmytransactions',
+                        'withdraw',
+                        'directtransfer',
+                        'getwithdrawhistory',
+                        'getlimits',
                     ],
                 },
             },
@@ -164,6 +181,10 @@ class bleutrade (bittrex):
                 'Invalid apikey or apisecret': AuthenticationError,
             },
             'options': {
+                # price precision by quote currency code
+                'pricePrecisionByCode': {
+                    'USD': 3,
+                },
                 'parseOrderStatus': True,
                 'disableNonce': False,
                 'symbolSeparator': '_',
@@ -171,6 +192,55 @@ class bleutrade (bittrex):
         })
         # bittrex inheritance override
         result['timeframes'] = timeframes
+        return result
+
+    async def fetch_markets(self, params={}):
+        # https://github.com/ccxt/ccxt/issues/5668
+        response = await self.publicGetMarkets(params)
+        result = []
+        markets = self.safe_value(response, 'result')
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'MarketName')
+            baseId = self.safe_string(market, 'MarketCurrency')
+            quoteId = self.safe_string(market, 'BaseCurrency')
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            pricePrecision = 8
+            if quote in self.options['pricePrecisionByCode']:
+                pricePrecision = self.options['pricePrecisionByCode'][quote]
+            precision = {
+                'amount': 8,
+                'price': pricePrecision,
+            }
+            # bittrex uses boolean values, bleutrade uses strings
+            active = self.safe_value(market, 'IsActive', False)
+            if (active != 'false') and active:
+                active = True
+            else:
+                active = False
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': self.safe_float(market, 'MinTradeSize'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                },
+            })
         return result
 
     def parse_order_status(self, status):
@@ -284,7 +354,7 @@ class bleutrade (bittrex):
             side = 'buy'
         elif trade['OrderType'] == 'SELL':
             side = 'sell'
-        id = self.safe_string(trade, 'TradeID')
+        id = self.safe_string_2(trade, 'TradeID', 'ID')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -357,7 +427,7 @@ class bleutrade (bittrex):
         #         AssetName: 'Dogecoin',
         #         Amount: -61893.87864686,
         #         Type: 'WITHDRAW',
-        #         Description: 'Withdraw: 61883.87864686 to address DD8tgehNNyYB2iqVazi2W1paaztgcWXtF6 fee 10.00000000',
+        #         Description: 'Withdraw: 61883.87864686 to address DD8tgehNNyYB2iqVazi2W1paaztgcWXtF6; fee 10.00000000',
         #         Comments: '',
         #         CoinSymbol: 'DOGE',
         #         CoinName: 'Dogecoin'
@@ -368,7 +438,7 @@ class bleutrade (bittrex):
         type = self.parse_ledger_entry_type(self.safe_string(item, 'Type'))
         referenceId = None
         fee = None
-        delimiter = ', ' if (type == 'trade') else ' '
+        delimiter = ', ' if (type == 'trade') else '; '
         parts = description.split(delimiter)
         for i in range(0, len(parts)):
             part = parts[i]
@@ -563,7 +633,7 @@ class bleutrade (bittrex):
         #         Coin: 'DOGE',
         #         Amount: '-483858.64312050',
         #         TimeStamp: '2017-11-22 22:29:05',
-        #         Label: '483848.64312050DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT10.00000000',
+        #         Label: '483848.64312050;DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT;10.00000000',
         #         TransactionId: '8563105276cf798385fee7e5a563c620fea639ab132b089ea880d4d1f4309432',
         #     }
         #
@@ -572,7 +642,7 @@ class bleutrade (bittrex):
         #         "Coin": "BTC",
         #         "Amount": "-0.71300000",
         #         "TimeStamp": "2017-07-19 17:14:24",
-        #         "Label": "0.71200000PER9VM2txt4BTdfyWgvv3GziECRdVEPN630.00100000",
+        #         "Label": "0.71200000;PER9VM2txt4BTdfyWgvv3GziECRdVEPN63;0.00100000",
         #         "TransactionId": "CANCELED"
         #     }
         #
@@ -589,7 +659,7 @@ class bleutrade (bittrex):
         txid = self.safe_string(transaction, 'TransactionId')
         address = None
         feeCost = None
-        labelParts = label.split('')
+        labelParts = label.split(';')
         if len(labelParts) == 3:
             amount = float(labelParts[0])
             address = labelParts[1]

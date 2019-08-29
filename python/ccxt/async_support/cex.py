@@ -416,7 +416,7 @@ class cex (Exchange):
         if limit is not None:
             request['depth'] = limit
         response = await self.publicGetOrderBookPair(self.extend(request, params))
-        timestamp = response['timestamp'] * 1000
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
@@ -454,9 +454,7 @@ class cex (Exchange):
                 return []
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = None
-        if 'timestamp' in ticker:
-            timestamp = int(ticker['timestamp']) * 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         volume = self.safe_float(ticker, 'volume')
         high = self.safe_float(ticker, 'high')
         low = self.safe_float(ticker, 'low')
@@ -515,9 +513,7 @@ class cex (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
@@ -752,15 +748,41 @@ class cex (Exchange):
                 #     "balance": "5597.44000000",
                 #     "symbol2": "BCH",
                 #     "fee_amount": "0.01"}
+                # --
+                # trade which should have an amount of exactly 0.002BTC
+                #   {
+                #     "a": "16.70000000",
+                #     "c": "user:up106404164:a:GBP",
+                #     "d": "order:9927386681:a:GBP",
+                #     "cs": "86.90",
+                #     "ds": 0,
+                #     "id": "9927401610",
+                #     "buy": "9927401601",
+                #     "pos": null,
+                #     "pair": null,
+                #     "sell": "9927386681",
+                #     "time": "2019-08-21T15:25:37.777Z",
+                #     "type": "sell",
+                #     "user": "up106404164",
+                #     "order": "9927386681",
+                #     "price": 8365,
+                #     "amount": "16.70000000",
+                #     "office": "UK",
+                #     "symbol": "GBP",
+                #     "balance": "86.90000000",
+                #     "symbol2": "BTC",
+                #     "fee_amount": "0.03"
+                #   }
                 tradeTime = self.safe_string(item, 'time')
                 tradeTimestamp = self.parse8601(tradeTime)
                 tradeAmount = self.safe_float(item, 'amount')
                 tradePrice = self.safe_float(item, 'price')
+                feeCost = self.safe_float(item, 'fee_amount')
                 absTradeAmount = tradeAmount < -tradeAmount if 0 else tradeAmount
                 tradeCost = None
                 if tradeSide == 'sell':
                     tradeCost = absTradeAmount
-                    absTradeAmount = tradeCost / tradePrice
+                    absTradeAmount = self.sum(feeCost, tradeCost) / tradePrice
                 else:
                     tradeCost = absTradeAmount * tradePrice
                 trades.append({
@@ -774,7 +796,7 @@ class cex (Exchange):
                     'cost': tradeCost,
                     'side': tradeSide,
                     'fee': {
-                        'cost': self.safe_float(item, 'fee_amount'),
+                        'cost': feeCost,
                         'currency': market['quote'],
                     },
                     'info': item,
@@ -829,6 +851,24 @@ class cex (Exchange):
         }
         response = await self.privatePostGetOrderTx(self.extend(request, params))
         return self.parse_order(response['data'])
+
+    async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
+        if amount is None:
+            raise ArgumentsRequired(self.id + ' editOrder requires a amount argument')
+        if price is None:
+            raise ArgumentsRequired(self.id + ' editOrder requires a price argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        # see: https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest
+        request = {
+            'pair': market['id'],
+            'type': side,
+            'amount': amount,
+            'price': price,
+            'order_id': id,
+        }
+        response = await self.privatePostCancelReplaceOrderPair(self.extend(request, params))
+        return self.parse_order(response, market)
 
     def nonce(self):
         return self.milliseconds()

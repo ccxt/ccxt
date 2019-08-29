@@ -847,6 +847,9 @@ class hitbtc2 (hitbtc):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string(trade, 'clientOrderId')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'quantity')
@@ -929,6 +932,16 @@ class hitbtc2 (hitbtc):
         #         address: '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
         #     }
         #
+        #     {
+        #         "id": "4f351f4f-a8ee-4984-a468-189ed590ddbd",
+        #         "index": 3112719565,
+        #         "type": "withdraw",
+        #         "status": "success",
+        #         "currency": "BCHOLD",
+        #         "amount": "0.02423133",
+        #         "createdAt": "2019-07-16T16:52:04.494Z",
+        #         "updatedAt": "2019-07-16T16:54:07.753Z"
+        #     }
         id = self.safe_string(transaction, 'id')
         timestamp = self.parse8601(self.safe_string(transaction, 'createdAt'))
         updated = self.parse8601(self.safe_string(transaction, 'updatedAt'))
@@ -936,11 +949,6 @@ class hitbtc2 (hitbtc):
         code = self.safe_currency_code(currencyId, currency)
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amount = self.safe_float(transaction, 'amount')
-        type = self.safe_string(transaction, 'type')
-        if type == 'payin':
-            type = 'deposit'
-        elif type == 'payout':
-            type = 'withdrawal'
         address = self.safe_string(transaction, 'address')
         txid = self.safe_string(transaction, 'hash')
         fee = None
@@ -950,6 +958,7 @@ class hitbtc2 (hitbtc):
                 'cost': feeCost,
                 'currency': code,
             }
+        type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         return {
             'info': transaction,
             'id': id,
@@ -972,7 +981,15 @@ class hitbtc2 (hitbtc):
             'failed': 'failed',
             'success': 'ok',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return self.safe_string(statuses, status, status)
+
+    def parse_transaction_type(self, type):
+        types = {
+            'payin': 'deposit',
+            'payout': 'withdrawal',
+            'withdraw': 'withdrawal',
+        }
+        return self.safe_string(types, type, type)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -991,6 +1008,9 @@ class hitbtc2 (hitbtc):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         # their max accepted length is 32 characters
         uuid = self.uuid()
         parts = uuid.split('-')
@@ -1018,6 +1038,9 @@ class hitbtc2 (hitbtc):
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         # their max accepted length is 32 characters
         uuid = self.uuid()
         parts = uuid.split('-')
@@ -1038,6 +1061,9 @@ class hitbtc2 (hitbtc):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
             'clientOrderId': id,
         }
@@ -1092,6 +1118,9 @@ class hitbtc2 (hitbtc):
         amount = self.safe_float(order, 'quantity')
         filled = self.safe_float(order, 'cumQuantity')
         status = self.parse_order_status(self.safe_string(order, 'status'))
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         id = self.safe_string(order, 'clientOrderId')
         price = self.safe_float(order, 'price')
         if price is None:
@@ -1117,8 +1146,8 @@ class hitbtc2 (hitbtc):
             for i in range(0, numTrades):
                 if feeCost is None:
                     feeCost = 0
-                tradesCost += trades[i]['cost']
-                feeCost += trades[i]['fee']['cost']
+                tradesCost = self.sum(tradesCost, trades[i]['cost'])
+                feeCost = self.sum(feeCost, trades[i]['fee']['cost'])
             cost = tradesCost
             if (filled is not None) and(filled > 0):
                 average = cost / filled
@@ -1152,6 +1181,9 @@ class hitbtc2 (hitbtc):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
             'clientOrderId': id,
         }
@@ -1163,6 +1195,9 @@ class hitbtc2 (hitbtc):
 
     async def fetch_open_order(self, id, symbol=None, params={}):
         await self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
             'clientOrderId': id,
         }
@@ -1340,7 +1375,7 @@ class hitbtc2 (hitbtc):
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         if code >= 400:

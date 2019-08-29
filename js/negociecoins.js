@@ -95,7 +95,7 @@ module.exports = class negociecoins extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = ticker['date'] * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'date');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         const last = this.safeFloat (ticker, 'last');
         return {
@@ -142,7 +142,7 @@ module.exports = class negociecoins extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = trade['date'] * 1000;
+        const timestamp = this.safeTimestamp (trade, 'date');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -157,10 +157,7 @@ module.exports = class negociecoins extends Exchange {
         }
         const id = this.safeString (trade, 'tid');
         const type = 'limit';
-        let side = this.safeString (trade, 'type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'type');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

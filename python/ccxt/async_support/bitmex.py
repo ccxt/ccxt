@@ -163,6 +163,7 @@ class bitmex (Exchange):
                 # https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 # https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5,  # in seconds
+                'fetchOHLCVOpenTimestamp': True,
             },
         })
 
@@ -541,7 +542,7 @@ class bitmex (Exchange):
         if limit is not None:
             request['count'] = limit
         response = await self.privateGetUserWalletHistory(self.extend(request, params))
-        transactions = self.filter_by_array(response, ['Withdrawal', 'Deposit'], False)
+        transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -579,9 +580,7 @@ class bitmex (Exchange):
         # For withdrawals, transactTime is submission, timestamp is processed
         transactTime = self.parse8601(self.safe_string(transaction, 'transactTime'))
         timestamp = self.parse8601(self.safe_string(transaction, 'timestamp'))
-        type = self.safe_string(transaction, 'transactType')
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(transaction, 'transactType')
         # Deposits have no from address or to address, withdrawals have both
         address = None
         addressFrom = None
@@ -823,12 +822,24 @@ class bitmex (Exchange):
         }
         if limit is not None:
             request['count'] = limit  # default 100, max 500
+        duration = self.parse_timeframe(timeframe) * 1000
+        fetchOHLCVOpenTimestamp = self.safe_value(self.options, 'fetchOHLCVOpenTimestamp', True)
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
-            ymdhms = self.ymdhms(since)
+            timestamp = since
+            if fetchOHLCVOpenTimestamp:
+                timestamp = self.sum(timestamp, duration)
+            ymdhms = self.ymdhms(timestamp)
             request['startTime'] = ymdhms  # starting date filter for results
         response = await self.publicGetTradeBucketed(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        result = self.parse_ohlcvs(response, market, timeframe, since, limit)
+        if fetchOHLCVOpenTimestamp:
+            # bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
+            # we can emulate the open timestamp by shifting all the timestamps one place
+            # so the previous close becomes the current open, and we drop the first candle
+            for i in range(0, len(result)):
+                result[i][0] = result[i][0] - duration
+        return result
 
     def parse_trade(self, trade, market=None):
         #
@@ -904,7 +915,7 @@ class bitmex (Exchange):
         amount = self.safe_float_2(trade, 'size', 'lastQty')
         id = self.safe_string(trade, 'trdMatchID')
         order = self.safe_string(trade, 'orderID')
-        side = self.safe_string(trade, 'side').lower()
+        side = self.safe_string_lower(trade, 'side')
         # price * amount doesn't work for all symbols(e.g. XBT, ETH)
         cost = self.safe_float(trade, 'execCost')
         if cost is not None:
@@ -932,9 +943,7 @@ class bitmex (Exchange):
                 symbol = market['symbol']
             else:
                 symbol = marketId
-        type = self.safe_string(trade, 'ordType')
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(trade, 'ordType')
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -995,12 +1004,8 @@ class bitmex (Exchange):
             elif price is not None:
                 cost = price * filled
         id = self.safe_string(order, 'orderID')
-        type = self.safe_string(order, 'ordType')
-        if type is not None:
-            type = type.lower()
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        type = self.safe_string_lower(order, 'ordType')
+        side = self.safe_string_lower(order, 'side')
         return {
             'info': order,
             'id': id,
@@ -1129,7 +1134,7 @@ class bitmex (Exchange):
             'id': response['transactID'],
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         if code == 429:
@@ -1163,8 +1168,7 @@ class bitmex (Exchange):
                 query += '?' + self.urlencode({'_format': format})
                 params = self.omit(params, '_format')
         url = self.urls['api'] + query
-        if api == 'private':
-            self.check_required_credentials()
+        if self.apiKey and self.secret:
             auth = method + query
             expires = self.safe_integer(self.options, 'api-expires')
             headers = {

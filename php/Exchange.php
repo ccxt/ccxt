@@ -30,15 +30,17 @@ SOFTWARE.
 
 namespace ccxt;
 
-use kornrunner\Eth;
-use kornrunner\Secp256k1;
+use kornrunner\Keccak;
 use kornrunner\Solidity;
+use Elliptic\EC;
 
-$version = '1.18.946';
+$version = '1.18.1103';
 
 // rounding mode
 const TRUNCATE = 0;
 const ROUND = 1;
+const ROUND_UP = 2;
+const ROUND_DOWN = 3;
 
 // digits counting mode
 const DECIMAL_PLACES = 0;
@@ -51,7 +53,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.946';
+    const VERSION = '1.18.1103';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -101,6 +103,7 @@ class Exchange {
         'bithumb',
         'bitkk',
         'bitlish',
+        'bitmart',
         'bitmex',
         'bitso',
         'bitstamp',
@@ -142,6 +145,7 @@ class Exchange {
         'crex24',
         'crypton',
         'deribit',
+        'digifinex',
         'dsx',
         'dx',
         'ethfinex',
@@ -160,6 +164,7 @@ class Exchange {
         'huobipro',
         'huobiru',
         'ice3x',
+        'idex',
         'independentreserve',
         'indodax',
         'itbit',
@@ -169,8 +174,8 @@ class Exchange {
         'kucoin2',
         'kuna',
         'lakebtc',
+        'latoken',
         'lbank',
-        'liqui',
         'liquid',
         'livecoin',
         'luno',
@@ -221,8 +226,24 @@ class Exchange {
         return (isset($object[$key]) && is_scalar($object[$key])) ? strval($object[$key]) : $default_value;
     }
 
+    public static function safe_string_lower($object, $key, $default_value = null) {
+        return (isset($object[$key]) && is_scalar($object[$key])) ? strtolower(strval($object[$key])) : $default_value;
+    }
+
+    public static function safe_string_upper($object, $key, $default_value = null) {
+        return (isset($object[$key]) && is_scalar($object[$key])) ? strtoupper(strval($object[$key])) : $default_value;
+    }
+
     public static function safe_integer($object, $key, $default_value = null) {
         return (isset($object[$key]) && is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
+    }
+
+    public static function safe_integer_product($object, $key, $factor, $default_value = null) {
+        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key]) * $factor) : $default_value;
+    }
+
+    public static function safe_timestamp($object, $key, $default_value = null) {
+        return static::safe_integer_product($object, $key, 1000, $default_value);
     }
 
     public static function safe_value($object, $key, $default_value = null) {
@@ -242,9 +263,28 @@ class Exchange {
         return isset($value) ? $value : static::safe_string($object, $key2, $default_value);
     }
 
+    public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string_lower($object, $key1);
+        return isset($value) ? $value : static::safe_string_lower($object, $key2, $default_value);
+    }
+
+    public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string_upper($object, $key1);
+        return isset($value) ? $value : static::safe_string_upper($object, $key2, $default_value);
+    }
+
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_integer($object, $key1);
         return isset($value) ? $value : static::safe_integer($object, $key2, $default_value);
+    }
+
+    public static function safe_integer_product_2($object, $key1, $key2, $factor, $default_value = null) {
+        $value = static::safe_integer_product($object, $key1, $factor);
+        return isset($value) ? $value : static::safe_integer_product($object, $key2, $factor, $default_value);
+    }
+
+    public static function safe_timestamp_2($object, $key1, $key2, $default_value = null) {
+        return static::safe_integer_product_2($object, $key1, $key2, 1000, $default_value);
     }
 
     public static function safe_value_2($object, $key1, $key2, $default_value = null) {
@@ -310,6 +350,13 @@ class Exchange {
             $scale = 60;
         }
         return $amount * $scale;
+    }
+
+    public static function round_timeframe($timeframe, $timestamp, $direction=ROUND_DOWN) {
+        $ms = static::parse_timeframe($timeframe) * 1000;
+        // Get offset based on timeframe in milliseconds
+        $offset = $timestamp % $ms;
+        return $timestamp - $offset + (($direction === ROUND_UP) ? $ms : 0);
     }
 
     // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
@@ -537,7 +584,7 @@ class Exchange {
     }
 
     public static function urlencodeBase64($string) {
-        return preg_replace(array('#[=]+$#u', '#\+#u', '#\\/#'), array('', '-', '_'), base64_encode($string));
+        return preg_replace(array('#[=]+$#u', '#\+#u', '#\\/#'), array('', '-', '_'), \base64_encode($string));
     }
 
     public function urlencode($string) {
@@ -644,7 +691,7 @@ class Exchange {
 
 
     public static function binary_to_base64($binary) {
-        return base64_encode($binary);
+        return \base64_encode($binary);
     }
 
     public static function binaryToBase64($binary) {
@@ -1013,9 +1060,9 @@ class Exchange {
     public static function hash($request, $type = 'md5', $digest = 'hex') {
         $base64 = ('base64' === $digest);
         $binary = ('binary' === $digest);
-        $hash = hash($type, $request, ($binary || $base64) ? true : false);
+        $hash = \hash($type, $request, ($binary || $base64) ? true : false);
         if ($base64) {
-            $hash = base64_encode($hash);
+            $hash = \base64_encode($hash);
         }
         return $hash;
     }
@@ -1023,21 +1070,21 @@ class Exchange {
     public static function hmac($request, $secret, $type = 'sha256', $digest = 'hex') {
         $base64 = ('base64' === $digest);
         $binary = ('binary' === $digest);
-        $hmac = hash_hmac($type, $request, $secret, ($binary || $base64) ? true : false);
+        $hmac = \hash_hmac($type, $request, $secret, ($binary || $base64) ? true : false);
         if ($base64) {
-            $hmac = base64_encode($hmac);
+            $hmac = \base64_encode($hmac);
         }
         return $hmac;
     }
 
-    public function jwt($request, $secret, $alg = 'HS256') {
+    public static function jwt($request, $secret, $alg = 'HS256') {
         $algorithms = array(
             'HS256' => 'sha256',
             'HS384' => 'sha384',
             'HS512' => 'sha512',
         );
-        $encodedHeader = $this->urlencodeBase64(json_encode(array('alg' => $alg, 'typ' => 'JWT')));
-        $encodedData = $this->urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
+        $encodedHeader = static::urlencodeBase64(json_encode(array('alg' => $alg, 'typ' => 'JWT')));
+        $encodedData = static::urlencodeBase64(json_encode($request, JSON_UNESCAPED_SLASHES));
         $token = $encodedHeader . '.' . $encodedData;
         $algoType = substr($alg, 0, 2);
 
@@ -1050,7 +1097,7 @@ class Exchange {
         } elseif ($algoType === 'RS') {
             $signature = static::rsa($token, $secret, $alg);
         }
-        return $token . '.' . $this->urlencodeBase64($signature);
+        return $token . '.' . static::urlencodeBase64($signature);
     }
 
     public static function rsa($request, $secret, $alg = 'RS256') {
@@ -1065,6 +1112,21 @@ class Exchange {
         $algName = $algorithms[$alg];
         $signature = null;
         \openssl_sign($request, $signature, $secret, $algName);
+        return $signature;
+    }
+
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null) {
+        $digest = $request;
+        if ($hash !== null) {
+            $digest = static::hash($request, $hash, 'hex');
+        }
+        $ec = new EC(strtolower($algorithm));
+        $key = $ec->keyFromPrivate($secret);
+        $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
+        $signature = array();
+        $signature['r'] = $ellipticSignature->r->bi->toHex();
+        $signature['s'] = $ellipticSignature->s->bi->toHex();
+        $signature['v'] = $ellipticSignature->recoveryParam;
         return $signature;
     }
 
@@ -1106,7 +1168,7 @@ class Exchange {
         return null;
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $request_headers, $request_body) {
         // it's a stub function, does nothing in base code
     }
 
@@ -1277,7 +1339,7 @@ class Exchange {
             print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
-        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response);
+        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
 
         if ($result === false) {
             if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
@@ -1460,11 +1522,11 @@ class Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 0) {
+    public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
         return array(floatval($bidask[$price_key]), floatval($bidask[$amount_key]));
     }
 
-    public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 1) {
         $result = array();
         $array = is_array($bidasks) ? array_values($bidasks) : array();
         foreach ($array as $bidask) {
@@ -1473,11 +1535,11 @@ class Exchange {
         return $result;
     }
 
-    public function parseBidAsk($bidask, $price_key = 0, $amount_key = 0) {
+    public function parseBidAsk($bidask, $price_key = 0, $amount_key = 1) {
         return $this->parse_bid_ask($bidask, $price_key, $amount_key);
     }
 
-    public function parseBidsAsks($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parseBidsAsks($bidasks, $price_key = 0, $amount_key = 1) {
         return $this->parse_bids_asks($bidasks, $price_key, $amount_key);
     }
 
@@ -1645,7 +1707,14 @@ class Exchange {
         $array = is_array($items) ? array_values($items) : array();
         $result = array();
         foreach ($array as $item) {
-            $result[] = array_replace_recursive($this->parse_ledger_entry($item, $currency), $params);
+            $entry = $this->parse_ledger_entry($item, $currency);
+            if (gettype ($entry) === 'array' && count (array_filter (array_keys ($entry), 'is_string')) == 0) {
+                foreach ($entry as $i) {
+                    $result[] = array_replace_recursive($i, $params);
+                }
+            } else {
+                $result[] = array_replace_recursive($entry, $params);
+            }
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;
@@ -1776,6 +1845,10 @@ class Exchange {
 
     public function fetchBidsAsks($symbols, $params = array()) {
         return $this->fetch_bids_asks($symbols, $params);
+    }
+
+    public function fetch_ticker($symbol, $params = array()) { // stub
+        throw new NotSupported($this->id . ' fetchTicker not supported yet');
     }
 
     public function fetch_tickers($symbols, $params = array()) { // stub
@@ -2404,7 +2477,7 @@ class Exchange {
             $dotPosition = $dotIndex ?: 0;
             if ($countingMode === DECIMAL_PLACES) {
                 if ($dotIndex) {
-                    list($before, $after) = explode('.', $x);
+                    list($before, $after) = explode('.', static::number_to_string($x));
                     $result = $before . '.' . substr($after, 0, $numPrecisionDigits);
                 } else {
                     $result = $x;
@@ -2431,7 +2504,7 @@ class Exchange {
             $result = rtrim($result, '.');
         }
 
-        $hasDot = false !== strpos($result, '.');
+        $hasDot = (false !== strpos($result, '.'));
         if ($paddingMode === NO_PADDING) {
             if (($result === '')  && ($numPrecisionDigits === 0)) {
                 return '0';
@@ -2578,18 +2651,6 @@ class Exchange {
         return (string) (int) (('wei' === $unit) ? $amount : bcmul($amount, Exchange::$eth_units[$unit]));
     }
 
-    // decryptAccountFromJSON (json, password) {
-    //     return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)
-    // }
-
-    // decryptAccount (key, password) {
-    //     return this.web3.eth.accounts.decrypt (key, password)
-    // }
-
-    // decryptAccountFromPrivateKey (privateKey) {
-    //     return this.web3.eth.accounts.privateKeyToAccount (privateKey)
-    // }
-
     public function getZeroExOrderHash($order) {
         // $unpacked = array (
         //     "0x90fe2af704b34e0224bf2299c838e04d4dcf1364", // exchangeContractAddress
@@ -2642,29 +2703,30 @@ class Exchange {
 
     public function signZeroExOrder($order, $privateKey) {
         $orderHash = $this->getZeroExOrderHash($order);
-        $signature = $this->signMessage($orderHash, privateKey);
+        $signature = $this->signMessage($orderHash, $privateKey);
         return array_merge($order, array(
             'orderHash' => $orderHash,
             'ecSignature' => $signature, // todo fix v if needed
         ));
     }
 
-    public function hashMessage($message) {
-        return '0x' . Eth::hashPersonalMessage($message);
+    public static function hashMessage($message) {
+        $buffer = unpack('C*', hex2bin($message));
+        $prefix = bin2hex("\u{0019}Ethereum Signed Message:\n" . sizeof($buffer));
+        return '0x' . Keccak::hash(hex2bin($prefix . $message), 256);
     }
 
-    public function signHash($hash, $privateKey) {
-        $secp256k1 = new Secp256k1();
-        $signature = $secp256k1->sign($hash, $privateKey);
+    public static function signHash($hash, $privateKey) {
+        $signature = static::ecdsa($hash, $privateKey, 'secp256k1', null);
         return array(
-            'v' => $signature->getRecoveryParam() + 27, // integer
-            'r' => '0x' . gmp_strval($signature->getR(), 16), // '0x'-prefixed hex string
-            's' => '0x' . gmp_strval($signature->getS(), 16), // '0x'-prefixed hex string
+            'r' => '0x' . $signature['r'],
+            's' => '0x' . $signature['s'],
+            'v' => 27 + $signature['v'],
         );
     }
 
-    public function signMessage($message, $privateKey) {
-        return $this->signHash($this->hashMessage($message), $privateKey);
+    public static function signMessage($message, $privateKey) {
+        return static::signHash(static::hashMessage($message), $privateKey);
     }
 
     public function oath() {

@@ -85,7 +85,7 @@ class bl3p (Exchange):
             result[code] = account
         return self.parse_balance(result)
 
-    def parse_bid_ask(self, bidask, priceKey=0, amountKey=0):
+    def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
         return [
             bidask[priceKey] / 100000.0,
             bidask[amountKey] / 100000000.0,
@@ -105,9 +105,7 @@ class bl3p (Exchange):
             'market': self.market_id(symbol),
         }
         ticker = self.publicGetMarketTicker(self.extend(request, params))
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,

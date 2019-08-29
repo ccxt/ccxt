@@ -248,10 +248,7 @@ class oceanex extends Exchange {
         //         }
         //
         $ticker = $this->safe_value($data, 'ticker', array());
-        $timestamp = $this->safe_integer($data, 'at');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($data, 'at');
         return array (
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -306,10 +303,7 @@ class oceanex extends Exchange {
         //     }
         //
         $orderbook = $this->safe_value($response, 'data', array());
-        $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $timestamp);
     }
 
@@ -356,10 +350,7 @@ class oceanex extends Exchange {
             $marketId = $this->safe_string($orderbook, 'market');
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
-            $timestamp = $this->safe_integer($orderbook, 'timestamp');
-            if ($timestamp !== null) {
-                $timestamp = $timestamp * 1000;
-            }
+            $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
             $result[$symbol] = $this->parse_order_book($orderbook, $timestamp);
         }
         return $result;
@@ -401,11 +392,9 @@ class oceanex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $timestamp = $this->safe_integer($trade, 'created_on');
+        $timestamp = $this->safe_timestamp($trade, 'created_on');
         if ($timestamp === null) {
             $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
-        } else {
-            $timestamp = $timestamp * 1000;
         }
         return array (
             'info' => $trade,
@@ -429,8 +418,7 @@ class oceanex extends Exchange {
         //
         //     array("code":0,"message":"Operation successful","data":1559433420)
         //
-        $timestamp = $this->safe_integer($response, 'data');
-        return $timestamp * 1000;
+        return $this->safe_timestamp($response, 'data');
     }
 
     public function fetch_all_trading_fees ($params = array ()) {
@@ -571,11 +559,9 @@ class oceanex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $timestamp = $this->safe_integer($order, 'created_on');
+        $timestamp = $this->safe_timestamp($order, 'created_on');
         if ($timestamp === null) {
             $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
-        } else {
-            $timestamp = $timestamp * 1000;
         }
         return array (
             'info' => $order,
@@ -672,7 +658,7 @@ class oceanex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         //
         //     array("$code":1011,"$message":"This IP '5.228.233.138' is not allowed","data":array())
         //

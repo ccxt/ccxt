@@ -18,6 +18,13 @@ class vaultoro extends Exchange {
             'version' => '1',
             'has' => array (
                 'CORS' => true,
+                'fetchMarkets' => true,
+                'fetchOrderBook' => true,
+                'fetchBalance' => true,
+                'createOrder' => true,
+                'cancelOrder' => true,
+                'fetchTrades' => true,
+                'fetchTicker' => false,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27766880-f205e870-5ee9-11e7-8fe2-0d5b15880752.jpg',
@@ -107,40 +114,6 @@ class vaultoro extends Exchange {
             'asks' => $response['data'][1]['s'],
         );
         return $this->parse_order_book($orderbook, null, 'bids', 'asks', 'Gold_Price', 'Gold_Amount');
-    }
-
-    public function fetch_ticker ($symbol, $params = array ()) {
-        $this->load_markets();
-        $quote = $this->publicGetBidandask ($params);
-        $bidsLength = is_array ($quote['bids']) ? count ($quote['bids']) : 0;
-        $bid = $quote['bids'][$bidsLength - 1];
-        $ask = $quote['asks'][0];
-        $response = $this->publicGetMarkets ($params);
-        $ticker = $this->safe_value($response, 'data');
-        $timestamp = $this->milliseconds ();
-        $last = $this->safe_float($ticker, 'LastPrice');
-        return array (
-            'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'high' => $this->safe_float($ticker, '24hHigh'),
-            'low' => $this->safe_float($ticker, '24hLow'),
-            'bid' => $bid[0],
-            'bidVolume' => null,
-            'ask' => $ask[0],
-            'askVolume' => null,
-            'vwap' => null,
-            'open' => null,
-            'close' => $last,
-            'last' => $last,
-            'previousClose' => null,
-            'change' => null,
-            'percentage' => null,
-            'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_float($ticker, '24hVolume'),
-            'info' => $ticker,
-        );
     }
 
     public function parse_trade ($trade, $market = null) {

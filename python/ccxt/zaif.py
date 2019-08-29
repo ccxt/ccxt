@@ -238,9 +238,7 @@ class zaif (Exchange):
     def parse_trade(self, trade, market=None):
         side = self.safe_string(trade, 'trade_type')
         side = 'buy' if (side == 'bid') else 'sell'
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         id = self.safe_string_2(trade, 'id', 'tid')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
@@ -310,9 +308,7 @@ class zaif (Exchange):
     def parse_order(self, order, market=None):
         side = self.safe_string(order, 'action')
         side = 'buy' if (side == 'bid') else 'sell'
-        timestamp = self.safe_integer(order, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'timestamp')
         if not market:
             marketId = self.safe_string(order, 'currency_pair')
             if marketId in self.markets_by_id:
@@ -441,7 +437,7 @@ class zaif (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         #

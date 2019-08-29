@@ -149,9 +149,10 @@ class bithumb (Exchange):
             account = self.account()
             currency = self.currency(code)
             currencyId = currency['id']
-            account['total'] = self.safe_float(balances, 'total_' + currencyId)
-            account['used'] = self.safe_float(balances, 'in_use_' + currencyId)
-            account['free'] = self.safe_float(balances, 'available_' + currencyId)
+            lowercase = currencyId.lower()
+            account['total'] = self.safe_float(balances, 'total_' + lowercase)
+            account['used'] = self.safe_float(balances, 'in_use_' + lowercase)
+            account['free'] = self.safe_float(balances, 'available_' + lowercase)
             result[code] = account
         return self.parse_balance(result)
 
@@ -185,6 +186,9 @@ class bithumb (Exchange):
             average = self.sum(open, close) / 2
         vwap = self.safe_float(ticker, 'average_price')
         baseVolume = self.safe_float(ticker, 'volume_1day')
+        quoteVolume = None
+        if vwap is not None and baseVolume is not None:
+            quoteVolume = baseVolume * vwap
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -204,7 +208,7 @@ class bithumb (Exchange):
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
-            'quoteVolume': baseVolume * vwap,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
@@ -379,7 +383,7 @@ class bithumb (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'status' in response:

@@ -522,10 +522,7 @@ class okcoinusd extends Exchange {
         $request = array();
         $response = $this->publicGetTickers (array_merge ($request, $params));
         $tickers = $response['tickers'];
-        $timestamp = $this->safe_integer($response, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($response, 'date');
         $result = array();
         for ($i = 0; $i < count ($tickers); $i++) {
             $ticker = $tickers[$i];
@@ -646,9 +643,8 @@ class okcoinusd extends Exchange {
         if ($ticker === null) {
             throw new ExchangeError($this->id . ' fetchTicker returned an empty $response => ' . $this->json ($response));
         }
-        $timestamp = $this->safe_integer($response, 'date');
+        $timestamp = $this->safe_timestamp($response, 'date');
         if ($timestamp !== null) {
-            $timestamp *= 1000;
             $ticker = array_merge ($ticker, array( 'timestamp' => $timestamp ));
         }
         return $this->parse_ticker($ticker, $market);
@@ -770,8 +766,9 @@ class okcoinusd extends Exchange {
             'type' => $orderSide,
         ));
         if ($market['future']) {
-            $request['match_price'] = 0; // match best counter party $price? 0 or 1, ignores $price if 1
+            $request['match_price'] = ($type === 'market') ? 1 : 0; // match best counter party $price? 0 or 1, ignores $price if 1
             $request['lever_rate'] = 10; // leverage rate value => 10 or 20 (10 by default)
+            $request['type'] = ($side === 'buy') ? '1' : '2';
         } else if ($type === 'market') {
             if ($side === 'buy') {
                 if (!$orderPrice) {
@@ -1091,7 +1088,7 @@ class okcoinusd extends Exchange {
         ), $params);
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default $error handler
         }

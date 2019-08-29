@@ -406,7 +406,7 @@ class gdax (Exchange):
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)
-        return self.parse8601(self.parse8601(response, 'iso'))
+        return self.parse8601(response, 'iso')
 
     def parse_order_status(self, status):
         statuses = {
@@ -762,7 +762,7 @@ class gdax (Exchange):
             'info': response,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (code == 400) or (code == 404):
             if body[0] == '{':
                 message = response['message']

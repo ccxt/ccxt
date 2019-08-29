@@ -56,6 +56,7 @@ class binance extends Exchange {
                 'api' => array (
                     'web' => 'https://www.binance.com',
                     'wapi' => 'https://api.binance.com/wapi/v3',
+                    'sapi' => 'https://api.binance.com/sapi/v1',
                     'public' => 'https://api.binance.com/api/v1',
                     'private' => 'https://api.binance.com/api/v3',
                     'v3' => 'https://api.binance.com/api/v3',
@@ -74,6 +75,14 @@ class binance extends Exchange {
                     'get' => array (
                         'exchange/public/product',
                         'assetWithdraw/getAllAsset.html',
+                    ),
+                ),
+                'sapi' => array (
+                    'get' => array (
+                        'asset/assetDividend',
+                    ),
+                    'post' => array (
+                        'asset/dust',
                     ),
                 ),
                 'wapi' => array (
@@ -642,23 +651,17 @@ class binance extends Exchange {
             }
         }
         $id = $this->safe_string($order, 'orderId');
-        $type = $this->safe_string($order, 'type');
-        if ($type !== null) {
-            $type = strtolower($type);
-            if ($type === 'market') {
-                if ($price === 0.0) {
-                    if (($cost !== null) && ($filled !== null)) {
-                        if (($cost > 0) && ($filled > 0)) {
-                            $price = $cost / $filled;
-                        }
+        $type = $this->safe_string_lower($order, 'type');
+        if ($type === 'market') {
+            if ($price === 0.0) {
+                if (($cost !== null) && ($filled !== null)) {
+                    if (($cost > 0) && ($filled > 0)) {
+                        $price = $cost / $filled;
                     }
                 }
             }
         }
-        $side = $this->safe_string($order, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'side');
         $fee = null;
         $trades = null;
         $fills = $this->safe_value($order, 'fills');
@@ -1246,7 +1249,7 @@ class binance extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        if (($api === 'private') || ($api === 'wapi' && $path !== 'systemStatus')) {
+        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus')) {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge (array (
                 'timestamp' => $this->nonce (),
@@ -1276,7 +1279,7 @@ class binance extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }

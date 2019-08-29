@@ -221,10 +221,6 @@ class bittrex extends Exchange {
                 'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
             ),
             'options' => array (
-                // price precision by quote currency code
-                'pricePrecisionByCode' => array (
-                    'USD' => 3,
-                ),
                 'parseOrderStatus' => false,
                 'hasAlreadyAuthenticatedSuccessfully' => false, // a workaround for APIKEY_INVALID
                 'symbolSeparator' => '-',
@@ -254,7 +250,7 @@ class bittrex extends Exchange {
             ),
             'commonCurrencies' => array (
                 'BITS' => 'SWIFT',
-                'CPC' => 'CapriCoin',
+                'CPC' => 'Capricoin',
             ),
         ));
     }
@@ -268,34 +264,52 @@ class bittrex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        // https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
-        // https://github.com/ccxt/ccxt/pull/4304
-        $response = $this->publicGetMarkets ($params);
+        $response = $this->v3publicGetMarkets ($params);
+        //
+        //     array (
+        //         array (
+        //             "$symbol":"LTC-BTC",
+        //             "baseCurrencySymbol":"LTC",
+        //             "quoteCurrencySymbol":"BTC",
+        //             "minTradeSize":"0.01686767",
+        //             "$precision":8,
+        //             "$status":"ONLINE", // "OFFLINE"
+        //             "createdAt":"2014-02-13T00:00:00Z"
+        //         ),
+        //         {
+        //             "$symbol":"VDX-USDT",
+        //             "baseCurrencySymbol":"VDX",
+        //             "quoteCurrencySymbol":"USDT",
+        //             "minTradeSize":"300.00000000",
+        //             "$precision":8,
+        //             "$status":"ONLINE", // "OFFLINE"
+        //             "createdAt":"2019-05-23T00:41:21.843Z",
+        //             "notice":"USDT has swapped to an ERC20-based token as of August 5, 2019."
+        //         }
+        //     )
+        //
         $result = array();
-        $markets = $this->safe_value($response, 'result');
-        for ($i = 0; $i < count ($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'MarketName');
-            $baseId = $this->safe_string($market, 'MarketCurrency');
-            $quoteId = $this->safe_string($market, 'BaseCurrency');
+        // $markets = $this->safe_value($response, 'result');
+        for ($i = 0; $i < count ($response); $i++) {
+            $market = $response[$i];
+            $baseId = $this->safe_string($market, 'baseCurrencySymbol');
+            $quoteId = $this->safe_string($market, 'quoteCurrencySymbol');
+            // bittrex v2 uses inverted pairs, v3 uses regular pairs
+            // we use v3 for fetchMarkets and v2 throughout the rest of this implementation
+            // therefore we swap the $base ←→ $quote here to be v2-compatible
+            // https://github.com/ccxt/ccxt/issues/5634
+            // $id = $this->safe_string($market, 'symbol');
+            $id = $quoteId . $this->options['symbolSeparator'] . $baseId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $pricePrecision = 8;
-            if (is_array($this->options['pricePrecisionByCode']) && array_key_exists($quote, $this->options['pricePrecisionByCode'])) {
-                $pricePrecision = $this->options['pricePrecisionByCode'][$quote];
-            }
+            $pricePrecision = $this->safe_integer($market, 'precision', 8);
             $precision = array (
                 'amount' => 8,
                 'price' => $pricePrecision,
             );
-            // bittrex uses boolean values, bleutrade uses strings
-            $active = $this->safe_value($market, 'IsActive', false);
-            if (($active !== 'false') && $active) {
-                $active = true;
-            } else {
-                $active = false;
-            }
+            $status = $this->safe_string($market, 'status');
+            $active = ($status === 'ONLINE');
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -308,7 +322,7 @@ class bittrex extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => $this->safe_float($market, 'MinTradeSize'),
+                        'min' => $this->safe_float($market, 'minTradeSize'),
                         'max' => null,
                     ),
                     'price' => array (
@@ -764,18 +778,17 @@ class bittrex extends Exchange {
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = 'pending';
         if ($type === 'deposit') {
-            if ($currency !== null) {
-                // deposits $numConfirmations never reach the $minConfirmations number
-                // we set all of them to 'ok', otherwise they'd all be 'pending'
-                //
-                //     $numConfirmations = $this->safe_integer($transaction, 'Confirmations', 0);
-                //     $minConfirmations = $this->safe_integer($currency['info'], 'MinConfirmation');
-                //     if ($numConfirmations >= $minConfirmations) {
-                //         $status = 'ok';
-                //     }
-                //
-                $status = 'ok';
-            }
+            //
+            // deposits $numConfirmations never reach the $minConfirmations number
+            // we set all of them to 'ok', otherwise they'd all be 'pending'
+            //
+            //     $numConfirmations = $this->safe_integer($transaction, 'Confirmations', 0);
+            //     $minConfirmations = $this->safe_integer($currency['info'], 'MinConfirmation');
+            //     if ($numConfirmations >= $minConfirmations) {
+            //         $status = 'ok';
+            //     }
+            //
+            $status = 'ok';
         } else {
             $authorized = $this->safe_value($transaction, 'Authorized', false);
             $pendingPayment = $this->safe_value($transaction, 'PendingPayment', false);
@@ -880,7 +893,7 @@ class bittrex extends Exchange {
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
-        $direction = $this->safe_string($order, 'direction');
+        $direction = $this->safe_string_lower($order, 'direction');
         $createdAt = $this->safe_string($order, 'createdAt');
         $updatedAt = $this->safe_string($order, 'updatedAt');
         $closedAt = $this->safe_string($order, 'closedAt');
@@ -891,13 +904,13 @@ class bittrex extends Exchange {
             $lastTradeTimestamp = $this->parse8601 ($updatedAt);
         }
         $timestamp = $this->parse8601 ($createdAt);
-        $type = $this->safe_string($order, 'type');
+        $type = $this->safe_string_lower($order, 'type');
         $quantity = $this->safe_float($order, 'quantity');
         $limit = $this->safe_float($order, 'limit');
         $fillQuantity = $this->safe_float($order, 'fillQuantity');
         $commission = $this->safe_float($order, 'commission');
         $proceeds = $this->safe_float($order, 'proceeds');
-        $status = $this->safe_string($order, 'status');
+        $status = $this->safe_string_lower($order, 'status');
         $average = null;
         $remaining = null;
         if ($fillQuantity !== null) {
@@ -918,15 +931,15 @@ class bittrex extends Exchange {
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
-            'type' => strtolower($type),
-            'side' => strtolower($direction),
+            'type' => $type,
+            'side' => $direction,
             'price' => $limit,
             'cost' => $proceeds,
             'average' => $average,
             'amount' => $quantity,
             'filled' => $fillQuantity,
             'remaining' => $remaining,
-            'status' => strtolower($status),
+            'status' => $status,
             'fee' => array (
                 'cost' => $commission,
                 'currency' => $feeCurrency,
@@ -1298,7 +1311,7 @@ class bittrex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

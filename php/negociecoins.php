@@ -96,7 +96,7 @@ class negociecoins extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $ticker['date'] * 1000;
+        $timestamp = $this->safe_timestamp($ticker, 'date');
         $symbol = ($market !== null) ? $market['symbol'] : null;
         $last = $this->safe_float($ticker, 'last');
         return array (
@@ -143,7 +143,7 @@ class negociecoins extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $trade['date'] * 1000;
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -158,10 +158,7 @@ class negociecoins extends Exchange {
         }
         $id = $this->safe_string($trade, 'tid');
         $type = 'limit';
-        $side = $this->safe_string($trade, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'type');
         return array (
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),

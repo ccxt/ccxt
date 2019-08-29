@@ -169,10 +169,8 @@ class coinmarketcap (Exchange):
         return self.publicGetGlobal(request)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'last_updated')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
-        else:
+        timestamp = self.safe_timestamp(ticker, 'last_updated')
+        if timestamp is None:
             timestamp = self.milliseconds()
         change = self.safe_float(ticker, 'percent_change_24h')
         last = None

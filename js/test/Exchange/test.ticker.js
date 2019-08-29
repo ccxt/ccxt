@@ -75,9 +75,11 @@ module.exports = (exchange, ticker, method, symbol) => {
         'coinmarketcap',
         'xbtce',
         'coss',
+        'idex',
         'mandala',
         'okex',
         'southxchange', // https://user-images.githubusercontent.com/1294454/59953532-314bea80-9489-11e9-85b3-2a711ca49aa7.png
+        'bitmart',
 
     ].includes (exchange.id)) {
 

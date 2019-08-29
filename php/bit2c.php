@@ -328,7 +328,7 @@ class bit2c extends Exchange {
         $side = null;
         $reference = $this->safe_string($trade, 'reference');
         if ($reference !== null) {
-            $timestamp = $this->safe_integer($trade, 'ticks') * 1000;
+            $timestamp = $this->safe_timestamp($trade, 'ticks');
             $price = $this->safe_float($trade, 'price');
             $amount = $this->safe_float($trade, 'firstAmount');
             $reference_parts = explode('|', $reference); // $reference contains => 'pair|$orderId|tradeId'
@@ -350,7 +350,7 @@ class bit2c extends Exchange {
             }
             $feeCost = $this->safe_float($trade, 'feeAmount');
         } else {
-            $timestamp = $this->safe_integer($trade, 'date') * 1000;
+            $timestamp = $this->safe_timestamp($trade, 'date');
             $id = $this->safe_string($trade, 'tid');
             $price = $this->safe_float($trade, 'price');
             $amount = $this->safe_float($trade, 'amount');
@@ -391,10 +391,7 @@ class bit2c extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->implode_params($path, $params);
         if ($api === 'public') {
-            // lasttrades is the only endpoint that doesn't require the .json extension/suffix
-            if (mb_strpos($path, 'lasttrades') < 0) {
-                $url .= '.json';
-            }
+            $url .= '.json';
         } else {
             $this->check_required_credentials();
             $nonce = $this->nonce ();

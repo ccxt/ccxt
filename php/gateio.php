@@ -137,6 +137,7 @@ class gateio extends Exchange {
                 '21' => 'You don\'t have enough fund',
             ),
             'options' => array (
+                'fetchTradesMethod' => 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
                 'limits' => array (
                     'cost' => array (
                         'min' => array (
@@ -278,7 +279,7 @@ class gateio extends Exchange {
         //     {
         //         "elapsed" => "15ms",
         //         "result" => "true",
-        //         "data" => array (
+        //         "$data" => array (
         //             array ( "1553930820000", "1.005299", "4081.05", "4086.18", "4081.05", "4086.18" ),
         //             array ( "1553930880000", "0.110923277", "4095.2", "4095.23", "4091.15", "4091.15" ),
         //             ...
@@ -286,7 +287,8 @@ class gateio extends Exchange {
         //         )
         //     }
         //
-        return $this->parse_ohlcvs($response['data'], $market, $timeframe, $since, $limit);
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
     public function parse_ticker ($ticker, $market = null) {
@@ -330,7 +332,7 @@ class gateio extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }
@@ -374,12 +376,7 @@ class gateio extends Exchange {
             if (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$id];
             }
-            $ticker = $this->parse_ticker($response[$id], $market);
-            // https://github.com/ccxt/ccxt/pull/5138
-            $baseVolume = $ticker['baseVolume'];
-            $ticker['baseVolume'] = $ticker['quoteVolume'];
-            $ticker['quoteVolume'] = $baseVolume;
-            $result[$symbol] = $ticker;
+            $result[$symbol] = $this->parse_ticker($response[$id], $market);
         }
         return $result;
     }
@@ -394,10 +391,7 @@ class gateio extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer_2($trade, 'timestamp', 'time_unix');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp_2($trade, 'timestamp', 'time_unix');
         $id = $this->safe_string_2($trade, 'tradeID', 'id');
         // take either of orderid or $orderId
         $orderId = $this->safe_string_2($trade, 'orderid', 'orderNumber');
@@ -437,7 +431,8 @@ class gateio extends Exchange {
         $request = array (
             'id' => $market['id'],
         );
-        $response = $this->publicGetTradeHistoryId (array_merge ($request, $params));
+        $method = $this->safe_string($this->options, 'fetchTradesMethod', 'public_get_tradehistory_id');
+        $response = $this->$method (array_merge ($request, $params));
         return $this->parse_trades($response['data'], $market, $since, $limit);
     }
 
@@ -493,10 +488,7 @@ class gateio extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($order, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'timestamp');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $side = $this->safe_string($order, 'type');
         $price = $this->safe_float($order, 'filledRate');
@@ -626,7 +618,7 @@ class gateio extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         if ($symbol === null) {
-            throw new ExchangeError($this->id . ' fetchMyTrades requires $symbol param');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades requires $symbol param');
         }
         $this->load_markets();
         $market = $this->market ($symbol);
@@ -747,10 +739,7 @@ class gateio extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $amount = $this->safe_float($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
-        $timestamp = $this->safe_integer($transaction, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $type = $this->parse_transaction_type ($id[0]);
         return array (

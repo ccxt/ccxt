@@ -240,10 +240,6 @@ class bittrex (Exchange):
                 'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
             },
             'options': {
-                # price precision by quote currency code
-                'pricePrecisionByCode': {
-                    'USD': 3,
-                },
                 'parseOrderStatus': False,
                 'hasAlreadyAuthenticatedSuccessfully': False,  # a workaround for APIKEY_INVALID
                 'symbolSeparator': '-',
@@ -273,7 +269,7 @@ class bittrex (Exchange):
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
-                'CPC': 'CapriCoin',
+                'CPC': 'Capricoin',
             },
         })
 
@@ -284,32 +280,52 @@ class bittrex (Exchange):
         return self.decimal_to_precision(fee, TRUNCATE, self.markets[symbol]['precision']['price'], DECIMAL_PLACES)
 
     def fetch_markets(self, params={}):
-        # https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
-        # https://github.com/ccxt/ccxt/pull/4304
-        response = self.publicGetMarkets(params)
+        response = self.v3publicGetMarkets(params)
+        #
+        #     [
+        #         {
+        #             "symbol":"LTC-BTC",
+        #             "baseCurrencySymbol":"LTC",
+        #             "quoteCurrencySymbol":"BTC",
+        #             "minTradeSize":"0.01686767",
+        #             "precision":8,
+        #             "status":"ONLINE",  # "OFFLINE"
+        #             "createdAt":"2014-02-13T00:00:00Z"
+        #         },
+        #         {
+        #             "symbol":"VDX-USDT",
+        #             "baseCurrencySymbol":"VDX",
+        #             "quoteCurrencySymbol":"USDT",
+        #             "minTradeSize":"300.00000000",
+        #             "precision":8,
+        #             "status":"ONLINE",  # "OFFLINE"
+        #             "createdAt":"2019-05-23T00:41:21.843Z",
+        #             "notice":"USDT has swapped to an ERC20-based token as of August 5, 2019."
+        #         }
+        #     ]
+        #
         result = []
-        markets = self.safe_value(response, 'result')
-        for i in range(0, len(markets)):
-            market = markets[i]
-            id = self.safe_string(market, 'MarketName')
-            baseId = self.safe_string(market, 'MarketCurrency')
-            quoteId = self.safe_string(market, 'BaseCurrency')
+        # markets = self.safe_value(response, 'result')
+        for i in range(0, len(response)):
+            market = response[i]
+            baseId = self.safe_string(market, 'baseCurrencySymbol')
+            quoteId = self.safe_string(market, 'quoteCurrencySymbol')
+            # bittrex v2 uses inverted pairs, v3 uses regular pairs
+            # we use v3 for fetchMarkets and v2 throughout the rest of self implementation
+            # therefore we swap the base ←→ quote here to be v2-compatible
+            # https://github.com/ccxt/ccxt/issues/5634
+            # id = self.safe_string(market, 'symbol')
+            id = quoteId + self.options['symbolSeparator'] + baseId
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
-            pricePrecision = 8
-            if quote in self.options['pricePrecisionByCode']:
-                pricePrecision = self.options['pricePrecisionByCode'][quote]
+            pricePrecision = self.safe_integer(market, 'precision', 8)
             precision = {
                 'amount': 8,
                 'price': pricePrecision,
             }
-            # bittrex uses boolean values, bleutrade uses strings
-            active = self.safe_value(market, 'IsActive', False)
-            if (active != 'false') and active:
-                active = True
-            else:
-                active = False
+            status = self.safe_string(market, 'status')
+            active = (status == 'ONLINE')
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -322,7 +338,7 @@ class bittrex (Exchange):
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': self.safe_float(market, 'MinTradeSize'),
+                        'min': self.safe_float(market, 'minTradeSize'),
                         'max': None,
                     },
                     'price': {
@@ -738,17 +754,17 @@ class bittrex (Exchange):
         code = self.safe_currency_code(currencyId, currency)
         status = 'pending'
         if type == 'deposit':
-            if currency is not None:
-                # deposits numConfirmations never reach the minConfirmations number
-                # we set all of them to 'ok', otherwise they'd all be 'pending'
-                #
-                #     numConfirmations = self.safe_integer(transaction, 'Confirmations', 0)
-                #     minConfirmations = self.safe_integer(currency['info'], 'MinConfirmation')
-                #     if numConfirmations >= minConfirmations:
-                #         status = 'ok'
-                #     }
-                #
-                status = 'ok'
+            #
+            # deposits numConfirmations never reach the minConfirmations number
+            # we set all of them to 'ok', otherwise they'd all be 'pending'
+            #
+            #     numConfirmations = self.safe_integer(transaction, 'Confirmations', 0)
+            #     minConfirmations = self.safe_integer(currency['info'], 'MinConfirmation')
+            #     if numConfirmations >= minConfirmations:
+            #         status = 'ok'
+            #     }
+            #
+            status = 'ok'
         else:
             authorized = self.safe_value(transaction, 'Authorized', False)
             pendingPayment = self.safe_value(transaction, 'PendingPayment', False)
@@ -841,7 +857,7 @@ class bittrex (Exchange):
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             feeCurrency = quote
-        direction = self.safe_string(order, 'direction')
+        direction = self.safe_string_lower(order, 'direction')
         createdAt = self.safe_string(order, 'createdAt')
         updatedAt = self.safe_string(order, 'updatedAt')
         closedAt = self.safe_string(order, 'closedAt')
@@ -851,13 +867,13 @@ class bittrex (Exchange):
         elif updatedAt:
             lastTradeTimestamp = self.parse8601(updatedAt)
         timestamp = self.parse8601(createdAt)
-        type = self.safe_string(order, 'type')
+        type = self.safe_string_lower(order, 'type')
         quantity = self.safe_float(order, 'quantity')
         limit = self.safe_float(order, 'limit')
         fillQuantity = self.safe_float(order, 'fillQuantity')
         commission = self.safe_float(order, 'commission')
         proceeds = self.safe_float(order, 'proceeds')
-        status = self.safe_string(order, 'status')
+        status = self.safe_string_lower(order, 'status')
         average = None
         remaining = None
         if fillQuantity is not None:
@@ -874,15 +890,15 @@ class bittrex (Exchange):
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': type.lower(),
-            'side': direction.lower(),
+            'type': type,
+            'side': direction,
             'price': limit,
             'cost': proceeds,
             'average': average,
             'amount': quantity,
             'filled': fillQuantity,
             'remaining': remaining,
-            'status': status.lower(),
+            'status': status,
             'fee': {
                 'cost': commission,
                 'currency': feeCurrency,
@@ -1195,7 +1211,7 @@ class bittrex (Exchange):
             headers = {'apisign': signature}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         #

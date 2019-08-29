@@ -298,6 +298,7 @@ class bitfinex (Exchange):
                 'DAD': 'DADI',
                 'DAT': 'DATA',
                 'DSH': 'DASH',
+                'DRK': 'DRK',
                 'GSD': 'GUSD',
                 'HOT': 'Hydro Protocol',
                 'IOS': 'IOST',
@@ -643,9 +644,7 @@ class bitfinex (Exchange):
         if timestamp is not None:
             timestamp = int(timestamp) * 1000
         type = None
-        side = self.safe_string(trade, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'type')
         orderId = self.safe_string(trade, 'order_id')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
@@ -931,6 +930,8 @@ class bitfinex (Exchange):
 
     def parse_transaction(self, transaction, currency=None):
         #
+        # crypto
+        #
         #     {
         #         "id": 12042490,
         #         "fee": "-0.02",
@@ -946,6 +947,23 @@ class bitfinex (Exchange):
         #         "timestamp_created": "1551730523.0"
         #     }
         #
+        # fiat
+        #
+        #     {
+        #         "id": 12725095,
+        #         "fee": "-60.0",
+        #         "txid": null,
+        #         "type": "WITHDRAWAL",
+        #         "amount": "9943.0",
+        #         "method": "WIRE",
+        #         "status": "SENDING",
+        #         "address": null,
+        #         "currency": "EUR",
+        #         "timestamp": "1561802484.0",
+        #         "description": "Name: bob, AccountAddress: some address, Account: someaccountno, Bank: bank address, SWIFT: foo, Country: UK, Details of Payment: withdrawal name, Intermediary Bank Name: , Intermediary Bank Address: , Intermediary Bank City: , Intermediary Bank Country: , Intermediary Bank Account: , Intermediary Bank SWIFT: , Fee: -60.0",
+        #         "timestamp_created": "1561716066.0"
+        #     }
+        #
         timestamp = self.safe_float(transaction, 'timestamp_created')
         if timestamp is not None:
             timestamp = int(timestamp * 1000)
@@ -954,9 +972,7 @@ class bitfinex (Exchange):
             updated = int(updated * 1000)
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string(transaction, 'type')  # DEPOSIT or WITHDRAWAL
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         feeCost = self.safe_float(transaction, 'fee')
         if feeCost is not None:
@@ -983,6 +999,7 @@ class bitfinex (Exchange):
 
     def parse_transaction_status(self, status):
         statuses = {
+            'SENDING': 'pending',
             'CANCELED': 'canceled',
             'ZEROCONFIRMED': 'failed',  # ZEROCONFIRMED happens e.g. in a double spend attempt(I had one in my movementsnot )
             'COMPLETED': 'ok',
@@ -1050,7 +1067,7 @@ class bitfinex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         if code >= 400:

@@ -45,6 +45,7 @@ class southxchange (Exchange):
                         'generatenewaddress',
                         'listOrders',
                         'listBalances',
+                        'listTransactions',
                         'placeOrder',
                         'withdraw',
                     ],
@@ -167,9 +168,7 @@ class southxchange (Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'At')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(trade, 'At')
         price = self.safe_float(trade, 'Price')
         amount = self.safe_float(trade, 'Amount')
         cost = None
@@ -223,9 +222,7 @@ class southxchange (Exchange):
             if remaining is not None:
                 filled = amount - remaining
         type = 'limit'
-        side = self.safe_string(order, 'Type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'Type')
         id = self.safe_string(order, 'Code')
         result = {
             'info': order,

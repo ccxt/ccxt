@@ -88,8 +88,8 @@ class hitbtc (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': -0.01 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': 0.07 / 100,
+                    'taker': 0.07 / 100,
                 },
                 'funding': {
                     'tierBased': False,
@@ -679,6 +679,9 @@ class hitbtc (Exchange):
         }
         timestamp = self.safe_integer(trade, 'timestamp')
         id = self.safe_string(trade, 'tradeId')
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         orderId = self.safe_string(trade, 'clientOrderId')
         side = self.safe_string(trade, 'side')
         return {
@@ -753,6 +756,9 @@ class hitbtc (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
             'clientOrderId': id,
         }
@@ -813,6 +819,9 @@ class hitbtc (Exchange):
             'currency': feeCurrency,
             'rate': None,
         }
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         id = self.safe_string(order, 'clientOrderId')
         type = self.safe_string(order, 'type')
         side = self.safe_string(order, 'side')
@@ -836,6 +845,9 @@ class hitbtc (Exchange):
 
     def fetch_order(self, id, symbol=None, params={}):
         self.load_markets()
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
             'clientOrderId': id,
         }
@@ -878,6 +890,9 @@ class hitbtc (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
         request = {
             'clientOrderId': id,
         }

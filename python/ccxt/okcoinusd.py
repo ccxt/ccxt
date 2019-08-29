@@ -521,9 +521,7 @@ class okcoinusd (Exchange):
         request = {}
         response = self.publicGetTickers(self.extend(request, params))
         tickers = response['tickers']
-        timestamp = self.safe_integer(response, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(response, 'date')
         result = {}
         for i in range(0, len(tickers)):
             ticker = tickers[i]
@@ -631,9 +629,8 @@ class okcoinusd (Exchange):
         ticker = self.safe_value(response, 'ticker')
         if ticker is None:
             raise ExchangeError(self.id + ' fetchTicker returned an empty response: ' + self.json(response))
-        timestamp = self.safe_integer(response, 'date')
+        timestamp = self.safe_timestamp(response, 'date')
         if timestamp is not None:
-            timestamp *= 1000
             ticker = self.extend(ticker, {'timestamp': timestamp})
         return self.parse_ticker(ticker, market)
 
@@ -740,8 +737,9 @@ class okcoinusd (Exchange):
             'type': orderSide,
         })
         if market['future']:
-            request['match_price'] = 0  # match best counter party price? 0 or 1, ignores price if 1
+            request['match_price'] = 1 if (type == 'market') else 0  # match best counter party price? 0 or 1, ignores price if 1
             request['lever_rate'] = 10  # leverage rate value: 10 or 20(10 by default)
+            request['type'] = '1' if (side == 'buy') else '2'
         elif type == 'market':
             if side == 'buy':
                 if not orderPrice:
@@ -1017,7 +1015,7 @@ class okcoinusd (Exchange):
             'symbol': market['id'],
         }, params)
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'error_code' in response:

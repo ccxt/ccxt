@@ -590,10 +590,7 @@ class coss extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $timestamp = $this->safe_integer($trade, 'time');
         $orderId = $this->safe_string($trade, 'order_id');
-        $side = $this->safe_string($trade, 'order_side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'order_side');
         $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
         if ($marketId !== null) {
@@ -826,10 +823,7 @@ class coss extends Exchange {
             }
         }
         $average = $this->safe_float($order, 'avg');
-        $side = $this->safe_string($order, 'order_side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'order_side');
         $cost = $this->safe_float($order, 'total');
         $fee = null;
         $trades = null;

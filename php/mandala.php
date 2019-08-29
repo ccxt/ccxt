@@ -167,6 +167,8 @@ class mandala extends Exchange {
                         'hmac', // ?side=BUY&market=BTC&trade=ETH&type=STOPLIMIT&volume=0.025&rate=0.032&timeInForce=GTC&stop=2&'
                     ),
                     'post' => array (
+                        'my-order-history',
+                        'my-order-status',
                         'PlaceOrder',
                         'cancel-my-order',
                         'cancel-all-my-orders',
@@ -690,10 +692,7 @@ class mandala extends Exchange {
         //     }
         //
         $timestamp = $this->parse8601 ($this->safe_string_2($trade, 'Date', 'date'));
-        $side = $this->safe_string_2($trade, 'Type', 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower_2($trade, 'Type', 'side');
         $id = $this->safe_string($trade, 'TradeID');
         $symbol = null;
         $baseId = $this->safe_string($trade, 'trade');
@@ -1587,7 +1586,7 @@ class mandala extends Exchange {
             if ($method === 'POST') {
                 $body = $this->json ($query);
                 $headers['Content-Type'] = 'application/json';
-                $headers['publicKey'] = $this->apiKey;
+                $headers['apiKey'] = $this->apiKey;
             } else if ($method === 'GET') {
                 if ($query) {
                     $url .= '?' . $this->urlencode ($query);
@@ -1597,7 +1596,7 @@ class mandala extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to default error handler
         }

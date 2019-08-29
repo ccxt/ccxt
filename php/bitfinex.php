@@ -284,6 +284,7 @@ class bitfinex extends Exchange {
                 'DAD' => 'DADI',
                 'DAT' => 'DATA',
                 'DSH' => 'DASH',
+                'DRK' => 'DRK',
                 'GSD' => 'GUSD',
                 'HOT' => 'Hydro Protocol',
                 'IOS' => 'IOST',
@@ -655,10 +656,7 @@ class bitfinex extends Exchange {
             $timestamp = intval ($timestamp) * 1000;
         }
         $type = null;
-        $side = $this->safe_string($trade, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'type');
         $orderId = $this->safe_string($trade, 'order_id');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
@@ -992,6 +990,8 @@ class bitfinex extends Exchange {
 
     public function parse_transaction ($transaction, $currency = null) {
         //
+        // crypto
+        //
         //     {
         //         "id" => 12042490,
         //         "fee" => "-0.02",
@@ -1007,6 +1007,23 @@ class bitfinex extends Exchange {
         //         "timestamp_created" => "1551730523.0"
         //     }
         //
+        // fiat
+        //
+        //     {
+        //         "id" => 12725095,
+        //         "fee" => "-60.0",
+        //         "txid" => null,
+        //         "$type" => "WITHDRAWAL",
+        //         "amount" => "9943.0",
+        //         "method" => "WIRE",
+        //         "$status" => "SENDING",
+        //         "address" => null,
+        //         "$currency" => "EUR",
+        //         "$timestamp" => "1561802484.0",
+        //         "description" => "Name => bob, AccountAddress => some address, Account => someaccountno, Bank => bank address, SWIFT => foo, Country => UK, Details of Payment => withdrawal name, Intermediary Bank Name => , Intermediary Bank Address => , Intermediary Bank City => , Intermediary Bank Country => , Intermediary Bank Account => , Intermediary Bank SWIFT => , Fee => -60.0",
+        //         "timestamp_created" => "1561716066.0"
+        //     }
+        //
         $timestamp = $this->safe_float($transaction, 'timestamp_created');
         if ($timestamp !== null) {
             $timestamp = intval ($timestamp * 1000);
@@ -1017,10 +1034,7 @@ class bitfinex extends Exchange {
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $type = $this->safe_string($transaction, 'type'); // DEPOSIT or WITHDRAWAL
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
+        $type = $this->safe_string_lower($transaction, 'type'); // DEPOSIT or WITHDRAWAL
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $feeCost = $this->safe_float($transaction, 'fee');
         if ($feeCost !== null) {
@@ -1049,6 +1063,7 @@ class bitfinex extends Exchange {
 
     public function parse_transaction_status ($status) {
         $statuses = array (
+            'SENDING' => 'pending',
             'CANCELED' => 'canceled',
             'ZEROCONFIRMED' => 'failed', // ZEROCONFIRMED happens e.g. in a double spend attempt (I had one in my movements!)
             'COMPLETED' => 'ok',
@@ -1127,7 +1142,7 @@ class bitfinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }
