@@ -280,8 +280,19 @@ module.exports = class bw extends Exchange {
             }
         } else {
             body = this.json (params);
+        }
+        if (api === 'private') {
             const ms = this.milliseconds ();
-            const signing = this.apiKey + ms + body + this.secret;
+            let content = "";
+            if (method === 'GET') {
+                const sortedParams = this.keysort (params);
+                for (let key in sortedParams) {
+                    content += key + sortedParams[key];
+                }
+            } else {
+                content = body;
+            }
+            let signing = this.apiKey + ms + content + this.secret;
             const hash = this.hash (signing, 'md5');
             if (!headers) {
                 headers = {};
