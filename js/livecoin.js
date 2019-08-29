@@ -901,17 +901,14 @@ module.exports = class livecoin extends Exchange {
         if (!success) {
             const feedback = this.id + ' ' + body;
             const broad = this.exceptions['broad'];
-            const message = this.safeString (response, 'message');
-            let broadKey = this.findBroadlyMatchedKey (broad, message);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
+            const message = this.safeString2 (response, 'message', 'exception');
+            if (message !== undefined) {
+                const broadKey = this.findBroadlyMatchedKey (broad, message);
+                if (broadKey !== undefined) {
+                    throw new broad[broadKey] (feedback);
+                }
+                throw new ExchangeError (feedback);
             }
-            const exception = this.safeString (response, 'exception');
-            broadKey = this.findBroadlyMatchedKey (broad, exception);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
-            }
-            throw new ExchangeError (feedback);
         }
     }
 };
