@@ -90,14 +90,7 @@ module.exports = class bw extends Exchange {
             'exceptions': {
                 // TODO
                 'exact': {
-                    'EOF': BadRequest,
-                },
-                'broad': {
-                    'json: cannot unmarshal object into Go value of type': BadRequest,
-                    'not allowed to cancel this order': BadRequest,
-                    'request timed out': RequestTimeout,
-                    'balance_freezing.freezing validation.balance_freeze': InsufficientFunds,
-                    'order_creation.validation.validation': InvalidOrder,
+                    '999': AuthenticationError,
                 },
             },
             'api': {
@@ -301,20 +294,13 @@ module.exports = class bw extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (!response) {
-            return; // fallback to default error handler
-        }
-        const error = response['error'];
-        if (error) {
+        const resMsg = this.safeValue (response, 'resMsg');
+        const errorCode = this.safeString (resMsg, 'code');
+        if (errorCode !== '1') {
             const feedback = this.id + ' ' + this.json (response);
             const exact = this.exceptions['exact'];
-            if (error in exact) {
-                throw new exact[error] (feedback);
-            }
-            const broad = this.exceptions['broad'];
-            const broadKey = this.findBroadlyMatchedKey (broad, error);
-            if (broadKey !== undefined) {
-                throw new broad[broadKey] (feedback);
+            if (errorCode in exact) {
+                throw new exact[errorCode] (feedback);
             }
             throw new ExchangeError (feedback); // unknown error
         }
