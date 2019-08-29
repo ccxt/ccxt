@@ -757,7 +757,7 @@ class Exchange(object):
         return array
 
     @staticmethod
-    def filterBy(self, array, key, value=None):
+    def filterBy(array, key, value=None):
         return Exchange.filter_by(array, key, value)
 
     @staticmethod
