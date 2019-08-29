@@ -123,7 +123,7 @@ module.exports = class blockbid extends Exchange {
         });
     }
 
-    async fetchMarkets () {
+    async fetchMarkets (params = []) {
         const response = await this.publicGetMarkets ();
         //
         //     [
@@ -420,7 +420,7 @@ module.exports = class blockbid extends Exchange {
         };
     }
 
-    async createOrder (symbol, type, side, amount, price, params = {}) {
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const method = 'privatePostOrders';
@@ -494,7 +494,6 @@ module.exports = class blockbid extends Exchange {
         const response = await this.privateGetDepositsCrypto (this.extend (request, params));
         const deposits = [];
         for (let i = 0; i < response.length; i++) {
-            response[i].type = 'deposit';
             deposits.push (response[i]);
         }
         return this.parseTransactions (deposits, currency);
@@ -543,7 +542,6 @@ module.exports = class blockbid extends Exchange {
         const response = await this[method] (this.extend (request, params));
         const withdrawals = [];
         for (let i = 0; i < response.length; i++) {
-            response[i].type = 'withdrawal';
             withdrawals.push (response[i]);
         }
         return this.parseTransactions (withdrawals, currency, since, limit);
@@ -594,9 +592,8 @@ module.exports = class blockbid extends Exchange {
         };
     }
 
-    sign (path, api = 'public', method = 'GET', params = undefined) {
+    sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
         let url = this.urls['api'] + '/' + this.implodeParams (path, params);
-        let body = undefined;
         let query = undefined;
         if (method === 'GET') {
             query = this.omit (params, this.extractParams (path));
@@ -607,7 +604,7 @@ module.exports = class blockbid extends Exchange {
         } else if (method !== 'DELETE') {
             body = params;
         }
-        const headers = { 'Content-Type': 'application/json' };
+        headers = { 'Content-Type': 'application/json' };
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let nonce = this.nonce ();
@@ -616,8 +613,9 @@ module.exports = class blockbid extends Exchange {
             const encodedNonce = this.encode (nonce);
             let rawSignature = this.stringToBase64 (encodedApiKey) + this.stringToBase64 (encodedNonce);
             let stringifyedPayload = '';
-            if (body && Object.keys (body).length > 0) {
+            if (body) {
                 stringifyedPayload = this.encode (JSON.stringify (body));
+                stringifyedPayload = stringifyedPayload.replace (' ', '');
             }
             body = JSON.stringify (body);
             rawSignature = rawSignature + this.stringToBase64 (stringifyedPayload);
@@ -630,14 +628,14 @@ module.exports = class blockbid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body) {
+    handleErrors (code, reason, url, method, headers, body, response, request_headers, request_body) {
         if (!this.isJsonEncodedObject (body)) {
             return; // fallback to default error handler
         }
-        const response = JSON.parse (body);
-        const error = this.safeValue (response, 'error');
+        const realResponse = JSON.parse (body);
+        const error = this.safeValue (realResponse, 'error');
         if (error !== undefined) {
-            const feedback = this.id + ' ' + body;
+            const feedback = this.id + ' ' + body + request_body;
             const code = this.safeString (error, 'name');
             const exact = this.exceptions['exact'];
             if (code in exact) {
