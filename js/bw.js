@@ -57,6 +57,12 @@ module.exports = class bw extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
+                '1m': '1M',
+                '5m': '5M',
+                '15m': '15M',
+                '30m': '30M',
+                '1h': '1H',
+                '1w': '1W',
             },
             'urls': {
                 'api': 'https://www.bw.com/',
@@ -99,6 +105,7 @@ module.exports = class bw extends Exchange {
                         'exchange/config/controller/website/marketcontroller/getByWebId',
                         'exchange/config/controller/website/currencycontroller/getCurrencyList',
                         'api/data/v1/entrusts',
+                        'api/data/v1/klines',
                     ],
                 },
                 'private': {
@@ -359,6 +366,34 @@ module.exports = class bw extends Exchange {
             'info': response,
             'id': id,
         };
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            this.safeTimestamp (ohlcv, 3),
+            this.safeFloat (ohlcv, 4),
+            this.safeFloat (ohlcv, 5),
+            this.safeFloat (ohlcv, 6),
+            this.safeFloat (ohlcv, 7),
+            this.safeFloat (ohlcv, 8),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+            'type': this.timeframes[timeframe],
+            'dataSize': 500,
+        };
+        if (limit !== undefined) {
+            request['dataSize'] = limit;
+        }
+        const response = await this.publicGetApiDataV1Klines (this.extend (request, params));
+        const data = this.safeValue (response, 'datas', []);
+        const ohlcvs = this.parseOHLCVs (data, market, timeframe, since, limit);
+        return this.sortBy (ohlcvs, 0);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
