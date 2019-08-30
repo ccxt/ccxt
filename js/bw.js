@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, RequestTimeout, ArgumentsRequired } = require ('./base/errors');
-const { ROUND, DECIMAL_PLACES, NO_PADDING } = require ('./base/functions/number');
+const { ExchangeError, AuthenticationError, ArgumentsRequired } = require ('./base/errors');
+const { DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -201,7 +201,7 @@ module.exports = class bw extends Exchange {
                 'precision': undefined,
                 'limits': {
                     'amount': {
-                        'min': parseFloat (this.safeInteger(currency, 'limitAmount')),
+                        'min': parseFloat (this.safeInteger (currency, 'limitAmount')),
                         'max': undefined,
                     },
                     'price': {
@@ -214,7 +214,7 @@ module.exports = class bw extends Exchange {
                     },
                     'withdraw': {
                         'min': undefined,
-                        'max': parseFloat (this.safeInteger(currency, 'onceDrawLimit')),
+                        'max': parseFloat (this.safeInteger (currency, 'onceDrawLimit')),
                     },
                 },
             };
@@ -306,10 +306,8 @@ module.exports = class bw extends Exchange {
         const orderSide = this.safeInteger (order, 'type');
         if (orderSide === 0) {
             side = 'sell';
-        } else if (orderSide === 0) {
+        } else if (orderSide === 1) {
             side = 'buy';
-        } else if (orderSide === -1) {
-            cancled
         }
         const amount = this.safeFloat (order, 'amount');
         const price = this.safeFloat (order, 'price');
@@ -347,7 +345,7 @@ module.exports = class bw extends Exchange {
             'entrustId': id,
         };
         const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetEntrustById (this.extend (request, params));
-        const order = this.safeValue (response, 'datas', {})
+        const order = this.safeValue (response, 'datas', {});
         return this.parseOrder (order, market);
     }
 
@@ -407,16 +405,18 @@ module.exports = class bw extends Exchange {
         }
         if (api === 'private') {
             const ms = this.milliseconds ();
-            let content = "";
+            let content = '';
             if (method === 'GET') {
                 const sortedParams = this.keysort (params);
-                for (let key in sortedParams) {
+                const keys = Object.keys (sortedParams);
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
                     content += key + sortedParams[key];
                 }
             } else {
                 content = body;
             }
-            let signing = this.apiKey + ms + content + this.secret;
+            const signing = this.apiKey + ms + content + this.secret;
             const hash = this.hash (signing, 'md5');
             if (!headers) {
                 headers = {};
