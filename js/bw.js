@@ -272,7 +272,7 @@ module.exports = class bw extends Exchange {
             'rangeType': 0, // limit order
             'marketId': market['id'],
         };
-        if (type.toLowerCase () === 'buy') {
+        if (side.toLowerCase () === 'buy') {
             request['type'] = 1; // buy
         }
         const response = await this.privatePostExchangeEntrustControllerWebsiteEntrustControllerAddEntrust (this.extend (request, params));
@@ -404,7 +404,7 @@ module.exports = class bw extends Exchange {
             body = this.json (params);
         }
         if (api === 'private') {
-            const ms = this.milliseconds ();
+            const ms = this.milliseconds ().toString ();
             let content = '';
             if (method === 'GET') {
                 const sortedParams = this.keysort (params);
@@ -417,7 +417,7 @@ module.exports = class bw extends Exchange {
                 content = body;
             }
             const signing = this.apiKey + ms + content + this.secret;
-            const hash = this.hash (signing, 'md5');
+            const hash = this.hash (this.encode (signing), 'md5');
             if (!headers) {
                 headers = {};
             }
@@ -429,6 +429,9 @@ module.exports = class bw extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return; // default error handler
+        }
         const resMsg = this.safeValue (response, 'resMsg');
         const errorCode = this.safeString (resMsg, 'code');
         if (errorCode !== '1') {
