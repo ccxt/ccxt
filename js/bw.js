@@ -367,7 +367,7 @@ module.exports = class bw extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         return [
-            this.safeTimestamp (ohlcv, 3),
+            parseInt (this.safeFloat (ohlcv, 3) * 1000),
             this.safeFloat (ohlcv, 4),
             this.safeFloat (ohlcv, 5),
             this.safeFloat (ohlcv, 6),
