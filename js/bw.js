@@ -38,7 +38,7 @@ module.exports = class bw extends Exchange {
                 'fetchLedger': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -94,7 +94,6 @@ module.exports = class bw extends Exchange {
                 },
             },
             'exceptions': {
-                // TODO
                 'exact': {
                     '999': AuthenticationError,
                 },
