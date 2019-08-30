@@ -306,7 +306,7 @@ module.exports = class bw extends Exchange {
         const amount = this.safeFloat (order, 'amount');
         const price = this.safeFloat (order, 'price');
         const filled = this.safeFloat (order, 'completeAmount');
-        const status = this.parseOrderStatus (this.safeInteger (order, 'status').toString ());
+        const status = this.parseOrderStatus (this.safeInteger (order, 'status', '').toString ());
         return {
             'info': order,
             'id': this.safeString (order, 'entrustId'),
