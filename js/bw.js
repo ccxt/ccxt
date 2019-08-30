@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, RequestTimeout } = require ('./base/errors');
+const { ExchangeError, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, RequestTimeout, ArgumentsRequired } = require ('./base/errors');
 const { ROUND, DECIMAL_PLACES, NO_PADDING } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -40,7 +40,7 @@ module.exports = class bw extends Exchange {
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -102,6 +102,9 @@ module.exports = class bw extends Exchange {
                     ],
                 },
                 'private': {
+                    'get': [
+                        'exchange/entrust/controller/website/EntrustController/getEntrustById',
+                    ],
                     'post': [
                         'exchange/fund/controller/website/fundcontroller/findbypage',
                         'exchange/entrust/controller/website/EntrustController/addEntrust',
@@ -270,6 +273,74 @@ module.exports = class bw extends Exchange {
             'id': this.safeString (data, 'entrustId'),
             'info': response,
         };
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            '-2': 'canceled',
+            '-1': 'canceled',
+            '0': 'open',
+            '1': 'canceled',
+            '2': 'closed',
+            '3': 'open',
+            '4': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrder (order, market = undefined) {
+        const marketId = this.safeString (order, 'marketId');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        }
+        const timestamp = this.safeInteger (order, 'createTime');
+        let side = undefined;
+        const orderSide = this.safeInteger (order, 'type');
+        if (orderSide === 0) {
+            side = 'sell';
+        } else if (orderSide === 0) {
+            side = 'buy';
+        } else if (orderSide === -1) {
+            cancled
+        }
+        const amount = this.safeFloat (order, 'amount');
+        const price = this.safeFloat (order, 'price');
+        const filled = this.safeFloat (order, 'completeAmount');
+        const status = this.parseOrderStatus (this.safeInteger (order, 'status').toString ());
+        return {
+            'info': order,
+            'id': this.safeString (order, 'entrustId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': this.safeString (market, 'symbol'),
+            'type': 'limit',
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'average': undefined,
+            'filled': filled,
+            'remaining': amount - filled,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+        };
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+            'entrustId': id,
+        };
+        const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetEntrustById (this.extend (request, params));
+        const order = this.safeValue (response, 'datas', {})
+        return this.parseOrder (order, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
