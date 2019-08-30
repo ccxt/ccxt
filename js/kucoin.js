@@ -172,7 +172,7 @@ module.exports = class kucoin extends Exchange {
             },
             'commonCurrencies': {
                 'HOT': 'HOTNOW',
-                'EDGE': 'DADI',
+                'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
             },
             'options': {
                 'version': 'v1',
