@@ -163,9 +163,9 @@ The contents of the repository are structured as follows:
 
 ### Multilanguage Support
 
-The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
@@ -268,7 +268,7 @@ And structurally:
 
 Most of exchanges' API endpoints will require an exchange-specific market symbol or trading pair or instrument to be specified in the request.
 
-**We don't send unified symbols to exchanges directly!** They are not interchangeable! There is a significant difference between an *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
+**We don't send unified symbols to exchanges directly!** They are not interchangeable! There is a significant difference between *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
 
 - https://github.com/ccxt/ccxt/wiki/Manual#markets
 - https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
