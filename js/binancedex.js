@@ -132,7 +132,7 @@ module.exports = class binancedex extends Exchange {
             const symbol = this.safeString (currency, 'original_symbol');
             result[symbol] = {
                 'id': id,
-                'code': symbol,
+                'code': this.safeCurrencyCode (symbol),
                 'info': this.safeString (currency, 'name'),
                 'name': symbol,
                 'active': true,
