@@ -186,6 +186,7 @@ class kucoin (Exchange):
             },
             'commonCurrencies': {
                 'HOT': 'HOTNOW',
+                'EDGE': 'DADI',
             },
             'options': {
                 'version': 'v1',
@@ -224,7 +225,7 @@ class kucoin (Exchange):
         result = []
         for i in range(0, len(data)):
             market = data[i]
-            id = self.safe_string(market, 'name')
+            id = self.safe_string(market, 'symbol')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
