@@ -201,7 +201,7 @@ module.exports = class bw extends Exchange {
                 'precision': undefined,
                 'limits': {
                     'amount': {
-                        'min': parseFloat (this.safeInteger (currency, 'limitAmount')),
+                        'min': parseFloat (this.safeInteger (currency, 'limitAmount', 0)),
                         'max': undefined,
                     },
                     'price': {
