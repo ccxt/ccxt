@@ -136,14 +136,14 @@ module.exports = class bw extends Exchange {
             const id = this.safeString (market, 'marketId');
             const numericId = parseInt (id);
             const name = this.safeStringUpper (market, 'name');
-            let [ quote, base ] = name.split ('_');
+            let [ base, quote ] = name.split ('_');
             base = this.safeCurrencyCode (base);
             quote = this.safeCurrencyCode (quote);
-            const baseId = this.safeString (market, 'buyerCurrencyId');
-            const quoteId = this.safeString (market, 'sellerCurrencyId');
+            const baseId = this.safeString (market, 'sellerCurrencyId');
+            const quoteId = this.safeString (market, 'buyerCurrencyId');
             const baseNumericId = parseInt (baseId);
             const quoteNumericId = parseInt (quoteId);
-            const symbol = quote + '/' + base;
+            const symbol = base + '/' + quote;
             const state = this.safeInteger (market, 'state');
             const active = state === 1;
             result.push ({
