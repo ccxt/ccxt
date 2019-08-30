@@ -18,7 +18,7 @@ module.exports = class bw extends Exchange {
             'version': 'v1',
             'has': {
                 'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'CORS': false,
                 'createDepositAddress': false,
@@ -108,6 +108,7 @@ module.exports = class bw extends Exchange {
                     'post': [
                         'exchange/fund/controller/website/fundcontroller/findbypage',
                         'exchange/entrust/controller/website/EntrustController/addEntrust',
+                        'exchange/entrust/controller/website/EntrustController/cancelEntrust',
                     ],
                 },
             },
@@ -341,6 +342,23 @@ module.exports = class bw extends Exchange {
         const response = await this.privateGetExchangeEntrustControllerWebsiteEntrustControllerGetEntrustById (this.extend (request, params));
         const order = this.safeValue (response, 'datas', {})
         return this.parseOrder (order, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'marketId': market['id'],
+            'entrustId': id,
+        };
+        const response = await this.privatePostExchangeEntrustControllerWebsiteEntrustControllerCancelEntrust (this.extend (request, params));
+        return {
+            'info': response,
+            'id': id,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
