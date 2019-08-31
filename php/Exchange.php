@@ -239,15 +239,11 @@ class Exchange {
     }
 
     public static function safe_integer_product($object, $key, $factor, $default_value = null) {
-        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key]) * $factor) : $default_value;
+        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key] * $factor)) : $default_value;
     }
 
     public static function safe_timestamp($object, $key, $default_value = null) {
-        $value = static::safe_float($object, $key);
-        if (!is_null($value)) {
-            return intval($value * 1000);
-        }
-        return $default_value;
+        return static::safe_integer_product($object, $key, 1000, $default_value);
     }
 
     public static function safe_value($object, $key, $default_value = null) {
@@ -288,11 +284,7 @@ class Exchange {
     }
 
     public static function safe_timestamp_2($object, $key1, $key2, $default_value = null) {
-        $value = static::safe_float_2($object, $key1, $key2);
-        if (!is_null($value)) {
-            return intval($value * 1000);
-        }
-        return $default_value;
+        return static::safe_integer_product_2($object, $key1, $key2, 1000, $default_value);
     }
 
     public static function safe_value_2($object, $key1, $key2, $default_value = null) {
