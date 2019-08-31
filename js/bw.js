@@ -244,9 +244,11 @@ module.exports = class bw extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            let symbol = this.safeInteger (balance, 'currencyTypeId');
+            let symbol = this.safeInteger (balance, 'currencyTypeId', '');
+            symbol = symbol.toString ();
             if (symbol in this.currencies_by_id) {
                 symbol = this.currencies_by_id[symbol]['code'];
+                symbol = this.safeCurrencyCode (symbol);
             }
             const account = this.account ();
             const amount = this.safeFloat (balance, 'amount');
