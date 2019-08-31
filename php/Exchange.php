@@ -239,7 +239,7 @@ class Exchange {
     }
 
     public static function safe_integer_product($object, $key, $factor, $default_value = null) {
-        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key]) * $factor) : $default_value;
+        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key] * $factor)) : $default_value;
     }
 
     public static function safe_timestamp($object, $key, $default_value = null) {

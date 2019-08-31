@@ -632,8 +632,10 @@ class Exchange(object):
         if key is None or (key not in dictionary):
             return default_value
         value = dictionary[key]
-        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
-            return int(value) * factor
+        if isinstance(value, Number):
+            return int(value * factor)
+        elif isinstance(value, basestring) and value.isnumeric():
+            return int(float(value) * factor)
         return default_value
 
     @staticmethod
