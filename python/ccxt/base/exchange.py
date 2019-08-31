@@ -634,7 +634,7 @@ class Exchange(object):
         value = dictionary[key]
         if isinstance(value, Number):
             return int(value * factor)
-        elif isinstance(value, basestring and value.isnumeric():
+        elif isinstance(value, basestring) and value.isnumeric():
             return int(float(value) * factor)
         return default_value
 
