@@ -595,32 +595,43 @@ class Exchange(object):
             pass
 
     @staticmethod
+    def key_exists(dictionary, key):
+        if dictionary is None or key is None:
+            return False
+        if isinstance(dictionary, list):
+            if isinstance(key, int) and 0 <= key and key < len(dictionary):
+                return dictionary[key] is not None
+            else:
+                return False
+        if key in dictionary:
+            return dictionary[key] is not None
+        return False
+
+    @staticmethod
     def safe_float(dictionary, key, default_value=None):
         value = default_value
         try:
-            if isinstance(dictionary, list) and isinstance(key, int) and len(dictionary) > key:
+            if Exchange.key_exists(dictionary, key):
                 value = float(dictionary[key])
-            else:
-                value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
         except ValueError as e:
             value = default_value
         return value
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
-        return str(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+        return str(dictionary[key]) if Exchange.key_exists(dictionary, key) else default_value
 
     @staticmethod
     def safe_string_lower(dictionary, key, default_value=None):
-        return str(dictionary[key]).lower() if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+        return str(dictionary[key]).lower() if Exchange.key_exists(dictionary, key) else default_value
 
     @staticmethod
     def safe_string_upper(dictionary, key, default_value=None):
-        return str(dictionary[key]).upper() if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+        return str(dictionary[key]).upper() if Exchange.key_exists(dictionary, key) else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
-        if key is None or (key not in dictionary):
+        if not Exchange.key_exists(dictionary, key):
             return default_value
         value = dictionary[key]
         if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
@@ -629,7 +640,7 @@ class Exchange(object):
 
     @staticmethod
     def safe_integer_product(dictionary, key, factor, default_value=None):
-        if key is None or (key not in dictionary):
+        if not Exchange.key_exists(dictionary, key):
             return default_value
         value = dictionary[key]
         if isinstance(value, Number):
@@ -644,7 +655,7 @@ class Exchange(object):
 
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
-        return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+        return dictionary[key] if Exchange.key_exists(dictionary, key) else default_value
 
     # we're not using safe_floats with a list argument as we're trying to save some cycles here
     # we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
