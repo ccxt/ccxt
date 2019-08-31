@@ -595,7 +595,7 @@ class Exchange(object):
             pass
 
     @staticmethod
-    def has_accessor(dictionary, key):
+    def has_key(dictionary, key):
         if dictionary is None or key is None:
             return False
         if isinstance(dictionary, list):
@@ -611,7 +611,7 @@ class Exchange(object):
     def safe_float(dictionary, key, default_value=None):
         value = default_value
         try:
-            if Exchange.has_accessor(dictionary, key):
+            if Exchange.has_key(dictionary, key):
                 value = float(dictionary[key])
         except ValueError as e:
             value = default_value
@@ -619,19 +619,19 @@ class Exchange(object):
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
-        return str(dictionary[key]) if Exchange.has_accessor(dictionary, key) else default_value
+        return str(dictionary[key]) if Exchange.has_key(dictionary, key) else default_value
 
     @staticmethod
     def safe_string_lower(dictionary, key, default_value=None):
-        return str(dictionary[key]).lower() if Exchange.has_accessor(dictionary, key) else default_value
+        return str(dictionary[key]).lower() if Exchange.has_key(dictionary, key) else default_value
 
     @staticmethod
     def safe_string_upper(dictionary, key, default_value=None):
-        return str(dictionary[key]).upper() if Exchange.has_accessor(dictionary, key) else default_value
+        return str(dictionary[key]).upper() if Exchange.has_key(dictionary, key) else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
-        if not Exchange.has_accessor(dictionary, key):
+        if not Exchange.has_key(dictionary, key):
             return default_value
         value = dictionary[key]
         if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
@@ -640,7 +640,7 @@ class Exchange(object):
 
     @staticmethod
     def safe_integer_product(dictionary, key, factor, default_value=None):
-        if not Exchange.has_accessor(dictionary, key):
+        if not Exchange.has_key(dictionary, key):
             return default_value
         value = dictionary[key]
         if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
@@ -653,7 +653,7 @@ class Exchange(object):
 
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
-        return dictionary[key] if Exchange.has_accessor(dictionary, key) else default_value
+        return dictionary[key] if Exchange.has_key(dictionary, key) else default_value
 
     # we're not using safe_floats with a list argument as we're trying to save some cycles here
     # we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
