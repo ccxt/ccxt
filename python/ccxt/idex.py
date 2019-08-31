@@ -542,7 +542,7 @@ class idex (Exchange):
         #    '0xd6eefd81c7efc9beeb35b924d6db3c93a78bf7eac082ba87e107ad4e94bccdcf',
         #   depositNumber: 1586430}
         amount = self.safe_float(item, 'amount')
-        timestamp = self.safe_integer(item, 'timestamp') * 1000
+        timestamp = self.safe_timestamp(item, 'timestamp')
         txhash = self.safe_string(item, 'transactionHash')
         id = None
         type = None
@@ -686,7 +686,7 @@ class idex (Exchange):
         #   amount: '210',
         #   status: 'open',
         #   total: '0.1533'}
-        timestamp = self.safe_integer(order, 'timestamp') * 1000
+        timestamp = self.safe_timestamp(order, 'timestamp')
         side = self.safe_string(order, 'type')
         symbol = None
         amount = None
@@ -858,7 +858,7 @@ class idex (Exchange):
                     feeCurrency = sell
         if symbol is None and market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(trade, 'timestamp') * 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         id = self.safe_string(trade, 'tid')
         amount = self.safe_float(trade, 'amount')
         price = self.safe_float(trade, 'price')
