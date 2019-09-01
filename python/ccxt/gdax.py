@@ -762,7 +762,7 @@ class gdax (Exchange):
             'info': response,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (code == 400) or (code == 404):
             if body[0] == '{':
                 message = response['message']

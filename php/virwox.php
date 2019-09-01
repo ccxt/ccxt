@@ -290,7 +290,7 @@ class virwox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code === 200) {
             if (($body[0] === '{') || ($body[0] === '[')) {
                 if (is_array($response) && array_key_exists('result', $response)) {

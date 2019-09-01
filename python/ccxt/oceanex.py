@@ -608,7 +608,7 @@ class oceanex (Exchange):
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #
         #     {"code":1011,"message":"This IP '5.228.233.138' is not allowed","data":{}}
         #

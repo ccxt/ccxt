@@ -1015,7 +1015,7 @@ class okcoinusd (Exchange):
             'symbol': market['id'],
         }, params)
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'error_code' in response:

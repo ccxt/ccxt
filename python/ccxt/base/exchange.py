@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1079'
+__version__ = '1.18.1115'
 
 # -----------------------------------------------------------------------------
 
@@ -478,7 +478,7 @@ class Exchange(object):
                 return key
         return None
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body):
         pass
 
     def prepare_request_headers(self, headers=None):
@@ -503,6 +503,7 @@ class Exchange(object):
             print("\nRequest:", method, url, request_headers, body)
         self.logger.debug("%s %s, Request: %s %s", method, url, request_headers, body)
 
+        request_body = body
         if body:
             body = body.encode()
 
@@ -549,7 +550,7 @@ class Exchange(object):
             raise ExchangeError(method + ' ' + url)
 
         except HTTPError as e:
-            self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
+            self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
             self.handle_rest_errors(http_status_code, http_status_text, http_response, url, method)
             raise ExchangeError(method + ' ' + url)
 
@@ -560,7 +561,7 @@ class Exchange(object):
             else:
                 raise ExchangeError(method + ' ' + url)
 
-        self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response)
+        self.handle_errors(http_status_code, http_status_text, url, method, headers, http_response, json_response, request_headers, request_body)
         self.handle_rest_response(http_response, json_response, url, method)
         if json_response is not None:
             return json_response
@@ -578,7 +579,7 @@ class Exchange(object):
             raise error(' '.join([method, url, string_code, http_status_text, body]))
 
     def handle_rest_response(self, response, json_response, url, method):
-        if json_response is None:
+        if self.is_json_encoded_object(response) and json_response is None:
             ddos_protection = re.search('(cloudflare|incapsula|overload|ddos)', response, flags=re.IGNORECASE)
             exchange_not_available = re.search('(offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing)', response, flags=re.IGNORECASE)
             if ddos_protection:
@@ -596,32 +597,43 @@ class Exchange(object):
             pass
 
     @staticmethod
+    def key_exists(dictionary, key):
+        if dictionary is None or key is None:
+            return False
+        if isinstance(dictionary, list):
+            if isinstance(key, int) and 0 <= key and key < len(dictionary):
+                return dictionary[key] is not None
+            else:
+                return False
+        if key in dictionary:
+            return dictionary[key] is not None
+        return False
+
+    @staticmethod
     def safe_float(dictionary, key, default_value=None):
         value = default_value
         try:
-            if isinstance(dictionary, list) and isinstance(key, int) and len(dictionary) > key:
+            if Exchange.key_exists(dictionary, key):
                 value = float(dictionary[key])
-            else:
-                value = float(dictionary[key]) if (key is not None) and (key in dictionary) and (dictionary[key] is not None) else default_value
         except ValueError as e:
             value = default_value
         return value
 
     @staticmethod
     def safe_string(dictionary, key, default_value=None):
-        return str(dictionary[key]) if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+        return str(dictionary[key]) if Exchange.key_exists(dictionary, key) else default_value
 
     @staticmethod
     def safe_string_lower(dictionary, key, default_value=None):
-        return str(dictionary[key]).lower() if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+        return str(dictionary[key]).lower() if Exchange.key_exists(dictionary, key) else default_value
 
     @staticmethod
     def safe_string_upper(dictionary, key, default_value=None):
-        return str(dictionary[key]).upper() if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+        return str(dictionary[key]).upper() if Exchange.key_exists(dictionary, key) else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
-        if key is None or (key not in dictionary):
+        if not Exchange.key_exists(dictionary, key):
             return default_value
         value = dictionary[key]
         if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
@@ -630,11 +642,13 @@ class Exchange(object):
 
     @staticmethod
     def safe_integer_product(dictionary, key, factor, default_value=None):
-        if key is None or (key not in dictionary):
+        if not Exchange.key_exists(dictionary, key):
             return default_value
         value = dictionary[key]
-        if isinstance(value, Number) or (isinstance(value, basestring) and value.isnumeric()):
-            return int(value) * factor
+        if isinstance(value, Number):
+            return int(value * factor)
+        elif isinstance(value, basestring) and value.isnumeric():
+            return int(float(value) * factor)
         return default_value
 
     @staticmethod
@@ -643,7 +657,7 @@ class Exchange(object):
 
     @staticmethod
     def safe_value(dictionary, key, default_value=None):
-        return dictionary[key] if key is not None and (key in dictionary) and dictionary[key] is not None else default_value
+        return dictionary[key] if Exchange.key_exists(dictionary, key) else default_value
 
     # we're not using safe_floats with a list argument as we're trying to save some cycles here
     # we're not using safe_float_3 either because those cases are too rare to deserve their own optimization
@@ -758,7 +772,7 @@ class Exchange(object):
         return array
 
     @staticmethod
-    def filterBy(self, array, key, value=None):
+    def filterBy(array, key, value=None):
         return Exchange.filter_by(array, key, value)
 
     @staticmethod
@@ -1071,7 +1085,7 @@ class Exchange(object):
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
-        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings)
+        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
         return {
             'r': r,
@@ -1796,14 +1810,11 @@ class Exchange(object):
                 unit = self.eth_unit(decimals)
         return str(Web3.toWei(amount, unit))
 
-    def decryptAccountFromJSON(self, value, password):
-        return self.decryptAccount(json.loads(value) if isinstance(value, basestring) else value, password)
-
-    def decryptAccount(self, key, password):
-        return self.web3.eth.accounts.decrypt(key, password)
-
-    def decryptAccountFromPrivateKey(self, privateKey):
-        return self.web3.eth.accounts.privateKeyToAccount(privateKey)
+    def privateKeyToAddress(self, privateKey):
+        private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
+        public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
+        public_key_hash = self.web3.sha3(public_key_bytes)
+        return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
 
     def soliditySha3(self, array):
         values = self.solidityValues(array)
@@ -1863,7 +1874,8 @@ class Exchange(object):
         ]
         return self.web3.soliditySha3(types, unpacked).hex()
 
-    def remove_0x_prefix(self, value):
+    @staticmethod
+    def remove_0x_prefix(value):
         if value[:2] == '0x':
             return value[2:]
         return value
@@ -2023,19 +2035,20 @@ class Exchange(object):
         if v != 27 and v != 28:
             v = v + 27
         return (
-            "0x" +
-            self.remove_0x_prefix(hex(v)) +
-            self.remove_0x_prefix(signature["r"]) +
-            self.remove_0x_prefix(signature["s"]) +
+            hex(v) +
+            signature["r"][-64:] +
+            signature["s"][-64:] +
             "03"
         )
 
     def hashMessage(self, message):
-        message_bytes = bytes.fromhex(message)
-        return self.web3.sha3(b"\x19Ethereum Signed Message:\n" + str(len(message_bytes)).encode() + message_bytes).hex()
+        message_bytes = base64.b16decode(Exchange.encode(Exchange.remove_0x_prefix(message)), True)
+        hash_bytes = self.web3.sha3(b"\x19Ethereum Signed Message:\n" + Exchange.encode(str(len(message_bytes))) + message_bytes)
+        return '0x' + Exchange.decode(base64.b16encode(hash_bytes)).lower()
 
-    def signHash(self, hash, privateKey):
-        signature = self.ecdsa(hash, privateKey, 'secp256k1', None)
+    @staticmethod
+    def signHash(hash, privateKey):
+        signature = Exchange.ecdsa(hash[-64:], privateKey, 'secp256k1', None)
         return {
             'r': '0x' + signature['r'],
             's': '0x' + signature['s'],
@@ -2083,6 +2096,16 @@ class Exchange(object):
             raise ExchangeError(self.id + ' set .twofa to use this feature')
 
     @staticmethod
+    def decimal_to_bytes(n, endian='big'):
+        """int.from_bytes and int.to_bytes don't work in python2"""
+        if n > 0:
+            next_byte = Exchange.decimal_to_bytes(n // 256, endian)
+            remainder = bytes([n % 256])
+            return next_byte + remainder if endian == 'big' else remainder + next_byte
+        else:
+            return b''
+
+    @staticmethod
     def totp(key):
         def hex_to_dec(n):
             return int(n, base=16)
@@ -2094,7 +2117,7 @@ class Exchange(object):
             return base64.b32decode(padded)  # throws an error if the key is invalid
 
         epoch = int(time.time()) // 30
-        hmac_res = Exchange.hmac(epoch.to_bytes(8, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
+        hmac_res = Exchange.hmac(Exchange.decimal_to_bytes(epoch, 'big'), base32_to_bytes(key.replace(' ', '')), hashlib.sha1, 'hex')
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]

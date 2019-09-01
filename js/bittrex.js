@@ -250,7 +250,7 @@ module.exports = class bittrex extends Exchange {
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
-                'CPC': 'CapriCoin',
+                'CPC': 'Capricoin',
             },
         });
     }
@@ -1311,7 +1311,7 @@ module.exports = class bittrex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

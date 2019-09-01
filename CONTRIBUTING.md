@@ -163,9 +163,9 @@ The contents of the repository are structured as follows:
 
 ### Multilanguage Support
 
-The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
@@ -268,7 +268,7 @@ And structurally:
 
 Most of exchanges' API endpoints will require an exchange-specific market symbol or trading pair or instrument to be specified in the request.
 
-**We don't send unified symbols to exchanges directly!** They are not interchangeable! There is a significant difference between an *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
+**We don't send unified symbols to exchanges directly!** They are not interchangeable! There is a significant difference between *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
 
 - https://github.com/ccxt/ccxt/wiki/Manual#markets
 - https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
@@ -478,6 +478,47 @@ Or:
 if ('foo' in params) {
 }
 ```
+
+#### Using Base Class Cryptography Methods For Authentication
+
+Do not reinvent the wheel. Always use base-class methods for cryptography.
+
+The CCXT library supports the following authentication algorithms and cryptography algorithms:
+
+- HMAC
+- JWT (JSON Web Token)
+- RSA
+- ECDSA Elliptic Curve Cryptography
+  - NIST P256
+  - secp256k1
+- OTP 2FA (one-time password 2-factor authentication)
+
+The base `Exchange` class offers several methods that are key to practically all cryptography in this lib. Derived exchange implementations must not use external dependencies for cryptography, everything should be done with base methods only.
+
+- `hash (message, hash = 'md5', digest = 'hex')`
+- `hmac (message, secret, hash = 'sha256', digest = 'hex')`
+- `jwt (message, secret, hash = 'HS256')`
+- `rsa (message, secret, alg = 'RS256')`
+- `ecdsa (request, secret, algorithm = 'p256', hash = undefined)`
+- `totp (secret)`
+- `stringToBase64()`, `base64ToBinary()`, `binaryToBase64()`...
+
+The `hash()` method supports the following `hash` algorithms:
+
+- `'md5'`
+- `'sha1'`
+- `'sha3'`
+- `'sha256'`
+- `'sha384'`
+- `'sha512'`
+- `'keccak'`
+
+The `digest` encoding argument accepts the following values:
+
+- `'hex'`
+- `'binary'`
+
+The `hmac()` method also supports `'base64'` for the `digest` argument. This is for `hmac()` only, other implementations should use `'binary'` with `binaryToBase64()`.
 
 #### Timestamps
 

@@ -186,6 +186,7 @@ class kucoin (Exchange):
             },
             'commonCurrencies': {
                 'HOT': 'HOTNOW',
+                'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
             },
             'options': {
                 'version': 'v1',
@@ -224,7 +225,7 @@ class kucoin (Exchange):
         result = []
         for i in range(0, len(data)):
             market = data[i]
-            id = self.safe_string(market, 'name')
+            id = self.safe_string(market, 'symbol')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
@@ -1434,7 +1435,7 @@ class kucoin (Exchange):
             headers['KC-API-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return
         #

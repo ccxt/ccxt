@@ -332,7 +332,7 @@ class gateio (Exchange):
             'info': ticker,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         resultString = self.safe_string(response, 'result', '')

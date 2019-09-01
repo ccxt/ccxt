@@ -31,6 +31,8 @@ const NO_PADDING    = 0             // zero-padding mode
 const precisionConstants = {
     ROUND,
     TRUNCATE,
+    ROUND_UP,
+    ROUND_DOWN,
     DECIMAL_PLACES,
     SIGNIFICANT_DIGITS,
     TICK_SIZE,
