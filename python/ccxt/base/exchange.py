@@ -595,7 +595,7 @@ class Exchange(object):
                 return json.loads(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
-    
+
     def is_text_response(self, headers):
         return headers['Content-Type'].startswith('text/')
 
