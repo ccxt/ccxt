@@ -45,6 +45,7 @@ class southxchange (Exchange):
                         'generatenewaddress',
                         'listOrders',
                         'listBalances',
+                        'listTransactions',
                         'placeOrder',
                         'withdraw',
                     ],

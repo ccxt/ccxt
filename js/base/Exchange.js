@@ -219,9 +219,7 @@ module.exports = class Exchange {
     } // describe ()
 
     constructor (userConfig = {}) {
-
-        Object.assign (this, functions, { encode: string => string, decode: string => string })
-
+        Object.assign (this, functions)
         // if (isNode) {
         //     this.nodeVersion = process.version.match (/\d+\.\d+\.\d+/)[0]
         //     this.userAgent = {
@@ -548,18 +546,19 @@ module.exports = class Exchange {
         return undefined;
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response) {
+    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
         // override me
     }
 
     defaultErrorHandler (code, reason, url, method, headers, body, response) {
+        if ((code >= 200) && (code <= 299)) {
+            return
+        }
         let details = body
         const codeAsString = code.toString ()
         let ErrorClass = undefined
         if (codeAsString in this.httpExceptions) {
             ErrorClass = this.httpExceptions[codeAsString]
-        } else if (code < 200 || code > 299) {
-            ErrorClass = ExchangeError
         }
         if (response === undefined) {
             const maintenance = body.match (/offline|busy|retry|wait|unavailable|maintain|maintenance|maintenancing/i)
@@ -625,7 +624,7 @@ module.exports = class Exchange {
             if (this.verbose)
                 console.log ("handleRestResponse:\n", this.id, method, url, response.status, response.statusText, "\nResponse:\n", responseHeaders, "\n", responseBody, "\n")
 
-            this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
+            this.handleErrors (response.status, response.statusText, url, method, responseHeaders, responseBody, json, requestHeaders, requestBody)
             this.defaultErrorHandler (response.status, response.statusText, url, method, responseHeaders, responseBody, json)
 
             return json || responseBody
@@ -1393,18 +1392,6 @@ module.exports = class Exchange {
         return this.web3.utils.toWei (amount, unit)
     }
 
-    decryptAccountFromJson (json, password) {
-        return this.decryptAccount ((typeof json === 'string') ? JSON.parse (json) : json, password)
-    }
-
-    decryptAccount (key, password) {
-        return this.web3.eth.accounts.decrypt (key, password)
-    }
-
-    decryptAccountFromPrivateKey (privateKey) {
-        return this.web3.eth.accounts.privateKeyToAccount (privateKey)
-    }
-
     soliditySha3 (array) {
         const values = this.solidityValues (array);
         const types = this.solidityTypes (values);
@@ -1527,16 +1514,22 @@ module.exports = class Exchange {
         if (v !== 27 && v !== 28) {
             v = v + 27;
         }
-        const signatureBuffer = Buffer.concat ([
-            ethUtil.toBuffer (v),
-            ethUtil.toBuffer (signature.r),
-            ethUtil.toBuffer (signature.s)
-        ])
-        return '0x' + signatureBuffer.toString ('hex') + '03';
+        return '0x' + v.toString (16) + signature['r'].slice (-64) + signature['s'].slice (-64) + '03'
+    }
+
+    static remove0xPrefix (hexData) {
+        if (hexData.slice (0, 2) === '0x') {
+            return hexData.slice (2)
+        } else {
+            return hexData
+        }
     }
 
     hashMessage (message) {
-        return this.web3.eth.accounts.hashMessage (message)
+        // takes a hex encoded message
+        const binaryMessage = this.base16ToBinary (Exchange.remove0xPrefix (message))
+        const prefix = this.stringToBinary ('\x19Ethereum Signed Message:\n' + binaryMessage.sigBytes)
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), 'keccak', 'hex')
     }
 
     signHash (hash, privateKey) {
@@ -1549,45 +1542,6 @@ module.exports = class Exchange {
     }
 
     signMessage (message, privateKey) {
-        //
-        // The following comment is related to MetaMask, we use the upper type of signature prefix:
-        //
-        // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
-        //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
-        //                              prefixType: 'ETH_SIGN',
-        //                              shouldAddPrefixBeforeCallingEthSign: true
-        //                          }).then ((e, r) => console.log (e,r))
-        //
-        //     {                            ↓
-        //         v: 28,
-        //         r: "0xea7a68268b47c48d5d7a4c900e6f9af0015bf70951b3db2f1d835c5d544aaec2",
-        //         s: "0x5d1db2a060c955c1fde4c967237b995c2361097405407b33c6046c8aeb3ccbdf"
-        //     }
-        //
-        // --------------------------------------------------------------------
-        //
-        // z.ecSignOrderHashAsync ('0xcfdb0a485324ff37699b4c8557f6858f25916fc6fce5993b32fe018aea510b9f',
-        //                         '0x731fc101bbe102221c91c31ed0489f1ddfc439a3', {
-        //                              prefixType: 'NONE',
-        //                              shouldAddPrefixBeforeCallingEthSign: true
-        //                          }).then ((e, r) => console.log (e,r))
-        //
-        //     {                            ↓
-        //         v: 27,
-        //         r: "0xc8c710022c57de4f529d448e9b40517dd9bfb49ff1eb245f5856664b865d14a6",
-        //         s: "0x0740bb21f4f094fbbdbafa903bb8f057f82e0c6e4fe65d19a1daed4ed97cd394"
-        //     }
-        //
-        const signature = this.decryptAccountFromPrivateKey (privateKey).sign (message, privateKey.slice (-64))
-        return {
-            v: parseInt (signature.v.slice (2), 16), // integer
-            r: signature.r, // '0x'-prefixed hex string
-            s: signature.s, // '0x'-prefixed hex string
-        }
-    }
-
-    signMessage2 (message, privateKey) {
-        // an alternative to signMessage using ethUtil (ethereumjs-util) instead of web3
         return this.signHash (this.hashMessage (message), privateKey.slice (-64))
     }
 

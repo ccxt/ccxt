@@ -2123,7 +2123,9 @@ class okex3 (Exchange):
             if currencyId is not None:
                 feeWithCurrencyId = self.safe_string(transaction, 'fee')
                 if feeWithCurrencyId is not None:
-                    feeWithoutCurrencyId = feeWithCurrencyId.replace(currencyId, '')
+                    # https://github.com/ccxt/ccxt/pull/5748
+                    lowercaseCurrencyId = currencyId.lower()
+                    feeWithoutCurrencyId = feeWithCurrencyId.replace(lowercaseCurrencyId, '')
                     feeCost = float(feeWithoutCurrencyId)
         # todo parse tags
         return {
@@ -2570,7 +2572,7 @@ class okex3 (Exchange):
         key = self.findBroadlyMatchedKey(auth, path)
         return self.safe_string(auth, key, 'private')
 
-    def handle_errors(self, code, reason, url, method, headers, body, response=None):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         feedback = self.id + ' ' + body
         if code == 503:
             raise ExchangeError(feedback)

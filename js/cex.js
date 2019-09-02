@@ -783,15 +783,41 @@ module.exports = class cex extends Exchange {
                 //     "balance": "5597.44000000",
                 //     "symbol2": "BCH",
                 //     "fee_amount": "0.01" }
+                // --
+                // trade which should have an amount of exactly 0.002BTC
+                //   {
+                //     "a": "16.70000000",
+                //     "c": "user:up106404164:a:GBP",
+                //     "d": "order:9927386681:a:GBP",
+                //     "cs": "86.90",
+                //     "ds": 0,
+                //     "id": "9927401610",
+                //     "buy": "9927401601",
+                //     "pos": null,
+                //     "pair": null,
+                //     "sell": "9927386681",
+                //     "time": "2019-08-21T15:25:37.777Z",
+                //     "type": "sell",
+                //     "user": "up106404164",
+                //     "order": "9927386681",
+                //     "price": 8365,
+                //     "amount": "16.70000000",
+                //     "office": "UK",
+                //     "symbol": "GBP",
+                //     "balance": "86.90000000",
+                //     "symbol2": "BTC",
+                //     "fee_amount": "0.03"
+                //   }
                 const tradeTime = this.safeString (item, 'time');
                 const tradeTimestamp = this.parse8601 (tradeTime);
                 const tradeAmount = this.safeFloat (item, 'amount');
                 const tradePrice = this.safeFloat (item, 'price');
+                const feeCost = this.safeFloat (item, 'fee_amount');
                 let absTradeAmount = tradeAmount < 0 ? -tradeAmount : tradeAmount;
                 let tradeCost = undefined;
                 if (tradeSide === 'sell') {
                     tradeCost = absTradeAmount;
-                    absTradeAmount = tradeCost / tradePrice;
+                    absTradeAmount = this.sum (feeCost, tradeCost) / tradePrice;
                 } else {
                     tradeCost = absTradeAmount * tradePrice;
                 }
@@ -806,7 +832,7 @@ module.exports = class cex extends Exchange {
                     'cost': tradeCost,
                     'side': tradeSide,
                     'fee': {
-                        'cost': this.safeFloat (item, 'fee_amount'),
+                        'cost': feeCost,
                         'currency': market['quote'],
                     },
                     'info': item,
@@ -869,6 +895,27 @@ module.exports = class cex extends Exchange {
         };
         const response = await this.privatePostGetOrderTx (this.extend (request, params));
         return this.parseOrder (response['data']);
+    }
+
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires a amount argument');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires a price argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // see: https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest
+        const request = {
+            'pair': market['id'],
+            'type': side,
+            'amount': amount,
+            'price': price,
+            'order_id': id,
+        };
+        const response = await this.privatePostCancelReplaceOrderPair (this.extend (request, params));
+        return this.parseOrder (response, market);
     }
 
     nonce () {

@@ -33,9 +33,17 @@ namespace ccxt;
 define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 
 spl_autoload_register(function ($class) {
-    // used to include static dependencies (currently only elliptic-php)
-    $PATH = PATH_TO_CCXT . 'static_dependencies/elliptic-php/lib/';
-    $class_name = str_replace('Elliptic\\', '', $class);
+    // used to include static dependencies
+    $PATH = PATH_TO_CCXT . 'static_dependencies/';
+    if (strpos($class, 'kornrunner') !== false) {
+        $version = phpversion();
+        if (intval(explode('.', $version)[0]) < 7) {
+            throw new \RuntimeException($class . " requires php7 or greater, your version: " . $version);
+        }
+    }
+    $class_name = str_replace('kornrunner\\Solidity', 'kornrunner/solidity/src/Solidity', $class);
+    $class_name = str_replace('kornrunner\\Keccak', 'kornrunner/keccak/src/Keccak', $class_name);
+    $class_name = str_replace('Elliptic\\', 'elliptic-php/lib/', $class_name);
     $class_name = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
     $file = $PATH . $class_name . '.php';
     if (file_exists ($file))

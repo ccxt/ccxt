@@ -172,6 +172,7 @@ module.exports = class kucoin extends Exchange {
             },
             'commonCurrencies': {
                 'HOT': 'HOTNOW',
+                'EDGE': 'DADI', // https://github.com/ccxt/ccxt/issues/5756
             },
             'options': {
                 'version': 'v1',
@@ -213,7 +214,7 @@ module.exports = class kucoin extends Exchange {
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
-            const id = this.safeString (market, 'name');
+            const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCurrency');
             const quoteId = this.safeString (market, 'quoteCurrency');
             const base = this.safeCurrencyCode (baseId);
@@ -1534,7 +1535,7 @@ module.exports = class kucoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return;
         }

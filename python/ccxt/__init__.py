@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.1086'
+__version__ = '1.18.1115'
 
 # ----------------------------------------------------------------------------
 
@@ -146,6 +146,7 @@ from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
 from ccxt.huobiru import huobiru                            # noqa: F401
 from ccxt.ice3x import ice3x                                # noqa: F401
+from ccxt.idex import idex                                  # noqa: F401
 from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.indodax import indodax                            # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
@@ -272,6 +273,7 @@ exchanges = [
     'huobipro',
     'huobiru',
     'ice3x',
+    'idex',
     'independentreserve',
     'indodax',
     'itbit',
