@@ -562,7 +562,9 @@ class Exchange(object):
         self.handle_rest_response(http_response, json_response, url, method)
         if json_response is not None:
             return json_response
-        return http_response
+        if self.is_text_response(headers):
+            return http_response
+        return response.content
 
     def handle_rest_errors(self, http_status_code, http_status_text, body, url, method):
         error = None
@@ -592,6 +594,9 @@ class Exchange(object):
                 return json.loads(http_response)
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
+    
+    def is_text_response(self, headers):
+        return headers['Content-Type'].startswith('text/')
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
