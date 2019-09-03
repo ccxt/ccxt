@@ -1002,20 +1002,33 @@ module.exports = class boaexchange extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return;
+        }
         if (body[0] === '{') {
-            const data = this.safeValue (response, 'data');
-            const errors = this.safeValue (response, 'errors');
-            const feedback = this.id + ' ' + this.json (response);
-            if (errors !== undefined) {
-                const message = errors[0];
-                if (message in this.exceptions) {
-                    throw new this.exceptions[message] (feedback);
-                }
-                throw new ExchangeError (url + method + ' an error occoured: ' + this.json (errors));
-            }
-            if (data === undefined) {
+            let success = this.safeValue (response, 'success');
+            if (success === undefined) {
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            }
+            if (typeof success === 'string') {
+                // bleutrade uses string instead of boolean
+                success = (success === 'true') ? true : false;
+            }
+            if (!success) {
+                const data = this.safeValue (response, 'data');
+                const errors = this.safeValue (response, 'errors');
+                const feedback = this.id + ' ' + this.json (response);
+                if (errors !== undefined) {
+                    const message = errors[0];
+                    if (message in this.exceptions) {
+                        throw new this.exceptions[message] (feedback);
+                    }
+                    throw new ExchangeError (url + method + ' an error occoured: ' + this.json (errors));
+                }
+                if (data === undefined) {
+                    throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+                }
             }
         }
     }
