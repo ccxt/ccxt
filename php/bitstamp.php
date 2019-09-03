@@ -229,7 +229,7 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $response = $this->publicGetOrderBookPair (array_merge ($request, $params));
-        $timestamp = $this->safe_timestamp($response, 'timestamp', 1000);
+        $timestamp = $this->safe_timestamp($response, 'timestamp');
         return $this->parse_order_book($response, $timestamp);
     }
 
@@ -239,7 +239,7 @@ class bitstamp extends Exchange {
             'pair' => $this->market_id($symbol),
         );
         $ticker = $this->publicGetTickerPair (array_merge ($request, $params));
-        $timestamp = $this->safe_timestamp($ticker, 'timestamp', 1000);
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $vwap = $this->safe_float($ticker, 'vwap');
         $baseVolume = $this->safe_float($ticker, 'volume');
         $quoteVolume = null;
