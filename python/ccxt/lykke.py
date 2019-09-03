@@ -95,6 +95,9 @@ class lykke (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'XPD': 'Lykke XPD',
+            },
         })
 
     def parse_trade(self, trade, market):
