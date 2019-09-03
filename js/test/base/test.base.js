@@ -26,6 +26,9 @@ describe ('ccxt base code', () => {
     it ('date&time functions work', () => {
         require('./functions/test.datetime')
     })
+    it ('cryptography code works', () => {
+        require('./functions/test.crypto')
+    })
 
 /*  ------------------------------------------------------------------------ */
 

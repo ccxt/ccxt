@@ -784,15 +784,41 @@ class cex extends Exchange {
                 //     "balance" => "5597.44000000",
                 //     "symbol2" => "BCH",
                 //     "fee_amount" => "0.01" }
+                // --
+                // trade which should have an $amount of exactly 0.002BTC
+                //   {
+                //     "a" => "16.70000000",
+                //     "c" => "user:up106404164:a:GBP",
+                //     "d" => "$order:9927386681:a:GBP",
+                //     "cs" => "86.90",
+                //     "ds" => 0,
+                //     "id" => "9927401610",
+                //     "buy" => "9927401601",
+                //     "pos" => null,
+                //     "pair" => null,
+                //     "sell" => "9927386681",
+                //     "time" => "2019-08-21T15:25:37.777Z",
+                //     "type" => "sell",
+                //     "user" => "up106404164",
+                //     "$order" => "9927386681",
+                //     "$price" => 8365,
+                //     "$amount" => "16.70000000",
+                //     "office" => "UK",
+                //     "$symbol" => "GBP",
+                //     "balance" => "86.90000000",
+                //     "symbol2" => "BTC",
+                //     "fee_amount" => "0.03"
+                //   }
                 $tradeTime = $this->safe_string($item, 'time');
                 $tradeTimestamp = $this->parse8601 ($tradeTime);
                 $tradeAmount = $this->safe_float($item, 'amount');
                 $tradePrice = $this->safe_float($item, 'price');
+                $feeCost = $this->safe_float($item, 'fee_amount');
                 $absTradeAmount = $tradeAmount < 0 ? -$tradeAmount : $tradeAmount;
                 $tradeCost = null;
                 if ($tradeSide === 'sell') {
                     $tradeCost = $absTradeAmount;
-                    $absTradeAmount = $tradeCost / $tradePrice;
+                    $absTradeAmount = $this->sum ($feeCost, $tradeCost) / $tradePrice;
                 } else {
                     $tradeCost = $absTradeAmount * $tradePrice;
                 }
@@ -807,7 +833,7 @@ class cex extends Exchange {
                     'cost' => $tradeCost,
                     'side' => $tradeSide,
                     'fee' => array (
-                        'cost' => $this->safe_float($item, 'fee_amount'),
+                        'cost' => $feeCost,
                         'currency' => $market['quote'],
                     ),
                     'info' => $item,
@@ -870,6 +896,27 @@ class cex extends Exchange {
         );
         $response = $this->privatePostGetOrderTx (array_merge ($request, $params));
         return $this->parse_order($response['data']);
+    }
+
+    public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
+        if ($amount === null) {
+            throw new ArgumentsRequired($this->id . ' editOrder requires a $amount argument');
+        }
+        if ($price === null) {
+            throw new ArgumentsRequired($this->id . ' editOrder requires a $price argument');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        // see => https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest
+        $request = array (
+            'pair' => $market['id'],
+            'type' => $side,
+            'amount' => $amount,
+            'price' => $price,
+            'order_id' => $id,
+        );
+        $response = $this->privatePostCancelReplaceOrderPair (array_merge ($request, $params));
+        return $this->parse_order($response, $market);
     }
 
     public function nonce () {

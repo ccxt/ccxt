@@ -58,6 +58,7 @@ module.exports = class okex extends okcoinusd {
                 'HSR': 'HC',
                 'MAG': 'Maggie',
                 'YOYO': 'YOYOW',
+                'WIN': 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             },
         });
     }

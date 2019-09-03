@@ -18,6 +18,7 @@ class liquid extends Exchange {
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => false,
+                'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
@@ -83,7 +84,6 @@ class liquid extends Exchange {
                     ),
                 ),
             ),
-            'skipJsonOnStatusCodes' => [401],
             'exceptions' => array (
                 'API rate limit exceeded. Please retry after 300s' => '\\ccxt\\DDoSProtection',
                 'API Authentication failed' => '\\ccxt\\AuthenticationError',
@@ -221,11 +221,11 @@ class liquid extends Exchange {
             $minAmount = null;
             if ($baseCurrency !== null) {
                 $minAmount = $this->safe_float($baseCurrency['info'], 'minimum_order_quantity');
-                $precision['amount'] = $this->safe_integer($baseCurrency['info'], 'quoting_precision');
+                // $precision['amount'] = $this->safe_integer($baseCurrency['info'], 'quoting_precision');
             }
             $minPrice = null;
             if ($quoteCurrency !== null) {
-                $precision['price'] = $this->safe_integer($quoteCurrency['info'], 'display_precision');
+                $precision['price'] = $this->safe_integer($quoteCurrency['info'], 'quoting_precision');
                 $minPrice = pow(10, -$precision['price']);
             }
             $minCost = null;
@@ -777,7 +777,7 @@ class liquid extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code >= 200 && $code < 300) {
             return;
         }

@@ -1141,7 +1141,7 @@ class digifinex extends Exchange {
         return $this->ymd ($timestampMS . $timedelta);
     }
 
-    public function handle_errors ($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response) {
+    public function handle_errors ($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fall back to default error handler
         }

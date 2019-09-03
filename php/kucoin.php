@@ -173,6 +173,7 @@ class kucoin extends Exchange {
             ),
             'commonCurrencies' => array (
                 'HOT' => 'HOTNOW',
+                'EDGE' => 'DADI', // https://github.com/ccxt/ccxt/issues/5756
             ),
             'options' => array (
                 'version' => 'v1',
@@ -214,7 +215,7 @@ class kucoin extends Exchange {
         $result = array();
         for ($i = 0; $i < count ($data); $i++) {
             $market = $data[$i];
-            $id = $this->safe_string($market, 'name');
+            $id = $this->safe_string($market, 'symbol');
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
             $base = $this->safe_currency_code($baseId);
@@ -494,12 +495,25 @@ class kucoin extends Exchange {
         $marketId = $market['id'];
         $request = array (
             'symbol' => $marketId,
-            'endAt' => $this->seconds (), // required param
             'type' => $this->timeframes[$timeframe],
         );
+        $duration = $this->parse_timeframe($timeframe) * 1000;
+        $endAt = $this->milliseconds (); // required param
         if ($since !== null) {
-            $request['startAt'] = (int) floor($since / 1000);
+            $request['startAt'] = intval ((int) floor($since / 1000));
+            if ($limit === null) {
+                // https://docs.kucoin.com/#get-klines
+                // https://docs.kucoin.com/#details
+                // For each query, the system would return at most 1500 pieces of data.
+                // To obtain more data, please page the data by time.
+                $limit = $this->safe_integer($this->options, 'fetchOHLCVLimit', 1500);
+            }
+            $endAt = $this->sum ($since, $limit * $duration);
+        } else if ($limit !== null) {
+            $since = $endAt - $limit * $duration;
+            $request['startAt'] = intval ((int) floor($since / 1000));
         }
+        $request['endAt'] = intval ((int) floor($endAt / 1000));
         $response = $this->publicGetMarketCandles (array_merge ($request, $params));
         $responseData = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($responseData, $market, $timeframe, $since, $limit);
@@ -1522,7 +1536,7 @@ class kucoin extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return;
         }

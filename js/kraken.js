@@ -53,7 +53,7 @@ module.exports = class kraken extends Exchange {
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
-                    'zendesk': 'https://support.kraken.com/hc/en-us/articles/',
+                    'zendesk': 'https://support.kraken.com/hc/en-us/articles',
                 },
                 'www': 'https://www.kraken.com',
                 'doc': 'https://www.kraken.com/features/api',
@@ -776,7 +776,17 @@ module.exports = class kraken extends Exchange {
         // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
         // https://github.com/ccxt/ccxt/issues/5677
         if (since !== undefined) {
-            request['since'] = since * 1000000; // expected to be in nanoseconds
+            // php does not format it properly
+            // therefore we use string concatenation here
+            request['since'] = since * 1e6;
+            request['since'] = since.toString () + '000000'; // expected to be in nanoseconds
+        }
+        // https://github.com/ccxt/ccxt/issues/5698
+        if (limit !== undefined && limit !== 1000) {
+            const fetchTradesWarning = this.safeValue (this.options, 'fetchTradesWarning', true);
+            if (fetchTradesWarning) {
+                throw new ExchangeError (this.id + ' fetchTrades() cannot serve ' + limit.toString () + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
+            }
         }
         const response = await this.publicGetTrades (this.extend (request, params));
         //
@@ -1380,7 +1390,7 @@ module.exports = class kraken extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code === 520) {
             throw new ExchangeNotAvailable (this.id + ' ' + code.toString () + ' ' + reason);
         }

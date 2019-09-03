@@ -144,6 +144,7 @@ class huobipro extends Exchange {
                 'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
                 'api-signature-check-failed' => '\\ccxt\\AuthenticationError',
                 'api-signature-not-valid' => '\\ccxt\\AuthenticationError', // array("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => Incorrect Access key [Access key错误]","data":null)
+                'base-record-invalid' => '\\ccxt\\OrderNotFound', // https://github.com/ccxt/ccxt/issues/5750
             ),
             'options' => array (
                 // https://github.com/ccxt/ccxt/issues/5376
@@ -1021,7 +1022,7 @@ class huobipro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

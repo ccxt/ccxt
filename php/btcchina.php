@@ -286,7 +286,7 @@ class btcchina extends Exchange {
         $request = $this->create_market_request ($market);
         if ($market['plus']) {
             $now = $this->milliseconds ();
-            $request['start_time'] = $now - 86400 * 1000;
+            $request['start_time'] = $now - 86400000;
             $request['end_time'] = $now;
         } else {
             $method .= 's'; // trades vs trade

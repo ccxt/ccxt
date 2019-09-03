@@ -123,7 +123,7 @@ class ice3x (Exchange):
         return result
 
     async def fetch_markets(self, params={}):
-        if not self.currencies_by_id:
+        if self.currencies_by_id is None:
             self.currencies = await self.fetch_currencies()
             self.currencies_by_id = self.index_by(self.currencies, 'id')
         response = await self.publicGetPairList(params)

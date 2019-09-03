@@ -1106,7 +1106,7 @@ class crex24 (Exchange):
             headers['X-CREX24-API-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
         if (code >= 200) and(code < 300):

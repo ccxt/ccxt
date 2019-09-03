@@ -146,6 +146,7 @@ module.exports = class fcoin extends Exchange {
                 '429': DDoSProtection, // Too Many Requests, exceed api request limit
                 '1002': ExchangeNotAvailable, // System busy
                 '1016': InsufficientFunds,
+                '2136': AuthenticationError, // The API key is expired
                 '3008': InvalidOrder,
                 '6004': InvalidNonce,
                 '6005': AuthenticationError, // Illegal API Signature
@@ -684,7 +685,7 @@ module.exports = class fcoin extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

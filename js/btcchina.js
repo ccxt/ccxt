@@ -284,7 +284,7 @@ module.exports = class btcchina extends Exchange {
         const request = this.createMarketRequest (market);
         if (market['plus']) {
             const now = this.milliseconds ();
-            request['start_time'] = now - 86400 * 1000;
+            request['start_time'] = now - 86400000;
             request['end_time'] = now;
         } else {
             method += 's'; // trades vs trade

@@ -26,6 +26,7 @@ class liquid (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': False,
+                'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -91,7 +92,6 @@ class liquid (Exchange):
                     ],
                 },
             },
-            'skipJsonOnStatusCodes': [401],
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -226,10 +226,10 @@ class liquid (Exchange):
             minAmount = None
             if baseCurrency is not None:
                 minAmount = self.safe_float(baseCurrency['info'], 'minimum_order_quantity')
-                precision['amount'] = self.safe_integer(baseCurrency['info'], 'quoting_precision')
+                # precision['amount'] = self.safe_integer(baseCurrency['info'], 'quoting_precision')
             minPrice = None
             if quoteCurrency is not None:
-                precision['price'] = self.safe_integer(quoteCurrency['info'], 'display_precision')
+                precision['price'] = self.safe_integer(quoteCurrency['info'], 'quoting_precision')
                 minPrice = math.pow(10, -precision['price'])
             minCost = None
             if minPrice is not None:
@@ -723,7 +723,7 @@ class liquid (Exchange):
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code >= 200 and code < 300:
             return
         exceptions = self.exceptions

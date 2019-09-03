@@ -451,6 +451,7 @@ class okex3 extends Exchange {
                 'HSR' => 'HC',
                 'MAG' => 'Maggie',
                 'YOYO' => 'YOYOW',
+                'WIN' => 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             ),
         ));
     }
@@ -2209,7 +2210,9 @@ class okex3 extends Exchange {
             if ($currencyId !== null) {
                 $feeWithCurrencyId = $this->safe_string($transaction, 'fee');
                 if ($feeWithCurrencyId !== null) {
-                    $feeWithoutCurrencyId = str_replace($currencyId, '', $feeWithCurrencyId);
+                    // https://github.com/ccxt/ccxt/pull/5748
+                    $lowercaseCurrencyId = strtolower($currencyId);
+                    $feeWithoutCurrencyId = str_replace($lowercaseCurrencyId, '', $feeWithCurrencyId);
                     $feeCost = floatval ($feeWithoutCurrencyId);
                 }
             }
@@ -2680,7 +2683,7 @@ class okex3 extends Exchange {
         return $this->safe_string($auth, $key, 'private');
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
             throw new ExchangeError($feedback);

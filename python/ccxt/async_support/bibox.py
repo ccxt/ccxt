@@ -193,7 +193,7 @@ class bibox (Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': None,
+                        'min': math.pow(10, -precision['price']),
                         'max': None,
                     },
                 },
@@ -691,10 +691,10 @@ class bibox (Exchange):
         return self.safe_string(statuses, status, status)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
         market = None
         pair = None
         if symbol is not None:
-            await self.load_markets()
             market = self.market(symbol)
             pair = market['id']
         size = limit if (limit) else 200
@@ -841,7 +841,7 @@ class bibox (Exchange):
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         if 'error' in response:

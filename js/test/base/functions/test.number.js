@@ -17,6 +17,9 @@ assert (numberToString (7.9e27) === '7900000000000000000000000000');
 assert (numberToString (-12.345) === '-12.345');
 assert (numberToString (12.345) === '12.345');
 assert (numberToString (0) === '0');
+// this line breaks the test
+// see https://github.com/ccxt/ccxt/issues/5744
+// assert (numberToString (0.00000001) === '0.00000001');
 
 // ----------------------------------------------------------------------------
 // testDecimalToPrecisionTruncationToNDigitsAfterDot

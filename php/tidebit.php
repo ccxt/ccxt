@@ -477,7 +477,7 @@ class tidebit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code === 400) {
             $error = $this->safe_value($response, 'error');
             $errorCode = $this->safe_string($error, 'code');

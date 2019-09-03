@@ -17,6 +17,7 @@ module.exports = class liquid extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': false,
+                'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -82,7 +83,6 @@ module.exports = class liquid extends Exchange {
                     ],
                 },
             },
-            'skipJsonOnStatusCodes': [401],
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -220,11 +220,11 @@ module.exports = class liquid extends Exchange {
             let minAmount = undefined;
             if (baseCurrency !== undefined) {
                 minAmount = this.safeFloat (baseCurrency['info'], 'minimum_order_quantity');
-                precision['amount'] = this.safeInteger (baseCurrency['info'], 'quoting_precision');
+                // precision['amount'] = this.safeInteger (baseCurrency['info'], 'quoting_precision');
             }
             let minPrice = undefined;
             if (quoteCurrency !== undefined) {
-                precision['price'] = this.safeInteger (quoteCurrency['info'], 'display_precision');
+                precision['price'] = this.safeInteger (quoteCurrency['info'], 'quoting_precision');
                 minPrice = Math.pow (10, -precision['price']);
             }
             let minCost = undefined;
@@ -776,7 +776,7 @@ module.exports = class liquid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code >= 200 && code < 300) {
             return;
         }
