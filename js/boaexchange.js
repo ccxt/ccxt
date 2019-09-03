@@ -200,17 +200,18 @@ module.exports = class boaexchange extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        if (type !== 'limit')
+        if (type !== 'limit') {
             throw new ExchangeError (this.id + ' allows limit orders only');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let order = {
+        const market = this.market (symbol);
+        const order = {
             'market': market['id'],
             'amount': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
             'side': side,
         };
-        let response = await this.privatePostOrders (this.extend (order, params));
+        const response = await this.privatePostOrders (this.extend (order, params));
         return this.extend (this.parseOrder (response['data'], market), {
             'status': 'open',
             'price': order['price'],
@@ -224,8 +225,8 @@ module.exports = class boaexchange extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'orderId': id };
-        let response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        const request = { 'orderId': id };
+        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         return this.extend (this.parseOrder (response['data']), {
             'status': 'canceled',
         });
@@ -233,8 +234,8 @@ module.exports = class boaexchange extends Exchange {
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'orderId': ids.join (',') };
-        let response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        const request = { 'orderId': ids.join (',') };
+        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
         return this.extend (this.parseOrder (response['data']), {
             'status': 'canceled',
         });
@@ -242,27 +243,27 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalances (params);
-        let balances = response['data'];
+        const response = await this.privateGetBalances (params);
+        const balances = response['data'];
         return this.parseBalances (balances);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'market': symbol, 'begin': since, 'limit': limit, 'status': 'closed' };
+        const request = { 'market': symbol, 'begin': since, 'limit': limit, 'status': 'closed' };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let response = await this.privateGetOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['data'], market, since, limit);
+        const response = await this.privateGetOrders (this.extend (request, params));
+        const orders = this.parseOrders (response['data'], market, since, limit);
         return this.filterBySymbol (orders, symbol);
     }
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCoins (params);
-        let currencies = this.parseCurrencies (response['data']);
+        const currencies = this.parseCurrencies (response['data']);
         return currencies;
     }
 
@@ -285,7 +286,7 @@ module.exports = class boaexchange extends Exchange {
             'label': currency['id'],
         };
         const response = await this.privateGetAddressesLabel (this.extend (request, params));
-        let addresses = this.parseDepositAddresses (response['data']);
+        const addresses = this.parseDepositAddresses (response['data']);
         if (!addresses) {
             throw new AddressPending (this.id + ' the address for ' + code + ' is being generated (pending, not ready yet, retry again later)');
         }
@@ -309,15 +310,16 @@ module.exports = class boaexchange extends Exchange {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
-        let withdrawFees = {};
-        let info = {};
-        if (codes === undefined)
+        const withdrawFees = {};
+        const info = {};
+        if (codes === undefined) {
             codes = Object.keys (this.currencies);
+        }
         for (let i = 0; i < codes.length; i++) {
-            let code = codes[i];
-            let currency = this.currency (code);
-            let request = { 'label': currency['id'] };
-            let response = await this.publicGetCoinsLabel (request);
+            const code = codes[i];
+            const currency = this.currency (code);
+            const request = { 'label': currency['id'] };
+            const response = await this.publicGetCoinsLabel (request);
             withdrawFees[code] = this.safeFloat (response['data'], 'tx_fee');
         }
         return {
@@ -335,25 +337,25 @@ module.exports = class boaexchange extends Exchange {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        let result = {};
+        const result = {};
         for (let i = 0; i < symbols.length; i++) {
-            let symbol = symbols[i];
+            const symbol = symbols[i];
             result[symbol] = await this.fetchFundingLimitsById (this.marketId (symbol), params);
         }
         return result;
     }
 
     async fetchFundingLimitsById (id, params = {}) {
-        let request = {
+        const request = {
             'symbol': id,
         };
-        let response = await this.privateGetCoinsLabelLimits (this.extend (request, params));
+        const response = await this.privateGetCoinsLabelLimits (this.extend (request, params));
         return this.parseFundingLimits (this.safeValue (response, 'data', {}));
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'page': since,
             'limit': limit,
         };
@@ -374,8 +376,8 @@ module.exports = class boaexchange extends Exchange {
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         params['symbol'] = symbol;
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.privateGetTrades (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.privateGetTrades (this.extend ({
             'market': market['id'],
             'begin': since,
             'limit': limit,
@@ -390,31 +392,32 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'period': this.timeframes[timeframe],
             'label': market['id'],
             'begin': since,
             'limit': limit,
         };
-        let response = await this.publicGetMarketsLabelOhlcv (this.extend (request, params));
+        const response = await this.publicGetMarketsLabelOhlcv (this.extend (request, params));
         if ('data' in response) {
-            if (response['data'])
+            if (response['data']) {
                 return this.parseOHLCVs (response['data'], market, timeframe, since, limit);
+            }
         }
         return [];
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'begin': since, 'limit': limit };
+        const request = { 'begin': since, 'limit': limit };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let response = await this.privateGetTrades (this.extend (request, params));
-        let orders = this.parseOrders (response['data'], market, since, limit);
+        const response = await this.privateGetTrades (this.extend (request, params));
+        const orders = this.parseOrders (response['data'], market, since, limit);
         return this.filterBySymbol (orders, symbol);
     }
 
@@ -422,7 +425,7 @@ module.exports = class boaexchange extends Exchange {
         await this.loadMarkets ();
         let response = undefined;
         try {
-            let request = { 'orderId': id };
+            const request = { 'orderId': id };
             response = await this.privateGetOrdersOrderId (this.extend (request, params));
         } catch (e) {
             throw e;
@@ -435,48 +438,48 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = { 'market': symbol, 'begin': since, 'limit': limit, 'status': 'init,open,closed,cancelled' };
+        const request = { 'market': symbol, 'begin': since, 'limit': limit, 'status': 'init,open,closed,cancelled' };
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['market'] = market['id'];
         }
-        let response = await this.privateGetOrders (this.extend (request, params));
-        let orders = this.parseOrders (response['data'], market, since, limit);
+        const response = await this.privateGetOrders (this.extend (request, params));
+        const orders = this.parseOrders (response['data'], market, since, limit);
         return this.filterBySymbol (orders, symbol);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let type = 'both';
-        let response = await this.publicGetMarketsLabelOrderbook (this.extend ({
+        const type = 'both';
+        const response = await this.publicGetMarketsLabelOrderbook (this.extend ({
             'label': this.marketId (symbol),
             'side': type,
             'limit': limit,
         }, params));
-        let orderbook = response['data'];
+        const orderbook = response['data'];
         return this.parseOrderBook (orderbook, undefined, 'buy', 'sell', 0, 1);
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetMarketsLabel (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.publicGetMarketsLabel (this.extend ({
             'label': this.marketId (symbol),
         }, params));
-        let ticker = response['data'];
+        const ticker = response['data'];
         return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarkets (this.extend ({
+        const response = await this.publicGetMarkets (this.extend ({
         }, params));
-        let tickers = response['data'];
-        let result = {};
+        const tickers = response['data'];
+        const result = {};
         for (let t = 0; t < tickers.length; t++) {
-            let ticker = tickers[t];
-            let id = ticker['id'];
+            const ticker = tickers[t];
+            const id = ticker['id'];
             let market = undefined;
             let symbol = undefined;
             if (id in this.markets_by_id) {
@@ -495,7 +498,7 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchTradingFees (params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetMarketsFees (params);
+        const response = await this.publicGetMarketsFees (params);
         return {
             'info': response,
             'maker': this.safeFloat (response['data'], 'fees') - this.safeFloat (response['data'], 'rebates'),
@@ -505,8 +508,8 @@ module.exports = class boaexchange extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTradesAll (this.extend ({
+        const market = this.market (symbol);
+        const response = await this.publicGetTradesAll (this.extend ({
             'market': market['id'],
             'limit': limit,
             'page': since,
@@ -527,25 +530,25 @@ module.exports = class boaexchange extends Exchange {
         if (symbols === undefined) {
             symbols = this.symbols;
         }
-        let result = {};
+        const result = {};
         for (let i = 0; i < symbols.length; i++) {
-            let symbol = symbols[i];
+            const symbol = symbols[i];
             result[symbol] = await this.fetchTradingLimitsById (this.marketId (symbol), params);
         }
         return result;
     }
 
     async fetchTradingLimitsById (id, params = {}) {
-        let request = {
+        const request = {
             'symbol': id,
         };
-        let response = await this.privateGetMarketsLabelLimits (this.extend (request, params));
+        const response = await this.privateGetMarketsLabelLimits (this.extend (request, params));
         return this.parseTradingLimits (this.safeValue (response, 'data', {}));
     }
 
     async fetchTransactions (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetTransactions ();
+        const response = await this.privateGetTransactions ();
         return this.parseTransactions (response['data']);
     }
 
@@ -563,14 +566,14 @@ module.exports = class boaexchange extends Exchange {
 
     async transfer (code, amount, accountFrom = undefined, accountTo = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'to': accountTo,
             'coin': currency.name,
             'from': accountFrom,
             'amount': this.parseFloat (amount),
         };
-        let response = await this.privateGeAccountTransfer (this.extend (request, params));
+        const response = await this.privateGeAccountTransfer (this.extend (request, params));
         return {
             'info': response,
             'id': undefined,
@@ -580,18 +583,19 @@ module.exports = class boaexchange extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'label': currency['id'],
             'amount': amount,
             'address': address,
             'password': params['password'],
         };
-        let response = await this.privateGetAccountWithdraw (this.extend (request, params));
+        const response = await this.privateGetAccountWithdraw (this.extend (request, params));
         let id = undefined;
         if ('data' in response) {
-            if ('withdraw' in response['data'])
+            if ('withdraw' in response['data']) {
                 id = response['data']['withdraw']['id'];
+            }
         }
         return {
             'info': response,
@@ -600,10 +604,10 @@ module.exports = class boaexchange extends Exchange {
     }
 
     parseBalance (balance) {
-        let currency = this.commonCurrencyCode (balance['coin']['code']);
-        let free = this.safeFloat (balance, 'balance', 0);
-        let used = this.safeFloat (balance, 'held_balance', 0);
-        let total = free + used;
+        const currency = this.commonCurrencyCode (balance['coin']['code']);
+        const free = this.safeFloat (balance, 'balance', 0);
+        const used = this.safeFloat (balance, 'held_balance', 0);
+        const total = free + used;
         const account = {
             'free': free,
             'used': used,
@@ -613,10 +617,10 @@ module.exports = class boaexchange extends Exchange {
     }
 
     parseBalances (balances) {
-        let results = { 'info': balances };
+        const results = { 'info': balances };
         for (let i = 0; i < balances.length; i++) {
-            let balance = balances[i];
-            let row = this.parseBalance (balance);
+            const balance = balances[i];
+            const row = this.parseBalance (balance);
             results[row['currency']] = row['account'];
         }
         return results;
@@ -665,7 +669,7 @@ module.exports = class boaexchange extends Exchange {
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
-        let address = this.safeString (depositAddress['address'], 'address');
+        const address = this.safeString (depositAddress['address'], 'address');
         const code = this.commonCurrencyCode (this.safeString (depositAddress['coin'], 'code'));
         this.checkAddress (address);
         return {
@@ -707,8 +711,8 @@ module.exports = class boaexchange extends Exchange {
         } else {
             direction = 'in';
         }
-        let timestamp = this.milliseconds ();
-        let data = {
+        const timestamp = this.milliseconds ();
+        const data = {
             'info': entry,
             'id': id,
             'direction': direction,
@@ -731,18 +735,19 @@ module.exports = class boaexchange extends Exchange {
     }
 
     parseMarket (market) {
-        let id = market['id'];
-        let baseId = market['coin_traded']['code'];
-        let quoteId = market['coin_market']['code'];
+        const id = market['id'];
+        const baseId = market['coin_traded']['code'];
+        const quoteId = market['coin_market']['code'];
         let base = baseId.toUpperCase ();
         let quote = quoteId.toUpperCase ();
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
-        let symbol = base + '/' + quote;
+        const symbol = base + '/' + quote;
         let pricePrecision = 8;
-        if (quote in this.options['pricePrecisionByCode'])
+        if (quote in this.options['pricePrecisionByCode']) {
             pricePrecision = this.options['pricePrecisionByCode'][quote];
-        let precision = {
+        }
+        const precision = {
             'amount': 8,
             'price': pricePrecision,
         };
@@ -774,7 +779,7 @@ module.exports = class boaexchange extends Exchange {
     }
 
     parseMarkets (markets) {
-        let results = [];
+        const results = [];
         for (let i = 0; i < markets.length; i++) {
             results.push (this.parseMarket (markets[i]));
         }
@@ -793,20 +798,23 @@ module.exports = class boaexchange extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        let side = this.safeString (order, 'side');
-        let remaining = this.safeFloat (order, 'amount');
+        const side = this.safeString (order, 'side');
+        const remaining = this.safeFloat (order, 'amount');
         // We parse different fields in a very specific order.
         // Order might well be closed and then canceled.
         let status = undefined;
-        if (remaining > 0)
+        if (remaining > 0) {
             status = 'open';
-        if (this.safeValue (order, 'cancelled', false))
+        }
+        if (this.safeValue (order, 'cancelled', false)) {
             status = 'canceled';
-        if (remaining === 0)
+        }
+        if (remaining === 0) {
             status = 'closed';
+        }
         let symbol = undefined;
         if ('market' in order) {
-            let marketId = order['market'];
+            const marketId = order['market'];
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
@@ -819,22 +827,25 @@ module.exports = class boaexchange extends Exchange {
             }
         }
         let timestamp = undefined;
-        if ('created' in order)
+        if ('created' in order) {
             timestamp = order['created'];
+        }
         let lastTradeTimestamp = undefined;
-        if (('date_closed' in order) && (order['date_closed'] !== undefined))
+        if (('date_closed' in order) && (order['date_closed'] !== undefined)) {
             lastTradeTimestamp = order['date_closed'];
-        if (timestamp === undefined)
+        }
+        if (timestamp === undefined) {
             timestamp = lastTradeTimestamp;
-        let price = this.safeFloat (order, 'price');
-        let amount = this.safeFloat (order, 'amount_start');
-        let cost = this.safeFloat (order, 'amount_coin');
+        }
+        const price = this.safeFloat (order, 'price');
+        const amount = this.safeFloat (order, 'amount_start');
+        const cost = this.safeFloat (order, 'amount_coin');
         let filled = undefined;
         if (amount !== undefined && remaining !== undefined) {
             filled = amount - remaining;
         }
-        let id = this.safeString (order, 'id');
-        let result = {
+        const id = this.safeString (order, 'id');
+        const result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -888,16 +899,16 @@ module.exports = class boaexchange extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['created'];
-        let side = trade['maker'];
+        const timestamp = trade['created'];
+        const side = trade['maker'];
         if (market === undefined) {
             market = this.marketId (trade['market']);
         }
-        let id = this.safeString (trade, 'id');
-        let symbol = market['symbol'];
+        const id = this.safeString (trade, 'id');
+        const symbol = market['symbol'];
         let cost = undefined;
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'amount');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
         if (amount !== undefined) {
             if (price !== undefined) {
                 cost = price * amount;
@@ -942,7 +953,7 @@ module.exports = class boaexchange extends Exchange {
             address = transaction['address'];
         }
         let code = undefined;
-        let currencyId = this.safeString (transaction['coin'], 'code');
+        const currencyId = this.safeString (transaction['coin'], 'code');
         currency = this.safeValue (this.currencies_by_id, currencyId);
         if (currency !== undefined) {
             code = currency['code'];
@@ -980,8 +991,8 @@ module.exports = class boaexchange extends Exchange {
         url += '?' + this.urlencode (params);
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
-            let signature = this.hmac (this.encode (nonce), this.encode (this.secret), 'sha256');
+            const nonce = this.nonce ().toString ();
+            const signature = this.hmac (this.encode (nonce), this.encode (this.secret), 'sha256');
             headers = {
                 'X-BOA-ENCRYPTED': signature,
                 'X-BOA-KEY': this.apiKey,
@@ -993,17 +1004,19 @@ module.exports = class boaexchange extends Exchange {
 
     handleErrors (code, reason, url, method, headers, body, response) {
         if (body[0] === '{') {
-            let data = this.safeValue (response, 'data');
-            let errors = this.safeValue (response, 'errors');
+            const data = this.safeValue (response, 'data');
+            const errors = this.safeValue (response, 'errors');
             const feedback = this.id + ' ' + this.json (response);
             if (errors !== undefined) {
                 const message = errors[0];
-                if (message in this.exceptions)
+                if (message in this.exceptions) {
                     throw new this.exceptions[message] (feedback);
+                }
                 throw new ExchangeError (url + method + ' an error occoured: ' + this.json (errors));
             }
-            if (data === undefined)
+            if (data === undefined) {
                 throw new ExchangeError (this.id + ': malformed response: ' + this.json (response));
+            }
         }
     }
 };
