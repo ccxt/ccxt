@@ -68,6 +68,7 @@ class binance (Exchange):
                 'api': {
                     'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
+                    'sapi': 'https://api.binance.com/sapi/v1',
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
@@ -86,6 +87,14 @@ class binance (Exchange):
                     'get': [
                         'exchange/public/product',
                         'assetWithdraw/getAllAsset.html',
+                    ],
+                },
+                'sapi': {
+                    'get': [
+                        'asset/assetDividend',
+                    ],
+                    'post': [
+                        'asset/dust',
                     ],
                 },
                 'wapi': {
@@ -210,21 +219,21 @@ class binance (Exchange):
         return self.options['timeDifference']
 
     def fetch_markets(self, params={}):
-        response = self.publicGetExchangeInfo()
+        response = self.publicGetExchangeInfo(params)
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        markets = response['symbols']
+        markets = self.safe_value(response, 'symbols')
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = market['symbol']
+            id = self.safe_string(market, 'symbol')
             # "123456" is a "test symbol/market"
             if id == '123456':
                 continue
             baseId = market['baseAsset']
             quoteId = market['quoteAsset']
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             filters = self.index_by(market['filters'], 'filterType')
             precision = {
@@ -233,7 +242,8 @@ class binance (Exchange):
                 'amount': market['baseAssetPrecision'],
                 'price': market['quotePrecision'],
             }
-            active = (market['status'] == 'TRADING')
+            status = self.safe_string(market, 'status')
+            active = (status == 'TRADING')
             entry = {
                 'id': id,
                 'symbol': symbol,
@@ -274,14 +284,15 @@ class binance (Exchange):
                     entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
             if 'LOT_SIZE' in filters:
-                filter = filters['LOT_SIZE']
-                entry['precision']['amount'] = self.precision_from_string(filter['stepSize'])
+                filter = self.safe_value(filters, 'LOT_SIZE', {})
+                stepSize = self.safe_string(filter, 'stepSize')
+                entry['precision']['amount'] = self.precision_from_string(stepSize)
                 entry['limits']['amount'] = {
                     'min': self.safe_float(filter, 'minQty'),
                     'max': self.safe_float(filter, 'maxQty'),
                 }
             if 'MIN_NOTIONAL' in filters:
-                entry['limits']['cost']['min'] = float(filters['MIN_NOTIONAL']['minNotional'])
+                entry['limits']['cost']['min'] = self.safe_float(filters['MIN_NOTIONAL'], 'minNotional')
             result.append(entry)
         return result
 
@@ -308,19 +319,15 @@ class binance (Exchange):
         self.load_markets()
         response = self.privateGetAccount(params)
         result = {'info': response}
-        balances = response['balances']
+        balances = self.safe_value(response, 'balances', [])
         for i in range(0, len(balances)):
             balance = balances[i]
-            currency = balance['asset']
-            if currency in self.currencies_by_id:
-                currency = self.currencies_by_id[currency]['code']
-            account = {
-                'free': float(balance['free']),
-                'used': float(balance['locked']),
-                'total': 0.0,
-            }
-            account['total'] = self.sum(account['free'], account['used'])
-            result[currency] = account
+            currencyId = balance['asset']
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'free')
+            account['used'] = self.safe_float(balance, 'locked')
+            result[code] = account
         return self.parse_balance(result)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -363,12 +370,23 @@ class binance (Exchange):
             'info': ticker,
         }
 
+    def fetch_status(self, params={}):
+        systemStatus = self.wapiGetSystemStatus()
+        status = self.safe_value(systemStatus, 'status')
+        if status is not None:
+            self.status = self.extend(self.status, {
+                'status': status == 'ok' if 0 else 'maintenance',
+                'updated': self.milliseconds(),
+            })
+        return self.status
+
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.publicGetTicker24hr(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.publicGetTicker24hr(self.extend(request, params))
         return self.parse_ticker(response, market)
 
     def parse_tickers(self, rawTickers, symbols=None):
@@ -379,14 +397,14 @@ class binance (Exchange):
 
     def fetch_bids_asks(self, symbols=None, params={}):
         self.load_markets()
-        rawTickers = self.publicGetTickerBookTicker(params)
-        return self.parse_tickers(rawTickers, symbols)
+        response = self.publicGetTickerBookTicker(params)
+        return self.parse_tickers(response, symbols)
 
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         method = self.options['fetchTickersMethod']
-        rawTickers = getattr(self, method)(params)
-        return self.parse_tickers(rawTickers, symbols)
+        response = getattr(self, method)(params)
+        return self.parse_tickers(response, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
         return [
@@ -465,7 +483,7 @@ class binance (Exchange):
         amount = self.safe_float_2(trade, 'q', 'qty')
         id = self.safe_string_2(trade, 'a', 'id')
         side = None
-        order = self.safe_string(trade, 'orderId')
+        orderId = self.safe_string(trade, 'orderId')
         if 'm' in trade:
             side = 'sell' if trade['m'] else 'buy'  # self is reversed intentionally
         elif 'isBuyerMaker' in trade:
@@ -477,7 +495,7 @@ class binance (Exchange):
         if 'commission' in trade:
             fee = {
                 'cost': self.safe_float(trade, 'commission'),
-                'currency': self.common_currency_code(trade['commissionAsset']),
+                'currency': self.safe_currency_code(self.safe_string(trade, 'commissionAsset')),
             }
         takerOrMaker = None
         if 'isMaker' in trade:
@@ -494,7 +512,7 @@ class binance (Exchange):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'id': id,
-            'order': order,
+            'order': orderId,
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -572,16 +590,16 @@ class binance (Exchange):
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         }
-        return statuses[status] if (status in list(statuses.keys())) else status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         status = self.parse_order_status(self.safe_string(order, 'status'))
         symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
         timestamp = None
         if 'time' in order:
-            timestamp = order['time']
+            timestamp = self.safe_integer(order, 'time')
         elif 'transactTime' in order:
-            timestamp = order['transactTime']
+            timestamp = self.safe_integer(order, 'transactTime')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'origQty')
         filled = self.safe_float(order, 'executedQty')
@@ -597,17 +615,13 @@ class binance (Exchange):
                 if cost is None:
                     cost = price * filled
         id = self.safe_string(order, 'orderId')
-        type = self.safe_string(order, 'type')
-        if type is not None:
-            type = type.lower()
-            if type == 'market':
-                if price == 0.0:
-                    if (cost is not None) and(filled is not None):
-                        if (cost > 0) and(filled > 0):
-                            price = cost / filled
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        type = self.safe_string_lower(order, 'type')
+        if type == 'market':
+            if price == 0.0:
+                if (cost is not None) and(filled is not None):
+                    if (cost > 0) and(filled > 0):
+                        price = cost / filled
+        side = self.safe_string_lower(order, 'side')
         fee = None
         trades = None
         fills = self.safe_value(order, 'fills')
@@ -629,7 +643,7 @@ class binance (Exchange):
                 average = cost / filled
             if self.options['parseOrderToPrecision']:
                 cost = float(self.cost_to_precision(symbol, cost))
-        result = {
+        return {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -648,7 +662,6 @@ class binance (Exchange):
             'fee': fee,
             'trades': trades,
         }
-        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
@@ -661,7 +674,7 @@ class binance (Exchange):
             params = self.omit(params, 'test')
         uppercaseType = type.upper()
         newOrderRespType = self.safe_value(self.options['newOrderRespType'], type, 'RESULT')
-        order = {
+        request = {
             'symbol': market['id'],
             'quantity': self.amount_to_precision(symbol, amount),
             'type': uppercaseType,
@@ -685,17 +698,17 @@ class binance (Exchange):
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a price argument for a ' + type + ' order')
-            order['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(symbol, price)
         if timeInForceIsRequired:
-            order['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = self.options['defaultTimeInForce']  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
         if stopPriceIsRequired:
             stopPrice = self.safe_float(params, 'stopPrice')
             if stopPrice is None:
                 raise InvalidOrder(self.id + ' createOrder method requires a stopPrice extra param for a ' + type + ' order')
             else:
                 params = self.omit(params, 'stopPrice')
-                order['stopPrice'] = self.price_to_precision(symbol, stopPrice)
-        response = getattr(self, method)(self.extend(order, params))
+                request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -775,11 +788,12 @@ class binance (Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        response = self.privateDeleteOrder(self.extend({
+        request = {
             'symbol': market['id'],
             'orderId': int(id),
             # 'origClientOrderId': id,
-        }, params))
+        }
+        response = self.privateDeleteOrder(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -820,8 +834,7 @@ class binance (Exchange):
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
         #
         self.load_markets()
-        request = self.extend({}, params)
-        response = self.wapiGetUserAssetDribbletLog(request)
+        response = self.wapiGetUserAssetDribbletLog(params)
         # {success:    True,
         #   results: {total:    1,
         #               rows: [{    transfered_total: "1.06468458",
@@ -835,7 +848,8 @@ class binance (Exchange):
         #                                                      transferedAmount: "0.00628141",
         #                                                             fromAsset: "ADA"                  }],
         #                                 operate_time: "2018-10-07 17:56:06"                                }]} }
-        rows = response['results']['rows']
+        results = self.safe_value(response, 'results', {})
+        rows = self.safe_value(results, 'rows', [])
         data = []
         for i in range(0, len(rows)):
             logs = rows[i]['logs']
@@ -853,11 +867,9 @@ class binance (Exchange):
         #           operateTime: "2018-10-07 17:56:07",
         #      transferedAmount: "0.00628141",
         #             fromAsset: "ADA"                  },
-        order = self.safe_string(trade, 'tranId')
-        time = self.safe_string(trade, 'operateTime')
-        timestamp = self.parse8601(time)
-        datetime = self.iso8601(timestamp)
-        tradedCurrency = self.safeCurrencyCode(trade, 'fromAsset')
+        orderId = self.safe_string(trade, 'tranId')
+        timestamp = self.parse8601(self.safe_string(trade, 'operateTime'))
+        tradedCurrency = self.safe_currency_code(self.safe_string(trade, 'fromAsset'))
         earnedCurrency = self.currency('BNB')['code']
         applicantSymbol = earnedCurrency + '/' + tradedCurrency
         tradedCurrencyIsQuote = False
@@ -888,16 +900,19 @@ class binance (Exchange):
             amount = self.safe_float(trade, 'amount')
             cost = self.sum(self.safe_float(trade, 'transferedAmount'), fee['cost'])
             side = 'sell'
-        price = cost / amount
+        price = None
+        if cost is not None:
+            if amount:
+                price = cost / amount
         id = None
         type = None
         takerOrMaker = None
         return {
             'id': id,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'order': order,
+            'order': orderId,
             'type': type,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -1013,14 +1028,8 @@ class binance (Exchange):
             if len(tag) < 1:
                 tag = None
         txid = self.safe_value(transaction, 'txId')
-        code = None
         currencyId = self.safe_string(transaction, 'asset')
-        if currencyId in self.currencies_by_id:
-            currency = self.currencies_by_id[currencyId]
-        else:
-            code = self.common_currency_code(currencyId)
-        if currency is not None:
-            code = currency['code']
+        code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         insertTime = self.safe_integer(transaction, 'insertTime')
         applyTime = self.safe_integer(transaction, 'applyTime')
@@ -1053,11 +1062,12 @@ class binance (Exchange):
     def fetch_deposit_address(self, code, params={}):
         self.load_markets()
         currency = self.currency(code)
-        response = self.wapiGetDepositAddress(self.extend({
+        request = {
             'asset': currency['id'],
-        }, params))
+        }
+        response = self.wapiGetDepositAddress(self.extend(request, params))
         success = self.safe_value(response, 'success')
-        if success is None or not success:
+        if (success is None) or not success:
             raise InvalidAddress(self.id + ' fetchDepositAddress returned an empty response – create the deposit address in the user settings first.')
         address = self.safe_string(response, 'address')
         tag = self.safe_string(response, 'addressTag')
@@ -1070,7 +1080,7 @@ class binance (Exchange):
         }
 
     def fetch_funding_fees(self, codes=None, params={}):
-        response = self.wapiGetAssetDetail()
+        response = self.wapiGetAssetDetail(params)
         #
         #     {
         #         "success": True,
@@ -1091,12 +1101,12 @@ class binance (Exchange):
         #         }
         #     }
         #
-        detail = self.safe_value(response, 'assetDetail')
+        detail = self.safe_value(response, 'assetDetail', {})
         ids = list(detail.keys())
         withdrawFees = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             withdrawFees[code] = self.safe_float(detail[id], 'withdrawFee')
         return {
             'withdraw': withdrawFees,
@@ -1115,7 +1125,7 @@ class binance (Exchange):
             'amount': float(amount),
             'name': name,
         }
-        if tag:
+        if tag is not None:
             request['addressTag'] = tag
         response = self.wapiPostWithdraw(self.extend(request, params))
         return {
@@ -1140,7 +1150,7 @@ class binance (Exchange):
                 'X-MBX-APIKEY': self.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        if (api == 'private') or (api == 'wapi' and path != 'systemStatus'):
+        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({
                 'timestamp': self.nonce(),
@@ -1165,7 +1175,7 @@ class binance (Exchange):
                     url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}

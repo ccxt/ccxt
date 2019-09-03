@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, OrderNotFound, AuthenticationError, InsufficientFunds, InvalidOrder, InvalidNonce, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -394,21 +394,21 @@ module.exports = class exmo extends Exchange {
 
     async fetchTradingFees (params = {}) {
         if (this.options['useWebapiForFetchingFees']) {
-            let response = await this.webGetEnDocsFees (params);
+            const response = await this.webGetEnDocsFees (params);
             let parts = response.split ('<td class="th_fees_2" colspan="2">');
             let numParts = parts.length;
             if (numParts !== 2) {
-                throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+                throw new NotSupported (this.id + ' fetchTradingFees format has changed');
             }
             const rest = parts[1];
             parts = rest.split ('</td>');
             numParts = parts.length;
             if (numParts < 2) {
-                throw new ExchangeError (this.id + ' fetchTradingFees format has changed');
+                throw new NotSupported (this.id + ' fetchTradingFees format has changed');
             }
             const fee = parseFloat (parts[0].replace ('%', '')) * 0.01;
-            let taker = fee;
-            let maker = fee;
+            const taker = fee;
+            const maker = fee;
             return {
                 // 'info': response,
                 'maker': maker,
@@ -426,10 +426,10 @@ module.exports = class exmo extends Exchange {
         if ((input === undefined) || (input === '-')) {
             return undefined;
         }
-        let isPercentage = (input.indexOf ('%') >= 0);
-        let parts = input.split (' ');
-        let value = parts[0].replace ('%', '');
-        let result = parseFloat (value);
+        const isPercentage = (input.indexOf ('%') >= 0);
+        const parts = input.split (' ');
+        const value = parts[0].replace ('%', '');
+        const result = parseFloat (value);
         if ((result > 0) && isPercentage) {
             throw new ExchangeError (this.id + ' parseFixedFloatValue detected an unsupported non-zero percentage-based fee ' + input);
         }
@@ -450,10 +450,10 @@ module.exports = class exmo extends Exchange {
         const groupsByGroup = this.indexBy (groups, 'group');
         const items = groupsByGroup['crypto']['items'];
         for (let i = 0; i < items.length; i++) {
-            let item = items[i];
-            let code = this.commonCurrencyCode (this.safeString (item, 'prov'));
-            let withdrawalFee = this.safeString (item, 'wd');
-            let depositFee = this.safeString (item, 'dep');
+            const item = items[i];
+            const code = this.safeCurrencyCode (this.safeString (item, 'prov'));
+            const withdrawalFee = this.safeString (item, 'wd');
+            const depositFee = this.safeString (item, 'dep');
             if (withdrawalFee !== undefined) {
                 if (withdrawalFee.length > 0) {
                     withdraw[code] = this.parseFixedFloatValue (withdrawalFee);
@@ -468,7 +468,7 @@ module.exports = class exmo extends Exchange {
         // sets fiat fees to undefined
         const fiatGroups = this.toArray (this.omit (groupsByGroup, 'crypto'));
         for (let i = 0; i < fiatGroups.length; i++) {
-            const code = this.commonCurrencyCode (this.safeString (fiatGroups[i], 'title'));
+            const code = this.safeCurrencyCode (this.safeString (fiatGroups[i], 'title'));
             withdraw[code] = undefined;
             deposit[code] = undefined;
         }
@@ -483,29 +483,29 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let fees = await this.fetchFundingFees (params);
+        const fees = await this.fetchFundingFees (params);
         // todo redesign the 'fee' property in currencies
-        let ids = Object.keys (fees['withdraw']);
-        let limitsByMarketId = this.indexBy (fees['info']['data']['limits'], 'pair');
-        let marketIds = Object.keys (limitsByMarketId);
-        let minAmounts = {};
-        let minPrices = {};
-        let minCosts = {};
-        let maxAmounts = {};
-        let maxPrices = {};
-        let maxCosts = {};
+        const ids = Object.keys (fees['withdraw']);
+        const limitsByMarketId = this.indexBy (fees['info']['data']['limits'], 'pair');
+        const marketIds = Object.keys (limitsByMarketId);
+        const minAmounts = {};
+        const minPrices = {};
+        const minCosts = {};
+        const maxAmounts = {};
+        const maxPrices = {};
+        const maxCosts = {};
         for (let i = 0; i < marketIds.length; i++) {
-            let marketId = marketIds[i];
-            let limit = limitsByMarketId[marketId];
-            let [ baseId, quoteId ] = marketId.split ('/');
-            let base = this.commonCurrencyCode (baseId);
-            let quote = this.commonCurrencyCode (quoteId);
-            let maxAmount = this.safeFloat (limit, 'max_q');
-            let maxPrice = this.safeFloat (limit, 'max_p');
-            let maxCost = this.safeFloat (limit, 'max_a');
-            let minAmount = this.safeFloat (limit, 'min_q');
-            let minPrice = this.safeFloat (limit, 'min_p');
-            let minCost = this.safeFloat (limit, 'min_a');
+            const marketId = marketIds[i];
+            const limit = limitsByMarketId[marketId];
+            const [ baseId, quoteId ] = marketId.split ('/');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const maxAmount = this.safeFloat (limit, 'max_q');
+            const maxPrice = this.safeFloat (limit, 'max_p');
+            const maxCost = this.safeFloat (limit, 'max_a');
+            const minAmount = this.safeFloat (limit, 'min_q');
+            const minPrice = this.safeFloat (limit, 'min_p');
+            const minCost = this.safeFloat (limit, 'min_a');
             minAmounts[base] = Math.min (this.safeFloat (minAmounts, base, minAmount), minAmount);
             maxAmounts[base] = Math.max (this.safeFloat (maxAmounts, base, maxAmount), maxAmount);
             minPrices[quote] = Math.min (this.safeFloat (minPrices, quote, minPrice), minPrice);
@@ -513,12 +513,12 @@ module.exports = class exmo extends Exchange {
             maxPrices[quote] = Math.max (this.safeFloat (maxPrices, quote, maxPrice), maxPrice);
             maxCosts[quote] = Math.max (this.safeFloat (maxCosts, quote, maxCost), maxCost);
         }
-        let result = {};
+        const result = {};
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let code = this.commonCurrencyCode (id);
-            let fee = this.safeValue (fees['withdraw'], code);
-            let active = true;
+            const id = ids[i];
+            const code = this.safeCurrencyCode (id);
+            const fee = this.safeValue (fees['withdraw'], code);
+            const active = true;
             result[code] = {
                 'id': id,
                 'code': code,
@@ -547,20 +547,24 @@ module.exports = class exmo extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let fees = await this.fetchTradingFees ();
-        let markets = await this.publicGetPairSettings ();
-        let keys = Object.keys (markets);
-        let result = [];
-        for (let p = 0; p < keys.length; p++) {
-            let id = keys[p];
-            let market = markets[id];
-            let symbol = id.replace ('_', '/');
-            let [ base, quote ] = symbol.split ('/');
+        const fees = await this.fetchTradingFees ();
+        const response = await this.publicGetPairSettings (params);
+        const keys = Object.keys (response);
+        const result = [];
+        for (let i = 0; i < keys.length; i++) {
+            const id = keys[i];
+            const market = response[id];
+            const symbol = id.replace ('_', '/');
+            const [ baseId, quoteId ] = symbol.split ('/');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'active': true,
                 'taker': fees['taker'],
                 'maker': fees['maker'],
@@ -590,32 +594,35 @@ module.exports = class exmo extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserInfo (params);
-        let result = { 'info': response };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let account = this.account ();
-            if (currency in response['balances'])
-                account['free'] = parseFloat (response['balances'][currency]);
-            if (currency in response['reserved'])
-                account['used'] = parseFloat (response['reserved'][currency]);
-            account['total'] = this.sum (account['free'], account['used']);
-            result[currency] = account;
+        const response = await this.privatePostUserInfo (params);
+        const result = { 'info': response };
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currencyId = this.currencyId (code);
+            const account = this.account ();
+            if (currencyId in response['balances']) {
+                account['free'] = this.safeFloat (response['balances'], currencyId);
+            }
+            if (currencyId in response['reserved']) {
+                account['used'] = this.safeFloat (response['reserved'], currencyId);
+            }
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
-        }, params);
-        if (limit !== undefined)
+        };
+        if (limit !== undefined) {
             request['limit'] = limit;
-        let response = await this.publicGetOrderBook (request);
-        let result = response[market['id']];
+        }
+        const response = await this.publicGetOrderBook (this.extend (request, params));
+        const result = this.safeValue (response, market['id']);
         return this.parseOrderBook (result, undefined, 'bid', 'ask');
     }
 
@@ -626,31 +633,33 @@ module.exports = class exmo extends Exchange {
             ids = this.ids.join (',');
             // max URL length is 2083 symbols, including http schema, hostname, tld, etc...
             if (ids.length > 2048) {
-                let numIds = this.ids.length;
+                const numIds = this.ids.length;
                 throw new ExchangeError (this.id + ' has ' + numIds.toString () + ' symbols exceeding max URL length, you are required to specify a list of symbols in the first argument to fetchOrderBooks');
             }
         } else {
             ids = this.marketIds (symbols);
             ids = ids.join (',');
         }
-        let response = await this.publicGetOrderBook (this.extend ({
+        const request = {
             'pair': ids,
-        }, params));
-        let result = {};
+        };
+        const response = await this.publicGetOrderBook (this.extend (request, params));
+        const result = {};
         ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let symbol = this.findSymbol (id);
+            const id = ids[i];
+            const symbol = this.findSymbol (id);
             result[symbol] = this.parseOrderBook (response[id], undefined, 'bid', 'ask');
         }
         return result;
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = ticker['updated'] * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         const last = this.safeFloat (ticker, 'last_trade');
         return {
             'symbol': symbol,
@@ -678,14 +687,14 @@ module.exports = class exmo extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetTicker (params);
-        let result = {};
-        let ids = Object.keys (response);
+        const response = await this.publicGetTicker (params);
+        const result = {};
+        const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
-            let id = ids[i];
-            let market = this.markets_by_id[id];
-            let symbol = market['symbol'];
-            let ticker = response[id];
+            const id = ids[i];
+            const market = this.markets_by_id[id];
+            const symbol = market['symbol'];
+            const ticker = response[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
         return result;
@@ -693,22 +702,22 @@ module.exports = class exmo extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetTicker (params);
-        let market = this.market (symbol);
+        const response = await this.publicGetTicker (params);
+        const market = this.market (symbol);
         return this.parseTicker (response[market['id']], market);
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = trade['date'] * 1000;
+        const timestamp = this.safeTimestamp (trade, 'date');
         let fee = undefined;
         let symbol = undefined;
-        let id = this.safeString (trade, 'trade_id');
-        let orderId = this.safeString (trade, 'order_id');
-        let price = this.safeFloat (trade, 'price');
-        let amount = this.safeFloat (trade, 'quantity');
-        let cost = this.safeFloat (trade, 'amount');
-        let side = this.safeString (trade, 'type');
-        let type = undefined;
+        const id = this.safeString (trade, 'trade_id');
+        const orderId = this.safeString (trade, 'order_id');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'quantity');
+        const cost = this.safeFloat (trade, 'amount');
+        const side = this.safeString (trade, 'type');
+        const type = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
             if (market['taker'] !== market['maker']) {
@@ -737,6 +746,7 @@ module.exports = class exmo extends Exchange {
             'order': orderId,
             'type': type,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -746,32 +756,62 @@ module.exports = class exmo extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetTrades (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'pair': market['id'],
-        }, params));
-        return this.parseTrades (response[market['id']], market, since, limit);
+        };
+        const response = await this.publicGetTrades (this.extend (request, params));
+        const data = this.safeValue (response, market['id'], []);
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // their docs does not mention it, but if you don't supply a symbol
-        // their API will return an empty response as if you don't have any trades
-        // therefore we make it required here as calling it without a symbol is useless
+        // a symbol is required but it can be a single string, or a non-empty array
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument (a single symbol or an array)');
         }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
-            'pair': market['id'],
+        let pair = undefined;
+        let market = undefined;
+        if (Array.isArray (symbol)) {
+            const numSymbols = symbol.length;
+            if (numSymbols < 1) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a non-empty symbol array');
+            }
+            const marketIds = this.marketIds (symbol);
+            pair = marketIds.join (',');
+        } else {
+            market = this.market (symbol);
+            pair = market['id'];
+        }
+        const request = {
+            'pair': pair,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = await this.privatePostUserTrades (this.extend (request, params));
-        if (market !== undefined)
-            response = response[market['id']];
-        return this.parseTrades (response, market, since, limit);
+        const response = await this.privatePostUserTrades (this.extend (request, params));
+        let result = [];
+        const marketIds = Object.keys (response);
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            let symbol = undefined;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            const items = response[marketId];
+            const trades = this.parseTrades (items, market, since, limit, {
+                'symbol': symbol,
+            });
+            result = this.arrayConcat (result, trades);
+        }
+        return this.filterBySinceLimit (result, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -859,8 +899,9 @@ module.exports = class exmo extends Exchange {
             });
         } catch (e) {
             if (e instanceof OrderNotFound) {
-                if (id in this.orders)
+                if (id in this.orders) {
                     return this.orders[id];
+                }
             }
         }
         throw new OrderNotFound (this.id + ' fetchOrder order id ' + id.toString () + ' not found in cache.');
@@ -885,20 +926,21 @@ module.exports = class exmo extends Exchange {
             const id = openOrders[j]['id'];
             this.orders[id] = openOrders[j];
         }
-        let openOrdersIndexedById = this.indexBy (openOrders, 'id');
-        let cachedOrderIds = Object.keys (this.orders);
+        const openOrdersIndexedById = this.indexBy (openOrders, 'id');
+        const cachedOrderIds = Object.keys (this.orders);
         for (let k = 0; k < cachedOrderIds.length; k++) {
             // match each cached order to an order in the open orders array
             // possible reasons why a cached order may be missing in the open orders array:
             // - order was closed or canceled -> update cache
             // - symbol mismatch (e.g. cached BTC/USDT, fetched ETH/USDT) -> skip
-            let id = cachedOrderIds[k];
+            const id = cachedOrderIds[k];
             let order = this.orders[id];
             if (!(id in openOrdersIndexedById)) {
                 // cached order is not in open orders array
                 // if we fetched orders by symbol and it doesn't match the cached order -> won't update the cached order
-                if (symbol !== undefined && symbol !== order['symbol'])
+                if (symbol !== undefined && symbol !== order['symbol']) {
                     continue;
+                }
                 // order is cached but not present in the list of open orders -> mark the cached order as closed
                 if (order['status'] === 'open') {
                     order = this.extend (order, {
@@ -908,8 +950,9 @@ module.exports = class exmo extends Exchange {
                         'remaining': 0.0,
                     });
                     if (order['cost'] === undefined) {
-                        if (order['filled'] !== undefined)
+                        if (order['filled'] !== undefined) {
                             order['cost'] = order['filled'] * order['price'];
+                        }
                     }
                     this.orders[id] = order;
                 }
@@ -920,15 +963,16 @@ module.exports = class exmo extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostUserOpenOrders (params);
-        let marketIds = Object.keys (response);
+        const response = await this.privatePostUserOpenOrders (params);
+        const marketIds = Object.keys (response);
         let orders = [];
         for (let i = 0; i < marketIds.length; i++) {
-            let marketId = marketIds[i];
+            const marketId = marketIds[i];
             let market = undefined;
-            if (marketId in this.markets_by_id)
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
-            let parsedOrders = this.parseOrders (response[marketId], market);
+            }
+            const parsedOrders = this.parseOrders (response[marketId], market);
             orders = this.arrayConcat (orders, parsedOrders);
         }
         this.updateCachedOrders (orders, symbol);
@@ -937,13 +981,13 @@ module.exports = class exmo extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.fetchOrders (symbol, since, limit, params);
-        let orders = this.filterBy (this.orders, 'status', 'open');
+        const orders = this.filterBy (this.orders, 'status', 'open');
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.fetchOrders (symbol, since, limit, params);
-        let orders = this.filterBy (this.orders, 'status', 'closed');
+        const orders = this.filterBy (this.orders, 'status', 'closed');
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit);
     }
 
@@ -984,10 +1028,7 @@ module.exports = class exmo extends Exchange {
         //     }
         //
         let id = this.safeString (order, 'order_id');
-        let timestamp = this.safeInteger (order, 'created');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        let timestamp = this.safeTimestamp (order, 'created');
         let symbol = undefined;
         const side = this.safeString (order, 'type');
         if (market === undefined) {
@@ -995,24 +1036,26 @@ module.exports = class exmo extends Exchange {
             if ('pair' in order) {
                 marketId = order['pair'];
             } else if (('in_currency' in order) && ('out_currency' in order)) {
-                if (side === 'buy')
+                if (side === 'buy') {
                     marketId = order['in_currency'] + '_' + order['out_currency'];
-                else
+                } else {
                     marketId = order['out_currency'] + '_' + order['in_currency'];
+                }
             }
-            if ((marketId !== undefined) && (marketId in this.markets_by_id))
+            if ((marketId !== undefined) && (marketId in this.markets_by_id)) {
                 market = this.markets_by_id[marketId];
+            }
         }
         let amount = this.safeFloat (order, 'quantity');
         if (amount === undefined) {
-            let amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
+            const amountField = (side === 'buy') ? 'in_amount' : 'out_amount';
             amount = this.safeFloat (order, amountField);
         }
         let price = this.safeFloat (order, 'price');
         let cost = this.safeFloat (order, 'amount');
         let filled = 0.0;
-        let trades = [];
-        let transactions = this.safeValue (order, 'trades', []);
+        const trades = [];
+        const transactions = this.safeValue (order, 'trades', []);
         let feeCost = undefined;
         let lastTradeTimestamp = undefined;
         let average = undefined;
@@ -1020,7 +1063,7 @@ module.exports = class exmo extends Exchange {
         if (numTransactions > 0) {
             feeCost = 0;
             for (let i = 0; i < numTransactions; i++) {
-                let trade = this.parseTrade (transactions[i], market);
+                const trade = this.parseTrade (transactions[i], market);
                 if (id === undefined) {
                     id = trade['order'];
                 }
@@ -1055,8 +1098,9 @@ module.exports = class exmo extends Exchange {
             feeCurrency = market['quote'];
         }
         if (cost === undefined) {
-            if (price !== undefined)
+            if (price !== undefined) {
                 cost = price * filled;
+            }
         } else {
             if (filled > 0) {
                 if (average === undefined) {
@@ -1067,7 +1111,7 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
-        let fee = {
+        const fee = {
             'cost': feeCost,
             'currency': feeCurrency,
         };
@@ -1094,14 +1138,14 @@ module.exports = class exmo extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostDepositAddress (params);
-        let depositAddress = this.safeString (response, code);
+        const response = await this.privatePostDepositAddress (params);
+        const depositAddress = this.safeString (response, code);
         let address = undefined;
         let tag = undefined;
         if (depositAddress) {
-            let addressAndTag = depositAddress.split (',');
+            const addressAndTag = depositAddress.split (',');
             address = addressAndTag[0];
-            let numParts = addressAndTag.length;
+            const numParts = addressAndTag.length;
             if (numParts > 1) {
                 tag = addressAndTag[1];
             }
@@ -1116,17 +1160,18 @@ module.exports = class exmo extends Exchange {
     }
 
     getMarketFromTrades (trades) {
-        let tradesBySymbol = this.indexBy (trades, 'pair');
-        let symbols = Object.keys (tradesBySymbol);
-        let numSymbols = symbols.length;
-        if (numSymbols === 1)
+        const tradesBySymbol = this.indexBy (trades, 'pair');
+        const symbols = Object.keys (tradesBySymbol);
+        const numSymbols = symbols.length;
+        if (numSymbols === 1) {
             return this.markets[symbols[0]];
+        }
         return undefined;
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
-        let market = this.markets[symbol];
-        let rate = market[takerOrMaker];
+        const market = this.markets[symbol];
+        const rate = market[takerOrMaker];
         let cost = parseFloat (this.costToPrecision (symbol, amount * rate));
         let key = 'quote';
         if (side === 'sell') {
@@ -1144,8 +1189,8 @@ module.exports = class exmo extends Exchange {
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'amount': amount,
             'currency': currency['id'],
             'address': address,
@@ -1153,10 +1198,10 @@ module.exports = class exmo extends Exchange {
         if (tag !== undefined) {
             request['invoice'] = tag;
         }
-        let result = await this.privatePostWithdrawCrypt (this.extend (request, params));
+        const response = await this.privatePostWithdrawCrypt (this.extend (request, params));
         return {
-            'info': result,
-            'id': result['task_id'],
+            'info': response,
+            'id': response['task_id'],
         };
     }
 
@@ -1185,10 +1230,7 @@ module.exports = class exmo extends Exchange {
         //            "txid": "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
-        let timestamp = this.safeFloat (transaction, 'dt');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (transaction, 'dt');
         let amount = this.safeFloat (transaction, 'amount');
         if (amount !== undefined) {
             amount = Math.abs (amount);
@@ -1196,19 +1238,12 @@ module.exports = class exmo extends Exchange {
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const txid = this.safeString (transaction, 'txid');
         const type = this.safeString (transaction, 'type');
-        let code = this.safeString (transaction, 'curr');
-        if (currency === undefined) {
-            currency = this.safeValue (this.currencies_by_id, code);
-        }
-        if (currency !== undefined) {
-            code = currency['code'];
-        } else {
-            code = this.commonCurrencyCode (code);
-        }
+        const currencyId = this.safeString (transaction, 'curr');
+        const code = this.safeCurrencyCode (currencyId, currency);
         let address = this.safeString (transaction, 'account');
         if (address !== undefined) {
             const parts = address.split (':');
-            let numParts = parts.length;
+            const numParts = parts.length;
             if (numParts === 2) {
                 address = parts[1].replace (' ', '');
             }
@@ -1216,7 +1251,7 @@ module.exports = class exmo extends Exchange {
         let fee = undefined;
         // fixed funding fees only (for now)
         if (!this.fees['funding']['percentage']) {
-            let key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
+            const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeFloat (this.options['fundingFees'][key], code);
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');
@@ -1262,7 +1297,7 @@ module.exports = class exmo extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        let response = await this.privatePostWalletHistory (this.extend (request, params));
+        const response = await this.privatePostWalletHistory (this.extend (request, params));
         //
         //     {
         //       "result": true,
@@ -1303,11 +1338,12 @@ module.exports = class exmo extends Exchange {
         }
         url += path;
         if ((api === 'public') || (api === 'web')) {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            const nonce = this.nonce ();
             body = this.urlencode (this.extend ({ 'nonce': nonce }, params));
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -1322,38 +1358,38 @@ module.exports = class exmo extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
-        if (response === undefined)
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
             return; // fallback to default error handler
-        if ((body[0] === '{') || (body[0] === '[')) {
-            if ('result' in response) {
-                //
-                //     {"result":false,"error":"Error 50052: Insufficient funds"}
-                //
-                let success = this.safeValue (response, 'result', false);
-                if (typeof success === 'string') {
-                    if ((success === 'true') || (success === '1'))
-                        success = true;
-                    else
-                        success = false;
+        }
+        if ('result' in response) {
+            //
+            //     {"result":false,"error":"Error 50052: Insufficient funds"}
+            //
+            let success = this.safeValue (response, 'result', false);
+            if (typeof success === 'string') {
+                if ((success === 'true') || (success === '1')) {
+                    success = true;
+                } else {
+                    success = false;
                 }
-                if (!success) {
-                    let code = undefined;
-                    const message = this.safeString (response, 'error');
-                    const errorParts = message.split (':');
-                    let numParts = errorParts.length;
-                    if (numParts > 1) {
-                        const errorSubParts = errorParts[0].split (' ');
-                        let numSubParts = errorSubParts.length;
-                        code = (numSubParts > 1) ? errorSubParts[1] : errorSubParts[0];
-                    }
-                    const feedback = this.id + ' ' + this.json (response);
-                    const exceptions = this.exceptions;
-                    if (code in exceptions) {
-                        throw new exceptions[code] (feedback);
-                    } else {
-                        throw new ExchangeError (feedback);
-                    }
+            }
+            if (!success) {
+                let code = undefined;
+                const message = this.safeString (response, 'error');
+                const errorParts = message.split (':');
+                const numParts = errorParts.length;
+                if (numParts > 1) {
+                    const errorSubParts = errorParts[0].split (' ');
+                    const numSubParts = errorSubParts.length;
+                    code = (numSubParts > 1) ? errorSubParts[1] : errorSubParts[0];
+                }
+                const feedback = this.id + ' ' + this.json (response);
+                const exceptions = this.exceptions;
+                if (code in exceptions) {
+                    throw new exceptions[code] (feedback);
+                } else {
+                    throw new ExchangeError (feedback);
                 }
             }
         }

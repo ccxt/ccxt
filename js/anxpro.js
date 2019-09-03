@@ -14,6 +14,7 @@ module.exports = class anxpro extends Exchange {
             'name': 'ANXPro',
             'countries': [ 'JP', 'SG', 'HK', 'NZ' ],
             'rateLimit': 1500,
+            'userAgent': this.userAgents['chrome'],
             'has': {
                 'CORS': false,
                 'fetchCurrencies': true,
@@ -143,6 +144,7 @@ module.exports = class anxpro extends Exchange {
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
+        // todo: migrate this to fetchLedger
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
@@ -205,8 +207,8 @@ module.exports = class anxpro extends Exchange {
         //     }
         //
         const transactions = this.safeValue (response, 'transactions', []);
-        const grouped = this.groupBy (transactions, 'transactionType');
-        const depositsAndWithdrawals = this.arrayConcat (grouped['DEPOSIT'], grouped['WITHDRAWAL']);
+        const grouped = this.groupBy (transactions, 'transactionType', []);
+        const depositsAndWithdrawals = this.arrayConcat (this.safeValue (grouped, 'DEPOSIT', []), this.safeValue (grouped, 'WITHDRAWAL', []));
         return this.parseTransactions (depositsAndWithdrawals, currency, since, limit);
     }
 
@@ -300,7 +302,7 @@ module.exports = class anxpro extends Exchange {
             type = 'deposit';
         }
         const currencyId = this.safeString (transaction, 'ccy');
-        const code = this.commonCurrencyCode (currencyId);
+        const code = this.safeCurrencyCode (currencyId);
         const transactionState = this.safeString (transaction, 'transactionState');
         const status = this.parseTransactionStatus (transactionState);
         const feeCost = this.safeFloat (transaction, 'fee');
@@ -444,8 +446,7 @@ module.exports = class anxpro extends Exchange {
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'tradedCurrencyFillAmount');
         const cost = this.safeFloat (trade, 'settlementCurrencyFillAmount');
-        let side = this.safeString (trade, 'side');
-        side = (side === undefined) ? undefined : side.toLowerCase ();
+        const side = this.safeStringLower (trade, 'side');
         return {
             'id': id,
             'order': orderId,
@@ -464,8 +465,9 @@ module.exports = class anxpro extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.v3publicGetCurrencyStatic (params);
-        const result = {};
-        const currencies = response['currencyStatic']['currencies'];
+        //
+        //   {
+        //     "currencyStatic": {
         //       "currencies": {
         //         "HKD": {
         //           "decimals": 2,
@@ -514,11 +516,40 @@ module.exports = class anxpro extends Exchange {
         //           "assetIcon": "/images/currencies/crypto/ETH.svg"
         //         },
         //       },
+        //       "currencyPairs": {
+        //         "ETHUSD": {
+        //           "priceDecimals": 5,
+        //           "engineSettings": {
+        //             "tradingEnabled": true,
+        //             "displayEnabled": true,
+        //             "cancelOnly": true,
+        //             "verifyRequired": false,
+        //             "restrictedBuy": false,
+        //             "restrictedSell": false
+        //           },
+        //           "minOrderRate": 10.00000000,
+        //           "maxOrderRate": 10000.00000000,
+        //           "displayPriceDecimals": 5,
+        //           "tradedCcy": "ETH",
+        //           "settlementCcy": "USD",
+        //           "preferredMarket": "ANX",
+        //           "chartEnabled": true,
+        //           "simpleTradeEnabled": false
+        //         },
+        //       },
+        //     },
+        //     "timestamp": "1549840691039",
+        //     "resultCode": "OK"
+        //   }
+        //
+        const currencyStatic = this.safeValue (response, 'currencyStatic', {});
+        const currencies = this.safeValue (currencyStatic, 'currencies', {});
+        const result = {};
         const ids = Object.keys (currencies);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = currencies[id];
-            const code = this.commonCurrencyCode (id);
+            const code = this.safeCurrencyCode (id);
             const engineSettings = this.safeValue (currency, 'engineSettings');
             const depositsEnabled = this.safeValue (engineSettings, 'depositsEnabled');
             const withdrawalsEnabled = this.safeValue (engineSettings, 'withdrawalsEnabled');
@@ -526,10 +557,7 @@ module.exports = class anxpro extends Exchange {
             const active = depositsEnabled && withdrawalsEnabled && displayEnabled;
             const precision = this.safeInteger (currency, 'decimals');
             const fee = this.safeFloat (currency, 'networkFee');
-            let type = this.safeString (currency, 'type');
-            if (type !== 'undefined') {
-                type = type.toLowerCase ();
-            }
+            const type = this.safeStringLower (currency, 'type');
             result[code] = {
                 'id': id,
                 'code': code,
@@ -672,8 +700,8 @@ module.exports = class anxpro extends Exchange {
             //
             const baseId = this.safeString (market, 'tradedCcy');
             const quoteId = this.safeString (market, 'settlementCcy');
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const baseCurrency = this.safeValue (currencies, baseId, {});
             const quoteCurrency = this.safeValue (currencies, quoteId, {});
@@ -718,19 +746,16 @@ module.exports = class anxpro extends Exchange {
         await this.loadMarkets ();
         const response = await this.privatePostMoneyInfo (params);
         const balance = this.safeValue (response, 'data', {});
-        const wallets = balance['Wallets'];
-        const currencies = Object.keys (wallets);
+        const wallets = this.safeValue (balance, 'Wallets', {});
+        const currencyIds = Object.keys (wallets);
         const result = { 'info': balance };
-        for (let c = 0; c < currencies.length; c++) {
-            const currencyId = currencies[c];
-            const code = this.commonCurrencyCode (currencyId);
+        for (let c = 0; c < currencyIds.length; c++) {
+            const currencyId = currencyIds[c];
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            if (currencyId in wallets) {
-                const wallet = wallets[currencyId];
-                account['free'] = this.safeFloat (wallet['Available_Balance'], 'value');
-                account['total'] = this.safeFloat (wallet['Balance'], 'value');
-                account['used'] = account['total'] - account['free'];
-            }
+            const wallet = this.safeValue (wallets, currencyId);
+            account['free'] = this.safeFloat (wallet['Available_Balance'], 'value');
+            account['total'] = this.safeFloat (wallet['Balance'], 'value');
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -743,8 +768,7 @@ module.exports = class anxpro extends Exchange {
         };
         const response = await this.publicGetCurrencyPairMoneyDepthFull (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data', {});
-        const t = this.safeInteger (orderbook, 'dataUpdateTime');
-        const timestamp = (t === undefined) ? t : parseInt (t / 1000);
+        const timestamp = this.safeIntegerProduct (orderbook, 'dataUpdateTime', 0.001);
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -755,8 +779,7 @@ module.exports = class anxpro extends Exchange {
         };
         const response = await this.publicGetCurrencyPairMoneyTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'data', {});
-        const t = this.safeInteger (ticker, 'dataUpdateTime');
-        const timestamp = (t === undefined) ? t : parseInt (t / 1000);
+        const timestamp = this.safeIntegerProduct (ticker, 'dataUpdateTime', 0.001);
         const bid = this.safeFloat (ticker['buy'], 'value');
         const ask = this.safeFloat (ticker['sell'], 'value');
         const baseVolume = this.safeFloat (ticker['vol'], 'value');
@@ -852,10 +875,11 @@ module.exports = class anxpro extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        if ('orderId' in order)
+        if ('orderId' in order) {
             return this.parseOrderV3 (order, market);
-        else
+        } else {
             return this.parseOrderV2 (order, market);
+        }
     }
 
     parseOrderStatus (status) {
@@ -918,17 +942,18 @@ module.exports = class anxpro extends Exchange {
         let lastTradeTimestamp = undefined;
         const trades = [];
         let filled = 0;
-        const type = this.safeString (order, 'orderType').toLowerCase ();
+        const type = this.safeStringLower (order, 'orderType');
         for (let i = 0; i < order['trades'].length; i++) {
             const trade = order['trades'][i];
             const tradeTimestamp = this.safeInteger (trade, 'timestamp');
-            if (!lastTradeTimestamp || lastTradeTimestamp < tradeTimestamp)
+            if (!lastTradeTimestamp || lastTradeTimestamp < tradeTimestamp) {
                 lastTradeTimestamp = tradeTimestamp;
+            }
             const parsedTrade = this.extend (this.parseTrade (trade), { 'side': side, 'type': type });
             trades.push (parsedTrade);
             filled = this.sum (filled, parsedTrade['amount']);
         }
-        let price = this.safeFloat (order, 'limitPriceInSettlementCurrency');
+        const price = this.safeFloat (order, 'limitPriceInSettlementCurrency');
         const executedAverageRate = this.safeFloat (order, 'executedAverageRate');
         const remaining = type === 'market' ? 0 : this.safeFloat (order, 'tradedCurrencyAmountOutstanding');
         let amount = this.safeFloat (order, 'tradedCurrencyAmount');
@@ -993,9 +1018,9 @@ module.exports = class anxpro extends Exchange {
         //         "actions": []
         //     }
         //
-        let id = this.safeString (order, 'oid');
-        let status = this.safeString (order, 'status');
-        let timestamp = this.safeInteger (order, 'date');
+        const id = this.safeString (order, 'oid');
+        const status = this.safeString (order, 'status');
+        const timestamp = this.safeInteger (order, 'date');
         const baseId = this.safeString (order, 'item');
         const quoteId = this.safeString (order, 'currency');
         const marketId = baseId + '/' + quoteId;
@@ -1004,12 +1029,12 @@ module.exports = class anxpro extends Exchange {
         if (typeof market !== 'undefined') {
             symbol = market['symbol'];
         }
-        let amount_info = this.safeValue (order, 'amount', {});
-        let effective_info = this.safeValue (order, 'effective_amount', {});
-        let price_info = this.safeValue (order, 'price', {});
-        let remaining = this.safeFloat (effective_info, 'value');
-        let amount = this.safeFloat (amount_info, 'volume');
-        let price = this.safeFloat (price_info, 'value');
+        const amount_info = this.safeValue (order, 'amount', {});
+        const effective_info = this.safeValue (order, 'effective_amount', {});
+        const price_info = this.safeValue (order, 'price', {});
+        const remaining = this.safeFloat (effective_info, 'value');
+        const amount = this.safeFloat (amount_info, 'volume');
+        const price = this.safeFloat (price_info, 'value');
         let filled = undefined;
         let cost = undefined;
         if (typeof amount !== 'undefined') {
@@ -1018,16 +1043,16 @@ module.exports = class anxpro extends Exchange {
                 cost = price * filled;
             }
         }
-        let orderType = 'limit';
+        const orderType = 'limit';
         let side = this.safeString (order, 'type');
         if (side === 'offer') {
             side = 'sell';
         } else {
             side = 'buy';
         }
-        let fee = undefined;
-        let trades = undefined; // todo parse trades
-        let lastTradeTimestamp = undefined;
+        const fee = undefined;
+        const trades = undefined; // todo parse trades
+        const lastTradeTimestamp = undefined;
         return {
             'info': order,
             'id': id,
@@ -1087,9 +1112,9 @@ module.exports = class anxpro extends Exchange {
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let multiplier = this.getAmountMultiplier (code);
-        let request = {
+        const currency = this.currency (code);
+        const multiplier = this.getAmountMultiplier (code);
+        const request = {
             'currency': currency,
             'amount_int': parseInt (amount * multiplier),
             'address': address,
@@ -1097,7 +1122,7 @@ module.exports = class anxpro extends Exchange {
         if (tag !== undefined) {
             request['destinationTag'] = tag;
         }
-        let response = await this.privatePostMoneyCurrencySendSimple (this.extend (request, params));
+        const response = await this.privatePostMoneyCurrencySendSimple (this.extend (request, params));
         return {
             'info': response,
             'id': response['data']['transactionId'],
@@ -1106,13 +1131,13 @@ module.exports = class anxpro extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        let currency = this.currency (code);
-        let request = {
+        const currency = this.currency (code);
+        const request = {
             'currency': currency['id'],
         };
-        let response = await this.privatePostMoneyCurrencyAddress (this.extend (request, params));
-        let result = response['data'];
-        let address = this.safeString (result, 'addr');
+        const response = await this.privatePostMoneyCurrencyAddress (this.extend (request, params));
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'addr');
         this.checkAddress (address);
         return {
             'currency': code,
@@ -1126,15 +1151,16 @@ module.exports = class anxpro extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let request = this.implodeParams (path, params);
-        let query = this.omit (params, this.extractParams (path));
+        const request = this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + request;
         if (api === 'public' || api === 'v3public') {
-            if (Object.keys (query).length)
+            if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
+            }
         } else {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ();
+            const nonce = this.nonce ();
             let auth = undefined;
             let contentType = undefined;
             if (api === 'v3private') {
@@ -1148,8 +1174,8 @@ module.exports = class anxpro extends Exchange {
                 auth = request + "\0" + body;
                 contentType = 'application/x-www-form-urlencoded';
             }
-            let secret = this.base64ToBinary (this.secret);
-            let signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
+            const secret = this.base64ToBinary (this.secret);
+            const signature = this.hmac (this.encode (auth), secret, 'sha512', 'base64');
             headers = {
                 'Content-Type': contentType,
                 'Rest-Key': this.apiKey,
@@ -1159,7 +1185,7 @@ module.exports = class anxpro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined || response === '') {
             return;
         }

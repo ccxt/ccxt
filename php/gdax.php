@@ -164,15 +164,15 @@ class gdax extends Exchange {
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $priceLimits = array (
                 'min' => $this->safe_float($market, 'quote_increment'),
                 'max' => null,
             );
             $precision = array (
-                'amount' => 8,
+                'amount' => $this->precision_from_string($this->safe_string($market, 'base_increment')),
                 'price' => $this->precision_from_string($this->safe_string($market, 'quote_increment')),
             );
             $taker = $this->fees['trading']['taker'];  // does not seem right
@@ -234,7 +234,7 @@ class gdax extends Exchange {
             $account = $response[$i];
             $accountId = $this->safe_string($account, 'id');
             $currencyId = $this->safe_string($account, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $result[] = array (
                 'id' => $accountId,
                 'type' => null,
@@ -247,44 +247,42 @@ class gdax extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privateGetAccounts ($params);
-        $result = array( 'info' => $balances );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['currency'];
+        $response = $this->privateGetAccounts ($params);
+        $result = array( 'info' => $response );
+        for ($i = 0; $i < count ($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $this->safe_float($balance, 'hold'),
                 'total' => $this->safe_float($balance, 'balance'),
             );
-            $result[$currency] = $account;
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetProductsIdBook (array_merge (array (
+        $request = array (
             'id' => $this->market_id($symbol),
             'level' => 2, // 1 best bidask, 2 aggregated, 3 full
-        ), $params));
-        return $this->parse_order_book($orderbook);
+        );
+        $response = $this->publicGetProductsIdBook (array_merge ($request, $params));
+        return $this->parse_order_book($response);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $request = array_merge (array (
+        $request = array (
             'id' => $market['id'],
-        ), $params);
-        $ticker = $this->publicGetProductsIdTicker ($request);
+        );
+        $ticker = $this->publicGetProductsIdTicker (array_merge ($request, $params));
         $timestamp = $this->parse8601 ($this->safe_value($ticker, 'time'));
-        $bid = null;
-        $ask = null;
-        if (is_array($ticker) && array_key_exists('bid', $ticker))
-            $bid = $this->safe_float($ticker, 'bid');
-        if (is_array($ticker) && array_key_exists('ask', $ticker))
-            $ask = $this->safe_float($ticker, 'ask');
+        $bid = $this->safe_float($ticker, 'bid');
+        $ask = $this->safe_float($ticker, 'ask');
         $last = $this->safe_float($ticker, 'price');
         return array (
             'symbol' => $symbol,
@@ -317,8 +315,9 @@ class gdax extends Exchange {
             $marketId = $this->safe_string($trade, 'product_id');
             $market = $this->safe_value($this->markets_by_id, $marketId);
         }
-        if ($market)
+        if ($market) {
             $symbol = $market['symbol'];
+        }
         $feeRate = null;
         $feeCurrency = null;
         $takerOrMaker = null;
@@ -329,9 +328,7 @@ class gdax extends Exchange {
                 $feeRate = $market[$takerOrMaker];
             }
         }
-        $feeCost = $this->safe_float($trade, 'fill_fees');
-        if ($feeCost === null)
-            $feeCost = $this->safe_float($trade, 'fee');
+        $feeCost = $this->safe_float_2($trade, 'fill_fees', 'fee');
         $fee = array (
             'cost' => $feeCost,
             'currency' => $feeCurrency,
@@ -342,8 +339,9 @@ class gdax extends Exchange {
         $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $orderId = $this->safe_string($trade, 'order_id');
         // GDAX returns inverted $side to fetchMyTrades vs fetchTrades
-        if ($orderId !== null)
+        if ($orderId !== null) {
             $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
+        }
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'size');
         return array (
@@ -373,8 +371,9 @@ class gdax extends Exchange {
         $request = array (
             'product_id' => $market['id'],
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['limit'] = $limit;
+        }
         $response = $this->privateGetFills (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
@@ -382,9 +381,10 @@ class gdax extends Exchange {
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $response = $this->publicGetProductsIdTrades (array_merge (array (
+        $request = array (
             'id' => $market['id'], // fixes issue #2
-        ), $params));
+        );
+        $response = $this->publicGetProductsIdTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -421,7 +421,7 @@ class gdax extends Exchange {
 
     public function fetch_time ($params = array ()) {
         $response = $this->publicGetTime ($params);
-        return $this->parse8601 ($this->parse8601 ($response, 'iso'));
+        return $this->parse8601 ($response, 'iso');
     }
 
     public function parse_order_status ($status) {
@@ -440,39 +440,54 @@ class gdax extends Exchange {
         $timestamp = $this->parse8601 ($order['created_at']);
         $symbol = null;
         if ($market === null) {
-            if (is_array($this->markets_by_id) && array_key_exists($order['product_id'], $this->markets_by_id))
-                $market = $this->markets_by_id[$order['product_id']];
+            $marketId = $this->safe_string($order, 'product_id');
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float($order, 'size');
-        if ($amount === null)
-            $amount = $this->safe_float($order, 'funds');
-        if ($amount === null)
+        $amount = $this->safe_float_2($order, 'size', 'funds');
+        if ($amount === null) {
             $amount = $this->safe_float($order, 'specified_funds');
+        }
         $filled = $this->safe_float($order, 'filled_size');
         $remaining = null;
-        if ($amount !== null)
-            if ($filled !== null)
+        if ($amount !== null) {
+            if ($filled !== null) {
                 $remaining = $amount - $filled;
+            }
+        }
         $cost = $this->safe_float($order, 'executed_value');
-        $fee = array (
-            'cost' => $this->safe_float($order, 'fill_fees'),
-            'currency' => null,
-            'rate' => null,
-        );
-        if ($market)
+        $feeCost = $this->safe_float($order, 'fill_fees');
+        $fee = null;
+        if ($feeCost !== null) {
+            $feeCurrencyCode = null;
+            if ($market !== null) {
+                $feeCurrencyCode = $market['quote'];
+            }
+            $fee = array (
+                'cost' => $feeCost,
+                'currency' => $feeCurrencyCode,
+                'rate' => null,
+            );
+        }
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
+        $id = $this->safe_string($order, 'id');
+        $type = $this->safe_string($order, 'type');
+        $side = $this->safe_string($order, 'side');
         return array (
-            'id' => $order['id'],
+            'id' => $id,
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
             'status' => $status,
             'symbol' => $symbol,
-            'type' => $order['type'],
-            'side' => $order['side'],
+            'type' => $type,
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
             'amount' => $amount,
@@ -484,9 +499,10 @@ class gdax extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrdersId (array_merge (array (
+        $request = array (
             'id' => $id,
-        ), $params));
+        );
+        $response = $this->privateGetOrdersId (array_merge ($request, $params));
         return $this->parse_order($response);
     }
 
@@ -581,9 +597,8 @@ class gdax extends Exchange {
         );
     }
 
-    public function get_payment_methods () {
-        $response = $this->privateGetPaymentMethods ();
-        return $response;
+    public function fetch_payment_methods ($params = array ()) {
+        return $this->privateGetPaymentMethods ($params);
     }
 
     public function deposit ($code, $amount, $address, $params = array ()) {
@@ -607,8 +622,9 @@ class gdax extends Exchange {
             throw new NotSupported($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
         }
         $response = $this->$method (array_merge ($request, $params));
-        if (!$response)
+        if (!$response) {
             throw new ExchangeError($this->id . ' deposit() error => ' . $this->json ($response));
+        }
         return array (
             'info' => $response,
             'id' => $response['id'],
@@ -633,8 +649,9 @@ class gdax extends Exchange {
             $request['crypto_address'] = $address;
         }
         $response = $this->$method (array_merge ($request, $params));
-        if (!$response)
+        if (!$response) {
             throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json ($response));
+        }
         return array (
             'info' => $response,
             'id' => $response['id'],
@@ -678,7 +695,7 @@ class gdax extends Exchange {
         }
         $processed = $this->safe_value($transaction, 'processed_at');
         $completed = $this->safe_value($transaction, 'completed_at');
-        if ($processed && $completed) {
+        if ($completed) {
             return 'ok';
         } else if ($processed && !$completed) {
             return 'failed';
@@ -693,14 +710,8 @@ class gdax extends Exchange {
         $txid = $this->safe_string($details, 'crypto_transaction_hash');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'processed_at'));
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currencyId];
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $fee = null;
         $status = $this->parse_transaction_status ($transaction);
         $amount = $this->safe_float($transaction, 'amount');
@@ -733,8 +744,9 @@ class gdax extends Exchange {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query)
+            if ($query) {
                 $request .= '?' . $this->urlencode ($query);
+            }
         }
         $url = $this->urls['api'] . $request;
         if ($api === 'private') {
@@ -820,7 +832,7 @@ class gdax extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
                 $message = $response['message'];

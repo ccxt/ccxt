@@ -124,7 +124,7 @@ class therock extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetFunds ();
+        $response = $this->publicGetFunds ($params);
         //
         //     { funds => array ( array (                      $id =>   "BTCEUR",
         //                              description =>   "Trade Bitcoin with Euro",
@@ -161,8 +161,8 @@ class therock extends Exchange {
                 $id = $this->safe_string($market, 'id');
                 $baseId = $this->safe_string($market, 'trade_currency');
                 $quoteId = $this->safe_string($market, 'base_currency');
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
                 $buy_fee = $this->safe_float($market, 'buy_fee');
                 $sell_fee = $this->safe_float($market, 'sell_fee');
@@ -206,39 +206,37 @@ class therock extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetBalances ();
-        $balances = $response['balances'];
+        $response = $this->privateGetBalances ($params);
+        $balances = $this->safe_value($response, 'balances', array());
         $result = array( 'info' => $response );
-        for ($b = 0; $b < count ($balances); $b++) {
-            $balance = $balances[$b];
-            $currency = $balance['currency'];
-            $free = $balance['trading_balance'];
-            $total = $balance['balance'];
-            $used = $total - $free;
-            $account = array (
-                'free' => $free,
-                'used' => $used,
-                'total' => $total,
-            );
-            $result[$currency] = $account;
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'trading_balance');
+            $account['total'] = $this->safe_float($balance, 'balance');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetFundsIdOrderbook (array_merge (array (
+        $request = array (
             'id' => $this->market_id($symbol),
-        ), $params));
-        $timestamp = $this->parse8601 ($orderbook['date']);
+        );
+        $orderbook = $this->publicGetFundsIdOrderbook (array_merge ($request, $params));
+        $timestamp = $this->parse8601 ($this->safe_string($orderbook, 'date'));
         return $this->parse_order_book($orderbook, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->parse8601 ($ticker['date']);
         $symbol = null;
-        if ($market)
+        if ($market !== null) {
             $symbol = $market['symbol'];
+        }
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,
@@ -328,8 +326,9 @@ class therock extends Exchange {
         //                         currency => "EUR",
         //                         trade_id =>  440492                     }   ) }
         //
-        if (!$market)
+        if (!$market) {
             $market = $this->markets_by_id[$trade['fund_id']];
+        }
         $timestamp = $this->parse8601 ($this->safe_string($trade, 'date'));
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
@@ -359,15 +358,20 @@ class therock extends Exchange {
                 'currency' => $market['quote'],
             );
         }
+        $symbol = null;
+        if ($market !== null) {
+            $symbol = $market['symbol'];
+        }
         return array (
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -504,11 +508,7 @@ class therock extends Exchange {
             $referenceId = $this->safe_string($item, 'trade_id');
         }
         $currencyId = $this->safe_string($item, 'currency');
-        $code = null;
-        if ($currencyId !== null) {
-            $currencyId = strtoupper($currencyId);
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_float($item, 'price');
         $timestamp = $this->parse8601 ($this->safe_string($item, 'date'));
         $status = 'ok';
@@ -640,9 +640,27 @@ class therock extends Exchange {
         //         "order_id" => null,
         //         "trade_id" => null,
         //         "transfer_detail" => {
-        //             "method" => "wire_transfer",
+        //             "$method" => "wire_transfer",
         //             "$id" => "F112DD3",
         //             "recipient" => "IT123456789012",
+        //             "confirmations" => 0
+        //         }
+        //     }
+        //
+        //     {
+        //         "$id" => 12564223,
+        //         "date" => "2017-08-07T08:13:50.023Z",
+        //         "note" => "GB7IDL401573388",
+        //         "$type" => "withdraw",
+        //         "price" => 4345.93,
+        //         "fund_id" => null,
+        //         "$currency" => "EUR",
+        //         "order_id" => null,
+        //         "trade_id" => null,
+        //         "transfer_detail" => {
+        //             "$id" => "EXECUTEDBUTUNCHECKED",
+        //             "$method" => "wire_transfer",
+        //             "recipient" => "GB7IDL401573388",
         //             "confirmations" => 0
         //         }
         //     }
@@ -660,7 +678,7 @@ class therock extends Exchange {
         //         trade_id => null,
         //         note => '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
         //         transfer_detail => {
-        //             method => 'bitcoin_cash',
+        //             $method => 'bitcoin_cash',
         //             $id => '8261949194985b01985006724dca5d6059989e096fa95608271d00dd902327fa',
         //             recipient => '1MAHLhJoz9W2ydbRf972WSgJYJ3Ui7aotm',
         //             confirmations => 0
@@ -683,7 +701,7 @@ class therock extends Exchange {
         //         trade_id => null,
         //         note => 'Mistral deposit',
         //         transfer_detail => {
-        //             method => 'wire_transfer',
+        //             $method => 'wire_transfer',
         //             $id => '972JQ49337DX769T',
         //             recipient => null,
         //             confirmations => 0
@@ -702,7 +720,7 @@ class therock extends Exchange {
         //         "order_id" => null,
         //         "trade_id" => null,
         //         "transfer_detail" => {
-        //             "method" => "bitcoin",
+        //             "$method" => "bitcoin",
         //             "$id" => "0e3e2357e806b6cdb1f70b54c3a3a17b6714ee1f0e68bebb44a74b1efd512098",
         //             "recipient" => "mzb3NgX9Dr6jgGAu31L6jsPGB2zkaFxxyf",
         //             "confirmations" => 3
@@ -712,14 +730,17 @@ class therock extends Exchange {
         $id = $this->safe_string($transaction, 'id');
         $type = $this->parse_transaction_type ($this->safe_string($transaction, 'type'));
         $detail = $this->safe_value($transaction, 'transfer_detail', array());
-        $txid = $this->safe_string($detail, 'id');
-        $address = $this->safe_string($detail, 'recipient');
-        $currencyId = $this->safe_string($transaction, 'currency');
-        $code = null;
-        if ($currencyId !== null) {
-            $currencyId = strtoupper($currencyId);
-            $code = $this->common_currency_code($currencyId);
+        $method = $this->safe_string($detail, 'method');
+        $txid = null;
+        $address = null;
+        if ($method !== null) {
+            if ($method !== 'wire_transfer') {
+                $txid = $this->safe_string($detail, 'id');
+                $address = $this->safe_string($detail, 'recipient');
+            }
         }
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId);
         $amount = $this->safe_float($transaction, 'price');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'date'));
         $status = 'ok';
@@ -749,14 +770,14 @@ class therock extends Exchange {
         $request = array (
             'type' => 'withdraw',
         );
-        return $this->fetch_transactions ('withdraw', $code, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_transactions ($code, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
         $request = array (
             'type' => 'atm_payment',
         );
-        return $this->fetch_transactions ('atm_payment', $code, $since, $limit, array_merge ($request, $params));
+        return $this->fetch_transactions ($code, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1148,6 +1169,7 @@ class therock extends Exchange {
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
+        $headers = ($headers === null) ? array() : $headers;
         if ($api === 'private') {
             $this->check_required_credentials();
             if ($query) {
@@ -1156,17 +1178,16 @@ class therock extends Exchange {
                     $headers['Content-Type'] = 'application/json';
                 } else {
                     $queryString = $this->rawencode ($query);
-                    if (strlen ($queryString))
+                    if (strlen ($queryString)) {
                         $url .= '?' . $queryString;
+                    }
                 }
             }
             $nonce = (string) $this->nonce ();
             $auth = $nonce . $url;
-            $headers = array (
-                'X-TRT-KEY' => $this->apiKey,
-                'X-TRT-NONCE' => $nonce,
-                'X-TRT-SIGN' => $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512'),
-            );
+            $headers['X-TRT-KEY'] = $this->apiKey;
+            $headers['X-TRT-NONCE'] = $nonce;
+            $headers['X-TRT-SIGN'] = $this->hmac ($this->encode ($auth), $this->encode ($this->secret), 'sha512');
         } else if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->rawencode ($query);
@@ -1175,7 +1196,7 @@ class therock extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default $error handler
         }

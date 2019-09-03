@@ -8,6 +8,7 @@ tmp/
 doc/
 wiki/
 .tox/
+.github/
 .DS_Store
 .nyc_output
 .travis.yml

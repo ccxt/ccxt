@@ -163,6 +163,7 @@ class bitmex (Exchange):
                 # https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 # https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5,  # in seconds
+                'fetchOHLCVOpenTimestamp': True,
             },
         })
 
@@ -176,8 +177,8 @@ class bitmex (Exchange):
             baseId = market['underlying']
             quoteId = market['quoteCurrency']
             basequote = baseId + quoteId
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             swap = (id == basequote)
             # 'positionCurrency' may be empty("", as Bitmex currently returns for ETHUSD)
             # so let's take the quote currency first and then adjust if needed
@@ -185,7 +186,7 @@ class bitmex (Exchange):
             type = None
             future = False
             prediction = False
-            position = self.common_currency_code(positionId)
+            position = self.safe_currency_code(positionId)
             symbol = id
             if swap:
                 type = 'swap'
@@ -235,8 +236,8 @@ class bitmex (Exchange):
                 'active': active,
                 'precision': precision,
                 'limits': limits,
-                'taker': market['takerFee'],
-                'maker': market['makerFee'],
+                'taker': self.safe_float(market, 'takerFee'),
+                'maker': self.safe_float(market, 'makerFee'),
                 'type': type,
                 'spot': False,
                 'swap': swap,
@@ -248,23 +249,21 @@ class bitmex (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        request = {'currency': 'all'}
+        request = {
+            'currency': 'all',
+        }
         response = await self.privateGetUserMargin(self.extend(request, params))
         result = {'info': response}
-        for b in range(0, len(response)):
-            balance = response[b]
+        for i in range(0, len(response)):
+            balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            currencyId = currencyId.upper()
-            code = self.common_currency_code(currencyId)
-            account = {
-                'free': balance['availableMargin'],
-                'used': 0.0,
-                'total': balance['marginBalance'],
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'availableMargin')
+            account['total'] = self.safe_float(balance, 'marginBalance')
             if code == 'BTC':
                 account['free'] = account['free'] * 0.00000001
                 account['total'] = account['total'] * 0.00000001
-            account['used'] = account['total'] - account['free']
             result[code] = account
         return self.parse_balance(result)
 
@@ -276,7 +275,7 @@ class bitmex (Exchange):
         }
         if limit is not None:
             request['depth'] = limit
-        orderbook = await self.publicGetOrderBookL2(self.extend(request, params))
+        response = await self.publicGetOrderBookL2(self.extend(request, params))
         result = {
             'bids': [],
             'asks': [],
@@ -284,8 +283,8 @@ class bitmex (Exchange):
             'datetime': None,
             'nonce': None,
         }
-        for o in range(0, len(orderbook)):
-            order = orderbook[o]
+        for i in range(0, len(response)):
+            order = response[i]
             side = 'asks' if (order['side'] == 'Sell') else 'bids'
             amount = self.safe_float(order, 'size')
             price = self.safe_float(order, 'price')
@@ -299,11 +298,15 @@ class bitmex (Exchange):
         return result
 
     async def fetch_order(self, id, symbol=None, params={}):
-        filter = {'filter': {'orderID': id}}
-        result = await self.fetch_orders(symbol, None, None, self.deep_extend(filter, params))
-        numResults = len(result)
+        filter = {
+            'filter': {
+                'orderID': id,
+            },
+        }
+        response = await self.fetch_orders(symbol, None, None, self.deep_extend(filter, params))
+        numResults = len(response)
         if numResults == 1:
-            return result[0]
+            return response[0]
         raise OrderNotFound(self.id + ': The order ' + id + ' not found.')
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -327,8 +330,12 @@ class bitmex (Exchange):
         return self.parse_orders(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        filter_params = {'filter': {'open': True}}
-        return await self.fetch_orders(symbol, since, limit, self.deep_extend(filter_params, params))
+        request = {
+            'filter': {
+                'open': True,
+            },
+        }
+        return await self.fetch_orders(symbol, since, limit, self.deep_extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         # Bitmex barfs if you set 'open': False in the filter...
@@ -443,10 +450,7 @@ class bitmex (Exchange):
         referenceAccount = None
         type = self.parse_ledger_entry_type(self.safe_string(item, 'transactType'))
         currencyId = self.safe_string(item, 'currency')
-        code = None
-        if currencyId is not None:
-            currencyId = currencyId.upper()
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         amount = self.safe_float(item, 'amount')
         if amount is not None:
             amount = amount * 1e-8
@@ -468,10 +472,12 @@ class bitmex (Exchange):
             amount = abs(amount)
         else:
             direction = 'in'
-        status = self.parse_transaction_status(item, 'transactStatus')
+        status = self.parse_transaction_status(self.safe_string(item, 'transactStatus'))
         return {
-            'info': item,
             'id': id,
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'direction': direction,
             'account': account,
             'referenceId': referenceId,
@@ -482,8 +488,6 @@ class bitmex (Exchange):
             'before': before,
             'after': after,
             'status': status,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
             'fee': fee,
         }
 
@@ -538,7 +542,7 @@ class bitmex (Exchange):
         if limit is not None:
             request['count'] = limit
         response = await self.privateGetUserWalletHistory(self.extend(request, params))
-        transactions = self.filter_by_array(response, ['Withdrawal', 'Deposit'], False)
+        transactions = self.filter_by_array(response, 'transactType', ['Withdrawal', 'Deposit'], False)
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -576,9 +580,7 @@ class bitmex (Exchange):
         # For withdrawals, transactTime is submission, timestamp is processed
         transactTime = self.parse8601(self.safe_string(transaction, 'transactTime'))
         timestamp = self.parse8601(self.safe_string(transaction, 'timestamp'))
-        type = self.safe_string(transaction, 'transactType')
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(transaction, 'transactType')
         # Deposits have no from address or to address, withdrawals have both
         address = None
         addressFrom = None
@@ -789,7 +791,7 @@ class bitmex (Exchange):
         }
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
-        timestamp = self.parse8601(ohlcv['timestamp'])
+        timestamp = self.parse8601(self.safe_string(ohlcv, 'timestamp'))
         return [
             timestamp,
             self.safe_float(ohlcv, 'open'),
@@ -820,12 +822,24 @@ class bitmex (Exchange):
         }
         if limit is not None:
             request['count'] = limit  # default 100, max 500
+        duration = self.parse_timeframe(timeframe) * 1000
+        fetchOHLCVOpenTimestamp = self.safe_value(self.options, 'fetchOHLCVOpenTimestamp', True)
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
-            ymdhms = self.ymdhms(since)
+            timestamp = since
+            if fetchOHLCVOpenTimestamp:
+                timestamp = self.sum(timestamp, duration)
+            ymdhms = self.ymdhms(timestamp)
             request['startTime'] = ymdhms  # starting date filter for results
         response = await self.publicGetTradeBucketed(self.extend(request, params))
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        result = self.parse_ohlcvs(response, market, timeframe, since, limit)
+        if fetchOHLCVOpenTimestamp:
+            # bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
+            # we can emulate the open timestamp by shifting all the timestamps one place
+            # so the previous close becomes the current open, and we drop the first candle
+            for i in range(0, len(result)):
+                result[i][0] = result[i][0] - duration
+        return result
 
     def parse_trade(self, trade, market=None):
         #
@@ -901,7 +915,7 @@ class bitmex (Exchange):
         amount = self.safe_float_2(trade, 'size', 'lastQty')
         id = self.safe_string(trade, 'trdMatchID')
         order = self.safe_string(trade, 'orderID')
-        side = self.safe_string(trade, 'side').lower()
+        side = self.safe_string_lower(trade, 'side')
         # price * amount doesn't work for all symbols(e.g. XBT, ETH)
         cost = self.safe_float(trade, 'execCost')
         if cost is not None:
@@ -911,8 +925,7 @@ class bitmex (Exchange):
             feeCost = self.safe_float(trade, 'execComm')
             feeCost = feeCost / 100000000
             currencyId = self.safe_string(trade, 'settlCurrency')
-            currencyId = currencyId.upper()
-            feeCurrency = self.common_currency_code(currencyId)
+            feeCurrency = self.safe_currency_code(currencyId)
             feeRate = self.safe_float(trade, 'commission')
             fee = {
                 'cost': feeCost,
@@ -930,9 +943,7 @@ class bitmex (Exchange):
                 symbol = market['symbol']
             else:
                 symbol = marketId
-        type = self.safe_string(trade, 'ordType')
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(trade, 'ordType')
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -972,9 +983,9 @@ class bitmex (Exchange):
         if market is not None:
             symbol = market['symbol']
         else:
-            id = order['symbol']
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
+            marketId = self.safe_string(order, 'symbol')
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
                 symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'transactTime'))
@@ -992,15 +1003,18 @@ class bitmex (Exchange):
                 cost = average * filled
             elif price is not None:
                 cost = price * filled
-        result = {
+        id = self.safe_string(order, 'orderID')
+        type = self.safe_string_lower(order, 'ordType')
+        side = self.safe_string_lower(order, 'side')
+        return {
             'info': order,
-            'id': str(order['orderID']),
+            'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': order['ordType'].lower(),
-            'side': order['side'].lower(),
+            'type': type,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -1010,7 +1024,6 @@ class bitmex (Exchange):
             'status': status,
             'fee': None,
         }
-        return result
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1121,25 +1134,25 @@ class bitmex (Exchange):
             'id': response['transactID'],
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return
         if code == 429:
             raise DDoSProtection(self.id + ' ' + body)
         if code >= 400:
-            if body:
-                if body[0] == '{':
-                    error = self.safe_value(response, 'error', {})
-                    message = self.safe_string(error, 'message')
-                    feedback = self.id + ' ' + body
-                    exact = self.exceptions['exact']
-                    if message in exact:
-                        raise exact[message](feedback)
-                    broad = self.exceptions['broad']
-                    broadKey = self.findBroadlyMatchedKey(broad, message)
-                    if broadKey is not None:
-                        raise broad[broadKey](feedback)
-                    if code == 400:
-                        raise BadRequest(feedback)
-                    raise ExchangeError(feedback)  # unknown message
+            error = self.safe_value(response, 'error', {})
+            message = self.safe_string(error, 'message')
+            feedback = self.id + ' ' + body
+            exact = self.exceptions['exact']
+            if message in exact:
+                raise exact[message](feedback)
+            broad = self.exceptions['broad']
+            broadKey = self.findBroadlyMatchedKey(broad, message)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
+            if code == 400:
+                raise BadRequest(feedback)
+            raise ExchangeError(feedback)  # unknown message
 
     def nonce(self):
         return self.milliseconds()
@@ -1155,8 +1168,7 @@ class bitmex (Exchange):
                 query += '?' + self.urlencode({'_format': format})
                 params = self.omit(params, '_format')
         url = self.urls['api'] + query
-        if api == 'private':
-            self.check_required_credentials()
+        if self.apiKey and self.secret:
             auth = method + query
             expires = self.safe_integer(self.options, 'api-expires')
             headers = {

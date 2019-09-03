@@ -17,7 +17,6 @@ class theocean extends Exchange {
             'countries' => array ( 'US' ),
             'rateLimit' => 3000,
             'version' => 'v1',
-            'certified' => true,
             'requiresWeb3' => true,
             'timeframes' => array (
                 '5m' => '300',
@@ -97,7 +96,7 @@ class theocean extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $markets = $this->publicGetTokenPairs ();
+        $markets = $this->publicGetTokenPairs ($params);
         //
         //     array (
         //       "$baseToken" => array (
@@ -123,14 +122,12 @@ class theocean extends Exchange {
         $result = array();
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
-            $baseToken = $market['baseToken'];
-            $quoteToken = $market['quoteToken'];
-            $baseId = $baseToken['address'];
-            $quoteId = $quoteToken['address'];
-            $base = $baseToken['symbol'];
-            $quote = $quoteToken['symbol'];
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $baseToken = $this->safe_value($market, 'baseToken', array());
+            $quoteToken = $this->safe_value($market, 'quoteToken', array());
+            $baseId = $this->safe_string($baseToken, 'address');
+            $quoteId = $this->safe_string($quoteToken, 'address');
+            $base = $this->safe_currency_code($this->safe_string($baseToken, 'symbol'));
+            $quote = $this->safe_currency_code($this->safe_string($quoteToken, 'symbol'));
             $symbol = $base . '/' . $quote;
             $id = $baseId . '/' . $quoteId;
             $baseDecimals = $this->safe_integer($baseToken, 'decimals');
@@ -178,7 +175,7 @@ class theocean extends Exchange {
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         $baseDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
         return array (
-            $this->safe_integer($ohlcv, 'startTime') * 1000,
+            $this->safe_timestamp($ohlcv, 'startTime'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
@@ -255,8 +252,9 @@ class theocean extends Exchange {
             throw new InvalidAddress($this->id . ' fetchBalance() requires the .walletAddress to be a "0x"-prefixed hexstring like "0xbF2d65B3b2907214EEA3562f21B80f6Ed7220377"');
         }
         $codes = $this->safe_value($this->options, 'fetchBalanceCurrencies');
-        if ($codes === null)
+        if ($codes === null) {
             $codes = $this->safe_value($params, 'codes');
+        }
         if (($codes === null) || (!gettype ($codes) === 'array' && count (array_filter (array_keys ($codes), 'is_string')) == 0)) {
             throw new ExchangeError($this->id . ' fetchBalance() requires a `$codes` parameter (an array of currency $codes)');
         }
@@ -446,6 +444,9 @@ class theocean extends Exchange {
         //         $timestamp => "1532261686"                                                          }
         //
         $timestamp = $this->safe_integer($trade, 'lastUpdated');
+        if ($timestamp !== null) {
+            $timestamp /= 1000;
+        }
         $price = $this->safe_float($trade, 'price');
         $id = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
@@ -741,12 +742,14 @@ class theocean extends Exchange {
     }
 
     public function fetch_order_from_history ($id, $symbol = null, $params = array ()) {
-        $orders = $this->fetch_orders($symbol, null, null, array_merge (array (
+        $request = array (
             'orderHash' => $id,
-        ), $params));
+        );
+        $orders = $this->fetch_orders($symbol, null, null, array_merge ($request, $params));
         $ordersById = $this->index_by($orders, 'id');
-        if (is_array($ordersById) && array_key_exists($id, $ordersById))
+        if (is_array($ordersById) && array_key_exists($id, $ordersById)) {
             return $ordersById[$id];
+        }
         throw new OrderNotFound($this->id . ' could not find order ' . $id . ' in order history');
     }
 
@@ -840,15 +843,17 @@ class theocean extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'openAmount' => 1, // returns open orders with remaining openAmount >= 1
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'openAmount' => 0, // returns closed orders with remaining openAmount === 0
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -882,11 +887,10 @@ class theocean extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if (gettype ($body) !== 'string')
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
             return; // fallback to default error handler
-        if (strlen ($body) < 2)
-            return; // fallback to default error handler
+        }
         // code 401 and plain $body 'Authentication failed' (with single quotes)
         // this error is sent if you do not submit a proper Content-Type
         if ($body === "'Authentication failed'") {
@@ -906,12 +910,14 @@ class theocean extends Exchange {
                 //
                 $feedback = $this->id . ' ' . $this->json ($response);
                 $exact = $this->exceptions['exact'];
-                if (is_array($exact) && array_key_exists($message, $exact))
+                if (is_array($exact) && array_key_exists($message, $exact)) {
                     throw new $exact[$message]($feedback);
+                }
                 $broad = $this->exceptions['broad'];
                 $broadKey = $this->findBroadlyMatchedKey ($broad, $body);
-                if ($broadKey !== null)
+                if ($broadKey !== null) {
                     throw new $broad[$broadKey]($feedback);
+                }
                 throw new ExchangeError($feedback); // unknown $message
             }
         }

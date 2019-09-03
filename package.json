@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.671",
+  "version": "1.18.1115",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -21,7 +21,7 @@
     "test-base": "npm run test-js-base && npm run test-python-base && npm run test-php-base",
     "test-js-base": "mocha js/test/base/test.base.js --reporter ololog/reporter",
     "test-python-base": "python python/test/test_decimal_to_precision.py",
-    "test-php-base": "php -f php/test/decimal_to_precision.php",
+    "test-php-base": "php -f php/test/decimal_to_precision.php && php -f php/test/test_crypto.php",
     "export-exchanges": "node build/export-exchanges",
     "git-ignore-generated-files": "node build/git-ignore-generated-files",
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",
@@ -32,7 +32,7 @@
     "qa": "npm run check-python-syntax && npm run check-php-syntax",
     "lint": "eslint",
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
-    "check-js-syntax": "eslint 'js/*.js'",
+    "check-js-syntax": "pwd && eslint --version && eslint 'js/*.js'",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-php-syntax": "php -f php/test/syntax.php",
     "browserify": "browserify ./ccxt.browser.js > ./dist/ccxt.browser.js",
@@ -55,7 +55,7 @@
     "browserify": "14.5.0",
     "chai": "4.1.2",
     "chai-as-promised": "7.1.1",
-    "eslint": "4.15.0",
+    "eslint": "^4.19.1",
     "eslint-config-airbnb-base": "12.1.0",
     "eslint-plugin-import": "2.16.0",
     "istanbul": "0.4.5",
@@ -70,7 +70,7 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ccxt-dev/ccxt/issues"
+    "url": "https://github.com/ccxt/ccxt/issues"
   },
   "homepage": "https://ccxt.trade",
   "keywords": [
@@ -220,8 +220,6 @@
     "coinspot.com.au",
     "Crypto Capital",
     "cryptocapital.co",
-    "Cryptopia",
-    "cryptopia.co.nz",
     "DSX",
     "dsx.uk",
     "EXMO",
@@ -462,11 +460,22 @@
     "dx.exchange",
     "DX.Exchange",
     "oceanex.pro.com",
-    "OceanEx"
+    "OceanEx",
+    "flowbtc.com.br",
+    "foxbit.com.br",
+    "latoken.com",
+    "Latoken",
+    "bitmart.com",
+    "BitMart",
+    "digifinex.vip",
+    "DigiFinex",
+    "idex.market",
+    "IDEX"
   ],
   "collective": {
     "type": "opencollective",
     "url": "https://opencollective.com/ccxt",
     "logo": "https://opencollective.com/ccxt/logo.txt"
-  }
+  },
+  "ethereum": "0x26a3CB49578F07000575405a57888681249c35Fd"
 }

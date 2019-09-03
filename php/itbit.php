@@ -82,26 +82,30 @@ class itbit extends Exchange {
 
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
-        $orderbook = $this->publicGetMarketsSymbolOrderBook (array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-        ), $params));
+        );
+        $orderbook = $this->publicGetMarketsSymbolOrderBook (array_merge ($request, $params));
         return $this->parse_order_book($orderbook);
     }
 
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
-        $ticker = $this->publicGetMarketsSymbolTicker (array_merge (array (
+        $request = array (
             'symbol' => $this->market_id($symbol),
-        ), $params));
+        );
+        $ticker = $this->publicGetMarketsSymbolTicker (array_merge ($request, $params));
         $serverTimeUTC = $this->safe_string($ticker, 'serverTimeUTC');
-        if (!$serverTimeUTC)
+        if (!$serverTimeUTC) {
             throw new ExchangeError($this->id . ' fetchTicker returned a bad response => ' . $this->json ($ticker));
+        }
         $timestamp = $this->parse8601 ($serverTimeUTC);
         $vwap = $this->safe_float($ticker, 'vwap24h');
         $baseVolume = $this->safe_float($ticker, 'volume24h');
         $quoteVolume = null;
-        if ($baseVolume !== null && $vwap !== null)
+        if ($baseVolume !== null && $vwap !== null) {
             $quoteVolume = $baseVolume * $vwap;
+        }
         $last = $this->safe_float($ticker, 'lastPrice');
         return array (
             'symbol' => $symbol,
@@ -163,13 +167,13 @@ class itbit extends Exchange {
         $orderId = $this->safe_string($trade, 'orderId');
         $feeCost = $this->safe_float($trade, 'commissionPaid');
         $feeCurrencyId = $this->safe_string($trade, 'commissionCurrency');
-        $feeCurrency = $this->common_currency_code($feeCurrencyId);
+        $feeCurrency = $this->safe_currency_code($feeCurrencyId);
         $rebatesApplied = $this->safe_float($trade, 'rebatesApplied');
         if ($rebatesApplied !== null) {
             $rebatesApplied = -$rebatesApplied;
         }
         $rebateCurrencyId = $this->safe_string($trade, 'rebateCurrency');
-        $rebateCurrency = $this->common_currency_code($rebateCurrencyId);
+        $rebateCurrency = $this->safe_currency_code($rebateCurrencyId);
         $price = $this->safe_float_2($trade, 'price', 'rate');
         $amount = $this->safe_float_2($trade, 'currency1Amount', 'amount');
         $cost = null;
@@ -186,8 +190,8 @@ class itbit extends Exchange {
             } else {
                 $baseId = $this->safe_string($trade, 'currency1');
                 $quoteId = $this->safe_string($trade, 'currency2');
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -205,6 +209,7 @@ class itbit extends Exchange {
             'order' => $orderId,
             'type' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -234,6 +239,11 @@ class itbit extends Exchange {
                     'cost' => $feeCost,
                     'currency' => $feeCurrency,
                 );
+            }
+        }
+        if (!(is_array($result) && array_key_exists('fee', $result))) {
+            if (!(is_array($result) && array_key_exists('fees', $result))) {
+                $result['fee'] = null;
             }
         }
         return $result;
@@ -279,14 +289,14 @@ class itbit extends Exchange {
             $currency = $this->safe_string($item, 'currency');
             $destinationAddress = $this->safe_string($item, 'destinationAddress');
             $txnHash = $this->safe_string($item, 'txnHash');
-            $transactionType = strtolower($this->safe_string($item, 'transactionType'));
+            $transactionType = $this->safe_string_lower($item, 'transactionType');
             $transactionStatus = $this->safe_string($item, 'status');
             $status = $this->parse_transfer_status ($transactionStatus);
             $result[] = array (
                 'id' => $this->safe_string($item, 'withdrawalId'),
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601 ($timestamp),
-                'currency' => $this->common_currency_code($currency),
+                'currency' => $this->safe_currency_code($currency),
                 'address' => $destinationAddress,
                 'tag' => null,
                 'txid' => $txnHash,
@@ -390,21 +400,19 @@ class itbit extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
-            $account = array (
-                'free' => $this->safe_float($balance, 'availableBalance'),
-                'used' => 0.0,
-                'total' => $this->safe_float($balance, 'totalBalance'),
-            );
-            $account['used'] = $account['total'] - $account['free'];
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'availableBalance');
+            $account['total'] = $this->safe_float($balance, 'totalBalance');
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_wallets ($params = array ()) {
-        if (!$this->uid)
+        if (!$this->uid) {
             throw new AuthenticationError($this->id . ' fetchWallets requires uid API credential');
+        }
         $request = array (
             'userId' => $this->uid,
         );
@@ -412,32 +420,36 @@ class itbit extends Exchange {
     }
 
     public function fetch_wallet ($walletId, $params = array ()) {
-        $wallet = array (
+        $request = array (
             'walletId' => $walletId,
         );
-        return $this->privateGetWalletsWalletId (array_merge ($wallet, $params));
+        return $this->privateGetWalletsWalletId (array_merge ($request, $params));
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'status' => 'open',
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return $this->fetch_orders($symbol, $since, $limit, array_merge (array (
+        $request = array (
             'status' => 'filled',
-        ), $params));
+        );
+        return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
-        if (!$walletIdInParams)
+        if (!$walletIdInParams) {
             throw new ExchangeError($this->id . ' fetchOrders requires a $walletId parameter');
+        }
         $walletId = $params['walletId'];
-        $response = $this->privateGetWalletsWalletIdOrders (array_merge (array (
+        $request = array (
             'walletId' => $walletId,
-        ), $params));
+        );
+        $response = $this->privateGetWalletsWalletIdOrders (array_merge ($request, $params));
         $orders = $this->parse_orders($response, null, $since, $limit);
         return $orders;
     }
@@ -480,15 +492,17 @@ class itbit extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type === 'market')
+        if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
+        }
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
-        if (!$walletIdInParams)
+        if (!$walletIdInParams) {
             throw new ExchangeError($this->id . ' createOrder requires a walletId parameter');
+        }
         $amount = (string) $amount;
         $price = (string) $price;
         $market = $this->market ($symbol);
-        $order = array (
+        $request = array (
             'side' => $side,
             'type' => $type,
             'currency' => str_replace($market['quote'], '', $market['id']),
@@ -497,7 +511,7 @@ class itbit extends Exchange {
             'price' => $price,
             'instrument' => $market['id'],
         );
-        $response = $this->privatePostWalletsWalletIdOrders (array_merge ($order, $params));
+        $response = $this->privatePostWalletsWalletIdOrders (array_merge ($request, $params));
         return array (
             'info' => $response,
             'id' => $response['id'],
@@ -509,41 +523,46 @@ class itbit extends Exchange {
         if (!$walletIdInParams) {
             throw new ExchangeError($this->id . ' fetchOrder requires a walletId parameter');
         }
-        $request = array( 'id' => $id );
+        $request = array (
+            'id' => $id,
+        );
         $response = $this->privateGetWalletsWalletIdOrdersId (array_merge ($request, $params));
         return $this->parse_order($response);
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $walletIdInParams = (is_array($params) && array_key_exists('walletId', $params));
-        if (!$walletIdInParams)
+        if (!$walletIdInParams) {
             throw new ExchangeError($this->id . ' cancelOrder requires a walletId parameter');
-        return $this->privateDeleteWalletsWalletIdOrdersId (array_merge (array (
+        }
+        $request = array (
             'id' => $id,
-        ), $params));
+        );
+        return $this->privateDeleteWalletsWalletIdOrdersId (array_merge ($request, $params));
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
-        if ($method === 'GET' && $query)
+        if ($method === 'GET' && $query) {
             $url .= '?' . $this->urlencode ($query);
-        if ($method === 'POST' && $query)
+        }
+        if ($method === 'POST' && $query) {
             $body = $this->json ($query);
-        else
-            $body = '';
+        }
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce ();
             $timestamp = $nonce;
-            $auth = array ( $method, $url, $body, $nonce, $timestamp );
+            $authBody = ($method === 'POST') ? $body : '';
+            $auth = array ( $method, $url, $authBody, $nonce, $timestamp );
             $message = $nonce . str_replace('\\/', '/', $this->json ($auth));
             $hash = $this->hash ($this->encode ($message), 'sha256', 'binary');
             $binaryUrl = $this->encode ($url);
             $binhash = $this->binary_concat($binaryUrl, $hash);
             $signature = $this->hmac ($binhash, $this->encode ($this->secret), 'sha512', 'base64');
             $headers = array (
-                'Authorization' => $this->apiKey . ':' . $signature,
+                'Authorization' => $this->apiKey . ':' . $this->decode ($signature),
                 'Content-Type' => 'application/json',
                 'X-Auth-Timestamp' => $timestamp,
                 'X-Auth-Nonce' => $nonce,
@@ -554,8 +573,9 @@ class itbit extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        if (is_array($response) && array_key_exists('code', $response))
+        if (is_array($response) && array_key_exists('code', $response)) {
             throw new ExchangeError($this->id . ' ' . $this->json ($response));
+        }
         return $response;
     }
 }

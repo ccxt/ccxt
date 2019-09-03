@@ -230,7 +230,7 @@ class upbit extends Exchange {
         }
         $precision = null;
         $currencyId = $this->safe_string($currencyInfo, 'code');
-        $code = $this->common_currency_code($currencyId);
+        $code = $this->safe_currency_code($currencyId);
         return array (
             'info' => $response,
             'id' => $currencyId,
@@ -295,8 +295,8 @@ class upbit extends Exchange {
         $marketId = $this->safe_string($marketInfo, 'id');
         $baseId = $this->safe_string($ask, 'currency');
         $quoteId = $this->safe_string($bid, 'currency');
-        $base = $this->common_currency_code($baseId);
-        $quote = $this->common_currency_code($quoteId);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
         $precision = array (
             'amount' => 8,
@@ -361,8 +361,8 @@ class upbit extends Exchange {
             $market = $response[$i];
             $id = $this->safe_string($market, 'market');
             list($quoteId, $baseId) = explode('-', $id);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -406,32 +406,26 @@ class upbit extends Exchange {
         $this->load_markets();
         $response = $this->privateGetAccounts ($params);
         //
-        //     array ( array (          $currency => "BTC",
+        //     array ( array (          currency => "BTC",
         //                   $balance => "0.005",
         //                    locked => "0.0",
         //         avg_krw_buy_price => "7446000",
         //                  modified =>  false     ),
-        //       {          $currency => "ETH",
+        //       {          currency => "ETH",
         //                   $balance => "0.1",
         //                    locked => "0.0",
         //         avg_krw_buy_price => "250000",
         //                  modified =>  false    }   )
         //
         $result = array( 'info' => $response );
-        $indexed = $this->index_by($response, 'currency');
-        $ids = is_array($indexed) ? array_keys($indexed) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $currency = $this->common_currency_code($id);
+        for ($i = 0; $i < count ($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
-            $balance = $indexed[$id];
-            $free = $this->safe_float($balance, 'balance');
-            $used = $this->safe_float($balance, 'locked');
-            $total = $this->sum ($free, $used);
-            $account['free'] = $free;
-            $account['used'] = $used;
-            $account['total'] = $total;
-            $result[$currency] = $account;
+            $account['free'] = $this->safe_float($balance, 'balance');
+            $account['used'] = $this->safe_float($balance, 'locked');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -445,8 +439,8 @@ class upbit extends Exchange {
             return $market['symbol'];
         }
         list($baseId, $quoteId) = explode($this->options['symbolSeparator'], $marketId);
-        $base = $this->common_currency_code($baseId);
-        $quote = $this->common_currency_code($quoteId);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         return $base . '/' . $quote;
     }
 
@@ -651,7 +645,7 @@ class upbit extends Exchange {
         //                    ask_bid => "ASK",
         //              sequential_id =>  15428949259430000 }
         //
-        // fetchOrder
+        // fetchOrder trades
         //
         //         {
         //             "$market" => "KRW-BTC",
@@ -672,10 +666,7 @@ class upbit extends Exchange {
             $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
         }
         $side = null;
-        $askOrBid = $this->safe_string_2($trade, 'ask_bid', 'side');
-        if ($askOrBid !== null) {
-            $askOrBid = strtolower($askOrBid);
-        }
+        $askOrBid = $this->safe_string_lower_2($trade, 'ask_bid', 'side');
         if ($askOrBid === 'ask') {
             $side = 'sell';
         } else if ($askOrBid === 'bid') {
@@ -701,8 +692,8 @@ class upbit extends Exchange {
             $feeCurrency = $market['quote'];
         } else {
             list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
@@ -722,6 +713,7 @@ class upbit extends Exchange {
             'symbol' => $symbol,
             'type' => 'limit',
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -807,6 +799,10 @@ class upbit extends Exchange {
             $numMinutes = (int) round($timeframePeriod / 60);
             $request['unit'] = $numMinutes;
             $method .= 'Unit';
+        }
+        if ($since !== null) {
+            // convert `$since` to `to` value
+            $request['to'] = $this->iso8601 ($this->sum ($since, $timeframePeriod * $limit * 1000));
         }
         $response = $this->$method (array_merge ($request, $params));
         //
@@ -1051,16 +1047,11 @@ class upbit extends Exchange {
         $updated = $this->parse8601 ($this->safe_string($transaction, 'done_at'));
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at', $updated));
         $type = $this->safe_string($transaction, 'type');
-        if ($type === 'withdraw')
+        if ($type === 'withdraw') {
             $type = 'withdrawal';
-        $code = null;
-        $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
         }
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId);
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
         $feeCost = $this->safe_float($transaction, 'fee');
         return array (
@@ -1169,8 +1160,8 @@ class upbit extends Exchange {
             $feeCurrency = $market['quote'];
         } else {
             list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
@@ -1372,7 +1363,8 @@ class upbit extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'deposit_address');
         $tag = $this->safe_string($depositAddress, 'secondary_address');
-        $code = $this->common_currency_code($this->safe_string($depositAddress, 'currency'));
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $code = $this->safe_currency_code($currencyId);
         $this->check_address($address);
         return array (
             'currency' => $code,
@@ -1476,8 +1468,9 @@ class upbit extends Exchange {
         $url = $this->urls['api'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query)
+            if ($query) {
                 $url .= '?' . $this->urlencode ($query);
+            }
         }
         if ($api === 'private') {
             $this->check_required_credentials();
@@ -1489,7 +1482,7 @@ class upbit extends Exchange {
             if ($query) {
                 $request['query'] = $this->urlencode ($query);
             }
-            $jwt = $this->jwt ($request, $this->secret);
+            $jwt = $this->jwt ($request, $this->encode ($this->secret));
             $headers = array (
                 'Authorization' => 'Bearer ' . $jwt,
             );
@@ -1501,9 +1494,10 @@ class upbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
-        if ($response === null)
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if ($response === null) {
             return; // fallback to default $error handler
+        }
         //
         //   array( 'error' => array ( 'message' => "Missing request parameter $error-> Check the required parameters!", 'name' =>  400 ) ),
         //   array( 'error' => array ( 'message' => "side is missing, side does not have a valid value", 'name' => "validation_error" ) ),

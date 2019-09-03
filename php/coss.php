@@ -110,8 +110,8 @@ class coss extends Exchange {
                 'trading' => array (
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.0020,
-                    'maker' => 0.0014,
+                    'taker' => 0.0025,
+                    'maker' => 0.0,
                 ),
                 'funding' => array (
                     'tierBased' => false,
@@ -161,8 +161,8 @@ class coss extends Exchange {
             $market = $markets[$i];
             $marketId = $market['symbol'];
             list($baseId, $quoteId) = explode('_', $marketId);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($market, 'amount_limit_decimal'),
@@ -238,7 +238,7 @@ class coss extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $currency = $response[$i];
             $currencyId = $this->safe_string($currency, 'currency_code');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $name = $this->safe_string($currency, 'name');
             $allowBuy = $this->safe_value($currency, 'allow_buy');
             $allowSell = $this->safe_value($currency, 'allow_sell');
@@ -315,7 +315,7 @@ class coss extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency_code');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $total = $this->safe_float($balance, 'total');
             $used = $this->safe_float($balance, 'in_order');
             $free = $this->safe_float($balance, 'available');
@@ -417,8 +417,8 @@ class coss extends Exchange {
         if ($market === null) {
             if ($marketId !== null) {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         }
@@ -429,12 +429,14 @@ class coss extends Exchange {
         $last = $this->safe_float($ticker, 'Last');
         $change = null;
         $percentage = null;
-        if ($last !== null)
+        if ($last !== null) {
             if ($previous !== null) {
                 $change = $last - $previous;
-                if ($previous > 0)
+                if ($previous > 0) {
                     $percentage = ($change / $previous) * 100;
+                }
             }
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -554,7 +556,7 @@ class coss extends Exchange {
         $cost = $parts[0];
         $code = null;
         if ($numParts > 1) {
-            $code = $this->common_currency_code($parts[1]);
+            $code = $this->safe_currency_code($parts[1]);
         }
         return array (
             'cost' => $cost,
@@ -588,18 +590,15 @@ class coss extends Exchange {
         $id = $this->safe_string($trade, 'id');
         $timestamp = $this->safe_integer($trade, 'time');
         $orderId = $this->safe_string($trade, 'order_id');
-        $side = $this->safe_string($trade, 'order_side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'order_side');
         $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');
         if ($marketId !== null) {
             $market = $this->safe_value($this->markets_by_id, $marketId, $market);
             if ($market === null) {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
         } else if ($market !== null) {
@@ -614,18 +613,19 @@ class coss extends Exchange {
             }
         }
         $result = array (
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
             'order' => $orderId,
             'type' => null,
-            'takerOrMaker' => null,
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
-            'cost' => $cost,
             'amount' => $amount,
+            'cost' => $cost,
+            'fee' => null,
         );
         $fee = $this->parse_trade_fee ($this->safe_string($trade, 'fee'));
         if ($fee !== null) {
@@ -725,9 +725,10 @@ class coss extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->tradePostOrderDetails (array_merge (array (
+        $request = array (
             'order_id' => $id,
-        ), $params));
+        );
+        $response = $this->tradePostOrderDetails (array_merge ($request, $params));
         return $this->parse_order($response);
     }
 
@@ -802,8 +803,8 @@ class coss extends Exchange {
             $market = $this->safe_value($this->markets_by_id, $marketId, $market);
             if ($market === null) {
                 list($baseId, $quoteId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             } else {
                 $symbol = $market['symbol'];
@@ -822,10 +823,7 @@ class coss extends Exchange {
             }
         }
         $average = $this->safe_float($order, 'avg');
-        $side = $this->safe_string($order, 'order_side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'order_side');
         $cost = $this->safe_float($order, 'total');
         $fee = null;
         $trades = null;
@@ -855,11 +853,13 @@ class coss extends Exchange {
         $market = $this->market ($symbol);
         $request = array (
             'order_symbol' => $market['id'],
-            'order_price' => floatval ($this->price_to_precision($symbol, $price)),
-            'order_size' => floatval ($this->amount_to_precision($symbol, $amount)),
+            'order_size' => $this->amount_to_precision($symbol, $amount),
             'order_side' => strtoupper($side),
             'type' => $type,
         );
+        if ($price !== null) {
+            $request['order_price'] = $this->price_to_precision($symbol, $price);
+        }
         $response = $this->tradePostOrderAdd (array_merge ($request, $params));
         //
         //     {

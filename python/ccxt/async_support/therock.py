@@ -128,7 +128,7 @@ class therock (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        response = await self.publicGetFunds()
+        response = await self.publicGetFunds(params)
         #
         #     {funds: [{                     id:   "BTCEUR",
         #                              description:   "Trade Bitcoin with Euro",
@@ -165,8 +165,8 @@ class therock (Exchange):
                 id = self.safe_string(market, 'id')
                 baseId = self.safe_string(market, 'trade_currency')
                 quoteId = self.safe_string(market, 'base_currency')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
                 buy_fee = self.safe_float(market, 'buy_fee')
                 sell_fee = self.safe_float(market, 'sell_fee')
@@ -207,35 +207,32 @@ class therock (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privateGetBalances()
-        balances = response['balances']
+        response = await self.privateGetBalances(params)
+        balances = self.safe_value(response, 'balances', [])
         result = {'info': response}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
-            free = balance['trading_balance']
-            total = balance['balance']
-            used = total - free
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
-            result[currency] = account
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'trading_balance')
+            account['total'] = self.safe_float(balance, 'balance')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
-        orderbook = await self.publicGetFundsIdOrderbook(self.extend({
+        request = {
             'id': self.market_id(symbol),
-        }, params))
-        timestamp = self.parse8601(orderbook['date'])
+        }
+        orderbook = await self.publicGetFundsIdOrderbook(self.extend(request, params))
+        timestamp = self.parse8601(self.safe_string(orderbook, 'date'))
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.parse8601(ticker['date'])
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         last = self.safe_float(ticker, 'last')
         return {
@@ -348,15 +345,19 @@ class therock (Exchange):
                 'cost': feeCost,
                 'currency': market['quote'],
             }
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -489,10 +490,7 @@ class therock (Exchange):
         if type == 'trade' or type == 'fee':
             referenceId = self.safe_string(item, 'trade_id')
         currencyId = self.safe_string(item, 'currency')
-        code = None
-        if currencyId is not None:
-            currencyId = currencyId.upper()
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId)
         amount = self.safe_float(item, 'price')
         timestamp = self.parse8601(self.safe_string(item, 'date'))
         status = 'ok'
@@ -626,6 +624,24 @@ class therock (Exchange):
         #         }
         #     }
         #
+        #     {
+        #         "id": 12564223,
+        #         "date": "2017-08-07T08:13:50.023Z",
+        #         "note": "GB7IDL401573388",
+        #         "type": "withdraw",
+        #         "price": 4345.93,
+        #         "fund_id": null,
+        #         "currency": "EUR",
+        #         "order_id": null,
+        #         "trade_id": null,
+        #         "transfer_detail": {
+        #             "id": "EXECUTEDBUTUNCHECKED",
+        #             "method": "wire_transfer",
+        #             "recipient": "GB7IDL401573388",
+        #             "confirmations": 0
+        #         }
+        #     }
+        #
         #     # crypto
         #
         #     {
@@ -691,13 +707,15 @@ class therock (Exchange):
         id = self.safe_string(transaction, 'id')
         type = self.parse_transaction_type(self.safe_string(transaction, 'type'))
         detail = self.safe_value(transaction, 'transfer_detail', {})
-        txid = self.safe_string(detail, 'id')
-        address = self.safe_string(detail, 'recipient')
+        method = self.safe_string(detail, 'method')
+        txid = None
+        address = None
+        if method is not None:
+            if method != 'wire_transfer':
+                txid = self.safe_string(detail, 'id')
+                address = self.safe_string(detail, 'recipient')
         currencyId = self.safe_string(transaction, 'currency')
-        code = None
-        if currencyId is not None:
-            currencyId = currencyId.upper()
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId)
         amount = self.safe_float(transaction, 'price')
         timestamp = self.parse8601(self.safe_string(transaction, 'date'))
         status = 'ok'
@@ -726,13 +744,13 @@ class therock (Exchange):
         request = {
             'type': 'withdraw',
         }
-        return await self.fetch_transactions('withdraw', code, since, limit, self.extend(request, params))
+        return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         request = {
             'type': 'atm_payment',
         }
-        return await self.fetch_transactions('atm_payment', code, since, limit, self.extend(request, params))
+        return await self.fetch_transactions(code, since, limit, self.extend(request, params))
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1094,6 +1112,7 @@ class therock (Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        headers = {} if (headers is None) else headers
         if api == 'private':
             self.check_required_credentials()
             if query:
@@ -1106,17 +1125,15 @@ class therock (Exchange):
                         url += '?' + queryString
             nonce = str(self.nonce())
             auth = nonce + url
-            headers = {
-                'X-TRT-KEY': self.apiKey,
-                'X-TRT-NONCE': nonce,
-                'X-TRT-SIGN': self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512),
-            }
+            headers['X-TRT-KEY'] = self.apiKey
+            headers['X-TRT-NONCE'] = nonce
+            headers['X-TRT-SIGN'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
         elif api == 'public':
             if query:
                 url += '?' + self.rawencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         #

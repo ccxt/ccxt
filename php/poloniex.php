@@ -108,12 +108,10 @@ class poloniex extends Exchange {
                     ),
                 ),
             ),
-            // Fees are tier-based. More info => https://poloniex.com/fees/
-            // Rates below are highest possible.
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.001,
-                    'taker' => 0.002,
+                    'maker' => 0.15 / 100,
+                    'taker' => 0.25 / 100,
                 ),
                 'funding' => array(),
             ),
@@ -208,21 +206,22 @@ class poloniex extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
-        return [
-            $ohlcv['date'] * 1000,
-            $ohlcv['open'],
-            $ohlcv['high'],
-            $ohlcv['low'],
-            $ohlcv['close'],
-            $ohlcv['quoteVolume'],
-        ];
+        return array (
+            $this->safe_timestamp($ohlcv, 'date'),
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'quoteVolume'),
+        );
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        if ($since === null)
+        if ($since === null) {
             $since = 0;
+        }
         $request = array (
             'currencyPair' => $market['id'],
             'period' => $this->timeframes[$timeframe],
@@ -241,18 +240,20 @@ class poloniex extends Exchange {
         $markets = $this->publicGetReturnTicker ();
         $keys = is_array($markets) ? array_keys($markets) : array();
         $result = array();
-        for ($p = 0; $p < count ($keys); $p++) {
-            $id = $keys[$p];
+        for ($i = 0; $i < count ($keys); $i++) {
+            $id = $keys[$i];
             $market = $markets[$id];
             list($quoteId, $baseId) = explode('_', $id);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $limits = array_merge ($this->limits, array (
                 'cost' => array (
                     'min' => $this->safe_value($this->options['limits']['cost']['min'], $quote),
                 ),
             ));
+            $isFrozen = $this->safe_string($market, 'isFrozen');
+            $active = ($isFrozen !== '1');
             $result[] = array_merge ($this->fees['trading'], array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -260,7 +261,7 @@ class poloniex extends Exchange {
                 'quoteId' => $quoteId,
                 'base' => $base,
                 'quote' => $quote,
-                'active' => $market['isFrozen'] !== '1',
+                'active' => $active,
                 'limits' => $limits,
                 'info' => $market,
             ));
@@ -270,29 +271,27 @@ class poloniex extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $balances = $this->privatePostReturnCompleteBalances (array_merge (array (
+        $request = array (
             'account' => 'all',
-        ), $params));
-        $result = array( 'info' => $balances );
-        $currencies = is_array($balances) ? array_keys($balances) : array();
-        for ($c = 0; $c < count ($currencies); $c++) {
-            $id = $currencies[$c];
-            $balance = $balances[$id];
-            $currency = $this->common_currency_code($id);
-            $account = array (
-                'free' => floatval ($balance['available']),
-                'used' => floatval ($balance['onOrders']),
-                'total' => 0.0,
-            );
-            $account['total'] = $this->sum ($account['free'], $account['used']);
-            $result[$currency] = $account;
+        );
+        $response = $this->privatePostReturnCompleteBalances (array_merge ($request, $params));
+        $result = array( 'info' => $response );
+        $currencyIds = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count ($currencyIds); $i++) {
+            $currencyId = $currencyIds[$i];
+            $balance = $this->safe_value($response, $currencyId, array());
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['free'] = $this->safe_float($balance, 'available');
+            $account['used'] = $this->safe_float($balance, 'onOrders');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
     public function fetch_trading_fees ($params = array ()) {
         $this->load_markets();
-        $fees = $this->privatePostReturnFeeInfo ();
+        $fees = $this->privatePostReturnFeeInfo ($params);
         return array (
             'info' => $fees,
             'maker' => $this->safe_float($fees, 'makerFee'),
@@ -336,8 +335,8 @@ class poloniex extends Exchange {
                 $symbol = $this->markets_by_id[$marketId]['symbol'];
             } else {
                 list($quoteId, $baseId) = explode('_', $marketId);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
             }
             $orderbook = $this->parse_order_book($response[$marketId]);
@@ -350,8 +349,9 @@ class poloniex extends Exchange {
     public function parse_ticker ($ticker, $market = null) {
         $timestamp = $this->milliseconds ();
         $symbol = null;
-        if ($market)
+        if ($market) {
             $symbol = $market['symbol'];
+        }
         $open = null;
         $change = null;
         $average = null;
@@ -388,8 +388,8 @@ class poloniex extends Exchange {
 
     public function fetch_tickers ($symbols = null, $params = array ()) {
         $this->load_markets();
-        $tickers = $this->publicGetReturnTicker ($params);
-        $ids = is_array($tickers) ? array_keys($tickers) : array();
+        $response = $this->publicGetReturnTicker ($params);
+        $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
@@ -400,29 +400,29 @@ class poloniex extends Exchange {
                 $symbol = $market['symbol'];
             } else {
                 list($quoteId, $baseId) = explode('_', $id);
-                $base = $this->common_currency_code($baseId);
-                $quote = $this->common_currency_code($quoteId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
                 $market = array( 'symbol' => $symbol );
             }
-            $ticker = $tickers[$id];
+            $ticker = $response[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
         }
         return $result;
     }
 
     public function fetch_currencies ($params = array ()) {
-        $currencies = $this->publicGetReturnCurrencies ($params);
-        $ids = is_array($currencies) ? array_keys($currencies) : array();
+        $response = $this->publicGetReturnCurrencies ($params);
+        $ids = is_array($response) ? array_keys($response) : array();
         $result = array();
         for ($i = 0; $i < count ($ids); $i++) {
             $id = $ids[$i];
-            $currency = $currencies[$id];
+            $currency = $response[$id];
             // todo => will need to rethink the fees
             // to add support for multiple withdrawal/deposit methods and
             // differentiated fees for each particular method
             $precision = 8; // default $precision, todo => fix "magic constants"
-            $code = $this->common_currency_code($id);
+            $code = $this->safe_currency_code($id);
             $active = ($currency['delisted'] === 0) && !$currency['disabled'];
             $result[$code] = array (
                 'id' => $id,
@@ -458,8 +458,8 @@ class poloniex extends Exchange {
     public function fetch_ticker ($symbol, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $tickers = $this->publicGetReturnTicker ($params);
-        $ticker = $tickers[$market['id']];
+        $response = $this->publicGetReturnTicker ($params);
+        $ticker = $response[$market['id']];
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -528,8 +528,9 @@ class poloniex extends Exchange {
                 $feeCost = $amount * $rate;
             } else {
                 $currency = $quote;
-                if ($cost !== null)
+                if ($cost !== null) {
                     $feeCost = $cost * $rate;
+                }
             }
             $fee = array (
                 'type' => null,
@@ -539,14 +540,15 @@ class poloniex extends Exchange {
             );
         }
         return array (
+            'id' => $id,
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $id,
             'order' => $orderId,
             'type' => 'limit',
             'side' => $side,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -571,8 +573,9 @@ class poloniex extends Exchange {
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        if ($symbol !== null)
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
+        }
         $pair = $market ? $market['id'] : 'all';
         $request = array( 'currencyPair' => $pair );
         if ($since !== null) {
@@ -580,8 +583,9 @@ class poloniex extends Exchange {
             $request['end'] = $this->seconds () . 1; // adding 1 is a fix for #3411
         }
         // $limit is disabled (does not really work as expected)
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['limit'] = intval ($limit);
+        }
         $response = $this->privatePostReturnTradeHistory (array_merge ($request, $params));
         //
         // specific $market ($symbol defined)
@@ -652,8 +656,8 @@ class poloniex extends Exchange {
                         }
                     } else {
                         list($quoteId, $baseId) = explode('_', $id);
-                        $base = $this->common_currency_code($baseId);
-                        $quote = $this->common_currency_code($quoteId);
+                        $base = $this->safe_currency_code($baseId);
+                        $quote = $this->safe_currency_code($quoteId);
                         $symbol = $base . '/' . $quote;
                         $trades = $response[$id];
                         for ($j = 0; $j < count ($trades); $j++) {
@@ -705,11 +709,13 @@ class poloniex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($order, 'timestamp');
-        if (!$timestamp)
+        if (!$timestamp) {
             $timestamp = $this->parse8601 ($order['date']);
+        }
         $trades = null;
-        if (is_array($order) && array_key_exists('resultingTrades', $order))
+        if (is_array($order) && array_key_exists('resultingTrades', $order)) {
             $trades = $this->parse_trades($order['resultingTrades'], $market);
+        }
         $symbol = null;
         $marketId = $this->safe_string($order, 'currencyPair');
         $market = $this->safe_value($this->markets_by_id, $marketId, $market);
@@ -724,8 +730,9 @@ class poloniex extends Exchange {
         if ($amount !== null) {
             if ($remaining !== null) {
                 $filled = $amount - $remaining;
-                if ($price !== null)
+                if ($price !== null) {
                     $cost = $filled * $price;
+                }
             }
         }
         if ($filled === null) {
@@ -747,9 +754,10 @@ class poloniex extends Exchange {
         if ($type === $side) {
             $type = null;
         }
+        $id = $this->safe_string($order, 'orderNumber');
         return array (
             'info' => $order,
-            'id' => $order['orderNumber'],
+            'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'lastTradeTimestamp' => null,
@@ -784,12 +792,14 @@ class poloniex extends Exchange {
     public function fetch_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = null;
-        if ($symbol !== null)
+        if ($symbol !== null) {
             $market = $this->market ($symbol);
+        }
         $pair = $market ? $market['id'] : 'all';
-        $response = $this->privatePostReturnOpenOrders (array_merge (array (
+        $request = array (
             'currencyPair' => $pair,
-        )));
+        );
+        $response = $this->privatePostReturnOpenOrders (array_merge ($request, $params));
         $openOrders = array();
         if ($market !== null) {
             $openOrders = $this->parse_open_orders ($response, $market, $openOrders);
@@ -822,16 +832,18 @@ class poloniex extends Exchange {
                         'remaining' => 0.0,
                     ));
                     if ($order['cost'] === null) {
-                        if ($order['filled'] !== null)
+                        if ($order['filled'] !== null) {
                             $order['cost'] = $order['filled'] * $order['price'];
+                        }
                     }
                     $this->orders[$id] = $order;
                 }
             }
             $order = $this->orders[$id];
             if ($market !== null) {
-                if ($order['symbol'] === $symbol)
+                if ($order['symbol'] === $symbol) {
                     $result[] = $order;
+                }
             } else {
                 $result[] = $order;
             }
@@ -845,8 +857,9 @@ class poloniex extends Exchange {
         $request = $this->omit ($params, array ( 'since', 'limit' ));
         $orders = $this->fetch_orders($symbol, $since, $limit, $request);
         for ($i = 0; $i < count ($orders); $i++) {
-            if ($orders[$i]['id'] === $id)
+            if ($orders[$i]['id'] === $id) {
                 return $orders[$i];
+            }
         }
         throw new OrderNotCached($this->id . ' order $id ' . (string) $id . ' is not in "open" state and not found in cache');
     }
@@ -854,8 +867,9 @@ class poloniex extends Exchange {
     public function filter_orders_by_status ($orders, $status) {
         $result = array();
         for ($i = 0; $i < count ($orders); $i++) {
-            if ($orders[$i]['status'] === $status)
+            if ($orders[$i]['status'] === $status) {
                 $result[] = $orders[$i];
+            }
         }
         return $result;
     }
@@ -871,8 +885,9 @@ class poloniex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        if ($type === 'market')
+        if ($type === 'market') {
             throw new ExchangeError($this->id . ' allows limit orders only');
+        }
         $this->load_markets();
         $method = 'privatePost' . $this->capitalize ($side);
         $market = $this->market ($symbol);
@@ -916,13 +931,15 @@ class poloniex extends Exchange {
                 'price' => $price,
                 'status' => 'open',
             ));
-            if ($amount !== null)
+            if ($amount !== null) {
                 $this->orders[$newid]['amount'] = $amount;
+            }
             $result = array_merge ($this->orders[$newid], array( 'info' => $response ));
         } else {
             $market = null;
-            if ($symbol !== null)
+            if ($symbol !== null) {
                 $market = $this->market ($symbol);
+            }
             $result = $this->parse_order($response, $market);
             $this->orders[$result['id']] = $result;
         }
@@ -948,8 +965,9 @@ class poloniex extends Exchange {
                 // here. If for some reason the order does not get canceled
                 // and still appears in the active list then the order cache
                 // will eventually get back in sync on a call to `fetchOrder`.
-                if (is_array($this->orders) && array_key_exists($id, $this->orders))
+                if (is_array($this->orders) && array_key_exists($id, $this->orders)) {
                     $this->orders[$id]['status'] = 'canceled';
+                }
             }
             throw $e;
         }
@@ -1031,22 +1049,25 @@ class poloniex extends Exchange {
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $trades = $this->privatePostReturnOrderTrades (array_merge (array (
+        $request = array (
             'orderNumber' => $id,
-        ), $params));
+        );
+        $trades = $this->privatePostReturnOrderTrades (array_merge ($request, $params));
         return $this->parse_trades($trades);
     }
 
     public function create_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privatePostGenerateNewAddress (array (
+        $request = array (
             'currency' => $currency['id'],
-        ));
+        );
+        $response = $this->privatePostGenerateNewAddress (array_merge ($request, $params));
         $address = null;
         $tag = null;
-        if ($response['success'] === 1)
+        if ($response['success'] === 1) {
             $address = $this->safe_string($response, 'response');
+        }
         $this->check_address($address);
         $depositAddress = $this->safe_string($currency['info'], 'depositAddress');
         if ($depositAddress !== null) {
@@ -1064,7 +1085,7 @@ class poloniex extends Exchange {
     public function fetch_deposit_address ($code, $params = array ()) {
         $this->load_markets();
         $currency = $this->currency ($code);
-        $response = $this->privatePostReturnDepositAddresses ();
+        $response = $this->privatePostReturnDepositAddresses ($params);
         $currencyId = $currency['id'];
         $address = $this->safe_string($response, $currencyId);
         $tag = null;
@@ -1091,12 +1112,13 @@ class poloniex extends Exchange {
             'amount' => $amount,
             'address' => $address,
         );
-        if ($tag)
+        if ($tag) {
             $request['paymentId'] = $tag;
-        $result = $this->privatePostWithdraw (array_merge ($request, $params));
+        }
+        $response = $this->privatePostWithdraw (array_merge ($request, $params));
         return array (
-            'info' => $result,
-            'id' => $result['response'],
+            'info' => $response,
+            'id' => $this->safe_string($response, 'withdrawalNumber'),
         );
     }
 
@@ -1109,8 +1131,9 @@ class poloniex extends Exchange {
             'start' => $start, // UNIX timestamp, required
             'end' => $now, // UNIX timestamp, required
         );
-        if ($limit !== null)
+        if ($limit !== null) {
             $request['limit'] = $limit;
+        }
         $response = $this->privatePostReturnDepositsWithdrawals (array_merge ($request, $params));
         //
         //     {    deposits => array ( array (      currency => "BTC",
@@ -1240,19 +1263,9 @@ class poloniex extends Exchange {
         //         "withdrawalNumber" => 11162900
         //     }
         //
-        $timestamp = $this->safe_integer($transaction, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
-        $code = null;
+        $timestamp = $this->safe_timestamp($transaction, 'timestamp');
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency === null) {
-            $code = $this->common_currency_code($currencyId);
-        }
-        if ($currency !== null) {
-            $code = $currency['code'];
-        }
+        $code = $this->safe_currency_code($currencyId);
         $status = $this->safe_string($transaction, 'status', 'pending');
         $txid = $this->safe_string($transaction, 'txid');
         if ($status !== null) {
@@ -1319,7 +1332,7 @@ class poloniex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

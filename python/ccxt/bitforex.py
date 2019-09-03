@@ -46,7 +46,7 @@ class bitforex (Exchange):
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
-                'referral': 'https://www.bitforex.com/registered?inviterId=1867438',
+                'referral': 'https://www.bitforex.com/en/invitationRegister?inviterId=1867438',
             },
             'api': {
                 'public': {
@@ -228,28 +228,26 @@ class bitforex (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetApiV1MarketSymbols()
+        response = self.publicGetApiV1MarketSymbols(params)
         data = response['data']
         result = []
         for i in range(0, len(data)):
             market = data[i]
-            id = market['symbol']
+            id = self.safe_string(market, 'symbol')
             symbolParts = id.split('-')
             baseId = symbolParts[2]
             quoteId = symbolParts[1]
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             active = True
             precision = {
-                'amount': market['amountPrecision'],
-                'price': market['pricePrecision'],
+                'amount': self.safe_integer(market, 'amountPrecision'),
+                'price': self.safe_integer(market, 'pricePrecision'),
             }
             limits = {
                 'amount': {
-                    'min': market['minOrderAmount'],
+                    'min': self.safe_float(market, 'minOrderAmount'),
                     'max': None,
                 },
                 'price': {
@@ -322,18 +320,14 @@ class bitforex (Exchange):
         data = response['data']
         result = {'info': response}
         for i in range(0, len(data)):
-            current = data[i]
-            currencyId = current['currency']
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            balance = data[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
             account = self.account()
+            account['used'] = self.safe_float(balance, 'frozen')
+            account['free'] = self.safe_float(balance, 'active')
+            account['total'] = self.safe_float(balance, 'fix')
             result[code] = account
-            result[code]['used'] = self.safe_float(current, 'frozen')
-            result[code]['free'] = self.safe_float(current, 'active')
-            result[code]['total'] = self.safe_float(current, 'fix')
         return self.parse_balance(result)
 
     def fetch_ticker(self, symbol, params={}):
@@ -377,14 +371,9 @@ class bitforex (Exchange):
         if limit is not None:
             request['size'] = limit
         response = self.publicGetApiV1MarketDepth(self.extend(request, params))
-        data = response['data']
-        timestamp = response['time']
-        bidsKey = 'bids'
-        asksKey = 'asks'
-        priceKey = 'price'
-        amountKey = 'amount'
-        orderbook = self.parse_order_book(data, timestamp, bidsKey, asksKey, priceKey, amountKey)
-        return orderbook
+        data = self.safe_value(response, 'data')
+        timestamp = self.safe_integer(response, 'time')
+        return self.parse_order_book(data, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_order_status(self, status):
         statuses = {
@@ -529,7 +518,7 @@ class bitforex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):

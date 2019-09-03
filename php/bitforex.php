@@ -35,7 +35,7 @@ class bitforex extends Exchange {
                 'www' => 'https://www.bitforex.com',
                 'doc' => 'https://github.com/bitforexapi/API_Docs/wiki',
                 'fees' => 'https://help.bitforex.com/en_us/?cat=13',
-                'referral' => 'https://www.bitforex.com/registered?inviterId=1867438',
+                'referral' => 'https://www.bitforex.com/en/invitationRegister?inviterId=1867438',
             ),
             'api' => array (
                 'public' => array (
@@ -218,28 +218,26 @@ class bitforex extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetApiV1MarketSymbols ();
+        $response = $this->publicGetApiV1MarketSymbols ($params);
         $data = $response['data'];
         $result = array();
         for ($i = 0; $i < count ($data); $i++) {
             $market = $data[$i];
-            $id = $market['symbol'];
+            $id = $this->safe_string($market, 'symbol');
             $symbolParts = explode('-', $id);
             $baseId = $symbolParts[2];
             $quoteId = $symbolParts[1];
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = true;
             $precision = array (
-                'amount' => $market['amountPrecision'],
-                'price' => $market['pricePrecision'],
+                'amount' => $this->safe_integer($market, 'amountPrecision'),
+                'price' => $this->safe_integer($market, 'pricePrecision'),
             );
             $limits = array (
                 'amount' => array (
-                    'min' => $market['minOrderAmount'],
+                    'min' => $this->safe_float($market, 'minOrderAmount'),
                     'max' => null,
                 ),
                 'price' => array (
@@ -320,19 +318,14 @@ class bitforex extends Exchange {
         $data = $response['data'];
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($data); $i++) {
-            $current = $data[$i];
-            $currencyId = $current['currency'];
-            $code = strtoupper($currencyId);
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($code);
-            }
+            $balance = $data[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
+            $account['used'] = $this->safe_float($balance, 'frozen');
+            $account['free'] = $this->safe_float($balance, 'active');
+            $account['total'] = $this->safe_float($balance, 'fix');
             $result[$code] = $account;
-            $result[$code]['used'] = $this->safe_float($current, 'frozen');
-            $result[$code]['free'] = $this->safe_float($current, 'active');
-            $result[$code]['total'] = $this->safe_float($current, 'fix');
         }
         return $this->parse_balance($result);
     }
@@ -380,14 +373,9 @@ class bitforex extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->publicGetApiV1MarketDepth (array_merge ($request, $params));
-        $data = $response['data'];
-        $timestamp = $response['time'];
-        $bidsKey = 'bids';
-        $asksKey = 'asks';
-        $priceKey = 'price';
-        $amountKey = 'amount';
-        $orderbook = $this->parse_order_book($data, $timestamp, $bidsKey, $asksKey, $priceKey, $amountKey);
-        return $orderbook;
+        $data = $this->safe_value($response, 'data');
+        $timestamp = $this->safe_integer($response, 'time');
+        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_order_status ($status) {
@@ -548,7 +536,7 @@ class bitforex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (gettype ($body) !== 'string') {
             return; // fallback to default error handler
         }
