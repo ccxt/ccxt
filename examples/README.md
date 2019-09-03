@@ -128,6 +128,8 @@ php -f path/to/example.php # substitute for actual filename here
 [数字货币量化交易3 ccxt Custom API命令详解及node版本使用演示](https://www.bilibili.com/video/av21842988)
 – Trading Digital Currencies 3: Details on using custom exchange-specific [implicit methods](https://github.com/ccxt/ccxt/wiki/Manual#implicit-api-methods) in ccxt (video in Chinese)
 
+[币圈程序化交易被使用最多的开源项目：ccxt](https://bihu.com/article/1629320804) – An article explaining what CCXT is.
+
 [Algorithmic Trading - Aula 4](https://www.youtube.com/watch?v=BkKebXrhMGY) – A video introduction to algorithmic trading with CCXT from Curso Algo Trading in Portuguese language.
 
 [Лучшая криптотрейдинг библиотека?](http://medium.com/@vladthelittleone/лучшая-криптотрейдинг-библиотека-67e308f96c1f) – An article in Russian on setting up CCXT to connect and trade with crypto exchanges.
