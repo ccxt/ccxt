@@ -271,8 +271,8 @@ class SigningKey:
         """
         secexp = self.privkey.secret_multiplier
 
-        def simple_r_s(r, s, order):
-            return r, s, order
+        def simple_r_s(r, s, order, v):
+            return r, s, order, v
 
         retry_gen = 0
         while True:
@@ -280,18 +280,12 @@ class SigningKey:
                 self.curve.generator.order(), secexp, hashfunc, digest,
                 retry_gen=retry_gen, extra_entropy=extra_entropy)
             try:
-                r, s, order = self.sign_digest(digest, sigencode=simple_r_s, k=k)
+                r, s, order, v = self.sign_digest(digest, sigencode=simple_r_s, k=k)
                 break
             except RSZeroError:
                 retry_gen += 1
 
-        v = s % 2 or (2 if r == k else 0)
-        # add support for canonical mode (comment out to set to false)
-        if s > self.privkey.order / 2:
-            s = self.privkey.order - s
-            v ^= 1
-        r_and_s_tuple = sigencode(r, s, order)
-        return r_and_s_tuple + (v,)
+        return sigencode(r, s, order, v)
 
     def sign(self, data, entropy=None, hashfunc=None, sigencode=sigencode_string, k=None):
         """
@@ -316,8 +310,8 @@ class SigningKey:
                                  "for your digest (%d)" % (self.curve.name,
                                                            8 * len(digest)))
         number = string_to_number(digest)
-        r, s = self.sign_number(number, entropy, k)
-        return sigencode(r, s, self.privkey.order)
+        r, s, v = self.sign_number(number, entropy, k)
+        return sigencode(r, s, self.privkey.order, v)
 
     def sign_number(self, number, entropy=None, k=None):
         # returns a pair of numbers
@@ -336,4 +330,4 @@ class SigningKey:
 
         assert 1 <= _k < order
         sig = self.privkey.sign(number, _k)
-        return sig.r, sig.s
+        return sig.r, sig.s, sig.recovery_param

@@ -242,7 +242,7 @@ class bitstamp (Exchange):
             'pair': self.market_id(symbol),
         }
         response = await self.publicGetOrderBookPair(self.extend(request, params))
-        timestamp = self.safe_integer_product(response, 'timestamp', 1000)
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
     async def fetch_ticker(self, symbol, params={}):
@@ -251,7 +251,7 @@ class bitstamp (Exchange):
             'pair': self.market_id(symbol),
         }
         ticker = await self.publicGetTickerPair(self.extend(request, params))
-        timestamp = self.safe_integer_product(ticker, 'timestamp', 1000)
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None

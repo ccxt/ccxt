@@ -192,6 +192,10 @@ class bithumb extends Exchange {
         }
         $vwap = $this->safe_float($ticker, 'average_price');
         $baseVolume = $this->safe_float($ticker, 'volume_1day');
+        $quoteVolume = null;
+        if ($vwap !== null && $baseVolume !== null) {
+            $quoteVolume = $baseVolume * $vwap;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -211,7 +215,7 @@ class bithumb extends Exchange {
             'percentage' => $percentage,
             'average' => $average,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => $baseVolume * $vwap,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }

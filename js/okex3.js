@@ -2209,7 +2209,9 @@ module.exports = class okex3 extends Exchange {
             if (currencyId !== undefined) {
                 const feeWithCurrencyId = this.safeString (transaction, 'fee');
                 if (feeWithCurrencyId !== undefined) {
-                    const feeWithoutCurrencyId = feeWithCurrencyId.replace (currencyId, '');
+                    // https://github.com/ccxt/ccxt/pull/5748
+                    const lowercaseCurrencyId = currencyId.toLowerCase ();
+                    const feeWithoutCurrencyId = feeWithCurrencyId.replace (lowercaseCurrencyId, '');
                     feeCost = parseFloat (feeWithoutCurrencyId);
                 }
             }

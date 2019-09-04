@@ -143,6 +143,7 @@ module.exports = class huobipro extends Exchange {
                 'order-update-error': ExchangeNotAvailable, // undocumented error
                 'api-signature-check-failed': AuthenticationError,
                 'api-signature-not-valid': AuthenticationError, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
+                'base-record-invalid': OrderNotFound, // https://github.com/ccxt/ccxt/issues/5750
             },
             'options': {
                 // https://github.com/ccxt/ccxt/issues/5376

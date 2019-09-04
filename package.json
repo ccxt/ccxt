@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.1095",
+  "version": "1.18.1118",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -21,7 +21,7 @@
     "test-base": "npm run test-js-base && npm run test-python-base && npm run test-php-base",
     "test-js-base": "mocha js/test/base/test.base.js --reporter ololog/reporter",
     "test-python-base": "python python/test/test_decimal_to_precision.py",
-    "test-php-base": "php -f php/test/decimal_to_precision.php",
+    "test-php-base": "php -f php/test/decimal_to_precision.php && php -f php/test/test_crypto.php",
     "export-exchanges": "node build/export-exchanges",
     "git-ignore-generated-files": "node build/git-ignore-generated-files",
     "git-unignore-generated-files": "node build/git-ignore-generated-files --unignore",

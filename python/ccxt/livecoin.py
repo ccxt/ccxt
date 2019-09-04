@@ -104,7 +104,7 @@ class livecoin (Exchange):
             },
             'commonCurrencies': {
                 'BTCH': 'Bithash',
-                'CPC': 'CapriCoin',
+                'CPC': 'Capricoin',
                 'EDR': 'E-Dinar Coin',  # conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT': 'EETT',
                 'FirstBlood': '1ST',
@@ -138,6 +138,7 @@ class livecoin (Exchange):
                     '503': ExchangeNotAvailable,
                 },
                 'broad': {
+                    'insufficient funds': InsufficientFunds,  # https://github.com/ccxt/ccxt/issues/5749
                     'NOT FOUND': OrderNotFound,
                     'Cannot find order': OrderNotFound,
                     'Minimal amount is': InvalidOrder,
@@ -829,12 +830,9 @@ class livecoin (Exchange):
         if not success:
             feedback = self.id + ' ' + body
             broad = self.exceptions['broad']
-            message = self.safe_string(response, 'message')
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
-            exception = self.safe_string(response, 'exception')
-            broadKey = self.findBroadlyMatchedKey(broad, exception)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            message = self.safe_string_2(response, 'message', 'exception')
+            if message is not None:
+                broadKey = self.findBroadlyMatchedKey(broad, message)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
             raise ExchangeError(feedback)

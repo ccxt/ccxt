@@ -269,7 +269,7 @@ class bittrex (Exchange):
             },
             'commonCurrencies': {
                 'BITS': 'SWIFT',
-                'CPC': 'CapriCoin',
+                'CPC': 'Capricoin',
             },
         })
 

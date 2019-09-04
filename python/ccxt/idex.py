@@ -345,14 +345,15 @@ class idex (Exchange):
         for i in range(0, len(keys)):
             currency = keys[i]
             balance = response[currency]
-            result[currency] = {
+            code = self.safe_currency_code(currency)
+            result[code] = {
                 'free': self.safe_float(balance, 'available'),
                 'used': self.safe_float(balance, 'onOrders'),
             }
         return self.parse_balance(result)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
-        self.check_required_credentials()
+        self.check_required_dependencies()
         self.load_markets()
         market = self.market(symbol)
         if type == 'limit':
@@ -478,7 +479,6 @@ class idex (Exchange):
         return self.options['contractAddress']
 
     def cancel_order(self, orderId, symbol=None, params={}):
-        self.check_required_credentials()
         nonce = self.get_nonce()
         orderToHash = {
             'orderHash': orderId,
@@ -542,7 +542,7 @@ class idex (Exchange):
         #    '0xd6eefd81c7efc9beeb35b924d6db3c93a78bf7eac082ba87e107ad4e94bccdcf',
         #   depositNumber: 1586430}
         amount = self.safe_float(item, 'amount')
-        timestamp = self.safe_integer(item, 'timestamp') * 1000
+        timestamp = self.safe_timestamp(item, 'timestamp')
         txhash = self.safe_string(item, 'transactionHash')
         id = None
         type = None
@@ -686,7 +686,7 @@ class idex (Exchange):
         #   amount: '210',
         #   status: 'open',
         #   total: '0.1533'}
-        timestamp = self.safe_integer(order, 'timestamp') * 1000
+        timestamp = self.safe_timestamp(order, 'timestamp')
         side = self.safe_string(order, 'type')
         symbol = None
         amount = None
@@ -858,7 +858,7 @@ class idex (Exchange):
                     feeCurrency = sell
         if symbol is None and market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(trade, 'timestamp') * 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         id = self.safe_string(trade, 'tid')
         amount = self.safe_float(trade, 'amount')
         price = self.safe_float(trade, 'price')
@@ -892,7 +892,7 @@ class idex (Exchange):
         }
 
     def withdraw(self, code, amount, address, tag=None, params={}):
-        self.check_required_credentials()
+        self.check_required_dependencies()
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -928,6 +928,9 @@ class idex (Exchange):
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
+        if api == 'private':
+            self.check_required_credentials()
+            headers['API-Key'] = self.apiKey
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_idex_create_order_hash(self, order):

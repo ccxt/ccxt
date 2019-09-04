@@ -354,7 +354,8 @@ class idex extends Exchange {
         for ($i = 0; $i < count ($keys); $i++) {
             $currency = $keys[$i];
             $balance = $response[$currency];
-            $result[$currency] = array (
+            $code = $this->safe_currency_code($currency);
+            $result[$code] = array (
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $this->safe_float($balance, 'onOrders'),
             );
@@ -363,7 +364,7 @@ class idex extends Exchange {
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        $this->check_required_credentials();
+        $this->check_required_dependencies();
         $this->load_markets();
         $market = $this->market ($symbol);
         if ($type === 'limit') {
@@ -497,7 +498,6 @@ class idex extends Exchange {
     }
 
     public function cancel_order ($orderId, $symbol = null, $params = array ()) {
-        $this->check_required_credentials();
         $nonce = $this->get_nonce ();
         $orderToHash = array (
             'orderHash' => $orderId,
@@ -565,7 +565,7 @@ class idex extends Exchange {
         //    '0xd6eefd81c7efc9beeb35b924d6db3c93a78bf7eac082ba87e107ad4e94bccdcf',
         //   depositNumber => 1586430 }
         $amount = $this->safe_float($item, 'amount');
-        $timestamp = $this->safe_integer($item, 'timestamp') * 1000;
+        $timestamp = $this->safe_timestamp($item, 'timestamp');
         $txhash = $this->safe_string($item, 'transactionHash');
         $id = null;
         $type = null;
@@ -717,7 +717,7 @@ class idex extends Exchange {
         //   $amount => '210',
         //   $status => 'open',
         //   total => '0.1533' }
-        $timestamp = $this->safe_integer($order, 'timestamp') * 1000;
+        $timestamp = $this->safe_timestamp($order, 'timestamp');
         $side = $this->safe_string($order, 'type');
         $symbol = null;
         $amount = null;
@@ -908,7 +908,7 @@ class idex extends Exchange {
         if ($symbol === null && $market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($trade, 'timestamp') * 1000;
+        $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $id = $this->safe_string($trade, 'tid');
         $amount = $this->safe_float($trade, 'amount');
         $price = $this->safe_float($trade, 'price');
@@ -945,7 +945,7 @@ class idex extends Exchange {
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
-        $this->check_required_credentials();
+        $this->check_required_dependencies();
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
@@ -982,6 +982,10 @@ class idex extends Exchange {
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
         );
+        if ($api === 'private') {
+            $this->check_required_credentials();
+            $headers['API-Key'] = $this->apiKey;
+        }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
