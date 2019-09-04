@@ -213,7 +213,7 @@ module.exports = class coinfloor extends Exchange {
             'limit': limit,
         };
         const response = await this.privatePostIdUserTransactions (this.extend (request, params));
-        return this.parseLedger (response, undefined, since, limit);
+        return this.parseLedger (response, undefined, since, undefined);
     }
 
     parseLedgerEntryStatus (status) {
