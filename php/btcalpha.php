@@ -169,10 +169,7 @@ class btcalpha extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($trade, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'timestamp');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -217,14 +214,14 @@ class btcalpha extends Exchange {
     }
 
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
-        return [
-            $ohlcv['time'] * 1000,
-            $ohlcv['open'],
-            $ohlcv['high'],
-            $ohlcv['low'],
-            $ohlcv['close'],
-            $ohlcv['volume'],
-        ];
+        return array (
+            $this->safe_timestamp($ohlcv, 'time'),
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'volume'),
+        );
     }
 
     public function fetch_ohlcv ($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
@@ -277,10 +274,7 @@ class btcalpha extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($order, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'date');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'amount');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -416,7 +410,7 @@ class btcalpha extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

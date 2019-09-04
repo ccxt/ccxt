@@ -147,15 +147,11 @@ class btcchina (Exchange):
         method = market['api'] + 'GetOrderbook'
         request = self.create_market_request(market)
         response = getattr(self, method)(self.extend(request, params))
-        timestamp = self.safe_integer(response, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(response, 'date')
         return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market):
-        timestamp = self.safe_integer(ticker, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'date')
         last = self.safe_float(ticker, 'last')
         return {
             'timestamp': timestamp,
@@ -213,9 +209,7 @@ class btcchina (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -244,9 +238,7 @@ class btcchina (Exchange):
         if amount is not None:
             if price is not None:
                 cost = amount * price
-        side = self.safe_string(trade, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'side')
         return {
             'id': None,
             'info': trade,

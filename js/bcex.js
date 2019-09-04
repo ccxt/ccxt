@@ -350,10 +350,7 @@ module.exports = class bcex extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let timestamp = this.safeInteger2 (trade, 'date', 'created');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'date', 'created');
         const id = this.safeString (trade, 'tid');
         const orderId = this.safeString (trade, 'order_id');
         const amount = this.safeFloat2 (trade, 'number', 'amount');
@@ -470,10 +467,7 @@ module.exports = class bcex extends Exchange {
         };
         const response = await this.publicPostApiOrderDepth (this.extend (request, params));
         const data = this.safeValue (response, 'data');
-        let timestamp = this.safeInteger (data, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (data, 'date');
         return this.parseOrderBook (data, timestamp);
     }
 
@@ -508,10 +502,7 @@ module.exports = class bcex extends Exchange {
         };
         const response = await this.privatePostApiOrderOrderInfo (this.extend (request, params));
         const order = this.safeValue (response, 'data');
-        let timestamp = this.safeInteger (order, 'created');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'created');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let side = this.safeString (order, 'flag');
         if (side === 'sale') {
@@ -540,10 +531,7 @@ module.exports = class bcex extends Exchange {
 
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
-        let timestamp = this.safeInteger (order, 'datetime');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'datetime');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -667,7 +655,7 @@ module.exports = class bcex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

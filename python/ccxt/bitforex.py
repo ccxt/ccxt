@@ -371,14 +371,9 @@ class bitforex (Exchange):
         if limit is not None:
             request['size'] = limit
         response = self.publicGetApiV1MarketDepth(self.extend(request, params))
-        data = response['data']
-        timestamp = response['time']
-        bidsKey = 'bids'
-        asksKey = 'asks'
-        priceKey = 'price'
-        amountKey = 'amount'
-        orderbook = self.parse_order_book(data, timestamp, bidsKey, asksKey, priceKey, amountKey)
-        return orderbook
+        data = self.safe_value(response, 'data')
+        timestamp = self.safe_integer(response, 'time')
+        return self.parse_order_book(data, timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_order_status(self, status):
         statuses = {
@@ -523,7 +518,7 @@ class bitforex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not isinstance(body, basestring):
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):

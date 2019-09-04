@@ -511,9 +511,7 @@ class buda (Exchange):
         if market is not None:
             symbol = market['symbol']
         type = self.safe_string(order, 'price_type')
-        side = self.safe_string(order, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         amount = float(order['original_amount'][0])
         remaining = float(order['amount'][0])
@@ -714,7 +712,7 @@ class buda (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if code >= 400:

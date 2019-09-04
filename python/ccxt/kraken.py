@@ -77,7 +77,7 @@ class kraken (Exchange):
                 'api': {
                     'public': 'https://api.kraken.com',
                     'private': 'https://api.kraken.com',
-                    'zendesk': 'https://support.kraken.com/hc/en-us/articles/',
+                    'zendesk': 'https://support.kraken.com/hc/en-us/articles',
                 },
                 'www': 'https://www.kraken.com',
                 'doc': 'https://www.kraken.com/features/api',
@@ -669,7 +669,7 @@ class kraken (Exchange):
         return self.parse_ledger(items)
 
     def fetch_ledger_entry(self, id, code=None, params={}):
-        items = self.fetchLedgerEntrysByIds([id], code, params)
+        items = self.fetch_ledger_entries_by_ids([id], code, params)
         return items[0]
 
     def parse_trade(self, trade, market=None):
@@ -691,10 +691,19 @@ class kraken (Exchange):
             market = self.get_delisted_market_by_id(marketId)
         if market is not None:
             symbol = market['symbol']
-        if 'ordertxid' in trade:
+        if isinstance(trade, list):
+            timestamp = int(trade[2] * 1000)
+            side = 'sell' if (trade[3] == 's') else 'buy'
+            type = 'limit' if (trade[4] == 'l') else 'market'
+            price = float(trade[0])
+            amount = float(trade[1])
+            tradeLength = len(trade)
+            if tradeLength > 6:
+                id = trade[6]  # artificially added as per  #1794
+        elif 'ordertxid' in trade:
             order = trade['ordertxid']
             id = self.safe_string_2(trade, 'id', 'postxid')
-            timestamp = int(trade['time'] * 1000)
+            timestamp = self.safe_timestamp(trade, 'time')
             side = trade['type']
             type = trade['ordertype']
             price = self.safe_float(trade, 'price')
@@ -707,15 +716,6 @@ class kraken (Exchange):
                     'cost': self.safe_float(trade, 'fee'),
                     'currency': currency,
                 }
-        else:
-            timestamp = int(trade[2] * 1000)
-            side = 'sell' if (trade[3] == 's') else 'buy'
-            type = 'limit' if (trade[4] == 'l') else 'market'
-            price = float(trade[0])
-            amount = float(trade[1])
-            tradeLength = len(trade)
-            if tradeLength > 6:
-                id = trade[6]  # artificially added as per  #1794
         return {
             'id': id,
             'order': order,
@@ -739,6 +739,18 @@ class kraken (Exchange):
         request = {
             'pair': id,
         }
+        # https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
+        # https://github.com/ccxt/ccxt/issues/5677
+        if since is not None:
+            # php does not format it properly
+            # therefore we use string concatenation here
+            request['since'] = since * 1e6
+            request['since'] = str(since) + '000000'  # expected to be in nanoseconds
+        # https://github.com/ccxt/ccxt/issues/5698
+        if limit is not None and limit != 1000:
+            fetchTradesWarning = self.safe_value(self.options, 'fetchTradesWarning', True)
+            if fetchTradesWarning:
+                raise ExchangeError(self.id + ' fetchTrades() cannot serve ' + str(limit) + " trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge self warning and silence it.")
         response = self.publicGetTrades(self.extend(request, params))
         #
         #     {
@@ -764,9 +776,7 @@ class kraken (Exchange):
 
     def fetch_balance(self, params={}):
         response = self.privatePostBalance(params)
-        balances = self.safe_value(response, 'result')
-        if balances is None:
-            raise ExchangeNotAvailable(self.id + ' fetchBalance failed due to a malformed response ' + self.json(response))
+        balances = self.safe_value(response, 'result', {})
         result = {'info': balances}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
@@ -880,7 +890,7 @@ class kraken (Exchange):
         elif marketId is not None:
             # delisted market ids go here
             market = self.get_delisted_market_by_id(marketId)
-        timestamp = self.safe_integer(order, 'opentm') * 1000
+        timestamp = self.safe_timestamp(order, 'opentm')
         amount = self.safe_float(order, 'vol')
         filled = self.safe_float(order, 'vol_exec')
         remaining = amount - filled
@@ -1063,7 +1073,7 @@ class kraken (Exchange):
             'Initial': 'pending',
             'Pending': 'pending',
             'Success': 'ok',
-            'Settled': 'ok',
+            'Settled': 'pending',
             'Failure': 'failed',
             'Partial': 'ok',
         }
@@ -1099,9 +1109,7 @@ class kraken (Exchange):
         #
         id = self.safe_string(transaction, 'refid')
         txid = self.safe_string(transaction, 'txid')
-        timestamp = self.safe_integer(transaction, 'time')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(transaction, 'time')
         currencyId = self.safe_string(transaction, 'asset')
         code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'info')
@@ -1280,7 +1288,7 @@ class kraken (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code == 520:
             raise ExchangeNotAvailable(self.id + ' ' + str(code) + ' ' + reason)
         # todo: rewrite self for "broad" exceptions matching

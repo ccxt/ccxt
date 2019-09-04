@@ -373,14 +373,9 @@ class bitforex extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->publicGetApiV1MarketDepth (array_merge ($request, $params));
-        $data = $response['data'];
-        $timestamp = $response['time'];
-        $bidsKey = 'bids';
-        $asksKey = 'asks';
-        $priceKey = 'price';
-        $amountKey = 'amount';
-        $orderbook = $this->parse_order_book($data, $timestamp, $bidsKey, $asksKey, $priceKey, $amountKey);
-        return $orderbook;
+        $data = $this->safe_value($response, 'data');
+        $timestamp = $this->safe_integer($response, 'time');
+        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_order_status ($status) {
@@ -541,7 +536,7 @@ class bitforex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (gettype ($body) !== 'string') {
             return; // fallback to default error handler
         }

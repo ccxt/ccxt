@@ -152,6 +152,7 @@ class gateio (Exchange):
                 '21': 'You don\'t have enough fund',
             },
             'options': {
+                'fetchTradesMethod': 'public_get_tradehistory_id',  # 'public_get_tradehistory_id_tid'
                 'limits': {
                     'cost': {
                         'min': {
@@ -331,7 +332,7 @@ class gateio (Exchange):
             'info': ticker,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         resultString = self.safe_string(response, 'result', '')
@@ -367,12 +368,7 @@ class gateio (Exchange):
                 market = self.markets[symbol]
             if id in self.markets_by_id:
                 market = self.markets_by_id[id]
-            ticker = self.parse_ticker(response[id], market)
-            # https://github.com/ccxt/ccxt/pull/5138
-            baseVolume = ticker['baseVolume']
-            ticker['baseVolume'] = ticker['quoteVolume']
-            ticker['quoteVolume'] = baseVolume
-            result[symbol] = ticker
+            result[symbol] = self.parse_ticker(response[id], market)
         return result
 
     def fetch_ticker(self, symbol, params={}):
@@ -384,9 +380,7 @@ class gateio (Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer_2(trade, 'timestamp', 'time_unix')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp_2(trade, 'timestamp', 'time_unix')
         id = self.safe_string_2(trade, 'tradeID', 'id')
         # take either of orderid or orderId
         orderId = self.safe_string_2(trade, 'orderid', 'orderNumber')
@@ -422,7 +416,8 @@ class gateio (Exchange):
         request = {
             'id': market['id'],
         }
-        response = self.publicGetTradeHistoryId(self.extend(request, params))
+        method = self.safe_string(self.options, 'fetchTradesMethod', 'public_get_tradehistory_id')
+        response = getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -472,9 +467,7 @@ class gateio (Exchange):
             market = self.markets_by_id[marketId]
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'timestamp')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'type')
         price = self.safe_float(order, 'filledRate')
@@ -696,9 +689,7 @@ class gateio (Exchange):
         txid = self.safe_string(transaction, 'txid')
         amount = self.safe_float(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
-        timestamp = self.safe_integer(transaction, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(transaction, 'timestamp')
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         type = self.parse_transaction_type(id[0])
         return {

@@ -43,6 +43,7 @@ module.exports = class southxchange extends Exchange {
                         'generatenewaddress',
                         'listOrders',
                         'listBalances',
+                        'listTransactions',
                         'placeOrder',
                         'withdraw',
                     ],
@@ -177,10 +178,7 @@ module.exports = class southxchange extends Exchange {
     }
 
     parseTrade (trade, market) {
-        let timestamp = this.safeInteger (trade, 'At');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'At');
         const price = this.safeFloat (trade, 'Price');
         const amount = this.safeFloat (trade, 'Amount');
         let cost = undefined;
@@ -241,10 +239,7 @@ module.exports = class southxchange extends Exchange {
             }
         }
         const type = 'limit';
-        let side = this.safeString (order, 'Type');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'Type');
         const id = this.safeString (order, 'Code');
         const result = {
             'info': order,

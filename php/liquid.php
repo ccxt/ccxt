@@ -18,6 +18,7 @@ class liquid extends Exchange {
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => false,
+                'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
@@ -83,7 +84,6 @@ class liquid extends Exchange {
                     ),
                 ),
             ),
-            'skipJsonOnStatusCodes' => [401],
             'exceptions' => array (
                 'API rate limit exceeded. Please retry after 300s' => '\\ccxt\\DDoSProtection',
                 'API Authentication failed' => '\\ccxt\\AuthenticationError',
@@ -221,11 +221,11 @@ class liquid extends Exchange {
             $minAmount = null;
             if ($baseCurrency !== null) {
                 $minAmount = $this->safe_float($baseCurrency['info'], 'minimum_order_quantity');
-                $precision['amount'] = $this->safe_integer($baseCurrency['info'], 'quoting_precision');
+                // $precision['amount'] = $this->safe_integer($baseCurrency['info'], 'quoting_precision');
             }
             $minPrice = null;
             if ($quoteCurrency !== null) {
-                $precision['price'] = $this->safe_integer($quoteCurrency['info'], 'display_precision');
+                $precision['price'] = $this->safe_integer($quoteCurrency['info'], 'quoting_precision');
                 $minPrice = pow(10, -$precision['price']);
             }
             $minCost = null;
@@ -390,7 +390,7 @@ class liquid extends Exchange {
         //       taker_side => "sell",
         //       created_at =>  1512345678,
         //          my_side => "buy"           }
-        $timestamp = $this->safe_integer($trade, 'created_at') * 1000;
+        $timestamp = $this->safe_timestamp($trade, 'created_at');
         $orderId = $this->safe_string($trade, 'order_id');
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         $takerSide = $this->safe_string($trade, 'taker_side');
@@ -596,10 +596,7 @@ class liquid extends Exchange {
         //     }
         //
         $orderId = $this->safe_string($order, 'id');
-        $timestamp = $this->safe_integer($order, 'created_at');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'created_at');
         $marketId = $this->safe_string($order, 'product_id');
         $market = $this->safe_value($this->markets_by_id, $marketId);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -780,7 +777,7 @@ class liquid extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code >= 200 && $code < 300) {
             return;
         }

@@ -248,9 +248,7 @@ class oceanex (Exchange):
         #         }
         #
         ticker = self.safe_value(data, 'ticker', {})
-        timestamp = self.safe_integer(data, 'at')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(data, 'at')
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -303,9 +301,7 @@ class oceanex (Exchange):
         #     }
         #
         orderbook = self.safe_value(response, 'data', {})
-        timestamp = self.safe_integer(orderbook, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, timestamp)
 
     def fetch_order_books(self, symbols=None, limit=None, params={}):
@@ -349,9 +345,7 @@ class oceanex (Exchange):
             marketId = self.safe_string(orderbook, 'market')
             market = self.markets_by_id[marketId]
             symbol = market['symbol']
-            timestamp = self.safe_integer(orderbook, 'timestamp')
-            if timestamp is not None:
-                timestamp = timestamp * 1000
+            timestamp = self.safe_timestamp(orderbook, 'timestamp')
             result[symbol] = self.parse_order_book(orderbook, timestamp)
         return result
 
@@ -384,11 +378,9 @@ class oceanex (Exchange):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
-        timestamp = self.safe_integer(trade, 'created_on')
+        timestamp = self.safe_timestamp(trade, 'created_on')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
-        else:
-            timestamp = timestamp * 1000
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -410,8 +402,7 @@ class oceanex (Exchange):
         #
         #     {"code":0,"message":"Operation successful","data":1559433420}
         #
-        timestamp = self.safe_integer(response, 'data')
-        return timestamp * 1000
+        return self.safe_timestamp(response, 'data')
 
     def fetch_all_trading_fees(self, params={}):
         response = self.publicGetFeesTrading(params)
@@ -530,11 +521,9 @@ class oceanex (Exchange):
         if symbol is None:
             if market is not None:
                 symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'created_on')
+        timestamp = self.safe_timestamp(order, 'created_on')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        else:
-            timestamp = timestamp * 1000
         return {
             'info': order,
             'id': self.safe_string(order, 'id'),
@@ -619,7 +608,7 @@ class oceanex (Exchange):
         headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         #
         #     {"code":1011,"message":"This IP '5.228.233.138' is not allowed","data":{}}
         #

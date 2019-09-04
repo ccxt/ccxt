@@ -81,7 +81,7 @@ class bitstamp1 (Exchange):
             raise ExchangeError(self.id + ' ' + self.version + " fetchOrderBook doesn't support " + symbol + ', use it for BTC/USD only')
         self.load_markets()
         orderbook = self.publicGetOrderBook(params)
-        timestamp = int(orderbook['timestamp']) * 1000
+        timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
@@ -89,7 +89,7 @@ class bitstamp1 (Exchange):
             raise ExchangeError(self.id + ' ' + self.version + " fetchTicker doesn't support " + symbol + ', use it for BTC/USD only')
         self.load_markets()
         ticker = self.publicGetTicker(params)
-        timestamp = int(ticker['timestamp']) * 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None
@@ -120,9 +120,7 @@ class bitstamp1 (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer_2(trade, 'date', 'datetime')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp_2(trade, 'date', 'datetime')
         side = 'buy' if (trade['type'] == 0) else 'sell'
         orderId = self.safe_string(trade, 'order_id')
         if 'currency_pair' in trade:

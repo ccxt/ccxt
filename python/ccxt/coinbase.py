@@ -606,8 +606,8 @@ class coinbase (Exchange):
         # for pagination use parameter 'starting_after'
         # the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         # eg: instance.last_json_response.pagination.next_starting_after
-        res = self.privateGetAccountsAccountIdTransactions(self.extend(request, query))
-        return self.parse_ledger(res.data, None, since, limit)
+        response = self.privateGetAccountsAccountIdTransactions(self.extend(request, query))
+        return self.parse_ledger(response['data'], None, since, limit)
 
     def parse_ledger_entry_status(self, status):
         types = {
@@ -993,7 +993,7 @@ class coinbase (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         feedback = self.id + ' ' + body

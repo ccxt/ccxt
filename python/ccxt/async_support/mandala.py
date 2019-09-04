@@ -175,6 +175,8 @@ class mandala (Exchange):
                         'hmac',  # ?side=BUY&market=BTC&trade=ETH&type=STOPLIMIT&volume=0.025&rate=0.032&timeInForce=GTC&stop=2&'
                     ],
                     'post': [
+                        'my-order-history',
+                        'my-order-status',
                         'PlaceOrder',
                         'cancel-my-order',
                         'cancel-all-my-orders',
@@ -673,9 +675,7 @@ class mandala (Exchange):
         #     }
         #
         timestamp = self.parse8601(self.safe_string_2(trade, 'Date', 'date'))
-        side = self.safe_string_2(trade, 'Type', 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower_2(trade, 'Type', 'side')
         id = self.safe_string(trade, 'TradeID')
         symbol = None
         baseId = self.safe_string(trade, 'trade')
@@ -1505,13 +1505,13 @@ class mandala (Exchange):
             if method == 'POST':
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
-                headers['publicKey'] = self.apiKey
+                headers['apiKey'] = self.apiKey
             elif method == 'GET':
                 if query:
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return  # fallback to default error handler
         #

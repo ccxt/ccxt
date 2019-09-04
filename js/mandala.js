@@ -166,6 +166,8 @@ module.exports = class mandala extends Exchange {
                         'hmac', // ?side=BUY&market=BTC&trade=ETH&type=STOPLIMIT&volume=0.025&rate=0.032&timeInForce=GTC&stop=2&'
                     ],
                     'post': [
+                        'my-order-history',
+                        'my-order-status',
                         'PlaceOrder',
                         'cancel-my-order',
                         'cancel-all-my-orders',
@@ -689,10 +691,7 @@ module.exports = class mandala extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString2 (trade, 'Date', 'date'));
-        let side = this.safeString2 (trade, 'Type', 'side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower2 (trade, 'Type', 'side');
         const id = this.safeString (trade, 'TradeID');
         let symbol = undefined;
         const baseId = this.safeString (trade, 'trade');
@@ -1586,7 +1585,7 @@ module.exports = class mandala extends Exchange {
             if (method === 'POST') {
                 body = this.json (query);
                 headers['Content-Type'] = 'application/json';
-                headers['publicKey'] = this.apiKey;
+                headers['apiKey'] = this.apiKey;
             } else if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
@@ -1596,7 +1595,7 @@ module.exports = class mandala extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return; // fallback to default error handler
         }

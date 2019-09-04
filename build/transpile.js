@@ -33,11 +33,19 @@ const commonRegexes = [
     [ /\.deepExtend\s/g, '.deep_extend'],
     [ /\.safeFloat2\s/g, '.safe_float_2'],
     [ /\.safeInteger2\s/g, '.safe_integer_2'],
+    [ /\.safeIntegerProduct2\s/g, '.safe_integer_product_2'],
+    [ /\.safeTimestamp2\s/g, '.safe_timestamp_2'],
     [ /\.safeString2\s/g, '.safe_string_2'],
+    [ /\.safeStringLower2\s/g, '.safe_string_lower_2'],
+    [ /\.safeStringUpper2\s/g, '.safe_string_upper_2'],
     [ /\.safeValue2\s/g, '.safe_value_2'],
     [ /\.safeFloat\s/g, '.safe_float'],
     [ /\.safeInteger\s/g, '.safe_integer'],
+    [ /\.safeIntegerProduct\s/g, '.safe_integer_product'],
+    [ /\.safeTimestamp\s/g, '.safe_timestamp'],
     [ /\.safeString\s/g, '.safe_string'],
+    [ /\.safeStringLower\s/g, '.safe_string_lower'],
+    [ /\.safeStringUpper\s/g, '.safe_string_upper'],
     [ /\.safeValue\s/g, '.safe_value'],
     [ /\.inArray\s/g, '.in_array'],
     [ /\.toArray\s/g, '.to_array'],
@@ -128,6 +136,7 @@ const commonRegexes = [
     [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
     [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
     [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
+    [ /\.roundTimeframe/g, '.round_timeframe'],
     [ /errorHierarchy/g, 'error_hierarchy'],
     [ /\'use strict\';?\s+/g, '' ],
 ]
@@ -199,7 +208,8 @@ const pythonRegexes = [
     [ /([^\s]+)\.length/g, 'len($1)' ],
     [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
     [ /^(\s*}\s*$)+/gm, '' ],
-    [ /;/g, '' ],
+    [ /\;(\s+?\/\/.+?)/g, '$1' ],
+    [ /\;$/gm, '' ],
     [ /\.toUpperCase\s*/g, '.upper' ],
     [ /\.toLowerCase\s*/g, '.lower' ],
     [ /JSON\.stringify\s*/g, 'json.dumps' ],
@@ -853,6 +863,7 @@ function transpileDateTimeTests () {
     const pythonHeader =
 "\n\
 import ccxt  # noqa: F402\n\
+from ccxt.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401\n\
 \n\
 # ----------------------------------------------------------------------------\n\
 \n"

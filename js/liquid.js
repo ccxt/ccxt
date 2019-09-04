@@ -17,6 +17,7 @@ module.exports = class liquid extends Exchange {
             'rateLimit': 1000,
             'has': {
                 'CORS': false,
+                'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
@@ -82,7 +83,6 @@ module.exports = class liquid extends Exchange {
                     ],
                 },
             },
-            'skipJsonOnStatusCodes': [401],
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -220,11 +220,11 @@ module.exports = class liquid extends Exchange {
             let minAmount = undefined;
             if (baseCurrency !== undefined) {
                 minAmount = this.safeFloat (baseCurrency['info'], 'minimum_order_quantity');
-                precision['amount'] = this.safeInteger (baseCurrency['info'], 'quoting_precision');
+                // precision['amount'] = this.safeInteger (baseCurrency['info'], 'quoting_precision');
             }
             let minPrice = undefined;
             if (quoteCurrency !== undefined) {
-                precision['price'] = this.safeInteger (quoteCurrency['info'], 'display_precision');
+                precision['price'] = this.safeInteger (quoteCurrency['info'], 'quoting_precision');
                 minPrice = Math.pow (10, -precision['price']);
             }
             let minCost = undefined;
@@ -389,7 +389,7 @@ module.exports = class liquid extends Exchange {
         //       taker_side: "sell",
         //       created_at:  1512345678,
         //          my_side: "buy"           }
-        const timestamp = this.safeInteger (trade, 'created_at') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'created_at');
         const orderId = this.safeString (trade, 'order_id');
         // 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         const takerSide = this.safeString (trade, 'taker_side');
@@ -595,10 +595,7 @@ module.exports = class liquid extends Exchange {
         //     }
         //
         const orderId = this.safeString (order, 'id');
-        let timestamp = this.safeInteger (order, 'created_at');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'created_at');
         const marketId = this.safeString (order, 'product_id');
         market = this.safeValue (this.markets_by_id, marketId);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -779,7 +776,7 @@ module.exports = class liquid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code >= 200 && code < 300) {
             return;
         }

@@ -123,7 +123,7 @@ class ice3x extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        if (!$this->currencies_by_id) {
+        if ($this->currencies_by_id === null) {
             $this->currencies = $this->fetch_currencies();
             $this->currencies_by_id = $this->index_by($this->currencies, 'id');
         }
@@ -230,10 +230,7 @@ class ice3x extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'created');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'created');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'volume');
         $cost = null;
@@ -309,7 +306,7 @@ class ice3x extends Exchange {
             $market = $this->marketsById[$pairId];
             $symbol = $market['symbol'];
         }
-        $timestamp = $this->safe_integer($order, 'created') * 1000;
+        $timestamp = $this->safe_timestamp($order, 'created');
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'volume');
         $status = $this->safe_integer($order, 'active');

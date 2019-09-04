@@ -45,6 +45,7 @@ class southxchange extends Exchange {
                         'generatenewaddress',
                         'listOrders',
                         'listBalances',
+                        'listTransactions',
                         'placeOrder',
                         'withdraw',
                     ),
@@ -179,10 +180,7 @@ class southxchange extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->safe_integer($trade, 'At');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'At');
         $price = $this->safe_float($trade, 'Price');
         $amount = $this->safe_float($trade, 'Amount');
         $cost = null;
@@ -243,10 +241,7 @@ class southxchange extends Exchange {
             }
         }
         $type = 'limit';
-        $side = $this->safe_string($order, 'Type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'Type');
         $id = $this->safe_string($order, 'Code');
         $result = array (
             'info' => $order,

@@ -175,6 +175,10 @@ module.exports = class bleutrade extends bittrex {
                 'Invalid apikey or apisecret': AuthenticationError,
             },
             'options': {
+                // price precision by quote currency code
+                'pricePrecisionByCode': {
+                    'USD': 3,
+                },
                 'parseOrderStatus': true,
                 'disableNonce': false,
                 'symbolSeparator': '_',
@@ -182,6 +186,59 @@ module.exports = class bleutrade extends bittrex {
         });
         // bittrex inheritance override
         result['timeframes'] = timeframes;
+        return result;
+    }
+
+    async fetchMarkets (params = {}) {
+        // https://github.com/ccxt/ccxt/issues/5668
+        const response = await this.publicGetMarkets (params);
+        const result = [];
+        const markets = this.safeValue (response, 'result');
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'MarketName');
+            const baseId = this.safeString (market, 'MarketCurrency');
+            const quoteId = this.safeString (market, 'BaseCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            let pricePrecision = 8;
+            if (quote in this.options['pricePrecisionByCode']) {
+                pricePrecision = this.options['pricePrecisionByCode'][quote];
+            }
+            const precision = {
+                'amount': 8,
+                'price': pricePrecision,
+            };
+            // bittrex uses boolean values, bleutrade uses strings
+            let active = this.safeValue (market, 'IsActive', false);
+            if ((active !== 'false') && active) {
+                active = true;
+            } else {
+                active = false;
+            }
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'info': market,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (market, 'MinTradeSize'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision['price']),
+                        'max': undefined,
+                    },
+                },
+            });
+        }
         return result;
     }
 

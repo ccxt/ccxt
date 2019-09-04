@@ -189,10 +189,7 @@ module.exports = class coinmate extends Exchange {
         };
         const response = await this.publicGetOrderBook (this.extend (request, params));
         const orderbook = response['data'];
-        let timestamp = this.safeInteger (orderbook, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
@@ -203,10 +200,7 @@ module.exports = class coinmate extends Exchange {
         };
         const response = await this.publicGetTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'data');
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
@@ -302,10 +296,7 @@ module.exports = class coinmate extends Exchange {
         const tag = this.safeString (item, 'destinationTag');
         const currencyId = this.safeString (item, 'amountCurrency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let type = this.safeString (item, 'transferType');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
+        const type = this.safeStringLower (item, 'transferType');
         const status = this.parseTransactionStatus (this.safeString (item, 'transferStatus'));
         const id = this.safeString (item, 'transactionId');
         return {
@@ -398,14 +389,8 @@ module.exports = class coinmate extends Exchange {
                 cost = price * amount;
             }
         }
-        let side = this.safeString2 (trade, 'type', 'tradeType');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
-        let type = this.safeString (trade, 'orderType');
-        if (type !== undefined) {
-            type = type.toLowerCase ();
-        }
+        const side = this.safeStringLower2 (trade, 'type', 'tradeType');
+        const type = this.safeStringLower (trade, 'orderType');
         const orderId = this.safeString (trade, 'orderId');
         const id = this.safeString (trade, 'transactionId');
         const timestamp = this.safeInteger2 (trade, 'timestamp', 'createdTimestamp');

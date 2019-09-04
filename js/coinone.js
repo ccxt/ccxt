@@ -79,7 +79,7 @@ module.exports = class coinone extends Exchange {
                 'ZRX/KRW': { 'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw' },
                 'LUNA/KRW': { 'id': 'luna', 'symbol': 'LUNA/KRW', 'base': 'LUNA', 'quote': 'KRW', 'baseId': 'luna', 'quoteId': 'krw' },
                 'ATOM/KRW': { 'id': 'atom', 'symbol': 'ATOM/KRW', 'base': 'ATOM', 'quote': 'KRW', 'baseId': 'atom', 'quoteId': 'krw' },
-                'VNT/KRW': { 'id': 'vnt', 'symbol': 'vnt/KRW', 'base': 'VNT', 'quote': 'KRW', 'baseId': 'vnt', 'quoteId': 'krw' },
+                'VNT/KRW': { 'id': 'vnt', 'symbol': 'VNT/KRW', 'base': 'VNT', 'quote': 'KRW', 'baseId': 'vnt', 'quoteId': 'krw' },
             },
             'fees': {
                 'trading': {
@@ -221,10 +221,7 @@ module.exports = class coinone extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         const symbol = (market !== undefined) ? market['symbol'] : undefined;
         const is_ask = this.safeString (trade, 'is_ask');
         let side = undefined;
@@ -358,11 +355,8 @@ module.exports = class coinone extends Exchange {
 
     parseOrder (order, market = undefined) {
         const info = this.safeValue (order, 'info');
-        let id = this.safeString (info, 'orderId');
-        if (id !== undefined) {
-            id = id.toUpperCase ();
-        }
-        const timestamp = this.safeInteger (info, 'timestamp') * 1000;
+        const id = this.safeStringUpper (info, 'orderId');
+        const timestamp = this.safeTimestamp (info, 'timestamp');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         let cost = undefined;
         let side = this.safeString (info, 'type');
@@ -491,7 +485,7 @@ module.exports = class coinone extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
         }

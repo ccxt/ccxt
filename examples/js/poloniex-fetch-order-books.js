@@ -2,14 +2,13 @@
 
 // ----------------------------------------------------------------------------
 
-const cloudscraper = require ('cloudscraper')
-    , ccxt         = require ('../../ccxt.js')
+const ccxt = require ('../../ccxt.js')
 
 // ----------------------------------------------------------------------------
 
 ;(async () => {
 
-    const exchange = new ccxt.cryptopia ({
+    const exchange = new ccxt.poloniex ({
         'verbose': process.argv.includes ('--verbose'),
         'timeout': 60000,
     })

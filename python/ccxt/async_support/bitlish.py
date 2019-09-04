@@ -319,7 +319,7 @@ class bitlish (Exchange):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency.lower(),
+            'currency': currency['id'],
             'amount': float(amount),
             'account': address,
             'payment_method': 'bitcoin',  # they did not document other types...

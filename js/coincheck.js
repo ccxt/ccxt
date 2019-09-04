@@ -224,10 +224,7 @@ module.exports = class coincheck extends Exchange {
         }
         await this.loadMarkets ();
         const ticker = await this.publicGetTicker (params);
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,

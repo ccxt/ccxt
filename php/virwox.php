@@ -195,10 +195,7 @@ class virwox extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'time');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'time');
         $id = $this->safe_string($trade, 'tid');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'vol');
@@ -293,7 +290,7 @@ class virwox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code === 200) {
             if (($body[0] === '{') || ($body[0] === '[')) {
                 if (is_array($response) && array_key_exists('result', $response)) {

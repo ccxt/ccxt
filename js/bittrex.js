@@ -221,10 +221,6 @@ module.exports = class bittrex extends Exchange {
                 'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
             },
             'options': {
-                // price precision by quote currency code
-                'pricePrecisionByCode': {
-                    'USD': 3,
-                },
                 'parseOrderStatus': false,
                 'hasAlreadyAuthenticatedSuccessfully': false, // a workaround for APIKEY_INVALID
                 'symbolSeparator': '-',
@@ -268,34 +264,52 @@ module.exports = class bittrex extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        // https://github.com/ccxt/ccxt/commit/866370ba6c9cabaf5995d992c15a82e38b8ca291
-        // https://github.com/ccxt/ccxt/pull/4304
-        const response = await this.publicGetMarkets (params);
+        const response = await this.v3publicGetMarkets (params);
+        //
+        //     [
+        //         {
+        //             "symbol":"LTC-BTC",
+        //             "baseCurrencySymbol":"LTC",
+        //             "quoteCurrencySymbol":"BTC",
+        //             "minTradeSize":"0.01686767",
+        //             "precision":8,
+        //             "status":"ONLINE", // "OFFLINE"
+        //             "createdAt":"2014-02-13T00:00:00Z"
+        //         },
+        //         {
+        //             "symbol":"VDX-USDT",
+        //             "baseCurrencySymbol":"VDX",
+        //             "quoteCurrencySymbol":"USDT",
+        //             "minTradeSize":"300.00000000",
+        //             "precision":8,
+        //             "status":"ONLINE", // "OFFLINE"
+        //             "createdAt":"2019-05-23T00:41:21.843Z",
+        //             "notice":"USDT has swapped to an ERC20-based token as of August 5, 2019."
+        //         }
+        //     ]
+        //
         const result = [];
-        const markets = this.safeValue (response, 'result');
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
-            const id = this.safeString (market, 'MarketName');
-            const baseId = this.safeString (market, 'MarketCurrency');
-            const quoteId = this.safeString (market, 'BaseCurrency');
+        // const markets = this.safeValue (response, 'result');
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
+            const baseId = this.safeString (market, 'baseCurrencySymbol');
+            const quoteId = this.safeString (market, 'quoteCurrencySymbol');
+            // bittrex v2 uses inverted pairs, v3 uses regular pairs
+            // we use v3 for fetchMarkets and v2 throughout the rest of this implementation
+            // therefore we swap the base ←→ quote here to be v2-compatible
+            // https://github.com/ccxt/ccxt/issues/5634
+            // const id = this.safeString (market, 'symbol');
+            const id = quoteId + this.options['symbolSeparator'] + baseId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            let pricePrecision = 8;
-            if (quote in this.options['pricePrecisionByCode']) {
-                pricePrecision = this.options['pricePrecisionByCode'][quote];
-            }
+            const pricePrecision = this.safeInteger (market, 'precision', 8);
             const precision = {
                 'amount': 8,
                 'price': pricePrecision,
             };
-            // bittrex uses boolean values, bleutrade uses strings
-            let active = this.safeValue (market, 'IsActive', false);
-            if ((active !== 'false') && active) {
-                active = true;
-            } else {
-                active = false;
-            }
+            const status = this.safeString (market, 'status');
+            const active = (status === 'ONLINE');
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -308,7 +322,7 @@ module.exports = class bittrex extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': this.safeFloat (market, 'MinTradeSize'),
+                        'min': this.safeFloat (market, 'minTradeSize'),
                         'max': undefined,
                     },
                     'price': {
@@ -764,18 +778,17 @@ module.exports = class bittrex extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         let status = 'pending';
         if (type === 'deposit') {
-            if (currency !== undefined) {
-                // deposits numConfirmations never reach the minConfirmations number
-                // we set all of them to 'ok', otherwise they'd all be 'pending'
-                //
-                //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
-                //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
-                //     if (numConfirmations >= minConfirmations) {
-                //         status = 'ok';
-                //     }
-                //
-                status = 'ok';
-            }
+            //
+            // deposits numConfirmations never reach the minConfirmations number
+            // we set all of them to 'ok', otherwise they'd all be 'pending'
+            //
+            //     const numConfirmations = this.safeInteger (transaction, 'Confirmations', 0);
+            //     const minConfirmations = this.safeInteger (currency['info'], 'MinConfirmation');
+            //     if (numConfirmations >= minConfirmations) {
+            //         status = 'ok';
+            //     }
+            //
+            status = 'ok';
         } else {
             const authorized = this.safeValue (transaction, 'Authorized', false);
             const pendingPayment = this.safeValue (transaction, 'PendingPayment', false);
@@ -880,7 +893,7 @@ module.exports = class bittrex extends Exchange {
             symbol = base + '/' + quote;
             feeCurrency = quote;
         }
-        const direction = this.safeString (order, 'direction');
+        const direction = this.safeStringLower (order, 'direction');
         const createdAt = this.safeString (order, 'createdAt');
         const updatedAt = this.safeString (order, 'updatedAt');
         const closedAt = this.safeString (order, 'closedAt');
@@ -891,13 +904,13 @@ module.exports = class bittrex extends Exchange {
             lastTradeTimestamp = this.parse8601 (updatedAt);
         }
         const timestamp = this.parse8601 (createdAt);
-        const type = this.safeString (order, 'type');
+        const type = this.safeStringLower (order, 'type');
         const quantity = this.safeFloat (order, 'quantity');
         const limit = this.safeFloat (order, 'limit');
         const fillQuantity = this.safeFloat (order, 'fillQuantity');
         const commission = this.safeFloat (order, 'commission');
         const proceeds = this.safeFloat (order, 'proceeds');
-        const status = this.safeString (order, 'status');
+        const status = this.safeStringLower (order, 'status');
         let average = undefined;
         let remaining = undefined;
         if (fillQuantity !== undefined) {
@@ -918,15 +931,15 @@ module.exports = class bittrex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
-            'type': type.toLowerCase (),
-            'side': direction.toLowerCase (),
+            'type': type,
+            'side': direction,
             'price': limit,
             'cost': proceeds,
             'average': average,
             'amount': quantity,
             'filled': fillQuantity,
             'remaining': remaining,
-            'status': status.toLowerCase (),
+            'status': status,
             'fee': {
                 'cost': commission,
                 'currency': feeCurrency,
@@ -1298,7 +1311,7 @@ module.exports = class bittrex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

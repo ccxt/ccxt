@@ -158,15 +158,11 @@ class acx (Exchange):
         if limit is not None:
             request['limit'] = limit  # default = 300
         orderbook = await self.publicGetDepth(self.extend(request, params))
-        timestamp = self.safe_integer(orderbook, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'at')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'at')
         ticker = ticker['ticker']
         symbol = None
         if market:
@@ -416,7 +412,7 @@ class acx (Exchange):
                 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         if code == 400:

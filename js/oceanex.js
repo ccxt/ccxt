@@ -247,10 +247,7 @@ module.exports = class oceanex extends Exchange {
         //         }
         //
         const ticker = this.safeValue (data, 'ticker', {});
-        let timestamp = this.safeInteger (data, 'at');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (data, 'at');
         return {
             'symbol': market['symbol'],
             'timestamp': timestamp,
@@ -305,10 +302,7 @@ module.exports = class oceanex extends Exchange {
         //     }
         //
         const orderbook = this.safeValue (response, 'data', {});
-        let timestamp = this.safeInteger (orderbook, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (orderbook, 'timestamp');
         return this.parseOrderBook (orderbook, timestamp);
     }
 
@@ -355,10 +349,7 @@ module.exports = class oceanex extends Exchange {
             const marketId = this.safeString (orderbook, 'market');
             const market = this.markets_by_id[marketId];
             const symbol = market['symbol'];
-            let timestamp = this.safeInteger (orderbook, 'timestamp');
-            if (timestamp !== undefined) {
-                timestamp = timestamp * 1000;
-            }
+            const timestamp = this.safeTimestamp (orderbook, 'timestamp');
             result[symbol] = this.parseOrderBook (orderbook, timestamp);
         }
         return result;
@@ -400,11 +391,9 @@ module.exports = class oceanex extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let timestamp = this.safeInteger (trade, 'created_on');
+        let timestamp = this.safeTimestamp (trade, 'created_on');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'created_at'));
-        } else {
-            timestamp = timestamp * 1000;
         }
         return {
             'info': trade,
@@ -428,8 +417,7 @@ module.exports = class oceanex extends Exchange {
         //
         //     {"code":0,"message":"Operation successful","data":1559433420}
         //
-        const timestamp = this.safeInteger (response, 'data');
-        return timestamp * 1000;
+        return this.safeTimestamp (response, 'data');
     }
 
     async fetchAllTradingFees (params = {}) {
@@ -570,11 +558,9 @@ module.exports = class oceanex extends Exchange {
                 symbol = market['symbol'];
             }
         }
-        let timestamp = this.safeInteger (order, 'created_on');
+        let timestamp = this.safeTimestamp (order, 'created_on');
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        } else {
-            timestamp = timestamp * 1000;
         }
         return {
             'info': order,
@@ -671,7 +657,7 @@ module.exports = class oceanex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         //
         //     {"code":1011,"message":"This IP '5.228.233.138' is not allowed","data":{}}
         //

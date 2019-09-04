@@ -631,8 +631,8 @@ module.exports = class coinbase extends Exchange {
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_json_response.pagination.next_starting_after
-        const res = await this.privateGetAccountsAccountIdTransactions (this.extend (request, query));
-        return this.parseLedger (res.data, undefined, since, limit);
+        const response = await this.privateGetAccountsAccountIdTransactions (this.extend (request, query));
+        return this.parseLedger (response['data'], undefined, since, limit);
     }
 
     parseLedgerEntryStatus (status) {
@@ -1043,7 +1043,7 @@ module.exports = class coinbase extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

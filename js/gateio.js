@@ -136,6 +136,7 @@ module.exports = class gateio extends Exchange {
                 '21': 'You don\'t have enough fund',
             },
             'options': {
+                'fetchTradesMethod': 'public_get_tradehistory_id', // 'public_get_tradehistory_id_tid'
                 'limits': {
                     'cost': {
                         'min': {
@@ -330,7 +331,7 @@ module.exports = class gateio extends Exchange {
         };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
         }
@@ -374,12 +375,7 @@ module.exports = class gateio extends Exchange {
             if (id in this.markets_by_id) {
                 market = this.markets_by_id[id];
             }
-            const ticker = this.parseTicker (response[id], market);
-            // https://github.com/ccxt/ccxt/pull/5138
-            const baseVolume = ticker['baseVolume'];
-            ticker['baseVolume'] = ticker['quoteVolume'];
-            ticker['quoteVolume'] = baseVolume;
-            result[symbol] = ticker;
+            result[symbol] = this.parseTicker (response[id], market);
         }
         return result;
     }
@@ -394,10 +390,7 @@ module.exports = class gateio extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger2 (trade, 'timestamp', 'time_unix');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp2 (trade, 'timestamp', 'time_unix');
         const id = this.safeString2 (trade, 'tradeID', 'id');
         // take either of orderid or orderId
         const orderId = this.safeString2 (trade, 'orderid', 'orderNumber');
@@ -437,7 +430,8 @@ module.exports = class gateio extends Exchange {
         const request = {
             'id': market['id'],
         };
-        const response = await this.publicGetTradeHistoryId (this.extend (request, params));
+        const method = this.safeString (this.options, 'fetchTradesMethod', 'public_get_tradehistory_id');
+        const response = await this[method] (this.extend (request, params));
         return this.parseTrades (response['data'], market, since, limit);
     }
 
@@ -493,10 +487,7 @@ module.exports = class gateio extends Exchange {
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        let timestamp = this.safeInteger (order, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'timestamp');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeString (order, 'type');
         const price = this.safeFloat (order, 'filledRate');
@@ -747,10 +738,7 @@ module.exports = class gateio extends Exchange {
         const txid = this.safeString (transaction, 'txid');
         const amount = this.safeFloat (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
-        let timestamp = this.safeInteger (transaction, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (transaction, 'timestamp');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
         const type = this.parseTransactionType (id[0]);
         return {

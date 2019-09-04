@@ -26,6 +26,7 @@ class liquid (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': False,
+                'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -91,7 +92,6 @@ class liquid (Exchange):
                     ],
                 },
             },
-            'skipJsonOnStatusCodes': [401],
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -226,10 +226,10 @@ class liquid (Exchange):
             minAmount = None
             if baseCurrency is not None:
                 minAmount = self.safe_float(baseCurrency['info'], 'minimum_order_quantity')
-                precision['amount'] = self.safe_integer(baseCurrency['info'], 'quoting_precision')
+                # precision['amount'] = self.safe_integer(baseCurrency['info'], 'quoting_precision')
             minPrice = None
             if quoteCurrency is not None:
-                precision['price'] = self.safe_integer(quoteCurrency['info'], 'display_precision')
+                precision['price'] = self.safe_integer(quoteCurrency['info'], 'quoting_precision')
                 minPrice = math.pow(10, -precision['price'])
             minCost = None
             if minPrice is not None:
@@ -373,7 +373,7 @@ class liquid (Exchange):
         #       taker_side: "sell",
         #       created_at:  1512345678,
         #          my_side: "buy"           }
-        timestamp = self.safe_integer(trade, 'created_at') * 1000
+        timestamp = self.safe_timestamp(trade, 'created_at')
         orderId = self.safe_string(trade, 'order_id')
         # 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         takerSide = self.safe_string(trade, 'taker_side')
@@ -562,9 +562,7 @@ class liquid (Exchange):
         #     }
         #
         orderId = self.safe_string(order, 'id')
-        timestamp = self.safe_integer(order, 'created_at')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(order, 'created_at')
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_value(self.markets_by_id, marketId)
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -725,7 +723,7 @@ class liquid (Exchange):
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code >= 200 and code < 300:
             return
         exceptions = self.exceptions

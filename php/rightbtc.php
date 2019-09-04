@@ -138,9 +138,8 @@ class rightbtc extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $response = $this->publicGetTradingPairs ($params);
         // $zh = $this->publicGetGetAssetsTradingPairsZh ();
-        $markets = $response['status']['message'];
+        $markets = $this->publicGetTradingPairs ($params);
         $marketIds = is_array($markets) ? array_keys($markets) : array();
         $result = array();
         for ($i = 0; $i < count ($marketIds); $i++) {
@@ -233,7 +232,7 @@ class rightbtc extends Exchange {
         );
         $response = $this->publicGetTickerTradingPair (array_merge ($request, $params));
         $result = $this->safe_value($response, 'result');
-        if (!$result) {
+        if ($result === null) {
             throw new ExchangeError($this->id . ' fetchTicker returned an empty $response for $symbol ' . $symbol);
         }
         return $this->parse_ticker($result, $market);
@@ -322,8 +321,7 @@ class rightbtc extends Exchange {
         }
         $cost = $this->cost_to_precision($symbol, $price * $amount);
         $cost = floatval ($cost);
-        $side = $this->safe_string($trade, 'side');
-        $side = strtolower($side);
+        $side = $this->safe_string_lower($trade, 'side');
         if ($side === 'b') {
             $side = 'buy';
         } else if ($side === 's') {
@@ -530,10 +528,7 @@ class rightbtc extends Exchange {
             }
         }
         $type = 'limit';
-        $side = $this->safe_string($order, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($order, 'side');
         $feeCost = $this->divide_safe_float ($order, 'min_fee', 1e8);
         $fee = null;
         if ($feeCost !== null) {
@@ -749,7 +744,7 @@ class rightbtc extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

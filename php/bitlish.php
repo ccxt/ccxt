@@ -345,7 +345,7 @@ class bitlish extends Exchange {
         $this->load_markets();
         $currency = $this->currency ($code);
         $request = array (
-            'currency' => strtolower($currency),
+            'currency' => $currency['id'],
             'amount' => floatval ($amount),
             'account' => $address,
             'payment_method' => 'bitcoin', // they did not document other types...

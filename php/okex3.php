@@ -184,7 +184,7 @@ class okex3 extends Exchange {
                         'fills',
                         // public
                         'instruments',
-                        'instruments/{instrument_id}/depth?size=50',
+                        'instruments/{instrument_id}/depth',
                         'instruments/ticker',
                         'instruments/{instrument_id}/ticker',
                         'instruments/{instrument_id}/trades',
@@ -451,6 +451,7 @@ class okex3 extends Exchange {
                 'HSR' => 'HC',
                 'MAG' => 'Maggie',
                 'YOYO' => 'YOYOW',
+                'WIN' => 'WinToken', // https://github.com/ccxt/ccxt/issues/5701
             ),
         ));
     }
@@ -1320,7 +1321,7 @@ class okex3 extends Exchange {
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType');
         $type = $this->safe_string($params, 'type', $defaultType);
         if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchBalance requires a $type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap').");
+            throw new ArgumentsRequired($this->id . " fetchBalance requires a $type parameter (one of 'account', 'spot', 'margin', 'futures', 'swap')");
         }
         $suffix = ($type === 'account') ? 'Wallet' : 'Accounts';
         $method = $type . 'Get' . $suffix;
@@ -1553,11 +1554,7 @@ class okex3 extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . " cancelOrder requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
-        }
+        $type = $market['type'];
         $method = $type . 'PostCancelOrder';
         $request = array (
             'instrument_id' => $market['id'],
@@ -1854,24 +1851,20 @@ class okex3 extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrdersByState requires a $symbol argument');
         }
-        $defaultType = $this->safe_string_2($this->options, 'fetchOrdersByState', 'defaultType');
-        $type = $this->safe_string($params, 'type', $defaultType);
-        if ($type === null) {
-            throw new ArgumentsRequired($this->id . " fetchOrdersByState requires a $type parameter (one of 'spot', 'margin', 'futures', 'swap').");
-        }
         $this->load_markets();
         $market = $this->market ($symbol);
-        // '-2' => failed,
-        // '-1' => cancelled,
-        //  '0' => open ,
-        //  '1' => partially filled,
-        //  '2' => fully filled,
-        //  '3' => submitting,
-        //  '4' => cancelling,
-        //  '6' => incomplete（open+partially filled),
-        //  '7' => complete（cancelled+fully filled),
+        $type = $market['type'];
         $request = array (
             'instrument_id' => $market['id'],
+            // '-2' => failed,
+            // '-1' => cancelled,
+            //  '0' => open ,
+            //  '1' => partially filled,
+            //  '2' => fully filled,
+            //  '3' => submitting,
+            //  '4' => cancelling,
+            //  '6' => incomplete（open+partially filled),
+            //  '7' => complete（cancelled+fully filled),
             'state' => $state,
         );
         $method = $type . 'GetOrders';
@@ -2084,7 +2077,7 @@ class okex3 extends Exchange {
         //
         return array (
             'info' => $response,
-            'id' => $this->safe_string($response, 'withdraw_id'),
+            'id' => $this->safe_string($response, 'withdrawal_id'),
         );
     }
 
@@ -2641,9 +2634,11 @@ class okex3 extends Exchange {
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $request = '/api' . '/' . $api . '/' . $this->version . '/' . $this->implode_params($path, $params);
+        $isArray = gettype ($params) === 'array' && count (array_filter (array_keys ($params), 'is_string')) == 0;
+        $request = '/api/' . $api . '/' . $this->version . '/';
+        $request .= $isArray ? $path : $this->implode_params($path, $params);
+        $query = $isArray ? $params : $this->omit ($params, $this->extract_params($path));
         $url = $this->urls['api'] . $request;
-        $query = $this->omit ($params, $this->extract_params($path));
         $type = $this->get_path_authentication_type ($path);
         if ($type === 'public') {
             if ($query) {
@@ -2668,7 +2663,7 @@ class okex3 extends Exchange {
                     $auth .= $urlencodedQuery;
                 }
             } else {
-                if ($query) {
+                if ($isArray || $query) {
                     $body = $this->json ($query);
                     $auth .= $body;
                 }
@@ -2686,10 +2681,13 @@ class okex3 extends Exchange {
         return $this->safe_string($auth, $key, 'private');
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
             throw new ExchangeError($feedback);
+        }
+        if (!$response) {
+            return; // fallback to default error handler
         }
         $exact = $this->exceptions['exact'];
         $message = $this->safe_string($response, 'message');

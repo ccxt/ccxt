@@ -656,7 +656,7 @@ class exmo extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'updated') * 1000;
+        $timestamp = $this->safe_timestamp($ticker, 'updated');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -709,7 +709,7 @@ class exmo extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date') * 1000;
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $fee = null;
         $symbol = null;
         $id = $this->safe_string($trade, 'trade_id');
@@ -762,29 +762,57 @@ class exmo extends Exchange {
             'pair' => $market['id'],
         );
         $response = $this->publicGetTrades (array_merge ($request, $params));
-        return $this->parse_trades($response[$market['id']], $market, $since, $limit);
+        $data = $this->safe_value($response, $market['id'], array());
+        return $this->parse_trades($data, $market, $since, $limit);
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        // their docs does not mention it, but if you don't supply a $symbol
-        // their API will return an empty $response as if you don't have any trades
-        // therefore we make it required here as calling it without a $symbol is useless
+        // a $symbol is required but it can be a single string, or a non-empty array
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument (a single $symbol or an array)');
         }
         $this->load_markets();
-        $market = $this->market ($symbol);
+        $pair = null;
+        $market = null;
+        if (gettype ($symbol) === 'array' && count (array_filter (array_keys ($symbol), 'is_string')) == 0) {
+            $numSymbols = is_array ($symbol) ? count ($symbol) : 0;
+            if ($numSymbols < 1) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a non-empty $symbol array');
+            }
+            $marketIds = $this->market_ids($symbol);
+            $pair = implode(',', $marketIds);
+        } else {
+            $market = $this->market ($symbol);
+            $pair = $market['id'];
+        }
         $request = array (
-            'pair' => $market['id'],
+            'pair' => $pair,
         );
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
         $response = $this->privatePostUserTrades (array_merge ($request, $params));
-        if ($market !== null) {
-            $response = $response[$market['id']];
+        $result = array();
+        $marketIds = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count ($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $symbol = null;
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+            } else {
+                list($baseId, $quoteId) = explode('_', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+            $items = $response[$marketId];
+            $trades = $this->parse_trades($items, $market, $since, $limit, array (
+                'symbol' => $symbol,
+            ));
+            $result = $this->array_concat($result, $trades);
         }
-        return $this->parse_trades($response, $market, $since, $limit);
+        return $this->filter_by_since_limit($result, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1001,10 +1029,7 @@ class exmo extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
-        $timestamp = $this->safe_integer($order, 'created');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($order, 'created');
         $symbol = null;
         $side = $this->safe_string($order, 'type');
         if ($market === null) {
@@ -1206,10 +1231,7 @@ class exmo extends Exchange {
         //            "$txid" => "ec46f784ad976fd7f7539089d1a129fe46...",
         //          }
         //
-        $timestamp = $this->safe_float($transaction, 'dt');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'dt');
         $amount = $this->safe_float($transaction, 'amount');
         if ($amount !== null) {
             $amount = abs ($amount);
@@ -1337,7 +1359,7 @@ class exmo extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

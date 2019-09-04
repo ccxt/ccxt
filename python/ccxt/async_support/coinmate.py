@@ -185,9 +185,7 @@ class coinmate (Exchange):
         }
         response = await self.publicGetOrderBook(self.extend(request, params))
         orderbook = response['data']
-        timestamp = self.safe_integer(orderbook, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(orderbook, 'timestamp')
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
@@ -197,9 +195,7 @@ class coinmate (Exchange):
         }
         response = await self.publicGetTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'data')
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -289,9 +285,7 @@ class coinmate (Exchange):
         tag = self.safe_string(item, 'destinationTag')
         currencyId = self.safe_string(item, 'amountCurrency')
         code = self.safe_currency_code(currencyId, currency)
-        type = self.safe_string(item, 'transferType')
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(item, 'transferType')
         status = self.parse_transaction_status(self.safe_string(item, 'transferStatus'))
         id = self.safe_string(item, 'transactionId')
         return {
@@ -374,12 +368,8 @@ class coinmate (Exchange):
         if amount is not None:
             if price is not None:
                 cost = price * amount
-        side = self.safe_string_2(trade, 'type', 'tradeType')
-        if side is not None:
-            side = side.lower()
-        type = self.safe_string(trade, 'orderType')
-        if type is not None:
-            type = type.lower()
+        side = self.safe_string_lower_2(trade, 'type', 'tradeType')
+        type = self.safe_string_lower(trade, 'orderType')
         orderId = self.safe_string(trade, 'orderId')
         id = self.safe_string(trade, 'transactionId')
         timestamp = self.safe_integer_2(trade, 'timestamp', 'createdTimestamp')

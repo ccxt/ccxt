@@ -323,7 +323,7 @@ module.exports = class tidex extends Exchange {
         //        sell: 0.03377798,
         //     updated: 1537522009          }
         //
-        const timestamp = ticker['updated'] * 1000;
+        const timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -393,10 +393,7 @@ module.exports = class tidex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         let side = this.safeString (trade, 'type');
         if (side === 'ask') {
             side = 'sell';
@@ -554,10 +551,7 @@ module.exports = class tidex extends Exchange {
     parseOrder (order, market = undefined) {
         const id = this.safeString (order, 'id');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        let timestamp = this.safeInteger (order, 'timestamp_created');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'timestamp_created');
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (order, 'pair');
@@ -800,7 +794,7 @@ module.exports = class tidex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

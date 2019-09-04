@@ -79,8 +79,12 @@ class bitflyer extends Exchange {
             ),
             'fees' => array (
                 'trading' => array (
-                    'maker' => 0.25 / 100,
-                    'taker' => 0.25 / 100,
+                    'maker' => 0.2 / 100,
+                    'taker' => 0.2 / 100,
+                ),
+                'BTC/JPY' => array (
+                    'maker' => 0.15 / 100,
+                    'taker' => 0.15 / 100,
                 ),
             ),
         ));
@@ -96,14 +100,6 @@ class bitflyer extends Exchange {
         for ($i = 0; $i < count ($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'product_code');
-            $spot = true;
-            $future = false;
-            $type = 'spot';
-            if (is_array($market) && array_key_exists('alias', $market)) {
-                $type = 'future';
-                $future = true;
-                $spot = false;
-            }
             $currencies = explode('_', $id);
             $baseId = null;
             $quoteId = null;
@@ -123,6 +119,19 @@ class bitflyer extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = ($numCurrencies === 2) ? ($base . '/' . $quote) : $id;
+            $fees = $this->safe_value($this->fees, $symbol, $this->fees['trading']);
+            $maker = $this->safe_value($fees, 'maker', $this->fees['trading']['maker']);
+            $taker = $this->safe_value($fees, 'taker', $this->fees['trading']['taker']);
+            $spot = true;
+            $future = false;
+            $type = 'spot';
+            if ((is_array($market) && array_key_exists('alias', $market)) || ($currencies[0] === 'FX')) {
+                $type = 'future';
+                $future = true;
+                $spot = false;
+                $maker = 0.0;
+                $taker = 0.0;
+            }
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -130,6 +139,8 @@ class bitflyer extends Exchange {
                 'quote' => $quote,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
+                'maker' => $maker,
+                'taker' => $taker,
                 'type' => $type,
                 'spot' => $spot,
                 'future' => $future,
@@ -216,17 +227,14 @@ class bitflyer extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $side = $this->safe_string($trade, 'side');
+        $side = $this->safe_string_lower($trade, 'side');
         if ($side !== null) {
             if (strlen ($side) < 1) {
                 $side = null;
-            } else {
-                $side = strtolower($side);
             }
         }
         $order = null;
         if ($side !== null) {
-            $side = strtolower($side);
             $id = $side . '_child_order_acceptance_id';
             if (is_array($trade) && array_key_exists($id, $trade)) {
                 $order = $trade[$id];
@@ -325,14 +333,8 @@ class bitflyer extends Exchange {
         $price = $this->safe_float($order, 'price');
         $cost = $price * $filled;
         $status = $this->parse_order_status($this->safe_string($order, 'child_order_state'));
-        $type = $this->safe_string($order, 'child_order_type');
-        if ($type !== null) {
-            $type = strtolower($type);
-        }
-        $side = $this->safe_string($order, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $type = $this->safe_string_lower($order, 'child_order_type');
+        $side = $this->safe_string_lower($order, 'side');
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'product_code');

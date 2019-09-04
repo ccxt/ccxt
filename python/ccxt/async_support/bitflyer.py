@@ -81,8 +81,12 @@ class bitflyer (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': 0.25 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+                'BTC/JPY': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.15 / 100,
                 },
             },
         })
@@ -97,13 +101,6 @@ class bitflyer (Exchange):
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'product_code')
-            spot = True
-            future = False
-            type = 'spot'
-            if 'alias' in market:
-                type = 'future'
-                future = True
-                spot = False
             currencies = id.split('_')
             baseId = None
             quoteId = None
@@ -122,6 +119,18 @@ class bitflyer (Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = (base + '/' + quote) if (numCurrencies == 2) else id
+            fees = self.safe_value(self.fees, symbol, self.fees['trading'])
+            maker = self.safe_value(fees, 'maker', self.fees['trading']['maker'])
+            taker = self.safe_value(fees, 'taker', self.fees['trading']['taker'])
+            spot = True
+            future = False
+            type = 'spot'
+            if ('alias' in list(market.keys())) or (currencies[0] == 'FX'):
+                type = 'future'
+                future = True
+                spot = False
+                maker = 0.0
+                taker = 0.0
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -129,6 +138,8 @@ class bitflyer (Exchange):
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'maker': maker,
+                'taker': taker,
                 'type': type,
                 'spot': spot,
                 'future': future,
@@ -209,15 +220,12 @@ class bitflyer (Exchange):
         }
 
     def parse_trade(self, trade, market=None):
-        side = self.safe_string(trade, 'side')
+        side = self.safe_string_lower(trade, 'side')
         if side is not None:
             if len(side) < 1:
                 side = None
-            else:
-                side = side.lower()
         order = None
         if side is not None:
-            side = side.lower()
             id = side + '_child_order_acceptance_id'
             if id in trade:
                 order = trade[id]
@@ -304,12 +312,8 @@ class bitflyer (Exchange):
         price = self.safe_float(order, 'price')
         cost = price * filled
         status = self.parse_order_status(self.safe_string(order, 'child_order_state'))
-        type = self.safe_string(order, 'child_order_type')
-        if type is not None:
-            type = type.lower()
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        type = self.safe_string_lower(order, 'child_order_type')
+        side = self.safe_string_lower(order, 'side')
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'product_code')

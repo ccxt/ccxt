@@ -194,10 +194,7 @@ module.exports = class virwox extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'time');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'time');
         const id = this.safeString (trade, 'tid');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'vol');
@@ -292,7 +289,7 @@ module.exports = class virwox extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code === 200) {
             if ((body[0] === '{') || (body[0] === '[')) {
                 if ('result' in response) {

@@ -317,18 +317,12 @@ module.exports = class btcmarkets extends Exchange {
             'id': market['id'],
         };
         const response = await this.publicGetMarketIdOrderbook (this.extend (request, params));
-        let timestamp = this.safeInteger (response, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, timestamp);
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -369,10 +363,7 @@ module.exports = class btcmarkets extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -695,7 +686,7 @@ module.exports = class btcmarkets extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

@@ -589,10 +589,7 @@ module.exports = class coss extends Exchange {
         const id = this.safeString (trade, 'id');
         const timestamp = this.safeInteger (trade, 'time');
         const orderId = this.safeString (trade, 'order_id');
-        let side = this.safeString (trade, 'order_side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'order_side');
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
         if (marketId !== undefined) {
@@ -825,10 +822,7 @@ module.exports = class coss extends Exchange {
             }
         }
         const average = this.safeFloat (order, 'avg');
-        let side = this.safeString (order, 'order_side');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (order, 'order_side');
         const cost = this.safeFloat (order, 'total');
         const fee = undefined;
         const trades = undefined;

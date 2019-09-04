@@ -166,9 +166,7 @@ class btcalpha (Exchange):
             market = self.safe_value(self.marketsById, trade['pair'])
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -208,12 +206,12 @@ class btcalpha (Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None, timeframe='5m', since=None, limit=None):
         return [
-            ohlcv['time'] * 1000,
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['volume'],
+            self.safe_timestamp(ohlcv, 'time'),
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
@@ -258,9 +256,7 @@ class btcalpha (Exchange):
             market = self.safe_value(self.marketsById, order['pair'])
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(order, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'date')
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'amount')
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -377,7 +373,7 @@ class btcalpha (Exchange):
             headers['X-NONCE'] = str(self.nonce())
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if code < 400:

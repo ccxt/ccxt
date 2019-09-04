@@ -414,7 +414,7 @@ module.exports = class cex extends Exchange {
             request['depth'] = limit;
         }
         const response = await this.publicGetOrderBookPair (this.extend (request, params));
-        const timestamp = response['timestamp'] * 1000;
+        const timestamp = this.safeTimestamp (response, 'timestamp');
         return this.parseOrderBook (response, timestamp);
     }
 
@@ -459,10 +459,7 @@ module.exports = class cex extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = undefined;
-        if ('timestamp' in ticker) {
-            timestamp = parseInt (ticker['timestamp']) * 1000;
-        }
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const volume = this.safeFloat (ticker, 'volume');
         const high = this.safeFloat (ticker, 'high');
         const low = this.safeFloat (ticker, 'low');
@@ -526,10 +523,7 @@ module.exports = class cex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let timestamp = this.safeInteger (trade, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         const side = this.safeString (trade, 'type');

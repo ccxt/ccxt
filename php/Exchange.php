@@ -31,14 +31,16 @@ SOFTWARE.
 namespace ccxt;
 
 use kornrunner\Eth;
-use kornrunner\Secp256k1;
 use kornrunner\Solidity;
+use Elliptic\EC;
 
-$version = '1.18.952';
+$version = '1.18.1095';
 
 // rounding mode
 const TRUNCATE = 0;
 const ROUND = 1;
+const ROUND_UP = 2;
+const ROUND_DOWN = 3;
 
 // digits counting mode
 const DECIMAL_PLACES = 0;
@@ -51,7 +53,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.952';
+    const VERSION = '1.18.1095';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -101,6 +103,7 @@ class Exchange {
         'bithumb',
         'bitkk',
         'bitlish',
+        'bitmart',
         'bitmex',
         'bitso',
         'bitstamp',
@@ -142,6 +145,7 @@ class Exchange {
         'crex24',
         'crypton',
         'deribit',
+        'digifinex',
         'dsx',
         'dx',
         'ethfinex',
@@ -160,6 +164,7 @@ class Exchange {
         'huobipro',
         'huobiru',
         'ice3x',
+        'idex',
         'independentreserve',
         'indodax',
         'itbit',
@@ -169,8 +174,8 @@ class Exchange {
         'kucoin2',
         'kuna',
         'lakebtc',
+        'latoken',
         'lbank',
-        'liqui',
         'liquid',
         'livecoin',
         'luno',
@@ -221,8 +226,24 @@ class Exchange {
         return (isset($object[$key]) && is_scalar($object[$key])) ? strval($object[$key]) : $default_value;
     }
 
+    public static function safe_string_lower($object, $key, $default_value = null) {
+        return (isset($object[$key]) && is_scalar($object[$key])) ? strtolower(strval($object[$key])) : $default_value;
+    }
+
+    public static function safe_string_upper($object, $key, $default_value = null) {
+        return (isset($object[$key]) && is_scalar($object[$key])) ? strtoupper(strval($object[$key])) : $default_value;
+    }
+
     public static function safe_integer($object, $key, $default_value = null) {
         return (isset($object[$key]) && is_numeric($object[$key])) ? intval($object[$key]) : $default_value;
+    }
+
+    public static function safe_integer_product($object, $key, $factor, $default_value = null) {
+        return (isset($object[$key]) && is_numeric($object[$key])) ? (intval($object[$key]) * $factor) : $default_value;
+    }
+
+    public static function safe_timestamp($object, $key, $default_value = null) {
+        return static::safe_integer_product($object, $key, 1000, $default_value);
     }
 
     public static function safe_value($object, $key, $default_value = null) {
@@ -242,9 +263,28 @@ class Exchange {
         return isset($value) ? $value : static::safe_string($object, $key2, $default_value);
     }
 
+    public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string_lower($object, $key1);
+        return isset($value) ? $value : static::safe_string_lower($object, $key2, $default_value);
+    }
+
+    public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
+        $value = static::safe_string_upper($object, $key1);
+        return isset($value) ? $value : static::safe_string_upper($object, $key2, $default_value);
+    }
+
     public static function safe_integer_2($object, $key1, $key2, $default_value = null) {
         $value = static::safe_integer($object, $key1);
         return isset($value) ? $value : static::safe_integer($object, $key2, $default_value);
+    }
+
+    public static function safe_integer_product_2($object, $key1, $key2, $factor, $default_value = null) {
+        $value = static::safe_integer_product($object, $key1, $factor);
+        return isset($value) ? $value : static::safe_integer_product($object, $key2, $factor, $default_value);
+    }
+
+    public static function safe_timestamp_2($object, $key1, $key2, $default_value = null) {
+        return static::safe_integer_product_2($object, $key1, $key2, 1000, $default_value);
     }
 
     public static function safe_value_2($object, $key1, $key2, $default_value = null) {
@@ -310,6 +350,13 @@ class Exchange {
             $scale = 60;
         }
         return $amount * $scale;
+    }
+
+    public static function round_timeframe($timeframe, $timestamp, $direction=ROUND_DOWN) {
+        $ms = static::parse_timeframe($timeframe) * 1000;
+        // Get offset based on timeframe in milliseconds
+        $offset = $timestamp % $ms;
+        return $timestamp - $offset + (($direction === ROUND_UP) ? $ms : 0);
     }
 
     // given a sorted arrays of trades (recent first) and a timeframe builds an array of OHLCV candles
@@ -1068,6 +1115,21 @@ class Exchange {
         return $signature;
     }
 
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null) {
+        $digest = $request;
+        if ($hash !== null) {
+            $digest = static::hash($request, $hash, 'hex');
+        }
+        $ec = new EC(strtolower($algorithm));
+        $key = $ec->keyFromPrivate($secret);
+        $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
+        $signature = array();
+        $signature['r'] = $ellipticSignature->r->bi->toHex();
+        $signature['s'] = $ellipticSignature->s->bi->toHex();
+        $signature['v'] = $ellipticSignature->recoveryParam;
+        return $signature;
+    }
+
     // this method is experimental
     public function throttle() {
         $now = $this->milliseconds();
@@ -1106,7 +1168,7 @@ class Exchange {
         return null;
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $request_headers, $request_body) {
         // it's a stub function, does nothing in base code
     }
 
@@ -1277,7 +1339,7 @@ class Exchange {
             print_r(array($method, $url, $http_status_code, $curl_error, $response_headers, $result));
         }
 
-        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response);
+        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $result ? $result : null, $json_response, $headers, $body);
 
         if ($result === false) {
             if ($curl_errno == 28) { // CURLE_OPERATION_TIMEDOUT
@@ -1460,11 +1522,11 @@ class Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 0) {
+    public function parse_bid_ask($bidask, $price_key = 0, $amount_key = 1) {
         return array(floatval($bidask[$price_key]), floatval($bidask[$amount_key]));
     }
 
-    public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parse_bids_asks($bidasks, $price_key = 0, $amount_key = 1) {
         $result = array();
         $array = is_array($bidasks) ? array_values($bidasks) : array();
         foreach ($array as $bidask) {
@@ -1473,11 +1535,11 @@ class Exchange {
         return $result;
     }
 
-    public function parseBidAsk($bidask, $price_key = 0, $amount_key = 0) {
+    public function parseBidAsk($bidask, $price_key = 0, $amount_key = 1) {
         return $this->parse_bid_ask($bidask, $price_key, $amount_key);
     }
 
-    public function parseBidsAsks($bidasks, $price_key = 0, $amount_key = 0) {
+    public function parseBidsAsks($bidasks, $price_key = 0, $amount_key = 1) {
         return $this->parse_bids_asks($bidasks, $price_key, $amount_key);
     }
 
@@ -1645,7 +1707,14 @@ class Exchange {
         $array = is_array($items) ? array_values($items) : array();
         $result = array();
         foreach ($array as $item) {
-            $result[] = array_replace_recursive($this->parse_ledger_entry($item, $currency), $params);
+            $entry = $this->parse_ledger_entry($item, $currency);
+            if (gettype ($entry) === 'array' && count (array_filter (array_keys ($entry), 'is_string')) == 0) {
+                foreach ($entry as $i) {
+                    $result[] = array_replace_recursive($i, $params);
+                }
+            } else {
+                $result[] = array_replace_recursive($entry, $params);
+            }
         }
         $result = $this->sort_by($result, 'timestamp');
         $code = isset($currency) ? $currency['code'] : null;
@@ -1776,6 +1845,10 @@ class Exchange {
 
     public function fetchBidsAsks($symbols, $params = array()) {
         return $this->fetch_bids_asks($symbols, $params);
+    }
+
+    public function fetch_ticker($symbol, $params = array()) { // stub
+        throw new NotSupported($this->id . ' fetchTicker not supported yet');
     }
 
     public function fetch_tickers($symbols, $params = array()) { // stub
@@ -2654,12 +2727,11 @@ class Exchange {
     }
 
     public function signHash($hash, $privateKey) {
-        $secp256k1 = new Secp256k1();
-        $signature = $secp256k1->sign($hash, $privateKey);
+        $signature = static::ecdsa($hash, $privateKey, 'secp256k1', null);
         return array(
-            'v' => $signature->getRecoveryParam() + 27, // integer
-            'r' => '0x' . gmp_strval($signature->getR(), 16), // '0x'-prefixed hex string
-            's' => '0x' . gmp_strval($signature->getS(), 16), // '0x'-prefixed hex string
+            'r' => '0x' . $signature['r'],
+            's' => '0x' . $signature['s'],
+            'v' => 27 + $signature['v'],
         );
     }
 

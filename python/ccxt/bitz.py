@@ -537,9 +537,7 @@ class bitz (Exchange):
         #       s: "buy"         },
         #
         id = self.safe_string(trade, 'id')
-        timestamp = self.safe_integer(trade, 'T')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(trade, 'T')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -710,9 +708,7 @@ class bitz (Exchange):
         filled = self.safe_float(order, 'numberDeal')
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is None:
-            timestamp = self.safe_integer(order, 'created')
-            if timestamp is not None:
-                timestamp = timestamp * 1000
+            timestamp = self.safe_timestamp(order, 'created')
         cost = self.safe_float(order, 'orderTotalPrice')
         if price is not None:
             if filled is not None:
@@ -994,7 +990,7 @@ class bitz (Exchange):
             headers = {'Content-type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         status = self.safe_string(response, 'status')

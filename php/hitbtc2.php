@@ -874,6 +874,9 @@ class hitbtc2 extends hitbtc {
                 'currency' => $feeCurrency,
             );
         }
+        // we use clientOrderId as the order $id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here => https://github.com/ccxt/ccxt/issues/5674
         $orderId = $this->safe_string($trade, 'clientOrderId');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'quantity');
@@ -960,6 +963,16 @@ class hitbtc2 extends hitbtc {
         //         $address => '0xd53ed559a6d963af7cb3f3fcd0e7ca499054db8b',
         //     }
         //
+        //     {
+        //         "$id" => "4f351f4f-a8ee-4984-a468-189ed590ddbd",
+        //         "index" => 3112719565,
+        //         "$type" => "withdraw",
+        //         "$status" => "success",
+        //         "$currency" => "BCHOLD",
+        //         "$amount" => "0.02423133",
+        //         "createdAt" => "2019-07-16T16:52:04.494Z",
+        //         "updatedAt" => "2019-07-16T16:54:07.753Z"
+        //     }
         $id = $this->safe_string($transaction, 'id');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'createdAt'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'updatedAt'));
@@ -967,12 +980,6 @@ class hitbtc2 extends hitbtc {
         $code = $this->safe_currency_code($currencyId, $currency);
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'status'));
         $amount = $this->safe_float($transaction, 'amount');
-        $type = $this->safe_string($transaction, 'type');
-        if ($type === 'payin') {
-            $type = 'deposit';
-        } else if ($type === 'payout') {
-            $type = 'withdrawal';
-        }
         $address = $this->safe_string($transaction, 'address');
         $txid = $this->safe_string($transaction, 'hash');
         $fee = null;
@@ -983,6 +990,7 @@ class hitbtc2 extends hitbtc {
                 'currency' => $code,
             );
         }
+        $type = $this->parse_transaction_type ($this->safe_string($transaction, 'type'));
         return array (
             'info' => $transaction,
             'id' => $id,
@@ -1006,7 +1014,16 @@ class hitbtc2 extends hitbtc {
             'failed' => 'failed',
             'success' => 'ok',
         );
-        return (is_array($statuses) && array_key_exists($status, $statuses)) ? $statuses[$status] : $status;
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function parse_transaction_type ($type) {
+        $types = array (
+            'payin' => 'deposit',
+            'payout' => 'withdrawal',
+            'withdraw' => 'withdrawal',
+        );
+        return $this->safe_string($types, $type, $type);
     }
 
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
@@ -1029,6 +1046,9 @@ class hitbtc2 extends hitbtc {
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        // we use $clientOrderId as the $order $id with HitBTC intentionally
+        // because most of their endpoints will require $clientOrderId
+        // explained here => https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
         $uuid = $this->uuid ();
         $parts = explode('-', $uuid);
@@ -1059,6 +1079,9 @@ class hitbtc2 extends hitbtc {
 
     public function edit_order ($id, $symbol, $type, $side, $amount = null, $price = null, $params = array ()) {
         $this->load_markets();
+        // we use clientOrderId as the $order $id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here => https://github.com/ccxt/ccxt/issues/5674
         // their max accepted length is 32 characters
         $uuid = $this->uuid ();
         $parts = explode('-', $uuid);
@@ -1082,6 +1105,9 @@ class hitbtc2 extends hitbtc {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
+        // we use clientOrderId as the order $id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here => https://github.com/ccxt/ccxt/issues/5674
         $request = array (
             'clientOrderId' => $id,
         );
@@ -1142,6 +1168,9 @@ class hitbtc2 extends hitbtc {
         $amount = $this->safe_float($order, 'quantity');
         $filled = $this->safe_float($order, 'cumQuantity');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
+        // we use clientOrderId as the $order $id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here => https://github.com/ccxt/ccxt/issues/5674
         $id = $this->safe_string($order, 'clientOrderId');
         $price = $this->safe_float($order, 'price');
         if ($price === null) {
@@ -1173,8 +1202,8 @@ class hitbtc2 extends hitbtc {
                 if ($feeCost === null) {
                     $feeCost = 0;
                 }
-                $tradesCost .= $trades[$i]['cost'];
-                $feeCost .= $trades[$i]['fee']['cost'];
+                $tradesCost = $this->sum ($tradesCost, $trades[$i]['cost']);
+                $feeCost = $this->sum ($feeCost, $trades[$i]['fee']['cost']);
             }
             $cost = $tradesCost;
             if (($filled !== null) && ($filled > 0)) {
@@ -1215,6 +1244,9 @@ class hitbtc2 extends hitbtc {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
+        // we use clientOrderId as the order $id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here => https://github.com/ccxt/ccxt/issues/5674
         $request = array (
             'clientOrderId' => $id,
         );
@@ -1228,6 +1260,9 @@ class hitbtc2 extends hitbtc {
 
     public function fetch_open_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
+        // we use clientOrderId as the order $id with HitBTC intentionally
+        // because most of their endpoints will require clientOrderId
+        // explained here => https://github.com/ccxt/ccxt/issues/5674
         $request = array (
             'clientOrderId' => $id,
         );
@@ -1430,7 +1465,7 @@ class hitbtc2 extends hitbtc {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

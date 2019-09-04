@@ -53,7 +53,7 @@ class kraken extends Exchange {
                 'api' => array (
                     'public' => 'https://api.kraken.com',
                     'private' => 'https://api.kraken.com',
-                    'zendesk' => 'https://support.kraken.com/hc/en-us/articles/',
+                    'zendesk' => 'https://support.kraken.com/hc/en-us/articles',
                 ),
                 'www' => 'https://www.kraken.com',
                 'doc' => 'https://www.kraken.com/features/api',
@@ -695,7 +695,7 @@ class kraken extends Exchange {
     }
 
     public function fetch_ledger_entry ($id, $code = null, $params = array ()) {
-        $items = $this->fetchLedgerEntrysByIds (array ( $id ), $code, $params);
+        $items = $this->fetch_ledger_entries_by_ids (array ( $id ), $code, $params);
         return $items[0];
     }
 
@@ -720,10 +720,20 @@ class kraken extends Exchange {
         if ($market !== null) {
             $symbol = $market['symbol'];
         }
-        if (is_array($trade) && array_key_exists('ordertxid', $trade)) {
+        if (gettype ($trade) === 'array' && count (array_filter (array_keys ($trade), 'is_string')) == 0) {
+            $timestamp = intval ($trade[2] * 1000);
+            $side = ($trade[3] === 's') ? 'sell' : 'buy';
+            $type = ($trade[4] === 'l') ? 'limit' : 'market';
+            $price = floatval ($trade[0]);
+            $amount = floatval ($trade[1]);
+            $tradeLength = is_array ($trade) ? count ($trade) : 0;
+            if ($tradeLength > 6) {
+                $id = $trade[6]; // artificially added as per #1794
+            }
+        } else if (is_array($trade) && array_key_exists('ordertxid', $trade)) {
             $order = $trade['ordertxid'];
             $id = $this->safe_string_2($trade, 'id', 'postxid');
-            $timestamp = intval ($trade['time'] * 1000);
+            $timestamp = $this->safe_timestamp($trade, 'time');
             $side = $trade['type'];
             $type = $trade['ordertype'];
             $price = $this->safe_float($trade, 'price');
@@ -737,16 +747,6 @@ class kraken extends Exchange {
                     'cost' => $this->safe_float($trade, 'fee'),
                     'currency' => $currency,
                 );
-            }
-        } else {
-            $timestamp = intval ($trade[2] * 1000);
-            $side = ($trade[3] === 's') ? 'sell' : 'buy';
-            $type = ($trade[4] === 'l') ? 'limit' : 'market';
-            $price = floatval ($trade[0]);
-            $amount = floatval ($trade[1]);
-            $tradeLength = is_array ($trade) ? count ($trade) : 0;
-            if ($tradeLength > 6) {
-                $id = $trade[6]; // artificially added as per #1794
             }
         }
         return array (
@@ -773,6 +773,21 @@ class kraken extends Exchange {
         $request = array (
             'pair' => $id,
         );
+        // https://support.kraken.com/hc/en-us/articles/218198197-How-to-pull-all-trade-data-using-the-Kraken-REST-API
+        // https://github.com/ccxt/ccxt/issues/5677
+        if ($since !== null) {
+            // php does not format it properly
+            // therefore we use string concatenation here
+            $request['since'] = $since * 1e6;
+            $request['since'] = (string) $since . '000000'; // expected to be in nanoseconds
+        }
+        // https://github.com/ccxt/ccxt/issues/5698
+        if ($limit !== null && $limit !== 1000) {
+            $fetchTradesWarning = $this->safe_value($this->options, 'fetchTradesWarning', true);
+            if ($fetchTradesWarning) {
+                throw new ExchangeError($this->id . ' fetchTrades() cannot serve ' . (string) $limit . " $trades without breaking the pagination, see https://github.com/ccxt/ccxt/issues/5698 for more details. Set exchange.options['fetchTradesWarning'] to acknowledge this warning and silence it.");
+            }
+        }
         $response = $this->publicGetTrades (array_merge ($request, $params));
         //
         //     {
@@ -800,10 +815,7 @@ class kraken extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $response = $this->privatePostBalance ($params);
-        $balances = $this->safe_value($response, 'result');
-        if ($balances === null) {
-            throw new ExchangeNotAvailable($this->id . ' fetchBalance failed due to a malformed $response ' . $this->json ($response));
-        }
+        $balances = $this->safe_value($response, 'result', array());
         $result = array( 'info' => $balances );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count ($currencyIds); $i++) {
@@ -931,7 +943,7 @@ class kraken extends Exchange {
             // delisted $market ids go here
             $market = $this->get_delisted_market_by_id ($marketId);
         }
-        $timestamp = $this->safe_integer($order, 'opentm') * 1000;
+        $timestamp = $this->safe_timestamp($order, 'opentm');
         $amount = $this->safe_float($order, 'vol');
         $filled = $this->safe_float($order, 'vol_exec');
         $remaining = $amount - $filled;
@@ -1141,7 +1153,7 @@ class kraken extends Exchange {
             'Initial' => 'pending',
             'Pending' => 'pending',
             'Success' => 'ok',
-            'Settled' => 'ok',
+            'Settled' => 'pending',
             'Failure' => 'failed',
             'Partial' => 'ok',
         );
@@ -1178,10 +1190,7 @@ class kraken extends Exchange {
         //
         $id = $this->safe_string($transaction, 'refid');
         $txid = $this->safe_string($transaction, 'txid');
-        $timestamp = $this->safe_integer($transaction, 'time');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($transaction, 'time');
         $currencyId = $this->safe_string($transaction, 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'info');
@@ -1381,7 +1390,7 @@ class kraken extends Exchange {
         return $this->milliseconds ();
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($code === 520) {
             throw new ExchangeNotAvailable($this->id . ' ' . (string) $code . ' ' . $reason);
         }

@@ -103,9 +103,7 @@ class paymium (Exchange):
             'id': self.market_id(symbol),
         }
         ticker = await self.publicGetDataIdTicker(self.extend(request, params))
-        timestamp = self.safe_integer(ticker, 'at')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'at')
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None
@@ -136,9 +134,7 @@ class paymium (Exchange):
         }
 
     def parse_trade(self, trade, market):
-        timestamp = self.safe_integer(trade, 'created_at_int')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'created_at_int')
         id = self.safe_string(trade, 'uuid')
         symbol = None
         if market is not None:

@@ -244,10 +244,7 @@ module.exports = class zaif extends Exchange {
     parseTrade (trade, market = undefined) {
         let side = this.safeString (trade, 'trade_type');
         side = (side === 'bid') ? 'buy' : 'sell';
-        let timestamp = this.safeInteger (trade, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString2 (trade, 'id', 'tid');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
@@ -329,10 +326,7 @@ module.exports = class zaif extends Exchange {
     parseOrder (order, market = undefined) {
         let side = this.safeString (order, 'action');
         side = (side === 'bid') ? 'buy' : 'sell';
-        let timestamp = this.safeInteger (order, 'timestamp');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (order, 'timestamp');
         if (!market) {
             const marketId = this.safeString (order, 'currency_pair');
             if (marketId in this.markets_by_id) {
@@ -481,7 +475,7 @@ module.exports = class zaif extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
         }

@@ -666,10 +666,7 @@ class upbit extends Exchange {
             $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
         }
         $side = null;
-        $askOrBid = $this->safe_string_2($trade, 'ask_bid', 'side');
-        if ($askOrBid !== null) {
-            $askOrBid = strtolower($askOrBid);
-        }
+        $askOrBid = $this->safe_string_lower_2($trade, 'ask_bid', 'side');
         if ($askOrBid === 'ask') {
             $side = 'sell';
         } else if ($askOrBid === 'bid') {
@@ -802,6 +799,10 @@ class upbit extends Exchange {
             $numMinutes = (int) round($timeframePeriod / 60);
             $request['unit'] = $numMinutes;
             $method .= 'Unit';
+        }
+        if ($since !== null) {
+            // convert `$since` to `to` value
+            $request['to'] = $this->iso8601 ($this->sum ($since, $timeframePeriod * $limit * 1000));
         }
         $response = $this->$method (array_merge ($request, $params));
         //
@@ -1493,7 +1494,7 @@ class upbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default $error handler
         }

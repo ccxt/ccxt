@@ -410,10 +410,7 @@ class livecoin extends Exchange {
         //         "commission" => 0,
         //         "clientorderid" => 1472837650
         //     }
-        $timestamp = $this->safe_integer_2($trade, 'time', 'datetime');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp_2($trade, 'time', 'datetime');
         $fee = null;
         $feeCost = $this->safe_float($trade, 'commission');
         if ($feeCost !== null) {
@@ -425,10 +422,7 @@ class livecoin extends Exchange {
         }
         $orderId = $this->safe_string($trade, 'clientorderid');
         $id = $this->safe_string($trade, 'id');
-        $side = $this->safe_string($trade, 'type');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'type');
         $amount = $this->safe_float($trade, 'quantity');
         $price = $this->safe_float($trade, 'price');
         $cost = null;
@@ -572,11 +566,10 @@ class livecoin extends Exchange {
                 $market = $this->markets_by_id[$marketId];
             }
         }
-        $type = null;
+        $type = $this->safe_string_lower($order, 'type');
         $side = null;
-        if (is_array($order) && array_key_exists('type', $order)) {
-            $lowercaseType = strtolower($order['type']);
-            $orderType = explode('_', $lowercaseType);
+        if ($type !== null) {
+            $orderType = explode('_', $type);
             $type = $orderType[0];
             $side = $orderType[1];
         }
@@ -767,7 +760,7 @@ class livecoin extends Exchange {
         $id = $this->safe_string($transaction, 'documentId');
         $amount = $this->safe_float($transaction, 'amount');
         $timestamp = $this->safe_integer($transaction, 'date');
-        $type = strtolower($this->safe_string($transaction, 'type'));
+        $type = $this->safe_string_lower($transaction, 'type');
         $currencyId = $this->safe_string($transaction, 'fixedCurrency');
         $feeCost = $this->safe_float($transaction, 'fee');
         $code = $this->safe_currency_code($currencyId, $currency);
@@ -889,7 +882,7 @@ class livecoin extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

@@ -147,9 +147,10 @@ module.exports = class bithumb extends Exchange {
             const account = this.account ();
             const currency = this.currency (code);
             const currencyId = currency['id'];
-            account['total'] = this.safeFloat (balances, 'total_' + currencyId);
-            account['used'] = this.safeFloat (balances, 'in_use_' + currencyId);
-            account['free'] = this.safeFloat (balances, 'available_' + currencyId);
+            const lowercase = currencyId.toLowerCase ();
+            account['total'] = this.safeFloat (balances, 'total_' + lowercase);
+            account['used'] = this.safeFloat (balances, 'in_use_' + lowercase);
+            account['free'] = this.safeFloat (balances, 'available_' + lowercase);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -409,7 +410,7 @@ module.exports = class bithumb extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

@@ -120,10 +120,7 @@ module.exports = class lykke extends Exchange {
         }
         const id = this.safeString (trade, 'id');
         const timestamp = this.parse8601 (this.safeString (trade, 'dateTime'));
-        let side = this.safeString (trade, 'action');
-        if (side !== undefined) {
-            side = side.toLowerCase ();
-        }
+        const side = this.safeStringLower (trade, 'action');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'volume');
         const cost = price * amount;
