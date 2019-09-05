@@ -597,6 +597,10 @@ class Exchange {
         return http_build_query($string, '', $this->urlencode_glue);
     }
 
+    public function urlencodewitharrayrepeat($string) {
+        return preg_replace('/%5B\d*%5D/g', '', $this->urlencode($string));
+    }
+
     public function rawencode($string) {
         return urldecode(http_build_query($string, '', $this->urlencode_glue));
     }

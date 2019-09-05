@@ -158,6 +158,7 @@ const exchanges = {
     'therock':                 require ('./js/therock.js'),
     'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
+    'timex':                   require ('./js/timex.js'),
     'upbit':                   require ('./js/upbit.js'),
     'vaultoro':                require ('./js/vaultoro.js'),
     'vbtc':                    require ('./js/vbtc.js'),
@@ -166,7 +167,7 @@ const exchanges = {
     'xbtce':                   require ('./js/xbtce.js'),
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),    
+    'zb':                      require ('./js/zb.js'),
 }
 
 //-----------------------------------------------------------------------------
