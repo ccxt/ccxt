@@ -198,7 +198,7 @@ class coinfloor (Exchange):
             'limit': limit,
         }
         response = await self.privatePostIdUserTransactions(self.extend(request, params))
-        return self.parse_ledger(response, None, since, limit)
+        return self.parse_ledger(response, None, since, None)
 
     def parse_ledger_entry_status(self, status):
         types = {

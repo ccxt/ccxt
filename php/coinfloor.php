@@ -214,7 +214,7 @@ class coinfloor extends Exchange {
             'limit' => $limit,
         );
         $response = $this->privatePostIdUserTransactions (array_merge ($request, $params));
-        return $this->parse_ledger($response, null, $since, $limit);
+        return $this->parse_ledger($response, null, $since, null);
     }
 
     public function parse_ledger_entry_status ($status) {
