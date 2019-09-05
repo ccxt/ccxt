@@ -931,28 +931,6 @@ module.exports = class Exchange {
         return this.market (symbol).symbol || symbol
     }
 
-    extractParams (string) {
-        const re = /{([\w-]+)}/g
-        const matches = []
-        let match = re.exec (string)
-        while (match) {
-            matches.push (match[1])
-            match = re.exec (string)
-        }
-        return matches
-    }
-
-    implodeParams (string, params) {
-        if (!Array.isArray (params)) {
-            for (let property in params) {
-                if (!Array.isArray (params[property])) {
-                    string = string.replace ('{' + property + '}', params[property])
-                }
-            }
-        }
-        return string
-    }
-
     url (path, params = {}) {
         let result = this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path))
