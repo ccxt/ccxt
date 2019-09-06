@@ -598,7 +598,7 @@ class Exchange {
     }
 
     public function urlencodewitharrayrepeat($string) {
-        return preg_replace('/%5B\d*%5D/g', '', $this->urlencode($string));
+        return preg_replace('/%5B\d*%5D/', '', $this->urlencode($string));
     }
 
     public function rawencode($string) {

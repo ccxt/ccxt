@@ -530,7 +530,7 @@ module.exports = class timex extends Exchange {
         let average = undefined;
         if (last !== undefined && open !== undefined) {
             change = last - open;
-            average = (last + open) / 2;
+            average = this.sum (last, open) / 2;
         }
         let percentage = undefined;
         if (change !== undefined && open) {
