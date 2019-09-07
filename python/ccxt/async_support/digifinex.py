@@ -476,8 +476,8 @@ class digifinex (Exchange):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'base_vol'),
-            'quoteVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_float(ticker, 'vol'),
+            'quoteVolume': self.safe_float(ticker, 'base_vol'),
             'info': ticker,
         }
 
