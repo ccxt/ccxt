@@ -535,12 +535,12 @@ module.exports = class bytetrade extends Exchange {
             'now': now,
             'expiration': expiration,
             'use_btt_as_fee': false,
-            'freeze_btt_fee': '0',
-            'custom_no_btt_fee_rate': 8,
             'money_id': parseInt (quoteId),
             'stock_id': parseInt (baseId),
         };
-        //const ecdsa = this.ecdsa (JSON.stringify (ob), this.secret, 'secp256k1', 'sha256');
+
+
+
         const signedTransaction = await this.signExTransactionV1 ('create_order', operation, this.secret);
         console.log (signedTransaction)
         operation['now'] = JSON.parse (signedTransaction)['operations'][0][1]['now']
@@ -1015,7 +1015,7 @@ module.exports = class bytetrade extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 503)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }

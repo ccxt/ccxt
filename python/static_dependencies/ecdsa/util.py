@@ -241,6 +241,8 @@ def sigencode_der_canonize(r, s, order, v=None):
         s = order - s
         if v is not None:
             v ^= 1
+    if r > order / 2:
+        r = order - r
     return sigencode_der(r, s, order, v)
 
 
