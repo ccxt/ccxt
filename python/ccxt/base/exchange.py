@@ -1945,8 +1945,8 @@ class Exchange(object):
 
     def signExTransactionV1(self, trans_type, trans_info, privateKey):
         dapp_name = 'Sagittarius'
-        timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
-        expiration = (datetime.datetime.utcnow() + datetime.timedelta(days=0, hours=0, minutes=0, seconds=10)).strftime("%Y-%m-%dT%H:%M:%S")
+        timestamp = datetime.datetime.utcfromtimestamp(1567548954).strftime("%Y-%m-%dT%H:%M:%S")
+        expiration = (datetime.datetime.utcfromtimestamp(1567548964) + datetime.timedelta(days=0, hours=0, minutes=0, seconds=0)).strftime("%Y-%m-%dT%H:%M:%S")
 
         if (trans_type == "create_order"):
             op = bytetrade_operations.Order_create(
@@ -2121,3 +2121,11 @@ class Exchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
+
+    @staticmethod
+    def numberToLE(n, size):
+        return Exchange.decimal_to_bytes(n, 'little').ljust(size, b'\x00')
+
+    @staticmethod
+    def numberToBE(n, size):
+        return Exchange.decimal_to_bytes(n, 'big').rjust(size, b'\x00')
