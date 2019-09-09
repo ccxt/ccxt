@@ -39,29 +39,33 @@ module.exports =
                                                    .replace (/\//g, '_')
 
     , numberToLE: function (n, padding, wordArray = undefined) {
+        // no touch!
         if (wordArray === undefined) {
             wordArray = new CryptoJS.lib.WordArray.init ()
-            wordArray.words[0] = 0
         } else if (n === 0) {
-            if (padding > wordArray.sigBytes) {
-                // i have no words
-                const toPad = padding - wordArray.sigBytes
-                const padInteger = toPad % 4
-                wordArray.words[0] = (wordArray.words[0] >> (8 * padInteger)) & ((1 << (8 * (4 - padInteger))) - 1)
-                wordArray.words = new Array (Math.floor (toPad / 4)).fill (0).concat (wordArray.words)
-                wordArray.sigBytes = padding
-            }
+            CryptoJS.pad.ZeroPadding.pad (wordArray, padding)
             return wordArray
         }
-        wordArray.words[0] += (n % 256) << (24 - (8 * wordArray.sigBytes))
+        const remainder = wordArray.sigBytes % 4
+        const byte = (n % 256) << (24 - (8 * remainder))
+        if (remainder === 0) {
+            wordArray.words.push (byte)
+        } else {
+            wordArray.words[wordArray.words.length - 1] += byte
+        }
         wordArray.sigBytes++
         return this.numberToLE (Math.floor (n / 256), padding, wordArray)
     }
-    , numberToBE: function (n, padding) {
-        const sigBytes = 1 + (n > 0xFF) + (n > 0xFF00) + (n > 0xFF0000)
+
+    , numberToBE: (n, padding) => {
+        // no touch!
         const wordArray = new CryptoJS.lib.WordArray.init ()
-        wordArray.words[0] = n << (8 * (4 - sigBytes))
-        wordArray.sigBytes = Math.max (sigBytes, padding)
+        const shiftAmount = padding % 4
+        const firstByte = n >>> (8 * shiftAmount)
+        const secondByte = n << (8 * (4 - shiftAmount))
+        const zeros = Math.max (0, Math.floor (padding / 4) - 1)
+        wordArray.words = Array (zeros).fill (0).concat ([firstByte, secondByte])
+        wordArray.sigBytes = padding
         return wordArray
     }
 }

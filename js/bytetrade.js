@@ -521,9 +521,56 @@ module.exports = class bytetrade extends Exchange {
         const priceChainWithoutTruncate = parseInt (priceFloat * Math.pow (10, quoteCurrency['info']['basePrecision']));
         const priceTruncateValue = parseInt (Math.pow (10, quoteCurrency['info']['basePrecision'] - market['precision']['price']));
         const priceMiddleAfterTruncate = parseInt (priceChainWithoutTruncate / priceTruncateValue);
-        const priceChain = parseInt (priceMiddleAfterTruncate * priceTruncateValue);
-        const now = this.seconds ();
-        const expiration = now + 10;
+        let priceChain = parseInt (priceMiddleAfterTruncate * priceTruncateValue);
+        const now = 1567548954000
+        const expiration = 1567548964000
+        let datetime = this.iso8601 (now);
+        datetime = datetime.split ('.')[0];
+        let expirationDatetime = this.iso8601 (expiration);
+        expirationDatetime = expirationDatetime.split ('.')[0];
+        const chainName = 'Sagittarius';
+        priceChain = 1602000000000000000000
+
+
+        const byteStringArray = [
+            this.numberToBE (1, 32),
+            this.numberToLE (Math.floor (now / 1000), 4),
+            this.numberToLE (1, 1),
+            this.numberToLE (Math.floor (expiration / 1000), 4),
+            this.numberToLE (1, 1),
+            this.numberToLE (32, 1),
+            this.numberToLE (0, 8),
+            this.numberToLE (300000000000000, 8),
+            this.numberToLE (this.apiKey.length, 1),
+            this.stringToBinary (this.apiKey),
+            this.numberToLE (sideNum, 1),
+            this.numberToLE (typeNum, 1),
+            this.numberToLE (marketName.length, 1),
+            this.stringToBinary (marketName),
+            this.numberToLE (Math.floor (amountChain / (2 ** 64)), 8),
+            this.numberToLE (Math.floor (amountChain % (2 ** 64)), 8),
+            this.numberToLE (Math.floor (priceChain / (2 ** 64)), 8),
+            this.numberToLE (Math.floor (priceChain % (2 ** 64)), 8),
+            this.numberToLE (0, 2),
+            this.numberToLE (Math.floor (now / 1000), 4),
+            this.numberToLE (Math.floor (expiration / 1000), 4),
+            this.numberToLE (0, 2),
+            this.numberToLE (parseInt (quoteId), 4),
+            this.numberToLE (parseInt (baseId), 4),
+            this.numberToLE (0, 1),
+            this.numberToLE (1, 1),
+            this.numberToLE (chainName.length, 1),
+            this.stringToBinary (chainName),
+            this.numberToLE (0, 1),
+        ];
+        let c = require ('/Users/carlorevelli/Documents/important/code/ccxt/js/static_dependencies/crypto-js/crypto-js.js')
+        let bytestring  = new c.lib.WordArray.init ();
+        for (let i = 0; i < byteStringArray.length; i++) {
+            bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
+        }
+        const hash = this.hash (bytestring, 'sha256', 'hex');
+        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined)
+
         const operation = {
             'fee': '300000000000000',
             'creator': this.apiKey,
@@ -538,8 +585,6 @@ module.exports = class bytetrade extends Exchange {
             'money_id': parseInt (quoteId),
             'stock_id': parseInt (baseId),
         };
-
-
 
         const signedTransaction = await this.signExTransactionV1 ('create_order', operation, this.secret);
         console.log (signedTransaction)
