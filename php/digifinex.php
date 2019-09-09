@@ -480,8 +480,8 @@ class digifinex extends Exchange {
             'change' => null,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'base_vol'),
-            'quoteVolume' => $this->safe_float($ticker, 'vol'),
+            'baseVolume' => $this->safe_float($ticker, 'vol'),
+            'quoteVolume' => $this->safe_float($ticker, 'base_vol'),
             'info' => $ticker,
         );
     }
