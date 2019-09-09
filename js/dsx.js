@@ -727,9 +727,9 @@ module.exports = class dsx extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'timestampCreated');
         const marketId = this.safeString (order, 'pair');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        let symbol = undefined;
-        if (market !== undefined) {
+        let symbol = marketId;
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
             symbol = market['symbol'];
         }
         const remaining = this.safeFloat (order, 'remainingVolume');
