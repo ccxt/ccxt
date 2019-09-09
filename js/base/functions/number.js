@@ -1,8 +1,5 @@
 'use strict'
 
-const { isString, isNumber } = require ('./type')
-    , { max } = Math
-
 /*  ------------------------------------------------------------------------
 
     NB: initially, I used objects for options passing:
@@ -46,7 +43,7 @@ const precisionConstants = {
 
 function numberToString (x) { // avoids scientific notation for too large and too small numbers
 
-    if (isString (x)) return x
+    if (typeof x === 'string') return x
 
     if (Math.abs (x) < 1.0) {
         const s = x.toString ()
@@ -257,24 +254,24 @@ const decimalToPrecision = (x, roundingMode
 
 /*  Compute various sub-ranges       */
 
-    const nSign         =     (signNeeded ? 1 : 0)                // (-)123.456
-        , nBeforeDot    =     (nSign + (afterDot - readStart))    // (-123).456
-        , nAfterDot     = max (readEnd - afterDot, 0)             // -123.(456)
-        , actualLength  =     (readEnd - readStart)               // -(123.456)
-        , desiredLength =     (paddingMode === NO_PADDING)
-                                    ? (actualLength)              // -(123.456)
-                                    : (precisionEnd - readStart)  // -(123.456    )
+    const nSign         =          (signNeeded ? 1 : 0)                // (-)123.456
+        , nBeforeDot    =          (nSign + (afterDot - readStart))    // (-123).456
+        , nAfterDot     = Math.max (readEnd - afterDot, 0)             // -123.(456)
+        , actualLength  =          (readEnd - readStart)               // -(123.456)
+        , desiredLength =          (paddingMode === NO_PADDING)
+                                       ? (actualLength)                // -(123.456)
+                                       : (precisionEnd - readStart)    // -(123.456    )
 
-        , pad           = max (desiredLength - actualLength, 0)   //  -123.456(    )
-        , padStart      =     (nBeforeDot + 1 + nAfterDot)        //  -123.456( )
-        , padEnd        =     (padStart + pad)                    //  -123.456     ( )
-        , isInteger     =     (nAfterDot + pad) === 0             //  -123
+        , pad           = Math.max (desiredLength - actualLength, 0)   //  -123.456(    )
+        , padStart      =          (nBeforeDot + 1 + nAfterDot)        //  -123.456( )
+        , padEnd        =          (padStart + pad)                    //  -123.456     ( )
+        , isInteger     =          (nAfterDot + pad) === 0             //  -123
 
 /*  Fill the output buffer with characters    */
 
     const out = new Uint8Array (nBeforeDot + (isInteger ? 0 : 1) + nAfterDot + pad)
-                                                                                                  // ---------------------
-    if  (signNeeded)                                out[0]          = MINUS     // -     minus sign
+    // ------------------------------------------------------------------------------------------ // ---------------------
+    if  (signNeeded)                                                  out[0]          = MINUS     // -     minus sign
     for (i = nSign, j = readStart;          i < nBeforeDot; i++, j++) out[i]          = chars[j]  // 123   before dot
     if  (!isInteger)                                                  out[nBeforeDot] = DOT       // .     dot
     for (i = nBeforeDot + 1, j = afterDot;  i < padStart;   i++, j++) out[i]          = chars[j]  // 456   after dot

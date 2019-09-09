@@ -58,10 +58,9 @@ class coinfloor extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/GBP' => array( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP' ),
-                'BTC/EUR' => array( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR' ),
-                'BCH/GBP' => array( 'id' => 'BCH/GBP', 'symbol' => 'BCH/GBP', 'base' => 'BCH', 'quote' => 'GBP', 'baseId' => 'BCH', 'quoteId' => 'GBP' ),
-                'ETH/GBP' => array( 'id' => 'ETH/GBP', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP', 'baseId' => 'ETH', 'quoteId' => 'GBP' ),
+                'BTC/GBP' => array( 'id' => 'XBT/GBP', 'symbol' => 'BTC/GBP', 'base' => 'BTC', 'quote' => 'GBP', 'baseId' => 'XBT', 'quoteId' => 'GBP', 'precision' => array ( 'price' => 0, 'amount' => 4 )),
+                'BTC/EUR' => array( 'id' => 'XBT/EUR', 'symbol' => 'BTC/EUR', 'base' => 'BTC', 'quote' => 'EUR', 'baseId' => 'XBT', 'quoteId' => 'EUR', 'precision' => array ( 'price' => 0, 'amount' => 4 )),
+                'ETH/GBP' => array( 'id' => 'ETH/GBP', 'symbol' => 'ETH/GBP', 'base' => 'ETH', 'quote' => 'GBP', 'baseId' => 'ETH', 'quoteId' => 'GBP', 'precision' => array ( 'price' => 0, 'amount' => 4 )),
             ),
         ));
     }
@@ -214,7 +213,7 @@ class coinfloor extends Exchange {
             'limit' => $limit,
         );
         $response = $this->privatePostIdUserTransactions (array_merge ($request, $params));
-        return $this->parse_ledger($response, null, $since, $limit);
+        return $this->parse_ledger($response, null, $since, null);
     }
 
     public function parse_ledger_entry_status ($status) {

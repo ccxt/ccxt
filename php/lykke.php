@@ -95,6 +95,9 @@ class lykke extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'XPD' => 'Lykke XPD',
+            ),
         ));
     }
 
