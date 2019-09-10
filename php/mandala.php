@@ -14,7 +14,7 @@ class mandala extends Exchange {
             'id' => 'mandala',
             'name' => 'Mandala',
             'countries' => array ( 'MT' ),
-            'version' => 'v1.1',
+            'version' => 'v2',
             'rateLimit' => 1500,
             'certified' => true,
             // new metainfo interface

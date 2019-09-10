@@ -23,7 +23,7 @@ class mandala (Exchange):
             'id': 'mandala',
             'name': 'Mandala',
             'countries': ['MT'],
-            'version': 'v1.1',
+            'version': 'v2',
             'rateLimit': 1500,
             'certified': True,
             # new metainfo interface
