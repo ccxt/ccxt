@@ -13,7 +13,7 @@ module.exports = class mandala extends Exchange {
             'id': 'mandala',
             'name': 'Mandala',
             'countries': [ 'MT' ],
-            'version': 'v1.1',
+            'version': 'v2',
             'rateLimit': 1500,
             'certified': true,
             // new metainfo interface
