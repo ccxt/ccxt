@@ -15,7 +15,7 @@ module.exports = class mandala extends Exchange {
             'countries': [ 'MT' ],
             'version': 'v1.1',
             'rateLimit': 1500,
-            'certified': false,
+            'certified': true,
             // new metainfo interface
             'has': {
                 'cancelAllOrders': true,
@@ -31,6 +31,7 @@ module.exports = class mandala extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
+                'fetchClosedOrders': true,
                 'fetchTickers': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -585,7 +586,7 @@ module.exports = class mandala extends Exchange {
             const market = markets[i];
             const baseId = this.safeString (market, 'coinName');
             const quoteId = this.safeString (market, 'marketName');
-            const id = baseId + '_' + quoteId;
+            const id = quoteId + '_' + baseId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -961,12 +962,13 @@ module.exports = class mandala extends Exchange {
         if (since === undefined) {
             since = this.milliseconds () - offset;
         }
+        const timestamp = this.sum (since, offset);
         const request = {
             'interval': this.timeframes[timeframe],
-            'baseCurrency': market['baseId'], // they have base/quote reversed with some endpoints
+            'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
             'limit': limit,
-            'timestamp': this.sum (since, offset),
+            'timestamp': timestamp,
         };
         const response = await this.marketGetGetChartData (this.extend (request, params));
         //
@@ -993,7 +995,7 @@ module.exports = class mandala extends Exchange {
         //         ],
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1509,24 +1511,26 @@ module.exports = class mandala extends Exchange {
         //
         //     {
         //         "status": "Success",
-        //         "message": null,
+        //         "errorMessage": "Success!",
         //         "data": {
         //             "Withdrawals": [
         //                 {
-        //                     "withdrawalType": "ETH",
-        //                     "withdrawalAddress": "0xE28CE3A999d6035d042D1a87FAab389Cb0B78Db6",
-        //                     "withdrawalAmount": 0.071,
-        //                     "txnHash": null,
-        //                     "withdrawalReqDate": "2018-11-12T09:38:28.43",
-        //                     "withdrawalConfirmDate": null,
-        //                     "withdrawalStatus": "Pending"
-        //                 }
+        //                     "WithdrawalType": "BTC",
+        //                     "WithdrawalAddress": "mtHpWL1nyQa1CCTCSMD6aV1ycEHWCWD3WK",
+        //                     "WithdrawalAmount": 0.00990099,
+        //                     "TXNHash": "eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00",
+        //                     "WithdrawalReqDate": "2019-06-24T13:04:13.76",
+        //                     "WithdrawalConfirmDate": "2019-06-24T13:04:31.51",
+        //                     "WithdrawalStatus": "Processed",
+        //                     "RejectReason": "",
+        //                     "ExplorerURL": "https://live.blockcypher.com/btc-testnet/tx/eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00"
+        //                 },
         //             ]
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const withdrawals = this.safeValue (data, 'withdrawals', []);
+        const withdrawals = this.safeValue (data, 'Withdrawals', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
@@ -1556,26 +1560,35 @@ module.exports = class mandala extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         "withdrawalType": "ETH",
-        //         "withdrawalAddress": "0xE28CE3A999d6035d042D1a87FAab389Cb0B78Db6",
-        //         "withdrawalAmount": 0.071,
-        //         "txnHash": null,
-        //         "withdrawalReqDate": "2018-11-12T09:38:28.43",
-        //         "withdrawalConfirmDate": null,
-        //         "withdrawalStatus": "Pending"
+        //         "WithdrawalType": "BTC",
+        //         "WithdrawalAddress": "mtHpWL1nyQa1CCTCSMD6aV1ycEHWCWD3WK",
+        //         "WithdrawalAmount": 0.00990099,
+        //         "TXNHash": "eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00",
+        //         "WithdrawalReqDate": "2019-06-24T13:04:13.76",
+        //         "WithdrawalConfirmDate": "2019-06-24T13:04:31.51",
+        //         "WithdrawalStatus": "Processed",
+        //         "RejectReason": "",
+        //         "ExplorerURL": "https://live.blockcypher.com/btc-testnet/tx/eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00"
         //     }
         //
         const id = undefined;
-        const amount = this.safeFloat (transaction, 'withdrawalAmount');
-        const address = this.safeString (transaction, 'withdrawalAddress');
-        const tag = undefined;
-        const txid = this.safeString (transaction, 'txnHash');
-        const updated = this.parse8601 (this.safeValue (transaction, 'withdrawalConfirmDate'));
-        const timestamp = this.parse8601 (this.safeString (transaction, 'withdrawalReqDate', updated));
-        const type = ('withdrawalReqDate' in transaction) ? 'withdrawal' : 'deposit';
-        const currencyId = this.safeString (transaction, 'withdrawalType');
+        const amount = this.safeFloat2 (transaction, 'WithdrawalAmount', 'DepositAmount');
+        const txid = this.safeString (transaction, 'TXNHash');
+        const updated = this.parse8601 (this.safeString2 (transaction, 'WithdrawalConfirmDate', 'DepositConfirmDate'));
+        const timestamp = this.parse8601 (this.safeString2 (transaction, 'WithdrawalReqDate', 'DepositReqDate', updated));
+        const type = ('WithdrawalReqDate' in transaction) ? 'withdrawal' : 'deposit';
+        const currencyId = this.safeString (transaction, 'WithdrawalType', 'DepositType');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let status = this.parseTransactionStatus (this.safeString (transaction, 'withdrawalStatus'));
+        currency = this.currency (code);
+        const addressString = this.safeString2 (transaction, 'WithdrawalAddress', 'DepositAddress');
+        const addressStructure = this.parseAddress (addressString, currency);
+        const address = addressStructure['address'];
+        const addressFrom = undefined;
+        const addressTo = address;
+        const tag = addressStructure['tag'];
+        const tagFrom = undefined;
+        const tagTo = tag;
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'WithdrawalStatus'));
         let feeCost = undefined;
         if (type === 'deposit') {
             status = 'ok';
@@ -1594,7 +1607,11 @@ module.exports = class mandala extends Exchange {
             'currency': code,
             'amount': amount,
             'address': address,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
             'tag': tag,
+            'tagFrom': tagFrom,
+            'tagTo': tagTo,
             'status': status,
             'type': type,
             'updated': updated,
@@ -1605,7 +1622,7 @@ module.exports = class mandala extends Exchange {
         };
     }
 
-    parseDepositAddresses (addresses) {
+    parseAddresses (addresses) {
         const result = [];
         const ids = Object.keys (addresses);
         for (let i = 0; i < ids.length; i++) {
@@ -1613,42 +1630,29 @@ module.exports = class mandala extends Exchange {
             const address = addresses[id];
             const currencyId = id.toUpperCase ();
             const currency = this.safeValue (this.currencies_by_id, currencyId);
-            result.push (this.parseDepositAddress (address, currency));
+            result.push (this.parseAddress (address, currency));
         }
         return result;
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.orderPostV2ListAllAddresses (params);
-        //
-        //     {
-        //         "status": "Success",
-        //         "message": null,
-        //         "data": {
-        //             "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
-        //             "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
-        //             "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        return this.parseDepositAddresses (data);
-    }
-
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseAddress (depositAddress, currency = undefined) {
         //
         //     "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
         //     "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
-        //     "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
+        //     "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV?dt=3931222419"
         //
-        const parts = depositAddress.split (':');
-        const address = parts[0];
-        this.checkAddress (address);
+        const info = this.safeValue (currency, 'info', {});
+        let address = depositAddress;
+        const separator = this.safeValue (info, 'addressSeparator', '?dt=');
         let tag = undefined;
-        const numParts = parts.length;
-        if (numParts > 1) {
-            tag = parts[1];
+        if (separator.length > 0) {
+            const parts = depositAddress.split (separator);
+            address = parts[0];
+            this.checkAddress (address);
+            const numParts = parts.length;
+            if (numParts > 1) {
+                tag = parts[1];
+            }
         }
         let code = undefined;
         if (currency !== undefined) {
@@ -1662,7 +1666,26 @@ module.exports = class mandala extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddresses (codes = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.orderPostV2ListAllAddresses (params);
+        //
+        //     {
+        //         "status": "Success",
+        //         "errorMessage": null,
+        //         "data": {
+        //             "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
+        //             "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
+        //             "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV?dt=3931222419"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseAddresses (data);
+    }
+
+    async generateDepositAddress (code, params = {}) {
+        // a common implmenetation of fetchDepositAddress and createDepositAddress
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -1672,52 +1695,48 @@ module.exports = class mandala extends Exchange {
         //
         //     {
         //         status: 'Success',
-        //         message: '',
+        //         errorMessage: '',
         //         data: {
-        //             address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
+        //             Address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
-        return this.parseDepositAddress (address, currency);
+        const address = this.safeString (data, 'Address');
+        return this.parseAddress (address, currency);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        return await this.generateDepositAddress (code, params);
     }
 
     async createDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.orderPostV2GenerateAddress (this.extend (request, params));
-        //
-        //     {
-        //         status: 'Success',
-        //         message: '',
-        //         data: {
-        //             address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
-        return this.parseDepositAddress (address, currency);
+        return await this.generateDepositAddress (code, params);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const withdrawalRequest = {
+        let gauth_code = undefined;
+        if (this.twofa !== undefined) {
+            gauth_code = this.oath ();
+        }
+        gauth_code = this.safeString (params, 'gauth_code', gauth_code);
+        if (gauth_code === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw () requires a `this.twofa` key or a 2FA code in the `gauth_code` parameter as a string.');
+        }
+        params = this.omit (params, 'gauth_code');
+        const request = {
             'currency': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-            // 'addressTag': null,
+            'gauth_code': gauth_code,
         };
         if (tag !== undefined) {
-            withdrawalRequest['addressTag'] = tag;
+            request['addressTag'] = tag;
         }
-        const withdrawalResponse = await this.apiPostRequestWithdraw (this.extend (withdrawalRequest, params));
+        const response = await this.apiPostRequestWithdraw (this.extend (request, params));
         //
         //     {
         //         "status": "Success",
@@ -1727,23 +1746,11 @@ module.exports = class mandala extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (withdrawalResponse, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         const id = this.safeString (data, 'withdrawalId');
-        let otp = undefined;
-        if (this.twofa !== undefined) {
-            otp = this.oath ();
-        }
-        otp = this.safeString (params, 'emailToken', otp);
-        if (otp === undefined) {
-            throw new AuthenticationError (this.id + ' signIn() requires this.twofa credential or a one-time 2FA "emailToken" parameter');
-        }
-        const confirmationRequest = {
-            'EmailToken': otp,
-        };
-        const confirmationResponse = await this.apiPostRequestWithdrawConfirmation (this.extend (confirmationRequest, params));
-        const timestamp = this.milliseconds ();
+        const timestamp = undefined;
         return {
-            'info': [ withdrawalResponse, confirmationResponse ],
+            'info': response,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
