@@ -1193,6 +1193,7 @@ module.exports = class mandala extends Exchange {
                 'currency': quote,
             };
         }
+        const side = this.safeStringLower (order, 'side');
         return {
             'info': order,
             'id': id,
@@ -1201,7 +1202,7 @@ module.exports = class mandala extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
-            'side': undefined,
+            'side': side,
             'price': price,
             'cost': cost,
             'average': undefined,
