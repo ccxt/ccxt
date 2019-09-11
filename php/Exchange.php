@@ -215,6 +215,10 @@ class Exchange {
         return explode($delimiters[0], str_replace($delimiters, $delimiters[0], $string));
     }
 
+    public static function strip($string) {
+        return trim($string);
+    }
+
     public static function decimal($number) {
         return '' + $number;
     }
