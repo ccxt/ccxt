@@ -115,6 +115,7 @@ const exchanges = {
     'fcoinjp':                 require ('./js/fcoinjp.js'),
     'flowbtc':                 require ('./js/flowbtc.js'),
     'foxbit':                  require ('./js/foxbit.js'),
+    'ftx':                     require ('./js/ftx.js'),
     'fybse':                   require ('./js/fybse.js'),
     'gateio':                  require ('./js/gateio.js'),
     'gdax':                    require ('./js/gdax.js'),
@@ -167,7 +168,7 @@ const exchanges = {
     'xbtce':                   require ('./js/xbtce.js'),
     'yobit':                   require ('./js/yobit.js'),
     'zaif':                    require ('./js/zaif.js'),
-    'zb':                      require ('./js/zb.js'),    
+    'zb':                      require ('./js/zb.js'),
 }
 
 //-----------------------------------------------------------------------------
