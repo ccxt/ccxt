@@ -69,6 +69,30 @@ const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infini
     return ohlcvs;
 }
 
+const extractParams = (string) => {
+    const re = /{([\w-]+)}/g
+    const matches = []
+    let match = re.exec (string)
+    while (match) {
+        matches.push (match[1])
+        match = re.exec (string)
+    }
+    return matches
+}
+
+const implodeParams = (string, params) => {
+    if (!Array.isArray (params)) {
+        const keys = Object.keys (params)
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i]
+            if (!Array.isArray (params[key])) {
+                string = string.replace ('{' + key + '}', params[key])
+            }
+        }
+    }
+    return string
+}
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
@@ -91,7 +115,10 @@ module.exports = {
     roundTimeframe,
     buildOHLCVC,
     ROUND_UP,
-    ROUND_DOWN
+    ROUND_DOWN,
+
+    implodeParams,
+    extractParams
 }
 
 /*  ------------------------------------------------------------------------ */

@@ -307,9 +307,9 @@ class lykke (Exchange):
             symbol = market['symbol']
         lastTradeTimestamp = self.parse8601(self.safe_string(order, 'LastMatchTime'))
         timestamp = None
-        if ('Registered' in list(order.keys())) and(order['Registered']):
+        if ('Registered' in list(order.keys())) and (order['Registered']):
             timestamp = self.parse8601(order['Registered'])
-        elif ('CreatedAt' in list(order.keys())) and(order['CreatedAt']):
+        elif ('CreatedAt' in list(order.keys())) and (order['CreatedAt']):
             timestamp = self.parse8601(order['CreatedAt'])
         price = self.safe_float(order, 'Price')
         amount = self.safe_float(order, 'Volume')

@@ -179,7 +179,7 @@ class bithumb (Exchange):
         change = None
         percentage = None
         average = None
-        if (close is not None) and(open is not None):
+        if (close is not None) and (open is not None):
             change = close - open
             if open > 0:
                 percentage = change / open * 100
@@ -345,7 +345,7 @@ class bithumb (Exchange):
         }
         if currency == 'XRP' or currency == 'XMR':
             destination = self.safe_string(params, 'destination')
-            if (tag is None) and(destination is None):
+            if (tag is None) and (destination is None):
                 raise ExchangeError(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
             elif tag is not None:
                 request['destination'] = tag

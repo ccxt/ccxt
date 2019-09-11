@@ -315,7 +315,7 @@ class cex (Exchange):
             pricePrecision = self.safe_integer(quoteCurrency, 'precision', 8)
             for j in range(0, len(pairs)):
                 pair = pairs[j]
-                if (pair['symbol1'] == baseId) and(pair['symbol2'] == quoteId):
+                if (pair['symbol1'] == baseId) and (pair['symbol2'] == quoteId):
                     # we might need to account for `priceScale` here
                     pricePrecision = self.safe_integer(pair, 'pricePrecision', pricePrecision)
             precision = {

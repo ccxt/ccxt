@@ -34,7 +34,7 @@ use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
 
-$version = '1.18.1118';
+$version = '1.18.1132';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -53,7 +53,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1118';
+    const VERSION = '1.18.1132';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -85,6 +85,7 @@ class Exchange {
     public static $exchanges = array(
         '_1btcxe',
         'acx',
+        'adara',
         'allcoin',
         'anxpro',
         'bcex',
@@ -212,6 +213,10 @@ class Exchange {
 
     public static function split($string, $delimiters = array(' ')) {
         return explode($delimiters[0], str_replace($delimiters, $delimiters[0], $string));
+    }
+
+    public static function strip($string) {
+        return trim($string);
     }
 
     public static function decimal($number) {

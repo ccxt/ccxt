@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1118'
+__version__ = '1.18.1132'
 
 # -----------------------------------------------------------------------------
 
@@ -729,6 +729,10 @@ class Exchange(object):
         if len(string) > 1:
             return "%s%s" % (string[0].upper(), string[1:])
         return string.upper()
+
+    @staticmethod
+    def strip(string):
+        return string.strip()
 
     @staticmethod
     def keysort(dictionary):

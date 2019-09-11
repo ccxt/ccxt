@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AuthenticationError, InvalidOrder, InsufficientFunds, PermissionDenied } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -13,9 +13,9 @@ module.exports = class mandala extends Exchange {
             'id': 'mandala',
             'name': 'Mandala',
             'countries': [ 'MT' ],
-            'version': 'v1.1',
+            'version': 'v2',
             'rateLimit': 1500,
-            'certified': false,
+            'certified': true,
             // new metainfo interface
             'has': {
                 'cancelAllOrders': true,
@@ -31,7 +31,7 @@ module.exports = class mandala extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOrderStatus': true,
+                'fetchClosedOrders': true,
                 'fetchTickers': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
@@ -172,6 +172,19 @@ module.exports = class mandala extends Exchange {
                         'cancel-my-order',
                         'cancel-all-my-orders',
                         'get-balance',
+                        'v2/PlaceOrder',
+                        'v2/my-order-history',
+                        'v2/my-order-status',
+                        'v2/my-trade-history',
+                        'v2/cancel-my-order',
+                        'v2/cancel-all-my-orders',
+                        'v2/GetDeposits',
+                        'v2/GetWithdrawals',
+                        'v2/GenerateAddress',
+                        'v2/Get_User_Withdrawal_Limits',
+                        'v2/ListAllAddresses',
+                        'v2/RequestWithdraw',
+                        'v2/RequestWithdrawConfirmation',
                     ],
                 },
             },
@@ -198,6 +211,8 @@ module.exports = class mandala extends Exchange {
                     'Invalid Type': BadRequest, // on fetchOrders with a wrong type {"status":"Error","errorMessage":"Invalid Type","data":null}
                     'Exception_Invalid_CurrencyName': BadRequest, // {"status":"BadRequest","message":"Exception_Invalid_CurrencyName","data":"Invalid Currency name"}
                     'Exception_BadRequest': BadRequest, // {"status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload"}
+                    'Blacklisted IP Address': PermissionDenied, // {"status":"Error","errorMessage":"Blacklisted IP Address","data":null}
+                    'Trade_Invalid_Size': InvalidOrder, // {"status":"Error","errorMessage":"Trade_Invalid_Size","data":"Invalid trade size."}
                 },
                 'broad': {
                     'Some error occurred, try again later.': ExchangeNotAvailable, // {"status":"Error","errorMessage":"Some error occurred, try again later.","data":null}
@@ -389,57 +404,199 @@ module.exports = class mandala extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const currenciesResponse = await this.fetchCurrenciesFromCache (params);
-        const currencies = this.safeValue (currenciesResponse, 'data', []);
-        const currenciesById = this.indexBy (currencies, 'shortName');
-        const response = await this.marketGetGetMarketSummary ();
+        const response = await this.settingsGetGetSettings (params);
         //
         //     {
-        //         status: 'Success',
-        //         errorMessage: null,
+        //         status: "Success",
+        //         message: "Success!",
         //         data: {
-        //             BTC_BAT:
-        //                 Last: 0.00003431,
-        //                 LowestAsk: 0,
-        //                 HeighestBid: 0,
-        //                 PercentChange: 0,
-        //                 BaseVolume: 0,
-        //                 QuoteVolume: 0,
-        //                 High_24hr: 0,
-        //                 Low_24hr: 0,
+        //             server_Time_UTC:   "1567260547",
+        //             default_Pair:   "ETH_BTC",
+        //             disable_RM:   "False",
+        //             disable_TDM:   "False",
+        //             enable_TDM_Pay_IN_Exchange_Token:   "False",
+        //             disable_2FA:   "False",
+        //             disable_Login:   "False",
+        //             enable_AeraPass:   "False",
+        //             enable_InstaTrade:   "False",
+        //             enable_CopyTrade:   "False",
+        //             auto_Sell:   "False",
+        //             enable_CryptoForecasting:   "False",
+        //             enable_Simplex:   "False",
+        //             aeraPass_Url:   "False",
+        //             logo_Url:   "https://trade.mandalaex.com/assets/logo.png",
+        //             favIcon_Url:   "favicon.ico",
+        //             navBarLogo_Url:   "https://trade.mandalaex.com/assets/logo.png",
+        //             fiat_List:   "USD,RUB,AUD,EUR,ARS,CAD,COP,TRY,UGX,BRL",
+        //             exchange_IEO_Coins:   "XYZ,ABC",
+        //             mfa_Type: {
+        //                 name: "Google",
+        //                 codeLength:  6,
+        //                 downloadLink: "google.com"
         //             },
-        //             ETH_ZRX: {
-        //                 Last: 0.00213827,
-        //                 LowestAsk: 0,
-        //                 HeighestBid: 0,
-        //                 PercentChange: 0,
-        //                 BaseVolume: 0,
-        //                 QuoteVolume: 0,
-        //                 High_24hr: 0,
-        //                 Low_24hr: 0,
+        //             _CoName:   "Green Donuts",
+        //             exchangeName:   "Green Donuts",
+        //             _xrp_address:   "rBsqK5rzMvo5a4ViVoPudJkXd7NNPXKE9f",
+        //             tdM_Token_Name:   "MDX",
+        //             enable_DustConversion:   "True",
+        //             exchange_SupportDesk_URL:   "https://modulushelp.freshdesk.com",
+        //             kyc: {
+        //                 enable_GoKYC: "False",
+        //                 enable_SumSub_iframe: "True"
         //             },
-        //         },
+        //             markets: ["BTC", "ETH", "PAX"],
+        //             customErrorMessages: {
+        //                 exception_General: "Our servers are experiencing some glitch, please try again later.",
+        //                 exception_Email: "Unable to send an email. try again later",
+        //                 exception_BadRequest: "Invalid Payload",
+        //                 exception_HMAC_Missing: "Must provide the HMAC of the request body.",
+        //                 exception_HMAC_Validation: "HMAC validation failed.",
+        //                 exception_TimeStamp: "Invalid timestamp.",
+        //                 exception_RecvWindow: "Invalid recvWindow value.",
+        //                 exception_TimeStamp_Window_Invalid: "Timestamp for this request is outside of the recvWindow.",
+        //                 exception_Body_Missing: "Must provide the request body.",
+        //                 exception_Invalid_Body: "Request body was invalid.",
+        //                 exception_Invalid_Address: "Invalid Address.",
+        //                 exception_Invalid_OrderSide: "Invalid parameter \'side\', must be \'BUY\' or \'SELL\'",
+        //                 exception_Invalid_Orderid: "The OrderId or clientOrderId is required",
+        //                 exception_Invalid_CurrencyName: "Invalid Currency name",
+        //                 exception_Invalid_XRP_DTag_Required: "Must provide the addressTag for XRP address.",
+        //                 order_Trade_Suspended: "Sorry! Trade Suspended.",
+        //                 order_Invalid_Order_Type: "Invalid Order Type.",
+        //                 order_Invalid_Client_Order_ID: "Order with this client order id already exists.",
+        //                 order_Invalid_Pair: "Invalid Pair.",
+        //                 order_Invalid_Trade_Volume: "Invalid Trade Volume.",
+        //                 order_Cannot_Be_Served: "Volume Order cannot be served.",
+        //                 order_Invalid_Stop_Price: "Invalid Stop Price.",
+        //                 order_Invalid_Trade_Price: "Invalid Trade Price.",
+        //                 order_Invalid_Rate_Volume: "Invalid Rate/Volume.",
+        //                 exception_Link_Expired: "The current page url expired.",
+        //                 exception_Insufficient_Funds: "Insufficient Funds.",
+        //                 exception_Coin_Maintenance: "Sorry! Coin under maintenance.",
+        //                 exception_Account_Suspended: "Sorry! Account Suspended.",
+        //                 address_No_Unused_Address: "No unused address available.",
+        //                 withdrawal_Invalid_Amount: "Sorry! Invalid Withdrawal Amount.",
+        //                 withdrawal_Suspended: "Sorry! Withdrawals Suspended",
+        //                 success_General: "Success!",
+        //                 success_NoRowsFound: "No Rows Found!",
+        //                 success_Saved: "Details Saved Successfully.",
+        //                 success_Deleted: "Details deleted Successfully.",
+        //                 error_Disabled_BY_Admin: "Feature disabled by admin.",
+        //                 failure_General: "Something went wrong. try again later",
+        //                 failure_GME: "GME Busy.. try later.",
+        //                 request_Invalid: "Invalid request.",
+        //                 trade_CurrencyType_Missing: "Must provide the trade currency.",
+        //                 trade_TradeType_Missing: "Must provide the trade type.",
+        //                 trade_TradeType_Invalid: "Invalid parameter \'type\'. Options are \'MARKET\', \'STOPLIMIT\' or \'LIMIT\'",
+        //                 trade_Volume_Invalid: "Invalid trade volume.",
+        //                 trade_Rate_Invalid: "Invalid trade rate.",
+        //                 trade_Stop_Invalid: "Invalid stop rate.",
+        //                 trade_MarketType_Missing: "Must provide the market currency.",
+        //                 trade_Invalid_Size: "Invalid trade size.",
+        //                 withdrawal_Error: "Must provide the market currency.",
+        //                 facility_Suspended: "This facility is blocked for your account.",
+        //                 feature_Disabled: "This feature is currently disabled.",
+        //                 coin_Maintenance: "Coin under maintenance.",
+        //                 insufficientFunds: "Insufficient funds.",
+        //                 signUp_Invalid_Referrer: "Referral Id does not exists.",
+        //                 signUp_Duplicate_Mobile: "Mobile number already exists.",
+        //                 signUp_Duplicate_Email: "Email already exists.",
+        //                 signUp_Phone_Error: "Phone already exists.",
+        //                 signIn_Authentication_Failed: "Invalid login credentials.",
+        //                 signIn_Invalid_OTP: "Invalid OTP",
+        //                 signIn_Missing_OTP: "Must provide the otp.",
+        //                 signIn_Unvarified_Email: "Email Unverified. Please reset your password.",
+        //                 signIn_Suspended_Account: "Account Suspended. Contact Support.",
+        //                 changePassword_Same_Error: "Your new password cannot be same as old password.",
+        //                 changePassword_Invalid_OldPassword: "Password provided doesn\'t match our records.",
+        //                 gAuth_Required: "Must provide the Google Auth Code.",
+        //                 gAuth_Enabled_Mandatory: "Enable Google two-factor authentication to use the endpoint.",
+        //                 gAuth_Two_Factor_Error: "Invalid Google 2FA Code.",
+        //                 gAuth_Two_Factor_Already_Enabled: "Google 2FA is already enabled.",
+        //                 kyC_Not_Approved: "You must be KYC approved in order to use this feature.",
+        //                 kyC_Custom_Error: "",
+        //                 kyC_Provider_Error: "KYC service provider not found.",
+        //                 kyC_Upload_Error: "Unable to Upload KYC.",
+        //                 kyC_Image_NotFound: "No Image Found!",
+        //                 kyC_Approved_Error: "KYC already approved.",
+        //                 kyC_Pending_Error: "Your KYC is processing. We\'ll notify once it\'s processed.",
+        //                 kyC_Invalid_CID_Email: "Email or CID does not exists.",
+        //                 kyC_Not_Submitted: "KYC not submitted yet.",
+        //                 kyC_Form_NotFound: "KYC not submitted yet.",
+        //                 kyC_Form_Corrupted: "KYC form is corrupted.",
+        //                 kyC_Server_Down: "KYC server down.",
+        //                 payment_Amount_Missing: "There must be some amount.",
+        //                 payment_Gateway_Invalid: "Invalid payment gateway.",
+        //                 apI_Inavalid_IP: "Invalid IP Address(es)",
+        //                 apI_Key_Type_Required: "Invalid Key type. Allowed options are \'trade\',\'readonly\',\'all\'",
+        //                 apI_Secretkey_Required: "The Secret Key is missing in the Header.",
+        //                 invalid_Currency: "Invalid currency.",
+        //                 invalid_Fiat_PG_Currency: "Invalid Fiat PG currency.",
+        //                 depositDisabled: "Deposit disabled for this currency.",
+        //                 withdrawalLimitReached: "Withdrawal limit reached.",
+        //                 invalidLanguage: "Language not found.",
+        //                 transitiveFollowing: "Transitive-following not allowed.",
+        //                 selfFollowing: "Self-following not allowed.",
+        //                 invalidProTraderID: "Invalid ProTrader UserID.",
+        //                 multipleFollowing: "Multiple-following not allowed.",
+        //                 weakPassword: "Password must have 8 characters with at least 1 uppercase letter and 1 number.",
+        //                 withdrawalPending: "another withdrawal is pending already for same currency",
+        //                 depositPending: "another fiat deposit request is pending already for same currency",
+        //                 withdrawalLimitReachedExclusive: "{curr} withdrawal limit exceeds.",
+        //                 withdrawalLimitReachedAggregate: "Overall {curr} withdrawal limit exceeds.",
+        //                 readOnlyToken: "Read-only access token doesn\'t have the permission to perform this operation.",
+        //                 marginCall: "Placing new order is not allowed while a margin call is pending.",
+        //                 force_Liquidation: "Placing new order is not allowed while a force liquidation in process.",
+        //                 feature_Unavailable: "This feature is not available for your account.",
+        //                 chainAlysis_Blacklisted: "AML Risk Assessment Failed for this transaction."
+        //             },
+        //             themes:    null,
+        //             trade_setting: [
+        //                 {
+        //                     coinName: "BCH",
+        //                     marketName: "BTC",
+        //                     minTickSize:  1e-8,
+        //                     minTradeAmount:  1e-8,
+        //                     minOrderValue:  0.01,
+        //                     tradeEnabled:  true
+        //                 },
+        //                 {
+        //                     coinName: "MDX",
+        //                     marketName: "XRP",
+        //                     minTickSize:  1e-8,
+        //                     minTradeAmount:  1e-8,
+        //                     minOrderValue:  0.01,
+        //                     tradeEnabled:  true
+        //                 }
+        //             ],
+        //             seo: {
+        //                 google_Analytics_ID:   "None",
+        //                 google_Tag_Manager:   "None",
+        //                 reCaptchaKey:   "None",
+        //                 meta_Tags: []
+        //             },
+        //             market_groups: []
+        //         }
         //     }
         //
         const result = [];
         const data = this.safeValue (response, 'data', {});
-        const ids = Object.keys (data);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const market = data[id];
-            const [ quoteId, baseId ] = id.split ('_');  // they have base/quote reversed with some endpoints
+        const markets = this.safeValue (data, 'trade_setting');
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const baseId = this.safeString (market, 'coinName');
+            const quoteId = this.safeString (market, 'marketName');
+            const id = quoteId + '_' + baseId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const baseCurrency = this.safeValue (currenciesById, baseId, {});
-            const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
+            const minAmount = this.safeFloat (market, 'minTradeAmount');
+            const minPrice = this.safeFloat (market, 'minTickSize');
             const precision = {
-                'amount': this.safeInteger (baseCurrency, 'decimalPrecision', 8),
-                'price': this.safeInteger (quoteCurrency, 'decimalPrecision', 8),
+                'amount': this.precisionFromString (this.numberToString (minAmount)),
+                'price': this.precisionFromString (this.numberToString (minPrice)),
             };
-            const baseTradeEnabled = this.safeValue (baseCurrency, 'tradeEnabled', true);
-            const quoteTradeEnabled = this.safeValue (quoteCurrency, 'tradeEnabled', true);
-            const active = baseTradeEnabled && quoteTradeEnabled;
+            const active = this.safeValue (market, 'tradeEnabled', true);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -452,11 +609,15 @@ module.exports = class mandala extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
+                        'min': minAmount,
                         'max': undefined,
                     },
                     'price': {
-                        'min': Math.pow (10, -precision['price']),
+                        'min': minPrice,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeFloat (market, 'minOrderValue'),
                         'max': undefined,
                     },
                 },
@@ -473,16 +634,16 @@ module.exports = class mandala extends Exchange {
         const response = await this.orderPostGetBalance (this.extend (request, params));
         //
         //     {
-        //         Status: 'Success',
-        //         Message: null,
-        //         Data: [
+        //         status: 'Success',
+        //         errorMessage: null,
+        //         data: [
         //             { currency: 'BCH', balance: 0, balanceInTrade: 0 },
         //             { currency: 'BTC', balance: 0, balanceInTrade: 0 },
         //             ...,
         //         ],
         //     }
         //
-        const data = this.safeValue (response, 'Data', []);
+        const data = this.safeValue (response, 'data', []);
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
@@ -801,12 +962,13 @@ module.exports = class mandala extends Exchange {
         if (since === undefined) {
             since = this.milliseconds () - offset;
         }
+        const timestamp = this.sum (since, offset);
         const request = {
             'interval': this.timeframes[timeframe],
-            'baseCurrency': market['baseId'], // they have base/quote reversed with some endpoints
+            'baseCurrency': market['baseId'],
             'quoteCurrency': market['quoteId'],
             'limit': limit,
-            'timestamp': this.sum (since, offset),
+            'timestamp': timestamp,
         };
         const response = await this.marketGetGetChartData (this.extend (request, params));
         //
@@ -833,7 +995,7 @@ module.exports = class mandala extends Exchange {
         //         ],
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -860,17 +1022,17 @@ module.exports = class mandala extends Exchange {
             'stop': 0, // stop is always zero for limit and market orders
             // 'clientOrderId': this.uuid (),
         };
-        const response = await this.orderPostPlaceOrder (this.extend (request, params));
+        const response = await this.orderPostV2PlaceOrder (this.extend (request, params));
         //
         //     {
-        //         Status: 'Success',
-        //         Message: 'Success!',
-        //         Data: {
+        //         status: 'Success',
+        //         errorMessage: 'Success_General',
+        //         data: {
         //             orderId: 20000031,
         //         },
         //     }
         //
-        const data = this.safeValue (response, 'Data', {});
+        const data = this.safeValue (response, 'data', {});
         const order = this.parseOrder (data, market);
         return this.extend (order, {
             'symbol': symbol,
@@ -884,7 +1046,7 @@ module.exports = class mandala extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const side = this.safeString (params, 'side');
+        const side = this.safeString (params, 'side', 'ALL');
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires an order `side` extra parameter');
         }
@@ -894,24 +1056,23 @@ module.exports = class mandala extends Exchange {
             'orderId': id,
             'side': side.toUpperCase (),
         };
-        const response = await this.orderPostCancelMyOrder (this.extend (request, params));
+        const response = await this.orderPostV2CancelMyOrder (this.extend (request, params));
         //
         //     {
-        //         Status: 'Success',
-        //         Message: 'Success_General',
-        //         Data: 'Success!'
+        //         status: "Success",
+        //         errorMessage: "Success_General",
+        //         data: "Request accepted"
         //     }
         //
-        return this.parseOrder (response, {
+        return this.extend (this.parseOrder (response), {
             'id': id,
             'symbol': symbol,
-            'side': side.toLowerCase (),
             'status': 'canceled',
         });
     }
 
     async cancelAllOrders (symbols = undefined, params = {}) {
-        const side = this.safeString (params, 'side');
+        const side = this.safeString (params, 'side', 'ALL');
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires an order `side` extra parameter');
         }
@@ -929,7 +1090,7 @@ module.exports = class mandala extends Exchange {
             'side': side.toUpperCase (),
             'pair': this.marketId (symbol),
         };
-        return await this.orderPostCancelAllMyOrders (this.extend (request, params));
+        return await this.orderPostV2CancelAllMyOrders (this.extend (request, params));
     }
 
     parseSymbol (id) {
@@ -939,43 +1100,46 @@ module.exports = class mandala extends Exchange {
         return base + '/' + quote;
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            'Pending': 'open',
+            'Filled': 'closed',
+            'Paritally-Filled': 'open', // an actual typo in the response
+            'Partially-Filled': 'open', // a correct string in case it's fixed
+            'Cancelled': 'canceled',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseOrder (order, market = undefined) {
         //
-        // fetchOrders
+        // fetchClosedOrders, fetchOpenOrders
         //
         //     {
-        //         orderId: 20000038,
-        //         market: 'BTC',
-        //         trade: 'ETH',
-        //         volume: 1,
-        //         pendingVolume: 1,
-        //         orderStatus: false,
-        //         rate: 1,
-        //         amount: 1,
-        //         serviceCharge: 0,
-        //         placementDate: '2019-03-19T18:28:43.553',
-        //         completionDate: null
+        //         "orderId":29894309,
+        //         "market":"BTC",
+        //         "trade":"MDX",
+        //         "volume":370.00000000,
+        //         "pendingVolume":370.00000000,
+        //         "orderStatus":false,
+        //         "rate":0.00019530,
+        //         "amount":0.07226100,
+        //         "serviceCharge":0.00000000,
+        //         "placementDate":"2019-07-31T22:14:30.193",
+        //         "completionDate":null,
+        //         "side":"Buy"
         //     }
         //
-        // fetchOpenOrders
+        // fetchOrder
         //
         //     {
-        //         orderId: 20000038,
-        //         market: 'BTC',
-        //         trade: 'ETH',
-        //         volume: 1,
-        //         rate: 1,
-        //         side: 'SELL',
-        //         date: '2019-03-19T18:28:43.553',
-        //     }
-        //
-        // fetchOrderStatus
-        //
-        //     {
-        //         "PendingVolume": 0.7368974,
-        //         "Volume": 0.7368974,
-        //         "Price": 0.22921771,
-        //         "Status": true
+        //         "orderId":"29885793",
+        //         "side":"ALL",
+        //         "Volume":350.00000000,
+        //         "PendingVolume":300.00000000,
+        //         "Price":0.00020050,
+        //         "Status":false,
+        //         "status_string":"Paritally-Filled"
         //     }
         //
         const id = this.safeString (order, 'orderId');
@@ -1007,8 +1171,11 @@ module.exports = class mandala extends Exchange {
                 price = cost / filled;
             }
         }
-        let status = this.safeValue2 (order, 'orderStatus', 'Status');
-        status = status ? 'closed' : 'open';
+        let status = this.parseOrderStatus (this.safeString (order, 'status_string'));
+        if (status === undefined) {
+            status = this.safeValue2 (order, 'orderStatus', 'Status');
+            status = status ? 'closed' : 'open';
+        }
         let lastTradeTimestamp = undefined;
         if (filled > 0) {
             lastTradeTimestamp = completionDate;
@@ -1026,6 +1193,7 @@ module.exports = class mandala extends Exchange {
                 'currency': quote,
             };
         }
+        const side = this.safeStringLower (order, 'side');
         return {
             'info': order,
             'id': id,
@@ -1034,7 +1202,7 @@ module.exports = class mandala extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': 'limit',
-            'side': undefined,
+            'side': side,
             'price': price,
             'cost': cost,
             'average': undefined,
@@ -1076,6 +1244,7 @@ module.exports = class mandala extends Exchange {
         //                 serviceCharge: 0,
         //                 placementDate: '2019-03-19T18:28:43.553',
         //                 completionDate: null
+        //                 side: 'Buy'
         //             },
         //             {
         //                 orderId: 20000037,
@@ -1089,6 +1258,7 @@ module.exports = class mandala extends Exchange {
         //                 serviceCharge: 0,
         //                 placementDate: '2019-03-19T18:27:51.087',
         //                 completionDate: '2019-03-19T18:28:16.07'
+        //                 side: 'Buy'
         //             }
         //         ]
         //     }
@@ -1100,43 +1270,92 @@ module.exports = class mandala extends Exchange {
         });
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const side = this.safeString (params, 'side', 'ALL');
+        const side = this.safeString (params, 'side', 'ALL');  // required by the endpoint on the exchange side
         params = this.omit (params, 'side');
         let market = undefined;
-        let pair = 'ALL';
+        const request = {
+            'openOrders': false, // true returns open orders only, false returns filled & cancelled orders only, default is false
+            'side': side.toUpperCase (), // required by the endpoint on the exchange side
+        };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            pair = market['baseId'] + '-' + market['quoteId'];
+            request['pair'] = market['baseId'] + '-' + market['quoteId'];
         }
-        const request = {
-            'side': side.toUpperCase (),
-            'pair': pair,
-        };
-        const response = await this.apiGetGetPendingOrders (this.extend (request, params));
+        const response = await this.orderPostV2MyOrderHistory (this.extend (request, params));
         //
         //     {
-        //         status: 'Success',
-        //         message: 'Success!',
-        //         data: [
+        //         "status":"Success",
+        //         "errorMessage":null,
+        //         "data":[
         //             {
-        //                 orderId: 20000038,
-        //                 market: 'BTC',
-        //                 trade: 'ETH',
-        //                 volume: 1,
-        //                 rate: 1,
-        //                 side: 'SELL',
-        //                 date: '2019-03-19T18:28:43.553',
+        //                 "orderId":20991907,
+        //                 "market":"BTC",
+        //                 "trade":"ETH",
+        //                 "volume":1.00000000,
+        //                 "pendingVolume":0.00000000,
+        //                 "orderStatus":true,
+        //                 "rate":1.00000000,
+        //                 "amount":1.00000000,
+        //                 "serviceCharge":0.00000000,
+        //                 "placementDate":"2019-07-17T23:48:43.357",
+        //                 "completionDate":"2019-07-17T23:49:14.733",
+        //                 "side":"Buy"
         //             },
         //             {
-        //                 orderId: 20000039,
-        //                 market: 'BTC',
-        //                 trade: 'ETH',
-        //                 volume: 1,
-        //                 rate: 2,
-        //                 side: 'SELL',
-        //                 date: '2019-03-19T18:48:12.033',
+        //                 "orderId":20000048,
+        //                 "market":"ETH",
+        //                 "trade":"MDX",
+        //                 "volume":10.00000000,
+        //                 "pendingVolume":10.00000000,
+        //                 "orderStatus":true,
+        //                 "rate":3.00000000,
+        //                 "amount":30.00000000,
+        //                 "serviceCharge":0.00000000,
+        //                 "placementDate":"2019-06-23T18:16:06.2",
+        //                 "completionDate":"2019-06-23T18:16:06.247",
+        //                 "side":"Buy"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const side = this.safeString (params, 'side', 'ALL');  // required by the endpoint on the exchange side
+        params = this.omit (params, 'side');
+        let market = undefined;
+        const request = {
+            'openOrders': true, // true returns open orders only, false returns filled & cancelled orders only, default is false
+            'side': side.toUpperCase (), // required by the endpoint on the exchange side
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['pair'] = market['baseId'] + '-' + market['quoteId'];
+        }
+        const response = await this.orderPostV2MyOrderHistory (this.extend (request, params));
+        //
+        //     {
+        //         "status":"Success",
+        //         "errorMessage":null,
+        //         "data":[
+        //             {
+        //                 "orderId":29894309,
+        //                 "market":"BTC",
+        //                 "trade":"MDX",
+        //                 "volume":370.00000000,
+        //                 "pendingVolume":370.00000000,
+        //                 "orderStatus":false,
+        //                 "rate":0.00019530,
+        //                 "amount":0.07226100,
+        //                 "serviceCharge":0.00000000,
+        //                 "placementDate":"2019-07-31T22:14:30.193",
+        //                 "completionDate":null,
+        //                 "side":"Buy"
         //             }
         //         ]
         //     }
@@ -1147,27 +1366,30 @@ module.exports = class mandala extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        const side = this.safeString (params, 'side');
+        const side = this.safeString (params, 'side', 'ALL');
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires an order `side` extra parameter');
         }
         params = this.omit (params, 'side');
         id = id.toString ();
         const request = {
-            'key': this.apiKey,
+            // 'key': this.apiKey,
             'side': side.toUpperCase (),
             'orderId': id,
         };
-        const response = await this.orderGetMyOrderStatusKeySideOrderId (this.extend (request, params));
+        const response = await this.orderPostV2MyOrderStatus (this.extend (request, params));
         //
         //     {
-        //         "status": "Success",
-        //         "errorMessage": null,
-        //         "data": {
-        //             "PendingVolume": 0.7368974,
-        //             "Volume": 0.7368974,
-        //             "Price": 0.22921771,
-        //             "Status": true
+        //         "status":"Success",
+        //         "errorMessage":null,
+        //         "data":{
+        //             "orderId":"29885793",
+        //             "side":"ALL",
+        //             "Volume":350.00000000,
+        //             "PendingVolume":300.00000000,
+        //             "Price":0.00020050,
+        //             "Status":false,
+        //             "status_string":"Paritally-Filled"
         //         }
         //     }
         //
@@ -1180,26 +1402,23 @@ module.exports = class mandala extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const side = this.safeString (params, 'side', 'ALL');
-        params = this.omit (params, 'side');
         let market = undefined;
-        let pair = 'ALL';
+        let pair = 'ALL'; // required by the endpoint on the exchange side
         if (symbol !== undefined) {
             market = this.market (symbol);
             pair = market['id'];
         }
         const request = {
-            'side': side.toUpperCase (),
-            'pair': pair,
+            'pair': pair, // required by the endpoint on the exchange side
             'orderID': -1,
             'apiKey': this.apiKey,
         };
-        const response = await this.orderGetMyTradeHistory (this.extend (request, params));
+        const response = await this.orderPostV2MyTradeHistory (this.extend (request, params));
         //
         //     {
-        //         Status: 'Success',
-        //         Message: null,
-        //         Data: [
+        //         status: 'Success',
+        //         errorMessage: null,
+        //         data: [
         //             {
         //                 orderId: 20000040,
         //                 market: 'ETH',
@@ -1236,7 +1455,7 @@ module.exports = class mandala extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'Data');
+        const data = this.safeValue (response, 'data');
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1251,22 +1470,30 @@ module.exports = class mandala extends Exchange {
         const request = {
             'currency': requestCurrency,
         };
-        const response = await this.apiPostGetDeposits (this.extend (request, params));
+        const response = await this.orderPostV2GetDeposits (this.extend (request, params));
         //
         //     {
-        //         "status": "Success",
-        //         "message": null,
-        //         "data": {
-        //             "deposits": [
+        //         "status":"Success",
+        //         "errorMessage":"Success!",
+        //         "data":{
+        //             "Deposits":[
         //                 {
-        //                     ?
+        //                     "DepositType": "BTC",
+        //                     "DepositAddress": "2N4WaF2q7Gncazx7qDuEC13TNE6QicjgtaN",
+        //                     "DepositAmount": 1258.01337584,
+        //                     "TXNHash": "c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249",
+        //                     "DepositReqDate": "2019-07-20T08:08:05.413",
+        //                     "DepositConfirmDate": "2019-07-20T08:08:05.413",
+        //                     "CurrentTxnCount": 121914,
+        //                     "RequiredTxnCount": 5,
+        //                     "ExplorerURL": "https://live.blockcypher.com/btc-testnet/tx/c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249"
         //                 }
         //             ]
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const deposits = this.safeValue (data, 'deposits', []);
+        const deposits = this.safeValue (data, 'Deposits', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
@@ -1281,28 +1508,30 @@ module.exports = class mandala extends Exchange {
         const request = {
             'currency': requestCurrency,
         };
-        const response = await this.apiPostGetWithdrawals (this.extend (request, params));
+        const response = await this.orderPostV2GetWithdrawals (this.extend (request, params));
         //
         //     {
         //         "status": "Success",
-        //         "message": null,
+        //         "errorMessage": "Success!",
         //         "data": {
-        //             "withdrawals": [
+        //             "Withdrawals": [
         //                 {
-        //                     "withdrawalType": "ETH",
-        //                     "withdrawalAddress": "0xE28CE3A999d6035d042D1a87FAab389Cb0B78Db6",
-        //                     "withdrawalAmount": 0.071,
-        //                     "txnHash": null,
-        //                     "withdrawalReqDate": "2018-11-12T09:38:28.43",
-        //                     "withdrawalConfirmDate": null,
-        //                     "withdrawalStatus": "Pending"
-        //                 }
+        //                     "WithdrawalType": "BTC",
+        //                     "WithdrawalAddress": "mtHpWL1nyQa1CCTCSMD6aV1ycEHWCWD3WK",
+        //                     "WithdrawalAmount": 0.00990099,
+        //                     "TXNHash": "eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00",
+        //                     "WithdrawalReqDate": "2019-06-24T13:04:13.76",
+        //                     "WithdrawalConfirmDate": "2019-06-24T13:04:31.51",
+        //                     "WithdrawalStatus": "Processed",
+        //                     "RejectReason": "",
+        //                     "ExplorerURL": "https://live.blockcypher.com/btc-testnet/tx/eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00"
+        //                 },
         //             ]
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const withdrawals = this.safeValue (data, 'withdrawals', []);
+        const withdrawals = this.safeValue (data, 'Withdrawals', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
@@ -1318,32 +1547,49 @@ module.exports = class mandala extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         ?
+        //         "DepositType": "BTC",
+        //         "DepositAddress": "2N4WaF2q7Gncazx7qDuEC13TNE6QicjgtaN",
+        //         "DepositAmount": 1258.01337584,
+        //         "TXNHash": "c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249",
+        //         "DepositReqDate": "2019-07-20T08:08:05.413",
+        //         "DepositConfirmDate": "2019-07-20T08:08:05.413",
+        //         "CurrentTxnCount": 121914,
+        //         "RequiredTxnCount": 5,
+        //         "ExplorerURL": "https://live.blockcypher.com/btc-testnet/tx/c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "withdrawalType": "ETH",
-        //         "withdrawalAddress": "0xE28CE3A999d6035d042D1a87FAab389Cb0B78Db6",
-        //         "withdrawalAmount": 0.071,
-        //         "txnHash": null,
-        //         "withdrawalReqDate": "2018-11-12T09:38:28.43",
-        //         "withdrawalConfirmDate": null,
-        //         "withdrawalStatus": "Pending"
+        //         "WithdrawalType": "BTC",
+        //         "WithdrawalAddress": "mtHpWL1nyQa1CCTCSMD6aV1ycEHWCWD3WK",
+        //         "WithdrawalAmount": 0.00990099,
+        //         "TXNHash": "eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00",
+        //         "WithdrawalReqDate": "2019-06-24T13:04:13.76",
+        //         "WithdrawalConfirmDate": "2019-06-24T13:04:31.51",
+        //         "WithdrawalStatus": "Processed",
+        //         "RejectReason": "",
+        //         "ExplorerURL": "https://live.blockcypher.com/btc-testnet/tx/eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00"
         //     }
         //
         const id = undefined;
-        const amount = this.safeFloat (transaction, 'withdrawalAmount');
-        const address = this.safeString (transaction, 'withdrawalAddress');
-        const tag = undefined;
-        const txid = this.safeString (transaction, 'txnHash');
-        const updated = this.parse8601 (this.safeValue (transaction, 'withdrawalConfirmDate'));
-        const timestamp = this.parse8601 (this.safeString (transaction, 'withdrawalReqDate', updated));
-        const type = ('withdrawalReqDate' in transaction) ? 'withdrawal' : 'deposit';
-        const currencyId = this.safeString (transaction, 'withdrawalType');
+        const amount = this.safeFloat2 (transaction, 'WithdrawalAmount', 'DepositAmount');
+        const txid = this.safeString (transaction, 'TXNHash');
+        const updated = this.parse8601 (this.safeString2 (transaction, 'WithdrawalConfirmDate', 'DepositConfirmDate'));
+        const timestamp = this.parse8601 (this.safeString2 (transaction, 'WithdrawalReqDate', 'DepositReqDate', updated));
+        const type = ('WithdrawalReqDate' in transaction) ? 'withdrawal' : 'deposit';
+        const currencyId = this.safeString (transaction, 'WithdrawalType', 'DepositType');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let status = this.parseTransactionStatus (this.safeString (transaction, 'withdrawalStatus'));
+        currency = this.currency (code);
+        const addressString = this.safeString2 (transaction, 'WithdrawalAddress', 'DepositAddress');
+        const addressStructure = this.parseAddress (addressString, currency);
+        const address = addressStructure['address'];
+        const addressFrom = undefined;
+        const addressTo = address;
+        const tag = addressStructure['tag'];
+        const tagFrom = undefined;
+        const tagTo = tag;
+        let status = this.parseTransactionStatus (this.safeString (transaction, 'WithdrawalStatus'));
         let feeCost = undefined;
         if (type === 'deposit') {
             status = 'ok';
@@ -1362,7 +1608,11 @@ module.exports = class mandala extends Exchange {
             'currency': code,
             'amount': amount,
             'address': address,
+            'addressFrom': addressFrom,
+            'addressTo': addressTo,
             'tag': tag,
+            'tagFrom': tagFrom,
+            'tagTo': tagTo,
             'status': status,
             'type': type,
             'updated': updated,
@@ -1373,7 +1623,7 @@ module.exports = class mandala extends Exchange {
         };
     }
 
-    parseDepositAddresses (addresses) {
+    parseAddresses (addresses) {
         const result = [];
         const ids = Object.keys (addresses);
         for (let i = 0; i < ids.length; i++) {
@@ -1381,42 +1631,29 @@ module.exports = class mandala extends Exchange {
             const address = addresses[id];
             const currencyId = id.toUpperCase ();
             const currency = this.safeValue (this.currencies_by_id, currencyId);
-            result.push (this.parseDepositAddress (address, currency));
+            result.push (this.parseAddress (address, currency));
         }
         return result;
     }
 
-    async fetchDepositAddresses (codes = undefined, params = {}) {
-        await this.loadMarkets ();
-        const response = await this.apiGetListAllAddresses (params);
-        //
-        //     {
-        //         "status": "Success",
-        //         "message": null,
-        //         "data": {
-        //             "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
-        //             "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
-        //             "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data');
-        return this.parseDepositAddresses (data);
-    }
-
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseAddress (depositAddress, currency = undefined) {
         //
         //     "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
         //     "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
-        //     "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
+        //     "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV?dt=3931222419"
         //
-        const parts = depositAddress.split (':');
-        const address = parts[0];
-        this.checkAddress (address);
+        const info = this.safeValue (currency, 'info', {});
+        let address = depositAddress;
+        const separator = this.safeValue (info, 'addressSeparator', '?dt=');
         let tag = undefined;
-        const numParts = parts.length;
-        if (numParts > 1) {
-            tag = parts[1];
+        if (separator.length > 0) {
+            const parts = depositAddress.split (separator);
+            address = parts[0];
+            this.checkAddress (address);
+            const numParts = parts.length;
+            if (numParts > 1) {
+                tag = parts[1];
+            }
         }
         let code = undefined;
         if (currency !== undefined) {
@@ -1430,62 +1667,77 @@ module.exports = class mandala extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddresses (codes = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.orderPostV2ListAllAddresses (params);
+        //
+        //     {
+        //         "status": "Success",
+        //         "errorMessage": null,
+        //         "data": {
+        //             "btc": "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
+        //             "eth": "0x8143c11ed6b100e5a96419994846c890598647cf",
+        //             "xrp": "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV?dt=3931222419"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseAddresses (data);
+    }
+
+    async generateDepositAddress (code, params = {}) {
+        // a common implmenetation of fetchDepositAddress and createDepositAddress
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.apiPostGenerateAddress (this.extend (request, params));
+        const response = await this.orderPostV2GenerateAddress (this.extend (request, params));
         //
         //     {
         //         status: 'Success',
-        //         message: '',
+        //         errorMessage: '',
         //         data: {
-        //             address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
+        //             Address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
-        return this.parseDepositAddress (address, currency);
+        const address = this.safeString (data, 'Address');
+        return this.parseAddress (address, currency);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        return await this.generateDepositAddress (code, params);
     }
 
     async createDepositAddress (code, params = {}) {
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.apiPostGenerateAddress (this.extend (request, params));
-        //
-        //     {
-        //         status: 'Success',
-        //         message: '',
-        //         data: {
-        //             address: '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
-        //         }
-        //     }
-        //
-        const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
-        return this.parseDepositAddress (address, currency);
+        return await this.generateDepositAddress (code, params);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const withdrawalRequest = {
+        let gauth_code = undefined;
+        if (this.twofa !== undefined) {
+            gauth_code = this.oath ();
+        }
+        gauth_code = this.safeString (params, 'gauth_code', gauth_code);
+        if (gauth_code === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw () requires a `this.twofa` key or a 2FA code in the `gauth_code` parameter as a string.');
+        }
+        params = this.omit (params, 'gauth_code');
+        const request = {
             'currency': currency['id'],
             'amount': parseFloat (amount),
             'address': address,
-            // 'addressTag': null,
+            'gauth_code': gauth_code,
         };
         if (tag !== undefined) {
-            withdrawalRequest['addressTag'] = tag;
+            request['addressTag'] = tag;
         }
-        const withdrawalResponse = await this.apiPostRequestWithdraw (this.extend (withdrawalRequest, params));
+        const response = await this.apiPostRequestWithdraw (this.extend (request, params));
         //
         //     {
         //         "status": "Success",
@@ -1495,23 +1747,11 @@ module.exports = class mandala extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (withdrawalResponse, 'data', {});
+        const data = this.safeValue (response, 'data', {});
         const id = this.safeString (data, 'withdrawalId');
-        let otp = undefined;
-        if (this.twofa !== undefined) {
-            otp = this.oath ();
-        }
-        otp = this.safeString (params, 'emailToken', otp);
-        if (otp === undefined) {
-            throw new AuthenticationError (this.id + ' signIn() requires this.twofa credential or a one-time 2FA "emailToken" parameter');
-        }
-        const confirmationRequest = {
-            'EmailToken': otp,
-        };
-        const confirmationResponse = await this.apiPostRequestWithdrawConfirmation (this.extend (confirmationRequest, params));
-        const timestamp = this.milliseconds ();
+        const timestamp = undefined;
         return {
-            'info': [ withdrawalResponse, confirmationResponse ],
+            'info': response,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
