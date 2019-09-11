@@ -281,7 +281,7 @@ class bitbank (Exchange):
         id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
         symbol = None
-        if marketId and not market and(marketId in list(self.marketsById.keys())):
+        if marketId and not market and (marketId in list(self.marketsById.keys())):
             market = self.marketsById[marketId]
         if market is not None:
             symbol = market['symbol']

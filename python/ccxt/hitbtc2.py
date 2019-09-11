@@ -1149,7 +1149,7 @@ class hitbtc2 (hitbtc):
                 tradesCost = self.sum(tradesCost, trades[i]['cost'])
                 feeCost = self.sum(feeCost, trades[i]['fee']['cost'])
             cost = tradesCost
-            if (filled is not None) and(filled > 0):
+            if (filled is not None) and (filled > 0):
                 average = cost / filled
                 if type == 'market':
                     if price is None:

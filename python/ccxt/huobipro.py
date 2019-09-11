@@ -308,10 +308,10 @@ class huobipro (Exchange):
         change = None
         percentage = None
         average = None
-        if (open is not None) and(close is not None):
+        if (open is not None) and (close is not None):
             change = close - open
             average = self.sum(open, close) / 2
-            if (close is not None) and(close > 0):
+            if (close is not None) and (close > 0):
                 percentage = (change / open) * 100
         baseVolume = self.safe_float(ticker, 'amount')
         quoteVolume = self.safe_float(ticker, 'vol')
@@ -753,7 +753,7 @@ class huobipro (Exchange):
         timestamp = self.safe_integer(order, 'created-at')
         amount = self.safe_float(order, 'amount')
         filled = self.safe_float_2(order, 'filled-amount', 'field-amount')  # typo in their API, filled amount
-        if (type == 'market') and(side == 'buy'):
+        if (type == 'market') and (side == 'buy'):
             amount = filled if (status == 'closed') else None
         price = self.safe_float(order, 'price')
         if price == 0.0:
@@ -765,7 +765,7 @@ class huobipro (Exchange):
             if amount is not None:
                 remaining = amount - filled
             # if cost is defined and filled is not zero
-            if (cost is not None) and(filled > 0):
+            if (cost is not None) and (filled > 0):
                 average = cost / filled
         feeCost = self.safe_float_2(order, 'filled-fees', 'field-fees')  # typo in their API, filled fees
         fee = None
@@ -807,7 +807,7 @@ class huobipro (Exchange):
             'type': side + '-' + type,
         }
         if self.options['createMarketBuyOrderRequiresPrice']:
-            if (type == 'market') and(side == 'buy'):
+            if (type == 'market') and (side == 'buy'):
                 if price is None:
                     raise InvalidOrder(self.id + " market buy order requires price argument to calculate cost(total amount of quote currency to spend for buying, amount * price). To switch off self warning exception and specify cost in the amount argument, set .options['createMarketBuyOrderRequiresPrice'] = False. Make sure you know what you're doing.")
                 else:

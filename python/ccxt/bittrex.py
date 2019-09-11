@@ -776,7 +776,7 @@ class bittrex (Exchange):
                 status = 'canceled'
             elif pendingPayment:
                 status = 'pending'
-            elif authorized and(txid is not None):
+            elif authorized and (txid is not None):
                 status = 'ok'
         feeCost = self.safe_float(transaction, 'TxCost')
         if feeCost is None:
@@ -991,7 +991,7 @@ class bittrex (Exchange):
         filled = None
         if amount is not None and remaining is not None:
             filled = amount - remaining
-            if (status == 'closed') and(remaining > 0):
+            if (status == 'closed') and (remaining > 0):
                 status = 'canceled'
         if not cost:
             if price and filled:
@@ -1198,7 +1198,7 @@ class bittrex (Exchange):
         else:
             self.check_required_credentials()
             url += api + '/'
-            if ((api == 'account') and(path != 'withdraw')) or (path == 'openorders'):
+            if ((api == 'account') and (path != 'withdraw')) or (path == 'openorders'):
                 url += method.lower()
             request = {
                 'apikey': self.apiKey,

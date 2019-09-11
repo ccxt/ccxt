@@ -1138,8 +1138,8 @@ class mandala (Exchange):
         lastTradeTimestamp = None
         if filled > 0:
             lastTradeTimestamp = completionDate
-        if (filled is not None) and(amount is not None):
-            if (filled < amount) and(status == 'closed'):
+        if (filled is not None) and (amount is not None):
+            if (filled < amount) and (status == 'closed'):
                 status = 'canceled'
         feeCost = self.safe_value(order, 'serviceCharge')
         fee = None
@@ -1756,7 +1756,7 @@ class mandala (Exchange):
         #
         #
         status = self.safe_string_2(response, 'status', 'Status')
-        if (status is not None) and(status != 'Success'):
+        if (status is not None) and (status != 'Success'):
             message = self.safe_string_2(response, 'errorMessage', 'Message')
             message = self.safe_string(response, 'message', message)
             feedback = self.id + ' ' + self.json(response)

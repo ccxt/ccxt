@@ -616,7 +616,7 @@ class oceanex (Exchange):
             return
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
-        if (errorCode is not None) and(errorCode != '0'):
+        if (errorCode is not None) and (errorCode != '0'):
             feedback = self.id + ' ' + body
             codes = self.exceptions['codes']
             exact = self.exceptions['exact']

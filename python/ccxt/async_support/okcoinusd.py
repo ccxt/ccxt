@@ -731,7 +731,7 @@ class okcoinusd (Exchange):
         market = self.market(symbol)
         method = 'privatePostFutureTrade' if market['future'] else 'privatePostTrade'
         orderSide = (side + '_market') if (type == 'market') else side
-        isMarketBuy = ((market['spot']) and(type == 'market') and(side == 'buy') and(not self.options['marketBuyPrice']))
+        isMarketBuy = ((market['spot']) and (type == 'market') and (side == 'buy') and (not self.options['marketBuyPrice']))
         orderPrice = self.safe_float(params, 'cost') if isMarketBuy else price
         request = self.create_request(market, {
             'type': orderSide,
