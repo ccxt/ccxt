@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -57,9 +50,9 @@ class bitz (Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/35862606-4f554f14-0b5d-11e8-957d-35058c504b6f.jpg',
                 'api': {
-                    'market': 'https://apiv2.bitz.com',
-                    'trade': 'https://apiv2.bitz.com',
-                    'assets': 'https://apiv2.bitz.com',
+                    'market': 'https://apiv2.bit-z.pro',
+                    'trade': 'https://apiv2.bit-z.pro',
+                    'assets': 'https://apiv2.bit-z.pro',
                 },
                 'www': 'https://www.bit-z.com',
                 'doc': 'https://apidoc.bit-z.com/en/',
@@ -218,7 +211,7 @@ class bitz (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.marketGetSymbolList()
+        response = self.marketGetSymbolList(params)
         #
         #     {   status:    200,
         #             msg:   "",
@@ -244,7 +237,7 @@ class bitz (Exchange):
         #       microtime:   "0.66955600 1535969146",
         #          source:   "api"                                           }
         #
-        markets = response['data']
+        markets = self.safe_value(response, 'data')
         ids = list(markets.keys())
         result = []
         for i in range(0, len(ids)):
@@ -255,8 +248,8 @@ class bitz (Exchange):
             quoteId = self.safe_string(market, 'coinTo')
             base = baseId.upper()
             quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(base)
+            quote = self.safe_currency_code(quote)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'numberFloat'),
@@ -316,16 +309,12 @@ class bitz (Exchange):
         #         source: "api",
         #     }
         #
-        balances = response['data']['info']
+        balances = self.safe_value(response['data'], 'info')
         result = {'info': response}
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'name')
-            code = currencyId.upper()
-            if currencyId in self.markets_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['used'] = self.safe_float(balance, 'lock')
             account['total'] = self.safe_float(balance, 'num')
@@ -406,9 +395,10 @@ class bitz (Exchange):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.marketGetTicker(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.marketGetTicker(self.extend(request, params))
         #
         #     {   status:    200,
         #             msg:   "",
@@ -479,7 +469,7 @@ class bitz (Exchange):
         #       microtime:   "0.39854200 1535971578",
         #          source:   "api"                                                }
         #
-        tickers = response['data']
+        tickers = self.safe_value(response, 'data')
         timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
         result = {}
         ids = list(tickers.keys())
@@ -496,10 +486,8 @@ class bitz (Exchange):
                     symbol = market['symbol']
                 else:
                     baseId, quoteId = id.split('_')
-                    base = baseId.upper()
-                    quote = quoteId.upper()
-                    base = self.common_currency_code(baseId)
-                    quote = self.common_currency_code(quoteId)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
             if symbol is not None:
                 result[symbol] = self.extend(ticker, {
@@ -510,9 +498,10 @@ class bitz (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
-        response = self.marketGetDepth(self.extend({
+        request = {
             'symbol': self.market_id(symbol),
-        }, params))
+        }
+        response = self.marketGetDepth(self.extend(request, params))
         #
         #     {   status:    200,
         #             msg:   "",
@@ -532,7 +521,7 @@ class bitz (Exchange):
         #       microtime:   "0.04017400 1535974778",
         #          source:   "api"                                                     }
         #
-        orderbook = response['data']
+        orderbook = self.safe_value(response, 'data')
         timestamp = self.parse_microtime(self.safe_string(response, 'microtime'))
         return self.parse_order_book(orderbook, timestamp)
 
@@ -548,15 +537,16 @@ class bitz (Exchange):
         #       s: "buy"         },
         #
         id = self.safe_string(trade, 'id')
-        timestamp = self.safe_integer(trade, 'T')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
-        price = self.safe_float(trade, 'p')
-        amount = self.safe_float(trade, 'n')
+        timestamp = self.safe_timestamp(trade, 'T')
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        cost = self.price_to_precision(symbol, amount * price)
+        price = self.safe_float(trade, 'p')
+        amount = self.safe_float(trade, 'n')
+        cost = None
+        if price is not None:
+            if amount is not None:
+                cost = self.price_to_precision(symbol, amount * price)
         side = self.safe_string(trade, 's')
         return {
             'timestamp': timestamp,
@@ -566,6 +556,7 @@ class bitz (Exchange):
             'order': None,
             'type': 'limit',
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -576,9 +567,10 @@ class bitz (Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        response = self.marketGetOrder(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        response = self.marketGetOrder(self.extend(request, params))
         #
         #     {   status:    200,
         #             msg:   "",
@@ -630,7 +622,7 @@ class bitz (Exchange):
         if limit is not None:
             request['size'] = min(limit, 300)  # 1-300
             if since is not None:
-                request['to'] = since + limit * duration * 1000
+                request['to'] = self.sum(since, limit * duration * 1000)
         else:
             if since is not None:
                 raise ExchangeError(self.id + ' fetchOHLCV requires a limit argument if the since argument is specified')
@@ -661,7 +653,10 @@ class bitz (Exchange):
         #       microtime:   "0.56462100 1535973435",
         #          source:   "api"                                                    }
         #
-        return self.parse_ohlcvs(response['data']['bars'], market, timeframe, since, limit)
+        bars = self.safe_value(response['data'], 'bars', None)
+        if bars is None:
+            return []
+        return self.parse_ohlcvs(bars, market, timeframe, since, limit)
 
     def parse_order_status(self, status):
         statuses = {
@@ -670,9 +665,7 @@ class bitz (Exchange):
             '2': 'closed',  # filled
             '3': 'canceled',
         }
-        if status in statuses:
-            return statuses[status]
-        return status
+        return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
         #
@@ -701,10 +694,8 @@ class bitz (Exchange):
                 if marketId in self.markets_by_id:
                     market = self.safe_value(self.markets_by_id, marketId)
                 else:
-                    base = baseId.upper()
-                    quote = quoteId.upper()
-                    base = self.common_currency_code(base)
-                    quote = self.common_currency_code(quote)
+                    base = self.safe_currency_code(baseId)
+                    quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
@@ -717,9 +708,7 @@ class bitz (Exchange):
         filled = self.safe_float(order, 'numberDeal')
         timestamp = self.safe_integer(order, 'timestamp')
         if timestamp is None:
-            timestamp = self.safe_integer(order, 'created')
-            if timestamp is not None:
-                timestamp = timestamp * 1000
+            timestamp = self.safe_timestamp(order, 'created')
         cost = self.safe_float(order, 'orderTotalPrice')
         if price is not None:
             if filled is not None:
@@ -789,9 +778,10 @@ class bitz (Exchange):
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
-        response = self.tradePostCancelEntrustSheet(self.extend({
+        request = {
             'entrustSheetId': id,
-        }, params))
+        }
+        response = self.tradePostCancelEntrustSheet(self.extend(request, params))
         #
         #     {
         #         "status":200,
@@ -817,9 +807,10 @@ class bitz (Exchange):
 
     def cancel_orders(self, ids, symbol=None, params={}):
         self.load_markets()
-        response = self.tradePostCancelEntrustSheet(self.extend({
+        request = {
             'ids': ','.join(ids),
-        }, params))
+        }
+        response = self.tradePostCancelEntrustSheet(self.extend(request, params))
         #
         #     {
         #         "status":200,
@@ -890,9 +881,9 @@ class bitz (Exchange):
         return self.parse_order(response['data'])
 
     def fetch_orders_with_method(self, method, symbol=None, since=None, limit=None, params={}):
-        self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders requires a symbol argument')
+        self.load_markets()
         market = self.market(symbol)
         request = {
             'coinFrom': market['baseId'],
@@ -961,11 +952,8 @@ class bitz (Exchange):
         #         "source": "api"
         #     }
         #
-        orders = self.safe_value(response['data'], 'data')
-        if orders:
-            return self.parse_orders(response['data']['data'], None, since, limit)
-        else:
-            return []
+        orders = self.safe_value(response['data'], 'data', [])
+        return self.parse_orders(orders, None, since, limit)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         return self.fetch_orders_with_method('tradePostGetUserHistoryEntrustSheet', symbol, since, limit, params)
@@ -1002,32 +990,29 @@ class bitz (Exchange):
             headers = {'Content-type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
             return  # fallback to default error handler
-        if len(body) < 2:
-            return  # fallback to default error handler
-        if (body[0] == '{') or (body[0] == '['):
-            status = self.safe_string(response, 'status')
-            if status is not None:
-                feedback = self.id + ' ' + body
-                exceptions = self.exceptions
+        status = self.safe_string(response, 'status')
+        if status is not None:
+            feedback = self.id + ' ' + body
+            exceptions = self.exceptions
+            #
+            #     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
+            #
+            if status == '200':
                 #
-                #     {"status":-107,"msg":"","data":"","time":1535968848,"microtime":"0.89092200 1535968848","source":"api"}
+                #     {"status":200,"msg":"","data":-200031,"time":1535999806,"microtime":"0.85476800 1535999806","source":"api"}
                 #
-                if status == '200':
-                    #
-                    #     {"status":200,"msg":"","data":-200031,"time":1535999806,"microtime":"0.85476800 1535999806","source":"api"}
-                    #
-                    code = self.safe_integer(response, 'data')
-                    if code is not None:
-                        if code in exceptions:
-                            raise exceptions[code](feedback)
-                        else:
-                            raise ExchangeError(feedback)
+                code = self.safe_integer(response, 'data')
+                if code is not None:
+                    if code in exceptions:
+                        raise exceptions[code](feedback)
                     else:
-                        return  # no error
-                if status in exceptions:
-                    raise exceptions[status](feedback)
+                        raise ExchangeError(feedback)
                 else:
-                    raise ExchangeError(feedback)
+                    return  # no error
+            if status in exceptions:
+                raise exceptions[status](feedback)
+            else:
+                raise ExchangeError(feedback)

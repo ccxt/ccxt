@@ -40,11 +40,14 @@
     "no-nested-ternary": "error",
     "eqeqeq": "error",
     "quotes": ["error", "single", { "avoidEscape": true }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|amount|bid|ask|tag|since|limit|params|market|timeframe|timestamp|api|path|code|currency|response)" }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe|api|path|code|currency|response|requestHeaders|requestBody)" }],
     "new-parens": "error",
     "new-cap": ["error"],
     "no-var": "error",
-    "prefer-const": "off",
+    "prefer-const": ["error", {
+        "destructuring": "any",
+        "ignoreReadBeforeAssign": false
+    }],
     "no-warning-comments": ["warn", { "terms": ["fixme"] }],
     "padded-blocks": ["error", "never"],
     "lines-between-class-members": "error",
@@ -55,7 +58,7 @@
       { "blankLine": "always", "prev":"*", "next": "cjs-export" }
     ],
     "prefer-template": "off",
-    "curly": "off",
+    "curly": "error",
     "no-plusplus": "off",
     "no-restricted-properties": "off",
     "prefer-destructuring": "off",

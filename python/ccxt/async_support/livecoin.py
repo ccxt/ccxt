@@ -4,13 +4,6 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
@@ -111,7 +104,7 @@ class livecoin (Exchange):
             },
             'commonCurrencies': {
                 'BTCH': 'Bithash',
-                'CPC': 'CapriCoin',
+                'CPC': 'Capricoin',
                 'EDR': 'E-Dinar Coin',  # conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT': 'EETT',
                 'FirstBlood': '1ST',
@@ -125,37 +118,45 @@ class livecoin (Exchange):
                 'XBT': 'Bricktox',
             },
             'exceptions': {
-                '1': ExchangeError,
-                '10': AuthenticationError,
-                '100': ExchangeError,  # invalid parameters
-                '101': AuthenticationError,
-                '102': AuthenticationError,
-                '103': InvalidOrder,  # invalid currency
-                '104': InvalidOrder,  # invalid amount
-                '105': InvalidOrder,  # unable to block funds
-                '11': AuthenticationError,
-                '12': AuthenticationError,
-                '2': AuthenticationError,  # "User not found"
-                '20': AuthenticationError,
-                '30': AuthenticationError,
-                '31': NotSupported,
-                '32': ExchangeError,
-                '429': DDoSProtection,
-                '503': ExchangeNotAvailable,
+                'exact': {
+                    '1': ExchangeError,
+                    '10': AuthenticationError,
+                    '100': ExchangeError,  # invalid parameters
+                    '101': AuthenticationError,
+                    '102': AuthenticationError,
+                    '103': InvalidOrder,  # invalid currency
+                    '104': InvalidOrder,  # invalid amount
+                    '105': InvalidOrder,  # unable to block funds
+                    '11': AuthenticationError,
+                    '12': AuthenticationError,
+                    '2': AuthenticationError,  # "User not found"
+                    '20': AuthenticationError,
+                    '30': AuthenticationError,
+                    '31': NotSupported,
+                    '32': ExchangeError,
+                    '429': DDoSProtection,
+                    '503': ExchangeNotAvailable,
+                },
+                'broad': {
+                    'insufficient funds': InsufficientFunds,  # https://github.com/ccxt/ccxt/issues/5749
+                    'NOT FOUND': OrderNotFound,
+                    'Cannot find order': OrderNotFound,
+                    'Minimal amount is': InvalidOrder,
+                },
             },
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetExchangeTicker()
+        response = await self.publicGetExchangeTicker(params)
         restrictions = await self.publicGetExchangeRestrictions()
         restrictionsById = self.index_by(restrictions['restrictions'], 'currencyPair')
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['symbol']
+        for i in range(0, len(response)):
+            market = response[i]
+            id = self.safe_string(market, 'symbol')
             baseId, quoteId = id.split('/')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             coinRestrictions = self.safe_value(restrictionsById, symbol)
             precision = {
@@ -192,28 +193,31 @@ class livecoin (Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.publicGetInfoCoinInfo(params)
-        currencies = response['info']
+        currencies = self.safe_value(response, 'info')
         result = {}
         for i in range(0, len(currencies)):
             currency = currencies[i]
-            id = currency['symbol']
+            id = self.safe_string(currency, 'symbol')
             # todo: will need to rethink the fees
             # to add support for multiple withdrawal/deposit methods and
             # differentiated fees for each particular method
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             precision = 8  # default precision, todo: fix "magic constants"
-            active = (currency['walletStatus'] == 'normal')
+            walletStatus = self.safe_string(currency, 'walletStatus')
+            active = (walletStatus == 'normal')
+            name = self.safe_string(currency, 'name')
+            fee = self.safe_float(currency, 'withdrawFee')
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': currency['name'],
+                'name': name,
                 'active': active,
-                'fee': currency['withdrawFee'],  # todo: redesign
+                'fee': fee,
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': currency['minOrderAmount'],
+                        'min': self.safe_float(currency, 'minOrderAmount'),
                         'max': math.pow(10, precision),
                     },
                     'price': {
@@ -221,15 +225,15 @@ class livecoin (Exchange):
                         'max': math.pow(10, precision),
                     },
                     'cost': {
-                        'min': currency['minOrderAmount'],
+                        'min': self.safe_float(currency, 'minOrderAmount'),
                         'max': None,
                     },
                     'withdraw': {
-                        'min': currency['minWithdrawAmount'],
+                        'min': self.safe_float(currency, 'minWithdrawAmount'),
                         'max': math.pow(10, precision),
                     },
                     'deposit': {
-                        'min': currency['minDepositAmount'],
+                        'min': self.safe_float(currency, 'minDepositAmount'),
                         'max': None,
                     },
                 },
@@ -262,7 +266,7 @@ class livecoin (Exchange):
         ]
         currencies.append({
             'id': 'RUR',
-            'code': self.common_currency_code('RUR'),
+            'code': self.safe_currency_code('RUR'),
             'name': 'Russian ruble',
         })
         for i in range(0, len(currencies)):
@@ -273,23 +277,24 @@ class livecoin (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        balances = await self.privateGetPaymentBalances()
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            currency = balance['currency']
+        response = await self.privateGetPaymentBalances(params)
+        result = {'info': response}
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
             account = None
-            if currency in result:
-                account = result[currency]
+            if code in result:
+                account = result[code]
             else:
                 account = self.account()
             if balance['type'] == 'total':
-                account['total'] = float(balance['value'])
+                account['total'] = self.safe_float(balance, 'value')
             if balance['type'] == 'available':
-                account['free'] = float(balance['value'])
+                account['free'] = self.safe_float(balance, 'value')
             if balance['type'] == 'trade':
-                account['used'] = float(balance['value'])
-            result[currency] = account
+                account['used'] = self.safe_float(balance, 'value')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_trading_fees(self, params={}):
@@ -310,9 +315,9 @@ class livecoin (Exchange):
         }
         if limit is not None:
             request['depth'] = limit  # 100
-        orderbook = await self.publicGetExchangeOrderBook(self.extend(request, params))
-        timestamp = orderbook['timestamp']
-        return self.parse_order_book(orderbook, timestamp)
+        response = await self.publicGetExchangeOrderBook(self.extend(request, params))
+        timestamp = self.safe_integer(response, 'timestamp')
+        return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
@@ -365,12 +370,13 @@ class livecoin (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetExchangeTicker(self.extend({
+        request = {
             'currencyPair': market['id'],
-        }, params))
+        }
+        ticker = await self.publicGetExchangeTicker(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
         #
         # fetchTrades(public)
         #
@@ -394,9 +400,7 @@ class livecoin (Exchange):
         #         "commission": 0,
         #         "clientorderid": 1472837650
         #     }
-        timestamp = self.safe_string_2(trade, 'time', 'datetime')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp_2(trade, 'time', 'datetime')
         fee = None
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
@@ -407,24 +411,26 @@ class livecoin (Exchange):
             }
         orderId = self.safe_string(trade, 'clientorderid')
         id = self.safe_string(trade, 'id')
-        side = self.safe_string(trade, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'type')
         amount = self.safe_float(trade, 'quantity')
         price = self.safe_float(trade, 'price')
         cost = None
         if amount is not None:
             if price is not None:
                 cost = amount * price
+        symbol = None
+        if market is not None:
+            symbol = market['symbol']
         return {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
-            'id': id,
+            'symbol': symbol,
             'order': orderId,
             'type': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -534,11 +540,10 @@ class livecoin (Exchange):
             marketId = self.safe_string(order, 'symbol', marketId)
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
-        type = None
+        type = self.safe_string_lower(order, 'type')
         side = None
-        if 'type' in order:
-            lowercaseType = order['type'].lower()
-            orderType = lowercaseType.split('_')
+        if type is not None:
+            orderType = type.split('_')
             type = orderType[0]
             side = orderType[1]
         price = self.safe_float(order, 'price')
@@ -641,11 +646,11 @@ class livecoin (Exchange):
             raise ArgumentsRequired(self.id + ' cancelOrder requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        currencyPair = market['id']
-        response = await self.privatePostExchangeCancellimit(self.extend({
+        request = {
             'orderId': id,
-            'currencyPair': currencyPair,
-        }, params))
+            'currencyPair': market['id'],
+        }
+        response = await self.privatePostExchangeCancellimit(self.extend(request, params))
         message = self.safe_string(response, 'message', self.json(response))
         if 'success' in response:
             if not response['success']:
@@ -699,20 +704,15 @@ class livecoin (Exchange):
         #        "externalKey": "....87diPBy......3hTtuwUT78Yi",(address on deposits, tx on withdrawals)
         #        "documentId": 1110662453
         #    },
-        code = None
         txid = None
         address = None
         id = self.safe_string(transaction, 'documentId')
         amount = self.safe_float(transaction, 'amount')
         timestamp = self.safe_integer(transaction, 'date')
-        type = self.safe_string(transaction, 'type').lower()
+        type = self.safe_string_lower(transaction, 'type')
         currencyId = self.safe_string(transaction, 'fixedCurrency')
         feeCost = self.safe_float(transaction, 'fee')
-        currency = self.safe_value(self.currencies_by_id, currencyId)
-        if currency is not None:
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         if type == 'withdrawal':
             txid = self.safe_string(transaction, 'externalKey')
             address = self.safe_string(transaction, 'id')
@@ -814,26 +814,25 @@ class livecoin (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
-        if not isinstance(body, basestring):
-            return
-        if body[0] == '{':
-            if code >= 300:
-                errorCode = self.safe_string(response, 'errorCode')
-                if errorCode in self.exceptions:
-                    ExceptionClass = self.exceptions[errorCode]
-                    raise ExceptionClass(self.id + ' ' + body)
-                else:
-                    raise ExchangeError(self.id + ' ' + body)
-            # returns status code 200 even if success == False
-            success = self.safe_value(response, 'success', True)
-            if not success:
-                message = self.safe_string(response, 'message')
-                if message is not None:
-                    if message.find('Cannot find order') >= 0:
-                        raise OrderNotFound(self.id + ' ' + body)
-                exception = self.safe_string(response, 'exception')
-                if exception is not None:
-                    if exception.find('Minimal amount is') >= 0:
-                        raise InvalidOrder(self.id + ' ' + body)
-                raise ExchangeError(self.id + ' ' + body)
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
+            return  # fallback to default error handler
+        if code >= 300:
+            feedback = self.id + ' ' + body
+            exact = self.exceptions['exact']
+            errorCode = self.safe_string(response, 'errorCode')
+            if errorCode in exact:
+                raise exact[errorCode](feedback)
+            else:
+                raise ExchangeError(feedback)
+        # returns status code 200 even if success == False
+        success = self.safe_value(response, 'success', True)
+        if not success:
+            feedback = self.id + ' ' + body
+            broad = self.exceptions['broad']
+            message = self.safe_string_2(response, 'message', 'exception')
+            if message is not None:
+                broadKey = self.findBroadlyMatchedKey(broad, message)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)

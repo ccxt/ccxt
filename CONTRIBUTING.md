@@ -38,6 +38,10 @@ If you found a security issue or a critical vulnerability and reporting it in pu
 
 ## How To Contribute Code
 
+- **[MAKE SURE YOUR CODE IS UNIFIED](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#derived-exchange-classes)!**
+
+  ↑ This is the most important rule of all.
+
 - **PLEASE, DO NOT COMMIT THE FOLLOWING FILES IN PULL REQUESTS:**
 
   - `/doc/*` (these files are generated from `/wiki/*`, place your edits there)
@@ -159,9 +163,9 @@ The contents of the repository are structured as follows:
 
 ### Multilanguage Support
 
-The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user can read code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
+The ccxt library is available in three different languages (more to come). We encourage developers to design *portable* code, so that a single-language user could read the code in other languages and understand it easily. This helps the adoption of the library. The main goal is to provide a generalized, unified, consistent and robust interface to as many existing cryptocurrency exchanges as possible.
 
-At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
+At first, all language-specific versions were developed in parallel, but separately from each other. But when it became too hard to maintain and keep the code consistent among all supported languages we have decided to switch to what we call a *source/generated* process. There is now a single source version in one language, that is JavaScript. Other language-specific versions are syntactically derived (transpiled, generated) automatically from the source version. But it doesn't mean that you have to be a JS coder to contribute. The portability principle allows Python and PHP devs to effectively participate in developing the source version as well.
 
 The module entry points are:
 - `./python/__init__.py` for the Python pip package
@@ -240,7 +244,7 @@ If the transpiling process finishes successfully, but generates incorrect Python
 - do everything with base class methods only (for example, use `this.json ()` for converting objects to json).
 - always put a semicolon `;` at the end of each statement, as in PHP/C-style
 - all associative keys must be single-quoted strings everywhere, `array['good'], array.bad`
-- variables should be declared with `const` or `let` keywords semantically (no `var`!)
+- variables should be declared with `const` or `let` keywords semantically (no `var`!), prefer `const` everywhere
 
 And structurally:
 
@@ -254,11 +258,140 @@ And structurally:
 - avoid operators clutter (**don't do this**: `a && b || c ? d + 80 : e ** f`)
 - do not use `.includes()`, use `.indexOf()` instead!
 - never use `.toString()` on floats: `Number (0.00000001).toString () === '1e-8'`
-- do not use closures, `a.filter (x => (x === 'foobar'))` is not acceptable in derived classes
+- do not use closures, `a.map` or `a.filter (x => (x === 'foobar'))` is not acceptable in derived classes
 - do not use the `in` operator to check if a value is in a non-associative array (list)
 - don't add custom currency or symbol/pair conversions and formatting, copy from existing code instead
 - **don't access non-existent keys, `array['key'] || {}` won't work in other languages!**
 - keep it simple, don't do more than one statement in one line
+
+#### Sending Market Ids
+
+Most of exchanges' API endpoints will require an exchange-specific market symbol or trading pair or instrument to be specified in the request.
+
+**We don't send unified symbols to exchanges directly!** They are not interchangeable! There is a significant difference between *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
+
+- https://github.com/ccxt/ccxt/wiki/Manual#markets
+- https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
+
+**NEVER DO THIS:**
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const request = {
+      'pair': symbol, // very bad, sending unified symbols to the exchange directly
+   };
+   const response = await this.publicGetEndpoint (request);
+   // parse in a unified way...
+}
+```
+
+**DO NOT DO THIS EITHER:**
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const request = {
+      'symbol': symbol, // very bad, sending unified symbols to the exchange directly
+   };
+   const response = await this.publicGetEndpoint (request);
+   // parse in a unified way...
+}
+```
+
+Instead of sending a unified CCXT symbol to the exchange, we **always** take the exchange-specific market-`id` that corresponds to that symbol. If it so happens that an exchange specific market-id is exactly the same as the CCXT unified symbol – that's a happy coincidence, but we never rely on that in the unified CCXT API.
+
+To get the exchange-specific market-id by a unified CCXT symbol, use the following methods:
+
+- `this.market (symbol)` – returns the entire unified market structure, containing the `id`, `baseId`, `quoteId`, and many other interesting things
+- `this.marketId (symbol)` – returns just the exchange-specific `id` of a market by a unified symbol (if you don't need anything else)
+
+**GOOD EXAMPLES:**
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const market = this.market (symbol); // the entire market structure
+   const request = {
+      'pair': market['id'], // good, they may me equal, but often differ, it's ok
+   };
+   const response = await this.publicGetEndpoint (this.extend (request, params));
+   // parse in a unified way...
+}
+```
+
+```JavaScript
+async fetchTicker (symbol, params = {}) {
+   const marketId = this.marketId (symbol); // just the id
+   const request = {
+      'symbol': marketId, // good, they may me equal, but often differ, it's ok
+   };
+   const response = await this.publicGetEndpoint (this.extend (request, params));
+   // parse in a unified way...
+}
+```
+
+#### Parsing Symbols
+
+When sending requests to the exchange unified symbols have to be _"converted"_ to exchange-specific market-`id`s like shown above. The same is true on the other side – when receiving an exchange response it has an exchange-specific market-`id` inside it that has to be _"converted back"_ to a unified CCXT symbol.
+
+**We don't put exchange-specific market-`id`s in unified structures directly!** We can't freely interchange symbols with ids! There is a significant difference between an *exchange-specific market-ids* and *unified symbols*! This is explained in the Manual, here:
+
+- https://github.com/ccxt/ccxt/wiki/Manual#markets
+- https://github.com/ccxt/ccxt/wiki/Manual#symbols-and-market-ids
+
+**NEVER DO THIS:**:
+
+```JavaScript
+parseTrade (trade, market = undefined) {
+   // parsing code...
+   return {
+      'info': trade,
+      'symbol': trade['pair'], // very bad, returning exchange-specific market-ids in a unified structure!
+      // other fields...
+   };
+}
+```
+
+**DO NOT DO THIS EITHER**
+
+```JavaScript
+parseTrade (trade, market = undefined) {
+   // parsing code...
+   return {
+      'info': trade,
+      'symbol': trade['symbol'], // very bad, returning exchange-specific market-ids in a unified structure!
+      // other fields...
+   };
+}
+```
+
+In order to handle the market-`id` properly it has to be looked-up in the info cached on this exchange with `loadMarkets()`:
+
+**GOOD EXAMPLE:**
+
+```JavaScript
+parseTrade (trade, market = undefined) {
+   let symbol = undefined;
+   const marketId = this.safeString (trade, 'pair');
+   if (marketId !== undefined) {
+      if (marketId in this.markets_by_id) {
+         // look up by an exchange-specific id in the preloaded markets first
+         market = this.markets_by_id[market];
+         symbol = market['symbol'];
+      } else {
+         // try to parse it somehow, if the format is known
+         const [ baseId, quoteId ] = marketId.split ('/');
+         const base = this.safeCurrencyCode (baseId); // unified
+         const quote = this.safeCurrencyCode (quoteId);
+         symbol = base + '/' + quote;
+      }
+   }
+   // parsing code...
+   return {
+      'info': trade,
+      'symbol': symbol, // very good, a unified symbol here now
+      // other fields...
+   };
+}
+```
 
 #### Accessing Dictionary Keys
 
@@ -269,11 +402,11 @@ In JavaScript, dictionary keys can be accessed in two notations:
 
 Both work almost identically, and one is implicitly converted to another upon executing the JavaScript code.
 
-While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treaded in the same was as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
+While the above does work in JavaScript, it will not work in Python or PHP. In most languages, associative dictionary keys are not treated in the same was as properties. Therefore, in Python `object.key` is not the same as `object['key']`. In PHP `$object->key` is not the same as `$object['key']` as well. Languages that differentiate between associative keys and properties use different notations for the two.
 
 To keep the code transpileable, please, remeber this simple rule: *always use the single-quoted string key notation `object['key']` for accessing all associative dictionary keys in all languages everywhere throughout this library!*
 
-#### Sanitizing Input With Safe Methods
+#### Sanitizing Input With `safe`-Methods
 
 JavaScript is less restrictive than other languages. It will tolerate an attempt to dereference a non-existent key where other languages will throw an Exception:
 
@@ -346,6 +479,70 @@ if ('foo' in params) {
 }
 ```
 
+#### Using Base Class Cryptography Methods For Authentication
+
+Do not reinvent the wheel. Always use base-class methods for cryptography.
+
+The CCXT library supports the following authentication algorithms and cryptography algorithms:
+
+- HMAC
+- JWT (JSON Web Token)
+- RSA
+- ECDSA Elliptic Curve Cryptography
+  - NIST P256
+  - secp256k1
+- OTP 2FA (one-time password 2-factor authentication)
+
+The base `Exchange` class offers several methods that are key to practically all cryptography in this lib. Derived exchange implementations must not use external dependencies for cryptography, everything should be done with base methods only.
+
+- `hash (message, hash = 'md5', digest = 'hex')`
+- `hmac (message, secret, hash = 'sha256', digest = 'hex')`
+- `jwt (message, secret, hash = 'HS256')`
+- `rsa (message, secret, alg = 'RS256')`
+- `ecdsa (request, secret, algorithm = 'p256', hash = undefined)`
+- `totp (secret)`
+- `stringToBase64()`, `base64ToBinary()`, `binaryToBase64()`...
+
+The `hash()` method supports the following `hash` algorithms:
+
+- `'md5'`
+- `'sha1'`
+- `'sha3'`
+- `'sha256'`
+- `'sha384'`
+- `'sha512'`
+- `'keccak'`
+
+The `digest` encoding argument accepts the following values:
+
+- `'hex'`
+- `'binary'`
+
+The `hmac()` method also supports `'base64'` for the `digest` argument. This is for `hmac()` only, other implementations should use `'binary'` with `binaryToBase64()`.
+
+#### Timestamps
+
+**All timestamps throughout all unified structures within this library are integer timestamp _in milliseconds_!**
+
+In order to convert to milliseconds timestamps, CCXT implementes the following methods:
+
+```JavaScript
+const data = {
+   'unixTimestampInSeconds': 1565242530,
+   'unixTimestampInMilliseconds': 1565242530165,
+   'stringInSeconds': '1565242530',
+};
+
+// convert to integer if the underlying value is already in milliseconds
+const timestamp = this.safeInteger (data, 'unixTimestampInMilliseconds'); // === 1565242530165
+
+// convert to integer and multiply by a thousand if the value is a UNIX timestamp in seconds
+const timestamp = this.safeTimestamp (data, 'unixTimestampInSeconds'); // === 1565242530000
+
+// convert to integer and multiply by a thousand if the value is in seconds
+const timestamp = this.safeTimestamp (data, 'stringInSeconds'); // === 1565242530000
+```
+
 #### Working With Array Lengths
 
 In JavaScript the common syntax to get a length of a string or an array is to reference the `.length` property like shown here:
@@ -402,7 +599,28 @@ The rule of thumb is: **`+` is for string concatenation only (!)** and **`this.s
 
 The `.toFixed ()` method has [known rounding bugs](https://www.google.com/search?q=toFixed+bug) in JavaScript, and so do the other rounding methods in the other languages as well. In order to work with number formatting consistently, we need to use the [`decimalToPrecision` method as described in the Manual](https://github.com/ccxt/ccxt/wiki/Manual#methods-for-formatting-decimals).
 
-#### Using ternary conditionals
+#### Escaped Control Characters
+
+When using strings containing control characters like `"\n"`, `"\t"`, always enclose them in double quotes (`"`), not single quotes (`'`)! Single-quoted strings are not parsed for control characters and are treated as is in many languages apart from JavaScript. Therefore for tabs and newlines to work in PHP, we need to surround them with double quotes (especially in the `sign()` implementation).
+
+Bad:
+
+```JavaScript
+const a = 'GET' + method.toLowerCase () + '\n' + path;
+const b = 'api\nfoobar.com\n';
+```
+
+Good:
+
+```JavaScript
+const a = 'GET' + method.toLowerCase () + "\n" + path; // eslint-disable-line quotes
+// eslint-disable-next-line quotes
+const b = "api\nfoobar.com\n";
+```
+
+**↑ The `eslint-*` comments are mandatory!**
+
+#### Using Ternary Conditionals
 
 Do not use heavy ternary (`?:`) conditionals, **always use brackets in ternary operators!**
 
@@ -465,7 +683,20 @@ foo += this.c ();
 
 ### New Exchange Integrations
 
+**REMEMBER:** The key reason why this library is used at all is **Unification**. When developing a new exchange file the goal is not to implement it somehow, but to implement it in a very pedantic, precise and exact way, just as the other exchanges are implemented. For that we have to copy bits of logic from other exchanges and make sure that the new exchange conforms to the Manual in the following aspects:
+
+- market ids, trading pair symbols, currency ids, token codes, symbolic unification and `commonCurrencies` must be standardized in all parsing methods (`fetchMarkets`, `fetchCurrencies`, `parseTrade`, `parseOrder`, ...)
+- all unified API method names and arguments are standard – can't add or change them freely
+- all parser input must be `safe`-sanitized as [described above](#sanitizing-input-with-safe-methods)
+- for bulk operations the base methods should be used (`parseTrades`, `parseOrders`, note the `s` plural ending)
+- use as much of base functionality as you can, do not reinvent the wheel, nor the bicycle, nor the bicycle wheel
+- respect default argument values in `fetch`-methods, check if `since` and `limit` are `undefined` and do not send them to the exchange, we intentionally use the exchanges' defaults in such cases
+- when implementing a unified method that has some arguments – we can't ignore or miss any of those arguments
+- all structures returned from the unified methods must conform to their specifications from the Manual
+
 Please, see the following document for new integrations: https://github.com/ccxt/ccxt/wiki/Requirements
+
+A quick merge of a Pull Request for a new exchange integration depends on consistency and compliance with the above unified rules and standards. Breaking one of those is the key reason for not merging a Pull Request.
 
 **If you want to add (support for) another exchange, or implement a new method for a particular exchange, then the best way to make it a consistent improvement is to learn from example. Take a look at how same things are implemented in other exchanges (we recommend certified exchanges) and try to copy the code flow and style.**
 

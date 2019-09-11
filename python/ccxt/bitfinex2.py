@@ -78,6 +78,7 @@ class bitfinex2 (bitfinex):
                 },
                 'public': {
                     'get': [
+                        'conf/pub:map:currency:label',
                         'platform/status',
                         'tickers',
                         'ticker/{symbol}',
@@ -210,22 +211,30 @@ class bitfinex2 (bitfinex):
         return 'f' + code
 
     def fetch_markets(self, params={}):
-        markets = self.v1GetSymbolsDetails()
+        response = self.v1GetSymbolsDetails(params)
         result = []
-        for p in range(0, len(markets)):
-            market = markets[p]
-            id = market['pair'].upper()
-            baseId = id[0:3]
-            quoteId = id[3:6]
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+        for i in range(0, len(response)):
+            market = response[i]
+            id = self.safe_string(market, 'pair')
+            id = id.upper()
+            baseId = None
+            quoteId = None
+            if id.find(':') >= 0:
+                parts = id.split(':')
+                baseId = parts[0]
+                quoteId = parts[1]
+            else:
+                baseId = id[0:3]
+                quoteId = id[3:6]
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             id = 't' + id
             baseId = self.get_currency_id(baseId)
             quoteId = self.get_currency_id(quoteId)
             precision = {
-                'price': market['price_precision'],
-                'amount': market['price_precision'],
+                'price': self.safe_integer(market, 'price_precision'),
+                'amount': self.safe_integer(market, 'price_precision'),
             }
             limits = {
                 'amount': {
@@ -252,13 +261,16 @@ class bitfinex2 (bitfinex):
                 'precision': precision,
                 'limits': limits,
                 'info': market,
+                'swap': False,
+                'spot': False,
+                'futures': False,
             })
         return result
 
     def fetch_balance(self, params={}):
         # self api call does not return the 'used' amount - use the v1 version instead(which also returns zero balances)
         self.load_markets()
-        response = self.privatePostAuthRWallets()
+        response = self.privatePostAuthRWallets(params)
         balanceType = self.safe_string(params, 'type', 'exchange')
         result = {'info': response}
         for b in range(0, len(response)):
@@ -268,16 +280,12 @@ class bitfinex2 (bitfinex):
             total = balance[2]
             available = balance[4]
             if accountType == balanceType:
-                code = currency
-                if currency in self.currencies_by_id:
-                    code = self.currencies_by_id[currency]['code']
-                elif currency[0] == 't':
+                if currency[0] == 't':
                     currency = currency[1:]
-                    code = currency.upper()
-                    code = self.common_currency_code(code)
-                else:
-                    code = self.common_currency_code(code)
+                code = self.safe_currency_code(currency)
                 account = self.account()
+                # do not fill in zeroes and missing values in the parser
+                # rewrite and unify the following to use the unified parseBalance
                 account['total'] = total
                 if not available:
                     if available == 0:
@@ -310,7 +318,7 @@ class bitfinex2 (bitfinex):
             'datetime': self.iso8601(timestamp),
             'nonce': None,
         }
-        priceIndex = 1 if (fullRequest['precision'] == precision) else 0
+        priceIndex = 1 if (fullRequest['precision'] == 'R0') else 0
         for i in range(0, len(orderbook)):
             order = orderbook[i]
             price = order[priceIndex]
@@ -324,7 +332,7 @@ class bitfinex2 (bitfinex):
     def parse_ticker(self, ticker, market=None):
         timestamp = self.milliseconds()
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         length = len(ticker)
         last = ticker[length - 4]
@@ -373,9 +381,10 @@ class bitfinex2 (bitfinex):
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
         market = self.market(symbol)
-        ticker = self.publicGetTickerSymbol(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
+        }
+        ticker = self.publicGetTickerSymbol(self.extend(request, params))
         return self.parse_ticker(ticker, market)
 
     def parse_trade(self, trade, market=None):
@@ -433,7 +442,7 @@ class bitfinex2 (bitfinex):
             orderId = trade[3]
             takerOrMaker = 'maker' if (trade[8] == 1) else 'taker'
             feeCost = trade[9]
-            feeCurrency = self.common_currency_code(trade[10])
+            feeCurrency = self.safe_currency_code(trade[10])
             if feeCost is not None:
                 fee = {
                     'cost': abs(feeCost),

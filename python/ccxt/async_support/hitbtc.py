@@ -88,8 +88,8 @@ class hitbtc (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': -0.01 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': 0.07 / 100,
+                    'taker': 0.07 / 100,
                 },
                 'funding': {
                     'tierBased': False,
@@ -489,7 +489,6 @@ class hitbtc (Exchange):
                 },
             },
             'commonCurrencies': {
-                'BCH': 'Bitcoin Cash',
                 'BET': 'DAO.Casino',
                 'CAT': 'BitClave',
                 'DRK': 'DASH',
@@ -507,17 +506,18 @@ class hitbtc (Exchange):
         })
 
     async def fetch_markets(self, params={}):
-        markets = await self.publicGetSymbols()
+        response = await self.publicGetSymbols(params)
+        markets = self.safe_value(response, 'symbols')
         result = []
-        for p in range(0, len(markets['symbols'])):
-            market = markets['symbols'][p]
-            id = market['symbol']
-            baseId = market['commodity']
-            quoteId = market['currency']
+        for i in range(0, len(markets)):
+            market = markets[i]
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'commodity')
+            quoteId = self.safe_string(market, 'currency')
             lot = self.safe_float(market, 'lot')
             step = self.safe_float(market, 'step')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'info': market,
@@ -559,21 +559,16 @@ class hitbtc (Exchange):
         method += 'GetBalance'
         query = self.omit(params, 'type')
         response = await getattr(self, method)(query)
-        balances = response['balance']
-        result = {'info': balances}
-        for b in range(0, len(balances)):
-            balance = balances[b]
-            code = balance['currency_code']
-            currency = self.common_currency_code(code)
-            free = self.safe_float(balance, 'cash', 0.0)
-            free = self.safe_float(balance, 'balance', free)
-            used = self.safe_float(balance, 'reserved', 0.0)
-            account = {
-                'free': free,
-                'used': used,
-                'total': self.sum(free, used),
-            }
-            result[currency] = account
+        balances = self.safe_value(response, 'balance', [])
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency_code')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_float_2(balance, 'cash', 'balance')
+            account['used'] = self.safe_float(balance, 'reserved')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -584,7 +579,7 @@ class hitbtc (Exchange):
         return self.parse_order_book(orderbook)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = ticker['timestamp']
+        timestamp = self.safe_integer(ticker, 'timestamp')
         symbol = None
         if market:
             symbol = market['symbol']
@@ -628,12 +623,13 @@ class hitbtc (Exchange):
     async def fetch_ticker(self, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        ticker = await self.publicGetSymbolTicker(self.extend({
+        request = {
             'symbol': market['id'],
-        }, params))
-        if 'message' in ticker:
-            raise ExchangeError(self.id + ' ' + ticker['message'])
-        return self.parse_ticker(ticker, market)
+        }
+        response = await self.publicGetSymbolTicker(self.extend(request, params))
+        if 'message' in response:
+            raise ExchangeError(self.id + ' ' + response['message'])
+        return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
         if isinstance(trade, list):
@@ -642,12 +638,15 @@ class hitbtc (Exchange):
 
     def parse_public_trade(self, trade, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         side = None
         tradeLength = len(trade)
-        if tradeLength > 3:
+        if tradeLength > 4:
             side = trade[4]
+        price = float(trade[1])
+        amount = float(trade[2])
+        cost = price * amount
         return {
             'info': trade,
             'id': str(trade[0]),
@@ -656,13 +655,17 @@ class hitbtc (Exchange):
             'symbol': symbol,
             'type': None,
             'side': side,
-            'price': float(trade[1]),
-            'amount': float(trade[2]),
+            'order': None,
+            'takerOrMaker': None,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
 
     def parse_order_trade(self, trade, market=None):
         symbol = None
-        if market:
+        if market is not None:
             symbol = market['symbol']
         amount = self.safe_float(trade, 'execQuantity')
         if market:
@@ -674,16 +677,22 @@ class hitbtc (Exchange):
             'currency': None,
             'rate': None,
         }
-        timestamp = trade['timestamp']
+        timestamp = self.safe_integer(trade, 'timestamp')
+        id = self.safe_string(trade, 'tradeId')
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
+        orderId = self.safe_string(trade, 'clientOrderId')
+        side = self.safe_string(trade, 'side')
         return {
             'info': trade,
-            'id': trade['tradeId'],
-            'order': trade['clientOrderId'],
+            'id': id,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'type': None,
-            'side': trade['side'],
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -747,9 +756,13 @@ class hitbtc (Exchange):
 
     async def cancel_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        return await self.tradingPostCancelOrder(self.extend({
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
+        request = {
             'clientOrderId': id,
-        }, params))
+        }
+        return await self.tradingPostCancelOrder(self.extend(request, params))
 
     def parse_order_status(self, status):
         statuses = {
@@ -767,7 +780,7 @@ class hitbtc (Exchange):
         if timestamp is None:
             timestamp = self.safe_integer(order, 'timestamp')
         symbol = None
-        if not market:
+        if market is None:
             market = self.markets_by_id[order['symbol']]
         status = self.parse_order_status(self.safe_string(order, 'orderStatus'))
         price = self.safe_float(order, 'orderPrice')
@@ -806,16 +819,22 @@ class hitbtc (Exchange):
             'currency': feeCurrency,
             'rate': None,
         }
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
+        id = self.safe_string(order, 'clientOrderId')
+        type = self.safe_string(order, 'type')
+        side = self.safe_string(order, 'side')
         return {
-            'id': str(order['clientOrderId']),
+            'id': id,
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
-            'type': order['type'],
-            'side': order['side'],
+            'type': type,
+            'side': side,
             'price': price,
             'cost': cost,
             'amount': amount,
@@ -826,9 +845,13 @@ class hitbtc (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.tradingGetOrder(self.extend({
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
+        request = {
             'clientOrderId': id,
-        }, params))
+        }
+        response = await self.tradingGetOrder(self.extend(request, params))
         if response['orders'][0]:
             return self.parse_order(response['orders'][0])
         raise OrderNotFound(self.id + ' fetchOrder() error: ' + self.response)
@@ -867,9 +890,13 @@ class hitbtc (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        response = await self.tradingGetTradesByOrder(self.extend({
+        # we use clientOrderId as the order id with HitBTC intentionally
+        # because most of their endpoints will require clientOrderId
+        # explained here: https://github.com/ccxt/ccxt/issues/5674
+        request = {
             'clientOrderId': id,
-        }, params))
+        }
+        response = await self.tradingGetTradesByOrder(self.extend(request, params))
         return self.parse_trades(response['trades'], market, since, limit)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):

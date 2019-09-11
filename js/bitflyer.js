@@ -20,7 +20,7 @@ module.exports = class bitflyer extends Exchange {
                 'withdraw': true,
                 'fetchMyTrades': true,
                 'fetchOrders': true,
-                'fetchOrder': true,
+                'fetchOrder': 'emulated',
                 'fetchOpenOrders': 'emulated',
                 'fetchClosedOrders': 'emulated',
             },
@@ -78,37 +78,33 @@ module.exports = class bitflyer extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': 0.25 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': 0.2 / 100,
+                    'taker': 0.2 / 100,
+                },
+                'BTC/JPY': {
+                    'maker': 0.15 / 100,
+                    'taker': 0.15 / 100,
                 },
             },
         });
     }
 
     async fetchMarkets (params = {}) {
-        let jp_markets = await this.publicGetGetmarkets ();
-        let us_markets = await this.publicGetGetmarketsUsa ();
-        let eu_markets = await this.publicGetGetmarketsEu ();
+        const jp_markets = await this.publicGetGetmarkets (params);
+        const us_markets = await this.publicGetGetmarketsUsa (params);
+        const eu_markets = await this.publicGetGetmarketsEu (params);
         let markets = this.arrayConcat (jp_markets, us_markets);
         markets = this.arrayConcat (markets, eu_markets);
-        let result = [];
-        for (let p = 0; p < markets.length; p++) {
-            let market = markets[p];
-            let id = market['product_code'];
-            let spot = true;
-            let future = false;
-            let type = 'spot';
-            if ('alias' in market) {
-                type = 'future';
-                future = true;
-                spot = false;
-            }
-            let currencies = id.split ('_');
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'product_code');
+            const currencies = id.split ('_');
             let baseId = undefined;
             let quoteId = undefined;
             let base = undefined;
             let quote = undefined;
-            let numCurrencies = currencies.length;
+            const numCurrencies = currencies.length;
             if (numCurrencies === 1) {
                 baseId = id.slice (0, 3);
                 quoteId = id.slice (3, 6);
@@ -119,9 +115,22 @@ module.exports = class bitflyer extends Exchange {
                 baseId = currencies[1];
                 quoteId = currencies[2];
             }
-            base = this.commonCurrencyCode (baseId);
-            quote = this.commonCurrencyCode (quoteId);
-            let symbol = (numCurrencies === 2) ? (base + '/' + quote) : id;
+            base = this.safeCurrencyCode (baseId);
+            quote = this.safeCurrencyCode (quoteId);
+            const symbol = (numCurrencies === 2) ? (base + '/' + quote) : id;
+            const fees = this.safeValue (this.fees, symbol, this.fees['trading']);
+            let maker = this.safeValue (fees, 'maker', this.fees['trading']['maker']);
+            let taker = this.safeValue (fees, 'taker', this.fees['trading']['taker']);
+            let spot = true;
+            let future = false;
+            let type = 'spot';
+            if (('alias' in market) || (currencies[0] === 'FX')) {
+                type = 'future';
+                future = true;
+                spot = false;
+                maker = 0.0;
+                taker = 0.0;
+            }
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -129,6 +138,8 @@ module.exports = class bitflyer extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'maker': maker,
+                'taker': taker,
                 'type': type,
                 'spot': spot,
                 'future': future,
@@ -140,43 +151,56 @@ module.exports = class bitflyer extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetGetbalance ();
-        let balances = {};
-        for (let b = 0; b < response.length; b++) {
-            let account = response[b];
-            let currency = account['currency_code'];
-            balances[currency] = account;
-        }
-        let result = { 'info': response };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let account = this.account ();
-            if (currency in balances) {
-                account['total'] = balances[currency]['amount'];
-                account['free'] = balances[currency]['available'];
-                account['used'] = account['total'] - account['free'];
-            }
-            result[currency] = account;
+        const response = await this.privateGetGetbalance (params);
+        //
+        //     [
+        //         {
+        //             "currency_code": "JPY",
+        //             "amount": 1024078,
+        //             "available": 508000
+        //         },
+        //         {
+        //             "currency_code": "BTC",
+        //             "amount": 10.24,
+        //             "available": 4.12
+        //         },
+        //         {
+        //             "currency_code": "ETH",
+        //             "amount": 20.48,
+        //             "available": 16.38
+        //         }
+        //     ]
+        //
+        const result = { 'info': response };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currency_code');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeFloat (balance, 'amount');
+            account['free'] = this.safeFloat (balance, 'available');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let orderbook = await this.publicGetGetboard (this.extend ({
+        const request = {
             'product_code': this.marketId (symbol),
-        }, params));
+        };
+        const orderbook = await this.publicGetGetboard (this.extend (request, params));
         return this.parseOrderBook (orderbook, undefined, 'bids', 'asks', 'price', 'size');
     }
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let ticker = await this.publicGetGetticker (this.extend ({
+        const request = {
             'product_code': this.marketId (symbol),
-        }, params));
-        let timestamp = this.parse8601 (ticker['timestamp']);
-        let last = this.safeFloat (ticker, 'ltp');
+        };
+        const ticker = await this.publicGetGetticker (this.extend (request, params));
+        const timestamp = this.parse8601 (this.safeString (ticker, 'timestamp'));
+        const last = this.safeFloat (ticker, 'ltp');
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -202,105 +226,126 @@ module.exports = class bitflyer extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let side = undefined;
-        let order = undefined;
-        if ('side' in trade)
-            if (trade['side']) {
-                side = trade['side'].toLowerCase ();
-                let id = side + '_child_order_acceptance_id';
-                if (id in trade)
-                    order = trade[id];
+        let side = this.safeStringLower (trade, 'side');
+        if (side !== undefined) {
+            if (side.length < 1) {
+                side = undefined;
             }
-        if (order === undefined)
+        }
+        let order = undefined;
+        if (side !== undefined) {
+            const id = side + '_child_order_acceptance_id';
+            if (id in trade) {
+                order = trade[id];
+            }
+        }
+        if (order === undefined) {
             order = this.safeString (trade, 'child_order_acceptance_id');
-        let timestamp = this.parse8601 (trade['exec_date']);
+        }
+        const timestamp = this.parse8601 (this.safeString (trade, 'exec_date'));
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'size');
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = price * amount;
+            }
+        }
+        const id = this.safeString (trade, 'id');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
-            'id': trade['id'].toString (),
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': order,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
+            'cost': cost,
+            'fee': undefined,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let response = await this.publicGetGetexecutions (this.extend ({
+        const market = this.market (symbol);
+        const request = {
             'product_code': market['id'],
-        }, params));
+        };
+        const response = await this.publicGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let order = {
+        const request = {
             'product_code': this.marketId (symbol),
             'child_order_type': type.toUpperCase (),
             'side': side.toUpperCase (),
             'price': price,
             'size': amount,
         };
-        let result = await this.privatePostSendchildorder (this.extend (order, params));
+        const result = await this.privatePostSendchildorder (this.extend (request, params));
         // { "status": - 200, "error_message": "Insufficient funds", "data": null }
+        const id = this.safeString (result, 'child_order_acceptance_id');
         return {
             'info': result,
-            'id': result['child_order_acceptance_id'],
+            'id': id,
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        return await this.privatePostCancelchildorder (this.extend ({
+        const request = {
             'product_code': this.marketId (symbol),
             'child_order_acceptance_id': id,
-        }, params));
+        };
+        return await this.privatePostCancelchildorder (this.extend (request, params));
     }
 
     parseOrderStatus (status) {
-        let statuses = {
+        const statuses = {
             'ACTIVE': 'open',
             'COMPLETED': 'closed',
             'CANCELED': 'canceled',
             'EXPIRED': 'canceled',
             'REJECTED': 'canceled',
         };
-        if (status in statuses)
-            return statuses[status];
-        return status;
+        return this.safeString (statuses, status, status);
     }
 
     parseOrder (order, market = undefined) {
-        let timestamp = this.parse8601 (order['child_order_date']);
-        let amount = this.safeFloat (order, 'size');
-        let remaining = this.safeFloat (order, 'outstanding_size');
-        let filled = this.safeFloat (order, 'executed_size');
-        let price = this.safeFloat (order, 'price');
-        let cost = price * filled;
-        let status = this.parseOrderStatus (this.safeString (order, 'child_order_state'));
-        let type = order['child_order_type'].toLowerCase ();
-        let side = order['side'].toLowerCase ();
+        const timestamp = this.parse8601 (this.safeString (order, 'child_order_date'));
+        const amount = this.safeFloat (order, 'size');
+        const remaining = this.safeFloat (order, 'outstanding_size');
+        const filled = this.safeFloat (order, 'executed_size');
+        const price = this.safeFloat (order, 'price');
+        const cost = price * filled;
+        const status = this.parseOrderStatus (this.safeString (order, 'child_order_state'));
+        const type = this.safeStringLower (order, 'child_order_type');
+        const side = this.safeStringLower (order, 'side');
         let symbol = undefined;
         if (market === undefined) {
-            let marketId = this.safeString (order, 'product_code');
-            if (marketId !== undefined) {
-                if (marketId in this.markets_by_id)
-                    market = this.markets_by_id[marketId];
+            const marketId = this.safeString (order, 'product_code');
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
             }
         }
-        if (market !== undefined)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         let fee = undefined;
-        let feeCost = this.safeFloat (order, 'total_commission');
+        const feeCost = this.safeFloat (order, 'total_commission');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -308,8 +353,9 @@ module.exports = class bitflyer extends Exchange {
                 'rate': undefined,
             };
         }
+        const id = this.safeString (order, 'child_order_acceptance_id');
         return {
-            'id': order['child_order_acceptance_id'],
+            'id': id,
             'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -328,89 +374,100 @@ module.exports = class bitflyer extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'product_code': market['id'],
             'count': limit,
         };
-        let response = await this.privateGetGetchildorders (this.extend (request, params));
+        const response = await this.privateGetGetchildorders (this.extend (request, params));
         let orders = this.parseOrders (response, market, since, limit);
-        if (symbol !== undefined)
+        if (symbol !== undefined) {
             orders = this.filterBy (orders, 'symbol', symbol);
+        }
         return orders;
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        let request = {
+        const request = {
             'child_order_state': 'ACTIVE',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 100, params = {}) {
-        let request = {
+        const request = {
             'child_order_state': 'COMPLETED',
         };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        let orders = await this.fetchOrders (symbol);
-        let ordersById = this.indexBy (orders, 'id');
-        if (id in ordersById)
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a `symbol` argument');
+        }
+        const orders = await this.fetchOrders (symbol);
+        const ordersById = this.indexBy (orders, 'id');
+        if (id in ordersById) {
             return ordersById[id];
+        }
         throw new OrderNotFound (this.id + ' No order found with id ' + id);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a `symbol` argument');
+        }
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let request = {
+        const market = this.market (symbol);
+        const request = {
             'product_code': market['id'],
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['count'] = limit;
-        let response = await this.privateGetGetexecutions (this.extend (request, params));
+        }
+        const response = await this.privateGetGetexecutions (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
-        if (code !== 'JPY' && code !== 'USD' && code !== 'EUR')
+        if (code !== 'JPY' && code !== 'USD' && code !== 'EUR') {
             throw new ExchangeError (this.id + ' allows withdrawing JPY, USD, EUR only, ' + code + ' is not supported');
-        let currency = this.currency (code);
-        let response = await this.privatePostWithdraw (this.extend ({
+        }
+        const currency = this.currency (code);
+        const request = {
             'currency_code': currency['id'],
             'amount': amount,
             // 'bank_account_id': 1234,
-        }, params));
+        };
+        const response = await this.privatePostWithdraw (this.extend (request, params));
+        const id = this.safeString (response, 'message_id');
         return {
             'info': response,
-            'id': response['message_id'],
+            'id': id,
         };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.version + '/';
-        if (api === 'private')
+        if (api === 'private') {
             request += 'me/';
+        }
         request += path;
         if (method === 'GET') {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 request += '?' + this.urlencode (params);
+            }
         }
-        let url = this.urls['api'] + request;
+        const url = this.urls['api'] + request;
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let nonce = this.nonce ().toString ();
+            const nonce = this.nonce ().toString ();
             let auth = [ nonce, method, request ].join ('');
             if (Object.keys (params).length) {
                 if (method !== 'GET') {

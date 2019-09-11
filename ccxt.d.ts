@@ -149,7 +149,7 @@ declare module 'ccxt' {
     export interface Transaction {
         info: {};
         id: string;
-        txid: string;
+        txid?: string;
         timestamp: number;
         datetime: string;
         address: string;
@@ -323,7 +323,7 @@ declare module 'ccxt' {
         fetchDeposits (currency?: string, since?: number, limit?: number, params?: {}): Promise<Transaction[]>;
         fetchWithdrawals (currency?: string, since?: number, limit?: number, params?: {}): Promise<Transaction[]>;
         cancelOrder (id: string, symbol?: string, params?: {}): Promise<any>;
-        createDepositAddress (currency: string, params?: {}): Promise<any>;
+        createDepositAddress (currency: string, params?: {}): Promise<DepositAddressResponse>;
         fetchDepositAddress (currency: string, params?: {}): Promise<DepositAddressResponse>;
         withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<WithdrawalResponse>;
         request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
@@ -339,7 +339,6 @@ declare module 'ccxt' {
     export class acx extends Exchange {}
     export class allcoin extends okcoinusd {}
     export class anxpro extends Exchange {}
-    export class anybits extends bitsane {}
     export class bcex extends Exchange {}
     export class bequant extends hitbtc2 {}
     export class bibox extends Exchange {}
@@ -354,12 +353,10 @@ declare module 'ccxt' {
     export class bitflyer extends Exchange {}
     export class bitforex extends Exchange {}
     export class bithumb extends Exchange {}
-    export class bitibu extends acx {}
     export class bitkk extends zb {}
     export class bitlish extends Exchange {}
-    export class bitmarket extends Exchange {}
+    export class bitmart extends Exchange {}
     export class bitmex extends Exchange {}
-    export class bitsane extends Exchange {}
     export class bitso extends Exchange {}
     export class bitstamp extends Exchange {}
     export class bitstamp1 extends Exchange {}
@@ -371,16 +368,13 @@ declare module 'ccxt' {
     export class btcalpha extends Exchange {}
     export class btcbox extends Exchange {}
     export class btcchina extends Exchange {}
-    export class btcexchange extends btcturk {}
     export class btcmarkets extends Exchange {}
     export class btctradeim extends coinegg {}
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
     export class buda extends Exchange {}
     export class bxinth extends Exchange {}
-    export class ccex extends Exchange {}
     export class cex extends Exchange {}
-    export class chbtc extends zb {}
     export class chilebit extends foxbit {}
     export class cobinhood extends Exchange {}
     export class coinbase extends Exchange {}
@@ -395,7 +389,6 @@ declare module 'ccxt' {
     export class coingi extends Exchange {}
     export class coinmarketcap extends Exchange {}
     export class coinmate extends Exchange {}
-    export class coinnest extends Exchange {}
     export class coinone extends Exchange {}
     export class coinspot extends Exchange {}
     export class cointiger extends huobipro {}
@@ -404,7 +397,8 @@ declare module 'ccxt' {
     export class crex24 extends Exchange {}
     export class crypton extends Exchange {}
     export class deribit extends Exchange {}
-    export class dsx extends liqui {}
+    export class digifinex extends Exchange {}
+    export class dsx extends Exchange {}
     export class dx extends Exchange {}
     export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
@@ -414,29 +408,26 @@ declare module 'ccxt' {
     export class flowbtc extends Exchange {}
     export class foxbit extends Exchange {}
     export class fybse extends Exchange {}
-    export class fybsg extends fybse {}
     export class gateio extends Exchange {}
     export class gdax extends Exchange {}
     export class gemini extends Exchange {}
-    export class getbtc extends _1btcxe {}
-    export class hadax extends huobipro {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
     export class huobipro extends Exchange {}
     export class huobiru extends huobipro {}
     export class ice3x extends Exchange {}
+    export class idex extends Exchange {}
     export class independentreserve extends Exchange {}
     export class indodax extends Exchange {}
     export class itbit extends Exchange {}
-    export class jubi extends btcbox {}
     export class kkex extends Exchange {}
     export class kraken extends Exchange {}
     export class kucoin extends Exchange {}
     export class kucoin2 extends kucoin {}
     export class kuna extends acx {}
     export class lakebtc extends Exchange {}
+    export class latoken extends Exchange {}
     export class lbank extends Exchange {}
-    export class liqui extends Exchange {}
     export class liquid extends Exchange {}
     export class livecoin extends Exchange {}
     export class luno extends Exchange {}
@@ -453,7 +444,6 @@ declare module 'ccxt' {
     export class okex3 extends Exchange {}
     export class paymium extends Exchange {}
     export class poloniex extends Exchange {}
-    export class quadrigacx extends Exchange {}
     export class rightbtc extends Exchange {}
     export class southxchange extends Exchange {}
     export class stronghold extends Exchange {}
@@ -461,15 +451,13 @@ declare module 'ccxt' {
     export class theocean extends Exchange {}
     export class therock extends Exchange {}
     export class tidebit extends Exchange {}
-    export class tidex extends liqui {}
-    export class uex extends Exchange {}
+    export class tidex extends Exchange {}
     export class upbit extends Exchange {}
-    export class urdubit extends foxbit {}
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}
     export class virwox extends Exchange {}
     export class xbtce extends Exchange {}
-    export class yobit extends liqui {}
+    export class yobit extends Exchange {}
     export class zaif extends Exchange {}
     export class zb extends Exchange {}
 

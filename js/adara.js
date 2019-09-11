@@ -1234,9 +1234,9 @@ module.exports = class adara extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
-        if (!this.isJsonEncodedObject (body))
+        if (response === undefined) {
             return; // fallback to default error handler
-        response = JSON.parse (body);
+        }
         const errors = this.safeValue (response, 'errors', []);
         const numErrors = errors.length;
         if (numErrors > 0) {
