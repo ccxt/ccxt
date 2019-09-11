@@ -887,7 +887,6 @@ module.exports = class dsx extends Exchange {
             }, orders[id]));
             result.push (order);
         }
-        console.log(`result: ${result.length}`, {symbol, since, limit})
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
