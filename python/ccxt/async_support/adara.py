@@ -23,7 +23,7 @@ class adara (Exchange):
             'countries': ['MT'],
             'version': 'v1',
             'rateLimit': 1000,
-            'certified': True,
+            'certified': False,
             # new metainfo interface
             'has': {
                 'CORS': True,
@@ -51,7 +51,7 @@ class adara (Exchange):
                 'logo': 'https://user-images.githubusercontent.com/1294454/49189583-0466a780-f380-11e8-9248-57a631aad2d6.jpg',
                 'api': 'https://api.adara.io',
                 'www': 'https://adara.io',
-                'doc': 'https://api.adara.io/v2.0',
+                'doc': 'https://api.adara.io/v1',
                 'fees': 'https://adara.io/fees',
             },
             'api': {
