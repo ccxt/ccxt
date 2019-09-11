@@ -887,6 +887,7 @@ module.exports = class dsx extends Exchange {
             }, orders[id]));
             result.push (order);
         }
+        console.log(`result: ${result.length}`, {symbol, since, limit})
         return this.filterBySymbolSinceLimit (result, symbol, since, limit);
     }
 
@@ -927,6 +928,9 @@ module.exports = class dsx extends Exchange {
             // 'endId': 321, // Decimal, ID of the last order of the selection
             // 'order': 'ASC', // String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
         };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.privatePostHistoryOrders (this.extend (request, params));
         //
         //     {
