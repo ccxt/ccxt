@@ -41,9 +41,9 @@ module.exports = class adara extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49189583-0466a780-f380-11e8-9248-57a631aad2d6.jpg',
-                'api': 'https://api.adara-master.io',
+                'api': 'https://api.adara.io',
                 'www': 'https://adara.io',
-                'doc': 'https://api.adara-master.io/v2.0',
+                'doc': 'https://api.adara.io/v2.0',
                 'fees': 'https://adara.io/fees',
             },
             'api': {
@@ -263,7 +263,7 @@ module.exports = class adara extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
-        let response = await this.publicGetCurrencies (params);
+        const response = await this.publicGetCurrencies (params);
         //
         //     {     meta: { total: 22 },
         //           data: [ {            id:   "USD",
@@ -343,7 +343,7 @@ module.exports = class adara extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privateGetBalance (params);
+        const response = await this.privateGetBalance (params);
         //
         //     {     data: [ {          type:   "balance",
         //                                id:   "U4f0f0940-39bf-45a8-90bc-12d2899db4f1_BALANCE_FOR_ETH",
@@ -390,13 +390,9 @@ module.exports = class adara extends Exchange {
                 const currencyRelationshipData = this.safeValue (currencyRelationship, 'data');
                 const currencyId = this.safeString (currencyRelationshipData, 'id');
                 const code = this.commonCurrencyCode (currencyId);
-                let account = this.account ();
-                let total = this.safeFloat (attributes, 'totalBalance');
-                let used = this.safeFloat (attributes, 'onOrders');
-                let free = total - used;
-                account['free'] = free;
-                account['used'] = used;
-                account['total'] = total;
+                const account = this.account ();
+                account['total'] = this.safeFloat (attributes, 'totalBalance');
+                account['used'] = this.safeFloat (attributes, 'onOrders');
                 result[code] = account;
             }
         }
@@ -420,14 +416,14 @@ module.exports = class adara extends Exchange {
     parseOrderBook (orderbook, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 'price', amountKey = 'amount') {
         const bids = [];
         const asks = [];
-        let numBidAsks = orderbook.length;
+        const numBidAsks = orderbook.length;
         if (numBidAsks > 0) {
             timestamp = this.safeInteger (orderbook[0]['attributes'], 'serializedAt');
         }
         for (let i = 0; i < orderbook.length; i++) {
             const bidask = orderbook[i];
             const attributes = this.safeValue (bidask, 'attributes', {});
-            let currenTimestamp = this.safeInteger (attributes, 'serializedAt');
+            const currenTimestamp = this.safeInteger (attributes, 'serializedAt');
             timestamp = Math.max (timestamp, currenTimestamp);
             const id = this.safeString (bidask, 'id');
             if (id.indexOf ('OBID') >= 0) {
@@ -521,7 +517,7 @@ module.exports = class adara extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        let response = await this.publicGetQuote (params);
+        const response = await this.publicGetQuote (params);
         const data = this.safeValue (response, 'data', []);
         //
         //     {     data: [ {          type:   "quote",
@@ -556,10 +552,10 @@ module.exports = class adara extends Exchange {
         //                     relationships: { from: { data: { type: "currency", id: "XRP" } },
         //                                        to: { data: { type: "currency", id: "ETH" } }  } }  ]    }
         //
-        let result = {};
+        const result = {};
         for (let t = 0; t < data.length; t++) {
-            let ticker = this.parseTicker (data[t]);
-            let symbol = ticker['symbol'];
+            const ticker = this.parseTicker (data[t]);
+            const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
         return result;
@@ -700,7 +696,7 @@ module.exports = class adara extends Exchange {
         const request = {
             // 'id': market['id'],
         };
-        let response = await this.publicGetTrade (this.extend (request, params));
+        const response = await this.publicGetTrade (this.extend (request, params));
         //
         //     {     data: [ {          type:   "trade",
         //                                id:   "1542988964359136846136847",
@@ -823,7 +819,7 @@ module.exports = class adara extends Exchange {
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let request = {
+        const request = {
             'id': id,
             'data': {
                 'attributes': {
@@ -831,7 +827,7 @@ module.exports = class adara extends Exchange {
                 },
             },
         };
-        let response = await this.privatePatchOrderId (this.extend (request, params));
+        const response = await this.privatePatchOrderId (this.extend (request, params));
         //
         //     { included: [ {       type:   "currency",
         //                             id:   "XLM",
@@ -965,12 +961,12 @@ module.exports = class adara extends Exchange {
         }
         let trades = undefined;
         if (tradesRelationshipData !== undefined) {
-            let numTrades = tradesRelationshipData.length;
+            const numTrades = tradesRelationshipData.length;
             if (numTrades > 0) {
                 trades = this.parseTrades (tradesRelationshipData, market);
             }
         }
-        let result = {
+        const result = {
             'info': order,
             'id': id,
             'timestamp': timestamp,
@@ -1087,14 +1083,14 @@ module.exports = class adara extends Exchange {
         const orders = this.parseOrders (this.safeValue (response, 'data', []), market, since, limit);
         const result = [];
         for (let i = 0; i < orders.length; i++) {
-            let order = orders[i];
-            let orderTrades = [];
-            let orderFee = this.safeValue (order, 'fee', {});
-            let orderFeeCurrency = this.safeString (orderFee, 'currency');
+            const order = orders[i];
+            const orderTrades = [];
+            const orderFee = this.safeValue (order, 'fee', {});
+            const orderFeeCurrency = this.safeString (orderFee, 'currency');
             if (order['trades'] !== undefined) {
                 for (let j = 0; j < order['trades'].length; j++) {
-                    let orderTrade = order['trades'][j];
-                    let orderTradeId = orderTrade['id'];
+                    const orderTrade = order['trades'][j];
+                    const orderTradeId = orderTrade['id'];
                     if (orderTradeId in tradesById) {
                         orderTrades.push (this.deepExtend (tradesById[orderTradeId], {
                             'order': order['id'],
@@ -1107,7 +1103,7 @@ module.exports = class adara extends Exchange {
                     }
                 }
             }
-            let numOrderTrades = orderTrades.length;
+            const numOrderTrades = orderTrades.length;
             if (numOrderTrades > 0) {
                 order['trades'] = orderTrades;
             }
@@ -1122,7 +1118,7 @@ module.exports = class adara extends Exchange {
             'id': id,
             'include': 'trades',
         };
-        let response = await this.privateGetOrderId (this.extend (request, params));
+        const response = await this.privateGetOrderId (this.extend (request, params));
         //
         //     { included: [ {       type:   "currency",
         //                             id:   "XLM",
@@ -1233,7 +1229,7 @@ module.exports = class adara extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response = undefined) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }
