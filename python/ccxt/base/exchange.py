@@ -731,6 +731,10 @@ class Exchange(object):
         return string.upper()
 
     @staticmethod
+    def strip(string):
+        return string.strip()
+
+    @staticmethod
     def keysort(dictionary):
         return collections.OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
 
