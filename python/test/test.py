@@ -273,7 +273,7 @@ def test_exchange(exchange):
     ]
 
     for s in symbols:
-        if (s in keys) and (exchange.markets[s]['active'] if 'active' in exchange.markets[s] else True):
+        if s in keys:
             symbol = s
             break
 
