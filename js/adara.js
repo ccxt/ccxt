@@ -15,7 +15,7 @@ module.exports = class adara extends Exchange {
             'countries': [ 'MT' ],
             'version': 'v1',
             'rateLimit': 1000,
-            'certified': true,
+            'certified': false,
             // new metainfo interface
             'has': {
                 'CORS': true,
