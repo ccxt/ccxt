@@ -4,8 +4,8 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+import hashlib
 import math
-import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -21,7 +21,7 @@ class adara (Exchange):
             'id': 'adara',
             'name': 'Adara',
             'countries': ['MT'],
-            'version': 'v2.0',
+            'version': 'v1',
             'rateLimit': 1000,
             'certified': True,
             # new metainfo interface
@@ -43,25 +43,35 @@ class adara (Exchange):
                 'fetchTransactions': False,
             },
             'requiredCredentials': {
-                'secret': False,
+                'apiKey': True,
+                'secret': True,
+                'token': False,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/49189583-0466a780-f380-11e8-9248-57a631aad2d6.jpg',
-                'api': 'https://api.adara-master.io',
+                'api': 'https://api.adara.io',
                 'www': 'https://adara.io',
-                'doc': 'https://adara.io/products',
+                'doc': 'https://api.adara.io/v2.0',
                 'fees': 'https://adara.io/fees',
             },
             'api': {
                 'public': {
                     'get': [
-                        'symbols',
                         'currencies',
-                        'orderBook',
-                        'quote',
-                        'quote/{id}',
-                        'trade',
                         'limits',
+                        'market',
+                        'marketDepth',
+                        'marketInfo',
+                        'orderBook',
+                        'quote/',
+                        'quote/{id}',
+                        'symbols',
+                        'trade',
+                    ],
+                    'post': [
+                        'confirmContactEmail',
+                        'restorePassword',
+                        'user',  # sign up
                     ],
                 },
                 'private': {
@@ -69,12 +79,24 @@ class adara (Exchange):
                         'balance',
                         'order',
                         'order/{id}',
+                        'currencyBalance',
+                        'apiKey',  # the list of apiKeys
+                        'user/{id}',
                     ],
                     'post': [
                         'order',
+                        'recovery',
+                        'user',
+                        'apiKey',  # sign in and optionally create an apiKey
+                        'contact',
                     ],
                     'patch': [
                         'order/{id}',
+                        'user/{id}',  # change password
+                        'customer',  # update user info
+                    ],
+                    'delete': [
+                        'apiKey',
                     ],
                 },
             },
@@ -104,57 +126,113 @@ class adara (Exchange):
                     'Bad Request': BadRequest,
                     '500': ExchangeError,
                 },
-                'broad': {
-                },
-            },
-            'commonCurrencies': {
+                'broad': {},
             },
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetSymbols(params)
+        request = {
+            'include': 'from,to',
+        }
+        response = self.publicGetSymbols(self.extend(request, params))
+        included = self.safe_value(response, 'included', [])
+        includedByType = self.group_by(included, 'type')
+        currencies = self.safe_value(includedByType, 'currency', [])
+        currenciesById = self.index_by(currencies, 'id')
         #
-        #     {    meta: {total: 64},
-        #         data: [{           id:   "ETHBTC",
-        #                             type:   "symbol",
-        #                     attributes: {allowTrade:  True,
-        #                                     createdAt: "2018-09-18T21:40:10.836Z",
-        #                                         digits:  6,
-        #                                     fullName: "ETHBTC",
-        #                                     makerFee: "0.0025",
-        #                                         name: "ETHBTC",
-        #                                     takerFee: "0.0025",
-        #                                     updatedAt: "2018-10-05T11:38:32.386Z"  },
-        #                     relationships: {}                                         },
-        #                 {           id:   "MIOTABTC",
-        #                             type:   "symbol",
-        #                     attributes: {allowTrade:  False,
-        #                                     createdAt: "2018-10-23T09:27:29.450Z",
-        #                                         digits:  6,
-        #                                     fullName: "MIOTABTC",
-        #                                     makerFee: "0.0250",
-        #                                         name: "MIOTABTC",
-        #                                     takerFee: "0.0250",
-        #                                     updatedAt: "2018-10-23T09:27:29.450Z"  },
-        #                     relationships: {}                                         }  ],
-        #     included: []                                                                    }
+        #     {    meta: {total: 61},
+        #           data: [{           id:   "XRPUSD",
+        #                              type:   "symbol",
+        #                        attributes: {allowTrade:  False,
+        #                                       createdAt: "2018-10-23T09:31:06.830Z",
+        #                                          digits:  5,
+        #                                        fullName: "XRPUSD",
+        #                                        makerFee: "0.0250",
+        #                                            name: "XRPUSD",
+        #                                        takerFee: "0.0250",
+        #                                       updatedAt: "2018-10-23T09:31:06.830Z"  },
+        #                     relationships: {from: {data: {id: "XRP", type: "currency"} },
+        #                                        to: {data: {id: "USD", type: "currency"} }  }},
+        #                   {           id:   "XRPETH",
+        #                              type:   "symbol",
+        #                        attributes: {allowTrade:  True,
+        #                                       createdAt: "2018-10-09T22:34:28.268Z",
+        #                                          digits:  8,
+        #                                        fullName: "XRPETH",
+        #                                        makerFee: "0.0025",
+        #                                            name: "XRPETH",
+        #                                        takerFee: "0.0025",
+        #                                       updatedAt: "2018-10-09T22:34:28.268Z"  },
+        #                     relationships: {from: {data: {id: "XRP", type: "currency"} },
+        #                                        to: {data: {id: "ETH", type: "currency"} }  }}  ],
+        #       included: [{           id:   "XRP",
+        #                              type:   "currency",
+        #                        attributes: {              accuracy:  4,
+        #                                                      active:  True,
+        #                                                allowDeposit:  True,
+        #                                                  allowTrade:  False,
+        #                                                 allowWallet:  True,
+        #                                               allowWithdraw:  True,
+        #                                                        name: "Ripple",
+        #                                                   shortName: "XRP",
+        #                                      transactionUriTemplate: "https://www.ripplescan.com/transactions/:txId",
+        #                                           walletUriTemplate: "https://www.ripplescan.com/accounts/:address",
+        #                                                 withdrawFee: "0.20000000",
+        #                                           withdrawMinAmount: "22.00000000"                                    },
+        #                     relationships: {}                                                                          },
+        #                   {           id:   "ETH",
+        #                              type:   "currency",
+        #                        attributes: {              accuracy:  8,
+        #                                                      active:  True,
+        #                                                allowDeposit:  True,
+        #                                                  allowTrade:  True,
+        #                                                 allowWallet:  True,
+        #                                               allowWithdraw:  True,
+        #                                                        name: "Ethereum",
+        #                                                   shortName: "ETH",
+        #                                      transactionUriTemplate: "https://etherscan.io/tx/:txId",
+        #                                           walletUriTemplate: "https://etherscan.io/address/:address",
+        #                                                 withdrawFee: "0.00800000",
+        #                                           withdrawMinAmount: "0.02000000"                             },
+        #                     relationships: {}                                                                  },
+        #                   {           id:   "USD",
+        #                              type:   "currency",
+        #                        attributes: {              accuracy:  6,
+        #                                                      active:  True,
+        #                                                allowDeposit:  False,
+        #                                                  allowTrade:  True,
+        #                                                 allowWallet:  False,
+        #                                               allowWithdraw:  False,
+        #                                                        name: "USD",
+        #                                                   shortName: "USD",
+        #                                      transactionUriTemplate:  null,
+        #                                           walletUriTemplate:  null,
+        #                                                 withdrawFee: "0.00000000",
+        #                                           withdrawMinAmount: "0.00000000"  },
+        #                     relationships: {}                                       }                          ]}
         #
         result = []
         markets = response['data']
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'id')
-            attributes = self.safe_value(market, 'attributes')
-            idLength = len(id)
-            baseIdLength = idLength - 3
-            baseId = id[0:baseIdLength]
-            quoteId = id[baseIdLength:]
+            attributes = self.safe_value(market, 'attributes', {})
+            relationships = self.safe_value(market, 'relationships', {})
+            fromRelationship = self.safe_value(relationships, 'from', {})
+            toRelationship = self.safe_value(relationships, 'to', {})
+            fromRelationshipData = self.safe_value(fromRelationship, 'data', {})
+            toRelationshipData = self.safe_value(toRelationship, 'data', {})
+            baseId = self.safe_string(fromRelationshipData, 'id')
+            quoteId = self.safe_string(toRelationshipData, 'id')
             base = self.common_currency_code(baseId)
             quote = self.common_currency_code(quoteId)
+            baseCurrency = self.safe_value(currenciesById, baseId, {})
+            baseCurrencyAttributes = self.safe_value(baseCurrency, 'attributes', {})
             symbol = base + '/' + quote
-            pricePrecision = self.safe_integer(attributes, 'digits')
+            amountPrecision = self.safe_integer(baseCurrencyAttributes, 'accuracy', 8)
+            pricePrecision = self.safe_integer(attributes, 'digits', 8)
             precision = {
-                'amount': 8,
+                'amount': amountPrecision,
                 'price': pricePrecision,
             }
             active = self.safe_value(attributes, 'allowTrade')
@@ -316,12 +394,8 @@ class adara (Exchange):
                 currencyId = self.safe_string(currencyRelationshipData, 'id')
                 code = self.common_currency_code(currencyId)
                 account = self.account()
-                total = self.safe_float(attributes, 'totalBalance')
-                used = self.safe_float(attributes, 'onOrders')
-                free = total - used
-                account['free'] = free
-                account['used'] = used
-                account['total'] = total
+                account['total'] = self.safe_float(attributes, 'totalBalance')
+                account['used'] = self.safe_float(attributes, 'onOrders')
                 result[code] = account
         return self.parse_balance(result)
 
@@ -365,9 +439,9 @@ class adara (Exchange):
     def fetch_order_book(self, symbol, limit=None, params={}):
         self.load_markets()
         market = self.market(symbol)
-        request = {
-            'filters[symbol]': market['id'],
-        }
+        filters = 'filters[' + 'symbol' + ']'
+        request = {}
+        request[filters] = market['id']
         response = self.publicGetOrderBook(self.extend(request, params))
         #
         #     {data: [{      type:   "orderBook",
@@ -648,10 +722,10 @@ class adara (Exchange):
             'data': {
                 'type': 'order',
                 'attributes': {
-                    'amount': amount,
+                    'amount': float(self.amount_to_precision(symbol, amount)),
                     'operation': side,
                     'orderType': type,
-                    'price': price,
+                    'price': float(self.price_to_precision(symbol, price)),
                 },
                 'relationships': {
                     'symbol': {
@@ -718,7 +792,7 @@ class adara (Exchange):
         #                                           flags: []                                        },
         #                   relationships: {symbol: {data: {type: "symbol", id: "XLMBTC"} }}       }}
         #
-        return self.parse_order(response)
+        return self.parse_order(response['data'])
 
     def cancel_order(self, id, symbol=None, params={}):
         self.load_markets()
@@ -888,7 +962,8 @@ class adara (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            request['filters[symbol]'] = market['id']
+            filters = 'filters[' + 'symbol' + ']'
+            request[filters] = market['id']
         response = self.privateGetOrder(self.extend(request, params))
         #
         #     {    data: [{         type:   "order",
@@ -950,15 +1025,15 @@ class adara (Exchange):
         return self.parse_orders_response(response, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        request = {
-            'filters[status][]': 'open',
-        }
+        filters = 'filters[status]' + '[' + ']'
+        request = {}
+        request[filters] = 'open'
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        request = {
-            'filters[status][]': 'closed',
-        }
+        filters = 'filters[status]' + '[' + ']'
+        request = {}
+        request[filters] = 'closed'
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def parse_orders_response(self, response, market=None, since=None, limit=None):
@@ -1070,34 +1145,39 @@ class adara (Exchange):
         return self.milliseconds()
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.version + '/' + self.implode_params(path, params)
+        payload = '/' + self.implode_params(path, params)
+        url = self.urls['api'] + '/' + self.version + payload
         query = self.omit(params, self.extract_params(path))
         if method == 'GET':
             if query:
                 url += '?' + self.urlencode(query)
         if api == 'private':
-            self.check_required_credentials()
             nonce = self.nonce()
-            request = {
-                'access_key': self.apiKey,
-                'nonce': nonce,
-            }
-            if query:
-                request['query'] = self.urlencode(query)
-            # jwt = self.jwt(request, self.secret)
-            headers = {
-                # 'Authorization': 'Bearer ' + jwt,
-                'Cookie': 'token=' + self.apiKey,
-            }
+            expiredAt = self.sum(nonce, self.safe_integer(self.options, 'expiredAt', 10000))
+            expiredAt = str(expiredAt)
+            if (method == 'POST') or (method == 'PATCH'):
+                body = self.json(query)
+                payload = body
+            if self.token:
+                headers = {
+                    'Cookie': 'token=' + self.token,
+                }
+            else:
+                self.check_required_credentials()
+                auth = method + payload + 'expiredAt=' + expiredAt
+                signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512, 'base64')
+                headers = {
+                    'X-ADX-EXPIRE': expiredAt,
+                    'X-ADX-APIKEY': self.apiKey,
+                    'X-ADX-SIGNATURE': signature,
+                }
             if method != 'GET':
-                body = self.json(params)
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response=None):
-        if not self.is_json_encoded_object(body):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if response is None:
             return  # fallback to default error handler
-        response = json.loads(body)
         errors = self.safe_value(response, 'errors', [])
         numErrors = len(errors)
         if numErrors > 0:
