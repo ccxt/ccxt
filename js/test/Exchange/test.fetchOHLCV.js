@@ -18,10 +18,11 @@ module.exports = async (exchange, symbol) => {
         'cex',
         'okex',
         'okcoinusd',
+        'mandala',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, 'found in ignored exchanges, skipping fetchMyTrades...')
+        log (exchange.id, 'found in ignored exchanges, skipping fetchOHLCV...')
         return
     }
 
@@ -42,7 +43,6 @@ module.exports = async (exchange, symbol) => {
             const ohlcv = ohlcvs[i]
             testOHLCV (exchange, ohlcv, symbol, now)
         }
-
 
         log (symbol.green, 'fetched', Object.keys (ohlcvs).length.toString ().green, 'OHLCVs')
 
