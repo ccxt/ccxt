@@ -680,6 +680,7 @@ module.exports = class adara extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,

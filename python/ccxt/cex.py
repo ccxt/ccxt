@@ -318,8 +318,11 @@ class cex (Exchange):
                 if (pair['symbol1'] == baseId) and (pair['symbol2'] == quoteId):
                     # we might need to account for `priceScale` here
                     pricePrecision = self.safe_integer(pair, 'pricePrecision', pricePrecision)
+            baseCcyPrecision = self.safe_integer(baseCurrency, 'precision', 8)
+            baseCcyScale = self.safe_integer(baseCurrency, 'scale', 0)
+            amountPrecision = baseCcyPrecision - baseCcyScale
             precision = {
-                'amount': self.safe_integer(baseCurrency, 'precision', 8),
+                'amount': amountPrecision,
                 'price': pricePrecision,
             }
             result.append({
