@@ -103,7 +103,6 @@ module.exports = class bcio extends Exchange {
                     'maker': 0.01,
                 },
             },
-
             'options': {
                 'fetchTradesMethod': 'publicGetAggTrades',
                 'fetchTickersMethod': 'publicGetTicker24hr',
