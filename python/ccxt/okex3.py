@@ -186,6 +186,7 @@ class okex3 (Exchange):
                     ],
                     'post': [
                         'accounts/{currency}/leverage',
+                        'accounts/margin_mode',
                         'order',
                         'orders',
                         'cancel_order/{instrument_id}/{order_id}',
