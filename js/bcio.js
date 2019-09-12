@@ -444,7 +444,6 @@ module.exports = class bcio extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-
         };
         if (this.options['fetchTradesMethod'] === 'publicGetAggTrades') {
             if (since !== undefined) {
