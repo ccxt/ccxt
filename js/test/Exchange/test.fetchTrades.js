@@ -14,7 +14,7 @@ const log       = require ('ololog')
 module.exports = async (exchange, symbol) => {
 
     const skippedExchanges = [
-        'adara',
+        // 'adara',
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
