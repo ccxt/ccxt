@@ -312,8 +312,11 @@ module.exports = class cex extends Exchange {
                     pricePrecision = this.safeInteger (pair, 'pricePrecision', pricePrecision);
                 }
             }
+            const baseCcyPrecision = this.safeInteger (baseCurrency, 'precision', 8);
+            const baseCcyScale = this.safeInteger (baseCurrency, 'scale', 0);
+            const amountPrecision = baseCcyPrecision - baseCcyScale;
             const precision = {
-                'amount': this.safeInteger (baseCurrency, 'precision', 8),
+                'amount': amountPrecision,
                 'price': pricePrecision,
             };
             result.push ({
