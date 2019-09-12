@@ -162,6 +162,7 @@ class okex3 extends Exchange {
                     ),
                     'post' => array (
                         'accounts/{currency}/leverage',
+                        'accounts/margin_mode',
                         'order',
                         'orders',
                         'cancel_order/{instrument_id}/{order_id}',
