@@ -58,6 +58,7 @@ module.exports = (exchange, trade, symbol, now) => {
     const adjustedNow = now + 60000
 
     const exchangesExcludedFromTimestampCheck = [
+        'adara',
         'gdax',
         'coinbasepro',
         'coinbaseprime', // ... as well, probably
