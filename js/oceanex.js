@@ -43,6 +43,7 @@ module.exports = class oceanex extends Exchange {
                 'createMarketOrder': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'cancelAllOrders': true,
             },
             'timeframes': {
@@ -606,18 +607,21 @@ module.exports = class oceanex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostOrderDelete (this.extend ({ 'id': id }, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrder (data);
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostOrderDeleteMulti (this.extend ({ 'ids': ids }, params));
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
         const response = await this.privatePostOrdersClear (params);
         const data = this.safeValue (response, 'data');
         return this.parseOrders (data);
