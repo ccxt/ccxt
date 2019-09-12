@@ -611,7 +611,7 @@ class deribit (Exchange):
         #     {"usOut":1535877098645376,"usIn":1535877098643364,"usDiff":2012,"testnet":false,"success":false,"message":"order_not_found","error":10004}
         #
         error = self.safe_string(response, 'error')
-        if (error is not None) and(error != '0'):
+        if (error is not None) and (error != '0'):
             feedback = self.id + ' ' + body
             exceptions = self.exceptions
             if error in exceptions:

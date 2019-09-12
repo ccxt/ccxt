@@ -595,7 +595,7 @@ class liquid (Exchange):
         lastTradeTimestamp = None
         if numTrades > 0:
             lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-            if not average and(tradeFilled > 0):
+            if not average and (tradeFilled > 0):
                 average = tradeCost / tradeFilled
             if cost is None:
                 cost = tradeCost

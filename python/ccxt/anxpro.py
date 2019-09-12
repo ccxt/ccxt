@@ -1149,7 +1149,7 @@ class anxpro (Exchange):
             return
         result = self.safe_string(response, 'result')
         code = self.safe_string(response, 'resultCode')
-        if ((result is not None) and(result != 'success')) or ((code is not None) and(code != 'OK')):
+        if ((result is not None) and (result != 'success')) or ((code is not None) and (code != 'OK')):
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
             exact = self.exceptions['exact']

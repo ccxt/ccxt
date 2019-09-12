@@ -304,7 +304,7 @@ class gateio (Exchange):
         open = None
         change = None
         average = None
-        if (last is not None) and(percentage is not None):
+        if (last is not None) and (percentage is not None):
             relativeChange = percentage / 100
             open = last / self.sum(1, relativeChange)
             change = last - open
@@ -541,7 +541,7 @@ class gateio (Exchange):
         response = getattr(self, method)(self.extend(request, params))
         address = self.safe_string(response, 'addr')
         tag = None
-        if (address is not None) and(address.find('address') >= 0):
+        if (address is not None) and (address.find('address') >= 0):
             raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
         if code == 'XRP':
             parts = address.split(' ')

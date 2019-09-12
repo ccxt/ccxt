@@ -919,7 +919,7 @@ class adara (Exchange):
         cost = None
         average = self.safe_float(attributes, 'averagePrice')
         if cost is None:
-            if (average is not None) and(filled is not None):
+            if (average is not None) and (filled is not None):
                 cost = float(self.cost_to_precision(symbol, average * filled))
         fee = None
         feeCost = self.safe_float(attributes, 'fee')

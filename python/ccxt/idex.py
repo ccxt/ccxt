@@ -702,7 +702,7 @@ class idex (Exchange):
         if 'market' in order:
             marketId = order['market']
             symbol = self.markets_by_id[marketId]['symbol']
-        elif (side is not None) and('params' in list(order.keys())):
+        elif (side is not None) and ('params' in list(order.keys())):
             params = order['params']
             buy = self.safe_currency_code(self.safe_string(params, 'tokenBuy'))
             sell = self.safe_currency_code(self.safe_string(params, 'tokenSell'))
