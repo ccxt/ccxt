@@ -103,21 +103,21 @@ module.exports = class bcio extends Exchange {
                     'maker': 0.01,
                 },
             },
-            // exchange-specific options
+
             'options': {
                 'fetchTradesMethod': 'publicGetAggTrades',
                 'fetchTickersMethod': 'publicGetTicker24hr',
-                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
-                'defaultLimitOrderType': 'limit', // or 'limit_maker'
+                'defaultTimeInForce': 'GTC',
+                'defaultLimitOrderType': 'limit',
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
-                'recvWindow': 5 * 1000, // 5 sec, binance default
-                'timeDifference': 0, // the difference between system clock and Binance clock
-                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'parseOrderToPrecision': false, // force amounts and costs in parseOrder to precision
+                'recvWindow': 5 * 1000,
+                'timeDifference': 0,
+                'adjustForTimeDifference': false,
+                'parseOrderToPrecision': false,
                 'newOrderRespType': {
-                    'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-                    'limit': 'RESULT', // we change it from 'ACK' by default to 'RESULT'
+                    'market': 'FULL',
+                    'limit': 'RESULT',
                 },
             },
             'exceptions': {
@@ -125,18 +125,18 @@ module.exports = class bcio extends Exchange {
                 'Order would trigger immediately.': InvalidOrder,
                 'Account has insufficient balance for requested action.': InsufficientFunds,
                 'Rest API trading is not enabled.': ExchangeNotAvailable,
-                '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
-                '-1013': InvalidOrder, // createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL
-                '-1021': InvalidNonce, // 'your time is ahead of server'
-                '-1022': AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
-                '-1100': InvalidOrder, // createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'
-                '-1104': ExchangeError, // Not all sent parameters were read, read 8 parameters but was sent 9
-                '-1128': ExchangeError, // {"code":-1128,"msg":"Combination of optional parameters invalid."}
-                '-2010': ExchangeError, // generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc...
-                '-2011': OrderNotFound, // cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'
-                '-2013': OrderNotFound, // fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'
-                '-2014': AuthenticationError, // { "code":-2014, "msg": "API-key format invalid." }
-                '-2015': AuthenticationError, // "Invalid API-key, IP, or permissions for action."
+                '-1000': ExchangeNotAvailable,
+                '-1013': InvalidOrder,
+                '-1021': InvalidNonce,
+                '-1022': AuthenticationError,
+                '-1100': InvalidOrder,
+                '-1104': ExchangeError,
+                '-1128': ExchangeError,
+                '-2010': ExchangeError,
+                '-2011': OrderNotFound,
+                '-2013': OrderNotFound,
+                '-2014': AuthenticationError,
+                '-2015': AuthenticationError,
             },
         });
     }
@@ -162,7 +162,6 @@ module.exports = class bcio extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
-            // "123456" is a "test symbol/market"
             if (id === '123456') {
                 continue;
             }
@@ -207,10 +206,6 @@ module.exports = class bcio extends Exchange {
             };
             if ('PRICE_FILTER' in filters) {
                 const filter = filters['PRICE_FILTER'];
-                // PRICE_FILTER reports zero values for maxPrice
-                // since they updated filter types in November 2018
-                // https://github.com/ccxt/ccxt/issues/4286
-                // therefore limits['price']['max'] doesn't have any meaningful value except undefined
                 entry['limits']['price'] = {
                     'min': this.safeFloat (filter, 'minPrice'),
                     'max': undefined,
@@ -283,7 +278,7 @@ module.exports = class bcio extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // default = maximum = 100
+            request['limit'] = limit;
         }
         const response = await this.publicGetDepth (this.extend (request, params));
         const orderbook = this.parseOrderBook (response);
@@ -309,7 +304,7 @@ module.exports = class bcio extends Exchange {
             'open': this.safeFloat (ticker, 'openPrice'),
             'close': last,
             'last': last,
-            'previousClose': this.safeFloat (ticker, 'prevClosePrice'), // previous day close
+            'previousClose': this.safeFloat (ticker, 'prevClosePrice'),
             'change': this.safeFloat (ticker, 'priceChange'),
             'percentage': this.safeFloat (ticker, 'priceChangePercent'),
             'average': undefined,
@@ -384,7 +379,7 @@ module.exports = class bcio extends Exchange {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default == max == 500
+            request['limit'] = limit;
         }
         const response = await this.publicGetKlines (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -401,12 +396,12 @@ module.exports = class bcio extends Exchange {
         let side = undefined;
         const orderId = this.safeString (trade, 'orderId');
         if ('m' in trade) {
-            side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+            side = trade['m'] ? 'sell' : 'buy';
         } else if ('isBuyerMaker' in trade) {
             side = trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
             if ('isBuyer' in trade) {
-                side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
+                side = (trade['isBuyer']) ? 'buy' : 'sell';
             }
         }
         let fee = undefined;
@@ -450,10 +445,7 @@ module.exports = class bcio extends Exchange {
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
-            // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
-            // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
-            // 'endTime': 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
-            // 'limit': 500,     // default = 500, maximum = 1000
+
         };
         if (this.options['fetchTradesMethod'] === 'publicGetAggTrades') {
             if (since !== undefined) {
@@ -462,48 +454,10 @@ module.exports = class bcio extends Exchange {
             }
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default = 500, maximum = 1000
+            request['limit'] = limit;
         }
-        //
-        // Caveats:
-        // - default limit (500) applies only if no other parameters set, trades up
-        //   to the maximum limit may be returned to satisfy other parameters
-        // - if both limit and time window is set and time window contains more
-        //   trades than the limit then the last trades from the window are returned
-        // - 'tradeId' accepted and returned by this method is "aggregate" trade id
-        //   which is different from actual trade id
-        // - setting both fromId and time window results in error
         const method = this.safeValue (this.options, 'fetchTradesMethod', 'publicGetTrades');
         const response = await this[method] (this.extend (request, params));
-        //
-        // aggregate trades
-        //
-        //     [
-        //         {
-        //             "a": 26129,         // Aggregate tradeId
-        //             "p": "0.01633102",  // Price
-        //             "q": "4.70443515",  // Quantity
-        //             "f": 27781,         // First tradeId
-        //             "l": 27781,         // Last tradeId
-        //             "T": 1498793709153, // Timestamp
-        //             "m": true,          // Was the buyer the maker?
-        //             "M": true           // Was the trade the best price match?
-        //         }
-        //     ]
-        //
-        // recent public trades and historical public trades
-        //
-        //     [
-        //         {
-        //             "id": 28457,
-        //             "price": "4.00000100",
-        //             "qty": "12.00000000",
-        //             "time": 1499865549590,
-        //             "isBuyerMaker": true,
-        //             "isBestMatch": true
-        //         }
-        //     ]
-        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -513,7 +467,7 @@ module.exports = class bcio extends Exchange {
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
-            'PENDING_CANCEL': 'canceling', // currently unused
+            'PENDING_CANCEL': 'canceling',
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
@@ -611,7 +565,6 @@ module.exports = class bcio extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // the next 5 lines are added to support for testing orders
         let method = 'privatePostOrder';
         const test = this.safeValue (params, 'test', false);
         if (test) {
@@ -625,7 +578,7 @@ module.exports = class bcio extends Exchange {
             'quantity': this.amountToPrecision (symbol, amount),
             'type': uppercaseType,
             'side': side.toUpperCase (),
-            'newOrderRespType': newOrderRespType, // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+            'newOrderRespType': newOrderRespType,
         };
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
@@ -649,7 +602,7 @@ module.exports = class bcio extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (timeInForceIsRequired) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = this.options['defaultTimeInForce'];
         }
         if (stopPriceIsRequired) {
             const stopPrice = this.safeFloat (params, 'stopPrice');
@@ -699,28 +652,6 @@ module.exports = class bcio extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetAllOrders (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "symbol": "LTCBTC",
-        //             "orderId": 1,
-        //             "clientOrderId": "myOrder1",
-        //             "price": "0.1",
-        //             "origQty": "1.0",
-        //             "executedQty": "0.0",
-        //             "cummulativeQuoteQty": "0.0",
-        //             "status": "NEW",
-        //             "timeInForce": "GTC",
-        //             "type": "LIMIT",
-        //             "side": "BUY",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": 1499827319559,
-        //             "updateTime": 1499827319559,
-        //             "isWorking": true
-        //         }
-        //     ]
-        //
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -755,7 +686,7 @@ module.exports = class bcio extends Exchange {
         const request = {
             'symbol': market['id'],
             'orderId': parseInt (id),
-            // 'origClientOrderId': id,
+
         };
         const response = await this.privateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
@@ -774,43 +705,12 @@ module.exports = class bcio extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.privateGetMyTrades (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "symbol": "BNBBTC",
-        //             "id": 28457,
-        //             "orderId": 100234,
-        //             "price": "4.00000100",
-        //             "qty": "12.00000000",
-        //             "commission": "10.10000000",
-        //             "commissionAsset": "BNB",
-        //             "time": 1499865549590,
-        //             "isBuyer": true,
-        //             "isMaker": false,
-        //             "isBestMatch": true
-        //         }
-        //     ]
-        //
         return this.parseTrades (response, market, since, limit);
     }
 
     async fetchMyDustTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-    //
         await this.loadMarkets ();
         const response = await this.wapiGetUserAssetDribbletLog (params);
-        // { success:    true,
-        //   results: { total:    1,
-        //               rows: [ {     transfered_total: "1.06468458",
-        //                         service_charge_total: "0.02172826",
-        //                                      tran_id: 2701371634,
-        //                                         logs: [ {              tranId:  2701371634,
-        //                                                   serviceChargeAmount: "0.00012819",
-        //                                                                   uid: "35103861",
-        //                                                                amount: "0.8012",
-        //                                                           operateTime: "2018-10-07 17:56:07",
-        //                                                      transferedAmount: "0.00628141",
-        //                                                             fromAsset: "ADA"                  } ],
-        //                                 operate_time: "2018-10-07 17:56:06"                                } ] } }
         const results = this.safeValue (response, 'results', {});
         const rows = this.safeValue (results, 'rows', []);
         const data = [];
@@ -826,13 +726,6 @@ module.exports = class bcio extends Exchange {
     }
 
     parseDustTrade (trade, market = undefined) {
-    // {              tranId:  2701371634,
-    //   serviceChargeAmount: "0.00012819",
-    //                   uid: "35103861",
-    //                amount: "0.8012",
-    //           operateTime: "2018-10-07 17:56:07",
-    //      transferedAmount: "0.00628141",
-    //             fromAsset: "ADA"                  },
         const orderId = this.safeString (trade, 'tranId');
         const timestamp = this.parse8601 (this.safeString (trade, 'operateTime'));
         const tradedCurrency = this.safeCurrencyCode (this.safeString (trade, 'fromAsset'));
@@ -842,13 +735,6 @@ module.exports = class bcio extends Exchange {
         if (applicantSymbol in this.markets) {
             tradedCurrencyIsQuote = true;
         }
-        //
-        // Warning
-        // Binance dust trade `fee` is already excluded from the `BNB` earning reported in the `Dust Log`.
-        // So the parser should either set the `fee.cost` to `0` or add it on top of the earned
-        // BNB `amount` (or `cost` depending on the trade `side`). The second of the above options
-        // is much more illustrative and therefore preferable.
-        //
         const fee = {
             'currency': earnedCurrency,
             'cost': this.safeFloat (trade, 'serviceChargeAmount'),
@@ -906,16 +792,6 @@ module.exports = class bcio extends Exchange {
             request['startTime'] = since;
         }
         const response = await this.wapiGetDepositHistory (this.extend (request, params));
-        //
-        //     {     success:    true,
-        //       depositList: [ { insertTime:  1517425007000,
-        //                            amount:  0.3,
-        //                           address: "0x0123456789abcdef",
-        //                        addressTag: "",
-        //                              txId: "0x0123456789abcdef",
-        //                             asset: "ETH",
-        //                            status:  1                                                                    } ] }
-        //
         return this.parseTransactions (response['depositList'], currency, since, limit);
     }
 
@@ -931,27 +807,6 @@ module.exports = class bcio extends Exchange {
             request['startTime'] = since;
         }
         const response = await this.wapiGetWithdrawHistory (this.extend (request, params));
-        //
-        //     { withdrawList: [ {      amount:  14,
-        //                             address: "0x0123456789abcdef...",
-        //                         successTime:  1514489710000,
-        //                          addressTag: "",
-        //                                txId: "0x0123456789abcdef...",
-        //                                  id: "0123456789abcdef...",
-        //                               asset: "ETH",
-        //                           applyTime:  1514488724000,
-        //                              status:  6                       },
-        //                       {      amount:  7600,
-        //                             address: "0x0123456789abcdef...",
-        //                         successTime:  1515323226000,
-        //                          addressTag: "",
-        //                                txId: "0x0123456789abcdef...",
-        //                                  id: "0123456789abcdef...",
-        //                               asset: "ICN",
-        //                           applyTime:  1515322539000,
-        //                              status:  6                       }  ],
-        //            success:    true                                         }
-        //
         return this.parseTransactions (response['withdrawList'], currency, since, limit);
     }
 
@@ -965,44 +820,22 @@ module.exports = class bcio extends Exchange {
                 '1': 'ok',
             },
             'withdrawal': {
-                '0': 'pending', // Email Sent
-                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
-                '2': 'pending', // Awaiting Approval
-                '3': 'failed', // Rejected
-                '4': 'pending', // Processing
-                '5': 'failed', // Failure
-                '6': 'ok', // Completed
+                '0': 'pending',
+                '1': 'canceled',
+                '2': 'pending',
+                '3': 'failed',
+                '4': 'pending',
+                '5': 'failed',
+                '6': 'ok',
             },
         };
         return (status in statuses[type]) ? statuses[type][status] : status;
     }
 
     parseTransaction (transaction, currency = undefined) {
-    //
-    // fetchDeposits
-    //      { insertTime:  1517425007000,
-    //            amount:  0.3,
-    //           address: "0x0123456789abcdef",
-    //        addressTag: "",
-    //              txId: "0x0123456789abcdef",
-    //             asset: "ETH",
-    //            status:  1                                                                    }
-    //
-    // fetchWithdrawals
-    //
-    //       {      amount:  14,
-    //             address: "0x0123456789abcdef...",
-    //         successTime:  1514489710000,
-    //          addressTag: "",
-    //                txId: "0x0123456789abcdef...",
-    //                  id: "0123456789abcdef...",
-    //               asset: "ETH",
-    //           applyTime:  1514488724000,
-    //              status:  6                       }
-    //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'address');
-        let tag = this.safeString (transaction, 'addressTag'); // set but unused
+        let tag = this.safeString (transaction, 'addressTag');
         if (tag !== undefined) {
             if (tag.length < 1) {
                 tag = undefined;
@@ -1067,26 +900,6 @@ module.exports = class bcio extends Exchange {
 
     async fetchFundingFees (codes = undefined, params = {}) {
         const response = await this.wapiGetAssetDetail (params);
-        //
-        //     {
-        //         "success": true,
-        //         "assetDetail": {
-        //             "CTR": {
-        //                 "minWithdrawAmount": "70.00000000", //min withdraw amount
-        //                 "depositStatus": false,//deposit status
-        //                 "withdrawFee": 35, // withdraw fee
-        //                 "withdrawStatus": true, //withdraw status
-        //                 "depositTip": "Delisted, Deposit Suspended" //reason
-        //             },
-        //             "SKY": {
-        //                 "minWithdrawAmount": "0.02000000",
-        //                 "depositStatus": true,
-        //                 "withdrawFee": 0.01,
-        //                 "withdrawStatus": true
-        //             }
-        //         }
-        //     }
-        //
         const detail = this.safeValue (response, 'assetDetail', {});
         const ids = Object.keys (detail);
         const withdrawFees = {};
@@ -1135,7 +948,6 @@ module.exports = class bcio extends Exchange {
                 'X-BCIO-APIKEY': this.apiKey,
             };
         } else if (userDataStream) {
-            // v1 special case for userDataStream
             body = this.urlencode (params);
             headers = {
                 'X-BCIO-APIKEY': this.apiKey,
@@ -1160,9 +972,6 @@ module.exports = class bcio extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            // userDataStream endpoints are public, but POST, PUT, DELETE
-            // therefore they don't accept URL query arguments
-            // https://github.com/ccxt/ccxt/issues/5224
             if (!userDataStream) {
                 if (Object.keys (params).length) {
                     url += '?' + this.urlencode (params);
@@ -1176,9 +985,6 @@ module.exports = class bcio extends Exchange {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
-        // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block cointains legacy checks against message patterns in "msg" property
-        // will switch "code" checks eventually, when we know all of them
         if (code >= 400) {
             if (body.indexOf ('Price * QTY is zero or less') >= 0) {
                 throw new InvalidOrder (this.id + ' order cost = amount * price is zero or less ' + body);
@@ -1192,8 +998,6 @@ module.exports = class bcio extends Exchange {
         }
         if (body.length > 0) {
             if (body[0] === '{') {
-                // check success value for wapi endpoints
-                // response in format {'msg': 'The coin does not exist.', 'success': true/false}
                 const success = this.safeValue (response, 'success', true);
                 if (!success) {
                     const message = this.safeString (response, 'msg');
@@ -1202,7 +1006,6 @@ module.exports = class bcio extends Exchange {
                         try {
                             parsedMessage = JSON.parse (message);
                         } catch (e) {
-                            // do nothing
                             parsedMessage = undefined;
                         }
                         if (parsedMessage !== undefined) {
@@ -1216,13 +1019,9 @@ module.exports = class bcio extends Exchange {
                     const ExceptionClass = exceptions[message];
                     throw new ExceptionClass (this.id + ' ' + message);
                 }
-                // checks against error codes
                 const error = this.safeString (response, 'code');
                 if (error !== undefined) {
                     if (error in exceptions) {
-                        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-                        // despite that their message is very confusing, it is raised by Binance
-                        // on a temporary ban (the API key is valid, but disabled for a while)
                         if ((error === '-2015') && this.options['hasAlreadyAuthenticatedSuccessfully']) {
                             throw new DDoSProtection (this.id + ' temporary banned: ' + body);
                         }
@@ -1240,7 +1039,6 @@ module.exports = class bcio extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
-        // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
         if ((api === 'private') || (api === 'wapi')) {
             this.options['hasAlreadyAuthenticatedSuccessfully'] = true;
         }
