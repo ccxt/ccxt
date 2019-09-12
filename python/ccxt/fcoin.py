@@ -512,7 +512,7 @@ class fcoin (Exchange):
             if cost is None:
                 if price is not None:
                     cost = price * filled
-            elif (cost > 0) and(filled > 0):
+            elif (cost > 0) and (filled > 0):
                 price = cost / filled
         feeCurrency = None
         if market is not None:

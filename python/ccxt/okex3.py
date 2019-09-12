@@ -1654,9 +1654,9 @@ class okex3 (Exchange):
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')
-        if (side != 'buy') and(side != 'sell'):
+        if (side != 'buy') and (side != 'sell'):
             side = self.parse_order_side(type)
-        if (type != 'limit') and(type != 'market'):
+        if (type != 'limit') and (type != 'market'):
             if 'pnl' in order:
                 type = 'futures'
             else:
@@ -1687,7 +1687,7 @@ class okex3 (Exchange):
             if filled is not None and average is not None:
                 cost = average * filled
         else:
-            if (average is None) and(filled is not None) and(filled > 0):
+            if (average is None) and (filled is not None) and (filled > 0):
                 average = cost / filled
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCost = self.safe_float(order, 'fee')

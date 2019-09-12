@@ -928,6 +928,9 @@ class dsx extends Exchange {
             // 'endId' => 321, // Decimal, ID of the last order of the selection
             // 'order' => 'ASC', // String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
         );
+        if ($limit !== null) {
+            $request['count'] = $limit;
+        }
         $response = $this->privatePostHistoryOrders (array_merge ($request, $params));
         //
         //     {

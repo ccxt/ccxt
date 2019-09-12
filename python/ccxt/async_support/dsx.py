@@ -878,6 +878,8 @@ class dsx (Exchange):
             # 'endId': 321,  # Decimal, ID of the last order of the selection
             # 'order': 'ASC',  # String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
         }
+        if limit is not None:
+            request['count'] = limit
         response = await self.privatePostHistoryOrders(self.extend(request, params))
         #
         #     {

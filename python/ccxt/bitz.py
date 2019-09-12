@@ -689,7 +689,7 @@ class bitz (Exchange):
         if market is None:
             baseId = self.safe_string(order, 'coinFrom')
             quoteId = self.safe_string(order, 'coinTo')
-            if (baseId is not None) and(quoteId is not None):
+            if (baseId is not None) and (quoteId is not None):
                 marketId = baseId + '_' + quoteId
                 if marketId in self.markets_by_id:
                     market = self.safe_value(self.markets_by_id, marketId)

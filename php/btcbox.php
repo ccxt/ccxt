@@ -397,11 +397,9 @@ class btcbox extends Exchange {
 
     public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
-        // sometimes the exchange returns whitespace prepended to json
-        // the code below removes excessive spaces
         if (gettype ($response) === 'string') {
-            $response = explode(' ', $response);
-            $response = implode('', $response);
+            // sometimes the exchange returns whitespace prepended to json
+            $response = $this->strip ($response);
             if (!$this->is_json_encoded_object($response)) {
                 throw new ExchangeError($this->id . ' ' . $response);
             }
