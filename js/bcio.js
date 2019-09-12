@@ -684,7 +684,6 @@ module.exports = class bcio extends Exchange {
         const request = {
             'symbol': market['id'],
             'orderId': parseInt (id),
-
         };
         const response = await this.privateDeleteOrder (this.extend (request, params));
         return this.parseOrder (response);
