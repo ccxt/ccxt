@@ -51,6 +51,7 @@ class oceanex (Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'cancelAllOrders': True,
             },
             'timeframes': {
@@ -565,16 +566,19 @@ class oceanex (Exchange):
         return self.parse_orders(data)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        await self.load_markets()
         response = await self.privatePostOrderDelete(self.extend({'id': id}, params))
         data = self.safe_value(response, 'data')
         return self.parse_order(data)
 
     async def cancel_orders(self, ids, symbol=None, params={}):
+        await self.load_markets()
         response = await self.privatePostOrderDeleteMulti(self.extend({'ids': ids}, params))
         data = self.safe_value(response, 'data')
         return self.parse_orders(data)
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        await self.load_markets()
         response = await self.privatePostOrdersClear(params)
         data = self.safe_value(response, 'data')
         return self.parse_orders(data)

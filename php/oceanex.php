@@ -44,6 +44,7 @@ class oceanex extends Exchange {
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'cancelAllOrders' => true,
             ),
             'timeframes' => array (
@@ -607,18 +608,21 @@ class oceanex extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostOrderDelete (array_merge (array( 'id' => $id ), $params));
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data);
     }
 
     public function cancel_orders ($ids, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostOrderDeleteMulti (array_merge (array( 'ids' => $ids ), $params));
         $data = $this->safe_value($response, 'data');
         return $this->parse_orders($data);
     }
 
     public function cancel_all_orders ($symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostOrdersClear ($params);
         $data = $this->safe_value($response, 'data');
         return $this->parse_orders($data);
