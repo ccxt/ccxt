@@ -313,8 +313,11 @@ class cex extends Exchange {
                     $pricePrecision = $this->safe_integer($pair, 'pricePrecision', $pricePrecision);
                 }
             }
+            $baseCcyPrecision = $this->safe_integer($baseCurrency, 'precision', 8);
+            $baseCcyScale = $this->safe_integer($baseCurrency, 'scale', 0);
+            $amountPrecision = $baseCcyPrecision - $baseCcyScale;
             $precision = array (
-                'amount' => $this->safe_integer($baseCurrency, 'precision', 8),
+                'amount' => $amountPrecision,
                 'price' => $pricePrecision,
             );
             $result[] = array (
