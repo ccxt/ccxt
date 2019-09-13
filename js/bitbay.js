@@ -909,7 +909,7 @@ module.exports = class bitbay extends Exchange {
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const tradingSymbol = market.baseId + '-' + market.quoteId;
+        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
             'symbol': tradingSymbol,
             'offerType': side,
@@ -919,14 +919,16 @@ module.exports = class bitbay extends Exchange {
         if (type === 'limit') {
             request['rate'] = price;
         }
-        // { status: 'Ok',
-        //     completed: false,
-        //     offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
-        //     transactions: [] }
-        const res = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
+        //     {
+        //         status: 'Ok',
+        //         completed: false, // can deduce status from here
+        //         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
+        //         transactions: [], // can deduce order info from here
+        //     }
+        const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
         return {
-            'id': this.safeString (res, 'offerId'),
-            'info': res,
+            'id': this.safeString (response, 'offerId'),
+            'info': response,
         };
     }
 
