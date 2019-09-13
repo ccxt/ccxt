@@ -18,6 +18,7 @@ module.exports = class bitbay extends Exchange {
                 'CORS': true,
                 'withdraw': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -211,6 +212,66 @@ module.exports = class bitbay extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        const request = {};
+        const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
+        return this.parseOrders (response['items'], undefined, since, limit);
+    }
+
+    parseOrderSide (type) {
+        const types = {
+            'Sell': 'sell',
+            'Buy': 'buy',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseOrder (order, market = undefined) {
+        // { market: 'ETH-EUR',
+        //        offerType: 'Sell',
+        //        id: '93d3657b-d616-11e9-9248-0242ac110005',
+        //        currentAmount: '0.04',
+        //        lockedAmount: '0.04',
+        //        rate: '280',
+        //        startAmount: '0.04',
+        //        time: '1568372806924',
+        //        postOnly: false,
+        //        hidden: false,
+        //        mode: 'limit',
+        //        receivedAmount: '0.0',
+        //        firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
+        //        secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af' }
+        const marketId = this.safeString (order, 'market');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        const timestamp = this.safeInteger (order, 'time');
+        const amount = this.safeFloat (order, 'startAmount');
+        const remaining = this.safeFloat (order, 'currentAmount');
+        return {
+            'id': this.safeString (order, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'side': this.parseOrderSide (this.safeString (order, 'offerType')),
+            'price': this.safeFloat (order, 'rate'),
+            'amount': amount,
+            'remaining': remaining,
+            'filled': amount - remaining,
+            'symbol': symbol,
+            'type': this.safeString (order, 'mode'),
+            'info': order,
+        };
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
