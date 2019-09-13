@@ -761,7 +761,31 @@ module.exports = class bitbay extends Exchange {
         //         userAction: "Buy",
         //         wasTaker: true,
         //     }
+        //     {
+        //         "id": "d26a124d-d62d-11e9-9248-0242ac110005",
+        //         "rate": "161.8",
+        //         "time": "1568382790355",
+        //         "amount": "0.04",
+        //         "market": "ETH-EUR",
+        //         "offerId": "d25d8f27-d62d-11e9-9248-0242ac110005",
+        //         "wasTaker": false,
+        //         "userAction": "Sell",
+        //         "initializedBy": "Buy",
+        //         "commissionValue": "0.02"
+        //     }
         //
+        //     {
+        //         "id": "a677f1c4-d635-11e9-9248-0242ac110005",
+        //         "rate": "162.11",
+        //         "time": "1568386152600",
+        //         "amount": "0.04",
+        //         "market": "ETH-EUR",
+        //         "offerId": "a5f7500c-d635-11e9-9248-0242ac110005",
+        //         "wasTaker": false,
+        //         "userAction": "Buy",
+        //         "initializedBy": "Sell",
+        //         "commissionValue": "0.00012"
+        //     }
         const timestamp = this.safeInteger (trade, 'time');
         const userAction = this.safeString (trade, 'userAction');
         const side = (userAction === 'Buy') ? 'buy' : 'sell';
@@ -778,16 +802,18 @@ module.exports = class bitbay extends Exchange {
         const feeCost = this.safeFloat (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
         let base = undefined;
+        let quote = undefined;
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
                 base = market['base'];
+                quote = market['quote'];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('-');
                 base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
+                quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
@@ -802,7 +828,7 @@ module.exports = class bitbay extends Exchange {
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
-                'currency': base,
+                'currency': side === 'buy' ? base : quote,
                 'cost': feeCost,
             };
         }
@@ -931,11 +957,13 @@ module.exports = class bitbay extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!params['side']) {
-            throw new ExchangeError (this.id + ' parameter named side is required');
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ExchangeError (this.id + ' cancelOrder() requires a `side` parameter ("buy" or "sell")');
         }
-        if (!params['price']) {
-            throw new ExchangeError (this.id + ' parameter named price is required');
+        const price = this.safeValue (params, 'price');
+        if (price === undefined) {
+            throw new ExchangeError (this.id + ' cancelOrder() requires a `price` parameter (float or string)');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -943,8 +971,8 @@ module.exports = class bitbay extends Exchange {
         const request = {
             'symbol': tradingSymbol,
             'id': id,
-            'side': params['side'],
-            'price': params['price'],
+            'side': side,
+            'price': price,
         };
         // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
         // { status: 'Ok', errors: [] }
