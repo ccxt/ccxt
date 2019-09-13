@@ -486,12 +486,15 @@ class oceanex extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        if (!gettype ($id) === 'array' && count (array_filter (array_keys ($id), 'is_string')) == 0) {
+            $id = array ( $id );
+        }
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
         }
-        $request = array( 'ids' => [$id] );
+        $request = array( 'ids' => $id );
         $response = $this->privateGetOrders (array_merge ($request, $params));
         $data = $this->safe_value($response, 'data');
         $dataLength = is_array ($data) ? count ($data) : 0;
