@@ -931,11 +931,13 @@ module.exports = class bitbay extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
-        if (!params['side']) {
-            throw new ExchangeError (this.id + ' parameter named side is required');
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ExchangeError (this.id + ' cancelOrder() requires a `side` parameter ("buy" or "sell")');
         }
-        if (!params['price']) {
-            throw new ExchangeError (this.id + ' parameter named price is required');
+        const price = this.safeValue (params, 'price');
+        if (price === undefined) {
+            throw new ExchangeError (this.id + ' cancelOrder() requires a `price` parameter (float or string)');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -943,8 +945,8 @@ module.exports = class bitbay extends Exchange {
         const request = {
             'symbol': tradingSymbol,
             'id': id,
-            'side': params['side'],
-            'price': params['price'],
+            'side': side,
+            'price': price,
         };
         // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
         // { status: 'Ok', errors: [] }
