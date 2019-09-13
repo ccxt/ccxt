@@ -18,6 +18,7 @@ module.exports = class bitbay extends Exchange {
                 'CORS': true,
                 'withdraw': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -211,6 +212,79 @@ module.exports = class bitbay extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
+        const items = this.safeValue (response, 'items', []);
+        return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         market: 'ETH-EUR',
+        //         offerType: 'Sell',
+        //         id: '93d3657b-d616-11e9-9248-0242ac110005',
+        //         currentAmount: '0.04',
+        //         lockedAmount: '0.04',
+        //         rate: '280',
+        //         startAmount: '0.04',
+        //         time: '1568372806924',
+        //         postOnly: false,
+        //         hidden: false,
+        //         mode: 'limit',
+        //         receivedAmount: '0.0',
+        //         firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
+        //         secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af'
+        //     }
+        //
+        const marketId = this.safeString (order, 'market');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        const timestamp = this.safeInteger (order, 'time');
+        const amount = this.safeFloat (order, 'startAmount');
+        const remaining = this.safeFloat (order, 'currentAmount');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = Math.max (0, amount - remaining);
+            }
+        }
+        return {
+            'id': this.safeString (order, 'id'),
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'symbol': symbol,
+            'type': this.safeString (order, 'mode'),
+            'side': this.safeStringLower (order, 'offerType'),
+            'price': this.safeFloat (order, 'rate'),
+            'amount': amount,
+            'cost': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'average': undefined,
+            'fee': undefined,
+        };
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -834,32 +908,27 @@ module.exports = class bitbay extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         const market = this.market (symbol);
+        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
-            'type': side,
-            'currency': market['baseId'],
+            'symbol': tradingSymbol,
+            'offerType': side,
             'amount': amount,
-            'payment_currency': market['quoteId'],
-            'rate': price,
+            'mode': type,
         };
-        //   {
-        //     "success": 1,
-        //     "order_id": 324057928260,
-        //     "amount": 0.01,
-        //     "rate": 2000,
-        //     "price": 20,
-        //     "fee": 0,
-        //     "fee_currency": "EUR",
-        //     "wrong": [],
-        //     "bought": []
-        //   }
-        const res = await this.privatePostTrade (this.extend (request, params));
+        if (type === 'limit') {
+            request['rate'] = price;
+        }
+        //     {
+        //         status: 'Ok',
+        //         completed: false, // can deduce status from here
+        //         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
+        //         transactions: [], // can deduce order info from here
+        //     }
+        const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
         return {
-            'id': this.safeString (res, 'order_id'),
-            'info': res,
+            'id': this.safeString (response, 'offerId'),
+            'info': response,
         };
     }
 
@@ -925,13 +994,16 @@ module.exports = class bitbay extends Exchange {
             this.checkRequiredCredentials ();
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
             const nonce = this.milliseconds ();
-            const payload = this.apiKey + nonce;
-            if (body !== undefined) {
-                body = this.json (body);
+            let payload = undefined;
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+                payload = this.apiKey + nonce;
+            } else if (body === undefined) {
+                body = this.json (query);
+                payload = this.apiKey + nonce + body;
             }
             headers = {
                 'Request-Timestamp': nonce,
