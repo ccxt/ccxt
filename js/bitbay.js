@@ -220,14 +220,6 @@ module.exports = class bitbay extends Exchange {
         return this.parseOrders (response['items'], undefined, since, limit);
     }
 
-    parseOrderSide (type) {
-        const types = {
-            'Sell': 'sell',
-            'Buy': 'buy',
-        };
-        return this.safeString (types, type, type);
-    }
-
     parseOrder (order, market = undefined) {
         // { market: 'ETH-EUR',
         //        offerType: 'Sell',
@@ -263,7 +255,7 @@ module.exports = class bitbay extends Exchange {
             'id': this.safeString (order, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'side': this.parseOrderSide (this.safeString (order, 'offerType')),
+            'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeFloat (order, 'rate'),
             'amount': amount,
             'remaining': remaining,
