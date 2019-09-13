@@ -138,6 +138,8 @@ module.exports = class bitbay extends Exchange {
                 // codes 507 and 508 are not specified in their docs
                 '509': ExchangeError, // The BIC/SWIFT is required for this currency
                 '510': ExchangeError, // Invalid market name
+                'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
+                'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
             },
         });
     }
@@ -1073,6 +1075,22 @@ module.exports = class bitbay extends Exchange {
             if (code in this.exceptions) {
                 throw new exceptions[code] (feedback);
             } else {
+                throw new ExchangeError (feedback);
+            }
+        } else if ('status' in response) {
+            //
+            //      {"status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"]}
+            //
+            const status = this.safeString (response, 'status');
+            if (status === 'Fail') {
+                const errors = this.safeValue (response, 'errors');
+                const feedback = this.id + ' ' + this.json (response);
+                for (let i = 0; i < errors.length; i++) {
+                    const error = errors[i];
+                    if (error in this.exceptions) {
+                        throw new this.exceptions[error] (feedback);
+                    }
+                }
                 throw new ExchangeError (feedback);
             }
         }
