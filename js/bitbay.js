@@ -215,6 +215,7 @@ module.exports = class bitbay extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
         const request = {};
         const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
         return this.parseOrders (response['items'], undefined, since, limit);
