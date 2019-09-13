@@ -908,31 +908,24 @@ module.exports = class bitbay extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         const market = this.market (symbol);
+        const tradingSymbol = market.baseId + '-' + market.quoteId;
         const request = {
-            'type': side,
-            'currency': market['baseId'],
+            'symbol': tradingSymbol,
+            'offerType': side,
             'amount': amount,
-            'payment_currency': market['quoteId'],
-            'rate': price,
+            'mode': type,
         };
-        //   {
-        //     "success": 1,
-        //     "order_id": 324057928260,
-        //     "amount": 0.01,
-        //     "rate": 2000,
-        //     "price": 20,
-        //     "fee": 0,
-        //     "fee_currency": "EUR",
-        //     "wrong": [],
-        //     "bought": []
-        //   }
-        const res = await this.privatePostTrade (this.extend (request, params));
+        if (type === 'limit') {
+            request['rate'] = price;
+        }
+        // { status: 'Ok',
+        //     completed: false,
+        //     offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
+        //     transactions: [] }
+        const res = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
         return {
-            'id': this.safeString (res, 'order_id'),
+            'id': this.safeString (res, 'offerId'),
             'info': res,
         };
     }
@@ -999,13 +992,16 @@ module.exports = class bitbay extends Exchange {
             this.checkRequiredCredentials ();
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
             const nonce = this.milliseconds ();
-            const payload = this.apiKey + nonce;
-            if (body !== undefined) {
-                body = this.json (body);
+            let payload = undefined;
+            if (method === 'GET') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+                payload = this.apiKey + nonce;
+            } else if (body === undefined) {
+                body = this.json (query);
+                payload = this.apiKey + nonce + body;
             }
             headers = {
                 'Request-Timestamp': nonce,
