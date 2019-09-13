@@ -485,19 +485,26 @@ module.exports = class oceanex extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        let ids = id;
         if (!Array.isArray (id)) {
-            id = [ id ];
+            ids = [ id ];
         }
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = { 'ids': id };
+        const request = { 'ids': ids };
         const response = await this.privateGetOrders (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const dataLength = data.length;
-        if (data === undefined || dataLength === 0) {
+        if (data === undefined) {
+            throw new OrderNotFound (this.id + ' could not found matching order');
+        }
+        if (Array.isArray (id)) {
+            return this.parseOrders (data, market);
+        }
+        if (dataLength === 0) {
             throw new OrderNotFound (this.id + ' could not found matching order');
         }
         return this.parseOrder (data[0], market);
