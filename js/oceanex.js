@@ -486,7 +486,7 @@ module.exports = class oceanex extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!Array.isArray (id)) {
-            id = [id];
+            id = [ id ];
         }
         await this.loadMarkets ();
         let market = undefined;
