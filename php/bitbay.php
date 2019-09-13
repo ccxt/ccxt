@@ -139,6 +139,8 @@ class bitbay extends Exchange {
                 // codes 507 and 508 are not specified in their docs
                 '509' => '\\ccxt\\ExchangeError', // The BIC/SWIFT is required for this currency
                 '510' => '\\ccxt\\ExchangeError', // Invalid market name
+                'FUNDS_NOT_SUFFICIENT' => '\\ccxt\\InsufficientFunds',
+                'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS' => '\\ccxt\\InvalidOrder',
             ),
         ));
     }
@@ -325,24 +327,20 @@ class bitbay extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostInfo ($params);
+        $response = $this->v1_01PrivateGetBalancesBITBAYBalance ($params);
         $balances = $this->safe_value($response, 'balances');
         if ($balances === null) {
             throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json ($response));
         }
         $result = array( 'info' => $response );
-        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($codes); $i++) {
-            $code = $codes[$i];
-            // rewrite with safeCurrencyCode, traverse by currency ids
-            $currencyId = $this->currencyId ($code);
-            $balance = $this->safe_value($balances, $currencyId);
-            if ($balance !== null) {
-                $account = $this->account ();
-                $account['free'] = $this->safe_float($balance, 'available');
-                $account['used'] = $this->safe_float($balance, 'locked');
-                $result[$code] = $account;
-            }
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['used'] = $this->safe_float($balance, 'lockedFunds');
+            $account['free'] = $this->safe_float($balance, 'availableFunds');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -934,10 +932,26 @@ class bitbay extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $side = $this->safe_string($params, 'side');
+        if ($side === null) {
+            throw new ExchangeError($this->id . ' cancelOrder() requires a `$side` parameter ("buy" or "sell")');
+        }
+        $price = $this->safe_value($params, 'price');
+        if ($price === null) {
+            throw new ExchangeError($this->id . ' cancelOrder() requires a `$price` parameter (float or string)');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
         $request = array (
+            'symbol' => $tradingSymbol,
             'id' => $id,
+            'side' => $side,
+            'price' => $price,
         );
-        return $this->privatePostCancel (array_merge ($request, $params));
+        // array( status => 'Fail', errors => array ( 'NOT_RECOGNIZED_OFFER_TYPE' ) )  -- if required $params are missing
+        // array( status => 'Ok', errors => array() )
+        return $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (array_merge ($request, $params));
     }
 
     public function is_fiat ($currency) {
@@ -997,7 +1011,7 @@ class bitbay extends Exchange {
             $url .= '/' . $this->implode_params($path, $params);
             $nonce = $this->milliseconds ();
             $payload = null;
-            if ($method === 'GET') {
+            if ($method !== 'POST') {
                 if ($query) {
                     $url .= '?' . $this->urlencode ($query);
                 }
@@ -1030,12 +1044,12 @@ class bitbay extends Exchange {
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return; // fallback to default $error handler
         }
         if (is_array($response) && array_key_exists('code', $response)) {
             //
             // bitbay returns the integer 'success' => 1 key from their private API
-            // or an integer 'code' value from 0 to 510 and an error message
+            // or an integer 'code' value from 0 to 510 and an $error message
             //
             //      array( 'success' => 1, ... )
             //      array( 'code' => 502, 'message' => 'Invalid sign' )
@@ -1064,6 +1078,22 @@ class bitbay extends Exchange {
             if (is_array($this->exceptions) && array_key_exists($code, $this->exceptions)) {
                 throw new $exceptions[$code]($feedback);
             } else {
+                throw new ExchangeError($feedback);
+            }
+        } else if (is_array($response) && array_key_exists('status', $response)) {
+            //
+            //      array("$status":"Fail","$errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"])
+            //
+            $status = $this->safe_string($response, 'status');
+            if ($status === 'Fail') {
+                $errors = $this->safe_value($response, 'errors');
+                $feedback = $this->id . ' ' . $this->json ($response);
+                for ($i = 0; $i < count ($errors); $i++) {
+                    $error = $errors[$i];
+                    if (is_array($this->exceptions) && array_key_exists($error, $this->exceptions)) {
+                        throw new $this->exceptions[$error]($feedback);
+                    }
+                }
                 throw new ExchangeError($feedback);
             }
         }
