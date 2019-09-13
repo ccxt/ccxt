@@ -182,7 +182,8 @@ module.exports = class ftx extends Exchange {
             'change': this.safeFloat (ticker, 'change'),
             'percentage': undefined,
             'average': undefined,
-            'volume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
