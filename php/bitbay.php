@@ -846,7 +846,22 @@ class bitbay extends Exchange {
             'payment_currency' => $market['quoteId'],
             'rate' => $price,
         );
-        return $this->privatePostTrade (array_merge ($request, $params));
+        //   {
+        //     "success" => 1,
+        //     "order_id" => 324057928260,
+        //     "$amount" => 0.01,
+        //     "rate" => 2000,
+        //     "$price" => 20,
+        //     "fee" => 0,
+        //     "fee_currency" => "EUR",
+        //     "wrong" => array(),
+        //     "bought" => array()
+        //   }
+        $res = $this->privatePostTrade (array_merge ($request, $params));
+        return array (
+            'id' => $this->safe_string($res, 'order_id'),
+            'info' => $res,
+        );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
