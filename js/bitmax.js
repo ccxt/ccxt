@@ -539,7 +539,7 @@ module.exports = class bitmax extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         // fix sign params
-        if (this.options['accountGroup'] !== -1 && api === 'private') {
+        if (this.options['accountGroup'] !== -1) {
             url = url.replace ('/api/', '/' + this.number_to_string (this.options['accountGroup']) + '/api/');
         }
         url += '/' + this.implodeParams (path, params);
