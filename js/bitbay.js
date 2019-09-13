@@ -295,7 +295,7 @@ module.exports = class bitbay extends Exchange {
         const request = {
             'markets': markets,
         };
-        const response = await this.v1_01PrivateGetTradingHistoryTransactions (this.extend ({ 'query': this.json (request) }, params));
+        const response = await this.v1_01PrivateGetTradingHistoryTransactions ({ 'query': this.json (this.extend (request, params)) });
         //
         //     {
         //         status: 'Ok',
