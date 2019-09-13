@@ -218,24 +218,29 @@ module.exports = class bitbay extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
-        return this.parseOrders (response['items'], undefined, since, limit);
+        const items = this.safeValue (response, 'items', []);
+        return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
     }
 
     parseOrder (order, market = undefined) {
-        // { market: 'ETH-EUR',
-        //        offerType: 'Sell',
-        //        id: '93d3657b-d616-11e9-9248-0242ac110005',
-        //        currentAmount: '0.04',
-        //        lockedAmount: '0.04',
-        //        rate: '280',
-        //        startAmount: '0.04',
-        //        time: '1568372806924',
-        //        postOnly: false,
-        //        hidden: false,
-        //        mode: 'limit',
-        //        receivedAmount: '0.0',
-        //        firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
-        //        secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af' }
+        //
+        //     {
+        //         market: 'ETH-EUR',
+        //         offerType: 'Sell',
+        //         id: '93d3657b-d616-11e9-9248-0242ac110005',
+        //         currentAmount: '0.04',
+        //         lockedAmount: '0.04',
+        //         rate: '280',
+        //         startAmount: '0.04',
+        //         time: '1568372806924',
+        //         postOnly: false,
+        //         hidden: false,
+        //         mode: 'limit',
+        //         receivedAmount: '0.0',
+        //         firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
+        //         secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af'
+        //     }
+        //
         const marketId = this.safeString (order, 'market');
         let symbol = undefined;
         if (marketId !== undefined) {
@@ -252,18 +257,29 @@ module.exports = class bitbay extends Exchange {
         const timestamp = this.safeInteger (order, 'time');
         const amount = this.safeFloat (order, 'startAmount');
         const remaining = this.safeFloat (order, 'currentAmount');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = Math.max (0, amount - remaining);
+            }
+        }
         return {
             'id': this.safeString (order, 'id'),
+            'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'symbol': symbol,
+            'type': this.safeString (order, 'mode'),
             'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeFloat (order, 'rate'),
             'amount': amount,
+            'cost': undefined,
+            'filled': filled,
             'remaining': remaining,
-            'filled': amount - remaining,
-            'symbol': symbol,
-            'type': this.safeString (order, 'mode'),
-            'info': order,
+            'average': undefined,
+            'fee': undefined,
         };
     }
 
