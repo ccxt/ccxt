@@ -933,10 +933,24 @@ module.exports = class bitbay extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        if (!params['side']) {
+            throw new ExchangeError (this.id + ' parameter named side is required');
+        }
+        if (!params['price']) {
+            throw new ExchangeError (this.id + ' parameter named price is required');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
+            'symbol': tradingSymbol,
             'id': id,
+            'side': params['side'],
+            'price': params['price'],
         };
-        return await this.privatePostCancel (this.extend (request, params));
+        // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
+        // { status: 'Ok', errors: [] }
+        return this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
     }
 
     isFiat (currency) {
@@ -996,7 +1010,7 @@ module.exports = class bitbay extends Exchange {
             url += '/' + this.implodeParams (path, params);
             const nonce = this.milliseconds ();
             let payload = undefined;
-            if (method === 'GET') {
+            if (method !== 'POST') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
                 }
