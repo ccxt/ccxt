@@ -616,7 +616,10 @@ module.exports = class latoken extends Exchange {
             }
         }
         const timeFilled = this.safeTimestamp (order, 'timeFilled');
-        const lastTradeTimestamp = (timeFilled > 0) ? timeFilled : undefined;
+        let lastTradeTimestamp = undefined;
+        if ((timeFilled !== undefined) && (timeFilled > 0)) {
+            lastTradeTimestamp = timeFilled;
+        }
         return {
             'id': id,
             'info': order,

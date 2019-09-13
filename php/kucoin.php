@@ -600,15 +600,32 @@ class kucoin extends Exchange {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->privatePostOrders (array_merge ($request, $params));
-        $responseData = $response['data'];
+        //
+        //     {
+        //         code => '200000',
+        //         $data => {
+        //             "orderId" => "5bd6e9286d99522a52e458de"
+        //         }
+        //    }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->milliseconds ();
         return array (
-            'id' => $responseData['orderId'],
+            'id' => $this->safe_string($data, 'orderId'),
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
+            'amount' => $amount,
+            'price' => $price,
+            'cost' => null,
+            'filled' => null,
+            'remaining' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => null,
             'status' => 'open',
             'clientOid' => $clientOid,
-            'info' => $responseData,
+            'info' => $data,
         );
     }
 
