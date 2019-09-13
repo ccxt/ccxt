@@ -176,7 +176,7 @@ module.exports = class ftx extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': undefined,
+            'close': this.safeFloat (market['info'], 'last'),
             'last': this.safeFloat (market['info'], 'last'),
             'previousClose': undefined,
             'change': this.safeFloat (ticker, 'change'),
