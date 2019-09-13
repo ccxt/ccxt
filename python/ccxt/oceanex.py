@@ -461,11 +461,13 @@ class oceanex (Exchange):
         return self.parse_order(data, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        if not isinstance(id, list):
+            id = [id]
         self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {'ids': [id]}
+        request = {'ids': id}
         response = self.privateGetOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
         dataLength = len(data)
