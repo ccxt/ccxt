@@ -815,7 +815,22 @@ class bitbay (Exchange):
             'payment_currency': market['quoteId'],
             'rate': price,
         }
-        return await self.privatePostTrade(self.extend(request, params))
+        #   {
+        #     "success": 1,
+        #     "order_id": 324057928260,
+        #     "amount": 0.01,
+        #     "rate": 2000,
+        #     "price": 20,
+        #     "fee": 0,
+        #     "fee_currency": "EUR",
+        #     "wrong": [],
+        #     "bought": []
+        #   }
+        res = await self.privatePostTrade(self.extend(request, params))
+        return {
+            'id': self.safe_string(res, 'order_id'),
+            'info': res,
+        }
 
     async def cancel_order(self, id, symbol=None, params={}):
         request = {

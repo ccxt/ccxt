@@ -616,7 +616,10 @@ class latoken extends Exchange {
             }
         }
         $timeFilled = $this->safe_timestamp($order, 'timeFilled');
-        $lastTradeTimestamp = ($timeFilled > 0) ? $timeFilled : null;
+        $lastTradeTimestamp = null;
+        if (($timeFilled !== null) && ($timeFilled > 0)) {
+            $lastTradeTimestamp = $timeFilled;
+        }
         return array (
             'id' => $id,
             'info' => $order,
