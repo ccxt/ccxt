@@ -85,6 +85,7 @@ from ccxt.async_support.btctradeua import btctradeua                      # noqa
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
 from ccxt.async_support.buda import buda                                  # noqa: F401
 from ccxt.async_support.bxinth import bxinth                              # noqa: F401
+from ccxt.async_support.bytetrade import bytetrade                        # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.chilebit import chilebit                          # noqa: F401
 from ccxt.async_support.cobinhood import cobinhood                        # noqa: F401
@@ -212,6 +213,7 @@ exchanges = [
     'btcturk',
     'buda',
     'bxinth',
+    'bytetrade',
     'cex',
     'chilebit',
     'cobinhood',

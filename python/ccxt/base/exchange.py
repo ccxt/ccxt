@@ -2099,8 +2099,8 @@ class Exchange(object):
     def decimal_to_bytes(n, endian='big'):
         """int.from_bytes and int.to_bytes don't work in python2"""
         if n > 0:
-            next_byte = Exchange.decimal_to_bytes(n // 256, endian)
-            remainder = bytes([n % 256])
+            next_byte = Exchange.decimal_to_bytes(n // 0xff, endian)
+            remainder = bytes([n % 0xff])
             return next_byte + remainder if endian == 'big' else remainder + next_byte
         else:
             return b''
