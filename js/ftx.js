@@ -217,6 +217,7 @@ module.exports = class ftx extends Exchange {
             const orderbook = result;
             orderbook['timestamp'] = undefined;
             orderbook['datetime'] = undefined;
+            orderbook['nonce'] = undefined;
             return orderbook;
         }
     }
