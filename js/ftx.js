@@ -277,10 +277,10 @@ module.exports = class ftx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (since !== undefined) {
-            request['start_time'] = since;
-        }
         if (market['info']['type'] === 'future') {  // check if it is a future market
+            if (since !== undefined) {
+                request['start_time'] = since;
+            }
             const response = await this.publicGetFuturesMarketMarkCandles (this.extend (request, params));
             if (response['success']) {
                 const result = this.safeValue (response, 'result', {});
