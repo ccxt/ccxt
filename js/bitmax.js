@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const { ArgumentsRequired } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -578,24 +578,5 @@ module.exports = class bitmax extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
-    }
-
-    handleErrors (code, reason, url, method, headers, body, response) {
-        if (response === undefined) {
-            return;
-        }
-        code = this.safeInteger (response, 'code', 0);
-        if (code !== 0) {
-            const feedback = this.id + ' ' + body;
-            const exceptions = this.exceptions;
-            if (code in exceptions) {
-                throw new exceptions[code] (feedback);
-            }
-            const message = this.safeString (response, 'message');
-            if (message === 'Duplicate clientOrderId') {
-                throw new InvalidOrder (feedback);
-            }
-            throw new ExchangeError (feedback);
-        }
     }
 };
