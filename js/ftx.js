@@ -305,15 +305,18 @@ module.exports = class ftx extends Exchange {
         const side = this.safeString (trade, 'side');
         return {
             'info': trade,
-            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
+            'id': id,
             'order': orderId,
             'type': undefined,
+            'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': price * amount,
+            'fee': undefined,
         };
     }
 
@@ -358,22 +361,23 @@ module.exports = class ftx extends Exchange {
             price = this.safeFloat (order, 'price');
         }
         return {
+            'info': order,
             'id': id,
-            'datetime': datetime,
             'timestamp': timestamp,
+            'datetime': datetime,
             'lastTradeTimestamp': undefined,
-            'status': status,
             'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
             'amount': amount,
+            'cost': filled * amount,
+            'average': undefined,
             'filled': filled,
             'remaining': remaining,
-            'cost': filled * amount,
-            'trades': undefined,
+            'status': status,
             'fee': undefined,
-            'info': order,
+            'trades': undefined,
         };
     }
 
