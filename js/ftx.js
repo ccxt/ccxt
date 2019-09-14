@@ -414,7 +414,7 @@ module.exports = class ftx extends Exchange {
                 'side': side,
                 'price': price,
                 'type': type,
-                'size': this.amountToPrecision (symbol, amount),
+                'size': parseFloat (this.amountToPrecision (symbol, amount)),
             };
             const response = await this.privatePostOrders (this.extend (request, params));
             if (response['success']) {
@@ -426,7 +426,7 @@ module.exports = class ftx extends Exchange {
                 'market': this.marketId (symbol),
                 'side': side,
                 'triggerPrice': price,
-                'size': this.amountToPrecision (symbol, amount),
+                'size': parseFloat (this.amountToPrecision (symbol, amount)),
             };
             const response = await this.privatePostConditionalOrders (this.extend (request, params));
             if (response['success']) {
