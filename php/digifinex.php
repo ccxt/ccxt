@@ -515,7 +515,7 @@ class digifinex extends Exchange {
         //
         $id = $this->safe_string($trade, 'id');
         $orderId = $this->safe_string($trade, 'order_id');
-        $timestamp = $this->safe_timestamp($trade, 'date', 'timestamp');
+        $timestamp = $this->safe_timestamp_2($trade, 'date', 'timestamp');
         $side = $this->safe_string_2($trade, 'type', 'side');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
