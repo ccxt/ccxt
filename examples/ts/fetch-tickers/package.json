@@ -7,7 +7,7 @@
   "files": [
     "build/src"
   ],
-  "license": "Apache-2.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ccxt/ccxt.git"
@@ -15,13 +15,7 @@
   "keywords": [],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "check": "gts check",
-    "clean": "gts clean",
-    "compile": "tsc -p .",
-    "fix": "gts fix",
-    "prepare": "npm run compile",
-    "pretest": "npm run compile",
-    "posttest": "npm run check",
+    "build": "tsc -p .",
     "start": "node ./build/index"
   },
   "dependencies": {
@@ -31,7 +25,6 @@
     "ololog": "^1.1.146"
   },
   "devDependencies": {
-    "gts": "^1.1.0",
     "typescript": "~3.5.0",
     "@types/node": "^10.0.3"
   },
