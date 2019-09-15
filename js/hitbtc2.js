@@ -1474,7 +1474,7 @@ module.exports = class hitbtc2 extends hitbtc {
             if ((code === 503) || (code === 504)) {
                 throw new ExchangeNotAvailable (feedback);
             }
-            // fallback to default error handler on DDoSProtection
+            // fallback to default error handler on rate limit errors
             // {"code":429,"message":"Too many requests","description":"Too many requests"}
             if (code === 429) {
                 return;
