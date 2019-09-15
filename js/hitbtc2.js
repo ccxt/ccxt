@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const hitbtc = require ('./hitbtc');
-const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, DDoSProtection, InsufficientFunds, InvalidOrder } = require ('./base/errors');
+const { PermissionDenied, ExchangeError, ExchangeNotAvailable, OrderNotFound, InsufficientFunds, InvalidOrder } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 // ---------------------------------------------------------------------------
 
@@ -1474,9 +1474,10 @@ module.exports = class hitbtc2 extends hitbtc {
             if ((code === 503) || (code === 504)) {
                 throw new ExchangeNotAvailable (feedback);
             }
+            // fallback to default error handler on DDoSProtection
             // {"code":429,"message":"Too many requests","description":"Too many requests"}
-            if ((code === 429)) {
-                throw new DDoSProtection (feedback);
+            if (code === 429) {
+                return;
             }
             // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {
