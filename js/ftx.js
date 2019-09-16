@@ -93,80 +93,63 @@ module.exports = class ftx extends Exchange {
     async fetchMarkets (params = {}) {
         const response = await this.publicGetMarkets (params);
         const result = [];
-        if (response['success']) {
-            const markets = this.safeValue (response, 'result');
-            for (let i = 0; i < markets.length; i++) {
-                const market = markets[i];
-                const id = this.safeString (market, 'name');
-                const baseId = this.safeString (market, 'baseCurrency');
-                const quoteId = this.safeString (market, 'quoteCurrency');
-                const type = this.safeString (market, 'type');
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                let symbol = undefined;
-                // check if a market is a spot or future market
-                if (type === 'future') {
-                    symbol = this.safeString (market, 'name');
-                } else {
-                    symbol = base + '/' + quote;
-                }
-                const active = this.safeValue (market, 'enabled');
-                const priceIncrement = this.safeFloat (market, 'priceIncrement');
-                let priceIncrementDecimal = priceIncrement.toString ().split ('.')[1];
-                if (priceIncrementDecimal === undefined) {
-                    priceIncrementDecimal = 0;
-                } else {
-                    priceIncrementDecimal = priceIncrementDecimal.length;
-                }
-                const sizeIncrement = this.safeFloat (market, 'sizeIncrement');
-                let sizeIncrementDecimal = sizeIncrement.toString ().split ('.')[1];
-                if (sizeIncrementDecimal === undefined) {
-                    sizeIncrementDecimal = 0;
-                } else {
-                    sizeIncrementDecimal = sizeIncrementDecimal.length;
-                }
-                const precision = {
-                    'amount': sizeIncrementDecimal,
-                    'price': priceIncrementDecimal,
-                    'cost': undefined,
-                };
-                const entry = {
-                    'id': id,
-                    'symbol': symbol,
-                    'base': base,
-                    'quote': quote,
-                    'baseId': baseId,
-                    'quoteId': quoteId,
-                    'active': active,
-                    'precision': precision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'price': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'cost': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'info': market,
-                };
-                result.push (entry);
+        const markets = this.safeValue (response, 'result', []);
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'name');
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const type = this.safeString (market, 'type');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            let symbol = undefined;
+            // check if a market is a spot or future market
+            if (type === 'future') {
+                symbol = this.safeString (market, 'name');
+            } else {
+                symbol = base + '/' + quote;
             }
-            return result;
+            const active = this.safeValue (market, 'enabled');
+            const precision = {
+                'amount': undefined,
+                'price': undefined,
+                'cost': undefined,
+            };
+            const entry = {
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            };
+            result.push (entry);
         }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
-        const timestamp = this.safeInteger (ticker, 'time');
         const symbol = market['symbol'];
         return {
             'symbol': symbol,
-            'timestamp': timestamp,
+            'timestamp': this.safeInteger (ticker, 'time'),
             'datetime': undefined,
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
@@ -192,15 +175,12 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const response = {};
-        if (market['info']['type'] === 'future') {
+        if (this.safeString (market['info'], 'type') === 'future') {
             const request = {};
             request['market'] = market['id'];
             const future = await this.publicGetFuturesMarket (this.extend (request, params));
-            const futureStatus = await this.publicGetFuturesMarketStats (this.extend (request, params));
-            if (future['success'] && futureStatus['success']) {
-                response['change'] = future['result']['change24h'];
-                response['volume'] = futureStatus['result']['volume'];
-            }
+            const futureStats = await this.publicGetFuturesMarketStats (this.extend (request, params));
+            return this.parseTicker (this.extend (response, future['result'], futureStats['result']), market);
         }
         return this.parseTicker (response, market);
     }
@@ -212,49 +192,42 @@ module.exports = class ftx extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetMarketsMarketOrderbook (this.extend (request, params));
-        if (response['success']) {
-            const result = this.safeValue (response, 'result', {});
-            const orderbook = result;
-            orderbook['timestamp'] = undefined;
-            orderbook['datetime'] = undefined;
-            orderbook['nonce'] = undefined;
-            return orderbook;
-        }
+        const orderbook = this.safeValue (response, 'result', {});
+        orderbook['timestamp'] = undefined;
+        orderbook['datetime'] = undefined;
+        orderbook['nonce'] = undefined;
+        return orderbook;
     }
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCoins (params);
-        if (response['success']) {
-            const currencies = this.safeValue (response, 'result', {});
-            const result = {};
-            for (let i = 0; i < currencies.length; i++) {
-                const currency = currencies[i];
-                const id = this.safeString (currency, 'id');
-                const code = this.safeCurrencyCode (id);
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'info': currency,
-                };
-            }
-            return result;
+        const currencies = this.safeValue (response, 'result', []);
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'id');
+            const code = this.safeCurrencyCode (id);
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+            };
         }
+        return result;
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const response = await this.privateGetWalletBalances (params);
-        if (response['success']) {
-            const balance = {};
-            const result = this.safeValue (response, 'result', {});
-            for (let i = 0; i < result.length; i++) {
-                const code = this.safeCurrencyCode (result[i]['coin']);
-                balance[code] = {};
-                balance[code]['free'] = result[i]['free'];
-                balance[code]['total'] = result[i]['total'];
-            }
-            return this.parseBalance (balance);
+        const balance = {};
+        const result = this.safeValue (response, 'result', []);
+        for (let i = 0; i < result.length; i++) {
+            const code = this.safeCurrencyCode (result[i]['coin']);
+            balance[code] = {};
+            balance[code]['free'] = this.safeFloat (result[i]['free']);
+            balance[code]['total'] = this.safeFloat (result[i]['total']);
         }
+        return this.parseBalance (balance);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
@@ -283,16 +256,12 @@ module.exports = class ftx extends Exchange {
                 request['start_time'] = since;
             }
             const response = await this.publicGetFuturesMarketMarkCandles (this.extend (request, params));
-            if (response['success']) {
-                const result = this.safeValue (response, 'result', {});
-                return this.parseOHLCVs (result, market, timeframe, since, limit);
-            }
+            const result = this.safeValue (response, 'result', []);
+            return this.parseOHLCVs (result, market, timeframe, since, limit);
         } else {
             const response = await this.publicGetMarketsMarketCandles (this.extend (request, params));
-            if (response['success']) {
-                const result = this.safeValue (response, 'result', {});
-                return this.parseOHLCVs (result, market, timeframe, since, limit);
-            }
+            const result = this.safeValue (response, 'result', []);
+            return this.parseOHLCVs (result, market, timeframe, since, limit);
         }
     }
 
@@ -304,6 +273,7 @@ module.exports = class ftx extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         const orderId = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
+        const cost = this.safeFloat (price * amount);
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -316,7 +286,7 @@ module.exports = class ftx extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': price * amount,
+            'cost': cost,
             'fee': undefined,
         };
     }
@@ -334,13 +304,11 @@ module.exports = class ftx extends Exchange {
             request['limit'] = limit;
         }
         const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
-        if (response['success']) {
-            const result = this.safeValue (response, 'result', {});
-            for (let i = 0; i < result.length; i++) {
-                result[i]['timestamp'] = this.parse8601 (result[i]['time']);
-            }
-            return this.parseTrades (result, market, since, limit);
+        const result = this.safeValue (response, 'result', []);
+        for (let i = 0; i < result.length; i++) {
+            result[i]['timestamp'] = this.parse8601 (result[i]['time']);
         }
+        return this.parseTrades (result, market, since, limit);
     }
 
     parseOrder (order, market = undefined) {
@@ -354,6 +322,7 @@ module.exports = class ftx extends Exchange {
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
         const amount = this.safeFloat (order, 'size');
+        const cost = this.safeFloat (filled * amount);
         let price = 0;
         // determine if its a stop-loss order
         if (type === 'stop') {
@@ -372,7 +341,7 @@ module.exports = class ftx extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': filled * amount,
+            'cost': cost,
             'average': undefined,
             'filled': filled,
             'remaining': remaining,
@@ -395,10 +364,8 @@ module.exports = class ftx extends Exchange {
             request['tag'] = tag;
         }
         const response = await this.privatePostWalletWithdrawals (this.extend (request, params));
-        if (response['success']) {
-            const result = this.safeValue (response, 'result', {});
-            return this.parseTransaction (result);
-        }
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTransaction (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -417,10 +384,8 @@ module.exports = class ftx extends Exchange {
                 'size': parseFloat (this.amountToPrecision (symbol, amount)),
             };
             const response = await this.privatePostOrders (this.extend (request, params));
-            if (response['success']) {
-                const result = this.safeValue (response, 'result', {});
-                return this.parseOrder (result);
-            }
+            const result = this.safeValue (response, 'result', {});
+            return this.parseOrder (result);
         } else if (type === 'stop') {
             const request = {
                 'market': this.marketId (symbol),
@@ -429,10 +394,8 @@ module.exports = class ftx extends Exchange {
                 'size': parseFloat (this.amountToPrecision (symbol, amount)),
             };
             const response = await this.privatePostConditionalOrders (this.extend (request, params));
-            if (response['success']) {
-                const result = this.safeValue (response, 'result', {});
-                return this.parseOrder (result);
-            }
+            const result = this.safeValue (response, 'result', {});
+            return this.parseOrder (result);
         } else {
             throw new InvalidOrder ('Invalid order type');
         }
@@ -444,18 +407,14 @@ module.exports = class ftx extends Exchange {
             'id': parseInt (id),
         };
         const response = await this.privateDeleteOrdersId (this.extend (request, params));
-        if (response['success']) {
-            const result = this.safeValue (response, 'result', {});
-            return result;
-        }
+        const result = this.safeValue (response, 'result', {});
+        return result;
     }
 
     async cancelAllOrders (params = {}) {
         const response = await this.privateDeleteOrders (params);
-        if (response['success']) {
-            const result = this.safeValue (response, 'result', {});
-            return result;
-        }
+        const result = this.safeValue (response, 'result', {});
+        return result;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -464,10 +423,8 @@ module.exports = class ftx extends Exchange {
             'id': id,
         };
         const response = await this.privateGetOrdersId (this.extend (request, params));
-        if (response['success']) {
-            const result = this.safeValue (response, 'result', {});
-            return this.parseOrder (result);
-        }
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -478,10 +435,8 @@ module.exports = class ftx extends Exchange {
             request['market'] = market['id'];
         }
         const response = await this.privateGetOrders (this.extend (request, params));
-        if (response['success']) {
-            const result = this.safeValue (response, 'result', {});
-            return this.parseOrders (result);
-        }
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOrders (result);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -491,17 +446,16 @@ module.exports = class ftx extends Exchange {
             'coin': currency['id'],
         };
         const response = await this.privateGetWalletDepositAddressCoin (this.extend (request, params));
-        if (response['success']) {
-            const result = this.safeValue (response, 'result', {});
-            const address = this.safeString (result, 'address');
-            const tag = this.safeString (result, 'tag');
-            return {
-                'currency': code,
-                'address': this.checkAddress (address),
-                'tag': tag,
-                'info': result,
-            };
-        }
+        const result = this.safeValue (response, 'result', {});
+        const address = this.safeString (result, 'address');
+        const tag = this.safeString (result, 'tag');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': result,
+        };
     }
 
     parseTransaction (transaction) {
@@ -547,20 +501,16 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const response = await this.privateGetWalletDeposits (this.extend (request, params));
-        if (response['success']) {
-            const result = this.safeValue (response, 'result', {});
-            return this.parseTransactions (result);
-        }
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTransactions (result);
     }
 
     async fetchWithdrawals (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {};
         const response = await this.privateGetWalletWithdrawals (this.extend (request, params));
-        if (response['success']) {
-            const result = this.safeValue (response, 'result', {});
-            return this.parseTransactions (result);
-        }
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTransactions (result);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -607,10 +557,8 @@ module.exports = class ftx extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (response === undefined) {
-            return;
-        }
-        if (code >= 400) {
+        const success = this.safeValue (response, 'success');
+        if (!success) {
             if (body[0] === '{') {
                 const feedback = this.id + ' ' + this.json (response);
                 throw new ExchangeError (feedback);
