@@ -165,7 +165,7 @@ module.exports = class ftx extends Exchange {
             'change': this.safeFloat (ticker, 'change'),
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeFloat (ticker, 'volume'),
+            'baseVolume': undefined,
             'quoteVolume': undefined,
             'info': ticker,
         };
@@ -175,12 +175,12 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const response = {};
-        if (this.safeString (market['info'], 'type') === 'future') {
+        const marketType = this.safeString (market['info'], 'type');
+        if (marketType !== undefined && marketType === 'future') {
             const request = {};
             request['market'] = market['id'];
             const future = await this.publicGetFuturesMarket (this.extend (request, params));
-            const futureStats = await this.publicGetFuturesMarketStats (this.extend (request, params));
-            return this.parseTicker (this.extend (response, future['result'], futureStats['result']), market);
+            return this.parseTicker (this.extend (response, future['result']), market);
         }
         return this.parseTicker (response, market);
     }
@@ -244,6 +244,7 @@ module.exports = class ftx extends Exchange {
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marketType = this.safeString (market['info'], 'type');
         const request = {
             'market': market['id'],
             'resolution': this.timeframes[timeframe],
@@ -251,7 +252,7 @@ module.exports = class ftx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (market['info']['type'] === 'future') {  // check if it is a future market
+        if (marketType !== undefined && marketType === 'future') {  // check if it is a future market
             if (since !== undefined) {
                 request['start_time'] = since;
             }
