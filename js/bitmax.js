@@ -449,8 +449,8 @@ module.exports = class bitmax extends Exchange {
         if (test) {
             params = this.omit (params, 'test');
         }
-        price = this.priceToPrecision (symbol, price)
-        amount = this.amountToPrecision (symbol, amount)
+        price = this.priceToPrecision (symbol, price);
+        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'coid': this.coid (),
             'time': this.nonce (),
