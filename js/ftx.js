@@ -16,6 +16,7 @@ module.exports = class ftx extends Exchange {
             'rateLimit': 100,
             'certified': false,
             'urls': {
+                'logo': 'https://theme.zdassets.com/theme_assets/9179536/d48e830d666da07d0a1fcdb74e5ed665d4d4a069.png',
                 'www': 'https://ftx.com',
                 'api': {
                     'public': 'https://ftx.com/api',
