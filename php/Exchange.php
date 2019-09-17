@@ -2322,7 +2322,7 @@ class Exchange {
             return $this->markets[$symbol];
         }
 
-        throw new ExchangeError($this->id . ' does not have market symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
     public function market_ids($symbols) {
