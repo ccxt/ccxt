@@ -110,11 +110,6 @@ module.exports = class ftx extends Exchange {
                 symbol = base + '/' + quote;
             }
             const active = this.safeValue (market, 'enabled');
-            const precision = {
-                'amount': undefined,
-                'price': undefined,
-                'cost': undefined,
-            };
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -123,7 +118,11 @@ module.exports = class ftx extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'active': active,
-                'precision': precision,
+                'precision': {
+                    'amount': undefined,
+                    'price': undefined,
+                    'cost': undefined,
+                },
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -288,7 +287,11 @@ module.exports = class ftx extends Exchange {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': {
+                'cost': undefined,
+                'currency': undefined,
+                'rate': undefined,
+            },
         };
     }
 
@@ -347,7 +350,11 @@ module.exports = class ftx extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+                'rate': undefined,
+            },
             'trades': undefined,
         };
     }
