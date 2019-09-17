@@ -274,7 +274,10 @@ module.exports = class ftx extends Exchange {
         const symbol = this.safeString (market, 'symbol');
         const orderId = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
-        const cost = this.safeFloat (price * amount);
+        let cost = undefined;
+        if (price !== undefined && amount !== undefined) {
+            cost = price * amount;
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -327,7 +330,10 @@ module.exports = class ftx extends Exchange {
         const side = this.safeString (order, 'side');
         const type = this.safeString (order, 'type');
         const amount = this.safeFloat (order, 'size');
-        const cost = this.safeFloat (filled * amount);
+        let cost = undefined;
+        if (filled !== undefined && amount !== undefined) {
+            cost = filled * amount;
+        }
         let price = 0;
         // determine if its a stop-loss order
         if (type === 'stop') {
