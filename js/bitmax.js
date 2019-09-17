@@ -449,12 +449,14 @@ module.exports = class bitmax extends Exchange {
         if (test) {
             params = this.omit (params, 'test');
         }
+        price = this.priceToPrecision (symbol, price)
+        amount = this.amountToPrecision (symbol, amount)
         const request = {
             'coid': this.coid (),
             'time': this.nonce (),
             'symbol': market['id'],
-            'orderPrice': this.priceToPrecision (symbol, price),
-            'orderQty': this.amountToPrecision (symbol, amount),
+            'orderPrice': this.number_to_string (price),
+            'orderQty': this.number_to_string (amount),
             'orderType': type,
             'side': side,
         };
