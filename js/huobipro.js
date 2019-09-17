@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -144,6 +144,9 @@ module.exports = class huobipro extends Exchange {
                 'api-signature-check-failed': AuthenticationError,
                 'api-signature-not-valid': AuthenticationError, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
                 'base-record-invalid': OrderNotFound, // https://github.com/ccxt/ccxt/issues/5750
+            },
+            'exceptionMsgs': {
+                'invalid symbol': BadSymbol,
             },
             'options': {
                 // https://github.com/ccxt/ccxt/issues/5376
@@ -1036,6 +1039,11 @@ module.exports = class huobipro extends Exchange {
                 const exceptions = this.exceptions;
                 if (code in exceptions) {
                     throw new exceptions[code] (feedback);
+                }
+                const exceptionMsgs = this.exceptionMsgs;
+                const msg = this.safeString (response, 'err-msg');
+                if (msg in exceptionMsgs) {
+                    throw new exceptionMsgs[msg] (feedback);
                 }
                 throw new ExchangeError (feedback);
             }
