@@ -137,6 +137,7 @@ module.exports = class bitmex extends Exchange {
             'exceptions': {
                 'exact': {
                     'Invalid API Key.': AuthenticationError,
+                    'This key is disabled.': PermissionDenied,
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
                     'orderQty is invalid': InvalidOrder,
@@ -147,7 +148,6 @@ module.exports = class bitmex extends Exchange {
                     'Signature not valid': AuthenticationError,
                     'overloaded': ExchangeNotAvailable,
                     'Account has insufficient Available Balance': InsufficientFunds,
-                    'This key is disabled': PermissionDenied,
                 },
             },
             'precisionMode': TICK_SIZE,
