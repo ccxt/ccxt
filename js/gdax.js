@@ -438,10 +438,16 @@ module.exports = class gdax extends Exchange {
     parseOrder (order, market = undefined) {
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (order, 'product_id');
+        const marketId = this.safeString (order, 'product_id');
+        let quote = undefined;
+        if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
             }
         }
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -461,6 +467,8 @@ module.exports = class gdax extends Exchange {
             let feeCurrencyCode = undefined;
             if (market !== undefined) {
                 feeCurrencyCode = market['quote'];
+            } else if (quote !== undefined) {
+                feeCurrencyCode = quote;
             }
             fee = {
                 'cost': feeCost,
@@ -468,7 +476,7 @@ module.exports = class gdax extends Exchange {
                 'rate': undefined,
             };
         }
-        if (market !== undefined) {
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
         const id = this.safeString (order, 'id');
