@@ -133,6 +133,9 @@ module.exports = class binance extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'allOrderList', // oco
+                        'openOrderList', // oco
+                        'orderList', // oco
                         'order',
                         'openOrders',
                         'allOrders',
@@ -140,10 +143,12 @@ module.exports = class binance extends Exchange {
                         'myTrades',
                     ],
                     'post': [
+                        'order/oco',
                         'order',
                         'order/test',
                     ],
                     'delete': [
+                        'orderList', // oco
                         'order',
                     ],
                 },
