@@ -137,6 +137,7 @@ class bitmex extends Exchange {
             'exceptions' => array (
                 'exact' => array (
                     'Invalid API Key.' => '\\ccxt\\AuthenticationError',
+                    'This key is disabled.' => '\\ccxt\\PermissionDenied',
                     'Access Denied' => '\\ccxt\\PermissionDenied',
                     'Duplicate clOrdID' => '\\ccxt\\InvalidOrder',
                     'orderQty is invalid' => '\\ccxt\\InvalidOrder',
