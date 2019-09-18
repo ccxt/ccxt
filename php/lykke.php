@@ -305,11 +305,14 @@ class lykke extends Exchange {
 
     public function parse_order_status ($status) {
         $statuses = array (
+            'Open' => 'open',
             'Pending' => 'open',
             'InOrderBook' => 'open',
             'Processing' => 'open',
             'Matched' => 'closed',
             'Cancelled' => 'canceled',
+            'Rejected' => 'rejected',
+            'Replaced' => 'canceled',
         );
         return $this->safe_string($statuses, $status, $status);
     }
