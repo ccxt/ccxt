@@ -436,7 +436,7 @@ module.exports = class gdax extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        const timestamp = this.parse8601 (order['created_at']);
+        const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
         let symbol = undefined;
         if (market === undefined) {
             const marketId = this.safeString (order, 'product_id');
