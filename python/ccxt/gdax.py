@@ -420,7 +420,7 @@ class gdax (Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        timestamp = self.parse8601(order['created_at'])
+        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'product_id')

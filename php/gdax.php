@@ -437,7 +437,7 @@ class gdax extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse8601 ($order['created_at']);
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
         $symbol = null;
         if ($market === null) {
             $marketId = $this->safe_string($order, 'product_id');
