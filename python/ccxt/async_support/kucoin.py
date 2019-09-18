@@ -11,6 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -157,6 +158,7 @@ class kucoin (Exchange):
                 '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficientnot "}
                 '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
+                '400000': BadSymbol,
                 '400001': AuthenticationError,
                 '400002': InvalidNonce,
                 '400003': AuthenticationError,
@@ -186,6 +188,7 @@ class kucoin (Exchange):
             },
             'commonCurrencies': {
                 'HOT': 'HOTNOW',
+                'EDGE': 'DADI',  # https://github.com/ccxt/ccxt/issues/5756
             },
             'options': {
                 'version': 'v1',
@@ -224,7 +227,7 @@ class kucoin (Exchange):
         result = []
         for i in range(0, len(data)):
             market = data[i]
-            id = self.safe_string(market, 'name')
+            id = self.safe_string(market, 'symbol')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'quoteCurrency')
             base = self.safe_currency_code(baseId)
@@ -282,7 +285,7 @@ class kucoin (Exchange):
         result = {}
         for i in range(0, len(responseData)):
             entry = responseData[i]
-            id = self.safe_string(entry, 'name')
+            id = self.safe_string(entry, 'currency')
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
             precision = self.safe_integer(entry, 'precision')
@@ -582,15 +585,32 @@ class kucoin (Exchange):
         if type != 'market':
             request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostOrders(self.extend(request, params))
-        responseData = response['data']
+        #
+        #     {
+        #         code: '200000',
+        #         data: {
+        #             "orderId": "5bd6e9286d99522a52e458de"
+        #         }
+        #    }
+        #
+        data = self.safe_value(response, 'data', {})
+        timestamp = self.milliseconds()
         return {
-            'id': responseData['orderId'],
+            'id': self.safe_string(data, 'orderId'),
             'symbol': symbol,
             'type': type,
             'side': side,
+            'amount': amount,
+            'price': price,
+            'cost': None,
+            'filled': None,
+            'remaining': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fee': None,
             'status': 'open',
             'clientOid': clientOid,
-            'info': responseData,
+            'info': data,
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
@@ -749,8 +769,8 @@ class kucoin (Exchange):
         }
         if type == 'market':
             if price == 0.0:
-                if (cost is not None) and(filled is not None):
-                    if (cost > 0) and(filled > 0):
+                if (cost is not None) and (filled is not None):
+                    if (cost > 0) and (filled > 0):
                         price = cost / filled
         return {
             'id': orderId,
@@ -965,7 +985,7 @@ class kucoin (Exchange):
         else:
             timestamp = self.safe_integer(trade, 'createdAt')
             # if it's a historical v1 trade, the exchange returns timestamp in seconds
-            if ('dealValue' in list(trade.keys())) and(timestamp is not None):
+            if ('dealValue' in list(trade.keys())) and (timestamp is not None):
                 timestamp = timestamp * 1000
         price = self.safe_float_2(trade, 'price', 'dealPrice')
         side = self.safe_string(trade, 'side')
@@ -1434,7 +1454,7 @@ class kucoin (Exchange):
             headers['KC-API-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return
         #

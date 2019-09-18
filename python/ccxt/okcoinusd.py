@@ -731,7 +731,7 @@ class okcoinusd (Exchange):
         market = self.market(symbol)
         method = 'privatePostFutureTrade' if market['future'] else 'privatePostTrade'
         orderSide = (side + '_market') if (type == 'market') else side
-        isMarketBuy = ((market['spot']) and(type == 'market') and(side == 'buy') and(not self.options['marketBuyPrice']))
+        isMarketBuy = ((market['spot']) and (type == 'market') and (side == 'buy') and (not self.options['marketBuyPrice']))
         orderPrice = self.safe_float(params, 'cost') if isMarketBuy else price
         request = self.create_request(market, {
             'type': orderSide,
@@ -1015,7 +1015,7 @@ class okcoinusd (Exchange):
             'symbol': market['id'],
         }, params)
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'error_code' in response:

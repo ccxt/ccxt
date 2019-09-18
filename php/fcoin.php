@@ -147,9 +147,11 @@ class fcoin extends Exchange {
                 '429' => '\\ccxt\\DDoSProtection', // Too Many Requests, exceed api request limit
                 '1002' => '\\ccxt\\ExchangeNotAvailable', // System busy
                 '1016' => '\\ccxt\\InsufficientFunds',
+                '2136' => '\\ccxt\\AuthenticationError', // The API key is expired
                 '3008' => '\\ccxt\\InvalidOrder',
                 '6004' => '\\ccxt\\InvalidNonce',
                 '6005' => '\\ccxt\\AuthenticationError', // Illegal API Signature
+                '40003' => '\\ccxt\\BadSymbol',
             ),
             'commonCurrencies' => array (
                 'DAG' => 'DAGX',
@@ -685,7 +687,7 @@ class fcoin extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

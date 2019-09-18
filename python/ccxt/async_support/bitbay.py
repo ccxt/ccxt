@@ -24,6 +24,7 @@ class bitbay (Exchange):
                 'CORS': True,
                 'withdraw': True,
                 'fetchMyTrades': True,
+                'fetchOpenOrders': True,
             },
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -143,6 +144,8 @@ class bitbay (Exchange):
                 # codes 507 and 508 are not specified in their docs
                 '509': ExchangeError,  # The BIC/SWIFT is required for self currency
                 '510': ExchangeError,  # Invalid market name
+                'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
+                'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
             },
         })
 
@@ -216,6 +219,71 @@ class bitbay (Exchange):
             })
         return result
 
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        await self.load_markets()
+        request = {}
+        response = await self.v1_01PrivateGetTradingOffer(self.extend(request, params))
+        items = self.safe_value(response, 'items', [])
+        return self.parse_orders(items, None, since, limit, {'status': 'open'})
+
+    def parse_order(self, order, market=None):
+        #
+        #     {
+        #         market: 'ETH-EUR',
+        #         offerType: 'Sell',
+        #         id: '93d3657b-d616-11e9-9248-0242ac110005',
+        #         currentAmount: '0.04',
+        #         lockedAmount: '0.04',
+        #         rate: '280',
+        #         startAmount: '0.04',
+        #         time: '1568372806924',
+        #         postOnly: False,
+        #         hidden: False,
+        #         mode: 'limit',
+        #         receivedAmount: '0.0',
+        #         firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
+        #         secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af'
+        #     }
+        #
+        marketId = self.safe_string(order, 'market')
+        symbol = None
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
+        if symbol is None:
+            if market is not None:
+                symbol = market['symbol']
+        timestamp = self.safe_integer(order, 'time')
+        amount = self.safe_float(order, 'startAmount')
+        remaining = self.safe_float(order, 'currentAmount')
+        filled = None
+        if amount is not None:
+            if remaining is not None:
+                filled = max(0, amount - remaining)
+        return {
+            'id': self.safe_string(order, 'id'),
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': None,
+            'status': None,
+            'symbol': symbol,
+            'type': self.safe_string(order, 'mode'),
+            'side': self.safe_string_lower(order, 'offerType'),
+            'price': self.safe_float(order, 'rate'),
+            'amount': amount,
+            'cost': None,
+            'filled': filled,
+            'remaining': remaining,
+            'average': None,
+            'fee': None,
+        }
+
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         markets = [self.market_id(symbol)] if symbol else []
@@ -251,22 +319,19 @@ class bitbay (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostInfo(params)
+        response = await self.v1_01PrivateGetBalancesBITBAYBalance(params)
         balances = self.safe_value(response, 'balances')
         if balances is None:
             raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
         result = {'info': response}
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            # rewrite with safeCurrencyCode, traverse by currency ids
-            currencyId = self.currencyId(code)
-            balance = self.safe_value(balances, currencyId)
-            if balance is not None:
-                account = self.account()
-                account['free'] = self.safe_float(balance, 'available')
-                account['used'] = self.safe_float(balance, 'locked')
-                result[code] = account
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['used'] = self.safe_float(balance, 'lockedFunds')
+            account['free'] = self.safe_float(balance, 'availableFunds')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -805,23 +870,47 @@ class bitbay (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        if type != 'limit':
-            raise ExchangeError(self.id + ' allows limit orders only')
         market = self.market(symbol)
+        tradingSymbol = market['baseId'] + '-' + market['quoteId']
         request = {
-            'type': side,
-            'currency': market['baseId'],
+            'symbol': tradingSymbol,
+            'offerType': side,
             'amount': amount,
-            'payment_currency': market['quoteId'],
-            'rate': price,
+            'mode': type,
         }
-        return await self.privatePostTrade(self.extend(request, params))
+        if type == 'limit':
+            request['rate'] = price
+        #     {
+        #         status: 'Ok',
+        #         completed: False,  # can deduce status from here
+        #         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
+        #         transactions: [],  # can deduce order info from here
+        #     }
+        response = await self.v1_01PrivatePostTradingOfferSymbol(self.extend(request, params))
+        return {
+            'id': self.safe_string(response, 'offerId'),
+            'info': response,
+        }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        side = self.safe_string(params, 'side')
+        if side is None:
+            raise ExchangeError(self.id + ' cancelOrder() requires a `side` parameter("buy" or "sell")')
+        price = self.safe_value(params, 'price')
+        if price is None:
+            raise ExchangeError(self.id + ' cancelOrder() requires a `price` parameter(float or string)')
+        await self.load_markets()
+        market = self.market(symbol)
+        tradingSymbol = market['baseId'] + '-' + market['quoteId']
         request = {
+            'symbol': tradingSymbol,
             'id': id,
+            'side': side,
+            'price': price,
         }
-        return await self.privatePostCancel(self.extend(request, params))
+        # {status: 'Fail', errors: ['NOT_RECOGNIZED_OFFER_TYPE']}  -- if required params are missing
+        # {status: 'Ok', errors: []}
+        return self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
 
     def is_fiat(self, currency):
         fiatCurrencies = {
@@ -872,12 +961,15 @@ class bitbay (Exchange):
             self.check_required_credentials()
             query = self.omit(params, self.extract_params(path))
             url += '/' + self.implode_params(path, params)
-            if query:
-                url += '?' + self.urlencode(query)
             nonce = self.milliseconds()
-            payload = self.apiKey + nonce
-            if body is not None:
-                body = self.json(body)
+            payload = None
+            if method != 'POST':
+                if query:
+                    url += '?' + self.urlencode(query)
+                payload = self.apiKey + nonce
+            elif body is None:
+                body = self.json(query)
+                payload = self.apiKey + nonce + body
             headers = {
                 'Request-Timestamp': nonce,
                 'Operation-Id': self.uuid(),
@@ -898,7 +990,7 @@ class bitbay (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'code' in response:
@@ -933,4 +1025,17 @@ class bitbay (Exchange):
             if code in self.exceptions:
                 raise exceptions[code](feedback)
             else:
+                raise ExchangeError(feedback)
+        elif 'status' in response:
+            #
+            #      {"status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"]}
+            #
+            status = self.safe_string(response, 'status')
+            if status == 'Fail':
+                errors = self.safe_value(response, 'errors')
+                feedback = self.id + ' ' + self.json(response)
+                for i in range(0, len(errors)):
+                    error = errors[i]
+                    if error in self.exceptions:
+                        raise self.exceptions[error](feedback)
                 raise ExchangeError(feedback)

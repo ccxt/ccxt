@@ -68,6 +68,7 @@ class binance (Exchange):
                 'api': {
                     'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
+                    'sapi': 'https://api.binance.com/sapi/v1',
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
@@ -86,6 +87,14 @@ class binance (Exchange):
                     'get': [
                         'exchange/public/product',
                         'assetWithdraw/getAllAsset.html',
+                    ],
+                },
+                'sapi': {
+                    'get': [
+                        'asset/assetDividend',
+                    ],
+                    'post': [
+                        'asset/dust',
                     ],
                 },
                 'wapi': {
@@ -271,7 +280,7 @@ class binance (Exchange):
                     'max': None,
                 }
                 maxPrice = self.safe_float(filter, 'maxPrice')
-                if (maxPrice is not None) and(maxPrice > 0):
+                if (maxPrice is not None) and (maxPrice > 0):
                     entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
             if 'LOT_SIZE' in filters:
@@ -609,8 +618,8 @@ class binance (Exchange):
         type = self.safe_string_lower(order, 'type')
         if type == 'market':
             if price == 0.0:
-                if (cost is not None) and(filled is not None):
-                    if (cost > 0) and(filled > 0):
+                if (cost is not None) and (filled is not None):
+                    if (cost > 0) and (filled > 0):
                         price = cost / filled
         side = self.safe_string_lower(order, 'side')
         fee = None
@@ -1026,10 +1035,10 @@ class binance (Exchange):
         applyTime = self.safe_integer(transaction, 'applyTime')
         type = self.safe_string(transaction, 'type')
         if type is None:
-            if (insertTime is not None) and(applyTime is None):
+            if (insertTime is not None) and (applyTime is None):
                 type = 'deposit'
                 timestamp = insertTime
-            elif (insertTime is None) and(applyTime is not None):
+            elif (insertTime is None) and (applyTime is not None):
                 type = 'withdrawal'
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)
@@ -1141,7 +1150,7 @@ class binance (Exchange):
                 'X-MBX-APIKEY': self.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        if (api == 'private') or (api == 'wapi' and path != 'systemStatus'):
+        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({
                 'timestamp': self.nonce(),
@@ -1166,7 +1175,7 @@ class binance (Exchange):
                     url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (code == 418) or (code == 429):
             raise DDoSProtection(self.id + ' ' + str(code) + ' ' + reason + ' ' + body)
         # error response in a form: {"code": -1013, "msg": "Invalid quantity."}

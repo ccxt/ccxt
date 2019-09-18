@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1072'
+__version__ = '1.18.1156'
 
 # -----------------------------------------------------------------------------
 
@@ -48,6 +48,7 @@ from ccxt.base.errors import OrderNotFillable                   # noqa: F401
 
 from ccxt.async_support._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.async_support.acx import acx                                    # noqa: F401
+from ccxt.async_support.adara import adara                                # noqa: F401
 from ccxt.async_support.allcoin import allcoin                            # noqa: F401
 from ccxt.async_support.anxpro import anxpro                              # noqa: F401
 from ccxt.async_support.bcex import bcex                                  # noqa: F401
@@ -127,6 +128,7 @@ from ccxt.async_support.hitbtc2 import hitbtc2                            # noqa
 from ccxt.async_support.huobipro import huobipro                          # noqa: F401
 from ccxt.async_support.huobiru import huobiru                            # noqa: F401
 from ccxt.async_support.ice3x import ice3x                                # noqa: F401
+from ccxt.async_support.idex import idex                                  # noqa: F401
 from ccxt.async_support.independentreserve import independentreserve      # noqa: F401
 from ccxt.async_support.indodax import indodax                            # noqa: F401
 from ccxt.async_support.itbit import itbit                                # noqa: F401
@@ -174,6 +176,7 @@ from ccxt.async_support.zb import zb                                      # noqa
 exchanges = [
     '_1btcxe',
     'acx',
+    'adara',
     'allcoin',
     'anxpro',
     'bcex',
@@ -253,6 +256,7 @@ exchanges = [
     'huobipro',
     'huobiru',
     'ice3x',
+    'idex',
     'independentreserve',
     'indodax',
     'itbit',

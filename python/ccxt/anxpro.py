@@ -1144,12 +1144,12 @@ class anxpro (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None or response == '':
             return
         result = self.safe_string(response, 'result')
         code = self.safe_string(response, 'resultCode')
-        if ((result is not None) and(result != 'success')) or ((code is not None) and(code != 'OK')):
+        if ((result is not None) and (result != 'success')) or ((code is not None) and (code != 'OK')):
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
             exact = self.exceptions['exact']

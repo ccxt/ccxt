@@ -137,6 +137,7 @@ class bitmex extends Exchange {
             'exceptions' => array (
                 'exact' => array (
                     'Invalid API Key.' => '\\ccxt\\AuthenticationError',
+                    'This key is disabled.' => '\\ccxt\\PermissionDenied',
                     'Access Denied' => '\\ccxt\\PermissionDenied',
                     'Duplicate clOrdID' => '\\ccxt\\InvalidOrder',
                     'orderQty is invalid' => '\\ccxt\\InvalidOrder',
@@ -1217,7 +1218,7 @@ class bitmex extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

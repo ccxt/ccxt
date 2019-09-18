@@ -572,7 +572,7 @@ class theocean (Exchange):
     def parse_order(self, order, market=None):
         zeroExOrder = self.safe_value(order, 'zeroExOrder')
         id = self.safe_string(order, 'orderHash')
-        if (id is None) and(zeroExOrder is not None):
+        if (id is None) and (zeroExOrder is not None):
             id = self.safe_string(zeroExOrder, 'orderHash')
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')  # injected from outside
@@ -818,7 +818,7 @@ class theocean (Exchange):
                 url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         # code 401 and plain body 'Authentication failed'(with single quotes)

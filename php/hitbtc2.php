@@ -1465,7 +1465,7 @@ class hitbtc2 extends hitbtc {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }
@@ -1474,6 +1474,11 @@ class hitbtc2 extends hitbtc {
             // array("$code":504,"$message":"Gateway Timeout","description":"")
             if (($code === 503) || ($code === 504)) {
                 throw new ExchangeNotAvailable($feedback);
+            }
+            // fallback to default error handler on rate limit errors
+            // array("$code":429,"$message":"Too many requests","description":"Too many requests")
+            if ($code === 429) {
+                return;
             }
             // array("error":{"$code":20002,"$message":"Order not found","description":"")}
             if ($body[0] === '{') {

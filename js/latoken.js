@@ -90,6 +90,9 @@ module.exports = class latoken extends Exchange {
                     'taker': 0.1 / 100,
                 },
             },
+            'commonCurrencies': {
+                'TSL': 'Treasure SL',
+            },
             'options': {
                 'createOrderMethod': 'private_post_order_new', // private_post_order_test_order
             },
@@ -616,7 +619,10 @@ module.exports = class latoken extends Exchange {
             }
         }
         const timeFilled = this.safeTimestamp (order, 'timeFilled');
-        const lastTradeTimestamp = (timeFilled > 0) ? timeFilled : undefined;
+        let lastTradeTimestamp = undefined;
+        if ((timeFilled !== undefined) && (timeFilled > 0)) {
+            lastTradeTimestamp = timeFilled;
+        }
         return {
             'id': id,
             'info': order,
@@ -833,7 +839,7 @@ module.exports = class latoken extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return;
         }

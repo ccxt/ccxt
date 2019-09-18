@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.1072'
+__version__ = '1.18.1156'
 
 # ----------------------------------------------------------------------------
 
@@ -67,6 +67,7 @@ from ccxt.base.errors import OrderNotFillable               # noqa: F401
 
 from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
+from ccxt.adara import adara                                # noqa: F401
 from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
@@ -146,6 +147,7 @@ from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
 from ccxt.huobipro import huobipro                          # noqa: F401
 from ccxt.huobiru import huobiru                            # noqa: F401
 from ccxt.ice3x import ice3x                                # noqa: F401
+from ccxt.idex import idex                                  # noqa: F401
 from ccxt.independentreserve import independentreserve      # noqa: F401
 from ccxt.indodax import indodax                            # noqa: F401
 from ccxt.itbit import itbit                                # noqa: F401
@@ -193,6 +195,7 @@ from ccxt.zb import zb                                      # noqa: F401
 exchanges = [
     '_1btcxe',
     'acx',
+    'adara',
     'allcoin',
     'anxpro',
     'bcex',
@@ -272,6 +275,7 @@ exchanges = [
     'huobipro',
     'huobiru',
     'ice3x',
+    'idex',
     'independentreserve',
     'indodax',
     'itbit',

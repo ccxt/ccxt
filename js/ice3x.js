@@ -122,7 +122,7 @@ module.exports = class ice3x extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        if (!Object.keys (this.currencies_by_id).length) {
+        if (this.currencies_by_id === undefined) {
             this.currencies = await this.fetchCurrencies ();
             this.currencies_by_id = this.indexBy (this.currencies, 'id');
         }

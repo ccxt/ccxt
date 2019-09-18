@@ -25,13 +25,16 @@ RUN sed -i 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.l
     && pip3 install --upgrade setuptools \
     && pip3 install tox \
 # Copy files to workdir to && install scripts against it (will be replaced with a live-mounted volume at startup)
-&& mkdir -p /ccxt \
-&& rm -rf /ccxt/node_modules \
+    && mkdir -p /ccxt \
+    && rm -rf /ccxt/node_modules \
 # Installs as a local Node & Python module, so that `require ('ccxt')` and `import ccxt` should work after that
     && npm install \
     && ln -s /ccxt /usr/lib/node_modules/ \
     && echo "export NODE_PATH=/usr/lib/node_modules" >> $HOME/.bashrc \
-    && cd python && python3 setup.py install && python setup.py install && cd .. \
+    && cd python \
+    && python3 setup.py develop \
+    && python setup.py develop \
+    && cd .. \
 ## Remove apt sources
     && apt-get -y autoremove && apt-get clean && apt-get autoclean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

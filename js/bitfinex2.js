@@ -458,7 +458,7 @@ module.exports = class bitfinex2 extends bitfinex {
                     symbol = marketId;
                 }
             }
-            orderId = trade[3];
+            orderId = trade[3].toString ();
             takerOrMaker = (trade[8] === 1) ? 'maker' : 'taker';
             const feeCost = trade[9];
             const feeCurrency = this.safeCurrencyCode (trade[10]);

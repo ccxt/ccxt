@@ -516,7 +516,7 @@ class zb (Exchange):
         cost = self.safe_float(order, 'trade_money')
         average = None
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        if (cost is not None) and(filled is not None) and(filled > 0):
+        if (cost is not None) and (filled is not None) and (filled > 0):
             average = cost / filled
         id = self.safe_string(order, 'id')
         return {
@@ -573,7 +573,7 @@ class zb (Exchange):
             url += '/' + path + '?' + auth + '&' + suffix
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if body[0] == '{':

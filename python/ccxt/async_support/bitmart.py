@@ -812,7 +812,7 @@ class bitmart (Exchange):
                 headers['X-BM-SIGNATURE'] = self.hmac(self.encode(message), self.encode(self.secret), hashlib.sha256)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         #

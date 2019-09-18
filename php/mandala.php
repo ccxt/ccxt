@@ -14,9 +14,9 @@ class mandala extends Exchange {
             'id' => 'mandala',
             'name' => 'Mandala',
             'countries' => array ( 'MT' ),
-            'version' => 'v1.1',
+            'version' => 'v2',
             'rateLimit' => 1500,
-            'certified' => false,
+            'certified' => true,
             // new metainfo interface
             'has' => array (
                 'cancelAllOrders' => true,
@@ -32,7 +32,7 @@ class mandala extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
-                'fetchOrderStatus' => true,
+                'fetchClosedOrders' => true,
                 'fetchTickers' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
@@ -173,6 +173,19 @@ class mandala extends Exchange {
                         'cancel-my-order',
                         'cancel-all-my-orders',
                         'get-balance',
+                        'v2/PlaceOrder',
+                        'v2/my-order-history',
+                        'v2/my-order-status',
+                        'v2/my-trade-history',
+                        'v2/cancel-my-order',
+                        'v2/cancel-all-my-orders',
+                        'v2/GetDeposits',
+                        'v2/GetWithdrawals',
+                        'v2/GenerateAddress',
+                        'v2/Get_User_Withdrawal_Limits',
+                        'v2/ListAllAddresses',
+                        'v2/RequestWithdraw',
+                        'v2/RequestWithdrawConfirmation',
                     ),
                 ),
             ),
@@ -199,6 +212,8 @@ class mandala extends Exchange {
                     'Invalid Type' => '\\ccxt\\BadRequest', // on fetchOrders with a wrong type array("status":"Error","errorMessage":"Invalid Type","data":null)
                     'Exception_Invalid_CurrencyName' => '\\ccxt\\BadRequest', // array("status":"BadRequest","message":"Exception_Invalid_CurrencyName","data":"Invalid Currency name")
                     'Exception_BadRequest' => '\\ccxt\\BadRequest', // array("status":"BadRequest","message":"Exception_BadRequest","data":"Invalid Payload")
+                    'Blacklisted IP Address' => '\\ccxt\\PermissionDenied', // array("status":"Error","errorMessage":"Blacklisted IP Address","data":null)
+                    'Trade_Invalid_Size' => '\\ccxt\\InvalidOrder', // array("status":"Error","errorMessage":"Trade_Invalid_Size","data":"Invalid trade size.")
                 ),
                 'broad' => array (
                     'Some error occurred, try again later.' => '\\ccxt\\ExchangeNotAvailable', // array("status":"Error","errorMessage":"Some error occurred, try again later.","data":null)
@@ -390,57 +405,199 @@ class mandala extends Exchange {
     }
 
     public function fetch_markets ($params = array ()) {
-        $currenciesResponse = $this->fetch_currencies_from_cache ($params);
-        $currencies = $this->safe_value($currenciesResponse, 'data', array());
-        $currenciesById = $this->index_by($currencies, 'shortName');
-        $response = $this->marketGetGetMarketSummary ();
+        $response = $this->settingsGetGetSettings ($params);
         //
-        //     array (
-        //         status => 'Success',
-        //         errorMessage => null,
-        //         $data => array (
-        //             BTC_BAT:
-        //                 Last => 0.00003431,
-        //                 LowestAsk => 0,
-        //                 HeighestBid => 0,
-        //                 PercentChange => 0,
-        //                 BaseVolume => 0,
-        //                 QuoteVolume => 0,
-        //                 High_24hr => 0,
-        //                 Low_24hr => 0,
+        //     {
+        //         status => "Success",
+        //         message => "Success!",
+        //         $data => {
+        //             server_Time_UTC =>   "1567260547",
+        //             default_Pair =>   "ETH_BTC",
+        //             disable_RM =>   "False",
+        //             disable_TDM =>   "False",
+        //             enable_TDM_Pay_IN_Exchange_Token =>   "False",
+        //             disable_2FA =>   "False",
+        //             disable_Login =>   "False",
+        //             enable_AeraPass =>   "False",
+        //             enable_InstaTrade =>   "False",
+        //             enable_CopyTrade =>   "False",
+        //             auto_Sell =>   "False",
+        //             enable_CryptoForecasting =>   "False",
+        //             enable_Simplex =>   "False",
+        //             aeraPass_Url =>   "False",
+        //             logo_Url =>   "https://trade.mandalaex.com/assets/logo.png",
+        //             favIcon_Url =>   "favicon.ico",
+        //             navBarLogo_Url =>   "https://trade.mandalaex.com/assets/logo.png",
+        //             fiat_List =>   "USD,RUB,AUD,EUR,ARS,CAD,COP,TRY,UGX,BRL",
+        //             exchange_IEO_Coins =>   "XYZ,ABC",
+        //             mfa_Type => array (
+        //                 name => "Google",
+        //                 codeLength =>  6,
+        //                 downloadLink => "google.com"
         //             ),
-        //             ETH_ZRX => array (
-        //                 Last => 0.00213827,
-        //                 LowestAsk => 0,
-        //                 HeighestBid => 0,
-        //                 PercentChange => 0,
-        //                 BaseVolume => 0,
-        //                 QuoteVolume => 0,
-        //                 High_24hr => 0,
-        //                 Low_24hr => 0,
+        //             _CoName =>   "Green Donuts",
+        //             exchangeName =>   "Green Donuts",
+        //             _xrp_address =>   "rBsqK5rzMvo5a4ViVoPudJkXd7NNPXKE9f",
+        //             tdM_Token_Name =>   "MDX",
+        //             enable_DustConversion =>   "True",
+        //             exchange_SupportDesk_URL =>   "https://modulushelp.freshdesk.com",
+        //             kyc => array (
+        //                 enable_GoKYC => "False",
+        //                 enable_SumSub_iframe => "True"
         //             ),
-        //         ),
+        //             $markets => ["BTC", "ETH", "PAX"],
+        //             customErrorMessages => array (
+        //                 exception_General => "Our servers are experiencing some glitch, please try again later.",
+        //                 exception_Email => "Unable to send an email. try again later",
+        //                 exception_BadRequest => "Invalid Payload",
+        //                 exception_HMAC_Missing => "Must provide the HMAC of the request body.",
+        //                 exception_HMAC_Validation => "HMAC validation failed.",
+        //                 exception_TimeStamp => "Invalid timestamp.",
+        //                 exception_RecvWindow => "Invalid recvWindow value.",
+        //                 exception_TimeStamp_Window_Invalid => "Timestamp for this request is outside of the recvWindow.",
+        //                 exception_Body_Missing => "Must provide the request body.",
+        //                 exception_Invalid_Body => "Request body was invalid.",
+        //                 exception_Invalid_Address => "Invalid Address.",
+        //                 exception_Invalid_OrderSide => "Invalid parameter \'side\', must be \'BUY\' or \'SELL\'",
+        //                 exception_Invalid_Orderid => "The OrderId or clientOrderId is required",
+        //                 exception_Invalid_CurrencyName => "Invalid Currency name",
+        //                 exception_Invalid_XRP_DTag_Required => "Must provide the addressTag for XRP address.",
+        //                 order_Trade_Suspended => "Sorry! Trade Suspended.",
+        //                 order_Invalid_Order_Type => "Invalid Order Type.",
+        //                 order_Invalid_Client_Order_ID => "Order with this client order $id already exists.",
+        //                 order_Invalid_Pair => "Invalid Pair.",
+        //                 order_Invalid_Trade_Volume => "Invalid Trade Volume.",
+        //                 order_Cannot_Be_Served => "Volume Order cannot be served.",
+        //                 order_Invalid_Stop_Price => "Invalid Stop Price.",
+        //                 order_Invalid_Trade_Price => "Invalid Trade Price.",
+        //                 order_Invalid_Rate_Volume => "Invalid Rate/Volume.",
+        //                 exception_Link_Expired => "The current page url expired.",
+        //                 exception_Insufficient_Funds => "Insufficient Funds.",
+        //                 exception_Coin_Maintenance => "Sorry! Coin under maintenance.",
+        //                 exception_Account_Suspended => "Sorry! Account Suspended.",
+        //                 address_No_Unused_Address => "No unused address available.",
+        //                 withdrawal_Invalid_Amount => "Sorry! Invalid Withdrawal Amount.",
+        //                 withdrawal_Suspended => "Sorry! Withdrawals Suspended",
+        //                 success_General => "Success!",
+        //                 success_NoRowsFound => "No Rows Found!",
+        //                 success_Saved => "Details Saved Successfully.",
+        //                 success_Deleted => "Details deleted Successfully.",
+        //                 error_Disabled_BY_Admin => "Feature disabled by admin.",
+        //                 failure_General => "Something went wrong. try again later",
+        //                 failure_GME => "GME Busy.. try later.",
+        //                 request_Invalid => "Invalid request.",
+        //                 trade_CurrencyType_Missing => "Must provide the trade currency.",
+        //                 trade_TradeType_Missing => "Must provide the trade type.",
+        //                 trade_TradeType_Invalid => "Invalid parameter \'type\'. Options are \'MARKET\', \'STOPLIMIT\' or \'LIMIT\'",
+        //                 trade_Volume_Invalid => "Invalid trade volume.",
+        //                 trade_Rate_Invalid => "Invalid trade rate.",
+        //                 trade_Stop_Invalid => "Invalid stop rate.",
+        //                 trade_MarketType_Missing => "Must provide the $market currency.",
+        //                 trade_Invalid_Size => "Invalid trade size.",
+        //                 withdrawal_Error => "Must provide the $market currency.",
+        //                 facility_Suspended => "This facility is blocked for your account.",
+        //                 feature_Disabled => "This feature is currently disabled.",
+        //                 coin_Maintenance => "Coin under maintenance.",
+        //                 insufficientFunds => "Insufficient funds.",
+        //                 signUp_Invalid_Referrer => "Referral Id does not exists.",
+        //                 signUp_Duplicate_Mobile => "Mobile number already exists.",
+        //                 signUp_Duplicate_Email => "Email already exists.",
+        //                 signUp_Phone_Error => "Phone already exists.",
+        //                 signIn_Authentication_Failed => "Invalid login credentials.",
+        //                 signIn_Invalid_OTP => "Invalid OTP",
+        //                 signIn_Missing_OTP => "Must provide the otp.",
+        //                 signIn_Unvarified_Email => "Email Unverified. Please reset your password.",
+        //                 signIn_Suspended_Account => "Account Suspended. Contact Support.",
+        //                 changePassword_Same_Error => "Your new password cannot be same as old password.",
+        //                 changePassword_Invalid_OldPassword => "Password provided doesn\'t match our records.",
+        //                 gAuth_Required => "Must provide the Google Auth Code.",
+        //                 gAuth_Enabled_Mandatory => "Enable Google two-factor authentication to use the endpoint.",
+        //                 gAuth_Two_Factor_Error => "Invalid Google 2FA Code.",
+        //                 gAuth_Two_Factor_Already_Enabled => "Google 2FA is already enabled.",
+        //                 kyC_Not_Approved => "You must be KYC approved in order to use this feature.",
+        //                 kyC_Custom_Error => "",
+        //                 kyC_Provider_Error => "KYC service provider not found.",
+        //                 kyC_Upload_Error => "Unable to Upload KYC.",
+        //                 kyC_Image_NotFound => "No Image Found!",
+        //                 kyC_Approved_Error => "KYC already approved.",
+        //                 kyC_Pending_Error => "Your KYC is processing. We\'ll notify once it\'s processed.",
+        //                 kyC_Invalid_CID_Email => "Email or CID does not exists.",
+        //                 kyC_Not_Submitted => "KYC not submitted yet.",
+        //                 kyC_Form_NotFound => "KYC not submitted yet.",
+        //                 kyC_Form_Corrupted => "KYC form is corrupted.",
+        //                 kyC_Server_Down => "KYC server down.",
+        //                 payment_Amount_Missing => "There must be some amount.",
+        //                 payment_Gateway_Invalid => "Invalid payment gateway.",
+        //                 apI_Inavalid_IP => "Invalid IP Address(es)",
+        //                 apI_Key_Type_Required => "Invalid Key type. Allowed options are \'trade\',\'readonly\',\'all\'",
+        //                 apI_Secretkey_Required => "The Secret Key is missing in the Header.",
+        //                 invalid_Currency => "Invalid currency.",
+        //                 invalid_Fiat_PG_Currency => "Invalid Fiat PG currency.",
+        //                 depositDisabled => "Deposit disabled for this currency.",
+        //                 withdrawalLimitReached => "Withdrawal limit reached.",
+        //                 invalidLanguage => "Language not found.",
+        //                 transitiveFollowing => "Transitive-following not allowed.",
+        //                 selfFollowing => "Self-following not allowed.",
+        //                 invalidProTraderID => "Invalid ProTrader UserID.",
+        //                 multipleFollowing => "Multiple-following not allowed.",
+        //                 weakPassword => "Password must have 8 characters with at least 1 uppercase letter and 1 number.",
+        //                 withdrawalPending => "another withdrawal is pending already for same currency",
+        //                 depositPending => "another fiat deposit request is pending already for same currency",
+        //                 withdrawalLimitReachedExclusive => "{curr} withdrawal limit exceeds.",
+        //                 withdrawalLimitReachedAggregate => "Overall {curr} withdrawal limit exceeds.",
+        //                 readOnlyToken => "Read-only access token doesn\'t have the permission to perform this operation.",
+        //                 marginCall => "Placing new order is not allowed while a margin call is pending.",
+        //                 force_Liquidation => "Placing new order is not allowed while a force liquidation in process.",
+        //                 feature_Unavailable => "This feature is not available for your account.",
+        //                 chainAlysis_Blacklisted => "AML Risk Assessment Failed for this transaction."
+        //             ),
+        //             themes =>    null,
+        //             trade_setting => array (
+        //                 array (
+        //                     coinName => "BCH",
+        //                     marketName => "BTC",
+        //                     minTickSize =>  1e-8,
+        //                     minTradeAmount =>  1e-8,
+        //                     minOrderValue =>  0.01,
+        //                     tradeEnabled =>  true
+        //                 ),
+        //                 {
+        //                     coinName => "MDX",
+        //                     marketName => "XRP",
+        //                     minTickSize =>  1e-8,
+        //                     minTradeAmount =>  1e-8,
+        //                     minOrderValue =>  0.01,
+        //                     tradeEnabled =>  true
+        //                 }
+        //             ),
+        //             seo => array (
+        //                 google_Analytics_ID =>   "None",
+        //                 google_Tag_Manager =>   "None",
+        //                 reCaptchaKey =>   "None",
+        //                 meta_Tags => array()
+        //             ),
+        //             market_groups => array()
+        //         }
         //     }
         //
         $result = array();
         $data = $this->safe_value($response, 'data', array());
-        $ids = is_array($data) ? array_keys($data) : array();
-        for ($i = 0; $i < count ($ids); $i++) {
-            $id = $ids[$i];
-            $market = $data[$id];
-            list($quoteId, $baseId) = explode('_', $id);  // they have base/quote reversed with some endpoints
+        $markets = $this->safe_value($data, 'trade_setting');
+        for ($i = 0; $i < count ($markets); $i++) {
+            $market = $markets[$i];
+            $baseId = $this->safe_string($market, 'coinName');
+            $quoteId = $this->safe_string($market, 'marketName');
+            $id = $quoteId . '_' . $baseId;
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
-            $baseCurrency = $this->safe_value($currenciesById, $baseId, array());
-            $quoteCurrency = $this->safe_value($currenciesById, $quoteId, array());
+            $minAmount = $this->safe_float($market, 'minTradeAmount');
+            $minPrice = $this->safe_float($market, 'minTickSize');
             $precision = array (
-                'amount' => $this->safe_integer($baseCurrency, 'decimalPrecision', 8),
-                'price' => $this->safe_integer($quoteCurrency, 'decimalPrecision', 8),
+                'amount' => $this->precision_from_string($this->number_to_string($minAmount)),
+                'price' => $this->precision_from_string($this->number_to_string($minPrice)),
             );
-            $baseTradeEnabled = $this->safe_value($baseCurrency, 'tradeEnabled', true);
-            $quoteTradeEnabled = $this->safe_value($quoteCurrency, 'tradeEnabled', true);
-            $active = $baseTradeEnabled && $quoteTradeEnabled;
+            $active = $this->safe_value($market, 'tradeEnabled', true);
             $result[] = array (
                 'id' => $id,
                 'symbol' => $symbol,
@@ -453,11 +610,15 @@ class mandala extends Exchange {
                 'precision' => $precision,
                 'limits' => array (
                     'amount' => array (
-                        'min' => pow(10, -$precision['amount']),
+                        'min' => $minAmount,
                         'max' => null,
                     ),
                     'price' => array (
-                        'min' => pow(10, -$precision['price']),
+                        'min' => $minPrice,
+                        'max' => null,
+                    ),
+                    'cost' => array (
+                        'min' => $this->safe_float($market, 'minOrderValue'),
                         'max' => null,
                     ),
                 ),
@@ -474,16 +635,16 @@ class mandala extends Exchange {
         $response = $this->orderPostGetBalance (array_merge ($request, $params));
         //
         //     {
-        //         Status => 'Success',
-        //         Message => null,
-        //         Data => array (
+        //         status => 'Success',
+        //         errorMessage => null,
+        //         $data => array (
         //             array( currency => 'BCH', $balance => 0, balanceInTrade => 0 ),
         //             array( currency => 'BTC', $balance => 0, balanceInTrade => 0 ),
         //             ...,
         //         ),
         //     }
         //
-        $data = $this->safe_value($response, 'Data', array());
+        $data = $this->safe_value($response, 'data', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($data); $i++) {
             $balance = $data[$i];
@@ -802,12 +963,13 @@ class mandala extends Exchange {
         if ($since === null) {
             $since = $this->milliseconds () - $offset;
         }
+        $timestamp = $this->sum ($since, $offset);
         $request = array (
             'interval' => $this->timeframes[$timeframe],
-            'baseCurrency' => $market['baseId'], // they have base/quote reversed with some endpoints
+            'baseCurrency' => $market['baseId'],
             'quoteCurrency' => $market['quoteId'],
             'limit' => $limit,
-            'timestamp' => $this->sum ($since, $offset),
+            'timestamp' => $timestamp,
         );
         $response = $this->marketGetGetChartData (array_merge ($request, $params));
         //
@@ -834,7 +996,7 @@ class mandala extends Exchange {
         //         ),
         //     }
         //
-        $data = $this->safe_value($response, 'data');
+        $data = $this->safe_value($response, 'data', array());
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
@@ -861,17 +1023,17 @@ class mandala extends Exchange {
             'stop' => 0, // stop is always zero for limit and $market orders
             // 'clientOrderId' => $this->uuid (),
         );
-        $response = $this->orderPostPlaceOrder (array_merge ($request, $params));
+        $response = $this->orderPostV2PlaceOrder (array_merge ($request, $params));
         //
         //     {
-        //         Status => 'Success',
-        //         Message => 'Success!',
-        //         Data => array (
+        //         status => 'Success',
+        //         errorMessage => 'Success_General',
+        //         $data => array (
         //             orderId => 20000031,
         //         ),
         //     }
         //
-        $data = $this->safe_value($response, 'Data', array());
+        $data = $this->safe_value($response, 'data', array());
         $order = $this->parse_order($data, $market);
         return array_merge ($order, array (
             'symbol' => $symbol,
@@ -885,7 +1047,7 @@ class mandala extends Exchange {
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $side = $this->safe_string($params, 'side');
+        $side = $this->safe_string($params, 'side', 'ALL');
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires an order `$side` extra parameter');
         }
@@ -895,24 +1057,23 @@ class mandala extends Exchange {
             'orderId' => $id,
             'side' => strtoupper($side),
         );
-        $response = $this->orderPostCancelMyOrder (array_merge ($request, $params));
+        $response = $this->orderPostV2CancelMyOrder (array_merge ($request, $params));
         //
         //     {
-        //         Status => 'Success',
-        //         Message => 'Success_General',
-        //         Data => 'Success!'
+        //         status => "Success",
+        //         errorMessage => "Success_General",
+        //         data => "Request accepted"
         //     }
         //
-        return $this->parse_order($response, array (
+        return array_merge ($this->parse_order($response), array (
             'id' => $id,
             'symbol' => $symbol,
-            'side' => strtolower($side),
             'status' => 'canceled',
         ));
     }
 
     public function cancel_all_orders ($symbols = null, $params = array ()) {
-        $side = $this->safe_string($params, 'side');
+        $side = $this->safe_string($params, 'side', 'ALL');
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires an order `$side` extra parameter');
         }
@@ -930,7 +1091,7 @@ class mandala extends Exchange {
             'side' => strtoupper($side),
             'pair' => $this->market_id($symbol),
         );
-        return $this->orderPostCancelAllMyOrders (array_merge ($request, $params));
+        return $this->orderPostV2CancelAllMyOrders (array_merge ($request, $params));
     }
 
     public function parse_symbol ($id) {
@@ -940,43 +1101,46 @@ class mandala extends Exchange {
         return $base . '/' . $quote;
     }
 
+    public function parse_order_status ($status) {
+        $statuses = array (
+            'Pending' => 'open',
+            'Filled' => 'closed',
+            'Paritally-Filled' => 'open', // an actual typo in the response
+            'Partially-Filled' => 'open', // a correct string in case it's fixed
+            'Cancelled' => 'canceled',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
     public function parse_order ($order, $market = null) {
         //
-        // fetchOrders
+        // fetchClosedOrders, fetchOpenOrders
         //
         //     {
-        //         orderId => 20000038,
-        //         $market => 'BTC',
-        //         trade => 'ETH',
-        //         volume => 1,
-        //         pendingVolume => 1,
-        //         orderStatus => false,
-        //         rate => 1,
-        //         $amount => 1,
-        //         serviceCharge => 0,
-        //         placementDate => '2019-03-19T18:28:43.553',
-        //         $completionDate => null
+        //         "orderId":29894309,
+        //         "$market":"BTC",
+        //         "trade":"MDX",
+        //         "volume":370.00000000,
+        //         "pendingVolume":370.00000000,
+        //         "orderStatus":false,
+        //         "rate":0.00019530,
+        //         "$amount":0.07226100,
+        //         "serviceCharge":0.00000000,
+        //         "placementDate":"2019-07-31T22:14:30.193",
+        //         "$completionDate":null,
+        //         "$side":"Buy"
         //     }
         //
-        // fetchOpenOrders
+        // fetchOrder
         //
         //     {
-        //         orderId => 20000038,
-        //         $market => 'BTC',
-        //         trade => 'ETH',
-        //         volume => 1,
-        //         rate => 1,
-        //         side => 'SELL',
-        //         date => '2019-03-19T18:28:43.553',
-        //     }
-        //
-        // fetchOrderStatus
-        //
-        //     {
-        //         "PendingVolume" => 0.7368974,
-        //         "Volume" => 0.7368974,
-        //         "Price" => 0.22921771,
-        //         "Status" => true
+        //         "orderId":"29885793",
+        //         "$side":"ALL",
+        //         "Volume":350.00000000,
+        //         "PendingVolume":300.00000000,
+        //         "Price":0.00020050,
+        //         "Status":false,
+        //         "status_string":"Paritally-Filled"
         //     }
         //
         $id = $this->safe_string($order, 'orderId');
@@ -1008,8 +1172,11 @@ class mandala extends Exchange {
                 $price = $cost / $filled;
             }
         }
-        $status = $this->safe_value_2($order, 'orderStatus', 'Status');
-        $status = $status ? 'closed' : 'open';
+        $status = $this->parse_order_status($this->safe_string($order, 'status_string'));
+        if ($status === null) {
+            $status = $this->safe_value_2($order, 'orderStatus', 'Status');
+            $status = $status ? 'closed' : 'open';
+        }
         $lastTradeTimestamp = null;
         if ($filled > 0) {
             $lastTradeTimestamp = $completionDate;
@@ -1027,6 +1194,7 @@ class mandala extends Exchange {
                 'currency' => $quote,
             );
         }
+        $side = $this->safe_string_lower($order, 'side');
         return array (
             'info' => $order,
             'id' => $id,
@@ -1035,7 +1203,7 @@ class mandala extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => 'limit',
-            'side' => null,
+            'side' => $side,
             'price' => $price,
             'cost' => $cost,
             'average' => null,
@@ -1077,6 +1245,7 @@ class mandala extends Exchange {
         //                 serviceCharge => 0,
         //                 placementDate => '2019-03-19T18:28:43.553',
         //                 completionDate => null
+        //                 $side => 'Buy'
         //             ),
         //             {
         //                 orderId => 20000037,
@@ -1090,6 +1259,7 @@ class mandala extends Exchange {
         //                 serviceCharge => 0,
         //                 placementDate => '2019-03-19T18:27:51.087',
         //                 completionDate => '2019-03-19T18:28:16.07'
+        //                 $side => 'Buy'
         //             }
         //         )
         //     }
@@ -1101,43 +1271,92 @@ class mandala extends Exchange {
         ));
     }
 
-    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+    public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $side = $this->safe_string($params, 'side', 'ALL');
+        $side = $this->safe_string($params, 'side', 'ALL');  // required by the endpoint on the exchange $side
         $params = $this->omit ($params, 'side');
         $market = null;
-        $pair = 'ALL';
+        $request = array (
+            'openOrders' => false, // true returns open orders only, false returns filled & cancelled orders only, default is false
+            'side' => strtoupper($side), // required by the endpoint on the exchange $side
+        );
         if ($symbol !== null) {
             $market = $this->market ($symbol);
-            $pair = $market['baseId'] . '-' . $market['quoteId'];
+            $request['pair'] = $market['baseId'] . '-' . $market['quoteId'];
         }
-        $request = array (
-            'side' => strtoupper($side),
-            'pair' => $pair,
-        );
-        $response = $this->apiGetGetPendingOrders (array_merge ($request, $params));
+        $response = $this->orderPostV2MyOrderHistory (array_merge ($request, $params));
         //
         //     {
-        //         status => 'Success',
-        //         message => 'Success!',
-        //         $data => array (
+        //         "status":"Success",
+        //         "errorMessage":null,
+        //         "$data":array (
         //             array (
-        //                 orderId => 20000038,
-        //                 $market => 'BTC',
-        //                 trade => 'ETH',
-        //                 volume => 1,
-        //                 rate => 1,
-        //                 $side => 'SELL',
-        //                 date => '2019-03-19T18:28:43.553',
+        //                 "orderId":20991907,
+        //                 "$market":"BTC",
+        //                 "trade":"ETH",
+        //                 "volume":1.00000000,
+        //                 "pendingVolume":0.00000000,
+        //                 "orderStatus":true,
+        //                 "rate":1.00000000,
+        //                 "amount":1.00000000,
+        //                 "serviceCharge":0.00000000,
+        //                 "placementDate":"2019-07-17T23:48:43.357",
+        //                 "completionDate":"2019-07-17T23:49:14.733",
+        //                 "$side":"Buy"
         //             ),
         //             {
-        //                 orderId => 20000039,
-        //                 $market => 'BTC',
-        //                 trade => 'ETH',
-        //                 volume => 1,
-        //                 rate => 2,
-        //                 $side => 'SELL',
-        //                 date => '2019-03-19T18:48:12.033',
+        //                 "orderId":20000048,
+        //                 "$market":"ETH",
+        //                 "trade":"MDX",
+        //                 "volume":10.00000000,
+        //                 "pendingVolume":10.00000000,
+        //                 "orderStatus":true,
+        //                 "rate":3.00000000,
+        //                 "amount":30.00000000,
+        //                 "serviceCharge":0.00000000,
+        //                 "placementDate":"2019-06-23T18:16:06.2",
+        //                 "completionDate":"2019-06-23T18:16:06.247",
+        //                 "$side":"Buy"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_orders($data, $market, $since, $limit);
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $side = $this->safe_string($params, 'side', 'ALL');  // required by the endpoint on the exchange $side
+        $params = $this->omit ($params, 'side');
+        $market = null;
+        $request = array (
+            'openOrders' => true, // true returns open orders only, false returns filled & cancelled orders only, default is false
+            'side' => strtoupper($side), // required by the endpoint on the exchange $side
+        );
+        if ($symbol !== null) {
+            $market = $this->market ($symbol);
+            $request['pair'] = $market['baseId'] . '-' . $market['quoteId'];
+        }
+        $response = $this->orderPostV2MyOrderHistory (array_merge ($request, $params));
+        //
+        //     {
+        //         "status":"Success",
+        //         "errorMessage":null,
+        //         "$data":array (
+        //             {
+        //                 "orderId":29894309,
+        //                 "$market":"BTC",
+        //                 "trade":"MDX",
+        //                 "volume":370.00000000,
+        //                 "pendingVolume":370.00000000,
+        //                 "orderStatus":false,
+        //                 "rate":0.00019530,
+        //                 "amount":0.07226100,
+        //                 "serviceCharge":0.00000000,
+        //                 "placementDate":"2019-07-31T22:14:30.193",
+        //                 "completionDate":null,
+        //                 "$side":"Buy"
         //             }
         //         )
         //     }
@@ -1148,27 +1367,30 @@ class mandala extends Exchange {
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $side = $this->safe_string($params, 'side');
+        $side = $this->safe_string($params, 'side', 'ALL');
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires an order `$side` extra parameter');
         }
         $params = $this->omit ($params, 'side');
         $id = (string) $id;
         $request = array (
-            'key' => $this->apiKey,
+            // 'key' => $this->apiKey,
             'side' => strtoupper($side),
             'orderId' => $id,
         );
-        $response = $this->orderGetMyOrderStatusKeySideOrderId (array_merge ($request, $params));
+        $response = $this->orderPostV2MyOrderStatus (array_merge ($request, $params));
         //
         //     {
-        //         "status" => "Success",
-        //         "errorMessage" => null,
-        //         "$data" => {
-        //             "PendingVolume" => 0.7368974,
-        //             "Volume" => 0.7368974,
-        //             "Price" => 0.22921771,
-        //             "Status" => true
+        //         "status":"Success",
+        //         "errorMessage":null,
+        //         "$data":{
+        //             "orderId":"29885793",
+        //             "$side":"ALL",
+        //             "Volume":350.00000000,
+        //             "PendingVolume":300.00000000,
+        //             "Price":0.00020050,
+        //             "Status":false,
+        //             "status_string":"Paritally-Filled"
         //         }
         //     }
         //
@@ -1181,26 +1403,23 @@ class mandala extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $side = $this->safe_string($params, 'side', 'ALL');
-        $params = $this->omit ($params, 'side');
         $market = null;
-        $pair = 'ALL';
+        $pair = 'ALL'; // required by the endpoint on the exchange side
         if ($symbol !== null) {
             $market = $this->market ($symbol);
             $pair = $market['id'];
         }
         $request = array (
-            'side' => strtoupper($side),
-            'pair' => $pair,
+            'pair' => $pair, // required by the endpoint on the exchange side
             'orderID' => -1,
             'apiKey' => $this->apiKey,
         );
-        $response = $this->orderGetMyTradeHistory (array_merge ($request, $params));
+        $response = $this->orderPostV2MyTradeHistory (array_merge ($request, $params));
         //
         //     {
-        //         Status => 'Success',
-        //         Message => null,
-        //         Data => array (
+        //         status => 'Success',
+        //         errorMessage => null,
+        //         $data => array (
         //             array (
         //                 orderId => 20000040,
         //                 $market => 'ETH',
@@ -1209,7 +1428,7 @@ class mandala extends Exchange {
         //                 rate => 2,
         //                 amount => 2,
         //                 serviceCharge => 0.003,
-        //                 $side => 'SELL',
+        //                 side => 'SELL',
         //                 date => '2019-03-20T01:47:09.14'
         //             ),
         //             array (
@@ -1220,7 +1439,7 @@ class mandala extends Exchange {
         //                 rate => 3,
         //                 amount => 1.5,
         //                 serviceCharge => 0.00225,
-        //                 $side => 'SELL',
+        //                 side => 'SELL',
         //                 date => '2019-03-20T01:49:20.42'
         //             ),
         //             {
@@ -1231,13 +1450,13 @@ class mandala extends Exchange {
         //                 rate => 3,
         //                 amount => 0.75,
         //                 serviceCharge => 0.001125,
-        //                 $side => 'SELL',
+        //                 side => 'SELL',
         //                 date => '2019-03-20T01:51:01.307'
         //             }
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'Data');
+        $data = $this->safe_value($response, 'data');
         return $this->parse_trades($data, $market, $since, $limit);
     }
 
@@ -1252,22 +1471,30 @@ class mandala extends Exchange {
         $request = array (
             'currency' => $requestCurrency,
         );
-        $response = $this->apiPostGetDeposits (array_merge ($request, $params));
+        $response = $this->orderPostV2GetDeposits (array_merge ($request, $params));
         //
         //     {
-        //         "status" => "Success",
-        //         "message" => null,
-        //         "$data" => {
-        //             "$deposits" => array (
+        //         "status":"Success",
+        //         "errorMessage":"Success!",
+        //         "$data":{
+        //             "Deposits":array (
         //                 {
-        //                     ?
+        //                     "DepositType" => "BTC",
+        //                     "DepositAddress" => "2N4WaF2q7Gncazx7qDuEC13TNE6QicjgtaN",
+        //                     "DepositAmount" => 1258.01337584,
+        //                     "TXNHash" => "c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249",
+        //                     "DepositReqDate" => "2019-07-20T08:08:05.413",
+        //                     "DepositConfirmDate" => "2019-07-20T08:08:05.413",
+        //                     "CurrentTxnCount" => 121914,
+        //                     "RequiredTxnCount" => 5,
+        //                     "ExplorerURL" => "https://live.blockcypher.com/btc-testnet/tx/c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249"
         //                 }
         //             )
         //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $deposits = $this->safe_value($data, 'deposits', array());
+        $deposits = $this->safe_value($data, 'Deposits', array());
         return $this->parseTransactions ($deposits, $currency, $since, $limit);
     }
 
@@ -1282,28 +1509,30 @@ class mandala extends Exchange {
         $request = array (
             'currency' => $requestCurrency,
         );
-        $response = $this->apiPostGetWithdrawals (array_merge ($request, $params));
+        $response = $this->orderPostV2GetWithdrawals (array_merge ($request, $params));
         //
         //     {
         //         "status" => "Success",
-        //         "message" => null,
+        //         "errorMessage" => "Success!",
         //         "$data" => {
-        //             "$withdrawals" => array (
-        //                 {
-        //                     "withdrawalType" => "ETH",
-        //                     "withdrawalAddress" => "0xE28CE3A999d6035d042D1a87FAab389Cb0B78Db6",
-        //                     "withdrawalAmount" => 0.071,
-        //                     "txnHash" => null,
-        //                     "withdrawalReqDate" => "2018-11-12T09:38:28.43",
-        //                     "withdrawalConfirmDate" => null,
-        //                     "withdrawalStatus" => "Pending"
-        //                 }
+        //             "Withdrawals" => array (
+        //                 array (
+        //                     "WithdrawalType" => "BTC",
+        //                     "WithdrawalAddress" => "mtHpWL1nyQa1CCTCSMD6aV1ycEHWCWD3WK",
+        //                     "WithdrawalAmount" => 0.00990099,
+        //                     "TXNHash" => "eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00",
+        //                     "WithdrawalReqDate" => "2019-06-24T13:04:13.76",
+        //                     "WithdrawalConfirmDate" => "2019-06-24T13:04:31.51",
+        //                     "WithdrawalStatus" => "Processed",
+        //                     "RejectReason" => "",
+        //                     "ExplorerURL" => "https://live.blockcypher.com/btc-testnet/tx/eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00"
+        //                 ),
         //             )
         //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $withdrawals = $this->safe_value($data, 'withdrawals', array());
+        $withdrawals = $this->safe_value($data, 'Withdrawals', array());
         return $this->parseTransactions ($withdrawals, $currency, $since, $limit);
     }
 
@@ -1319,32 +1548,49 @@ class mandala extends Exchange {
         // fetchDeposits
         //
         //     {
-        //         ?
+        //         "DepositType" => "BTC",
+        //         "DepositAddress" => "2N4WaF2q7Gncazx7qDuEC13TNE6QicjgtaN",
+        //         "DepositAmount" => 1258.01337584,
+        //         "TXNHash" => "c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249",
+        //         "DepositReqDate" => "2019-07-20T08:08:05.413",
+        //         "DepositConfirmDate" => "2019-07-20T08:08:05.413",
+        //         "CurrentTxnCount" => 121914,
+        //         "RequiredTxnCount" => 5,
+        //         "ExplorerURL" => "https://live.blockcypher.com/btc-testnet/tx/c71c0a24c63d43d077e238bdad7efc7a5b312f542caf097a6cd36f4fc5e15249"
         //     }
         //
         // fetchWithdrawals
         //
         //     {
-        //         "withdrawalType" => "ETH",
-        //         "withdrawalAddress" => "0xE28CE3A999d6035d042D1a87FAab389Cb0B78Db6",
-        //         "withdrawalAmount" => 0.071,
-        //         "txnHash" => null,
-        //         "withdrawalReqDate" => "2018-11-12T09:38:28.43",
-        //         "withdrawalConfirmDate" => null,
-        //         "withdrawalStatus" => "Pending"
+        //         "WithdrawalType" => "BTC",
+        //         "WithdrawalAddress" => "mtHpWL1nyQa1CCTCSMD6aV1ycEHWCWD3WK",
+        //         "WithdrawalAmount" => 0.00990099,
+        //         "TXNHash" => "eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00",
+        //         "WithdrawalReqDate" => "2019-06-24T13:04:13.76",
+        //         "WithdrawalConfirmDate" => "2019-06-24T13:04:31.51",
+        //         "WithdrawalStatus" => "Processed",
+        //         "RejectReason" => "",
+        //         "ExplorerURL" => "https://live.blockcypher.com/btc-testnet/tx/eb3a27b027d4004ff3fdad0b6f5d2dded9078e31527fb6fd5d18e0abf43e4e00"
         //     }
         //
         $id = null;
-        $amount = $this->safe_float($transaction, 'withdrawalAmount');
-        $address = $this->safe_string($transaction, 'withdrawalAddress');
-        $tag = null;
-        $txid = $this->safe_string($transaction, 'txnHash');
-        $updated = $this->parse8601 ($this->safe_value($transaction, 'withdrawalConfirmDate'));
-        $timestamp = $this->parse8601 ($this->safe_string($transaction, 'withdrawalReqDate', $updated));
-        $type = (is_array($transaction) && array_key_exists('withdrawalReqDate', $transaction)) ? 'withdrawal' : 'deposit';
-        $currencyId = $this->safe_string($transaction, 'withdrawalType');
+        $amount = $this->safe_float_2($transaction, 'WithdrawalAmount', 'DepositAmount');
+        $txid = $this->safe_string($transaction, 'TXNHash');
+        $updated = $this->parse8601 ($this->safe_string_2($transaction, 'WithdrawalConfirmDate', 'DepositConfirmDate'));
+        $timestamp = $this->parse8601 ($this->safe_string_2($transaction, 'WithdrawalReqDate', 'DepositReqDate', $updated));
+        $type = (is_array($transaction) && array_key_exists('WithdrawalReqDate', $transaction)) ? 'withdrawal' : 'deposit';
+        $currencyId = $this->safe_string($transaction, 'WithdrawalType', 'DepositType');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'withdrawalStatus'));
+        $currency = $this->currency ($code);
+        $addressString = $this->safe_string_2($transaction, 'WithdrawalAddress', 'DepositAddress');
+        $addressStructure = $this->parse_address ($addressString, $currency);
+        $address = $addressStructure['address'];
+        $addressFrom = null;
+        $addressTo = $address;
+        $tag = $addressStructure['tag'];
+        $tagFrom = null;
+        $tagTo = $tag;
+        $status = $this->parse_transaction_status ($this->safe_string($transaction, 'WithdrawalStatus'));
         $feeCost = null;
         if ($type === 'deposit') {
             $status = 'ok';
@@ -1363,7 +1609,11 @@ class mandala extends Exchange {
             'currency' => $code,
             'amount' => $amount,
             'address' => $address,
+            'addressFrom' => $addressFrom,
+            'addressTo' => $addressTo,
             'tag' => $tag,
+            'tagFrom' => $tagFrom,
+            'tagTo' => $tagTo,
             'status' => $status,
             'type' => $type,
             'updated' => $updated,
@@ -1374,7 +1624,7 @@ class mandala extends Exchange {
         );
     }
 
-    public function parse_deposit_addresses ($addresses) {
+    public function parse_addresses ($addresses) {
         $result = array();
         $ids = is_array($addresses) ? array_keys($addresses) : array();
         for ($i = 0; $i < count ($ids); $i++) {
@@ -1382,42 +1632,29 @@ class mandala extends Exchange {
             $address = $addresses[$id];
             $currencyId = strtoupper($id);
             $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-            $result[] = $this->parse_deposit_address ($address, $currency);
+            $result[] = $this->parse_address ($address, $currency);
         }
         return $result;
     }
 
-    public function fetch_deposit_addresses ($codes = null, $params = array ()) {
-        $this->load_markets();
-        $response = $this->apiGetListAllAddresses ($params);
-        //
-        //     {
-        //         "status" => "Success",
-        //         "message" => null,
-        //         "$data" => {
-        //             "btc" => "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
-        //             "eth" => "0x8143c11ed6b100e5a96419994846c890598647cf",
-        //             "xrp" => "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_deposit_addresses ($data);
-    }
-
-    public function parse_deposit_address ($depositAddress, $currency = null) {
+    public function parse_address ($depositAddress, $currency = null) {
         //
         //     "btc" => "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
         //     "eth" => "0x8143c11ed6b100e5a96419994846c890598647cf",
-        //     "xrp" => "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV:3931222419"
+        //     "xrp" => "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV?dt=3931222419"
         //
-        $parts = explode(':', $depositAddress);
-        $address = $parts[0];
-        $this->check_address($address);
+        $info = $this->safe_value($currency, 'info', array());
+        $address = $depositAddress;
+        $separator = $this->safe_value($info, 'addressSeparator', '?dt=');
         $tag = null;
-        $numParts = is_array ($parts) ? count ($parts) : 0;
-        if ($numParts > 1) {
-            $tag = $parts[1];
+        if (strlen ($separator) > 0) {
+            $parts = explode($separator, $depositAddress);
+            $address = $parts[0];
+            $this->check_address($address);
+            $numParts = is_array ($parts) ? count ($parts) : 0;
+            if ($numParts > 1) {
+                $tag = $parts[1];
+            }
         }
         $code = null;
         if ($currency !== null) {
@@ -1431,62 +1668,77 @@ class mandala extends Exchange {
         );
     }
 
-    public function fetch_deposit_address ($code, $params = array ()) {
+    public function fetch_deposit_addresses ($codes = null, $params = array ()) {
+        $this->load_markets();
+        $response = $this->orderPostV2ListAllAddresses ($params);
+        //
+        //     {
+        //         "status" => "Success",
+        //         "errorMessage" => null,
+        //         "$data" => {
+        //             "btc" => "3PLKhwm59C21U3KN3YZVQmrQhoE3q1p1i8",
+        //             "eth" => "0x8143c11ed6b100e5a96419994846c890598647cf",
+        //             "xrp" => "rKHZQttBiDysDT4PtYL7RmLbGm6p5HBHfV?dt=3931222419"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_addresses ($data);
+    }
+
+    public function generate_deposit_address ($code, $params = array ()) {
+        // a common implmenetation of fetchDepositAddress and createDepositAddress
         $this->load_markets();
         $currency = $this->currency ($code);
         $request = array (
             'currency' => $currency['id'],
         );
-        $response = $this->apiPostGenerateAddress (array_merge ($request, $params));
+        $response = $this->orderPostV2GenerateAddress (array_merge ($request, $params));
         //
         //     {
         //         status => 'Success',
-        //         message => '',
+        //         errorMessage => '',
         //         $data => {
-        //             $address => '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
+        //             Address => '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
         //         }
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $address = $this->safe_string($data, 'address');
-        return $this->parse_deposit_address ($address, $currency);
+        $address = $this->safe_string($data, 'Address');
+        return $this->parse_address ($address, $currency);
+    }
+
+    public function fetch_deposit_address ($code, $params = array ()) {
+        return $this->generate_deposit_address ($code, $params);
     }
 
     public function create_deposit_address ($code, $params = array ()) {
-        $this->load_markets();
-        $currency = $this->currency ($code);
-        $request = array (
-            'currency' => $currency['id'],
-        );
-        $response = $this->apiPostGenerateAddress (array_merge ($request, $params));
-        //
-        //     {
-        //         status => 'Success',
-        //         message => '',
-        //         $data => {
-        //             $address => '0x13a1ac355bf1be5b157486f619169cf7f9ffed4e'
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $address = $this->safe_string($data, 'address');
-        return $this->parse_deposit_address ($address, $currency);
+        return $this->generate_deposit_address ($code, $params);
     }
 
     public function withdraw ($code, $amount, $address, $tag = null, $params = array ()) {
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency ($code);
-        $withdrawalRequest = array (
+        $gauth_code = null;
+        if ($this->twofa !== null) {
+            $gauth_code = $this->oath ();
+        }
+        $gauth_code = $this->safe_string($params, 'gauth_code', $gauth_code);
+        if ($gauth_code === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw () requires a `$this->twofa` key or a 2FA $code in the `$gauth_code` parameter as a string.');
+        }
+        $params = $this->omit ($params, 'gauth_code');
+        $request = array (
             'currency' => $currency['id'],
             'amount' => floatval ($amount),
             'address' => $address,
-            // 'addressTag' => null,
+            'gauth_code' => $gauth_code,
         );
         if ($tag !== null) {
-            $withdrawalRequest['addressTag'] = $tag;
+            $request['addressTag'] = $tag;
         }
-        $withdrawalResponse = $this->apiPostRequestWithdraw (array_merge ($withdrawalRequest, $params));
+        $response = $this->apiPostRequestWithdraw (array_merge ($request, $params));
         //
         //     {
         //         "status" => "Success",
@@ -1496,23 +1748,11 @@ class mandala extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($withdrawalResponse, 'data', array());
+        $data = $this->safe_value($response, 'data', array());
         $id = $this->safe_string($data, 'withdrawalId');
-        $otp = null;
-        if ($this->twofa !== null) {
-            $otp = $this->oath ();
-        }
-        $otp = $this->safe_string($params, 'emailToken', $otp);
-        if ($otp === null) {
-            throw new AuthenticationError($this->id . ' signIn() requires $this->twofa credential or a one-time 2FA "emailToken" parameter');
-        }
-        $confirmationRequest = array (
-            'EmailToken' => $otp,
-        );
-        $confirmationResponse = $this->apiPostRequestWithdrawConfirmation (array_merge ($confirmationRequest, $params));
-        $timestamp = $this->milliseconds ();
+        $timestamp = null;
         return array (
-            'info' => array ( $withdrawalResponse, $confirmationResponse ),
+            'info' => $response,
             'id' => $id,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
@@ -1596,7 +1836,7 @@ class mandala extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to default error handler
         }

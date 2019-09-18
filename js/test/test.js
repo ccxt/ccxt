@@ -40,7 +40,7 @@ let proxies = [
     // 'https://crossorigin.me/',
 ]
 
-/*  ------------------------------------------------------------------------ */
+//-----------------------------------------------------------------------------
 
 const enableRateLimit = true
 
@@ -245,7 +245,8 @@ let testExchange = async exchange => {
         'ZRX/WETH',
     ]
     for (let s in symbols) {
-        if (exchange.symbols.includes (symbols[s])) {
+        if (exchange.symbols.includes (symbols[s]) &&
+            (('active' in exchange.markets[symbols[s]]) ? exchange.markets[symbols[s]]['active'] : true)) {
             symbol = symbols[s]
             break
         }

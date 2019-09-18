@@ -486,7 +486,7 @@ class poloniex (Exchange):
         symbol = None
         base = None
         quote = None
-        if (not market) and('currencyPair' in list(trade.keys())):
+        if (not market) and ('currencyPair' in list(trade.keys())):
             currencyPair = trade['currencyPair']
             if currencyPair in self.markets_by_id:
                 market = self.markets_by_id[currencyPair]
@@ -1167,7 +1167,7 @@ class poloniex (Exchange):
             parts = status.split(': ')
             numParts = len(parts)
             status = parts[0]
-            if (numParts > 1) and(txid is None):
+            if (numParts > 1) and (txid is None):
                 txid = parts[1]
             status = self.parse_transaction_status(status)
         type = self.safe_string(transaction, 'type')
@@ -1219,7 +1219,7 @@ class poloniex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         # {"error":"Permission denied."}

@@ -98,6 +98,9 @@ class latoken (Exchange):
                     'taker': 0.1 / 100,
                 },
             },
+            'commonCurrencies': {
+                'TSL': 'Treasure SL',
+            },
             'options': {
                 'createOrderMethod': 'private_post_order_new',  # private_post_order_test_order
             },
@@ -588,7 +591,9 @@ class latoken (Exchange):
             if price is not None:
                 cost = filled * price
         timeFilled = self.safe_timestamp(order, 'timeFilled')
-        lastTradeTimestamp = timeFilled if (timeFilled > 0) else None
+        lastTradeTimestamp = None
+        if (timeFilled is not None) and (timeFilled > 0):
+            lastTradeTimestamp = timeFilled
         return {
             'id': id,
             'info': order,
@@ -785,7 +790,7 @@ class latoken (Exchange):
         url = self.urls['api'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return
         #

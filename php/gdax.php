@@ -832,7 +832,7 @@ class gdax extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
                 $message = $response['message'];

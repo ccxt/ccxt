@@ -337,6 +337,7 @@ declare module 'ccxt' {
 
     export class _1btcxe extends Exchange {}
     export class acx extends Exchange {}
+    export class adara extends Exchange {}
     export class allcoin extends okcoinusd {}
     export class anxpro extends Exchange {}
     export class bcex extends Exchange {}
@@ -416,6 +417,7 @@ declare module 'ccxt' {
     export class huobipro extends Exchange {}
     export class huobiru extends huobipro {}
     export class ice3x extends Exchange {}
+    export class idex extends Exchange {}
     export class independentreserve extends Exchange {}
     export class indodax extends Exchange {}
     export class itbit extends Exchange {}

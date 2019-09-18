@@ -731,7 +731,7 @@ class cointiger (huobipro):
             'volume': self.amount_to_precision(symbol, amount),
             # 'capital_password': self.password,  # obsolete since v2, https://github.com/ccxt/ccxt/issues/4815
         }
-        if (type == 'market') and(side == 'buy'):
+        if (type == 'market') and (side == 'buy'):
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder requires price argument for market buy orders to calculate total cost according to exchange rules')
             request['volume'] = self.amount_to_precision(symbol, float(amount) * float(price))
@@ -841,7 +841,7 @@ class cointiger (huobipro):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'code' in response:

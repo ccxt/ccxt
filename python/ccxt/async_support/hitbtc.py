@@ -88,8 +88,8 @@ class hitbtc (Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': -0.01 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': 0.07 / 100,
+                    'taker': 0.07 / 100,
                 },
                 'funding': {
                     'tierBased': False,

@@ -703,13 +703,13 @@ class exmo (Exchange):
             symbol = market['symbol']
             if market['taker'] != market['maker']:
                 raise ExchangeError(self.id + ' parseTrade can not deduce proper fee costs, taker and maker fees now differ')
-            if (side == 'buy') and(amount is not None):
+            if (side == 'buy') and (amount is not None):
                 fee = {
                     'currency': market['base'],
                     'cost': amount * market['taker'],
                     'rate': market['taker'],
                 }
-            elif (side == 'sell') and(cost is not None):
+            elif (side == 'sell') and (cost is not None):
                 fee = {
                     'currency': market['quote'],
                     'cost': cost * market['taker'],
@@ -787,7 +787,7 @@ class exmo (Exchange):
         await self.load_markets()
         prefix = (type + '_') if (type == 'market') else ''
         market = self.market(symbol)
-        if (type == 'market') and(price is None):
+        if (type == 'market') and (price is None):
             price = 0
         request = {
             'pair': market['id'],
@@ -981,12 +981,12 @@ class exmo (Exchange):
             marketId = None
             if 'pair' in order:
                 marketId = order['pair']
-            elif ('in_currency' in list(order.keys())) and('out_currency' in list(order.keys())):
+            elif ('in_currency' in list(order.keys())) and ('out_currency' in list(order.keys())):
                 if side == 'buy':
                     marketId = order['in_currency'] + '_' + order['out_currency']
                 else:
                     marketId = order['out_currency'] + '_' + order['in_currency']
-            if (marketId is not None) and(marketId in list(self.markets_by_id.keys())):
+            if (marketId is not None) and (marketId in list(self.markets_by_id.keys())):
                 market = self.markets_by_id[marketId]
         amount = self.safe_float(order, 'quantity')
         if amount is None:
@@ -1258,7 +1258,7 @@ class exmo (Exchange):
     def nonce(self):
         return self.milliseconds()
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'result' in response:

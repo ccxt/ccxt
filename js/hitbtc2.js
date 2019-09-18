@@ -1464,7 +1464,7 @@ module.exports = class hitbtc2 extends hitbtc {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return;
         }
@@ -1473,6 +1473,11 @@ module.exports = class hitbtc2 extends hitbtc {
             // {"code":504,"message":"Gateway Timeout","description":""}
             if ((code === 503) || (code === 504)) {
                 throw new ExchangeNotAvailable (feedback);
+            }
+            // fallback to default error handler on rate limit errors
+            // {"code":429,"message":"Too many requests","description":"Too many requests"}
+            if (code === 429) {
+                return;
             }
             // {"error":{"code":20002,"message":"Order not found","description":""}}
             if (body[0] === '{') {

@@ -162,6 +162,7 @@ class okex3 extends Exchange {
                     ),
                     'post' => array (
                         'accounts/{currency}/leverage',
+                        'accounts/margin_mode',
                         'order',
                         'orders',
                         'cancel_order/{instrument_id}/{order_id}',
@@ -178,6 +179,7 @@ class okex3 extends Exchange {
                         'accounts/{instrument_id}/settings',
                         'accounts/{instrument_id}/ledger',
                         'accounts/{instrument_id}/holds',
+                        'order_algo/{instrument_id}',
                         'orders/{instrument_id}',
                         'orders/{instrument_id}/{order_id}',
                         'orders/{instrument_id}/{client_oid}',
@@ -201,7 +203,9 @@ class okex3 extends Exchange {
                     'post' => array (
                         'accounts/{instrument_id}/leverage',
                         'order',
+                        'order_algo',
                         'orders',
+                        'cancel_algos',
                         'cancel_order/{instrument_id}/{order_id}',
                         'cancel_order/{instrument_id}/{client_oid}',
                         'cancel_batch_orders/{instrument_id}',
@@ -2210,7 +2214,9 @@ class okex3 extends Exchange {
             if ($currencyId !== null) {
                 $feeWithCurrencyId = $this->safe_string($transaction, 'fee');
                 if ($feeWithCurrencyId !== null) {
-                    $feeWithoutCurrencyId = str_replace($currencyId, '', $feeWithCurrencyId);
+                    // https://github.com/ccxt/ccxt/pull/5748
+                    $lowercaseCurrencyId = strtolower($currencyId);
+                    $feeWithoutCurrencyId = str_replace($lowercaseCurrencyId, '', $feeWithCurrencyId);
                     $feeCost = floatval ($feeWithoutCurrencyId);
                 }
             }
@@ -2681,7 +2687,7 @@ class okex3 extends Exchange {
         return $this->safe_string($auth, $key, 'private');
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response = null) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         $feedback = $this->id . ' ' . $body;
         if ($code === 503) {
             throw new ExchangeError($feedback);

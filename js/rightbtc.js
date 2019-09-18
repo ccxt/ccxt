@@ -228,7 +228,7 @@ module.exports = class rightbtc extends Exchange {
         };
         const response = await this.publicGetTickerTradingPair (this.extend (request, params));
         const result = this.safeValue (response, 'result');
-        if (!Object.keys (result).length) {
+        if (result === undefined) {
             throw new ExchangeError (this.id + ' fetchTicker returned an empty response for symbol ' + symbol);
         }
         return this.parseTicker (result, market);
@@ -741,7 +741,7 @@ module.exports = class rightbtc extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

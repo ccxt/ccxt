@@ -195,42 +195,49 @@ def string_to_number_fixedlen(string, order):
 # sigdecode= argument to VK.verify(), and control how the signature is packed
 # or unpacked.
 
-def sigencode_strings(r, s, order):
+def sigencode_strings(r, s, order, v=None):
     r_str = number_to_string(r, order)
     s_str = number_to_string(s, order)
-    return (r_str, s_str)
+    result = (r_str, s_str)
+    return result if v is None else result + (v,)
 
 
-def sigencode_string(r, s, order):
+def sigencode_string(r, s, order, v=None):
     # for any given curve, the size of the signature numbers is
     # fixed, so just use simple concatenation
     r_str, s_str = sigencode_strings(r, s, order)
     return r_str + s_str
 
 
-def sigencode_der(r, s, order):
+def sigencode_der(r, s, order, v=None):
     return der.encode_sequence(der.encode_integer(r), der.encode_integer(s))
 
 
 # canonical versions of sigencode methods
 # these enforce low S values, by negating the value (modulo the order) if above order/2
 # see CECKey::Sign() https://github.com/bitcoin/bitcoin/blob/master/src/key.cpp#L214
-def sigencode_strings_canonize(r, s, order):
+def sigencode_strings_canonize(r, s, order, v=None):
     if s > order / 2:
         s = order - s
-    return sigencode_strings(r, s, order)
+        if v is not None:
+            v ^= 1
+    return sigencode_strings(r, s, order, v)
 
 
-def sigencode_string_canonize(r, s, order):
+def sigencode_string_canonize(r, s, order, v=None):
     if s > order / 2:
         s = order - s
-    return sigencode_string(r, s, order)
+        if v is not None:
+            v ^= 1
+    return sigencode_string(r, s, order, v)
 
 
-def sigencode_der_canonize(r, s, order):
+def sigencode_der_canonize(r, s, order, v=None):
     if s > order / 2:
         s = order - s
-    return sigencode_der(r, s, order)
+        if v is not None:
+            v ^= 1
+    return sigencode_der(r, s, order, v)
 
 
 def sigdecode_string(signature, order):

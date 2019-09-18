@@ -233,7 +233,7 @@ class rightbtc (Exchange):
         }
         response = await self.publicGetTickerTradingPair(self.extend(request, params))
         result = self.safe_value(response, 'result')
-        if not result:
+        if result is None:
             raise ExchangeError(self.id + ' fetchTicker returned an empty response for symbol ' + symbol)
         return self.parse_ticker(result, market)
 
@@ -691,7 +691,7 @@ class rightbtc (Exchange):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         status = self.safe_value(response, 'status')

@@ -259,9 +259,9 @@ class indodax (Exchange):
             symbol = market['symbol']
             quoteId = market['quoteId']
             baseId = market['baseId']
-            if (market['quoteId'] == 'idr') and('order_rp' in list(order.keys())):
+            if (market['quoteId'] == 'idr') and ('order_rp' in list(order.keys())):
                 quoteId = 'rp'
-            if (market['baseId'] == 'idr') and('remain_rp' in list(order.keys())):
+            if (market['baseId'] == 'idr') and ('remain_rp' in list(order.keys())):
                 baseId = 'rp'
             cost = self.safe_float(order, 'order_' + quoteId)
             if cost:
@@ -453,7 +453,7 @@ class indodax (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         # {success: 0, error: "invalid order."}

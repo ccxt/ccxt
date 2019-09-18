@@ -90,6 +90,9 @@ class latoken extends Exchange {
                     'taker' => 0.1 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'TSL' => 'Treasure SL',
+            ),
             'options' => array (
                 'createOrderMethod' => 'private_post_order_new', // private_post_order_test_order
             ),
@@ -616,7 +619,10 @@ class latoken extends Exchange {
             }
         }
         $timeFilled = $this->safe_timestamp($order, 'timeFilled');
-        $lastTradeTimestamp = ($timeFilled > 0) ? $timeFilled : null;
+        $lastTradeTimestamp = null;
+        if (($timeFilled !== null) && ($timeFilled > 0)) {
+            $lastTradeTimestamp = $timeFilled;
+        }
         return array (
             'id' => $id,
             'info' => $order,
@@ -833,7 +839,7 @@ class latoken extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return;
         }

@@ -152,6 +152,7 @@ class gateio (Exchange):
                 '21': 'You don\'t have enough fund',
             },
             'options': {
+                'fetchTradesMethod': 'public_get_tradehistory_id',  # 'public_get_tradehistory_id_tid'
                 'limits': {
                     'cost': {
                         'min': {
@@ -303,7 +304,7 @@ class gateio (Exchange):
         open = None
         change = None
         average = None
-        if (last is not None) and(percentage is not None):
+        if (last is not None) and (percentage is not None):
             relativeChange = percentage / 100
             open = last / self.sum(1, relativeChange)
             change = last - open
@@ -331,7 +332,7 @@ class gateio (Exchange):
             'info': ticker,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
         resultString = self.safe_string(response, 'result', '')
@@ -415,7 +416,8 @@ class gateio (Exchange):
         request = {
             'id': market['id'],
         }
-        response = await self.publicGetTradeHistoryId(self.extend(request, params))
+        method = self.safe_string(self.options, 'fetchTradesMethod', 'public_get_tradehistory_id')
+        response = await getattr(self, method)(self.extend(request, params))
         return self.parse_trades(response['data'], market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -539,7 +541,7 @@ class gateio (Exchange):
         response = await getattr(self, method)(self.extend(request, params))
         address = self.safe_string(response, 'addr')
         tag = None
-        if (address is not None) and(address.find('address') >= 0):
+        if (address is not None) and (address.find('address') >= 0):
             raise InvalidAddress(self.id + ' queryDepositAddress ' + address)
         if code == 'XRP':
             parts = address.split(' ')

@@ -689,7 +689,7 @@ class bitz (Exchange):
         if market is None:
             baseId = self.safe_string(order, 'coinFrom')
             quoteId = self.safe_string(order, 'coinTo')
-            if (baseId is not None) and(quoteId is not None):
+            if (baseId is not None) and (quoteId is not None):
                 marketId = baseId + '_' + quoteId
                 if marketId in self.markets_by_id:
                     market = self.safe_value(self.markets_by_id, marketId)
@@ -990,7 +990,7 @@ class bitz (Exchange):
             headers = {'Content-type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         status = self.safe_string(response, 'status')

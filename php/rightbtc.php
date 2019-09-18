@@ -232,7 +232,7 @@ class rightbtc extends Exchange {
         );
         $response = $this->publicGetTickerTradingPair (array_merge ($request, $params));
         $result = $this->safe_value($response, 'result');
-        if (!$result) {
+        if ($result === null) {
             throw new ExchangeError($this->id . ' fetchTicker returned an empty $response for $symbol ' . $symbol);
         }
         return $this->parse_ticker($result, $market);
@@ -744,7 +744,7 @@ class rightbtc extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

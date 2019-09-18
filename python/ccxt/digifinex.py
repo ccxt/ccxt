@@ -476,8 +476,8 @@ class digifinex (Exchange):
             'change': None,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'base_vol'),
-            'quoteVolume': self.safe_float(ticker, 'vol'),
+            'baseVolume': self.safe_float(ticker, 'vol'),
+            'quoteVolume': self.safe_float(ticker, 'base_vol'),
             'info': ticker,
         }
 
@@ -510,7 +510,7 @@ class digifinex (Exchange):
         #
         id = self.safe_string(trade, 'id')
         orderId = self.safe_string(trade, 'order_id')
-        timestamp = self.safe_timestamp(trade, 'date', 'timestamp')
+        timestamp = self.safe_timestamp_2(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
@@ -1081,7 +1081,7 @@ class digifinex (Exchange):
         timedelta = self.safe_value(self.options, 'timedelta', 8 * 60 * 60 * 1000)  # eight hours
         return self.ymd(timestampMS + timedelta)
 
-    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response):
+    def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
         if not response:
             return  # fall back to default error handler
         code = self.safe_string(response, 'code')

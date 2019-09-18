@@ -16,6 +16,7 @@ module.exports = class cex extends Exchange {
             'rateLimit': 1500,
             'has': {
                 'CORS': true,
+                'fetchCurrencies': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchOrder': true,
@@ -46,6 +47,7 @@ module.exports = class cex extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'currency_profile',
                         'currency_limits/',
                         'last_price/{pair}/',
                         'last_prices/{currencies}/',
@@ -131,219 +133,165 @@ module.exports = class cex extends Exchange {
         });
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'limit': limit,
-            'pair': market['id'],
-            'dateFrom': since,
-        };
-        const response = await this.privatePostArchivedOrdersPair (this.extend (request, params));
-        const results = [];
-        for (let i = 0; i < response.length; i++) {
-            // cancelled (unfilled):
-            //    { id: '4005785516',
-            //     type: 'sell',
-            //     time: '2017-07-18T19:08:34.223Z',
-            //     lastTxTime: '2017-07-18T19:08:34.396Z',
-            //     lastTx: '4005785522',
-            //     pos: null,
-            //     status: 'c',
-            //     symbol1: 'ETH',
-            //     symbol2: 'GBP',
-            //     amount: '0.20000000',
-            //     price: '200.5625',
-            //     remains: '0.20000000',
-            //     'a:ETH:cds': '0.20000000',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.16',
-            //     tradingFeeUserVolumeAmount: '10155061217',
-            //     orderId: '4005785516' }
-            // --
-            // cancelled (partially filled buy):
-            //    { id: '4084911657',
-            //     type: 'buy',
-            //     time: '2017-08-05T03:18:39.596Z',
-            //     lastTxTime: '2019-03-19T17:37:46.404Z',
-            //     lastTx: '8459265833',
-            //     pos: null,
-            //     status: 'cd',
-            //     symbol1: 'BTC',
-            //     symbol2: 'GBP',
-            //     amount: '0.05000000',
-            //     price: '2241.4692',
-            //     tfacf: '1',
-            //     remains: '0.03910535',
-            //     'tfa:GBP': '0.04',
-            //     'tta:GBP': '24.39',
-            //     'a:BTC:cds': '0.01089465',
-            //     'a:GBP:cds': '112.26',
-            //     'f:GBP:cds': '0.04',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.16',
-            //     tradingFeeUserVolumeAmount: '13336396963',
-            //     orderId: '4084911657' }
-            // --
-            // cancelled (partially filled sell):
-            //    { id: '4426728375',
-            //     type: 'sell',
-            //     time: '2017-09-22T00:24:20.126Z',
-            //     lastTxTime: '2017-09-22T00:24:30.476Z',
-            //     lastTx: '4426729543',
-            //     pos: null,
-            //     status: 'cd',
-            //     symbol1: 'BCH',
-            //     symbol2: 'BTC',
-            //     amount: '0.10000000',
-            //     price: '0.11757182',
-            //     tfacf: '1',
-            //     remains: '0.09935956',
-            //     'tfa:BTC': '0.00000014',
-            //     'tta:BTC': '0.00007537',
-            //     'a:BCH:cds': '0.10000000',
-            //     'a:BTC:cds': '0.00007537',
-            //     'f:BTC:cds': '0.00000014',
-            //     tradingFeeMaker: '0',
-            //     tradingFeeTaker: '0.18',
-            //     tradingFeeUserVolumeAmount: '3466715450',
-            //     orderId: '4426728375' }
-            // --
-            // filled:
-            //    { id: '5342275378',
-            //     type: 'sell',
-            //     time: '2018-01-04T00:28:12.992Z',
-            //     lastTxTime: '2018-01-04T00:28:12.992Z',
-            //     lastTx: '5342275393',
-            //     pos: null,
-            //     status: 'd',
-            //     symbol1: 'BCH',
-            //     symbol2: 'BTC',
-            //     amount: '0.10000000',
-            //     kind: 'api',
-            //     price: '0.17',
-            //     remains: '0.00000000',
-            //     'tfa:BTC': '0.00003902',
-            //     'tta:BTC': '0.01699999',
-            //     'a:BCH:cds': '0.10000000',
-            //     'a:BTC:cds': '0.01699999',
-            //     'f:BTC:cds': '0.00003902',
-            //     tradingFeeMaker: '0.15',
-            //     tradingFeeTaker: '0.23',
-            //     tradingFeeUserVolumeAmount: '1525951128',
-            //     orderId: '5342275378' }
-            // --
-            // market order (buy):
-            //    { "id": "6281946200",
-            //     "pos": null,
-            //     "time": "2018-05-23T11:55:43.467Z",
-            //     "type": "buy",
-            //     "amount": "0.00000000",
-            //     "lastTx": "6281946210",
-            //     "status": "d",
-            //     "amount2": "20.00",
-            //     "orderId": "6281946200",
-            //     "remains": "0.00000000",
-            //     "symbol1": "ETH",
-            //     "symbol2": "EUR",
-            //     "tfa:EUR": "0.05",
-            //     "tta:EUR": "19.94",
-            //     "a:ETH:cds": "0.03764100",
-            //     "a:EUR:cds": "20.00",
-            //     "f:EUR:cds": "0.05",
-            //     "lastTxTime": "2018-05-23T11:55:43.467Z",
-            //     "tradingFeeTaker": "0.25",
-            //     "tradingFeeUserVolumeAmount": "55998097" }
-            // --
-            // market order (sell):
-            //   { "id": "6282200948",
-            //     "pos": null,
-            //     "time": "2018-05-23T12:42:58.315Z",
-            //     "type": "sell",
-            //     "amount": "-0.05000000",
-            //     "lastTx": "6282200958",
-            //     "status": "d",
-            //     "orderId": "6282200948",
-            //     "remains": "0.00000000",
-            //     "symbol1": "ETH",
-            //     "symbol2": "EUR",
-            //     "tfa:EUR": "0.07",
-            //     "tta:EUR": "26.49",
-            //     "a:ETH:cds": "0.05000000",
-            //     "a:EUR:cds": "26.49",
-            //     "f:EUR:cds": "0.07",
-            //     "lastTxTime": "2018-05-23T12:42:58.315Z",
-            //     "tradingFeeTaker": "0.25",
-            //     "tradingFeeUserVolumeAmount": "56294576" }
-            const item = response[i];
-            const status = this.parseOrderStatus (this.safeString (item, 'status'));
-            const baseId = item['symbol1'];
-            const quoteId = item['symbol2'];
-            const side = item['type'];
-            const baseAmount = this.safeFloat (item, 'a:' + baseId + ':cds');
-            const quoteAmount = this.safeFloat (item, 'a:' + quoteId + ':cds');
-            const fee = this.safeFloat (item, 'f:' + quoteId + ':cds');
-            const amount = this.safeFloat (item, 'amount');
-            const price = this.safeFloat (item, 'price');
-            const remaining = this.safeFloat (item, 'remains');
-            const filled = amount - remaining;
-            let orderAmount = undefined;
-            let cost = undefined;
-            let average = undefined;
-            let type = undefined;
-            if (!price) {
-                type = 'market';
-                orderAmount = baseAmount;
-                cost = quoteAmount;
-                average = orderAmount / cost;
-            } else {
-                const ta = this.safeFloat (item, 'ta:' + quoteId, 0);
-                const tta = this.safeFloat (item, 'tta:' + quoteId, 0);
-                const fa = this.safeFloat (item, 'fa:' + quoteId, 0);
-                const tfa = this.safeFloat (item, 'tfa:' + quoteId, 0);
-                if (side === 'sell') {
-                    cost = ta + tta + (fa + tfa);
-                } else {
-                    cost = ta + tta - (fa + tfa);
-                }
-                type = 'limit';
-                orderAmount = amount;
-                average = cost / filled;
-            }
-            const time = this.safeString (item, 'time');
-            const lastTxTime = this.safeString (item, 'lastTxTime');
-            const timestamp = this.parse8601 (time);
-            results.push ({
-                'id': item['id'],
-                'timestamp': timestamp,
-                'datetime': this.iso8601 (timestamp),
-                'lastUpdated': this.parse8601 (lastTxTime),
-                'status': status,
-                'symbol': this.findSymbol (baseId + '/' + quoteId),
-                'side': side,
-                'price': price,
-                'amount': orderAmount,
-                'average': average,
-                'type': type,
-                'filled': filled,
-                'cost': cost,
-                'remaining': remaining,
-                'fee': {
-                    'cost': fee,
-                    'currency': this.currencyId (quoteId),
-                },
-                'info': item,
+    async fetchCurrenciesFromCache (params = {}) {
+        // this method is now redundant
+        // currencies are now fetched before markets
+        const options = this.safeValue (this.options, 'fetchCurrencies', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const response = await this.publicGetCurrencyProfile (params);
+            this.options['fetchCurrencies'] = this.extend (options, {
+                'response': response,
+                'timestamp': now,
             });
         }
-        return results;
+        return this.safeValue (this.options['fetchCurrencies'], 'response');
     }
 
-    parseOrderStatus (status) {
-        return this.safeString (this.options['order']['status'], status, status);
+    async fetchCurrencies (params = {}) {
+        const response = await this.fetchCurrenciesFromCache (params);
+        this.options['currencies'] = {
+            'timestamp': this.milliseconds (),
+            'response': response,
+        };
+        //
+        //     {
+        //         "e":"currency_profile",
+        //         "ok":"ok",
+        //         "data":{
+        //             "symbols":[
+        //                 {
+        //                     "code":"GHS",
+        //                     "contract":true,
+        //                     "commodity":true,
+        //                     "fiat":false,
+        //                     "description":"CEX.IO doesn't provide cloud mining services anymore.",
+        //                     "precision":8,
+        //                     "scale":0,
+        //                     "minimumCurrencyAmount":"0.00000001",
+        //                     "minimalWithdrawalAmount":-1
+        //                 },
+        //                 {
+        //                     "code":"BTC",
+        //                     "contract":false,
+        //                     "commodity":false,
+        //                     "fiat":false,
+        //                     "description":"",
+        //                     "precision":8,
+        //                     "scale":0,
+        //                     "minimumCurrencyAmount":"0.00000001",
+        //                     "minimalWithdrawalAmount":0.002
+        //                 },
+        //                 {
+        //                     "code":"ETH",
+        //                     "contract":false,
+        //                     "commodity":false,
+        //                     "fiat":false,
+        //                     "description":"",
+        //                     "precision":8,
+        //                     "scale":2,
+        //                     "minimumCurrencyAmount":"0.00000100",
+        //                     "minimalWithdrawalAmount":0.01
+        //                 }
+        //             ],
+        //             "pairs":[
+        //                 {
+        //                     "symbol1":"BTC",
+        //                     "symbol2":"USD",
+        //                     "pricePrecision":1,
+        //                     "priceScale":"/1000000",
+        //                     "minLotSize":0.002,
+        //                     "minLotSizeS2":20
+        //                 },
+        //                 {
+        //                     "symbol1":"ETH",
+        //                     "symbol2":"USD",
+        //                     "pricePrecision":2,
+        //                     "priceScale":"/10000",
+        //                     "minLotSize":0.1,
+        //                     "minLotSizeS2":20
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const currencies = this.safeValue (data, 'symbols', []);
+        const result = {};
+        for (let i = 0; i < currencies.length; i++) {
+            const currency = currencies[i];
+            const id = this.safeString (currency, 'code');
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeInteger (currency, 'precision');
+            const active = true;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'name': id,
+                'active': active,
+                'precision': precision,
+                'fee': undefined,
+                'limits': {
+                    'amount': {
+                        'min': this.safeFloat (currency, 'minimumCurrencyAmount'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'minimalWithdrawalAmount'),
+                        'max': undefined,
+                    },
+                },
+                'info': currency,
+            };
+        }
+        return result;
     }
 
     async fetchMarkets (params = {}) {
+        const currenciesResponse = await this.fetchCurrenciesFromCache (params);
+        const currenciesData = this.safeValue (currenciesResponse, 'data', {});
+        const currencies = this.safeValue (currenciesData, 'symbols', []);
+        const currenciesById = this.indexBy (currencies, 'code');
+        const pairs = this.safeValue (currenciesData, 'pairs', []);
         const response = await this.publicGetCurrencyLimits (params);
+        //
+        //     {
+        //         "e":"currency_limits",
+        //         "ok":"ok",
+        //         "data": {
+        //             "pairs":[
+        //                 {
+        //                     "symbol1":"BTC",
+        //                     "symbol2":"USD",
+        //                     "minLotSize":0.002,
+        //                     "minLotSizeS2":20,
+        //                     "maxLotSize":30,
+        //                     "minPrice":"1500",
+        //                     "maxPrice":"35000"
+        //                 },
+        //                 {
+        //                     "symbol1":"BCH",
+        //                     "symbol2":"EUR",
+        //                     "minLotSize":0.1,
+        //                     "minLotSizeS2":20,
+        //                     "maxLotSize":null,
+        //                     "minPrice":"25",
+        //                     "maxPrice":"8192"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         const result = [];
         const markets = this.safeValue (response['data'], 'pairs');
         for (let i = 0; i < markets.length; i++) {
@@ -354,6 +302,23 @@ module.exports = class cex extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const baseCurrency = this.safeValue (currenciesById, baseId, {});
+            const quoteCurrency = this.safeValue (currenciesById, quoteId, {});
+            let pricePrecision = this.safeInteger (quoteCurrency, 'precision', 8);
+            for (let j = 0; j < pairs.length; j++) {
+                const pair = pairs[j];
+                if ((pair['symbol1'] === baseId) && (pair['symbol2'] === quoteId)) {
+                    // we might need to account for `priceScale` here
+                    pricePrecision = this.safeInteger (pair, 'pricePrecision', pricePrecision);
+                }
+            }
+            const baseCcyPrecision = this.safeInteger (baseCurrency, 'precision', 8);
+            const baseCcyScale = this.safeInteger (baseCurrency, 'scale', 0);
+            const amountPrecision = baseCcyPrecision - baseCcyScale;
+            const precision = {
+                'amount': amountPrecision,
+                'price': pricePrecision,
+            };
             result.push ({
                 'id': id,
                 'info': market,
@@ -362,10 +327,7 @@ module.exports = class cex extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': {
-                    'price': this.precisionFromString (this.safeString (market, 'minPrice')),
-                    'amount': this.precisionFromString (this.safeString (market, 'minLotSize')),
-                },
+                'precision': precision,
                 'limits': {
                     'amount': {
                         'min': this.safeFloat (market, 'minLotSize'),
@@ -783,15 +745,41 @@ module.exports = class cex extends Exchange {
                 //     "balance": "5597.44000000",
                 //     "symbol2": "BCH",
                 //     "fee_amount": "0.01" }
+                // --
+                // trade which should have an amount of exactly 0.002BTC
+                //   {
+                //     "a": "16.70000000",
+                //     "c": "user:up106404164:a:GBP",
+                //     "d": "order:9927386681:a:GBP",
+                //     "cs": "86.90",
+                //     "ds": 0,
+                //     "id": "9927401610",
+                //     "buy": "9927401601",
+                //     "pos": null,
+                //     "pair": null,
+                //     "sell": "9927386681",
+                //     "time": "2019-08-21T15:25:37.777Z",
+                //     "type": "sell",
+                //     "user": "up106404164",
+                //     "order": "9927386681",
+                //     "price": 8365,
+                //     "amount": "16.70000000",
+                //     "office": "UK",
+                //     "symbol": "GBP",
+                //     "balance": "86.90000000",
+                //     "symbol2": "BTC",
+                //     "fee_amount": "0.03"
+                //   }
                 const tradeTime = this.safeString (item, 'time');
                 const tradeTimestamp = this.parse8601 (tradeTime);
                 const tradeAmount = this.safeFloat (item, 'amount');
                 const tradePrice = this.safeFloat (item, 'price');
+                const feeCost = this.safeFloat (item, 'fee_amount');
                 let absTradeAmount = tradeAmount < 0 ? -tradeAmount : tradeAmount;
                 let tradeCost = undefined;
                 if (tradeSide === 'sell') {
                     tradeCost = absTradeAmount;
-                    absTradeAmount = tradeCost / tradePrice;
+                    absTradeAmount = this.sum (feeCost, tradeCost) / tradePrice;
                 } else {
                     tradeCost = absTradeAmount * tradePrice;
                 }
@@ -806,7 +794,7 @@ module.exports = class cex extends Exchange {
                     'cost': tradeCost,
                     'side': tradeSide,
                     'fee': {
-                        'cost': this.safeFloat (item, 'fee_amount'),
+                        'cost': feeCost,
                         'currency': market['quote'],
                     },
                     'info': item,
@@ -871,6 +859,259 @@ module.exports = class cex extends Exchange {
         return this.parseOrder (response['data']);
     }
 
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'limit': limit,
+            'pair': market['id'],
+            'dateFrom': since,
+        };
+        const response = await this.privatePostArchivedOrdersPair (this.extend (request, params));
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+            // cancelled (unfilled):
+            //    { id: '4005785516',
+            //     type: 'sell',
+            //     time: '2017-07-18T19:08:34.223Z',
+            //     lastTxTime: '2017-07-18T19:08:34.396Z',
+            //     lastTx: '4005785522',
+            //     pos: null,
+            //     status: 'c',
+            //     symbol1: 'ETH',
+            //     symbol2: 'GBP',
+            //     amount: '0.20000000',
+            //     price: '200.5625',
+            //     remains: '0.20000000',
+            //     'a:ETH:cds': '0.20000000',
+            //     tradingFeeMaker: '0',
+            //     tradingFeeTaker: '0.16',
+            //     tradingFeeUserVolumeAmount: '10155061217',
+            //     orderId: '4005785516' }
+            // --
+            // cancelled (partially filled buy):
+            //    { id: '4084911657',
+            //     type: 'buy',
+            //     time: '2017-08-05T03:18:39.596Z',
+            //     lastTxTime: '2019-03-19T17:37:46.404Z',
+            //     lastTx: '8459265833',
+            //     pos: null,
+            //     status: 'cd',
+            //     symbol1: 'BTC',
+            //     symbol2: 'GBP',
+            //     amount: '0.05000000',
+            //     price: '2241.4692',
+            //     tfacf: '1',
+            //     remains: '0.03910535',
+            //     'tfa:GBP': '0.04',
+            //     'tta:GBP': '24.39',
+            //     'a:BTC:cds': '0.01089465',
+            //     'a:GBP:cds': '112.26',
+            //     'f:GBP:cds': '0.04',
+            //     tradingFeeMaker: '0',
+            //     tradingFeeTaker: '0.16',
+            //     tradingFeeUserVolumeAmount: '13336396963',
+            //     orderId: '4084911657' }
+            // --
+            // cancelled (partially filled sell):
+            //    { id: '4426728375',
+            //     type: 'sell',
+            //     time: '2017-09-22T00:24:20.126Z',
+            //     lastTxTime: '2017-09-22T00:24:30.476Z',
+            //     lastTx: '4426729543',
+            //     pos: null,
+            //     status: 'cd',
+            //     symbol1: 'BCH',
+            //     symbol2: 'BTC',
+            //     amount: '0.10000000',
+            //     price: '0.11757182',
+            //     tfacf: '1',
+            //     remains: '0.09935956',
+            //     'tfa:BTC': '0.00000014',
+            //     'tta:BTC': '0.00007537',
+            //     'a:BCH:cds': '0.10000000',
+            //     'a:BTC:cds': '0.00007537',
+            //     'f:BTC:cds': '0.00000014',
+            //     tradingFeeMaker: '0',
+            //     tradingFeeTaker: '0.18',
+            //     tradingFeeUserVolumeAmount: '3466715450',
+            //     orderId: '4426728375' }
+            // --
+            // filled:
+            //    { id: '5342275378',
+            //     type: 'sell',
+            //     time: '2018-01-04T00:28:12.992Z',
+            //     lastTxTime: '2018-01-04T00:28:12.992Z',
+            //     lastTx: '5342275393',
+            //     pos: null,
+            //     status: 'd',
+            //     symbol1: 'BCH',
+            //     symbol2: 'BTC',
+            //     amount: '0.10000000',
+            //     kind: 'api',
+            //     price: '0.17',
+            //     remains: '0.00000000',
+            //     'tfa:BTC': '0.00003902',
+            //     'tta:BTC': '0.01699999',
+            //     'a:BCH:cds': '0.10000000',
+            //     'a:BTC:cds': '0.01699999',
+            //     'f:BTC:cds': '0.00003902',
+            //     tradingFeeMaker: '0.15',
+            //     tradingFeeTaker: '0.23',
+            //     tradingFeeUserVolumeAmount: '1525951128',
+            //     orderId: '5342275378' }
+            // --
+            // market order (buy):
+            //    { "id": "6281946200",
+            //     "pos": null,
+            //     "time": "2018-05-23T11:55:43.467Z",
+            //     "type": "buy",
+            //     "amount": "0.00000000",
+            //     "lastTx": "6281946210",
+            //     "status": "d",
+            //     "amount2": "20.00",
+            //     "orderId": "6281946200",
+            //     "remains": "0.00000000",
+            //     "symbol1": "ETH",
+            //     "symbol2": "EUR",
+            //     "tfa:EUR": "0.05",
+            //     "tta:EUR": "19.94",
+            //     "a:ETH:cds": "0.03764100",
+            //     "a:EUR:cds": "20.00",
+            //     "f:EUR:cds": "0.05",
+            //     "lastTxTime": "2018-05-23T11:55:43.467Z",
+            //     "tradingFeeTaker": "0.25",
+            //     "tradingFeeUserVolumeAmount": "55998097" }
+            // --
+            // market order (sell):
+            //   { "id": "6282200948",
+            //     "pos": null,
+            //     "time": "2018-05-23T12:42:58.315Z",
+            //     "type": "sell",
+            //     "amount": "-0.05000000",
+            //     "lastTx": "6282200958",
+            //     "status": "d",
+            //     "orderId": "6282200948",
+            //     "remains": "0.00000000",
+            //     "symbol1": "ETH",
+            //     "symbol2": "EUR",
+            //     "tfa:EUR": "0.07",
+            //     "tta:EUR": "26.49",
+            //     "a:ETH:cds": "0.05000000",
+            //     "a:EUR:cds": "26.49",
+            //     "f:EUR:cds": "0.07",
+            //     "lastTxTime": "2018-05-23T12:42:58.315Z",
+            //     "tradingFeeTaker": "0.25",
+            //     "tradingFeeUserVolumeAmount": "56294576" }
+            const item = response[i];
+            const status = this.parseOrderStatus (this.safeString (item, 'status'));
+            const baseId = item['symbol1'];
+            const quoteId = item['symbol2'];
+            const side = item['type'];
+            const baseAmount = this.safeFloat (item, 'a:' + baseId + ':cds');
+            const quoteAmount = this.safeFloat (item, 'a:' + quoteId + ':cds');
+            const fee = this.safeFloat (item, 'f:' + quoteId + ':cds');
+            const amount = this.safeFloat (item, 'amount');
+            const price = this.safeFloat (item, 'price');
+            const remaining = this.safeFloat (item, 'remains');
+            const filled = amount - remaining;
+            let orderAmount = undefined;
+            let cost = undefined;
+            let average = undefined;
+            let type = undefined;
+            if (!price) {
+                type = 'market';
+                orderAmount = baseAmount;
+                cost = quoteAmount;
+                average = orderAmount / cost;
+            } else {
+                const ta = this.safeFloat (item, 'ta:' + quoteId, 0);
+                const tta = this.safeFloat (item, 'tta:' + quoteId, 0);
+                const fa = this.safeFloat (item, 'fa:' + quoteId, 0);
+                const tfa = this.safeFloat (item, 'tfa:' + quoteId, 0);
+                if (side === 'sell') {
+                    cost = ta + tta + (fa + tfa);
+                } else {
+                    cost = ta + tta - (fa + tfa);
+                }
+                type = 'limit';
+                orderAmount = amount;
+                average = cost / filled;
+            }
+            const time = this.safeString (item, 'time');
+            const lastTxTime = this.safeString (item, 'lastTxTime');
+            const timestamp = this.parse8601 (time);
+            results.push ({
+                'id': item['id'],
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'lastUpdated': this.parse8601 (lastTxTime),
+                'status': status,
+                'symbol': this.findSymbol (baseId + '/' + quoteId),
+                'side': side,
+                'price': price,
+                'amount': orderAmount,
+                'average': average,
+                'type': type,
+                'filled': filled,
+                'cost': cost,
+                'remaining': remaining,
+                'fee': {
+                    'cost': fee,
+                    'currency': this.currencyId (quoteId),
+                },
+                'info': item,
+            });
+        }
+        return results;
+    }
+
+    parseOrderStatus (status) {
+        return this.safeString (this.options['order']['status'], status, status);
+    }
+
+    async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (amount === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires a amount argument');
+        }
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' editOrder requires a price argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // see: https://cex.io/rest-api#/definitions/CancelReplaceOrderRequest
+        const request = {
+            'pair': market['id'],
+            'type': side,
+            'amount': amount,
+            'price': price,
+            'order_id': id,
+        };
+        const response = await this.privatePostCancelReplaceOrderPair (this.extend (request, params));
+        return this.parseOrder (response, market);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        if (code === 'XRP' || code === 'XLM') {
+            // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
+            throw new NotSupported (this.id + ' fetchDepositAddress does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostGetAddress (this.extend (request, params));
+        const address = this.safeString (response, 'data');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': undefined,
+            'info': response,
+        };
+    }
+
     nonce () {
         return this.milliseconds ();
     }
@@ -921,26 +1162,5 @@ module.exports = class cex extends Exchange {
             }
         }
         return response;
-    }
-
-    async fetchDepositAddress (code, params = {}) {
-        if (code === 'XRP' || code === 'XLM') {
-            // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            throw new NotSupported (this.id + ' fetchDepositAddress does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
-        }
-        await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const response = await this.privatePostGetAddress (this.extend (request, params));
-        const address = this.safeString (response, 'data');
-        this.checkAddress (address);
-        return {
-            'currency': code,
-            'address': address,
-            'tag': undefined,
-            'info': response,
-        };
     }
 };

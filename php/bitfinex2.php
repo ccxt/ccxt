@@ -459,7 +459,7 @@ class bitfinex2 extends bitfinex {
                     $symbol = $marketId;
                 }
             }
-            $orderId = $trade[3];
+            $orderId = (string) $trade[3];
             $takerOrMaker = ($trade[8] === 1) ? 'maker' : 'taker';
             $feeCost = $trade[9];
             $feeCurrency = $this->safe_currency_code($trade[10]);

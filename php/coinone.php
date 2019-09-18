@@ -80,7 +80,7 @@ class coinone extends Exchange {
                 'ZRX/KRW' => array( 'id' => 'zrx', 'symbol' => 'ZRX/KRW', 'base' => 'ZRX', 'quote' => 'KRW', 'baseId' => 'zrx', 'quoteId' => 'krw' ),
                 'LUNA/KRW' => array( 'id' => 'luna', 'symbol' => 'LUNA/KRW', 'base' => 'LUNA', 'quote' => 'KRW', 'baseId' => 'luna', 'quoteId' => 'krw' ),
                 'ATOM/KRW' => array( 'id' => 'atom', 'symbol' => 'ATOM/KRW', 'base' => 'ATOM', 'quote' => 'KRW', 'baseId' => 'atom', 'quoteId' => 'krw' ),
-                'VNT/KRW' => array( 'id' => 'vnt', 'symbol' => 'vnt/KRW', 'base' => 'VNT', 'quote' => 'KRW', 'baseId' => 'vnt', 'quoteId' => 'krw' ),
+                'VNT/KRW' => array( 'id' => 'vnt', 'symbol' => 'VNT/KRW', 'base' => 'VNT', 'quote' => 'KRW', 'baseId' => 'vnt', 'quoteId' => 'krw' ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -486,7 +486,7 @@ class coinone extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return;
         }

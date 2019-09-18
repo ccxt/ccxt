@@ -604,8 +604,8 @@ class crex24 (Exchange):
         type = self.safe_string(order, 'type')
         if type == 'market':
             if price == 0.0:
-                if (cost is not None) and(filled is not None):
-                    if (cost > 0) and(filled > 0):
+                if (cost is not None) and (filled is not None):
+                    if (cost > 0) and (filled > 0):
                         price = cost / filled
         side = self.safe_string(order, 'side')
         fee = None
@@ -1106,10 +1106,10 @@ class crex24 (Exchange):
             headers['X-CREX24-API-SIGN'] = self.decode(signature)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not self.is_json_encoded_object(body):
             return  # fallback to default error handler
-        if (code >= 200) and(code < 300):
+        if (code >= 200) and (code < 300):
             return  # no error
         message = self.safe_string(response, 'errorDescription')
         feedback = self.id + ' ' + self.json(response)

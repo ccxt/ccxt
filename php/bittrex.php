@@ -219,6 +219,7 @@ class bittrex extends Exchange {
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
                 'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
+                'RESTRICTED_MARKET' => '\\ccxt\\BadSymbol',
             ),
             'options' => array (
                 'parseOrderStatus' => false,
@@ -250,7 +251,7 @@ class bittrex extends Exchange {
             ),
             'commonCurrencies' => array (
                 'BITS' => 'SWIFT',
-                'CPC' => 'CapriCoin',
+                'CPC' => 'Capricoin',
             ),
         ));
     }
@@ -1311,7 +1312,7 @@ class bittrex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }
