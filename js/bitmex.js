@@ -147,6 +147,7 @@ module.exports = class bitmex extends Exchange {
                     'Signature not valid': AuthenticationError,
                     'overloaded': ExchangeNotAvailable,
                     'Account has insufficient Available Balance': InsufficientFunds,
+                    'This key is disabled': PermissionDenied,
                 },
             },
             'precisionMode': TICK_SIZE,
