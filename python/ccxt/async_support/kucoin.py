@@ -283,7 +283,7 @@ class kucoin (Exchange):
         result = {}
         for i in range(0, len(responseData)):
             entry = responseData[i]
-            id = self.safe_string(entry, 'name')
+            id = self.safe_string(entry, 'currency')
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
             precision = self.safe_integer(entry, 'precision')

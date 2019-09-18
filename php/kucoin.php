@@ -275,7 +275,7 @@ class kucoin extends Exchange {
         $result = array();
         for ($i = 0; $i < count ($responseData); $i++) {
             $entry = $responseData[$i];
-            $id = $this->safe_string($entry, 'name');
+            $id = $this->safe_string($entry, 'currency');
             $name = $this->safe_string($entry, 'fullName');
             $code = $this->safe_currency_code($id);
             $precision = $this->safe_integer($entry, 'precision');
