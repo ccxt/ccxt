@@ -145,6 +145,9 @@ class binance (Exchange):
                 },
                 'private': {
                     'get': [
+                        'allOrderList',  # oco
+                        'openOrderList',  # oco
+                        'orderList',  # oco
                         'order',
                         'openOrders',
                         'allOrders',
@@ -152,10 +155,12 @@ class binance (Exchange):
                         'myTrades',
                     ],
                     'post': [
+                        'order/oco',
                         'order',
                         'order/test',
                     ],
                     'delete': [
+                        'orderList',  # oco
                         'order',
                     ],
                 },
