@@ -24,7 +24,7 @@ module.exports =
     , base64ToString: string => CryptoJS.enc.Base64.parse (string).toString (CryptoJS.enc.Utf8)
     , binaryToBase64: binary => binary.toString (CryptoJS.enc.Base64)
     , base16ToBinary: string => CryptoJS.enc.Hex.parse (string)
-
+    , binaryToBase16: binary => binary.toString (CryptoJS.enc.Hex)
     , binaryConcat: (...args) => args.reduce ((a, b) => a.concat (b))
 
     , urlencode: object => qs.stringify (object)
@@ -39,7 +39,7 @@ module.exports =
                                                    .replace (/\//g, '_')
 
     , numberToLE: function (n, padding, wordArray = undefined) {
-        // no touch!
+        n = parseInt (n)
         if (wordArray === undefined) {
             wordArray = new CryptoJS.lib.WordArray.init ()
         } else if (n === 0) {
@@ -47,7 +47,7 @@ module.exports =
             return wordArray
         }
         const remainder = wordArray.sigBytes % 4
-        const byte = (n % 256) << (24 - (8 * remainder))
+        const byte = (n % 0x100) << (24 - (8 * remainder))
         if (remainder === 0) {
             wordArray.words.push (byte)
         } else {
@@ -58,13 +58,14 @@ module.exports =
     }
 
     , numberToBE: (n, padding) => {
-        // no touch!
+        n = parseInt (n)
         const wordArray = new CryptoJS.lib.WordArray.init ()
         const shiftAmount = padding % 4
         const firstByte = n >>> (8 * shiftAmount)
         const secondByte = n << (8 * (4 - shiftAmount))
         const zeros = Math.max (0, Math.floor (padding / 4) - 1)
-        wordArray.words = Array (zeros).fill (0).concat ([firstByte, secondByte])
+        const bytes = padding > 4 ? [firstByte, secondByte] : [secondByte]
+        wordArray.words = Array (zeros).fill (0).concat (bytes)
         wordArray.sigBytes = padding
         return wordArray
     }

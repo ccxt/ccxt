@@ -122,6 +122,7 @@ class Exchange {
         'btcturk',
         'buda',
         'bxinth',
+        'bytetrade',
         'cex',
         'chilebit',
         'cobinhood',
@@ -2474,7 +2475,7 @@ class Exchange {
             }
         } elseif ($roundingMode === TRUNCATE) {
             $dotIndex = strpos($x, '.');
-            $dotPosition = $dotIndex ?: 0;
+            $dotPosition = $dotIndex ?: strlen($x);
             if ($countingMode === DECIMAL_PLACES) {
                 if ($dotIndex) {
                     list($before, $after) = explode('.', static::number_to_string($x));
@@ -2486,7 +2487,7 @@ class Exchange {
                 if ($numPrecisionDigits === 0) {
                     return '0';
                 }
-                $significantPosition = log(abs($x), 10) % 10;
+                $significantPosition = (int) log(abs($x), 10);
                 $start = $dotPosition - $significantPosition;
                 $end = $start + $numPrecisionDigits;
                 if ($dotPosition >= $end) {
@@ -2648,7 +2649,7 @@ class Exchange {
         if (!isset(Exchange::$eth_units[$unit])) {
             throw new \UnexpectedValueException("Unknown unit '" . $unit . "', supported units: " . implode(', ', array_keys(Exchange::$eth_units)));
         }
-        return (string) (int) (('wei' === $unit) ? $amount : bcmul($amount, Exchange::$eth_units[$unit]));
+        return (('wei' === $unit) ? $amount : bcmul($amount, Exchange::$eth_units[$unit]));
     }
 
     public function getZeroExOrderHash($order) {
@@ -2764,5 +2765,43 @@ class Exchange {
         $code = ($hmac[$offset + 0] & 0x7F) << 24 | ($hmac[$offset + 1] & 0xFF) << 16 | ($hmac[$offset + 2] & 0xFF) << 8 | ($hmac[$offset + 3] & 0xFF);
         $otp = $code % pow(10, 6);
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
+    }
+
+    public static function decimal_to_binary($n, $endian) {
+        if ($n > 0) {
+            $next_byte = static::decimal_to_binary(bcdiv($n, 0x100), $endian);
+            $remainder = pack('C', bcmod($n, 0x100));
+            return $endian === 'big' ? $remainder . $next_byte : $next_byte . $remainder;
+        } else {
+            return NULL;
+        }
+    }
+
+    public static function numberToBE($n, $padding) {
+        $encoded = static::decimal_to_binary($n, 'little');
+        $padAmount = max($padding - strlen($encoded), 0);
+        return  str_repeat(pack('C', 0), $padAmount) . $encoded;
+    }
+
+    public static function numberToLE($n, $padding) {
+        $encoded = static::decimal_to_binary($n, 'big');
+        $padAmount = max($padding - strlen($encoded), 0);
+        return $encoded . str_repeat(pack('C', 0), $padAmount);
+    }
+
+    public static function divide($a, $b) {
+        return bcdiv($a, $b);
+    }
+
+    public static function modulo($a, $b) {
+        return bcmod($a, $b);
+    }
+
+    public static function pow($a, $b) {
+        return bcpow($a, $b);
+    }
+
+    public function stringToBinary($x) {
+        return $x;
     }
 }

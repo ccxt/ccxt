@@ -1594,4 +1594,19 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' this.twofa has not been set')
         }
     }
+
+    // the following functions take and return numbers represented as strings
+    // this is useful for arbitrary precision maths that floats lack
+    divide (a, b) {
+        return BigNumber (a).div (BigNumber (b)).toString ()
+    }
+
+    modulo (a, b) {
+        return BigNumber (a).mod (BigNumber (b)).toString ()
+    }
+
+    pow (a, b) {
+        return BigNumber (a).pow (BigNumber (b)).toString ()
+    }
 }
+

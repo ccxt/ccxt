@@ -170,6 +170,7 @@ const pythonRegexes = [
     [ /\=\=\=?/g, '==' ],
     [ /\!\=\=?/g, '!=' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
+    [ /this\.binaryToBase16\s/g, 'base64.b16encode' ],
     [ /this\.stringToBase64\s/g, 'base64.b64encode' ],
     [ /this\.base64ToBinary\s/g, 'base64.b64decode' ],
     [ /\.shift\s*\(\)/g, '.pop(0)' ],
@@ -285,6 +286,7 @@ const phpRegexes = [
 
     [ /undefined/g, 'null' ],
     [ /this\.extend/g, 'array_merge' ],
+    [ /this\.binaryToBase16\s/g, 'bin2hex' ],
     [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
     [ /this\.stringToBase64/g, 'base64_encode' ],
     [ /this\.base64ToBinary/g, 'base64_decode' ],

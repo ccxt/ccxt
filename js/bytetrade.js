@@ -4,6 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, DDoSProtection } = require ('./base/errors');
+const { TRUNCATE, NO_PADDING, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -177,7 +178,7 @@ module.exports = class bytetrade extends Exchange {
             const active = this.safeValue (currency, 'active');
             const limits = this.safeValue (currency, 'limits');
             const deposit = this.safeValue (limits, 'deposit');
-            const precision = this.safeInteger (currency, 'basePrecision');
+            const amountPrecision = this.safeInteger (currency, 'basePrecision');
             let maxDeposit = this.safeFloat (deposit, 'max');
             if (maxDeposit === -1.0) {
                 maxDeposit = undefined;
@@ -192,7 +193,10 @@ module.exports = class bytetrade extends Exchange {
                 'code': code,
                 'name': name,
                 'active': active,
-                'precision': precision,
+                'precision': {
+                    'amount': amountPrecision,
+                    'price': undefined,
+                },
                 'fee': undefined,
                 'limits': {
                     'amount': {
@@ -490,9 +494,9 @@ module.exports = class bytetrade extends Exchange {
         if (this.apiKey === undefined) {
             throw new ArgumentsRequired ('createOrder requires hasAlreadyAuthenticatedSuccessfully');
         }
+        //this.checkRequiredDependencies ();
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // the next 5 lines are added to support for testing orders
         let sideNum = undefined;
         let typeNum = undefined;
         if (side === 'sell') {
@@ -510,28 +514,23 @@ module.exports = class bytetrade extends Exchange {
         const marketName = baseRealName + '/' + quoteRealName;
         const baseId = market['baseId'];
         const baseCurrency = this.currencies_by_id[baseId];
-        const amountFloat = parseFloat (amount);
-        const amountChainWithoutTruncate = parseInt (amountFloat * Math.pow (10, baseCurrency['info']['basePrecision']));
-        const amountTruncateValue = parseInt (Math.pow (10, baseCurrency['info']['basePrecision'] - market['precision']['amount']));
-        const amountMiddleAfterTruncate = parseInt (amountChainWithoutTruncate / amountTruncateValue);
-        const amountChain = parseInt (amountMiddleAfterTruncate * amountTruncateValue);
+        const amountChainWithoutTruncate = this.toWei (amount, 'ether', baseCurrency['precision']['amount']);
+        const amountTruncate = baseCurrency['precision']['amount'] - market['precision']['amount'];
+        const amountChain = this.decimalToPrecision (amountChainWithoutTruncate, TRUNCATE, amountTruncate, SIGNIFICANT_DIGITS, NO_PADDING);
         const quoteId = market['quoteId'];
         const quoteCurrency = this.currencies_by_id[quoteId];
-        const priceFloat = parseFloat (price);
-        const priceChainWithoutTruncate = parseInt (priceFloat * Math.pow (10, quoteCurrency['info']['basePrecision']));
-        const priceTruncateValue = parseInt (Math.pow (10, quoteCurrency['info']['basePrecision'] - market['precision']['price']));
-        const priceMiddleAfterTruncate = parseInt (priceChainWithoutTruncate / priceTruncateValue);
-        let priceChain = parseInt (priceMiddleAfterTruncate * priceTruncateValue);
-        const now = 1567548954000
-        const expiration = 1567548964000
+        const priceChainWithoutTruncate = this.toWei (price, 'ether', quoteCurrency['precision']['amount']);
+        const priceTruncate = quoteCurrency['precision']['amount'] - market['precision']['price'];
+        const priceChain = this.decimalToPrecision (priceChainWithoutTruncate, TRUNCATE, priceTruncate, SIGNIFICANT_DIGITS, NO_PADDING);
+        const now = 1567548954000;
+        const expiration = 1567548964000;
         let datetime = this.iso8601 (now);
         datetime = datetime.split ('.')[0];
         let expirationDatetime = this.iso8601 (expiration);
         expirationDatetime = expirationDatetime.split ('.')[0];
         const chainName = 'Sagittarius';
-        priceChain = 1602000000000000000000
-
-
+        const feeAmount = '300000000000000';
+        const eightBytes = this.pow ('2', '64');
         const byteStringArray = [
             this.numberToBE (1, 32),
             this.numberToLE (Math.floor (now / 1000), 4),
@@ -540,17 +539,17 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (1, 1),
             this.numberToLE (32, 1),
             this.numberToLE (0, 8),
-            this.numberToLE (300000000000000, 8),
+            this.numberToLE (feeAmount, 8),  // string for 32 bit php
             this.numberToLE (this.apiKey.length, 1),
-            this.stringToBinary (this.apiKey),
+            this.stringToBinary (this.encode (this.apiKey)),
             this.numberToLE (sideNum, 1),
             this.numberToLE (typeNum, 1),
             this.numberToLE (marketName.length, 1),
-            this.stringToBinary (marketName),
-            this.numberToLE (Math.floor (amountChain / (2 ** 64)), 8),
-            this.numberToLE (Math.floor (amountChain % (2 ** 64)), 8),
-            this.numberToLE (Math.floor (priceChain / (2 ** 64)), 8),
-            this.numberToLE (Math.floor (priceChain % (2 ** 64)), 8),
+            this.stringToBinary (this.encode (marketName)),
+            this.numberToLE (Math.floor (this.divide (amountChain, eightBytes)), 8),
+            this.numberToLE (this.modulo (amountChain, eightBytes), 8),
+            this.numberToLE (Math.floor (this.divide (priceChain, eightBytes)), 8),
+            this.numberToLE (this.modulo (priceChain, eightBytes), 8),
             this.numberToLE (0, 2),
             this.numberToLE (Math.floor (now / 1000), 4),
             this.numberToLE (Math.floor (expiration / 1000), 4),
@@ -560,39 +559,34 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (0, 1),
             this.numberToLE (1, 1),
             this.numberToLE (chainName.length, 1),
-            this.stringToBinary (chainName),
+            this.stringToBinary (this.encode (chainName)),
             this.numberToLE (0, 1),
         ];
-        let c = require ('/Users/carlorevelli/Documents/important/code/ccxt/js/static_dependencies/crypto-js/crypto-js.js')
-        let bytestring  = new c.lib.WordArray.init ();
-        for (let i = 0; i < byteStringArray.length; i++) {
+        let bytestring = byteStringArray[0];
+        for (let i = 1; i < byteStringArray.length; i++) {
             bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
         }
         const hash = this.hash (bytestring, 'sha256', 'hex');
-        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined)
-
+        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined);
+        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (signature['v'] + 31, 1)));
+        const mySignature = recoveryParam + signature['r'] + signature['s'];
         const operation = {
-            'fee': '300000000000000',
+            'now': datetime,
+            'expiration': expirationDatetime,
+            'fee': feeAmount,
             'creator': this.apiKey,
             'side': sideNum,
             'order_type': typeNum,
             'market_name': marketName,
-            'amount': amountChain.toString (),
-            'price': priceChain.toString (),
-            'now': now,
-            'expiration': expiration,
+            'amount': amountChain,
+            'price': priceChain,
             'use_btt_as_fee': false,
             'money_id': parseInt (quoteId),
             'stock_id': parseInt (baseId),
         };
-
-        const signedTransaction = await this.signExTransactionV1 ('create_order', operation, this.secret);
-        console.log (signedTransaction)
-        operation['now'] = JSON.parse (signedTransaction)['operations'][0][1]['now']
-        operation['expiration'] = JSON.parse (signedTransaction)['operations'][0][1]['expiration']
         const fatty = {
-            'timestamp': JSON.parse (signedTransaction)['timestamp'],
-            'expiration': JSON.parse (signedTransaction)['expiration'],
+            'timestamp': datetime,
+            'expiration': expirationDatetime,
             'operations': [
                 [
                     32,
@@ -602,12 +596,11 @@ module.exports = class bytetrade extends Exchange {
             'validate_type': 0,
             'dapp': 'Sagittarius',
             'signatures': [
-                JSON.parse (signedTransaction)['signatures'][0],
+                mySignature,
             ],
         };
-        console.log (JSON.stringify (fatty))
         const request = {
-            'trObj': fatty,
+            'trObj': this.json (fatty),
         };
         const response = await this.publicPostTransactionCreateorder (request);
         const timestamp = this.milliseconds ();
@@ -620,7 +613,7 @@ module.exports = class bytetrade extends Exchange {
         }
         return {
             'info': response,
-            'id': '',
+            'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
