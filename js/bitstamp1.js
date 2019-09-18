@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, NotSupported } = require ('./base/errors');
+const { BadSymbol, ExchangeError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -164,7 +164,7 @@ module.exports = class bitstamp1 extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         if (symbol !== 'BTC/USD') {
-            throw new ExchangeError (this.id + ' ' + this.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only');
+            throw new BadSymbol (this.id + ' ' + this.version + " fetchTrades doesn't support " + symbol + ', use it for BTC/USD only');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);

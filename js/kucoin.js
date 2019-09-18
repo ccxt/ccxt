@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, DDoSProtection, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, DDoSProtection, NotSupported, BadRequest, AuthenticationError, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -143,6 +143,7 @@ module.exports = class kucoin extends Exchange {
                 '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
                 '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
+                '400000': BadSymbol,
                 '400001': AuthenticationError,
                 '400002': InvalidNonce,
                 '400003': AuthenticationError,
