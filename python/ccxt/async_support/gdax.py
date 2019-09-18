@@ -428,9 +428,7 @@ class gdax (Exchange):
                 market = self.markets_by_id[marketId]
         status = self.parse_order_status(self.safe_string(order, 'status'))
         price = self.safe_float(order, 'price')
-        amount = self.safe_float_2(order, 'size', 'funds')
-        if amount is None:
-            amount = self.safe_float(order, 'specified_funds')
+        amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled_size')
         remaining = None
         if amount is not None:
