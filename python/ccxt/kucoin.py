@@ -11,6 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -157,6 +158,7 @@ class kucoin (Exchange):
                 '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficientnot "}
                 '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
+                '400000': BadSymbol,
                 '400001': AuthenticationError,
                 '400002': InvalidNonce,
                 '400003': AuthenticationError,

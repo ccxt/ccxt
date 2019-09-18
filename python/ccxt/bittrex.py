@@ -16,6 +16,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
@@ -238,6 +239,7 @@ class bittrex (Exchange):
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
                 'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
+                'RESTRICTED_MARKET': BadSymbol,
             },
             'options': {
                 'parseOrderStatus': False,

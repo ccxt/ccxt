@@ -219,6 +219,7 @@ class bittrex extends Exchange {
                 'RATE_NOT_PROVIDED' => '\\ccxt\\InvalidOrder', // createLimitBuyOrder ('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
                 'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
+                'RESTRICTED_MARKET' => '\\ccxt\\BadSymbol',
             ),
             'options' => array (
                 'parseOrderStatus' => false,

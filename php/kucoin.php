@@ -144,6 +144,7 @@ class kucoin extends Exchange {
                 '230003' => '\\ccxt\\InsufficientFunds', // array("code":"230003","msg":"Balance insufficient!")
                 '260100' => '\\ccxt\\InsufficientFunds', // array("code":"260100","msg":"account.noBalance")
                 '300000' => '\\ccxt\\InvalidOrder',
+                '400000' => '\\ccxt\\BadSymbol',
                 '400001' => '\\ccxt\\AuthenticationError',
                 '400002' => '\\ccxt\\InvalidNonce',
                 '400003' => '\\ccxt\\AuthenticationError',
