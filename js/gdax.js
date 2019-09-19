@@ -763,7 +763,6 @@ module.exports = class gdax extends Exchange {
                     payload = body;
                 }
             }
-            // let payload = (body) ? body : '';
             const what = nonce + method + request + payload;
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (what), secret, 'sha256', 'base64');
