@@ -378,6 +378,9 @@ class bitfinex (Exchange):
                     'GNT': 'golem',
                     'IOST': 'ios',
                     'IOTA': 'iota',
+                    # https://github.com/ccxt/ccxt/issues/5833
+                    'LEO': 'let',  # ETH chain
+                    # 'LEO': 'les',  # EOS chain
                     'LRC': 'lrc',
                     'LTC': 'litecoin',
                     'LYM': 'lym',
@@ -404,6 +407,7 @@ class bitfinex (Exchange):
                     'TNB': 'tnb',
                     'TRX': 'trx',
                     'USD': 'wire',
+                    'USDC': 'udc',  # https://github.com/ccxt/ccxt/issues/5833
                     'UTK': 'utk',
                     'USDT': 'tetheruso',  # undocumented
                     'VEE': 'vee',
