@@ -922,7 +922,7 @@ module.exports = class idex extends Exchange {
             'cost': feeCost,
         };
         if (feeCost !== undefined && amount !== undefined) {
-            const feeCurrencyAmount = feeCurrency === 'ETH' ? cost : amount;
+            const feeCurrencyAmount = (feeCurrency === 'ETH') ? cost : amount;
             fee['rate'] = feeCost / feeCurrencyAmount;
         }
         const orderId = this.safeString (trade, 'orderHash');
