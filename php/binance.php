@@ -514,7 +514,7 @@ class binance extends Exchange {
             $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
             if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
-                $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
+                $side = $trade['isBuyer'] ? 'buy' : 'sell'; // this is a true $side
             }
         }
         $fee = null;

@@ -990,7 +990,7 @@ class bitmex extends Exchange {
         }
         $takerOrMaker = null;
         if ($fee !== null) {
-            $takerOrMaker = $fee['cost'] < 0 ? 'maker' : 'taker';
+            $takerOrMaker = ($fee['cost'] < 0) ? 'maker' : 'taker';
         }
         $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');

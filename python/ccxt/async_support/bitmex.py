@@ -935,7 +935,7 @@ class bitmex (Exchange):
             }
         takerOrMaker = None
         if fee is not None:
-            takerOrMaker = fee['cost'] < 'maker' if 0 else 'taker'
+            takerOrMaker = 'maker' if (fee['cost'] < 0) else 'taker'
         symbol = None
         marketId = self.safe_string(trade, 'symbol')
         if marketId is not None:

@@ -496,7 +496,7 @@ class binance (Exchange):
             side = 'sell' if trade['isBuyerMaker'] else 'buy'
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
+                side = 'buy' if trade['isBuyer'] else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {

@@ -658,7 +658,7 @@ class bibox (Exchange):
                 'cost': feeCost,
                 'currency': None,
             }
-        cost = cost if cost else float(price) * filled
+        cost = cost if cost else (float(price) * filled)
         return {
             'info': order,
             'id': id,
@@ -697,7 +697,7 @@ class bibox (Exchange):
         if symbol is not None:
             market = self.market(symbol)
             pair = market['id']
-        size = limit if (limit) else 200
+        size = limit if limit else 200
         request = {
             'cmd': 'orderpending/orderPendingList',
             'body': self.extend({
@@ -734,7 +734,7 @@ class bibox (Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades requires a `symbol` argument')
         await self.load_markets()
         market = self.market(symbol)
-        size = limit if (limit) else 200
+        size = limit if limit else 200
         request = {
             'cmd': 'orderpending/orderHistoryList',
             'body': self.extend({
