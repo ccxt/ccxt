@@ -937,7 +937,7 @@ module.exports = class anxpro extends Exchange {
         const settlementCurrency = this.safeString (order, 'settlementCurrency');
         const symbol = this.findSymbol (tradedCurrency + '/' + settlementCurrency);
         const buyTradedCurrency = this.safeString (order, 'buyTradedCurrency');
-        const side = buyTradedCurrency === 'true' ? 'buy' : 'sell';
+        const side = (buyTradedCurrency === 'true') ? 'buy' : 'sell';
         const timestamp = this.safeInteger (order, 'timestamp');
         let lastTradeTimestamp = undefined;
         const trades = [];
