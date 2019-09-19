@@ -423,7 +423,7 @@ class bigone3 (Exchange):
             'info': order,
         }
 
-    def create_order(self, symbol, side, amount, price=None, params={}):
+    def create_order(self, symbol, type, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         side = 'BID' if (side == 'buy') else 'ASK'
