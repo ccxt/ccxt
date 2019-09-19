@@ -439,10 +439,16 @@ class gdax extends Exchange {
     public function parse_order ($order, $market = null) {
         $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
         $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'product_id');
+        $marketId = $this->safe_string($order, 'product_id');
+        $quote = null;
+        if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -462,6 +468,8 @@ class gdax extends Exchange {
             $feeCurrencyCode = null;
             if ($market !== null) {
                 $feeCurrencyCode = $market['quote'];
+            } else if ($quote !== null) {
+                $feeCurrencyCode = $quote;
             }
             $fee = array (
                 'cost' => $feeCost,
@@ -469,7 +477,7 @@ class gdax extends Exchange {
                 'rate' => null,
             );
         }
-        if ($market !== null) {
+        if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($order, 'id');
