@@ -738,7 +738,7 @@ module.exports = class idex extends Exchange {
             const buy = this.safeCurrencyCode (this.safeString (params, 'tokenBuy'));
             const sell = this.safeCurrencyCode (this.safeString (params, 'tokenSell'));
             if (buy !== undefined && sell !== undefined) {
-                symbol = side === 'buy' ? buy + '/' + sell : sell + '/' + buy;
+                symbol = (side === 'buy') ? (buy + '/' + sell) : (sell + '/' + buy);
             }
         }
         if (symbol === undefined && market !== undefined) {
