@@ -990,7 +990,7 @@ module.exports = class bitmex extends Exchange {
         }
         let takerOrMaker = undefined;
         if (fee !== undefined) {
-            takerOrMaker = fee['cost'] < 0 ? 'maker' : 'taker';
+            takerOrMaker = (fee['cost'] < 0) ? 'maker' : 'taker';
         }
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');
