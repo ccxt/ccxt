@@ -707,7 +707,7 @@ class idex (Exchange):
             buy = self.safe_currency_code(self.safe_string(params, 'tokenBuy'))
             sell = self.safe_currency_code(self.safe_string(params, 'tokenSell'))
             if buy is not None and sell is not None:
-                symbol = side == buy + '/' + sell if 'buy' else sell + '/' + buy
+                symbol = (buy + '/' + sell) if (side == 'buy') else (sell + '/' + buy)
         if symbol is None and market is not None:
             symbol = market['symbol']
         id = self.safe_string(order, 'orderHash')

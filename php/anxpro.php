@@ -938,7 +938,7 @@ class anxpro extends Exchange {
         $settlementCurrency = $this->safe_string($order, 'settlementCurrency');
         $symbol = $this->find_symbol($tradedCurrency . '/' . $settlementCurrency);
         $buyTradedCurrency = $this->safe_string($order, 'buyTradedCurrency');
-        $side = $buyTradedCurrency === 'true' ? 'buy' : 'sell';
+        $side = ($buyTradedCurrency === 'true') ? 'buy' : 'sell';
         $timestamp = $this->safe_integer($order, 'timestamp');
         $lastTradeTimestamp = null;
         $trades = array();

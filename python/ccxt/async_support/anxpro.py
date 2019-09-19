@@ -917,7 +917,7 @@ class anxpro (Exchange):
         settlementCurrency = self.safe_string(order, 'settlementCurrency')
         symbol = self.find_symbol(tradedCurrency + '/' + settlementCurrency)
         buyTradedCurrency = self.safe_string(order, 'buyTradedCurrency')
-        side = buyTradedCurrency == 'buy' if 'true' else 'sell'
+        side = 'buy' if (buyTradedCurrency == 'true') else 'sell'
         timestamp = self.safe_integer(order, 'timestamp')
         lastTradeTimestamp = None
         trades = []

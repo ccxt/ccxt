@@ -701,7 +701,7 @@ class bibox extends Exchange {
                 'currency' => null,
             );
         }
-        $cost = $cost ? $cost : floatval ($price) * $filled;
+        $cost = $cost ? $cost : (floatval ($price) * $filled);
         return array (
             'info' => $order,
             'id' => $id,
@@ -743,7 +743,7 @@ class bibox extends Exchange {
             $market = $this->market ($symbol);
             $pair = $market['id'];
         }
-        $size = ($limit) ? $limit : 200;
+        $size = $limit ? $limit : 200;
         $request = array (
             'cmd' => 'orderpending/orderPendingList',
             'body' => array_merge (array (
@@ -784,7 +784,7 @@ class bibox extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $size = ($limit) ? $limit : 200;
+        $size = $limit ? $limit : 200;
         $request = array (
             'cmd' => 'orderpending/orderHistoryList',
             'body' => array_merge (array (
