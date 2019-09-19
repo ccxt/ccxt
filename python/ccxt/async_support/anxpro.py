@@ -933,7 +933,7 @@ class anxpro (Exchange):
             filled = self.sum(filled, parsedTrade['amount'])
         price = self.safe_float(order, 'limitPriceInSettlementCurrency')
         executedAverageRate = self.safe_float(order, 'executedAverageRate')
-        remaining = type == 0 if 'market' else self.safe_float(order, 'tradedCurrencyAmountOutstanding')
+        remaining = 0 if (type == 'market') else self.safe_float(order, 'tradedCurrencyAmountOutstanding')
         amount = self.safe_float(order, 'tradedCurrencyAmount')
         if not amount:
             settlementCurrencyAmount = self.safe_float(order, 'settlementCurrencyAmount')

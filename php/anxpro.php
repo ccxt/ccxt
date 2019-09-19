@@ -956,7 +956,7 @@ class anxpro extends Exchange {
         }
         $price = $this->safe_float($order, 'limitPriceInSettlementCurrency');
         $executedAverageRate = $this->safe_float($order, 'executedAverageRate');
-        $remaining = $type === 'market' ? 0 : $this->safe_float($order, 'tradedCurrencyAmountOutstanding');
+        $remaining = ($type === 'market') ? 0 : $this->safe_float($order, 'tradedCurrencyAmountOutstanding');
         $amount = $this->safe_float($order, 'tradedCurrencyAmount');
         if (!$amount) {
             $settlementCurrencyAmount = $this->safe_float($order, 'settlementCurrencyAmount');

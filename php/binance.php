@@ -382,11 +382,12 @@ class binance extends Exchange {
     }
 
     public function fetch_status ($params = array ()) {
-        $systemStatus = $this->wapiGetSystemStatus ();
-        $status = $this->safe_value($systemStatus, 'status');
+        $response = $this->wapiGetSystemStatus ();
+        $status = $this->safe_value($response, 'status');
         if ($status !== null) {
+            $status = ($status === 0) ? 'ok' : 'maintenance';
             $this->status = array_merge ($this->status, array (
-                'status' => $status === 0 ? 'ok' : 'maintenance',
+                'status' => $status,
                 'updated' => $this->milliseconds (),
             ));
         }
