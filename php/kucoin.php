@@ -1172,7 +1172,7 @@ class kucoin extends Exchange {
             }
             $txid = $txidParts[0];
         }
-        $type = $txid === null ? 'withdrawal' : 'deposit';
+        $type = ($txid === null) ? 'withdrawal' : 'deposit';
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = $this->parse_transaction_status ($rawStatus);
         $fee = null;
@@ -1528,7 +1528,7 @@ class kucoin extends Exchange {
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         $endpart = '';
-        $headers = $headers !== null ? $headers : array();
+        $headers = ($headers !== null) ? $headers : array();
         if ($query) {
             if ($method !== 'GET') {
                 $body = $this->json ($query);
