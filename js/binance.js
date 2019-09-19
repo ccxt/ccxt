@@ -514,7 +514,7 @@ module.exports = class binance extends Exchange {
             side = trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
             if ('isBuyer' in trade) {
-                side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
+                side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee = undefined;
