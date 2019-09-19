@@ -2387,7 +2387,7 @@ class Exchange {
         $nonfiltered = get_object_vars($this);
         $filtered = array();
         foreach ($nonfiltered as $key => $value) {
-            if ((strpos($key, 'has') !== false) && (key !== 'has')) {
+            if ((strpos($key, 'has') !== false) && ($key !== 'has')) {
                 $filtered[$key] = $value;
             }
         }
