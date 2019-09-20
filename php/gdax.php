@@ -764,7 +764,6 @@ class gdax extends Exchange {
                     $payload = $body;
                 }
             }
-            // $payload = ($body) ? $body : '';
             $what = $nonce . $method . $request . $payload;
             $secret = base64_decode ($this->secret);
             $signature = $this->hmac ($this->encode ($what), $secret, 'sha256', 'base64');

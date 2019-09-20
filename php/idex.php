@@ -923,7 +923,7 @@ class idex extends Exchange {
             'cost' => $feeCost,
         );
         if ($feeCost !== null && $amount !== null) {
-            $feeCurrencyAmount = $feeCurrency === 'ETH' ? $cost : $amount;
+            $feeCurrencyAmount = ($feeCurrency === 'ETH') ? $cost : $amount;
             $fee['rate'] = $feeCost / $feeCurrencyAmount;
         }
         $orderId = $this->safe_string($trade, 'orderHash');

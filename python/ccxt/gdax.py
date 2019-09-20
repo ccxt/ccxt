@@ -703,7 +703,6 @@ class gdax (Exchange):
                 if query:
                     body = self.json(query)
                     payload = body
-            # payload = body if (body) else ''
             what = nonce + method + request + payload
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')

@@ -714,7 +714,6 @@ class okcoinusd extends Exchange {
         $method = $market['future'] ? 'publicGetFutureKline' : 'publicGetKline';
         $request = $this->create_request ($market, array (
             'type' => $this->timeframes[$timeframe],
-            // 'since' => $since === null ? $this->milliseconds () - 86400000 : $since,  // default last 24h
         ));
         if ($since !== null) {
             $request['since'] = intval (($this->milliseconds () - 86400000) / 1000); // default last 24h

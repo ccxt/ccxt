@@ -872,7 +872,7 @@ class idex (Exchange):
             'cost': feeCost,
         }
         if feeCost is not None and amount is not None:
-            feeCurrencyAmount = feeCurrency == cost if 'ETH' else amount
+            feeCurrencyAmount = cost if (feeCurrency == 'ETH') else amount
             fee['rate'] = feeCost / feeCurrencyAmount
         orderId = self.safe_string(trade, 'orderHash')
         return {
