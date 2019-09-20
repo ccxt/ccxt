@@ -88,7 +88,7 @@ class bitbank extends Exchange {
                 ),
                 'funding' => array (
                     'withdraw' => array (
-                        // 'JPY' => amount => amount > 30000 ? 756 : 540,
+                        // 'JPY' => (amount > 30000) ? 756 : 540,
                         'BTC' => 0.001,
                         'LTC' => 0.001,
                         'XRP' => 0.15,
