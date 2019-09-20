@@ -2246,6 +2246,10 @@ module.exports = class okex3 extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        // okex actually returns ledger entries instead of fills here, so each fill in the order
+        // is represented by two trades with opposite buy/sell sides, not one :\
+        // this aspect renders the 'fills' endpoint unusable for fetchOrderTrades
+        // until either OKEX fixes the API or we workaround this on our side somehow
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrderTrades requires a symbol argument');
         }
