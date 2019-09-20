@@ -9,7 +9,7 @@ const { ExchangeError, ArgumentsRequired, AuthenticationError, DDoSProtection } 
 
 module.exports = class bitopro extends Exchange {
     describe () {
-        return this.deepExtend (super.describe (), {
+        const result = this.deepExtend (super.describe (), {
             'id': 'bitopro',
             'name': 'BitoPro',
             'countries': [ 'TW' ],
@@ -23,6 +23,7 @@ module.exports = class bitopro extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchOHLCV': true,
                 'fetchBalance': true,
                 'fetchOrders': true,
                 'fetchOpenOrders': true,
@@ -31,6 +32,19 @@ module.exports = class bitopro extends Exchange {
                 'createOrder': true,
                 'cancelOrder': true,
                 'fetchOrder': true,
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '3h': '3h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://www.bitopro.com/bitoPro_logo.svg',
@@ -50,6 +64,7 @@ module.exports = class bitopro extends Exchange {
                         'tickers/{pair}',
                         'trades/{pair}',
                         'provisioning/trading-pairs',
+                        'trading-history/{pair}',
                     ],
                 },
                 'private': {
@@ -68,6 +83,43 @@ module.exports = class bitopro extends Exchange {
                 },
             },
         });
+        return result;
+    }
+
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            this.safeInteger (ohlcv, 'timestamp'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 500, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const nonce = parseInt (this.nonce () / 1000);
+        let fromTimstamp = (nonce - 86400);
+        if (since !== undefined) {
+            fromTimstamp = parseInt (since / 1000);
+        }
+        let toTimstamp = nonce;
+        const to = this.safeValue (params, 'to');
+        if (to) {
+            toTimstamp = parseInt (to / 1000);
+        }
+        const resolution = this.timeframes[timeframe];
+        const request = {
+            'pair': market['id'],
+            'resolution': resolution,
+            'from': fromTimstamp,
+            'to': toTimstamp,
+        };
+        const response = await this.publicGetTradingHistoryPair (this.extend (request, params));
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     async fetchCurrencies (params = {}) {
@@ -128,8 +180,10 @@ module.exports = class bitopro extends Exchange {
             let base = this.safeString (market, 'base');
             let quote = this.safeString (market, 'quote');
             const id = pair;
-            base = this.commonCurrencyCode (base).toUpperCase ();
-            quote = this.commonCurrencyCode (quote).toUpperCase ();
+            base = this.commonCurrencyCode (base);
+            base = base.toUpperCase ();
+            quote = this.commonCurrencyCode (quote);
+            quote = quote.toUpperCase ();
             const symbol = base + '/' + quote;
             const precision = {
                 'price': this.safeInteger (market, 'quotePrecision'),
@@ -175,7 +229,8 @@ module.exports = class bitopro extends Exchange {
         };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency').toUpperCase ();
+            let currencyId = this.safeString (balance, 'currency');
+            currencyId = currencyId.toUpperCase ();
             const amount = this.safeFloat (balance, 'amount');
             const available = this.safeFloat (balance, 'available');
             const stake = this.safeFloat (balance, 'stake');
@@ -208,8 +263,9 @@ module.exports = class bitopro extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         const timestamp = this.milliseconds ();
-        const pair = this.safeString (ticker, 'pair');
-        let [ base, quote ] = pair.toUpperCase ().split ('_');
+        let pair = this.safeString (ticker, 'pair');
+        pair = pair.toUpperCase ();
+        let [ base, quote ] = pair.split ('_');
         base = this.commonCurrencyCode (base);
         quote = this.commonCurrencyCode (quote);
         const symbol = base + '/' + quote;
@@ -358,7 +414,8 @@ module.exports = class bitopro extends Exchange {
         const filled = this.safeFloat (order, 'executedAmount');
         const remaining = this.safeFloat (order, 'remainingAmount');
         const fee = this.safeFloat (order, 'fee');
-        const feeSymbol = this.safeString (order, 'feeSymbol').toUpperCase ();
+        let feeSymbol = this.safeString (order, 'feeSymbol');
+        feeSymbol = feeSymbol.toUpperCase ();
         return {
             'id': orderId,
             'timestamp': timestamp,
@@ -448,7 +505,8 @@ module.exports = class bitopro extends Exchange {
         const price = this.safeFloat (myTrade, 'price');
         const filled = this.safeFloat (myTrade, 'executedAmount');
         const fee = this.safeFloat (myTrade, 'fee');
-        const feeSymbol = this.safeString (myTrade, 'feeSymbol').toUpperCase ();
+        let feeSymbol = this.safeString (myTrade, 'feeSymbol');
+        feeSymbol = feeSymbol.toUpperCase ();
         return {
             'info': myTrade,
             'id': orderId,
@@ -536,7 +594,7 @@ module.exports = class bitopro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response) {
+    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (code >= 200 && code < 300) {
             return;
         }
