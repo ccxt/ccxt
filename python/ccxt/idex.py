@@ -30,6 +30,7 @@ class idex (Exchange):
                 'fetchBalance': True,
                 'createOrder': True,
                 'cancelOrder': True,
+                'fetchOpenOrders': True,
                 'fetchTransactions': True,
                 'fetchTrades': False,
                 'fetchMyTrades': True,
