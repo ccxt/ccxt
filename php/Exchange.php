@@ -33,6 +33,7 @@ namespace ccxt;
 use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
+use BN\BN;
 
 $version = '1.18.1115';
 
@@ -1116,7 +1117,7 @@ class Exchange {
         return $signature;
     }
 
-    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null) {
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $canonical_r = true) {
         $digest = $request;
         if ($hash !== null) {
             $digest = static::hash($request, $hash, 'hex');
@@ -1124,6 +1125,13 @@ class Exchange {
         $ec = new EC(strtolower($algorithm));
         $key = $ec->keyFromPrivate($secret);
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
+        $count = 1;
+        while ($canonical_r && $ellipticSignature->r->gt ($ec->nh)) {
+            $extraEntropy = static::numberToLE($count, 32);
+            $entropyArray = array_map('hexdec', str_split(bin2hex($extraEntropy), 2));
+            $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $entropyArray));
+            $count++;
+        }
         $signature = array();
         $signature['r'] = $ellipticSignature->r->bi->toHex();
         $signature['s'] = $ellipticSignature->s->bi->toHex();
@@ -2770,20 +2778,30 @@ class Exchange {
     public static function decimal_to_binary($n, $endian) {
         if ($n > 0) {
             $next_byte = static::decimal_to_binary(bcdiv($n, 0x100), $endian);
-            $remainder = pack('C', bcmod($n, 0x100));
+            $remainder = static::pack_byte(bcmod($n, 0x100));
             return $endian === 'big' ? $remainder . $next_byte : $next_byte . $remainder;
         } else {
             return NULL;
         }
     }
 
+    public static function pack_byte ($n) {
+        return pack('C', $n);
+    }
+
     public static function numberToBE($n, $padding) {
+        if ($n instanceof BN) {
+            return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $a . $b; });
+        }
         $encoded = static::decimal_to_binary($n, 'little');
         $padAmount = max($padding - strlen($encoded), 0);
         return  str_repeat(pack('C', 0), $padAmount) . $encoded;
     }
 
     public static function numberToLE($n, $padding) {
+        if ($n instanceof BN) {
+            return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
+        }
         $encoded = static::decimal_to_binary($n, 'big');
         $padAmount = max($padding - strlen($encoded), 0);
         return $encoded . str_repeat(pack('C', 0), $padAmount);

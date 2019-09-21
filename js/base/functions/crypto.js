@@ -6,6 +6,7 @@ const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
 const { capitalize } = require ('./string')
 const { stringToBase64, utf16ToBase64, urlencodeBase64 } = require ('./encode')
 const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA')
+const { numberToLE } = require ('./encode')
 const EC = require ('./../../static_dependencies/elliptic/lib/elliptic').ec
 const { ArgumentsRequired } = require ('./../errors')
 
@@ -75,13 +76,18 @@ function jwt (request, secret, alg = 'HS256') {
     return [ token, signature ].join ('.')
 }
 
-function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined) {
+function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, canonical_r = true) {
     let digest = request
     if (hashFunction !== undefined) {
         digest = hash (request, hashFunction, 'hex')
     }
     const curve = new EC (algorithm)
-    const signature = curve.sign (digest, secret, 'hex',  { 'canonical': true })
+    let signature = curve.sign (digest, secret, 'hex',  { 'canonical': true })
+    let counter = 0
+    while (canonical_r && signature.r.gt (curve.nh)) {
+        signature = curve.sign (digest, secret, 'hex',  { 'canonical': true, 'extraEntropy': numberToLE (counter, 32)})
+        counter++
+    }
     return {
         'r': signature.r.toString (16).padStart (64, '0'),
         's': signature.s.toString (16).padStart (64, '0'),

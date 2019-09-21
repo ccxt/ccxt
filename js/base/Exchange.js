@@ -47,6 +47,8 @@ const {
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
+const BN = require ('../static_dependencies/BN/BN')
+
 // ----------------------------------------------------------------------------
 // web3 / 0x imports
 
@@ -58,8 +60,8 @@ let Web3 = undefined
 try {
     const requireFunction = require;
     Web3      = requireFunction ('web3') // eslint-disable-line global-require
-    ethAbi    = requireFunction ('ethereumjs-abi') // eslint-disable-line global-require
-    ethUtil   = requireFunction ('ethereumjs-util') // eslint-disable-line global-require
+    //ethAbi    = requireFunction ('ethereumjs-abi') // eslint-disable-line global-require
+    //ethUtil   = requireFunction ('ethereumjs-util') // eslint-disable-line global-require
     BigNumber = requireFunction ('bignumber.js') // eslint-disable-line global-require
     // we prefer bignumber.js over BN.js
     // BN        = requireFunction ('bn.js') // eslint-disable-line global-require
@@ -1538,7 +1540,7 @@ module.exports = class Exchange {
         else if (trans_type == 'btc_withdraw') {
             tr.add_type_operation("withdraw2", ob);
         }
-        tr.timestamp = this.seconds ();
+        tr.timestamp = 1567548954;
         tr.dapp = dapp_name;
         tr.validate_type = 0;
         tr.add_signer(BytetradeCryptoJS.PrivateKey.fromHex(privateKey));
@@ -1598,15 +1600,15 @@ module.exports = class Exchange {
     // the following functions take and return numbers represented as strings
     // this is useful for arbitrary precision maths that floats lack
     divide (a, b) {
-        return BigNumber (a).div (BigNumber (b)).toString ()
+        return new BN (a).div (new BN (b)).toString ()
     }
 
     modulo (a, b) {
-        return BigNumber (a).mod (BigNumber (b)).toString ()
+        return new BN (a).mod (new BN (b)).toString ()
     }
 
     pow (a, b) {
-        return BigNumber (a).pow (BigNumber (b)).toString ()
+        return new BN (a).pow (new BN (b)).toString ()
     }
 }
 

@@ -5956,15 +5956,13 @@
 	}());
 
 
-	/**r
-	 *
-	 *
+	/**
 	 * Zero padding strategy.
 	 */
 	CryptoJS.pad.ZeroPadding = {
 	    pad: function (data, blockSize) {
 	        // Shortcut
-	        var blockSizeBytes = blockSize;
+	        var blockSizeBytes = blockSize * 4;
 
 	        // Pad
 	        data.clamp();

@@ -1066,7 +1066,7 @@ class Exchange(object):
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
-    def ecdsa(request, secret, algorithm='p256', hash=None):
+    def ecdsa(request, secret, algorithm='p256', hash=None, canonical_r=True):
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
             'p224': [ecdsa.NIST224p, 'sha256'],
@@ -1085,13 +1085,26 @@ class Exchange(object):
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
-        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
+        r_int, s_int, order, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=lambda *args: args)
+        n = order / 2
+        counter = 0
+        while canonical_r and r_int > n:
+            r_int, s_int, order, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
+                                                                   sigencode=lambda *args: args,
+                                                                   extra_entropy=Exchange.numberToLE(counter, 32))
+            counter += 1
+        r_binary, s_binary, _ = ecdsa.util.sigencode_strings_canonize(r_int, s_int, order)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
         return {
             'r': r,
             's': s,
             'v': v,
         }
+
+    @staticmethod
+    def _is_canonical(sig):
+        return (not (int(sig[0]) & 0x80) and not (sig[0] == 0 and not (int(sig[1]) & 0x80)) and not (
+                    int(sig[32]) & 0x80) and not (sig[32] == 0 and not (int(sig[33]) & 0x80)))
 
     @staticmethod
     def unjson(input):
@@ -2099,8 +2112,8 @@ class Exchange(object):
     def decimal_to_bytes(n, endian='big'):
         """int.from_bytes and int.to_bytes don't work in python2"""
         if n > 0:
-            next_byte = Exchange.decimal_to_bytes(n // 0xff, endian)
-            remainder = bytes([n % 0xff])
+            next_byte = Exchange.decimal_to_bytes(n // 0x100, endian)
+            remainder = bytes([n % 0x100])
             return next_byte + remainder if endian == 'big' else remainder + next_byte
         else:
             return b''
@@ -2124,8 +2137,20 @@ class Exchange(object):
 
     @staticmethod
     def numberToLE(n, size):
-        return Exchange.decimal_to_bytes(n, 'little').ljust(size, b'\x00')
+        return Exchange.decimal_to_bytes(int(n), 'little').ljust(size, b'\x00')
 
     @staticmethod
     def numberToBE(n, size):
-        return Exchange.decimal_to_bytes(n, 'big').rjust(size, b'\x00')
+        return Exchange.decimal_to_bytes(int(n), 'big').rjust(size, b'\x00')
+
+    @staticmethod
+    def divide(a, b):
+        return '{:f}'.format(Decimal(a) / Decimal(b))
+
+    @staticmethod
+    def pow(a, b):
+        return '{:f}'.format(Decimal(a) ** Decimal(b))
+
+    @staticmethod
+    def modulo(a, b):
+        return '{:f}'.format(Decimal(a) % Decimal(b))

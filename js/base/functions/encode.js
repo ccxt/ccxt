@@ -4,6 +4,7 @@
 
 const CryptoJS = require ('../../static_dependencies/crypto-js/crypto-js')
 const qs       = require ('../../static_dependencies/qs/index')
+const BN = require ('../../static_dependencies/BN/bn')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -38,36 +39,25 @@ module.exports =
                                                    .replace (/\+/g, '-')
                                                    .replace (/\//g, '_')
 
-    , numberToLE: function (n, padding, wordArray = undefined) {
-        n = parseInt (n)
-        if (wordArray === undefined) {
-            wordArray = new CryptoJS.lib.WordArray.init ()
-        } else if (n === 0) {
-            CryptoJS.pad.ZeroPadding.pad (wordArray, padding)
-            return wordArray
-        }
-        const remainder = wordArray.sigBytes % 4
-        const byte = (n % 0x100) << (24 - (8 * remainder))
-        if (remainder === 0) {
-            wordArray.words.push (byte)
-        } else {
-            wordArray.words[wordArray.words.length - 1] += byte
-        }
-        wordArray.sigBytes++
-        return this.numberToLE (Math.floor (n / 256), padding, wordArray)
+    , numberToLE: (n, padding) => {
+        const hexArray = new BN (n).toArray ('le', padding)
+        return byteArrayToWordArray (hexArray)
     }
 
     , numberToBE: (n, padding) => {
-        n = parseInt (n)
-        const wordArray = new CryptoJS.lib.WordArray.init ()
-        const shiftAmount = padding % 4
-        const firstByte = n >>> (8 * shiftAmount)
-        const secondByte = n << (8 * (4 - shiftAmount))
-        const zeros = Math.max (0, Math.floor (padding / 4) - 1)
-        const bytes = padding > 4 ? [firstByte, secondByte] : [secondByte]
-        wordArray.words = Array (zeros).fill (0).concat (bytes)
-        wordArray.sigBytes = padding
-        return wordArray
+        const hexArray = new BN (n).toArray ('be', padding)
+        return byteArrayToWordArray (hexArray)
     }
 }
+
+function byteArrayToWordArray(ba) {
+    const wa = []
+    for (let i = 0; i < ba.length; i++) {
+        wa[(i / 4) | 0] |= ba[i] << (24 - 8 * i)
+    }
+    return CryptoJS.lib.WordArray.create(wa, ba.length);
+}
+
+module.exports['byteArrayToWordArray'] = byteArrayToWordArray
+
 /*  ------------------------------------------------------------------------ */

@@ -10,8 +10,7 @@ import hashlib
 import string
 import logging
 # ecdsa signing
-import ecdsa
-import ccxt
+from static_dependencies import ecdsa
 
 log = logging.getLogger(__name__)
 
@@ -282,7 +281,6 @@ class PointInTime:
 
     def __bytes__(self):
         t = timegm(time.strptime((self.data + "UTC"), timeformat))
-        #t = 1567548954
         return struct.pack("<I", t)
 
     def __str__(self):
@@ -1489,7 +1487,16 @@ CRYPTOGRAPHY_AVAILABLE = False
 GMPY2_MODULE = False
 
 if not SECP256K1_MODULE:  # pragma: no branch
-    SECP256K1_MODULE = "ecdsa"
+    try:
+        import secp256k1
+        SECP256K1_MODULE = "secp256k1"
+        SECP256K1_AVAILABLE = True
+    except ImportError:
+        try:
+            SECP256K1_MODULE = "cryptography"
+            CRYPTOGRAPHY_AVAILABLE = True
+        except ImportError:
+            SECP256K1_MODULE = "ecdsa"
 
     try:  # pragma: no branch
         from cryptography.hazmat.backends import default_backend
@@ -1612,8 +1619,7 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
     if not isinstance(message, bytes):
         message = bytes(message, "utf-8")
 
-    print(message)
-    digest = hashfn(message).hexdigest()
+    digest = hashfn(message).digest()
     priv_key = PrivateKey(wif)
     p = bytes(priv_key)
 
@@ -1669,46 +1675,49 @@ def sign_message(message, wif, hashfn=hashlib.sha256):
     else:  # pragma: no branch # pragma: no cover
         cnt = 0
         sk = ecdsa.SigningKey.from_string(p, curve=ecdsa.SECP256k1)
+        while 1:
+            cnt += 1
+            if not cnt % 20:  # pragma: no branch
+                log.info(
+                    "Still searching for a canonical signature. Tried %d times already!"
+                    % cnt
+                )
 
-        # Deterministic k
-        #
-        #k = ecdsa.rfc6979.generate_k(
-        #    sk.curve.generator.order(),
-        #    sk.privkey.secret_multiplier,
-        #    hashlib.sha256,
-        #    hashlib.sha256(digest + struct.pack("d", time.time())).digest(),)
+            # Deterministic k
+            #
+            k = ecdsa.rfc6979.generate_k(
+                sk.curve.generator.order(),
+                sk.privkey.secret_multiplier,
+                hashlib.sha256,
+                hashlib.sha256(digest + struct.pack("d", time.time())).digest(),)
 
-        # Sign message
-        #
-        #sigder = sk.sign_digest(digest, sigencode=ecdsa.util.sigencode_der, k=k)
+            # Sign message
+            #
+            sigder = sk.sign_digest(digest, sigencode=ecdsa.util.sigencode_der, k=k)
 
-        # Reformating of signature
-        #
-        #r, s = ecdsa.util.sigdecode_der(sigder, sk.curve.generator.order())
-        #signature = ecdsa.util.sigencode_string(r, s, sk.curve.generator.order())
-        sig = ccxt.Exchange.ecdsa(digest, hexlify(p).decode(), 'secp256k1', None)
-        r, s, v = bytes.fromhex(sig['r']), bytes.fromhex(sig['s']), sig['v']
-        signature = r + s
-        raw_r, raw_s = ecdsa.util.sigdecode_strings((r, s), sk.curve.generator.order())
-        sigder = ecdsa.util.sigencode_der(raw_r, raw_s, sk.curve.generator.order())
-        # Make sure signature is canonical!
-        #
+            # Reformating of signature
+            #
+            r, s = ecdsa.util.sigdecode_der(sigder, sk.curve.generator.order())
+            signature = ecdsa.util.sigencode_string(r, s, sk.curve.generator.order())
 
-        sigder = bytearray(sigder)
-        lenR = sigder[3]
-        lenS = sigder[5 + lenR]
-        if lenR is 32 and lenS is 32:
-            # Derive the recovery parameter
+            # Make sure signature is canonical!
+            #
+            sigder = bytearray(sigder)
+            lenR = sigder[3]
+            lenS = sigder[5 + lenR]
+            if lenR is 32 and lenS is 32:
+                # Derive the recovery parameter
+                #
+                i = recoverPubkeyParameter(
+                    message, digest, signature, sk.get_verifying_key()
+                )
+                i += 4  # compressed
+                i += 27  # compact
+                break
 
-            #i = recoverPubkeyParameter(message, digest, signature, sk.get_verifying_key())
-            #i += 4  # compressed
-            #i += 27  # compact
-            pass
-    #print(i, v)
     # pack signature
     #
-    #print(i, v)
-    sigstr = struct.pack("<B", 31 + v)
+    sigstr = struct.pack("<B", i)
     sigstr += signature
 
     return sigstr
