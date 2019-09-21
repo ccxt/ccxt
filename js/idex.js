@@ -24,6 +24,7 @@ module.exports = class idex extends Exchange {
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'fetchOpenOrders': true,
                 'fetchTransactions': true,
                 'fetchTrades': false,
                 'fetchMyTrades': true,
