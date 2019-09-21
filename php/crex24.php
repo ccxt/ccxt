@@ -644,7 +644,7 @@ class crex24 extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = $this->find_symbol($this->safe_string($order, 'symbol'), $market);
+        $symbol = $this->find_symbol($this->safe_string($order, 'instrument'), $market);
         $timestamp = $this->parse8601 ($this->safe_string($order, 'timestamp'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'volume');
