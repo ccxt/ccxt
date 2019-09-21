@@ -90,6 +90,9 @@ class latoken extends Exchange {
                     'taker' => 0.1 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'TSL' => 'Treasure SL',
+            ),
             'options' => array (
                 'createOrderMethod' => 'private_post_order_new', // private_post_order_test_order
             ),

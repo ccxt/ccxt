@@ -133,6 +133,9 @@ class binance extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
+                        'allOrderList', // oco
+                        'openOrderList', // oco
+                        'orderList', // oco
                         'order',
                         'openOrders',
                         'allOrders',
@@ -140,10 +143,12 @@ class binance extends Exchange {
                         'myTrades',
                     ),
                     'post' => array (
+                        'order/oco',
                         'order',
                         'order/test',
                     ),
                     'delete' => array (
+                        'orderList', // oco
                         'order',
                     ),
                 ),
@@ -377,11 +382,12 @@ class binance extends Exchange {
     }
 
     public function fetch_status ($params = array ()) {
-        $systemStatus = $this->wapiGetSystemStatus ();
-        $status = $this->safe_value($systemStatus, 'status');
+        $response = $this->wapiGetSystemStatus ();
+        $status = $this->safe_value($response, 'status');
         if ($status !== null) {
+            $status = ($status === 0) ? 'ok' : 'maintenance';
             $this->status = array_merge ($this->status, array (
-                'status' => $status === 0 ? 'ok' : 'maintenance',
+                'status' => $status,
                 'updated' => $this->milliseconds (),
             ));
         }
@@ -508,7 +514,7 @@ class binance extends Exchange {
             $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
             if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
-                $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
+                $side = $trade['isBuyer'] ? 'buy' : 'sell'; // this is a true $side
             }
         }
         $fee = null;

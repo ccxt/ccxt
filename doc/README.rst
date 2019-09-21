@@ -64,7 +64,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 126 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 127 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -90,6 +90,8 @@ The ccxt library currently supports the following 126 cryptocurrency exchange ma
 | `binance <https://www.binance.com/?ref=10205187>`__                                       | binance            | `Binance <https://www.binance.com/?ref=10205187>`__                                        | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__ | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `binanceje <https://www.binance.je/?ref=35047921>`__                                      | binanceje          | `Binance Jersey <https://www.binance.je/?ref=35047921>`__                                  | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__ |                                                                      |
++-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
+| `binanceus <https://www.binance.us/?ref=35005074>`__                                      | binanceus          | `Binance US <https://www.binance.us/?ref=35005074>`__                                      | \*  | `API <https://github.com/binance-us/binance-official-api-docs>`__                               |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `bit2c <https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf>`__                  | bit2c              | `Bit2C <https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf>`__                   | \*  | `API <https://www.bit2c.co.il/home/api>`__                                                      |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -369,14 +371,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1144/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.1144/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1174/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.1174/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1144/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1174/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

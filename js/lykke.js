@@ -303,11 +303,14 @@ module.exports = class lykke extends Exchange {
 
     parseOrderStatus (status) {
         const statuses = {
+            'Open': 'open',
             'Pending': 'open',
             'InOrderBook': 'open',
             'Processing': 'open',
             'Matched': 'closed',
             'Cancelled': 'canceled',
+            'Rejected': 'rejected',
+            'Replaced': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }

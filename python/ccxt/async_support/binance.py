@@ -145,6 +145,9 @@ class binance (Exchange):
                 },
                 'private': {
                     'get': [
+                        'allOrderList',  # oco
+                        'openOrderList',  # oco
+                        'orderList',  # oco
                         'order',
                         'openOrders',
                         'allOrders',
@@ -152,10 +155,12 @@ class binance (Exchange):
                         'myTrades',
                     ],
                     'post': [
+                        'order/oco',
                         'order',
                         'order/test',
                     ],
                     'delete': [
+                        'orderList',  # oco
                         'order',
                     ],
                 },
@@ -371,11 +376,12 @@ class binance (Exchange):
         }
 
     async def fetch_status(self, params={}):
-        systemStatus = await self.wapiGetSystemStatus()
-        status = self.safe_value(systemStatus, 'status')
+        response = await self.wapiGetSystemStatus()
+        status = self.safe_value(response, 'status')
         if status is not None:
+            status = 'ok' if (status == 0) else 'maintenance'
             self.status = self.extend(self.status, {
-                'status': status == 'ok' if 0 else 'maintenance',
+                'status': status,
                 'updated': self.milliseconds(),
             })
         return self.status
@@ -490,7 +496,7 @@ class binance (Exchange):
             side = 'sell' if trade['isBuyerMaker'] else 'buy'
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
+                side = 'buy' if trade['isBuyer'] else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {

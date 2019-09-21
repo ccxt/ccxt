@@ -144,6 +144,7 @@ class kucoin extends Exchange {
                 '230003' => '\\ccxt\\InsufficientFunds', // array("code":"230003","msg":"Balance insufficient!")
                 '260100' => '\\ccxt\\InsufficientFunds', // array("code":"260100","msg":"account.noBalance")
                 '300000' => '\\ccxt\\InvalidOrder',
+                '400000' => '\\ccxt\\BadSymbol',
                 '400001' => '\\ccxt\\AuthenticationError',
                 '400002' => '\\ccxt\\InvalidNonce',
                 '400003' => '\\ccxt\\AuthenticationError',
@@ -275,7 +276,7 @@ class kucoin extends Exchange {
         $result = array();
         for ($i = 0; $i < count ($responseData); $i++) {
             $entry = $responseData[$i];
-            $id = $this->safe_string($entry, 'name');
+            $id = $this->safe_string($entry, 'currency');
             $name = $this->safe_string($entry, 'fullName');
             $code = $this->safe_currency_code($id);
             $precision = $this->safe_integer($entry, 'precision');
@@ -1171,7 +1172,7 @@ class kucoin extends Exchange {
             }
             $txid = $txidParts[0];
         }
-        $type = $txid === null ? 'withdrawal' : 'deposit';
+        $type = ($txid === null) ? 'withdrawal' : 'deposit';
         $rawStatus = $this->safe_string($transaction, 'status');
         $status = $this->parse_transaction_status ($rawStatus);
         $fee = null;
@@ -1527,7 +1528,7 @@ class kucoin extends Exchange {
         $endpoint = '/api/' . $version . '/' . $this->implode_params($path, $params);
         $query = $this->omit ($params, $this->extract_params($path));
         $endpart = '';
-        $headers = $headers !== null ? $headers : array();
+        $headers = ($headers !== null) ? $headers : array();
         if ($query) {
             if ($method !== 'GET') {
                 $body = $this->json ($query);

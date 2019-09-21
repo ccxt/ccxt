@@ -94,7 +94,7 @@ class bitbank (Exchange):
                 },
                 'funding': {
                     'withdraw': {
-                        # 'JPY': amount => amount > 756 if 30000 else 540,
+                        # 'JPY': 756 if (amount > 30000) else 540,
                         'BTC': 0.001,
                         'LTC': 0.001,
                         'XRP': 0.15,

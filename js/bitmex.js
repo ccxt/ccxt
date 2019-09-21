@@ -137,6 +137,7 @@ module.exports = class bitmex extends Exchange {
             'exceptions': {
                 'exact': {
                     'Invalid API Key.': AuthenticationError,
+                    'This key is disabled.': PermissionDenied,
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
                     'orderQty is invalid': InvalidOrder,
@@ -989,7 +990,7 @@ module.exports = class bitmex extends Exchange {
         }
         let takerOrMaker = undefined;
         if (fee !== undefined) {
-            takerOrMaker = fee['cost'] < 0 ? 'maker' : 'taker';
+            takerOrMaker = (fee['cost'] < 0) ? 'maker' : 'taker';
         }
         let symbol = undefined;
         const marketId = this.safeString (trade, 'symbol');

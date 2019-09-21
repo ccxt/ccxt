@@ -1475,6 +1475,11 @@ class hitbtc2 extends hitbtc {
             if (($code === 503) || ($code === 504)) {
                 throw new ExchangeNotAvailable($feedback);
             }
+            // fallback to default error handler on rate limit errors
+            // array("$code":429,"$message":"Too many requests","description":"Too many requests")
+            if ($code === 429) {
+                return;
+            }
             // array("error":{"$code":20002,"$message":"Order not found","description":"")}
             if ($body[0] === '{') {
                 if (is_array($response) && array_key_exists('error', $response)) {

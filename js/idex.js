@@ -24,6 +24,7 @@ module.exports = class idex extends Exchange {
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'fetchOpenOrders': true,
                 'fetchTransactions': true,
                 'fetchTrades': false,
                 'fetchMyTrades': true,
@@ -738,7 +739,7 @@ module.exports = class idex extends Exchange {
             const buy = this.safeCurrencyCode (this.safeString (params, 'tokenBuy'));
             const sell = this.safeCurrencyCode (this.safeString (params, 'tokenSell'));
             if (buy !== undefined && sell !== undefined) {
-                symbol = side === 'buy' ? buy + '/' + sell : sell + '/' + buy;
+                symbol = (side === 'buy') ? (buy + '/' + sell) : (sell + '/' + buy);
             }
         }
         if (symbol === undefined && market !== undefined) {
@@ -922,7 +923,7 @@ module.exports = class idex extends Exchange {
             'cost': feeCost,
         };
         if (feeCost !== undefined && amount !== undefined) {
-            const feeCurrencyAmount = feeCurrency === 'ETH' ? cost : amount;
+            const feeCurrencyAmount = (feeCurrency === 'ETH') ? cost : amount;
             fee['rate'] = feeCost / feeCurrencyAmount;
         }
         const orderId = this.safeString (trade, 'orderHash');

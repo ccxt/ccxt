@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "1.18.1144",
+  "version": "1.18.1174",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -472,7 +472,9 @@
     "idex.market",
     "IDEX",
     "adara.io",
-    "Adara"
+    "Adara",
+    "binance.us",
+    "Binance US"
   ],
   "collective": {
     "type": "opencollective",

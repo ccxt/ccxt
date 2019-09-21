@@ -11,6 +11,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -157,6 +158,7 @@ class kucoin (Exchange):
                 '230003': InsufficientFunds,  # {"code":"230003","msg":"Balance insufficientnot "}
                 '260100': InsufficientFunds,  # {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
+                '400000': BadSymbol,
                 '400001': AuthenticationError,
                 '400002': InvalidNonce,
                 '400003': AuthenticationError,
@@ -283,7 +285,7 @@ class kucoin (Exchange):
         result = {}
         for i in range(0, len(responseData)):
             entry = responseData[i]
-            id = self.safe_string(entry, 'name')
+            id = self.safe_string(entry, 'currency')
             name = self.safe_string(entry, 'fullName')
             code = self.safe_currency_code(id)
             precision = self.safe_integer(entry, 'precision')
@@ -1104,7 +1106,7 @@ class kucoin (Exchange):
                     if len(txidParts[1]) > 1:
                         address = txidParts[1]
             txid = txidParts[0]
-        type = txid is 'withdrawal' if None else 'deposit'
+        type = 'withdrawal' if (txid is None) else 'deposit'
         rawStatus = self.safe_string(transaction, 'status')
         status = self.parse_transaction_status(rawStatus)
         fee = None
@@ -1430,7 +1432,7 @@ class kucoin (Exchange):
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         endpart = ''
-        headers = headers is not headers if None else {}
+        headers = headers if (headers is not None) else {}
         if query:
             if method != 'GET':
                 body = self.json(query)
