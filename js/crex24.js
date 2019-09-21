@@ -572,7 +572,7 @@ module.exports = class crex24 extends Exchange {
         //
         return this.parseTrades (response, market, since, limit);
     }
-    
+
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
         // { timestamp: '2019-09-21T10:36:00Z',
         //     open: 0.02152,
@@ -599,8 +599,9 @@ module.exports = class crex24 extends Exchange {
             'granularity': this.timeframes[timeframe],
             'instrument': market['id'],
         };
-        if (limit !== undefined)
+        if (limit !== undefined) {
             request['limit'] = limit; // Accepted values: 1 - 1000. If the parameter is not specified, the number of results is limited to 100
+        }
         const response = await this.publicGetOhlcv (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
