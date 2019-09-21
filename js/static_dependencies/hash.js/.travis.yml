@@ -1,9 +1,0 @@
-sudo: false
-language: node_js
-node_js:
-  - "4"
-  - "6"
-  - "stable"
-branches:
-  only:
-    - master
