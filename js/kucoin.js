@@ -179,6 +179,9 @@ module.exports = class kucoin extends Exchange {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'fetchBalance': {
+                    'type': 'trade', //  or 'main'
+                },
             },
         });
     }
@@ -1358,7 +1361,8 @@ module.exports = class kucoin extends Exchange {
             }
             params = this.omit (params, 'type');
         } else {
-            type = 'trade';
+            const options = this.safeValue (this.options, 'fetchBalance', {});
+            type = this.safeString (options, 'type', 'trade');
         }
         const response = await this.privateGetAccounts (this.extend (request, params));
         //
