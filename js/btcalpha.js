@@ -102,6 +102,9 @@ module.exports = class btcalpha extends Exchange {
                     },
                 },
             },
+            'commonCurrencies': {
+                'CBC': 'Cashbery',
+            },
         });
     }
 
