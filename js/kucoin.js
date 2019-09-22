@@ -180,7 +180,7 @@ module.exports = class kucoin extends Exchange {
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
                 'fetchBalance': {
-                    'type': 'trade', //  or 'main'
+                    'type': 'trade', // or 'main'
                 },
             },
         });
@@ -1374,7 +1374,7 @@ module.exports = class kucoin extends Exchange {
         //             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
         //         ]
         //     }
-        // /
+        //
         const data = this.safeValue (response, 'data', []);
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
