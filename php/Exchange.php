@@ -1125,12 +1125,10 @@ class Exchange {
         $ec = new EC(strtolower($algorithm));
         $key = $ec->keyFromPrivate($secret);
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
-        $count = 1;
+        $count = new BN (0);
         while ($canonical_r && $ellipticSignature->r->gt ($ec->nh)) {
-            $extraEntropy = static::numberToLE($count, 32);
-            $entropyArray = array_map('hexdec', str_split(bin2hex($extraEntropy), 2));
-            $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $entropyArray));
-            $count++;
+            $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $count->toArray('le', 16)));
+            $count = $count->add(new BN ('1'));
         }
         $signature = array();
         $signature['r'] = $ellipticSignature->r->bi->toHex();
