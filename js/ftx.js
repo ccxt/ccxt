@@ -118,6 +118,7 @@ module.exports = class ftx extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'type': type,
                 'active': active,
                 'precision': {
                     'amount': undefined,
@@ -175,7 +176,7 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const response = {};
-        const marketType = this.safeString (market['info'], 'type');
+        const marketType = this.safeString (market, 'type');
         if (marketType !== undefined && marketType === 'future') {
             const request = {};
             request['market'] = market['id'];
@@ -241,7 +242,7 @@ module.exports = class ftx extends Exchange {
     async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = this.safeString (market['info'], 'type');
+        const marketType = this.safeString (market, 'type');
         const request = {
             'market': market['id'],
             'resolution': this.timeframes[timeframe],
