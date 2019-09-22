@@ -40,7 +40,7 @@ class crex24 (Exchange):
                 'fetchDeposits': True,
                 'fetchFundingFees': False,
                 'fetchMyTrades': True,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrders': False,
@@ -51,6 +51,18 @@ class crex24 (Exchange):
                 'fetchTransactions': True,
                 'fetchWithdrawals': True,
                 'withdraw': True,
+            },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1mo',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -68,6 +80,7 @@ class crex24 (Exchange):
                         'tickers',
                         'recentTrades',
                         'orderBook',
+                        'ohlcv',
                     ],
                 },
                 'trading': {
@@ -549,6 +562,36 @@ class crex24 (Exchange):
         #
         return self.parse_trades(response, market, since, limit)
 
+    def parse_ohlcv(self, ohlcv, market=None, timeframe='1m', since=None, limit=None):
+        # {timestamp: '2019-09-21T10:36:00Z',
+        #     open: 0.02152,
+        #     high: 0.02156,
+        #     low: 0.02152,
+        #     close: 0.02156,
+        #     volume: 0.01741259}
+        date = self.safe_string(ohlcv, 'timestamp')
+        timestamp = self.parse8601(date)
+        return [
+            timestamp,
+            self.safe_float(ohlcv, 'open'),
+            self.safe_float(ohlcv, 'high'),
+            self.safe_float(ohlcv, 'low'),
+            self.safe_float(ohlcv, 'close'),
+            self.safe_float(ohlcv, 'volume'),
+        ]
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'granularity': self.timeframes[timeframe],
+            'instrument': market['id'],
+        }
+        if limit is not None:
+            request['limit'] = limit  # Accepted values: 1 - 1000. If the parameter is not specified, the number of results is limited to 100
+        response = await self.publicGetOhlcv(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
     def parse_order_status(self, status):
         statuses = {
             'submitting': 'open',  # A newly created limit order has a status "submitting" until it has been processed.
@@ -584,7 +627,7 @@ class crex24 (Exchange):
         #     }
         #
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        symbol = self.find_symbol(self.safe_string(order, 'symbol'), market)
+        symbol = self.find_symbol(self.safe_string(order, 'instrument'), market)
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         price = self.safe_float(order, 'price')
         amount = self.safe_float(order, 'volume')

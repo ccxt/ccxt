@@ -194,6 +194,9 @@ class kucoin (Exchange):
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'fetchBalance': {
+                    'type': 'trade',  # or 'main'
+                },
             },
         })
 
@@ -1268,9 +1271,16 @@ class kucoin (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        request = {
-            'type': 'trade',
-        }
+        type = None
+        request = {}
+        if 'type' in params:
+            type = params['type']
+            if type is not None:
+                request['type'] = type
+            params = self.omit(params, 'type')
+        else:
+            options = self.safe_value(self.options, 'fetchBalance', {})
+            type = self.safe_string(options, 'type', 'trade')
         response = await self.privateGetAccounts(self.extend(request, params))
         #
         #     {
@@ -1281,18 +1291,20 @@ class kucoin (Exchange):
         #             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
         #         ]
         #     }
-        # /
+        #
         data = self.safe_value(response, 'data', [])
         result = {'info': response}
         for i in range(0, len(data)):
             balance = data[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_float(balance, 'balance')
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'holds')
-            result[code] = account
+            balanceType = self.safe_string(balance, 'type')
+            if balanceType == type:
+                currencyId = self.safe_string(balance, 'currency')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['total'] = self.safe_float(balance, 'balance')
+                account['free'] = self.safe_float(balance, 'available')
+                account['used'] = self.safe_float(balance, 'holds')
+                result[code] = account
         return self.parse_balance(result)
 
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
