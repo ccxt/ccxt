@@ -1349,9 +1349,17 @@ module.exports = class kucoin extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'type': 'trade',
-        };
+        let type = undefined;
+        const request = {};
+        if ('type' in params) {
+            type = params['type'];
+            if (type !== undefined) {
+                request['type'] = type;
+            }
+            params = this.omit (params, 'type');
+        } else {
+            type = 'trade';
+        }
         const response = await this.privateGetAccounts (this.extend (request, params));
         //
         //     {
@@ -1367,13 +1375,16 @@ module.exports = class kucoin extends Exchange {
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'holds');
-            result[code] = account;
+            const balanceType = this.safeString (balance, 'type');
+            if (balanceType === type) {
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeFloat (balance, 'balance');
+                account['free'] = this.safeFloat (balance, 'available');
+                account['used'] = this.safeFloat (balance, 'holds');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
