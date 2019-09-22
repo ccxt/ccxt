@@ -28,7 +28,7 @@ class crex24 extends Exchange {
                 'fetchDeposits' => true,
                 'fetchFundingFees' => false,
                 'fetchMyTrades' => true,
-                'fetchOHLCV' => false,
+                'fetchOHLCV' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => false,
@@ -39,6 +39,18 @@ class crex24 extends Exchange {
                 'fetchTransactions' => true,
                 'fetchWithdrawals' => true,
                 'withdraw' => true,
+            ),
+            'timeframes' => array (
+                '1m' => '1m',
+                '3m' => '3m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '4h' => '4h',
+                '1d' => '1d',
+                '1w' => '1w',
+                '1M' => '1mo',
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -56,6 +68,7 @@ class crex24 extends Exchange {
                         'tickers',
                         'recentTrades',
                         'orderBook',
+                        'ohlcv',
                     ),
                 ),
                 'trading' => array (
@@ -562,6 +575,39 @@ class crex24 extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
+    public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '1m', $since = null, $limit = null) {
+        // { $timestamp => '2019-09-21T10:36:00Z',
+        //     open => 0.02152,
+        //     high => 0.02156,
+        //     low => 0.02152,
+        //     close => 0.02156,
+        //     volume => 0.01741259 }
+        $date = $this->safe_string($ohlcv, 'timestamp');
+        $timestamp = $this->parse8601 ($date);
+        return array (
+            $timestamp,
+            $this->safe_float($ohlcv, 'open'),
+            $this->safe_float($ohlcv, 'high'),
+            $this->safe_float($ohlcv, 'low'),
+            $this->safe_float($ohlcv, 'close'),
+            $this->safe_float($ohlcv, 'volume'),
+        );
+    }
+
+    public function fetch_ohlcv ($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $request = array (
+            'granularity' => $this->timeframes[$timeframe],
+            'instrument' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit; // Accepted values => 1 - 1000. If the parameter is not specified, the number of results is limited to 100
+        }
+        $response = $this->publicGetOhlcv (array_merge ($request, $params));
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    }
+
     public function parse_order_status ($status) {
         $statuses = array (
             'submitting' => 'open', // A newly created limit order has a $status "submitting" until it has been processed.
@@ -598,7 +644,7 @@ class crex24 extends Exchange {
         //     }
         //
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $symbol = $this->find_symbol($this->safe_string($order, 'symbol'), $market);
+        $symbol = $this->find_symbol($this->safe_string($order, 'instrument'), $market);
         $timestamp = $this->parse8601 ($this->safe_string($order, 'timestamp'));
         $price = $this->safe_float($order, 'price');
         $amount = $this->safe_float($order, 'volume');
