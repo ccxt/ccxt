@@ -194,6 +194,9 @@ class kucoin (Exchange):
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'fetchBalance': {
+                    'type': 'trade',  # or 'main'
+                },
             },
         })
 
@@ -1276,7 +1279,8 @@ class kucoin (Exchange):
                 request['type'] = type
             params = self.omit(params, 'type')
         else:
-            type = 'trade'
+            options = self.safe_value(self.options, 'fetchBalance', {})
+            type = self.safe_string(options, 'type', 'trade')
         response = self.privateGetAccounts(self.extend(request, params))
         #
         #     {
@@ -1287,7 +1291,7 @@ class kucoin (Exchange):
         #             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
         #         ]
         #     }
-        # /
+        #
         data = self.safe_value(response, 'data', [])
         result = {'info': response}
         for i in range(0, len(data)):
