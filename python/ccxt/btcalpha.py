@@ -107,6 +107,9 @@ class btcalpha (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'CBC': 'Cashbery',
+            },
         })
 
     def fetch_markets(self, params={}):
