@@ -381,36 +381,28 @@ module.exports = class ftx extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // type can be a market, limit, or stop-loss
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (side !== 'buy' && side !== 'sell') { // check side value
-            throw new InvalidOrder ('Invalid order side value');
-        }
-        if (type === 'market' || type === 'limit') { // check order type
-            const request = {
-                'market': market['id'],
-                'side': side,
-                'price': price,
-                'type': type,
-                'size': parseFloat (this.amountToPrecision (symbol, amount)),
-            };
-            const response = await this.privatePostOrders (this.extend (request, params));
-            const result = this.safeValue (response, 'result', {});
-            return this.parseOrder (result);
-        } else if (type === 'stop') {
-            const request = {
-                'market': this.marketId (symbol),
-                'side': side,
-                'triggerPrice': price,
-                'size': parseFloat (this.amountToPrecision (symbol, amount)),
-            };
-            const response = await this.privatePostConditionalOrders (this.extend (request, params));
-            const result = this.safeValue (response, 'result', {});
-            return this.parseOrder (result);
+        const request = {
+            'market': market['id'],
+            'side': side,
+            'type': type,
+            'size': amount,
+        };
+        let method = 'privatePostConditionalOrders';
+        if ((type === 'limit') || (type === 'market')) {
+            method = 'privatePostOrders';
+            request['price'] = price;
+        } else if ((type === 'stop') || (type === 'takeProfit')) {
+            request['triggerPrice'] = price;
+        } else if (type === 'trailingStop') {
+            request['trailValue'] = price;
         } else {
-            throw new InvalidOrder ('Invalid order type');
+            throw new InvalidOrder (this.id + ' createOrder () does not support order type ' + type + ', supported types: limit, market, stop, trailingStop, takeProfit');
         }
+        const response = await this[method] (this.extend (request, params));
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOrder (result, market);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
