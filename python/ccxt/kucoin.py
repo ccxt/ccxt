@@ -1268,9 +1268,15 @@ class kucoin (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        request = {
-            'type': 'trade',
-        }
+        type = None
+        request = {}
+        if 'type' in params:
+            type = params['type']
+            if type is not None:
+                request['type'] = type
+            params = self.omit(params, 'type')
+        else:
+            type = 'trade'
         response = self.privateGetAccounts(self.extend(request, params))
         #
         #     {
@@ -1286,13 +1292,15 @@ class kucoin (Exchange):
         result = {'info': response}
         for i in range(0, len(data)):
             balance = data[i]
-            currencyId = self.safe_string(balance, 'currency')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_float(balance, 'balance')
-            account['free'] = self.safe_float(balance, 'available')
-            account['used'] = self.safe_float(balance, 'holds')
-            result[code] = account
+            balanceType = self.safe_string(balance, 'type')
+            if balanceType == type:
+                currencyId = self.safe_string(balance, 'currency')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['total'] = self.safe_float(balance, 'balance')
+                account['free'] = self.safe_float(balance, 'available')
+                account['used'] = self.safe_float(balance, 'holds')
+                result[code] = account
         return self.parse_balance(result)
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):

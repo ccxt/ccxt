@@ -1350,17 +1350,25 @@ class kucoin extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $request = array (
-            'type' => 'trade',
-        );
+        $type = null;
+        $request = array();
+        if (is_array($params) && array_key_exists('type', $params)) {
+            $type = $params['type'];
+            if ($type !== null) {
+                $request['type'] = $type;
+            }
+            $params = $this->omit ($params, 'type');
+        } else {
+            $type = 'trade';
+        }
         $response = $this->privateGetAccounts (array_merge ($request, $params));
         //
         //     {
         //         "$code":"200000",
         //         "$data":array (
-        //             array("$balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"),
-        //             array("$balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"),
-        //             array("$balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"),
+        //             array("$balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","$type":"trade"),
+        //             array("$balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","$type":"trade"),
+        //             array("$balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","$type":"trade"),
         //         )
         //     }
         // /
@@ -1368,13 +1376,16 @@ class kucoin extends Exchange {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($data); $i++) {
             $balance = $data[$i];
-            $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $account = $this->account ();
-            $account['total'] = $this->safe_float($balance, 'balance');
-            $account['free'] = $this->safe_float($balance, 'available');
-            $account['used'] = $this->safe_float($balance, 'holds');
-            $result[$code] = $account;
+            $balanceType = $this->safe_string($balance, 'type');
+            if ($balanceType === $type) {
+                $currencyId = $this->safe_string($balance, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account ();
+                $account['total'] = $this->safe_float($balance, 'balance');
+                $account['free'] = $this->safe_float($balance, 'available');
+                $account['used'] = $this->safe_float($balance, 'holds');
+                $result[$code] = $account;
+            }
         }
         return $this->parse_balance($result);
     }
