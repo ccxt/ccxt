@@ -264,7 +264,8 @@ module.exports = class ftx extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'timestamp');
+        const datetime = this.safeString (trade, 'time');
+        const timestamp = this.parse8601 (datetime);
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'size');
         const id = this.safeString (market, 'id');
@@ -278,7 +279,7 @@ module.exports = class ftx extends Exchange {
         return {
             'info': trade,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'datetime': datetime,
             'symbol': symbol,
             'id': id,
             'order': orderId,
@@ -310,9 +311,6 @@ module.exports = class ftx extends Exchange {
         }
         const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
         const result = this.safeValue (response, 'result', []);
-        for (let i = 0; i < result.length; i++) {
-            result[i]['timestamp'] = this.parse8601 (result[i]['time']);
-        }
         return this.parseTrades (result, market, since, limit);
     }
 
