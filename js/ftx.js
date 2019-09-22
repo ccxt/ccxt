@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidOrder } = require ('./base/errors');
+const { NotSupported, ExchangeError, InvalidOrder } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -175,15 +175,16 @@ module.exports = class ftx extends Exchange {
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = {};
+        const request = {
+            'market': market['id'],
+        };
         const marketType = this.safeString (market, 'type');
-        if (marketType !== undefined && marketType === 'future') {
-            const request = {};
-            request['market'] = market['id'];
-            const future = await this.publicGetFuturesMarket (this.extend (request, params));
-            return this.parseTicker (this.extend (response, future['result']), market);
+        if (marketType !== 'future') {
+            throw new NotSupported (this.id + ' fetchTicker() supports futures markets only, see exchange.markets[symbol]["type"] for details');
         }
-        return this.parseTicker (response, market);
+        const response = await this.publicGetFuturesMarket (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        return this.parseTicker (result, market);
     }
 
     async fetchOrderBook (symbol, params = {}) {
