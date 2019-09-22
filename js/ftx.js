@@ -192,11 +192,8 @@ module.exports = class ftx extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicGetMarketsMarketOrderbook (this.extend (request, params));
-        const orderbook = this.safeValue (response, 'result', {});
-        orderbook['timestamp'] = undefined;
-        orderbook['datetime'] = undefined;
-        orderbook['nonce'] = undefined;
-        return orderbook;
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrderBook (result);
     }
 
     async fetchCurrencies (params = {}) {
