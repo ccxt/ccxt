@@ -1086,14 +1086,13 @@ class Exchange(object):
             digest = base64.b16decode(encoded_request, casefold=True)
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
         r_int, s_int, order, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=lambda *args: args)
-        n = order / 2
-        counter = 0
-        while canonical_r and r_int > n:
+        counter = 1
+        while canonical_r and r_int > order / 2:
             r_int, s_int, order, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
                                                                    sigencode=lambda *args: args,
                                                                    extra_entropy=Exchange.numberToLE(counter, 32))
             counter += 1
-        r_binary, s_binary, _ = ecdsa.util.sigencode_strings_canonize(r_int, s_int, order)
+        r_binary, s_binary, v = ecdsa.util.sigencode_strings_canonize(r_int, s_int, order, v)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
         return {
             'r': r,

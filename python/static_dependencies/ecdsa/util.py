@@ -217,7 +217,7 @@ def sigencode_der(r, s, order, v=None):
 # see CECKey::Sign() https://github.com/bitcoin/bitcoin/blob/master/src/key.cpp#L214
 def sigencode_strings_canonize(r, s, order, v=None):
     if s > order / 2:
-        s = s % order
+        s = order - s
         if v is not None:
             v ^= 1
     return sigencode_strings(r, s, order, v)

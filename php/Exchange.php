@@ -1125,10 +1125,10 @@ class Exchange {
         $ec = new EC(strtolower($algorithm));
         $key = $ec->keyFromPrivate($secret);
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
-        $count = new BN (0);
-        while ($canonical_r && $ellipticSignature->r->gt ($ec->nh)) {
-            $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $count->toArray('le', 16)));
-            $count = $count->add(new BN ('1'));
+        $count = new BN ('0');
+        while ($canonical_r && $ellipticSignature->r->gt($ec->nh)) {
+            $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $count->toArray('le', 32)));
+            $count = $count->add(new BN('1'));
         }
         $signature = array();
         $signature['r'] = $ellipticSignature->r->bi->toHex();
@@ -2655,7 +2655,7 @@ class Exchange {
         if (!isset(Exchange::$eth_units[$unit])) {
             throw new \UnexpectedValueException("Unknown unit '" . $unit . "', supported units: " . implode(', ', array_keys(Exchange::$eth_units)));
         }
-        return (('wei' === $unit) ? $amount : bcmul($amount, Exchange::$eth_units[$unit]));
+        return (('wei' === $unit) ? (string) (int) $amount : bcmul($amount, Exchange::$eth_units[$unit]));
     }
 
     public function getZeroExOrderHash($order) {

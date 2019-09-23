@@ -518,8 +518,8 @@ module.exports = class bytetrade extends Exchange {
         const priceChainWithoutTruncate = this.toWei (price, 'ether', quoteCurrency['precision']['amount']);
         const priceTruncate = quoteCurrency['precision']['amount'] - market['precision']['price'];
         const priceChain = this.decimalToPrecision (priceChainWithoutTruncate, TRUNCATE, priceTruncate, SIGNIFICANT_DIGITS, NO_PADDING);
-        const now = this.milliseconds ();
-        const expiration = this.milliseconds ();
+        const now = 1569266658433;
+        const expiration = 1569266658433;
         let datetime = this.iso8601 (now);
         datetime = datetime.split ('.')[0];
         let expirationDatetime = this.iso8601 (expiration);
@@ -562,9 +562,11 @@ module.exports = class bytetrade extends Exchange {
         for (let i = 1; i < byteStringArray.length; i++) {
             bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
         }
+        const c = require ('/Users/carlorevelli/Documents/important/code/ccxt/js/static_dependencies/crypto-js/crypto-js.js')
+        console.log (c.enc.Hex.stringify (bytestring))
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined);
-        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (signature['v'] + 31, 1)));
+        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         const operation = {
             'now': datetime,
@@ -764,7 +766,7 @@ module.exports = class bytetrade extends Exchange {
         }
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined);
-        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (signature['v'] + 31, 1)));
+        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         const operation = {
             'fee': feeAmount,
@@ -869,7 +871,7 @@ module.exports = class bytetrade extends Exchange {
         }
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined);
-        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (signature['v'] + 31, 1)));
+        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         const operation = {
             'fee': '300000000000000',
@@ -1156,7 +1158,7 @@ module.exports = class bytetrade extends Exchange {
         }
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined);
-        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (signature['v'] + 31, 1)));
+        const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         let assetFee = 0;
         const operation = {
