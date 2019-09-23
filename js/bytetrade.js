@@ -562,8 +562,6 @@ module.exports = class bytetrade extends Exchange {
         for (let i = 1; i < byteStringArray.length; i++) {
             bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
         }
-        const c = require ('/Users/carlorevelli/Documents/important/code/ccxt/js/static_dependencies/crypto-js/crypto-js.js')
-        console.log (c.enc.Hex.stringify (bytestring))
         const hash = this.hash (bytestring, 'sha256', 'hex');
         const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
         const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
