@@ -565,7 +565,7 @@ module.exports = class bytetrade extends Exchange {
         const c = require ('/Users/carlorevelli/Documents/important/code/ccxt/js/static_dependencies/crypto-js/crypto-js.js')
         console.log (c.enc.Hex.stringify (bytestring))
         const hash = this.hash (bytestring, 'sha256', 'hex');
-        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined);
+        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
         const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         const operation = {
@@ -765,7 +765,7 @@ module.exports = class bytetrade extends Exchange {
             bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
         }
         const hash = this.hash (bytestring, 'sha256', 'hex');
-        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined);
+        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
         const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         const operation = {
@@ -870,7 +870,7 @@ module.exports = class bytetrade extends Exchange {
             bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
         }
         const hash = this.hash (bytestring, 'sha256', 'hex');
-        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined);
+        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
         const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         const operation = {
@@ -1079,7 +1079,7 @@ module.exports = class bytetrade extends Exchange {
         this.checkAddress (address);
         return {
             'currency': code,
-            'address': this.checkAddress (address),
+            'address': address,
             'tag': tag,
             'chainType': chainType,
             'info': response,
@@ -1157,7 +1157,7 @@ module.exports = class bytetrade extends Exchange {
             bytestring = this.binaryConcat (bytestring, byteStringArray[i]);
         }
         const hash = this.hash (bytestring, 'sha256', 'hex');
-        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined);
+        const signature = this.ecdsa (hash, this.secret, 'secp256k1', undefined, true);
         const recoveryParam = this.decode (this.binaryToBase16 (this.numberToLE (this.sum (signature['v'], 31), 1)));
         const mySignature = recoveryParam + signature['r'] + signature['s'];
         let assetFee = 0;
