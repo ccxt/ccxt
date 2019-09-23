@@ -1615,7 +1615,7 @@ class mandala (Exchange):
         return self.parse_addresses(data)
 
     async def generate_deposit_address(self, code, params={}):
-        # a common implmenetation of fetchDepositAddress and createDepositAddress
+        # a common implementation of fetchDepositAddress and createDepositAddress
         await self.load_markets()
         currency = self.currency(code)
         request = {

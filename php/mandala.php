@@ -1687,7 +1687,7 @@ class mandala extends Exchange {
     }
 
     public function generate_deposit_address ($code, $params = array ()) {
-        // a common implmenetation of fetchDepositAddress and createDepositAddress
+        // a common implementation of fetchDepositAddress and createDepositAddress
         $this->load_markets();
         $currency = $this->currency ($code);
         $request = array (
