@@ -216,9 +216,9 @@ class bigone3 (Exchange):
             'high': self.safe_float(ticker, 'high'),
             'low': self.safe_float(ticker, 'low'),
             'bid': self.safe_float(bid, 'price'),
-            'bidVolume': self.safe_float(bid, 'amount'),
+            'bidVolume': self.safe_float(bid, 'quantity'),
             'ask': self.safe_float(ask, 'price'),
-            'askVolume': self.safe_float(ask, 'amount'),
+            'askVolume': self.safe_float(ask, 'quantity'),
             'vwap': None,
             'open': self.safe_float(ticker, 'open'),
             'close': close,
@@ -249,6 +249,7 @@ class bigone3 (Exchange):
         tickers = self.safe_value(response, 'data')
         result = {}
         for i in range(0, len(tickers)):
+            tickers[i]["symbol"] = tickers[i].pop("asset_pair_name")
             ticker = self.parse_ticker(tickers[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
@@ -423,7 +424,7 @@ class bigone3 (Exchange):
             'info': order,
         }
 
-    def create_order(self, symbol, type, side, amount, price=None, params={}):
+    def create_order(self, symbol, side, amount, price=None, params={}):
         self.load_markets()
         market = self.market(symbol)
         side = 'BID' if (side == 'buy') else 'ASK'
