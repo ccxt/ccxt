@@ -789,7 +789,6 @@ module.exports = class bytetrade extends Exchange {
                 mySignature,
             ],
         };
-        const signedTransaction = await this.signExTransactionV1 ('cancel_order', operation, this.secret);
         const request = {
             'trObj': JSON.stringify (fatty),
         };
@@ -893,8 +892,6 @@ module.exports = class bytetrade extends Exchange {
                 mySignature,
             ],
         };
-        //const signedTransaction = await this.signExTransactionV1 ('cancel_order', operation, this.secret);
-        //console.log (signedTransaction)
         const request = {
             'trObj': JSON.stringify (fatty),
         };
