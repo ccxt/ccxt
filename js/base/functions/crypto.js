@@ -76,7 +76,7 @@ function jwt (request, secret, alg = 'HS256') {
     return [ token, signature ].join ('.')
 }
 
-function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, canonical_r = true) {
+function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, canonical_r = false) {
     let digest = request
     if (hashFunction !== undefined) {
         digest = hash (request, hashFunction, 'hex')

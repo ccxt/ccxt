@@ -1117,7 +1117,7 @@ class Exchange {
         return $signature;
     }
 
-    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $canonical_r = true) {
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $canonical_r = false) {
         $digest = $request;
         if ($hash !== null) {
             $digest = static::hash($request, $hash, 'hex');

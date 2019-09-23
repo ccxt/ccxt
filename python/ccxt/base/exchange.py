@@ -39,9 +39,6 @@ from static_dependencies import ecdsa
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base import bytetrade_operations
-
-
 __all__ = [
     'Exchange',
 ]
@@ -1066,7 +1063,7 @@ class Exchange(object):
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
-    def ecdsa(request, secret, algorithm='p256', hash=None, canonical_r=True):
+    def ecdsa(request, secret, algorithm='p256', hash=None, canonical_r=False):
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
             'p224': [ecdsa.NIST224p, 'sha256'],
@@ -1099,11 +1096,6 @@ class Exchange(object):
             's': s,
             'v': v,
         }
-
-    @staticmethod
-    def _is_canonical(sig):
-        return (not (int(sig[0]) & 0x80) and not (sig[0] == 0 and not (int(sig[1]) & 0x80)) and not (
-                    int(sig[32]) & 0x80) and not (sig[32] == 0 and not (int(sig[33]) & 0x80)))
 
     @staticmethod
     def unjson(input):
@@ -1954,92 +1946,6 @@ class Exchange(object):
             'orderHash': orderHash,
             'signature': self._convertECSignatureToSignatureHex(signature),
         })
-
-    def signExTransactionV1(self, trans_type, trans_info, privateKey):
-        dapp_name = 'Sagittarius'
-        timestamp = datetime.datetime.utcfromtimestamp(1567548954).strftime("%Y-%m-%dT%H:%M:%S")
-        expiration = (datetime.datetime.utcfromtimestamp(1567548964) + datetime.timedelta(days=0, hours=0, minutes=0, seconds=0)).strftime("%Y-%m-%dT%H:%M:%S")
-
-        if (trans_type == "create_order"):
-            op = bytetrade_operations.Order_create(
-                **{
-                    "fee": str(trans_info['fee']),
-                    "creator": str(trans_info['creator']),
-                    "side": trans_info['side'],
-                    "order_type": trans_info['order_type'],
-                    "market_name": trans_info['market_name'],
-                    "amount": str(trans_info['amount']),
-                    "price": str(trans_info['price']),
-                    "use_btt_as_fee": False,
-                    "now": timestamp,
-                    "expiration": expiration,
-                    "money_id": int(trans_info['money_id']),
-                    "stock_id": int(trans_info['stock_id'])
-                }
-            )
-        elif (trans_type == "cancel_order"):
-            op = bytetrade_operations.Order_cancel(
-                **{
-                    "fee": str(trans_info['fee']),
-                    "creator": str(trans_info['creator']),
-                    "market_name": trans_info['market_name'],
-                    "order_id": str(trans_info['order_id']),
-                    "money_id": int(trans_info['money_id']),
-                    "stock_id": int(trans_info['stock_id'])
-                }
-            )
-        elif (trans_type == "transfer"):
-            op = bytetrade_operations.Transfer(
-                **{
-                    "fee": str(trans_info['fee']),
-                    "from": str(trans_info['from']),
-                    "to": str(trans_info['to']),
-                    "asset_type": int(trans_info['asset_type']),
-                    "amount": str(trans_info['amount'])
-                }
-            )
-        elif (trans_type == "withdraw"):
-            withdraw_op = bytetrade_operations.Withdraw(
-                **{
-                    "fee": str(trans_info['fee']),
-                    "from": str(trans_info['from']),
-                    "to_external_address": trans_info['to_external_address'],
-                    "asset_type": int(trans_info['asset_type']),
-                    "amount": str(trans_info['amount']),
-                }
-            )
-            op = bytetrade_operations.Proposal_Withdraw(
-                **{
-                    "fee": str(trans_info['fee']),
-                    "proposaler": str(trans_info['from']),
-                    "expiration_time": expiration,
-                    "proposed_ops": [bytetrade_operations.Op_wrapper(**{
-                        "op": withdraw_op,
-                    })],
-                }
-            )
-        elif (trans_type == "btc_withdraw"):
-            op = bytetrade_operations.Withdraw_Btc(
-                **{
-                    "fee": str(trans_info['fee']),
-                    "from": trans_info['from'],
-                    "to_external_address": trans_info['to_external_address'],
-                    "asset_type": int(trans_info['asset_type']),
-                    "amount": str(trans_info['amount']),
-                    "asset_fee": str(trans_info['asset_fee'])
-                }
-            )
-        ops = [bytetrade_operations.Operation(op)]
-        tx = bytetrade_operations.Signed_Transaction(
-            timestamp=timestamp,
-            expiration=expiration,
-            operations=ops,
-            validate_type=0,
-            dapp=dapp_name,
-            proposal_transaction_id=None,
-        )
-        tx = tx.sign([privateKey], chain='BTT')
-        return json.dumps(tx.json())
 
     def _convertECSignatureToSignatureHex(self, signature):
         # https://github.com/0xProject/0x-monorepo/blob/development/packages/order-utils/src/signature_utils.ts
