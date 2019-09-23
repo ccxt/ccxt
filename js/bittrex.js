@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending } = require ('./base/errors');
+const { BadSymbol, ExchangeError, ExchangeNotAvailable, AuthenticationError, InvalidOrder, InsufficientFunds, OrderNotFound, DDoSProtection, PermissionDenied, AddressPending, MaintananceError } = require ('./base/errors');
 const { TRUNCATE, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -220,6 +220,7 @@ module.exports = class bittrex extends Exchange {
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
                 'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
                 'RESTRICTED_MARKET': BadSymbol,
+                'We are down for scheduled maintenance, but we\u2019ll be back up shortly.': MaintananceError, // {"success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null}
             },
             'options': {
                 'parseOrderStatus': false,
