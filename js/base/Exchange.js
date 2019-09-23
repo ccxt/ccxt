@@ -47,7 +47,7 @@ const {
 
 const { TRUNCATE, ROUND, DECIMAL_PLACES } = functions.precisionConstants
 
-const BN = require ('../static_dependencies/BN/BN')
+const BN = require ('../static_dependencies/BN/bn')
 
 // ----------------------------------------------------------------------------
 // web3 / 0x imports
@@ -68,6 +68,8 @@ try {
 } catch (e) {
     // nothing
 }
+
+// ----------------------------------------------------------------------------
 
 module.exports = class Exchange {
 

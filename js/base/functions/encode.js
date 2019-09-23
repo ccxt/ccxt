@@ -55,9 +55,7 @@ function byteArrayToWordArray(ba) {
     for (let i = 0; i < ba.length; i++) {
         wa[(i / 4) | 0] |= ba[i] << (24 - 8 * i)
     }
-    return CryptoJS.lib.WordArray.create(wa, ba.length);
+    return CryptoJS.lib.WordArray.create (wa, ba.length)
 }
-
-module.exports['byteArrayToWordArray'] = byteArrayToWordArray
 
 /*  ------------------------------------------------------------------------ */

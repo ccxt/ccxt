@@ -107,7 +107,7 @@ EC.prototype.sign = function sign(msg, key, enc, options) {
   // Instantiate Hmac_DRBG
   var drbg = new HmacDRBG({
     hash: this.hash,
-    entropy: options['extraEntropy'] ? bkey.concat (utils.wordArrayToBuffer (options['extraEntropy'])) : bkey,
+    entropy: options['extraEntropy'] ? bkey.concat (options['extraEntropy']) : bkey,
     nonce: nonce,
     pers: options.pers,
     persEnc: options.persEnc || 'utf8'

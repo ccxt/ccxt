@@ -9,7 +9,7 @@ const NodeRSA = require ('./../../static_dependencies/node-rsa/NodeRSA')
 const { numberToLE } = require ('./encode')
 const EC = require ('./../../static_dependencies/elliptic/lib/elliptic').ec
 const { ArgumentsRequired } = require ('./../errors')
-
+const BN = require ('../../static_dependencies/BN/bn.js')
 
 /*  ------------------------------------------------------------------------ */
 
@@ -83,10 +83,10 @@ function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, c
     }
     const curve = new EC (algorithm)
     let signature = curve.sign (digest, secret, 'hex',  { 'canonical': true })
-    let counter = 0
+    let counter = new BN ('0')
     while (canonical_r && signature.r.gt (curve.nh)) {
-        signature = curve.sign (digest, secret, 'hex',  { 'canonical': true, 'extraEntropy': numberToLE (counter, 32)})
-        counter++
+        signature = curve.sign (digest, secret, 'hex',  { 'canonical': true, 'extraEntropy': counter.toArray ('le', 32)})
+        counter = counter.add (new BN ('1'))
     }
     return {
         'r': signature.r.toString (16).padStart (64, '0'),
