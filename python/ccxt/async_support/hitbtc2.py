@@ -1149,7 +1149,7 @@ class hitbtc2 (hitbtc):
                 tradesCost = self.sum(tradesCost, trades[i]['cost'])
                 feeCost = self.sum(feeCost, trades[i]['fee']['cost'])
             cost = tradesCost
-            if (filled is not None) and(filled > 0):
+            if (filled is not None) and (filled > 0):
                 average = cost / filled
                 if type == 'market':
                     if price is None:
@@ -1383,6 +1383,10 @@ class hitbtc2 (hitbtc):
             # {"code":504,"message":"Gateway Timeout","description":""}
             if (code == 503) or (code == 504):
                 raise ExchangeNotAvailable(feedback)
+            # fallback to default error handler on rate limit errors
+            # {"code":429,"message":"Too many requests","description":"Too many requests"}
+            if code == 429:
+                return
             # {"error":{"code":20002,"message":"Order not found","description":""}}
             if body[0] == '{':
                 if 'error' in response:

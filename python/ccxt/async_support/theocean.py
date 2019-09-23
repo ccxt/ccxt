@@ -572,7 +572,7 @@ class theocean (Exchange):
     def parse_order(self, order, market=None):
         zeroExOrder = self.safe_value(order, 'zeroExOrder')
         id = self.safe_string(order, 'orderHash')
-        if (id is None) and(zeroExOrder is not None):
+        if (id is None) and (zeroExOrder is not None):
             id = self.safe_string(zeroExOrder, 'orderHash')
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'type')  # injected from outside

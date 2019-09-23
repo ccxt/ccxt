@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1115'
+__version__ = '1.18.1184'
 
 # -----------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 
 # -----------------------------------------------------------------------------
 
@@ -728,6 +729,10 @@ class Exchange(object):
         if len(string) > 1:
             return "%s%s" % (string[0].upper(), string[1:])
         return string.upper()
+
+    @staticmethod
+    def strip(string):
+        return string.strip()
 
     @staticmethod
     def keysort(dictionary):
@@ -1675,7 +1680,7 @@ class Exchange(object):
             raise ExchangeError('Markets not loaded')
         if isinstance(symbol, basestring) and (symbol in self.markets):
             return self.markets[symbol]
-        raise ExchangeError('No market symbol ' + str(symbol))
+        raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
 
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]

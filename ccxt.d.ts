@@ -337,6 +337,7 @@ declare module 'ccxt' {
 
     export class _1btcxe extends Exchange {}
     export class acx extends Exchange {}
+    export class adara extends Exchange {}
     export class allcoin extends okcoinusd {}
     export class anxpro extends Exchange {}
     export class bcex extends Exchange {}
@@ -345,6 +346,7 @@ declare module 'ccxt' {
     export class bigone extends Exchange {}
     export class binance extends Exchange {}
     export class binanceje extends binance {}
+    export class binanceus extends binance {}
     export class bit2c extends Exchange {}
     export class bitbank extends Exchange {}
     export class bitbay extends Exchange {}

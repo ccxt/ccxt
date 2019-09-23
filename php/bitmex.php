@@ -137,6 +137,7 @@ class bitmex extends Exchange {
             'exceptions' => array (
                 'exact' => array (
                     'Invalid API Key.' => '\\ccxt\\AuthenticationError',
+                    'This key is disabled.' => '\\ccxt\\PermissionDenied',
                     'Access Denied' => '\\ccxt\\PermissionDenied',
                     'Duplicate clOrdID' => '\\ccxt\\InvalidOrder',
                     'orderQty is invalid' => '\\ccxt\\InvalidOrder',
@@ -989,7 +990,7 @@ class bitmex extends Exchange {
         }
         $takerOrMaker = null;
         if ($fee !== null) {
-            $takerOrMaker = $fee['cost'] < 0 ? 'maker' : 'taker';
+            $takerOrMaker = ($fee['cost'] < 0) ? 'maker' : 'taker';
         }
         $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');

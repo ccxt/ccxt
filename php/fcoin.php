@@ -151,6 +151,7 @@ class fcoin extends Exchange {
                 '3008' => '\\ccxt\\InvalidOrder',
                 '6004' => '\\ccxt\\InvalidNonce',
                 '6005' => '\\ccxt\\AuthenticationError', // Illegal API Signature
+                '40003' => '\\ccxt\\BadSymbol',
             ),
             'commonCurrencies' => array (
                 'DAG' => 'DAGX',

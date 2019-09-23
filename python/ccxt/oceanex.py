@@ -51,6 +51,7 @@ class oceanex (Exchange):
                 'createMarketOrder': True,
                 'createOrder': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'cancelAllOrders': True,
             },
             'timeframes': {
@@ -460,15 +461,22 @@ class oceanex (Exchange):
         return self.parse_order(data, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        ids = id
+        if not isinstance(id, list):
+            ids = [id]
         self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {'ids': [id]}
+        request = {'ids': ids}
         response = self.privateGetOrders(self.extend(request, params))
         data = self.safe_value(response, 'data')
         dataLength = len(data)
-        if data is None or dataLength == 0:
+        if data is None:
+            raise OrderNotFound(self.id + ' could not found matching order')
+        if isinstance(id, list):
+            return self.parse_orders(data, market)
+        if dataLength == 0:
             raise OrderNotFound(self.id + ' could not found matching order')
         return self.parse_order(data[0], market)
 
@@ -565,16 +573,19 @@ class oceanex (Exchange):
         return self.parse_orders(data)
 
     def cancel_order(self, id, symbol=None, params={}):
+        self.load_markets()
         response = self.privatePostOrderDelete(self.extend({'id': id}, params))
         data = self.safe_value(response, 'data')
         return self.parse_order(data)
 
     def cancel_orders(self, ids, symbol=None, params={}):
+        self.load_markets()
         response = self.privatePostOrderDeleteMulti(self.extend({'ids': ids}, params))
         data = self.safe_value(response, 'data')
         return self.parse_orders(data)
 
     def cancel_all_orders(self, symbol=None, params={}):
+        self.load_markets()
         response = self.privatePostOrdersClear(params)
         data = self.safe_value(response, 'data')
         return self.parse_orders(data)
@@ -616,7 +627,7 @@ class oceanex (Exchange):
             return
         errorCode = self.safe_string(response, 'code')
         message = self.safe_string(response, 'message')
-        if (errorCode is not None) and(errorCode != '0'):
+        if (errorCode is not None) and (errorCode != '0'):
             feedback = self.id + ' ' + body
             codes = self.exceptions['codes']
             exact = self.exceptions['exact']

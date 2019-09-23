@@ -692,7 +692,6 @@ class okcoinusd (Exchange):
         method = 'publicGetFutureKline' if market['future'] else 'publicGetKline'
         request = self.create_request(market, {
             'type': self.timeframes[timeframe],
-            # 'since': since is self.milliseconds() - 86400000 if None else since,  # default last 24h
         })
         if since is not None:
             request['since'] = int((self.milliseconds() - 86400000) / 1000)  # default last 24h
@@ -731,7 +730,7 @@ class okcoinusd (Exchange):
         market = self.market(symbol)
         method = 'privatePostFutureTrade' if market['future'] else 'privatePostTrade'
         orderSide = (side + '_market') if (type == 'market') else side
-        isMarketBuy = ((market['spot']) and(type == 'market') and(side == 'buy') and(not self.options['marketBuyPrice']))
+        isMarketBuy = ((market['spot']) and (type == 'market') and (side == 'buy') and (not self.options['marketBuyPrice']))
         orderPrice = self.safe_float(params, 'cost') if isMarketBuy else price
         request = self.create_request(market, {
             'type': orderSide,

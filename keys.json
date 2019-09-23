@@ -1,4 +1,5 @@
 {
+    "adara":         { "skip": true },
     "allcoin":       { "skip": true },
     "bcex":          { "skip": true },
     "bibox":         { "skip": true },
@@ -42,6 +43,7 @@
     "dsx":           { "skip": true },
     "dx":            { "skip": true },
     "ethfinex":      { "skip": true },
+    "exmo":          { "skip": true },
     "exx":           { "skip": true },
     "fcoin":         { "skip": true },
     "flowbtc":       { "skip": true },

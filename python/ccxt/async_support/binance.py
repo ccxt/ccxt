@@ -145,6 +145,9 @@ class binance (Exchange):
                 },
                 'private': {
                     'get': [
+                        'allOrderList',  # oco
+                        'openOrderList',  # oco
+                        'orderList',  # oco
                         'order',
                         'openOrders',
                         'allOrders',
@@ -152,10 +155,12 @@ class binance (Exchange):
                         'myTrades',
                     ],
                     'post': [
+                        'order/oco',
                         'order',
                         'order/test',
                     ],
                     'delete': [
+                        'orderList',  # oco
                         'order',
                     ],
                 },
@@ -280,7 +285,7 @@ class binance (Exchange):
                     'max': None,
                 }
                 maxPrice = self.safe_float(filter, 'maxPrice')
-                if (maxPrice is not None) and(maxPrice > 0):
+                if (maxPrice is not None) and (maxPrice > 0):
                     entry['limits']['price']['max'] = maxPrice
                 entry['precision']['price'] = self.precision_from_string(filter['tickSize'])
             if 'LOT_SIZE' in filters:
@@ -371,11 +376,12 @@ class binance (Exchange):
         }
 
     async def fetch_status(self, params={}):
-        systemStatus = await self.wapiGetSystemStatus()
-        status = self.safe_value(systemStatus, 'status')
+        response = await self.wapiGetSystemStatus()
+        status = self.safe_value(response, 'status')
         if status is not None:
+            status = 'ok' if (status == 0) else 'maintenance'
             self.status = self.extend(self.status, {
-                'status': status == 'ok' if 0 else 'maintenance',
+                'status': status,
                 'updated': self.milliseconds(),
             })
         return self.status
@@ -490,7 +496,7 @@ class binance (Exchange):
             side = 'sell' if trade['isBuyerMaker'] else 'buy'
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
+                side = 'buy' if trade['isBuyer'] else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {
@@ -618,8 +624,8 @@ class binance (Exchange):
         type = self.safe_string_lower(order, 'type')
         if type == 'market':
             if price == 0.0:
-                if (cost is not None) and(filled is not None):
-                    if (cost > 0) and(filled > 0):
+                if (cost is not None) and (filled is not None):
+                    if (cost > 0) and (filled > 0):
                         price = cost / filled
         side = self.safe_string_lower(order, 'side')
         fee = None
@@ -1035,10 +1041,10 @@ class binance (Exchange):
         applyTime = self.safe_integer(transaction, 'applyTime')
         type = self.safe_string(transaction, 'type')
         if type is None:
-            if (insertTime is not None) and(applyTime is None):
+            if (insertTime is not None) and (applyTime is None):
                 type = 'deposit'
                 timestamp = insertTime
-            elif (insertTime is None) and(applyTime is not None):
+            elif (insertTime is None) and (applyTime is not None):
                 type = 'withdrawal'
                 timestamp = applyTime
         status = self.parse_transaction_status_by_type(self.safe_string(transaction, 'status'), type)

@@ -12,7 +12,9 @@ $error_hierarchy = array (
                 'AccountSuspended' => array(),
             ),
             'ArgumentsRequired' => array(),
-            'BadRequest' => array(),
+            'BadRequest' => array (
+                'BadSymbol' => array(),
+            ),
             'BadResponse' => array (
                 'NullResponse' => array(),
             ),

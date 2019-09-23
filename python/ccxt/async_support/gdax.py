@@ -420,17 +420,21 @@ class gdax (Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        timestamp = self.parse8601(order['created_at'])
+        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'product_id')
+        marketId = self.safe_string(order, 'product_id')
+        quote = None
+        if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
         status = self.parse_order_status(self.safe_string(order, 'status'))
         price = self.safe_float(order, 'price')
-        amount = self.safe_float_2(order, 'size', 'funds')
-        if amount is None:
-            amount = self.safe_float(order, 'specified_funds')
+        amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled_size')
         remaining = None
         if amount is not None:
@@ -443,12 +447,14 @@ class gdax (Exchange):
             feeCurrencyCode = None
             if market is not None:
                 feeCurrencyCode = market['quote']
+            elif quote is not None:
+                feeCurrencyCode = quote
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
                 'rate': None,
             }
-        if market is not None:
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
@@ -697,7 +703,6 @@ class gdax (Exchange):
                 if query:
                     body = self.json(query)
                     payload = body
-            # payload = body if (body) else ''
             what = nonce + method + request + payload
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
