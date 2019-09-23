@@ -458,7 +458,7 @@ class coinbase (Exchange):
         if market is None:
             baseId = self.safe_string(totalObject, 'currency')
             quoteId = self.safe_string(amountObject, 'currency')
-            if (baseId is not None) and(quoteId is not None):
+            if (baseId is not None) and (quoteId is not None):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote

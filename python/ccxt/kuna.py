@@ -73,7 +73,7 @@ class kuna (acx):
                 quoteId = quotes[j]
                 index = id.find(quoteId)
                 slice = id[index:]
-                if (index > 0) and(slice == quoteId):
+                if (index > 0) and (slice == quoteId):
                     baseId = id.replace(quoteId, '')
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)

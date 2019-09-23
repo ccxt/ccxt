@@ -307,7 +307,7 @@ module.exports = class luno extends Exchange {
                 takerOrMaker = 'taker';
             }
         } else {
-            side = (trade['is_buy']) ? 'buy' : 'sell';
+            side = trade['is_buy'] ? 'buy' : 'sell';
         }
         const feeBase = this.safeFloat (trade, 'fee_base');
         const feeCounter = this.safeFloat (trade, 'fee_counter');

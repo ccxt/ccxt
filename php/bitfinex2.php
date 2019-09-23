@@ -111,6 +111,7 @@ class bitfinex2 extends bitfinex {
                         'auth/r/trades/{symbol}/hist',
                         'auth/r/positions',
                         'auth/r/positions/hist',
+                        'auth/r/positions/audit',
                         'auth/r/funding/offers/{symbol}',
                         'auth/r/funding/offers/{symbol}/hist',
                         'auth/r/funding/loans/{symbol}',
@@ -459,7 +460,7 @@ class bitfinex2 extends bitfinex {
                     $symbol = $marketId;
                 }
             }
-            $orderId = $trade[3];
+            $orderId = (string) $trade[3];
             $takerOrMaker = ($trade[8] === 1) ? 'maker' : 'taker';
             $feeCost = $trade[9];
             $feeCurrency = $this->safe_currency_code($trade[10]);

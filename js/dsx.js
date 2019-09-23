@@ -181,8 +181,12 @@ module.exports = class dsx extends Exchange {
             };
             const hidden = this.safeInteger (market, 'hidden');
             const active = (hidden === 0);
+            // see parseMarket below
+            // https://github.com/ccxt/ccxt/pull/5786
+            const otherId = base.toLowerCase () + quote.toLowerCase ();
             result.push ({
                 'id': id,
+                'otherId': otherId, // https://github.com/ccxt/ccxt/pull/5786
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
@@ -260,9 +264,7 @@ module.exports = class dsx extends Exchange {
         const timestamp = this.safeTimestamp (ticker, 'updated');
         let symbol = undefined;
         const marketId = this.safeString (ticker, 'pair');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        }
+        market = this.parseMarket (marketId);
         if (market !== undefined) {
             symbol = market['symbol'];
         }
@@ -336,7 +338,7 @@ module.exports = class dsx extends Exchange {
         const id = this.safeString2 (trade, 'number', 'id');
         const orderId = this.safeString (trade, 'orderId');
         const marketId = this.safeString (trade, 'pair');
-        market = this.safeValue (this.markets_by_id, marketId, market);
+        market = this.parseMarket (marketId);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -493,6 +495,34 @@ module.exports = class dsx extends Exchange {
             'pair': ids,
         };
         const tickers = await this.publicGetTickerPair (this.extend (request, params));
+        //
+        //     {
+        //         "bchbtc" : {
+        //             "high" : 0.02989,
+        //             "low" : 0.02736,
+        //             "avg" : 33.90585,
+        //             "vol" : 0.65982205,
+        //             "vol_cur" : 0.0194604180960,
+        //             "last" : 0.03000,
+        //             "buy" : 0.02980,
+        //             "sell" : 0.03001,
+        //             "updated" : 1568104614,
+        //             "pair" : "bchbtc"
+        //         },
+        //         "ethbtc" : {
+        //             "high" : 0.01772,
+        //             "low" : 0.01742,
+        //             "avg" : 56.89082,
+        //             "vol" : 229.247115044,
+        //             "vol_cur" : 4.02959737298943,
+        //             "last" : 0.01769,
+        //             "buy" : 0.01768,
+        //             "sell" : 0.01776,
+        //             "updated" : 1568104614,
+        //             "pair" : "ethbtc"
+        //         }
+        //     }
+        //
         const result = {};
         const keys = Object.keys (tickers);
         for (let k = 0; k < keys.length; k++) {
@@ -695,6 +725,25 @@ module.exports = class dsx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
+    parseMarket (id) {
+        if (id in this.markets_by_id) {
+            return this.markets_by_id[id];
+        } else {
+            // the following is a fix for
+            // https://github.com/ccxt/ccxt/pull/5786
+            // https://github.com/ccxt/ccxt/issues/5770
+            let markets_by_other_id = this.safeValue (this.options, 'markets_by_other_id');
+            if (markets_by_other_id === undefined) {
+                this.options['markets_by_other_id'] = this.indexBy (this.markets, 'otherId');
+                markets_by_other_id = this.options['markets_by_other_id'];
+            }
+            if (id in markets_by_other_id) {
+                return markets_by_other_id[id];
+            }
+        }
+        return undefined;
+    }
+
     parseOrder (order, market = undefined) {
         //
         // fetchOrder
@@ -727,7 +776,7 @@ module.exports = class dsx extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'timestampCreated');
         const marketId = this.safeString (order, 'pair');
-        market = this.safeValue (this.markets_by_id, marketId, market);
+        market = this.parseMarket (marketId);
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -878,6 +927,9 @@ module.exports = class dsx extends Exchange {
             // 'endId': 321, // Decimal, ID of the last order of the selection
             // 'order': 'ASC', // String, Order in which orders shown. Possible values are "ASC" — from first to last, "DESC" — from last to first.
         };
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
         const response = await this.privatePostHistoryOrders (this.extend (request, params));
         //
         //     {

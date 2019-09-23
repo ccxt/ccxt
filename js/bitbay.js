@@ -18,6 +18,7 @@ module.exports = class bitbay extends Exchange {
                 'CORS': true,
                 'withdraw': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -137,6 +138,8 @@ module.exports = class bitbay extends Exchange {
                 // codes 507 and 508 are not specified in their docs
                 '509': ExchangeError, // The BIC/SWIFT is required for this currency
                 '510': ExchangeError, // Invalid market name
+                'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
+                'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
             },
         });
     }
@@ -213,6 +216,79 @@ module.exports = class bitbay extends Exchange {
         return result;
     }
 
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
+        const items = this.safeValue (response, 'items', []);
+        return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         market: 'ETH-EUR',
+        //         offerType: 'Sell',
+        //         id: '93d3657b-d616-11e9-9248-0242ac110005',
+        //         currentAmount: '0.04',
+        //         lockedAmount: '0.04',
+        //         rate: '280',
+        //         startAmount: '0.04',
+        //         time: '1568372806924',
+        //         postOnly: false,
+        //         hidden: false,
+        //         mode: 'limit',
+        //         receivedAmount: '0.0',
+        //         firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
+        //         secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af'
+        //     }
+        //
+        const marketId = this.safeString (order, 'market');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        const timestamp = this.safeInteger (order, 'time');
+        const amount = this.safeFloat (order, 'startAmount');
+        const remaining = this.safeFloat (order, 'currentAmount');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = Math.max (0, amount - remaining);
+            }
+        }
+        return {
+            'id': this.safeString (order, 'id'),
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'symbol': symbol,
+            'type': this.safeString (order, 'mode'),
+            'side': this.safeStringLower (order, 'offerType'),
+            'price': this.safeFloat (order, 'rate'),
+            'amount': amount,
+            'cost': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'average': undefined,
+            'fee': undefined,
+        };
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const markets = symbol ? [ this.marketId (symbol) ] : [];
@@ -250,24 +326,20 @@ module.exports = class bitbay extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostInfo (params);
+        const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
         const balances = this.safeValue (response, 'balances');
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
         }
         const result = { 'info': response };
-        const codes = Object.keys (this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            // rewrite with safeCurrencyCode, traverse by currency ids
-            const currencyId = this.currencyId (code);
-            const balance = this.safeValue (balances, currencyId);
-            if (balance !== undefined) {
-                const account = this.account ();
-                account['free'] = this.safeFloat (balance, 'available');
-                account['used'] = this.safeFloat (balance, 'locked');
-                result[code] = account;
-            }
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['used'] = this.safeFloat (balance, 'lockedFunds');
+            account['free'] = this.safeFloat (balance, 'availableFunds');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -834,25 +906,51 @@ module.exports = class bitbay extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         const market = this.market (symbol);
+        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
-            'type': side,
-            'currency': market['baseId'],
+            'symbol': tradingSymbol,
+            'offerType': side,
             'amount': amount,
-            'payment_currency': market['quoteId'],
-            'rate': price,
+            'mode': type,
         };
-        return await this.privatePostTrade (this.extend (request, params));
+        if (type === 'limit') {
+            request['rate'] = price;
+        }
+        //     {
+        //         status: 'Ok',
+        //         completed: false, // can deduce status from here
+        //         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
+        //         transactions: [], // can deduce order info from here
+        //     }
+        const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
+        return {
+            'id': this.safeString (response, 'offerId'),
+            'info': response,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ExchangeError (this.id + ' cancelOrder() requires a `side` parameter ("buy" or "sell")');
+        }
+        const price = this.safeValue (params, 'price');
+        if (price === undefined) {
+            throw new ExchangeError (this.id + ' cancelOrder() requires a `price` parameter (float or string)');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
+            'symbol': tradingSymbol,
             'id': id,
+            'side': side,
+            'price': price,
         };
-        return await this.privatePostCancel (this.extend (request, params));
+        // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
+        // { status: 'Ok', errors: [] }
+        return this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
     }
 
     isFiat (currency) {
@@ -910,13 +1008,16 @@ module.exports = class bitbay extends Exchange {
             this.checkRequiredCredentials ();
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
             const nonce = this.milliseconds ();
-            const payload = this.apiKey + nonce;
-            if (body !== undefined) {
-                body = this.json (body);
+            let payload = undefined;
+            if (method !== 'POST') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+                payload = this.apiKey + nonce;
+            } else if (body === undefined) {
+                body = this.json (query);
+                payload = this.apiKey + nonce + body;
             }
             headers = {
                 'Request-Timestamp': nonce,
@@ -976,6 +1077,22 @@ module.exports = class bitbay extends Exchange {
             if (code in this.exceptions) {
                 throw new exceptions[code] (feedback);
             } else {
+                throw new ExchangeError (feedback);
+            }
+        } else if ('status' in response) {
+            //
+            //      {"status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"]}
+            //
+            const status = this.safeString (response, 'status');
+            if (status === 'Fail') {
+                const errors = this.safeValue (response, 'errors');
+                const feedback = this.id + ' ' + this.json (response);
+                for (let i = 0; i < errors.length; i++) {
+                    const error = errors[i];
+                    if (error in this.exceptions) {
+                        throw new this.exceptions[error] (feedback);
+                    }
+                }
                 throw new ExchangeError (feedback);
             }
         }

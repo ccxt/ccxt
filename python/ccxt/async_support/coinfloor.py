@@ -59,10 +59,9 @@ class coinfloor (Exchange):
                 },
             },
             'markets': {
-                'BTC/GBP': {'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'baseId': 'XBT', 'quoteId': 'GBP'},
-                'BTC/EUR': {'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'XBT', 'quoteId': 'EUR'},
-                'BCH/GBP': {'id': 'BCH/GBP', 'symbol': 'BCH/GBP', 'base': 'BCH', 'quote': 'GBP', 'baseId': 'BCH', 'quoteId': 'GBP'},
-                'ETH/GBP': {'id': 'ETH/GBP', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP', 'baseId': 'ETH', 'quoteId': 'GBP'},
+                'BTC/GBP': {'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'baseId': 'XBT', 'quoteId': 'GBP', 'precision': {'price': 0, 'amount': 4}},
+                'BTC/EUR': {'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'XBT', 'quoteId': 'EUR', 'precision': {'price': 0, 'amount': 4}},
+                'ETH/GBP': {'id': 'ETH/GBP', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP', 'baseId': 'ETH', 'quoteId': 'GBP', 'precision': {'price': 0, 'amount': 4}},
             },
         })
 
@@ -198,7 +197,7 @@ class coinfloor (Exchange):
             'limit': limit,
         }
         response = await self.privatePostIdUserTransactions(self.extend(request, params))
-        return self.parse_ledger(response, None, since, limit)
+        return self.parse_ledger(response, None, since, None)
 
     def parse_ledger_entry_status(self, status):
         types = {
@@ -309,8 +308,8 @@ class coinfloor (Exchange):
                     'currency': quote,
                 }
             return [
-                self.extend(result, {'currency': base, 'amount': abs(baseAmount), 'direction': baseAmount > 'in' if 0 else 'out'}),
-                self.extend(result, {'currency': quote, 'amount': abs(quoteAmount), 'direction': quoteAmount > 'in' if 0 else 'out', 'fee': fee}),
+                self.extend(result, {'currency': base, 'amount': abs(baseAmount), 'direction': 'in' if (baseAmount > 0) else 'out'}),
+                self.extend(result, {'currency': quote, 'amount': abs(quoteAmount), 'direction': 'in' if (quoteAmount > 0) else 'out', 'fee': fee}),
             ]
             #
             # if fee is base or quote depending on buy/sell side
@@ -318,15 +317,15 @@ class coinfloor (Exchange):
             #     baseFee = (baseAmount > 0) ? {'currency': base, 'cost': feeCost} : None
             #     quoteFee = (quoteAmount > 0) ? {'currency': quote, 'cost': feeCost} : None
             #     return [
-            #         self.extend(result, {'currency': base, 'amount': baseAmount, 'direction': baseAmount > 'in' if 0 else 'out', 'fee': baseFee}),
-            #         self.extend(result, {'currency': quote, 'amount': quoteAmount, 'direction': quoteAmount > 'in' if 0 else 'out', 'fee': quoteFee}),
+            #         self.extend 'in' if (result, {'currency': base, 'amount': baseAmount, 'direction': (baseAmount > 0) else 'out', 'fee': baseFee}),
+            #         self.extend 'in' if (result, {'currency': quote, 'amount': quoteAmount, 'direction': (quoteAmount > 0) else 'out', 'fee': quoteFee}),
             #     ]
             #
             # fee as the 3rd item
             #
             #     return [
-            #         self.extend(result, {'currency': base, 'amount': baseAmount, 'direction': baseAmount > 'in' if 0 else 'out'}),
-            #         self.extend(result, {'currency': quote, 'amount': quoteAmount, 'direction': quoteAmount > 'in' if 0 else 'out'}),
+            #         self.extend 'in' if (result, {'currency': base, 'amount': baseAmount, 'direction': (baseAmount > 0) else 'out'}),
+            #         self.extend 'in' if (result, {'currency': quote, 'amount': quoteAmount, 'direction': (quoteAmount > 0) else 'out'}),
             #         self.extend(result, {'currency': feeCurrency, 'amount': feeCost, 'direction': 'out', 'type': 'fee'}),
             #     ]
             #
@@ -334,8 +333,8 @@ class coinfloor (Exchange):
             #
             # it's a regular transaction(deposit or withdrawal)
             #
-            amount = baseAmount == quoteAmount if 0 else baseAmount
-            code = baseAmount == quote if 0 else base
+            amount = quoteAmount if (baseAmount == 0) else baseAmount
+            code = quote if (baseAmount == 0) else base
             direction = 'in' if (amount > 0) else 'out'
             if feeCost is not None:
                 fee = {

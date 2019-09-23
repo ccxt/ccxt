@@ -38,6 +38,7 @@ const {
 
 const {
     ExchangeError
+    , BadSymbol
     , InvalidAddress
     , NotSupported
     , AuthenticationError
@@ -917,7 +918,7 @@ module.exports = class Exchange {
         if ((typeof symbol === 'string') && (symbol in this.markets))
             return this.markets[symbol]
 
-        throw new ExchangeError (this.id + ' does not have market symbol ' + symbol)
+        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol)
     }
 
     marketId (symbol) {
@@ -931,28 +932,6 @@ module.exports = class Exchange {
 
     symbol (symbol) {
         return this.market (symbol).symbol || symbol
-    }
-
-    extractParams (string) {
-        const re = /{([\w-]+)}/g
-        const matches = []
-        let match = re.exec (string)
-        while (match) {
-            matches.push (match[1])
-            match = re.exec (string)
-        }
-        return matches
-    }
-
-    implodeParams (string, params) {
-        if (!Array.isArray (params)) {
-            for (let property in params) {
-                if (!Array.isArray (params[property])) {
-                    string = string.replace ('{' + property + '}', params[property])
-                }
-            }
-        }
-        return string
     }
 
     url (path, params = {}) {
