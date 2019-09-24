@@ -148,7 +148,9 @@ class gemini extends Exchange {
                     'System' => '\\ccxt\\ExchangeError', // We are experiencing technical issues
                     'UnsupportedOption' => '\\ccxt\\BadRequest', // This order execution option is not supported.
                 ),
-                'broad' => array(),
+                'broad' => array (
+                    'The Gemini Exchange is currently undergoing maintenance.' => '\\ccxt\\OnMaintenance', // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                ),
             ),
             'options' => array (
                 'fetchMarketsMethod' => 'fetch_markets_from_web',
@@ -635,7 +637,15 @@ class gemini extends Exchange {
     }
 
     public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        $broad = $this->exceptions['broad'];
         if ($response === null) {
+            if (gettype ($body) === 'string') {
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $body);
+                $feedback = $this->id . ' ' . $body;
+                if ($broadKey !== null) {
+                    throw new $broad[$broadKey]($feedback);
+                }
+            }
             return; // fallback to default error handler
         }
         //
@@ -656,7 +666,6 @@ class gemini extends Exchange {
             } else if (is_array($exact) && array_key_exists($message, $exact)) {
                 throw new $exact[$message]($feedback);
             }
-            $broad = $this->exceptions['broad'];
             $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);

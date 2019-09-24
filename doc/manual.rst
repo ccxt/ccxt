@@ -55,7 +55,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 Exchanges
 =========
 
-The ccxt library currently supports the following 126 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 127 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -81,6 +81,8 @@ The ccxt library currently supports the following 126 cryptocurrency exchange ma
 | `binance <https://www.binance.com/?ref=10205187>`__                                       | binance            | `Binance <https://www.binance.com/?ref=10205187>`__                                        | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__ | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `binanceje <https://www.binance.je/?ref=35047921>`__                                      | binanceje          | `Binance Jersey <https://www.binance.je/?ref=35047921>`__                                  | \*  | `API <https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md>`__ |                                                                      |
++-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
+| `binanceus <https://www.binance.us/?ref=35005074>`__                                      | binanceus          | `Binance US <https://www.binance.us/?ref=35005074>`__                                      | \*  | `API <https://github.com/binance-us/binance-official-api-docs>`__                               |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `bit2c <https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf>`__                  | bit2c              | `Bit2C <https://bit2c.co.il/Aff/63bfed10-e359-420c-ab5a-ad368dab0baf>`__                   | \*  | `API <https://www.bit2c.co.il/home/api>`__                                                      |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -3685,6 +3687,17 @@ Below is an outline of exception inheritance hierarchy:
        +---+ RequestTimeout
 
 The ``BaseError`` class is a generic error class for all sorts of errors, including accessibility and request/response mismatch. Users should catch this exception at the very least, if no error differentiation is required.
+
+There’s two generic families of special cases or subtrees in the error hierarchy, both derived from ``BaseError``:
+
+-  ``NetworkError``
+-  ``ExchangeError``
+
+A ``NetworkError`` is a non-critical non-breaking error, not really an error in a full sense, but more like a temporary unavailability situation, that could be caused by any condition or by any factor, including maintenance, DDoS protections, and temporary bans. The reason for having a big family of ``NetworkError`` is to group all exceptions that can reappear or disappear upon a later retry or upon a retry from a different location, all the rest being equal (with the same user input, put simply, same order price and amount, same symbol, etc…).
+
+In contrast, the ``ExchangeError`` is a critical error indeed, and it differs from the ``NetworkError`` in a very specific way – if you get an ``ExchangeError`` with your input, then you should always get the same ``ExchangeError`` with that same input.
+
+The distinction between the two families of exceptions is such that one family is recoverable and the other family is unrecoverable. ``NetworkError`` means you can retry later and it can magically go away by itself, so a subsequent retry may succeed and the user may be able to recover from a ``NetworkError`` just by waiting. An ``ExchangeError`` is a fatal error, so, it means, something went bad and it will go bad every time, unless you change the input.
 
 ExchangeError
 -------------

@@ -1686,7 +1686,7 @@ module.exports = class mandala extends Exchange {
     }
 
     async generateDepositAddress (code, params = {}) {
-        // a common implmenetation of fetchDepositAddress and createDepositAddress
+        // a common implementation of fetchDepositAddress and createDepositAddress
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {

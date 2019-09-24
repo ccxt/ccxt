@@ -8,7 +8,9 @@ const errorHierarchy = {
                 'AccountSuspended': {},
             },
             'ArgumentsRequired': {},
-            'BadRequest': {},
+            'BadRequest': {
+                'BadSymbol': {},
+            },
             'BadResponse': {
                 'NullResponse': {},
             },
@@ -28,7 +30,9 @@ const errorHierarchy = {
         },
         'NetworkError': {
             'DDoSProtection': {},
-            'ExchangeNotAvailable': {},
+            'ExchangeNotAvailable': {
+                'OnMaintenance': {},
+            },
             'InvalidNonce': {},
             'RequestTimeout': {},
         },

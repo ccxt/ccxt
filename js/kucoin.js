@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, DDoSProtection, NotSupported, BadRequest, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, DDoSProtection, NotSupported, BadRequest, AuthenticationError, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -143,6 +143,7 @@ module.exports = class kucoin extends Exchange {
                 '230003': InsufficientFunds, // {"code":"230003","msg":"Balance insufficient!"}
                 '260100': InsufficientFunds, // {"code":"260100","msg":"account.noBalance"}
                 '300000': InvalidOrder,
+                '400000': BadSymbol,
                 '400001': AuthenticationError,
                 '400002': InvalidNonce,
                 '400003': AuthenticationError,
@@ -178,6 +179,9 @@ module.exports = class kucoin extends Exchange {
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
+                'fetchBalance': {
+                    'type': 'trade', // or 'main'
+                },
             },
         });
     }
@@ -274,7 +278,7 @@ module.exports = class kucoin extends Exchange {
         const result = {};
         for (let i = 0; i < responseData.length; i++) {
             const entry = responseData[i];
-            const id = this.safeString (entry, 'name');
+            const id = this.safeString (entry, 'currency');
             const name = this.safeString (entry, 'fullName');
             const code = this.safeCurrencyCode (id);
             const precision = this.safeInteger (entry, 'precision');
@@ -1170,7 +1174,7 @@ module.exports = class kucoin extends Exchange {
             }
             txid = txidParts[0];
         }
-        let type = txid === undefined ? 'withdrawal' : 'deposit';
+        let type = (txid === undefined) ? 'withdrawal' : 'deposit';
         const rawStatus = this.safeString (transaction, 'status');
         const status = this.parseTransactionStatus (rawStatus);
         let fee = undefined;
@@ -1348,9 +1352,18 @@ module.exports = class kucoin extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const request = {
-            'type': 'trade',
-        };
+        let type = undefined;
+        const request = {};
+        if ('type' in params) {
+            type = params['type'];
+            if (type !== undefined) {
+                request['type'] = type;
+            }
+            params = this.omit (params, 'type');
+        } else {
+            const options = this.safeValue (this.options, 'fetchBalance', {});
+            type = this.safeString (options, 'type', 'trade');
+        }
         const response = await this.privateGetAccounts (this.extend (request, params));
         //
         //     {
@@ -1361,18 +1374,21 @@ module.exports = class kucoin extends Exchange {
         //             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
         //         ]
         //     }
-        // /
+        //
         const data = this.safeValue (response, 'data', []);
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeFloat (balance, 'balance');
-            account['free'] = this.safeFloat (balance, 'available');
-            account['used'] = this.safeFloat (balance, 'holds');
-            result[code] = account;
+            const balanceType = this.safeString (balance, 'type');
+            if (balanceType === type) {
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['total'] = this.safeFloat (balance, 'balance');
+                account['free'] = this.safeFloat (balance, 'available');
+                account['used'] = this.safeFloat (balance, 'holds');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
@@ -1526,7 +1542,7 @@ module.exports = class kucoin extends Exchange {
         let endpoint = '/api/' + version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
-        headers = headers !== undefined ? headers : {};
+        headers = (headers !== undefined) ? headers : {};
         if (Object.keys (query).length) {
             if (method !== 'GET') {
                 body = this.json (query);

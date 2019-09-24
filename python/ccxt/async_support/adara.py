@@ -439,7 +439,7 @@ class adara (Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
-        filters = 'filters[' + 'symbol' + ']'
+        filters = 'filters[symbol]'
         request = {}
         request[filters] = market['id']
         response = await self.publicGetOrderBook(self.extend(request, params))
@@ -963,7 +963,7 @@ class adara (Exchange):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            filters = 'filters[' + 'symbol' + ']'
+            filters = 'filters[symbol]'
             request[filters] = market['id']
         response = await self.privateGetOrder(self.extend(request, params))
         #
@@ -1026,13 +1026,13 @@ class adara (Exchange):
         return self.parse_orders_response(response, market, since, limit)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
-        filters = 'filters[status]' + '[' + ']'
+        filters = 'filters[status][]'
         request = {}
         request[filters] = 'open'
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
-        filters = 'filters[status]' + '[' + ']'
+        filters = 'filters[status][]'
         request = {}
         request[filters] = 'closed'
         return await self.fetch_orders(symbol, since, limit, self.extend(request, params))

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1144'
+__version__ = '1.18.1187'
 
 # -----------------------------------------------------------------------------
 
@@ -57,6 +57,7 @@ from ccxt.async_support.bibox import bibox                                # noqa
 from ccxt.async_support.bigone import bigone                              # noqa: F401
 from ccxt.async_support.binance import binance                            # noqa: F401
 from ccxt.async_support.binanceje import binanceje                        # noqa: F401
+from ccxt.async_support.binanceus import binanceus                        # noqa: F401
 from ccxt.async_support.bit2c import bit2c                                # noqa: F401
 from ccxt.async_support.bitbank import bitbank                            # noqa: F401
 from ccxt.async_support.bitbay import bitbay                              # noqa: F401
@@ -185,6 +186,7 @@ exchanges = [
     'bigone',
     'binance',
     'binanceje',
+    'binanceus',
     'bit2c',
     'bitbank',
     'bitbay',

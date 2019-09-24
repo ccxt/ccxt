@@ -16,12 +16,14 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 
@@ -238,6 +240,8 @@ class bittrex (Exchange):
                 'RATE_NOT_PROVIDED': InvalidOrder,  # createLimitBuyOrder('ETH/BTC', 1, 0)
                 'WHITELIST_VIOLATION_IP': PermissionDenied,
                 'DUST_TRADE_DISALLOWED_MIN_VALUE': InvalidOrder,
+                'RESTRICTED_MARKET': BadSymbol,
+                'We are down for scheduled maintenance, but we\u2019ll be back up shortly.': OnMaintenance,  # {"success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null}
             },
             'options': {
                 'parseOrderStatus': False,
@@ -387,43 +391,6 @@ class bittrex (Exchange):
                 }
         return self.parse_order_book(orderbook, None, 'buy', 'sell', 'Rate', 'Quantity')
 
-    def parse_ticker(self, ticker, market=None):
-        timestamp = self.parse8601(self.safe_string(ticker, 'TimeStamp'))
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        previous = self.safe_float(ticker, 'PrevDay')
-        last = self.safe_float(ticker, 'Last')
-        change = None
-        percentage = None
-        if last is not None:
-            if previous is not None:
-                change = last - previous
-                if previous > 0:
-                    percentage = (change / previous) * 100
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_float(ticker, 'High'),
-            'low': self.safe_float(ticker, 'Low'),
-            'bid': self.safe_float(ticker, 'Bid'),
-            'bidVolume': None,
-            'ask': self.safe_float(ticker, 'Ask'),
-            'askVolume': None,
-            'vwap': None,
-            'open': previous,
-            'close': last,
-            'last': last,
-            'previousClose': None,
-            'change': change,
-            'percentage': percentage,
-            'average': None,
-            'baseVolume': self.safe_float(ticker, 'Volume'),
-            'quoteVolume': self.safe_float(ticker, 'BaseVolume'),
-            'info': ticker,
-        }
-
     def fetch_currencies(self, params={}):
         response = self.publicGetCurrencies(params)
         #
@@ -489,23 +456,75 @@ class bittrex (Exchange):
             }
         return result
 
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "MarketName":"BTC-ETH",
+        #         "High":0.02127099,
+        #         "Low":0.02035064,
+        #         "Volume":10288.40271571,
+        #         "Last":0.02070510,
+        #         "BaseVolume":214.64663206,
+        #         "TimeStamp":"2019-09-18T21:03:59.897",
+        #         "Bid":0.02070509,
+        #         "Ask":0.02070510,
+        #         "OpenBuyOrders":1228,
+        #         "OpenSellOrders":5899,
+        #         "PrevDay":0.02082823,
+        #         "Created":"2015-08-14T09:02:24.817"
+        #     }
+        #
+        timestamp = self.parse8601(self.safe_string(ticker, 'TimeStamp'))
+        symbol = None
+        marketId = self.safe_string(ticker, 'MarketName')
+        if marketId is not None:
+            if marketId in self.markets_by_id:
+                market = self.markets_by_id[marketId]
+            else:
+                symbol = self.parse_symbol(marketId)
+        if (symbol is None) and (market is not None):
+            symbol = market['symbol']
+        previous = self.safe_float(ticker, 'PrevDay')
+        last = self.safe_float(ticker, 'Last')
+        change = None
+        percentage = None
+        if last is not None:
+            if previous is not None:
+                change = last - previous
+                if previous > 0:
+                    percentage = (change / previous) * 100
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_float(ticker, 'High'),
+            'low': self.safe_float(ticker, 'Low'),
+            'bid': self.safe_float(ticker, 'Bid'),
+            'bidVolume': None,
+            'ask': self.safe_float(ticker, 'Ask'),
+            'askVolume': None,
+            'vwap': None,
+            'open': previous,
+            'close': last,
+            'last': last,
+            'previousClose': None,
+            'change': change,
+            'percentage': percentage,
+            'average': None,
+            'baseVolume': self.safe_float(ticker, 'Volume'),
+            'quoteVolume': self.safe_float(ticker, 'BaseVolume'),
+            'info': ticker,
+        }
+
     def fetch_tickers(self, symbols=None, params={}):
         self.load_markets()
         response = self.publicGetMarketsummaries(params)
-        tickers = self.safe_value(response, 'result')
-        result = {}
-        for t in range(0, len(tickers)):
-            ticker = tickers[t]
-            marketId = self.safe_string(ticker, 'MarketName')
-            market = None
-            symbol = marketId
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-                symbol = market['symbol']
-            else:
-                symbol = self.parse_symbol(marketId)
-            result[symbol] = self.parse_ticker(ticker, market)
-        return result
+        result = self.safe_value(response, 'result')
+        tickers = []
+        for i in range(0, len(result)):
+            ticker = self.parse_ticker(result[i])
+            tickers.append(ticker)
+        return self.filter_by_array(tickers, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
         self.load_markets()
@@ -514,6 +533,29 @@ class bittrex (Exchange):
             'market': market['id'],
         }
         response = self.publicGetMarketsummary(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "message":"",
+        #         "result":[
+        #             {
+        #                 "MarketName":"BTC-ETH",
+        #                 "High":0.02127099,
+        #                 "Low":0.02035064,
+        #                 "Volume":10288.40271571,
+        #                 "Last":0.02070510,
+        #                 "BaseVolume":214.64663206,
+        #                 "TimeStamp":"2019-09-18T21:03:59.897",
+        #                 "Bid":0.02070509,
+        #                 "Ask":0.02070510,
+        #                 "OpenBuyOrders":1228,
+        #                 "OpenSellOrders":5899,
+        #                 "PrevDay":0.02082823,
+        #                 "Created":"2015-08-14T09:02:24.817"
+        #             }
+        #         ]
+        #     }
+        #
         ticker = response['result'][0]
         return self.parse_ticker(ticker, market)
 

@@ -77,12 +77,44 @@ class binance extends Exchange {
                         'assetWithdraw/getAllAsset.html',
                     ),
                 ),
+                // the API structure below will need 3-layer apidefs
                 'sapi' => array (
                     'get' => array (
+                        // these endpoints require $this->apiKey
+                        'margin/asset',
+                        'margin/pair',
+                        'margin/allAssets',
+                        'margin/allPairs',
+                        'margin/priceIndex',
+                        // these endpoints require $this->apiKey . $this->secret
                         'asset/assetDividend',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/account',
+                        'margin/transfer',
+                        'margin/interestHistory',
+                        'margin/forceLiquidationRec',
+                        'margin/order',
+                        'margin/openOrders',
+                        'margin/allOrders',
+                        'margin/myTrades',
+                        'margin/maxBorrowable',
+                        'margin/maxTransferable',
                     ),
                     'post' => array (
                         'asset/dust',
+                        'margin/transfer',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/order',
+                        'userDataStream',
+                    ),
+                    'put' => array (
+                        'userDataStream',
+                    ),
+                    'delete' => array (
+                        'margin/order',
+                        'userDataStream',
                     ),
                 ),
                 'wapi' => array (
@@ -133,6 +165,9 @@ class binance extends Exchange {
                 ),
                 'private' => array (
                     'get' => array (
+                        'allOrderList', // oco
+                        'openOrderList', // oco
+                        'orderList', // oco
                         'order',
                         'openOrders',
                         'allOrders',
@@ -140,10 +175,12 @@ class binance extends Exchange {
                         'myTrades',
                     ),
                     'post' => array (
+                        'order/oco',
                         'order',
                         'order/test',
                     ),
                     'delete' => array (
+                        'orderList', // oco
                         'order',
                     ),
                 ),
@@ -377,11 +414,12 @@ class binance extends Exchange {
     }
 
     public function fetch_status ($params = array ()) {
-        $systemStatus = $this->wapiGetSystemStatus ();
-        $status = $this->safe_value($systemStatus, 'status');
+        $response = $this->wapiGetSystemStatus ();
+        $status = $this->safe_value($response, 'status');
         if ($status !== null) {
+            $status = ($status === 0) ? 'ok' : 'maintenance';
             $this->status = array_merge ($this->status, array (
-                'status' => $status === 0 ? 'ok' : 'maintenance',
+                'status' => $status,
                 'updated' => $this->milliseconds (),
             ));
         }
@@ -508,7 +546,7 @@ class binance extends Exchange {
             $side = $trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
             if (is_array($trade) && array_key_exists('isBuyer', $trade)) {
-                $side = ($trade['isBuyer']) ? 'buy' : 'sell'; // this is a true $side
+                $side = $trade['isBuyer'] ? 'buy' : 'sell'; // this is a true $side
             }
         }
         $fee = null;

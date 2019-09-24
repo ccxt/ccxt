@@ -89,12 +89,44 @@ class binance (Exchange):
                         'assetWithdraw/getAllAsset.html',
                     ],
                 },
+                # the API structure below will need 3-layer apidefs
                 'sapi': {
                     'get': [
+                        # these endpoints require self.apiKey
+                        'margin/asset',
+                        'margin/pair',
+                        'margin/allAssets',
+                        'margin/allPairs',
+                        'margin/priceIndex',
+                        # these endpoints require self.apiKey + self.secret
                         'asset/assetDividend',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/account',
+                        'margin/transfer',
+                        'margin/interestHistory',
+                        'margin/forceLiquidationRec',
+                        'margin/order',
+                        'margin/openOrders',
+                        'margin/allOrders',
+                        'margin/myTrades',
+                        'margin/maxBorrowable',
+                        'margin/maxTransferable',
                     ],
                     'post': [
                         'asset/dust',
+                        'margin/transfer',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/order',
+                        'userDataStream',
+                    ],
+                    'put': [
+                        'userDataStream',
+                    ],
+                    'delete': [
+                        'margin/order',
+                        'userDataStream',
                     ],
                 },
                 'wapi': {
@@ -145,6 +177,9 @@ class binance (Exchange):
                 },
                 'private': {
                     'get': [
+                        'allOrderList',  # oco
+                        'openOrderList',  # oco
+                        'orderList',  # oco
                         'order',
                         'openOrders',
                         'allOrders',
@@ -152,10 +187,12 @@ class binance (Exchange):
                         'myTrades',
                     ],
                     'post': [
+                        'order/oco',
                         'order',
                         'order/test',
                     ],
                     'delete': [
+                        'orderList',  # oco
                         'order',
                     ],
                 },
@@ -371,11 +408,12 @@ class binance (Exchange):
         }
 
     def fetch_status(self, params={}):
-        systemStatus = self.wapiGetSystemStatus()
-        status = self.safe_value(systemStatus, 'status')
+        response = self.wapiGetSystemStatus()
+        status = self.safe_value(response, 'status')
         if status is not None:
+            status = 'ok' if (status == 0) else 'maintenance'
             self.status = self.extend(self.status, {
-                'status': status == 'ok' if 0 else 'maintenance',
+                'status': status,
                 'updated': self.milliseconds(),
             })
         return self.status
@@ -490,7 +528,7 @@ class binance (Exchange):
             side = 'sell' if trade['isBuyerMaker'] else 'buy'
         else:
             if 'isBuyer' in trade:
-                side = 'buy' if (trade['isBuyer']) else 'sell'  # self is a True side
+                side = 'buy' if trade['isBuyer'] else 'sell'  # self is a True side
         fee = None
         if 'commission' in trade:
             fee = {

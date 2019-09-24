@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1144'
+__version__ = '1.18.1187'
 
 # -----------------------------------------------------------------------------
 
@@ -17,6 +17,7 @@ from ccxt.base.errors import RequestTimeout
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import BadSymbol
 
 # -----------------------------------------------------------------------------
 
@@ -1673,7 +1674,7 @@ class Exchange(object):
             raise ExchangeError('Markets not loaded')
         if isinstance(symbol, basestring) and (symbol in self.markets):
             return self.markets[symbol]
-        raise ExchangeError('No market symbol ' + str(symbol))
+        raise BadSymbol('{} does not have market symbol {}'.format(self.id, symbol))
 
     def market_ids(self, symbols):
         return [self.market_id(symbol) for symbol in symbols]

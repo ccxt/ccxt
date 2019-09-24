@@ -289,11 +289,14 @@ class lykke (Exchange):
 
     def parse_order_status(self, status):
         statuses = {
+            'Open': 'open',
             'Pending': 'open',
             'InOrderBook': 'open',
             'Processing': 'open',
             'Matched': 'closed',
             'Cancelled': 'canceled',
+            'Rejected': 'rejected',
+            'Replaced': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 

@@ -739,7 +739,7 @@ class cex (Exchange):
                 tradeAmount = self.safe_float(item, 'amount')
                 tradePrice = self.safe_float(item, 'price')
                 feeCost = self.safe_float(item, 'fee_amount')
-                absTradeAmount = tradeAmount < -tradeAmount if 0 else tradeAmount
+                absTradeAmount = -tradeAmount if (tradeAmount < 0) else tradeAmount
                 tradeCost = None
                 if tradeSide == 'sell':
                     tradeCost = absTradeAmount

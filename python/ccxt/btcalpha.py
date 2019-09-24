@@ -107,6 +107,9 @@ class btcalpha (Exchange):
                     },
                 },
             },
+            'commonCurrencies': {
+                'CBC': 'Cashbery',
+            },
         })
 
     def fetch_markets(self, params={}):
@@ -264,6 +267,15 @@ class btcalpha (Exchange):
         trades = self.safe_value(order, 'trades', [])
         trades = self.parse_trades(trades, market)
         side = self.safe_string_2(order, 'my_side', 'type')
+        filled = None
+        numTrades = len(trades)
+        if numTrades > 0:
+            filled = 0.0
+            for i in range(0, numTrades):
+                filled = self.sum(filled, trades[i]['amount'])
+        remaining = None
+        if (amount is not None) and (amount > 0) and (filled is not None):
+            remaining = max(0, amount - filled)
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),
@@ -275,8 +287,8 @@ class btcalpha (Exchange):
             'price': price,
             'cost': None,
             'amount': amount,
-            'filled': None,
-            'remaining': None,
+            'filled': filled,
+            'remaining': remaining,
             'trades': trades,
             'fee': None,
             'info': order,
@@ -294,7 +306,11 @@ class btcalpha (Exchange):
         response = self.privatePostOrder(self.extend(request, params))
         if not response['success']:
             raise InvalidOrder(self.id + ' ' + self.json(response))
-        return self.parse_order(response, market)
+        order = self.parse_order(response, market)
+        amount = order['amount'] if (order['amount'] > 0) else amount
+        return self.extend(order, {
+            'amount': amount,
+        })
 
     def cancel_order(self, id, symbol=None, params={}):
         request = {

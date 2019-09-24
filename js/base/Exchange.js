@@ -38,6 +38,7 @@ const {
 
 const {
     ExchangeError
+    , BadSymbol
     , InvalidAddress
     , NotSupported
     , AuthenticationError
@@ -915,7 +916,7 @@ module.exports = class Exchange {
         if ((typeof symbol === 'string') && (symbol in this.markets))
             return this.markets[symbol]
 
-        throw new ExchangeError (this.id + ' does not have market symbol ' + symbol)
+        throw new BadSymbol (this.id + ' does not have market symbol ' + symbol)
     }
 
     marketId (symbol) {

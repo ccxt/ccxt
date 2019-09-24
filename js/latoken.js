@@ -90,6 +90,9 @@ module.exports = class latoken extends Exchange {
                     'taker': 0.1 / 100,
                 },
             },
+            'commonCurrencies': {
+                'TSL': 'Treasure SL',
+            },
             'options': {
                 'createOrderMethod': 'private_post_order_new', // private_post_order_test_order
             },
