@@ -745,7 +745,7 @@ module.exports = class idex extends Exchange {
         if (symbol === undefined && market !== undefined) {
             symbol = market['symbol'];
         }
-        const id = this.safeString (order, 'orderHash');
+        const id = this.safeString (order, 'orderNumber');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         return {
             'info': order,
