@@ -26,12 +26,13 @@ const errorHierarchy = {
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
             },
-            'MaintananceError': {},
             'NotSupported': {},
         },
         'NetworkError': {
             'DDoSProtection': {},
-            'ExchangeNotAvailable': {},
+            'ExchangeNotAvailable': {
+                'OnMaintenance': {},
+            },
             'InvalidNonce': {},
             'RequestTimeout': {},
         },
