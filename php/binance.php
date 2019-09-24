@@ -77,12 +77,44 @@ class binance extends Exchange {
                         'assetWithdraw/getAllAsset.html',
                     ),
                 ),
+                // the API structure below will need 3-layer apidefs
                 'sapi' => array (
                     'get' => array (
+                        // these endpoints require $this->apiKey
+                        'margin/asset',
+                        'margin/pair',
+                        'margin/allAssets',
+                        'margin/allPairs',
+                        'margin/priceIndex',
+                        // these endpoints require $this->apiKey . $this->secret
                         'asset/assetDividend',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/account',
+                        'margin/transfer',
+                        'margin/interestHistory',
+                        'margin/forceLiquidationRec',
+                        'margin/order',
+                        'margin/openOrders',
+                        'margin/allOrders',
+                        'margin/myTrades',
+                        'margin/maxBorrowable',
+                        'margin/maxTransferable',
                     ),
                     'post' => array (
                         'asset/dust',
+                        'margin/transfer',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/order',
+                        'userDataStream',
+                    ),
+                    'put' => array (
+                        'userDataStream',
+                    ),
+                    'delete' => array (
+                        'margin/order',
+                        'userDataStream',
                     ),
                 ),
                 'wapi' => array (
