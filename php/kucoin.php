@@ -180,6 +180,9 @@ class kucoin extends Exchange {
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
+                'fetchBalance' => array (
+                    'type' => 'trade', // or 'main'
+                ),
             ),
         ));
     }
@@ -1359,7 +1362,8 @@ class kucoin extends Exchange {
             }
             $params = $this->omit ($params, 'type');
         } else {
-            $type = 'trade';
+            $options = $this->safe_value($this->options, 'fetchBalance', array());
+            $type = $this->safe_string($options, 'type', 'trade');
         }
         $response = $this->privateGetAccounts (array_merge ($request, $params));
         //
@@ -1371,7 +1375,7 @@ class kucoin extends Exchange {
         //             array("$balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","$type":"trade"),
         //         )
         //     }
-        // /
+        //
         $data = $this->safe_value($response, 'data', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($data); $i++) {

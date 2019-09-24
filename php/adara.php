@@ -447,7 +447,7 @@ class adara extends Exchange {
     public function fetch_order_book ($symbol, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
-        $filters = 'filters[' . 'symbol' . ']';
+        $filters = 'filters[$symbol]';
         $request = array();
         $request[$filters] = $market['id'];
         $response = $this->publicGetOrderBook (array_merge ($request, $params));
@@ -998,7 +998,7 @@ class adara extends Exchange {
         $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
-            $filters = 'filters[' . 'symbol' . ']';
+            $filters = 'filters[$symbol]';
             $request[$filters] = $market['id'];
         }
         $response = $this->privateGetOrder (array_merge ($request, $params));
@@ -1063,14 +1063,14 @@ class adara extends Exchange {
     }
 
     public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $filters = 'filters[status]' . '[' . ']';
+        $filters = 'filters[status]array()';
         $request = array();
         $request[$filters] = 'open';
         return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));
     }
 
     public function fetch_closed_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $filters = 'filters[status]' . '[' . ']';
+        $filters = 'filters[status]array()';
         $request = array();
         $request[$filters] = 'closed';
         return $this->fetch_orders($symbol, $since, $limit, array_merge ($request, $params));

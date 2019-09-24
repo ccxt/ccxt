@@ -10,6 +10,7 @@ import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -156,6 +157,7 @@ class crex24 (Exchange):
                 'broad': {
                     'API Key': AuthenticationError,  # "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds': InsufficientFunds,  # "Insufficient funds: new order requires 10 ETH which is more than the available balance."
+                    'has been delisted.': BadSymbol,  # {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
                 },
             },
         })
