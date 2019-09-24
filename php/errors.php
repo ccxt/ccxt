@@ -34,7 +34,9 @@ $error_hierarchy = array (
         ),
         'NetworkError' => array (
             'DDoSProtection' => array(),
-            'ExchangeNotAvailable' => array(),
+            'ExchangeNotAvailable' => array (
+                'OnMaintenance' => array(),
+            ),
             'InvalidNonce' => array(),
             'RequestTimeout' => array(),
         ),
