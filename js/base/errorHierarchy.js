@@ -30,7 +30,9 @@ const errorHierarchy = {
         },
         'NetworkError': {
             'DDoSProtection': {},
-            'ExchangeNotAvailable': {},
+            'ExchangeNotAvailable': {
+                'OnMaintenance': {},
+            },
             'InvalidNonce': {},
             'RequestTimeout': {},
         },

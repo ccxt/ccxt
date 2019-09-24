@@ -220,6 +220,7 @@ class bittrex extends Exchange {
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
                 'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
                 'RESTRICTED_MARKET' => '\\ccxt\\BadSymbol',
+                'We are down for scheduled maintenance, but we\u2019ll be back up shortly.' => '\\ccxt\\OnMaintenance', // array("success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null)
             ),
             'options' => array (
                 'parseOrderStatus' => false,

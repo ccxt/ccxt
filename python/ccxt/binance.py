@@ -89,12 +89,44 @@ class binance (Exchange):
                         'assetWithdraw/getAllAsset.html',
                     ],
                 },
+                # the API structure below will need 3-layer apidefs
                 'sapi': {
                     'get': [
+                        # these endpoints require self.apiKey
+                        'margin/asset',
+                        'margin/pair',
+                        'margin/allAssets',
+                        'margin/allPairs',
+                        'margin/priceIndex',
+                        # these endpoints require self.apiKey + self.secret
                         'asset/assetDividend',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/account',
+                        'margin/transfer',
+                        'margin/interestHistory',
+                        'margin/forceLiquidationRec',
+                        'margin/order',
+                        'margin/openOrders',
+                        'margin/allOrders',
+                        'margin/myTrades',
+                        'margin/maxBorrowable',
+                        'margin/maxTransferable',
                     ],
                     'post': [
                         'asset/dust',
+                        'margin/transfer',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/order',
+                        'userDataStream',
+                    ],
+                    'put': [
+                        'userDataStream',
+                    ],
+                    'delete': [
+                        'margin/order',
+                        'userDataStream',
                     ],
                 },
                 'wapi': {

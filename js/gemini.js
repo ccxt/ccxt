@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, DDoSProtection, InsufficientFunds, AuthenticationError, ExchangeNotAvailable, PermissionDenied, NotSupported } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired, BadRequest, OrderNotFound, InvalidOrder, InvalidNonce, DDoSProtection, InsufficientFunds, AuthenticationError, ExchangeNotAvailable, PermissionDenied, NotSupported, OnMaintenance } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -147,7 +147,9 @@ module.exports = class gemini extends Exchange {
                     'System': ExchangeError, // We are experiencing technical issues
                     'UnsupportedOption': BadRequest, // This order execution option is not supported.
                 },
-                'broad': {},
+                'broad': {
+                    'The Gemini Exchange is currently undergoing maintenance.': OnMaintenance, // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                },
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
@@ -634,7 +636,15 @@ module.exports = class gemini extends Exchange {
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        const broad = this.exceptions['broad'];
         if (response === undefined) {
+            if (typeof body === 'string') {
+                const broadKey = this.findBroadlyMatchedKey (broad, body);
+                const feedback = this.id + ' ' + body;
+                if (broadKey !== undefined) {
+                    throw new broad[broadKey] (feedback);
+                }
+            }
             return; // fallback to default error handler
         }
         //
@@ -655,7 +665,6 @@ module.exports = class gemini extends Exchange {
             } else if (message in exact) {
                 throw new exact[message] (feedback);
             }
-            const broad = this.exceptions['broad'];
             const broadKey = this.findBroadlyMatchedKey (broad, message);
             if (broadKey !== undefined) {
                 throw new broad[broadKey] (feedback);
