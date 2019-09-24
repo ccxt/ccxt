@@ -58,4 +58,6 @@ function byteArrayToWordArray(ba) {
     return CryptoJS.lib.WordArray.create (wa, ba.length)
 }
 
+module.exports['byteArrayToWordArray'] = byteArrayToWordArray
+
 /*  ------------------------------------------------------------------------ */

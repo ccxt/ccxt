@@ -790,7 +790,7 @@ module.exports = class bytetrade extends Exchange {
             ],
         };
         const request = {
-            'trObj': JSON.stringify (fatty),
+            'trObj': this.json (fatty),
         };
         const response = await this.publicPostTransactionCancelorder (request);
         const timestamp = this.milliseconds ();
@@ -893,7 +893,7 @@ module.exports = class bytetrade extends Exchange {
             ],
         };
         const request = {
-            'trObj': JSON.stringify (fatty),
+            'trObj': this.json (fatty),
         };
         const response = await this.publicPostTransactionTransfer (request);
         const timestamp = this.milliseconds ();
@@ -1194,7 +1194,7 @@ module.exports = class bytetrade extends Exchange {
         const request = {
             'chainType': chainType,
             'toExternalAddress': address,
-            'trObj': JSON.stringify (fatty),
+            'trObj': this.json (fatty),
             'chainContractAddresss': chainContractAddress,
         };
         const response = await this.publicPostTransactionWithdraw (request); // part 1
