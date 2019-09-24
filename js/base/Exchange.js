@@ -1536,15 +1536,15 @@ module.exports = class Exchange {
     // the following functions take and return numbers represented as strings
     // this is useful for arbitrary precision maths that floats lack
     divide (a, b) {
-        return new BN (a).div (new BN (b)).toString ()
+        return new BN (a).div (new BN (b))
     }
 
     modulo (a, b) {
-        return new BN (a).mod (new BN (b)).toString ()
+        return new BN (a).mod (new BN (b))
     }
 
     pow (a, b) {
-        return new BN (a).pow (new BN (b)).toString ()
+        return new BN (a).pow (new BN (b))
     }
 }
 
