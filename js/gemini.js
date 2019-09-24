@@ -148,7 +148,7 @@ module.exports = class gemini extends Exchange {
                     'UnsupportedOption': BadRequest, // This order execution option is not supported.
                 },
                 'broad': {
-                    'The Gemini Exchange is currently undergoing maintenance.': MaintananceError, // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                    'The Gemini Exchange is currently undergoing maintenance.': OnMaintenance, // The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
                 },
             },
             'options': {
