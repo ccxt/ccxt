@@ -2780,51 +2780,29 @@ class Exchange {
         return str_pad((string) $otp, 6, '0', STR_PAD_LEFT);
     }
 
-    public static function decimal_to_binary($n, $endian) {
-        if ($n > 0) {
-            $next_byte = static::decimal_to_binary(bcdiv($n, 0x100), $endian);
-            $remainder = static::pack_byte(bcmod($n, 0x100));
-            return $endian === 'big' ? $remainder . $next_byte : $next_byte . $remainder;
-        } else {
-            return NULL;
-        }
-    }
-
     public static function pack_byte ($n) {
         return pack('C', $n);
     }
 
     public static function numberToBE($n, $padding) {
-        if ($n instanceof BN) {
-            return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $a . $b; });
-        }
-        $encoded = static::decimal_to_binary($n, 'little');
-        $padAmount = max($padding - strlen($encoded), 0);
-        return  str_repeat(pack('C', 0), $padAmount) . $encoded;
+        $n = new BN ($n);
+        return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $a . $b; });
     }
 
     public static function numberToLE($n, $padding) {
-        if ($n instanceof BN) {
-            return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
-        }
-        $encoded = static::decimal_to_binary($n, 'big');
-        $padAmount = max($padding - strlen($encoded), 0);
-        return $encoded . str_repeat(pack('C', 0), $padAmount);
+        $n = new BN ($n);
+        return array_reduce(array_map('static::pack_byte', $n->toArray('little', $padding)), function ($a, $b) { return $b . $a; });
     }
 
     public static function divide($a, $b) {
-        return bcdiv($a, $b);
+        return (new BN ($a))->div (new BN ($b));
     }
 
     public static function modulo($a, $b) {
-        return bcmod($a, $b);
+        return (new BN ($a))->mod (new BN ($b));
     }
 
     public static function pow($a, $b) {
-        return bcpow($a, $b);
-    }
-
-    public function stringToBinary($x) {
-        return $x;
+        return (new BN ($a))->pow (new BN ($b));
     }
 }

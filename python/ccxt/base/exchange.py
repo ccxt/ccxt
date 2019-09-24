@@ -2053,14 +2053,15 @@ class Exchange(object):
     def numberToBE(n, size):
         return Exchange.decimal_to_bytes(int(n), 'big').rjust(size, b'\x00')
 
+    # python supports arbitrarily big integers
     @staticmethod
     def divide(a, b):
-        return '{:f}'.format(Decimal(a) / Decimal(b))
+        return int(a) // int(b)
 
     @staticmethod
     def pow(a, b):
-        return '{:f}'.format(Decimal(a) ** Decimal(b))
+        return int(a) ** int(b)
 
     @staticmethod
     def modulo(a, b):
-        return '{:f}'.format(Decimal(a) % Decimal(b))
+        return int(a) % int(b)
