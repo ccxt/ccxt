@@ -746,7 +746,7 @@ class idex extends Exchange {
         if ($symbol === null && $market !== null) {
             $symbol = $market['symbol'];
         }
-        $id = $this->safe_string($order, 'orderHash');
+        $id = $this->safe_string($order, 'orderNumber');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         return array (
             'info' => $order,
