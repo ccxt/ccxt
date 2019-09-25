@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1189'
+__version__ = '1.18.1184'
 
 # -----------------------------------------------------------------------------
 
@@ -1828,7 +1828,7 @@ class Exchange(object):
         return ['address' if self.web3.isAddress(value) else 'uint256' for value in array]
 
     def solidityValues(self, array):
-        return [self.web3.toChecksumAddress(value) if self.web3.isAddress(value) else int(value) for value in array]
+        return [self.web3.toChecksumAddress(value) if self.web3.isAddress(value) else (int(value, 16) if str(value)[:2] == '0x' else int(value)) for value in array]
 
     def getZeroExOrderHash2(self, order):
         return self.soliditySha3([
