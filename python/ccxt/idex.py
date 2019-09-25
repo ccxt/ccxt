@@ -711,7 +711,7 @@ class idex (Exchange):
                 symbol = (buy + '/' + sell) if (side == 'buy') else (sell + '/' + buy)
         if symbol is None and market is not None:
             symbol = market['symbol']
-        id = self.safe_string(order, 'orderNumber')
+        id = self.safe_string(order, 'orderHash')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         return {
             'info': order,
