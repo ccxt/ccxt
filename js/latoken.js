@@ -171,7 +171,7 @@ module.exports = class latoken extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': undefined,
+                    'min': Math.pow (10, -precision['price']),
                     'max': undefined,
                 },
                 'cost': {
