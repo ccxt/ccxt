@@ -74,6 +74,9 @@ class nova (Exchange):
                     'taker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'FAIR': 'FairCoin',
+            },
         })
 
     async def fetch_markets(self, params={}):

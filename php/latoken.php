@@ -171,7 +171,7 @@ class latoken extends Exchange {
                     'max' => null,
                 ),
                 'price' => array (
-                    'min' => null,
+                    'min' => pow(10, -$precision['price']),
                     'max' => null,
                 ),
                 'cost' => array (
@@ -359,8 +359,8 @@ class latoken extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => null,
+            'baseVolume' => null,
+            'quoteVolume' => $this->safe_float($ticker, 'volume'),
             'info' => $ticker,
         );
     }
