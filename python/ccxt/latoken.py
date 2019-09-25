@@ -355,8 +355,8 @@ class latoken (Exchange):
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': None,
+            'baseVolume': None,
+            'quoteVolume': self.safe_float(ticker, 'volume'),
             'info': ticker,
         }
 
