@@ -278,7 +278,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchBalance (params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchDeposits requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired (this.id + ' fetchDeposits requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
         const request = {
@@ -492,7 +492,7 @@ module.exports = class bytetrade extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         if (this.apiKey === undefined) {
-            throw new ArgumentsRequired ('createOrder requires hasAlreadyAuthenticatedSuccessfully');
+            throw new ArgumentsRequired ('createOrder requires this.apiKey or userid in params');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -629,7 +629,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchOrder requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchOrder requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
         const request = {};
@@ -650,7 +650,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchOpenOrders requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchOpenOrders requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
         let market = undefined;
@@ -673,7 +673,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchClosedOrders requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchClosedOrders requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
         let market = undefined;
@@ -696,7 +696,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchOrders requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchOrders requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
         let market = undefined;
@@ -823,7 +823,7 @@ module.exports = class bytetrade extends Exchange {
 
     async transfer (code, amount, address, params = {}) {
         if (this.apiKey === undefined) {
-            throw new ArgumentsRequired ('transfer requires hasAlreadyAuthenticatedSuccessfully');
+            throw new ArgumentsRequired ('transfer requires this.apiKey');
         }
         await this.loadMarkets ();
         const currency = this.currencies[code];
@@ -925,10 +925,7 @@ module.exports = class bytetrade extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchMyTrades requires hasAlreadyAuthenticatedSuccessfully or userid argument');
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired ('fetchMyTrades requires a symbol argument');
+            throw new ArgumentsRequired ('fetchMyTrades requires this.apiKey or userid argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -951,7 +948,7 @@ module.exports = class bytetrade extends Exchange {
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchDeposits requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchDeposits requires this.apiKey or userid argument');
         }
         let currency = undefined;
         const request = { };
@@ -977,7 +974,7 @@ module.exports = class bytetrade extends Exchange {
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchWithdrawals requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchWithdrawals requires this.apiKey or userid argument');
         }
         let currency = undefined;
         const request = {};
@@ -1057,7 +1054,7 @@ module.exports = class bytetrade extends Exchange {
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
         if (!('userid' in params) && (this.apiKey === undefined)) {
-            throw new ArgumentsRequired ('fetchDepositAddress requires hasAlreadyAuthenticatedSuccessfully or userid argument');
+            throw new ArgumentsRequired ('fetchDepositAddress requires this.apiKey or userid argument');
         }
         const currency = this.currency (code);
         const request = { };
@@ -1085,7 +1082,7 @@ module.exports = class bytetrade extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         if (this.apiKey === undefined) {
-            throw new ArgumentsRequired ('withdraw requires hasAlreadyAuthenticatedSuccessfully');
+            throw new ArgumentsRequired ('withdraw requires this.apiKey');
         }
         // when deposit, first deposit to user's pixiu address, and then auto transfer to bytetrade smart contract from pixiu addreess; when withdraw, first withdraw to user's pixiu address from bytetrade smart contract, and then transfer to user address;
         const addressResponse = await this.fetchDepositAddress (code);
