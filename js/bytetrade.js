@@ -602,7 +602,7 @@ module.exports = class bytetrade extends Exchange {
         const response = await this.publicPostTransactionCreateorder (request);
         const timestamp = this.milliseconds ();
         const statusCode = this.safe_string (response, 'code');
-        const status = (statusCode === '0') ? 'open' : 'error';
+        const status = (statusCode === '0') ? 'open' : 'failed';
         return {
             'info': response,
             'id': undefined,
