@@ -36,7 +36,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 # -----------------------------------------------------------------------------
 
 # ecdsa signing
-from static_dependencies import ecdsa
+from ccxt.static_dependencies import ecdsa
 
 # -----------------------------------------------------------------------------
 
