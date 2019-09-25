@@ -791,12 +791,7 @@ module.exports = class bytetrade extends Exchange {
         const response = await this.publicPostTransactionCancelorder (request);
         const timestamp = this.milliseconds ();
         const statusCode = this.safe_string (response, 'code');
-        let status = '';
-        if (statusCode === '0') {
-            status = 'submit success';
-        } else {
-            status = 'submit fail';
-        }
+        const status = (statusCode === '0') ? 'canceled' : 'failed';
         return {
             'info': response,
             'id': '',
