@@ -523,7 +523,8 @@ module.exports = class bytetrade extends Exchange {
         let expirationDatetime = this.iso8601 (expiration);
         expirationDatetime = expirationDatetime.split ('.')[0];
         const chainName = 'Sagittarius';
-        const feeAmount = '300000000000000';
+        const defaultFee = this.safeString (this.options, 'fee', '300000000000000');
+        const fee = this.safeString (params, 'fee', defaultFee);
         const eightBytes = this.pow ('2', '64');
         const byteStringArray = [
             this.numberToBE (1, 32),
@@ -533,7 +534,7 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (1, 1),
             this.numberToLE (32, 1),
             this.numberToLE (0, 8),
-            this.numberToLE (feeAmount, 8),  // string for 32 bit php
+            this.numberToLE (fee, 8),  // string for 32 bit php
             this.numberToLE (this.apiKey.length, 1),
             this.stringToBinary (this.encode (this.apiKey)),
             this.numberToLE (sideNum, 1),
@@ -567,7 +568,7 @@ module.exports = class bytetrade extends Exchange {
         const operation = {
             'now': datetime,
             'expiration': expirationDatetime,
-            'fee': feeAmount,
+            'fee': fee,
             'creator': this.apiKey,
             'side': sideNum,
             'order_type': typeNum,
