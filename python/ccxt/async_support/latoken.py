@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -176,7 +177,7 @@ class latoken (Exchange):
                     'max': None,
                 },
                 'price': {
-                    'min': None,
+                    'min': math.pow(10, -precision['price']),
                     'max': None,
                 },
                 'cost': {
@@ -354,8 +355,8 @@ class latoken (Exchange):
             'change': change,
             'percentage': percentage,
             'average': None,
-            'baseVolume': self.safe_float(ticker, 'volume'),
-            'quoteVolume': None,
+            'baseVolume': None,
+            'quoteVolume': self.safe_float(ticker, 'volume'),
             'info': ticker,
         }
 
