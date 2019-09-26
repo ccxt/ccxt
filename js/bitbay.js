@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError } = require ('./base/errors');
+const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -140,6 +140,7 @@ module.exports = class bitbay extends Exchange {
                 '510': ExchangeError, // Invalid market name
                 'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
                 'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
+                'OFFER_NOT_FOUND': OrderNotFound,
             },
         });
     }
