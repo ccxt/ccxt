@@ -141,6 +141,7 @@ class bitbay extends Exchange {
                 '510' => '\\ccxt\\ExchangeError', // Invalid market name
                 'FUNDS_NOT_SUFFICIENT' => '\\ccxt\\InsufficientFunds',
                 'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS' => '\\ccxt\\InvalidOrder',
+                'OFFER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
             ),
         ));
     }
