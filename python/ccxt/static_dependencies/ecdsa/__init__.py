@@ -2,9 +2,9 @@ from .keys import SigningKey, VerifyingKey, BadSignatureError, BadDigestError
 from .curves import NIST192p, NIST224p, NIST256p, NIST384p, NIST521p, SECP256k1
 
 # This code comes from http://github.com/warner/python-ecdsa
-from ._version import get_versions
-__version__ = get_versions()['version']
-del get_versions
+#from ._version import get_versions
+__version__ = 69  # custom ccxt version
+#del get_versions
 
 __all__ = ["curves", "der", "ecdsa", "ellipticcurve", "keys", "numbertheory",
            "test_pyecdsa", "util", "six"]
