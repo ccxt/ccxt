@@ -148,6 +148,7 @@ module.exports = class bitkub extends Exchange {
         const last = this.safeFloat (ticker, 'last');
         return {
             'symbol': symbol,
+            'info': ticker,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high24hr'),
@@ -166,14 +167,13 @@ module.exports = class bitkub extends Exchange {
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'baseVolume'),
             'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
-            'info': ticker,
         };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        // OK (so far) - exchange = /api/market/ticker
+        // OK - exchange = /api/market/ticker
         await this.loadMarkets ();
-        const tickers = await this.publicGetTicker (params);
+        const tickers = await this.publicGetTicker ();
         const result = {};
         const ids = Object.keys (tickers);
         for (let i = 0; i < ids.length; i++) {
@@ -220,16 +220,16 @@ module.exports = class bitkub extends Exchange {
             symbol = market['symbol'];
         }
         return {
-            'id': id,
             'info': trade,
-            'order': orderId,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
+            'order': orderId,
             'type': type,
             'side': side,
-            'price': price,
             'takerOrMaker': undefined,
+            'price': price,
             'amount': amount,
             'cost': cost,
             'fee': undefined,
@@ -244,17 +244,12 @@ module.exports = class bitkub extends Exchange {
             'sym': market['id'],
         };
         // Set default count to 1000
-        if (limit !== undefined) {
+        // limit = (limit !== undefined) ? limit : 1000;
+        if ( limit !== undefined) {
             request['lmt'] = limit;
-        } else {
-            request['lmt'] = 1000;
         }
         const trades = await this.publicGetTrades (this.extend (request, params));
-        const result = [];
-        for (let i = 0; i < trades.length; i++) {
-            result.push (this.parseTrade (trades[i], symbol));
-        }
-        return result;
+        return await this.parseTrades (trades, market, undefined, limit, params);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -264,26 +259,25 @@ module.exports = class bitkub extends Exchange {
         const request = {
             'sym': market['id'],
         };
-        if (limit !== undefined) {
+        // limit = (limit !== undefined) ? limit : 1000;
+        // request['lmt'] = limit;
+        if ( limit !== undefined) {
             request['lmt'] = limit;
-        } else {
-            request['lmt'] = 1000;
         }
-        let timestamp = undefined;
         const orderbook = await this.publicGetBooks (this.extend (request, params));
-        if (orderbook.bids[0][1] > orderbook.asks[0][1]) {
-            timestamp = orderbook.bids[0][1] * 1000;
-        } else {
-            timestamp = orderbook.asks[0][1] * 1000;
-        }
-        return this.parseOrderBook (orderbook, timestamp, 'bids', 'asks', 3, 4);
+        // Get most recent timestamp
+        // TODO
+        const lastBidTime = orderbook['bids'][0][1];
+        const lastAskTime = orderbook['asks'][0][1];
+        const timestamp = (lastBidTime > lastAskTime) ? lastBidTime : lastAskTime;
+        return await this.parseOrderBook (orderbook, timestamp * 1000, 'bids', 'asks', 3, 4);
     }
 
     async fetchBalance (params = {}) {
         // OK - exchange = /api/market/balances
         const request = {
         };
-        const balances = await this.privatePostBalances (request);
+        const balances = await this.privatePostBalances (this.extend (request, params));
         const result = { 'info': balances };
         const currencyIds = Object.keys (balances);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -296,32 +290,37 @@ module.exports = class bitkub extends Exchange {
             account['total'] = account['free'] + account['used'];
             result[code] = account;
         }
-        return this.parseBalance (result);
+        return await this.parseBalance (result);
     }
 
-    parseOrder (order, market = undefined) {
-        // "result": {
-        //    "id": 1, // order id
-        //    "typ": "limit", // order type
-        //    "amt": 1.00000000, // selling amount
-        //    "rat": 15000, // rate
-        //    "fee": 37.5, // fee
-        //    "cre": 37.5, // fee credit used
-        //    "rec": 15000, // amount to receive
-        //    "ts": 1533834844 // timestamp
-        //  }
-        // Fix fee and credits
-        const id = this.safeString (order, 'id');
-        const timestamp = this.safeFloat (order, 'ts');
-        const side = this.safeStringLower (order, 'side');
-        const price = this.safeFloat (order, 'rat');
-        const amount = this.safeFloat (order, 'amt');
+    parseOrder (order, market, params) {
+        let type = undefined;
+        let amount = undefined;
+        let price = undefined;
+        let credit = undefined;
+        let cost = undefined;
+        let side = undefined;
         const symbol = market['symbol'];
-        const type = this.safeString (order, 'typ');
-        const cost = this.safeFloat (order, 'rec');
+        const id = this.safeString (order, 'id');
+        const timestamp = this.safeFloat (order, 'ts') * 1000;
+        if (order['type'] === undefined) {
+            // sell or buy order
+            side = this.safeString (params, 'side');
+            type = this.safeString (order, 'typ');
+            amount = this.safeFloat (order, 'amt');
+            price = this.safeFloat (order, 'rat');
+            credit = this.safeFloat (order, 'cre');
+            cost = this.safeFloat (order, 'rec');
+        } else {
+            // other order requests
+            side = this.safeStringLower (order, 'side');
+            type = this.safeString (order, 'type');
+            amount = this.safeFloat (order, 'amount');
+            price = this.safeFloat (order, 'rate');
+            credit = this.safeFloat (order, 'credit');
+            cost = this.safeFloat (order, 'receive');
+        }
         const fee = this.safeFloat (order, 'fee');
-        const cre = this.safeFloat (order, 'cre');
-        // FIX ME --V--
         const average = undefined;
         const filled = undefined;
         const remaining = undefined;
@@ -331,7 +330,7 @@ module.exports = class bitkub extends Exchange {
             'info': order,
             'id': id,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp * 1000),
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': type,
@@ -343,13 +342,13 @@ module.exports = class bitkub extends Exchange {
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee - cre,
+            'fee': fee - credit,
             'trades': trades,
         };
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        // OK (sort of) - exchange = /api/market/place-[bid|ask]
+        // OK - exchange = /api/market/place-[bid|ask]
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -364,9 +363,8 @@ module.exports = class bitkub extends Exchange {
         } else {
             response = await this.privatePostPlaceBid (this.extend (request, params));
         }
-        let order = {};
-        order = await this.parseOrder (response, market);
-        return order;
+        params = { 'side': side };
+        return await this.parseOrder (response, market, params);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -378,20 +376,22 @@ module.exports = class bitkub extends Exchange {
             'id': id,
             'sd': params['side'],
         };
-        return await this.privatePostCancelOrder (request);
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // OK (so far) - exchange = /api/market/my-open-orders
-        // 'symbol' is required
+        // OK - exchange = /api/market/my-open-orders
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'sym': market['id'],
         };
-        const orders = await this.privatePostMyOpenOrders (this.extend (request, {}));
-        const result = this.parseOrders (orders, market, since, limit, params);
-        // TODO - Map Bitkub params to CCXT
+        const orders = await this.privatePostMyOpenOrders (this.extend (request, params));
+        const result = [];
+        for (let i = 0; i < orders.length; i++) {
+            const res = await this.parseOrder (orders[i], market, undefined);
+            result.push (res);
+        }
         return this.filterBySymbol (result, symbol);
     }
 
@@ -416,27 +416,28 @@ module.exports = class bitkub extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
-        // console.log({ 'url': url, 'method': method, 'body': body, 'headers': headers });
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
-        if (api === 'public') {
-            if (response['error'] === undefined) {
-                return response;
+        if (path === 'ticker') {
+            // Stupid ticker endpoint doesn't have response['error']
+            return response;
+        }
+        const error = this.safeValue (response, 'error');
+        if (error !== undefined) {
+            if (error === 0) {
+                const result = this.safeValue (response, 'result');
+                if (result !== undefined) {
+                    return response['result'];
+                } else {
+                    // Endpoint /api/market/cancel-order has no response['result']
+                    return response;
+                }
             } else {
-                return response['result'];
+                throw new ExchangeError (this.id + ' ' + this.json (response['error']));
             }
         }
-        if (response['error'] === 0) {
-            if (response['result'] === undefined) {
-                return response;
-            } else {
-                return response['result'];
-            }
-        }
-        // TODO - Proper exception handling
-        throw new ExchangeError (this.id + ' ' + this.json (response['error']));
     }
 };
