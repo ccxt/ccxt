@@ -230,10 +230,17 @@ module.exports = class bytetrade extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
-            const base = this.safeCurrencyCode (this.safeString (market, 'baseName'));
-            const quote = this.safeCurrencyCode (this.safeString (market, 'quoteName'));
+            // there may be duplicate codes
+            let base = this.safeCurrencyCode (this.safeString (market, 'baseName'));
+            let quote = this.safeCurrencyCode (this.safeString (market, 'quoteName'));
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
+            if (baseId in this.commonCurrencies) {
+                base = this.commonCurrencies[baseId];
+            }
+            if (quoteId in this.commonCurrencies) {
+                quote = this.commonCurrencies[quoteId];
+            }
             const symbol = base + '/' + quote;
             const amountMin = this.safeFloat (market['limits']['amount'], 'min');
             const amountMax = this.safeFloat (market['limits']['amount'], 'max');
