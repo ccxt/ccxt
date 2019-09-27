@@ -29,6 +29,7 @@ module.exports = class gdax extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderTrades': true,
                 'fetchOrders': true,
+                'fetchTime': true,
                 'fetchTransactions': true,
                 'withdraw': true,
             },
