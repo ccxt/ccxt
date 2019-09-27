@@ -23,44 +23,34 @@ module.exports = class bitpanda extends Exchange {
             'has': {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
                 'CORS': true,
-                'createDepositAddress': false,
+                'createDepositAddress': true,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
                 'createOrder': true,
-                'deposit': false,
+                'deposit': true,
                 'editOrder': false,
                 'fetchBalance': true,
-                'fetchBidsAsks': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
-                'fetchDeposits': false,
-                'fetchFundingFees': false,
+                'fetchDepositAddress': true,
                 'fetchL2OrderBook': true,
-                'fetchLedger': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchStatus': 'emulated',
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': false,
-                'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTradingLimits': false,
-                'fetchTransactions': false,
-                'fetchWithdrawals': false,
                 'privateAPI': true,
                 'publicAPI': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1MINUTES',
@@ -92,6 +82,8 @@ module.exports = class bitpanda extends Exchange {
                         'candlesticks/{instrument}',
                         'currencies',
                         'instruments',
+                        'market-ticker',
+                        'market-ticker/{instrument}',
                         'order-book/{instrument}',
                         'time',
                     ],
@@ -99,6 +91,7 @@ module.exports = class bitpanda extends Exchange {
                 'private': {
                     'get': [
                         'account/balances',
+                        'account/deposit/crypto/{id}',
                         'account/fees',
                         'account/orders',
                         'account/orders/{id}',
@@ -106,7 +99,9 @@ module.exports = class bitpanda extends Exchange {
                         'account/trading-volume',
                     ],
                     'post': [
+                        'account/deposit/crypto',
                         'account/orders',
+                        'account/withdraw/crypto',
                     ],
                     'delete': [
                         'account/orders',
@@ -205,6 +200,24 @@ module.exports = class bitpanda extends Exchange {
         return await this.privateDeleteAccountOrdersId (this.extend (request, params));
     }
 
+    async createDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostAccountDepositCrypto (this.extend (request, params));
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString (response, 'destination_tag');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
+    }
+
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         const request = {
             'instrument_code': this.marketId (symbol),
@@ -267,6 +280,24 @@ module.exports = class bitpanda extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'id': currency['id'],
+        };
+        const response = await this.privateGetAccountDepositCryptoId (this.extend (request, params));
+        const address = this.safeString (response, 'address');
+        const tag = this.safeString (response, 'destination_tag');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'tag': tag,
+            'info': response,
+        };
     }
 
     async fetchL2OrderBook (symbol, limit = undefined, params = {}) {
@@ -423,6 +454,27 @@ module.exports = class bitpanda extends Exchange {
         return this.parseOrders (orders, market, since, limit, params);
     }
 
+    async fetchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'instrument': market['id'],
+        };
+        const ticker = await this.publicGetMarketTickerInstrument (this.extend (request, params));
+        return this.parseTicker (ticker);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        const response = await this.publicGetMarketTicker (params);
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const instrument = this.safeString (response[i], 'instrument_code');
+            result[instrument] = this.parseTicker (response[i]);
+        }
+        return result;
+    }
+
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
         return this.safeInteger (response, 'epoch_millis');
@@ -460,6 +512,27 @@ module.exports = class bitpanda extends Exchange {
         return this.parseOrderBook (response, this.parse8601 (time), 'bids', 'asks', 'price', 'amount');
     }
 
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        await this.loadMarkets ();
+        this.checkAddress (address);
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            'amount': amount,
+            'recipient': {
+                'address': address,
+            },
+        };
+        if (tag !== undefined) {
+            request['recipient']['tag'] = tag;
+        }
+        const response = this.privatePostAccountWithdrawCrypto (this.extend (request, params));
+        return {
+            'info': response,
+            'id': undefined,
+        };
+    }
+
     parseOrder (order) {
         const id = this.safeString (order, 'order_id');
         const time = this.safeString (order, 'time');
@@ -489,6 +562,34 @@ module.exports = class bitpanda extends Exchange {
             'fills': fills,
             'fee': undefined,
             'info': order,
+        };
+    }
+
+    parseTicker (ticker) {
+        const timestamp = this.milliseconds ();
+        const symbol = this.safeString (ticker, 'instrument_code');
+        const last = this.safeFloat (ticker, 'last_price');
+        return {
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeFloat (ticker, 'high'),
+            'low': this.safeFloat (ticker, 'low'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeFloat (ticker, 'price_change'),
+            'percentage': this.safeFloat (ticker, 'price_change_percentage'),
+            'average': undefined,
+            'baseVolume': this.safeFloat (ticker, 'base_volume'),
+            'quoteVolume': this.safeFloat (ticker, 'quote_volume'),
+            'info': ticker,
         };
     }
 
