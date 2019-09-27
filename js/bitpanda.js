@@ -122,8 +122,8 @@ module.exports = class bitpanda extends Exchange {
                 'secret': false,
             },
             'options': {
-                'with_just_filled_inactive': true,
-                'with_cancelled_and_rejected': true,
+                'with_just_filled_inactive': false,
+                'with_cancelled_and_rejected': false,
             },
             'exceptions': {
                 'INVALID_CREDENTIALS': AuthenticationError,
@@ -408,8 +408,6 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        params['with_cancelled_and_rejected'] = false;
-        params['with_just_filled_inactive'] = false;
         return await this.fetchOrders (symbol, since, limit, params);
     }
 
