@@ -331,6 +331,7 @@ declare module 'ccxt' {
         iso8601 (timestamp: string): string;
         seconds (): number;
         microseconds (): number;
+        purgeCachedOrders (timestamp: number): void;
     }
 
     /* tslint:disable */
