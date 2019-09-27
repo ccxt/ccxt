@@ -220,6 +220,54 @@ declare module 'ccxt' {
         // allow dynamic keys
         [key: string]: any;
         // properties
+        version: string;
+        apiKey: string;
+        secret: string;
+        password: string;
+        uid: string;
+        requiredCredentials: {
+            apiKey: boolean;
+            secret: boolean;
+            uid: boolean;
+            login: boolean;
+            password: boolean;
+            twofa: boolean;
+            privateKey: boolean;
+            walletAddress: boolean;
+            token: boolean;
+        };
+        options: {
+            [key: string]: any;
+            fetchTradesMethod: 'publicGetAggTrades' | string;
+            fetchTickersMethod: 'publicGetTicker24hr' | string;
+            defaultTimeInForce: 'GTC' | string;
+            defaultLimitOrderType: 'limit' | 'market' | string;
+            hasAlreadyAuthenticatedSuccessfully: boolean;
+            warnOnFetchOpenOrdersWithoutSymbol: boolean;
+            recvWindow: number;
+            timeDifference: number;
+            adjustForTimeDifference: boolean;
+            parseOrderToPrecision: boolean;
+            newOrderRespType: {
+                market: 'FULL' | string;
+                limit: 'RESULT' | string;
+            };
+        };
+        urls: {
+            logo: string;
+            api: {
+                [key: string]: string;
+                web: string;
+                public: string;
+                private: string;
+            };
+            www: string;
+            doc: string[];
+            api_management?: string;
+            fees: string;
+            referral: string;
+        };
+        precisionMode: number;
         hash: any;
         hmac: any;
         jwt: any;
@@ -255,7 +303,7 @@ declare module 'ccxt' {
         // nodeVersion: string;
         fees: object;
         enableRateLimit: boolean;
-        countries: string;
+        countries: string[];
         // set by loadMarkets
         markets: { [symbol: string]: Market };
         marketsById: { [id: string]: Market };
@@ -278,6 +326,51 @@ declare module 'ccxt' {
         orders: object;
         trades: object;
         userAgent: { 'User-Agent': string } | false;
+        limits: {
+            amount: { min?: number, max?: number },
+            price: { min?: number, max?: number },
+            cost: { min?: number, max?: number }
+        };
+        hasCancelAllOrders: boolean;
+        hasCancelOrder: boolean;
+        hasCancelOrders: boolean;
+        hasCORS: boolean;
+        hasCreateDepositAddress: boolean;
+        hasCreateLimitOrder: boolean;
+        hasCreateMarketOrder: boolean;
+        hasCreateOrder: boolean;
+        hasDeposit: boolean;
+        hasEditOrder: boolean;
+        hasFetchBalance: boolean;
+        hasFetchBidsAsks: boolean;
+        hasFetchClosedOrders: boolean;
+        hasFetchCurrencies: boolean;
+        hasFetchDepositAddress: boolean;
+        hasFetchDeposits: boolean;
+        hasFetchFundingFees: boolean;
+        hasFetchL2OrderBook: boolean;
+        hasFetchLedger: boolean;
+        hasFetchMarkets: boolean;
+        hasFetchMyTrades: boolean;
+        hasFetchOHLCV: boolean;
+        hasFetchOpenOrders: boolean;
+        hasFetchOrder: boolean;
+        hasFetchOrderBook: boolean;
+        hasFetchOrderBooks: boolean;
+        hasFetchOrders: boolean;
+        hasFetchStatus: boolean;
+        hasFetchTicker: boolean;
+        hasFetchTickers: boolean;
+        hasFetchTime: boolean;
+        hasFetchTrades: boolean;
+        hasFetchTradingFee: boolean;
+        hasFetchTradingFees: boolean;
+        hasFetchTradingLimits: boolean;
+        hasFetchTransactions: boolean;
+        hasFetchWithdrawals: boolean;
+        hasPrivateAPI: boolean;
+        hasPublicAPI: boolean;
+        hasWithdraw: boolean;
 
         // methods
         getMarket (symbol: string): Market;
@@ -334,6 +427,27 @@ declare module 'ccxt' {
         seconds (): number;
         microseconds (): number;
         purgeCachedOrders (timestamp: number): void;
+
+        // TODO: add function signatures
+        cancelOrders (...args: any): Promise<any>;
+        cancelAllOrders (...args: any): Promise<any>;
+        createLimitOrder (...args: any): Promise<any>;
+        createMarketOrder (...args: any): Promise<any>;
+        deposit (...args: any): Promise<any>;
+        editOrder (...args: any): Promise<any>;
+        fetchBidsAsks (...args: any): Promise<any>;
+        fetchClosedOrders (...args: any): Promise<any>;
+        fetchFundingFees (...args: any): Promise<any>;
+        fetchL2OrderBook (...args: any): Promise<any>;
+        fetchLedger (...args: any): Promise<any>;
+        fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
+        fetchOrder (...args: any): Promise<any>;
+        fetchOrderBooks (...args: any): Promise<any>;
+        fetchStatus (...args: any): Promise<any>;
+        fetchTime (...args: any): Promise<any>;
+        fetchTradingFee (...args: any): Promise<any>;
+        fetchTradingFees (...args: any): Promise<any>;
+        fetchTradingLimits (...args: any): Promise<any>;
     }
 
     /* tslint:disable */
