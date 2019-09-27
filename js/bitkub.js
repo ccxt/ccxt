@@ -189,7 +189,7 @@ module.exports = class bitkub extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        // OK - exchange = /api/market/ticker
+        // OK (so far) - exchange = /api/market/ticker
         await this.loadMarkets ();
         const market = this.market (symbol);
         const sym = market['id'];
@@ -243,9 +243,8 @@ module.exports = class bitkub extends Exchange {
         const request = {
             'sym': market['id'],
         };
-        if (limit !== undefined) {
-            request['lmt'] = limit;
-        }
+        // Limit is mandatory. Set default count to 1000
+        request['lmt'] = (limit !== undefined) ? limit : 1000;
         const trades = await this.publicGetTrades (this.extend (request, params));
         return await this.parseTrades (trades, market, undefined, limit, params);
     }
@@ -257,9 +256,7 @@ module.exports = class bitkub extends Exchange {
         const request = {
             'sym': market['id'],
         };
-        if (limit !== undefined) {
-            request['lmt'] = limit;
-        }
+        request['lmt'] = (limit !== undefined) ? limit : 1000;
         const orderbook = await this.publicGetBooks (this.extend (request, params));
         // Get most recent timestamp
         // TODO
@@ -418,7 +415,7 @@ module.exports = class bitkub extends Exchange {
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         if (path === 'ticker') {
-            // Stupid ticker endpoint doesn't have response['error']
+            // Stupid ticker endpoint has no error reporting
             return response;
         }
         const error = this.safeValue (response, 'error');
