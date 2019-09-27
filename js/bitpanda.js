@@ -24,7 +24,7 @@ module.exports = class bitpanda extends Exchange {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
-                'CORS': false,
+                'CORS': true,
                 'createDepositAddress': false,
                 'createLimitOrder': true,
                 'createMarketOrder': true,
