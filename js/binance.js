@@ -69,6 +69,7 @@ module.exports = class binance extends Exchange {
                     'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                     'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
                 ],
+                'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
