@@ -189,7 +189,7 @@ module.exports = class bitkub extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
-        // OK (so far) - exchange = /api/market/ticker
+        // OK - exchange = /api/market/ticker
         await this.loadMarkets ();
         const market = this.market (symbol);
         const sym = market['id'];
@@ -243,9 +243,7 @@ module.exports = class bitkub extends Exchange {
         const request = {
             'sym': market['id'],
         };
-        // Set default count to 1000
-        // limit = (limit !== undefined) ? limit : 1000;
-        if ( limit !== undefined) {
+        if (limit !== undefined) {
             request['lmt'] = limit;
         }
         const trades = await this.publicGetTrades (this.extend (request, params));
@@ -259,9 +257,7 @@ module.exports = class bitkub extends Exchange {
         const request = {
             'sym': market['id'],
         };
-        // limit = (limit !== undefined) ? limit : 1000;
-        // request['lmt'] = limit;
-        if ( limit !== undefined) {
+        if (limit !== undefined) {
             request['lmt'] = limit;
         }
         const orderbook = await this.publicGetBooks (this.extend (request, params));
