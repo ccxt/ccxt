@@ -410,7 +410,7 @@ module.exports = class gdax extends Exchange {
         if (since !== undefined) {
             request['start'] = this.ymdhms (since);
             if (limit === undefined) {
-                // https://docs.gdax.com/#get-historic-rates
+                // https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300; // max = 300
             }
             request['end'] = this.ymdhms (this.sum (limit * granularity * 1000, since));
@@ -623,7 +623,7 @@ module.exports = class gdax extends Exchange {
         } else {
             // deposit methodotherwise we did not receive a supported deposit location
             // relevant docs link for the Googlers
-            // https://docs.gdax.com/#deposits
+            // https://docs.pro.coinbase.com/#deposits
             throw new NotSupported (this.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
         }
         const response = await this[method] (this.extend (request, params));
