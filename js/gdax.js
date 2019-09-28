@@ -29,6 +29,7 @@ module.exports = class gdax extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderTrades': true,
                 'fetchOrders': true,
+                'fetchTime': true,
                 'fetchTransactions': true,
                 'withdraw': true,
             },
@@ -420,7 +421,7 @@ module.exports = class gdax extends Exchange {
 
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
-        return this.parse8601 (response, 'iso');
+        return this.parse8601 (this.safeString (response, 'iso'));
     }
 
     parseOrderStatus (status) {
