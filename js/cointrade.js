@@ -430,10 +430,7 @@ module.exports = class cointrade extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             const token = this.stringToBase64 (this.secret + ':' + this.apiKey);
-            headers = {
-                'Content-Type': 'application/json; charset=UTF-8',
-                'Authorization': 'Basic ' + token,
-            };
+            headers['Authorization'] = 'Basic ' + token;
         }
         if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
             body = this.json (params);
