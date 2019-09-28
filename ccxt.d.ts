@@ -71,8 +71,8 @@ declare module 'ccxt' {
     export const exchanges: string[];
 
     export interface MinMax {
-        max: number;
         min: number;
+        max: number | undefined;
     }
 
     export interface Market extends Dictionary<any>{
@@ -83,7 +83,11 @@ declare module 'ccxt' {
         active: boolean;
         precision: { amount: number, price: number, cost: number };
         limits: { amount: MinMax, price: MinMax, cost?: MinMax };
-        info: any;
+        tierBased: boolean,
+        percentage: boolean,
+        taker: number,
+        maker: number,
+        info: any,
     }
 
     export interface Order {
@@ -102,7 +106,7 @@ declare module 'ccxt' {
         cost: number;
         trades: Trade[];
         fee: Fee;
-        info: {};
+        info: any;
     }
 
     export interface OrderBook {
@@ -117,7 +121,7 @@ declare module 'ccxt' {
         amount: number;                  // amount of base currency
         datetime: string;                // ISO8601 datetime with milliseconds;
         id: string;                      // string trade id
-        info: {};                        // the original decoded JSON as is
+        info: any;                        // the original decoded JSON as is
         order?: string;                  // string order id or undefined/None/null
         price: number;                   // float price in quote currency
         timestamp: number;               // Unix timestamp in milliseconds
@@ -131,7 +135,7 @@ declare module 'ccxt' {
 
     export interface Ticker {
         symbol: string;
-        info: object;
+        info: any;
         timestamp: number;
         datetime: string;
         high: number;
@@ -153,7 +157,7 @@ declare module 'ccxt' {
     }
 
     export interface Transaction {
-        info: {};
+        info: any;
         id: string;
         txid?: string;
         timestamp: number;
@@ -261,12 +265,7 @@ declare module 'ccxt' {
         };
         urls: {
             logo: string;
-            api: {
-                [key: string]: string;
-                web: string;
-                public: string;
-                private: string;
-            };
+            api: string | Dictionary<string>;
             www: string;
             doc: string[];
             api_management?: string;
@@ -332,11 +331,7 @@ declare module 'ccxt' {
         orders: object;
         trades: object;
         userAgent: { 'User-Agent': string } | false;
-        limits: {
-            amount: { min?: number, max?: number },
-            price: { min?: number, max?: number },
-            cost: { min?: number, max?: number }
-        };
+        limits: { amount: MinMax, price: MinMax, cost: MinMax };
         hasCancelAllOrders: boolean;
         hasCancelOrder: boolean;
         hasCancelOrders: boolean;
@@ -431,25 +426,23 @@ declare module 'ccxt' {
         seconds (): number;
         microseconds (): number;
         purgeCachedOrders (timestamp: number): void;
-
-        // TODO: add function signatures
-        cancelOrders (...args: any): Promise<any>;
-        cancelAllOrders (...args: any): Promise<any>;
-        createLimitOrder (...args: any): Promise<any>;
-        createMarketOrder (...args: any): Promise<any>;
-        deposit (...args: any): Promise<any>;
-        editOrder (...args: any): Promise<any>;
+        cancelAllOrders (...args: any): Promise<any>; // TODO: add function signatures
+        cancelOrders (...args: any): Promise<any>; // TODO: add function signatures
+        createLimitOrder (...args: any): Promise<any>; // TODO: add function signatures
+        createMarketOrder (...args: any): Promise<any>; // TODO: add function signatures
+        deposit (...args: any): Promise<any>; // TODO: add function signatures
+        editOrder (...args: any): Promise<any>; // TODO: add function signatures
         fetchBidsAsks (symbols?: string[], params?: Params): Promise<any>;
-        fetchClosedOrders (...args: any): Promise<any>;
-        fetchFundingFees (...args: any): Promise<any>;
-        fetchL2OrderBook (...args: any): Promise<any>;
-        fetchLedger (...args: any): Promise<any>;
+        fetchClosedOrders (...args: any): Promise<any>; // TODO: add function signatures
+        fetchFundingFees (...args: any): Promise<any>; // TODO: add function signatures
+        fetchL2OrderBook (...args: any): Promise<any>; // TODO: add function signatures
+        fetchLedger (...args: any): Promise<any>; // TODO: add function signatures
         fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<any>;
-        fetchOrderBooks (...args: any): Promise<any>;
-        fetchStatus (...args: any): Promise<any>;
-        fetchTradingFee (...args: any): Promise<any>;
-        fetchTradingFees (...args: any): Promise<any>;
-        fetchTradingLimits (...args: any): Promise<any>;
+        fetchOrderBooks (...args: any): Promise<any>; // TODO: add function signatures
+        fetchStatus (...args: any): Promise<any>; // TODO: add function signatures
+        fetchTradingFee (...args: any): Promise<any>; // TODO: add function signatures
+        fetchTradingFees (...args: any): Promise<any>; // TODO: add function signatures
+        fetchTradingLimits (...args: any): Promise<any>; // TODO: add function signatures
     }
 
     /* tslint:disable */
