@@ -415,9 +415,12 @@ module.exports = class cointrade extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         url += this.implodeParams (path, params);
+        if (!headers) {
+            headers = {};
+        }
         headers['Content-Type'] = 'application/json';
         if (api === 'public' || api === 'broker') {
             const query = this.omit (params, this.extractParams (path));
