@@ -1,5 +1,12 @@
 declare module 'ccxt' {
 
+    /**
+     * Represents an associative array of a same type.
+     */
+    interface Dictionary<T> {
+        [key: string]: T;
+    }
+
     // error.js -----------------------------------------
 
     export class BaseError extends Error {
@@ -68,8 +75,7 @@ declare module 'ccxt' {
         min: number;
     }
 
-    export interface Market {
-        [key: string]: any
+    export interface Market extends Dictionary<any>{
         id: string;
         symbol: string;
         base: string;
@@ -161,9 +167,8 @@ declare module 'ccxt' {
         fee: Fee;
     }
 
-    export interface Tickers {
+    export interface Tickers extends Dictionary<Ticker> {
         info: any;
-        [symbol: string]: Ticker;
     }
 
     export interface Currency {
@@ -177,13 +182,11 @@ declare module 'ccxt' {
         total: number;
     }
 
-    export interface PartialBalances {
-        [currency: string]: number;
+    export interface PartialBalances extends Dictionary<number> {
     }
 
-    export interface Balances {
+    export interface Balances extends Dictionary<Balance> {
         info: any;
-        [key: string]: Balance;
     }
 
     export interface DepositAddress {
@@ -212,8 +215,11 @@ declare module 'ccxt' {
         tag?: string;
     }
 
-    // timestamp, open, high, low, close, volume
+    /** [ timestamp, open, high, low, close, volume ] */
     export type OHLCV = [number, number, number, number, number, number];
+
+    /** Request parameters */
+    type Params = Dictionary<string | number>;
 
     export class Exchange {
         constructor(config?: {[key in keyof Exchange]?: Exchange[key]});
@@ -305,9 +311,9 @@ declare module 'ccxt' {
         enableRateLimit: boolean;
         countries: string[];
         // set by loadMarkets
-        markets: { [symbol: string]: Market };
-        marketsById: { [id: string]: Market };
-        currencies: { [symbol: string]: Currency };
+        markets: Dictionary<Market>;
+        marketsById: Dictionary<Market>;
+        currencies: Dictionary<Currency>;
         ids: string[];
         symbols: string[];
         id: string;
@@ -319,8 +325,8 @@ declare module 'ccxt' {
         verbose: boolean;
         twofa: boolean;// two-factor authentication
         substituteCommonCurrencyCodes: boolean;
-        timeframes: { [timeframe: string] : number | string };
-        has: { [what: string]: any }; // https://github.com/ccxt/ccxt/pull/1984
+        timeframes: Dictionary<number | string>;
+        has: Dictionary<boolean | 'emulated'>; // https://github.com/ccxt/ccxt/pull/1984
         balance: object;
         orderbooks: object;
         orders: object;
@@ -381,14 +387,14 @@ declare module 'ccxt' {
         checkRequiredCredentials (): void;
         initRestRateLimiter (): void;
         handleResponse (url: string, method: string, headers?: any, body?: any): any;
-        defineRestApi (api: any, methodName: any, options?: { [x: string]: any }): void;
+        defineRestApi (api: any, methodName: any, options?: Dictionary<any>): void;
         fetch (url: string, method?: string, headers?: any, body?: any): Promise<any>;
-        fetch2 (path: any, api?: string, method?: string, params?: { [x: string]: any }, headers?: any, body?: any): Promise<any>;
-        setMarkets (markets: Market[], currencies?: Currency[]): { [symbol: string]: Market };
-        loadMarkets (reload?: boolean): Promise<{ [symbol: string]: Market }>;
-        fetchTicker (symbol: string, params?: { [x: string]: any }): Promise<Ticker>;
-        fetchTickers (symbols?: string[], params?: { [x: string]: any }): Promise<{ [x: string]: Ticker }>;
-        fetchTime (): Promise<number>;
+        fetch2 (path: any, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
+        setMarkets (markets: Market[], currencies?: Currency[]): Dictionary<Market>;
+        loadMarkets (reload?: boolean): Promise<Dictionary<Market>>;
+        fetchTicker (symbol: string, params?: Params): Promise<Ticker>;
+        fetchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
+        fetchTime (params?: Params): Promise<number>;
         fetchMarkets (): Promise<Market[]>;
         fetchOrderStatus (id: string, market: string): Promise<string>;
         encode (str: string): string;
@@ -400,28 +406,26 @@ declare module 'ccxt' {
         marketIds (symbols: string[]): string[];
         symbol (symbol: string): string;
         extractParams (str: string): string[];
-        createOrder (symbol: string, type: string, side: string, amount: number, price?: number, params?: {}): Promise<any>;
-        fetchBalance (params?: any): Promise<Balances>;
-        fetchTotalBalance (params?: any): Promise<PartialBalances>;
-        fetchUsedBalance (params?: any): Promise<PartialBalances>;
-        fetchFreeBalance (params?: any): Promise<PartialBalances>;
-        fetchOrder(id: string, symbol: string, params?: any): Promise<Order>;
-        fetchOrderBook (symbol: string, limit?: number, params?: any): Promise<OrderBook>;
-        fetchTicker (symbol: string): Promise<Ticker>;
-        fetchTickers (symbols?: string[]): Promise<Tickers>;
-        fetchTrades (symbol: string, since?: number, limit?: number, params?: {}): Promise<Trade[]>;
-        fetchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: {}): Promise<OHLCV[]>;
-        fetchOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
-        fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
-        fetchCurrencies (params?: any): Promise<any>;
-        fetchTransactions (currency?: string, since?: number, limit?: number, params?: {}): Promise<Transaction[]>;
-        fetchDeposits (currency?: string, since?: number, limit?: number, params?: {}): Promise<Transaction[]>;
-        fetchWithdrawals (currency?: string, since?: number, limit?: number, params?: {}): Promise<Transaction[]>;
-        cancelOrder (id: string, symbol?: string, params?: {}): Promise<any>;
-        createDepositAddress (currency: string, params?: {}): Promise<DepositAddressResponse>;
-        fetchDepositAddress (currency: string, params?: {}): Promise<DepositAddressResponse>;
-        withdraw (currency: string, amount: number, address: string, tag?: string, params?: {}): Promise<WithdrawalResponse>;
-        request (path: string, api?: string, method?: string, params?: any, headers?: any, body?: any): Promise<any>;
+        createOrder (symbol: string, type: 'market'|'limit', side: 'buy'|'sell', amount: number, price?: number, params?: Params): Promise<any>;
+        fetchBalance (params?: Params): Promise<Balances>;
+        fetchTotalBalance (params?: Params): Promise<PartialBalances>;
+        fetchUsedBalance (params?: Params): Promise<PartialBalances>;
+        fetchFreeBalance (params?: Params): Promise<PartialBalances>;
+        fetchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
+        fetchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
+        fetchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
+        fetchOHLCV? (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
+        fetchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        fetchCurrencies (params?: Params): Promise<Dictionary<Currency>>;
+        fetchTransactions (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
+        fetchDeposits (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
+        fetchWithdrawals (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
+        cancelOrder (id: string, symbol?: string, params?: Params): Promise<any>;
+        createDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
+        fetchDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
+        withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
+        request (path: string, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
         YmdHMS (timestamp: string, infix: string) : string;
         iso8601 (timestamp: string): string;
         seconds (): number;
@@ -435,16 +439,14 @@ declare module 'ccxt' {
         createMarketOrder (...args: any): Promise<any>;
         deposit (...args: any): Promise<any>;
         editOrder (...args: any): Promise<any>;
-        fetchBidsAsks (...args: any): Promise<any>;
+        fetchBidsAsks (symbols?: string[], params?: Params): Promise<any>;
         fetchClosedOrders (...args: any): Promise<any>;
         fetchFundingFees (...args: any): Promise<any>;
         fetchL2OrderBook (...args: any): Promise<any>;
         fetchLedger (...args: any): Promise<any>;
-        fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: {}): Promise<any>;
-        fetchOrder (...args: any): Promise<any>;
+        fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<any>;
         fetchOrderBooks (...args: any): Promise<any>;
         fetchStatus (...args: any): Promise<any>;
-        fetchTime (...args: any): Promise<any>;
         fetchTradingFee (...args: any): Promise<any>;
         fetchTradingFees (...args: any): Promise<any>;
         fetchTradingLimits (...args: any): Promise<any>;
