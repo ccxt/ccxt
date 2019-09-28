@@ -322,6 +322,7 @@ module.exports = class cointrade extends Exchange {
         const filled = this.safeFloat (order, 'exec_amount');
         const remaining = amount - filled;
         const cost = filled * average;
+        const limited = this.safeValue (order, 'limited');
         return {
             'info': order,
             'id': id,
@@ -329,7 +330,7 @@ module.exports = class cointrade extends Exchange {
             'datetime': undefined,
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
-            'type': this.safeValue (order, 'limited') ? 'limit' : 'market',
+            'type': limited ? 'limit' : 'market',
             'side': side,
             'price': price,
             'cost': cost,
