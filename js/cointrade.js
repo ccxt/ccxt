@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ArgumentsRequired, InvalidOrder } = require ('./base/errors');
+const { ExchangeError } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ module.exports = class cointrade extends Exchange {
                 'fetchOHLCV': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
-                'fetchTrades': true
+                'fetchTrades': true,
             },
             'timeframes': {
                 '5m': '5',
@@ -47,7 +47,7 @@ module.exports = class cointrade extends Exchange {
                 'api': {
                     'public': 'https://api.cointradecx.com/apiv2',
                     'broker': 'https://broker.cointradecx.com/apiv2',
-                    'private': 'https://api.cointradecx.com/apiv2'
+                    'private': 'https://api.cointradecx.com/apiv2',
                 },
                 'www': 'https://broker.cointradecx.com',
                 'doc': [
@@ -57,7 +57,7 @@ module.exports = class cointrade extends Exchange {
             'api': {
                 'broker': {
                     'get': [
-                        'udfchart/history'
+                        'udfchart/history',
                     ],
                 },
                 'public': {
@@ -65,25 +65,25 @@ module.exports = class cointrade extends Exchange {
                         'ordens/{pair}', // order book by pair
                         'ticket/markets', // get market list
                         'ticket/market/{pair}', // fetch ticker by pair
-                        'trades/{pair}' // last negotiations by pair
+                        'trades/{pair}', // last negotiations by pair
                     ],
                 },
                 'private': {
                     'get': [
-                        'book', // open orders 
+                        'book', // open orders
                         'book/{pair}', // open orders by pair
                         'book/{id}', // get order by id
-                        'account/balance'
+                        'account/balance',
                     ],
                     'delete': [
                         'book/all', // delete all orders
-                        'book/{id}' // delete order by id                      
+                        'book/{id}', // delete order by id
                     ],
                     'post': [
                         'book/buy',
                         'book/sell',
                     ],
-                }
+                },
             },
             'fees': {
                 'trading': {
@@ -99,10 +99,10 @@ module.exports = class cointrade extends Exchange {
         const result = [];
         for (let i = 0; i < data.markets.length; i++) {
             const market = data.markets[i];
-            let id = market.toUpperCase ();
+            const id = market.toUpperCase ();
             const parts = id.split (':');
-            let baseId = parts[0];
-            let quoteId = parts[1];
+            const baseId = parts[0];
+            const quoteId = parts[1];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
@@ -133,7 +133,7 @@ module.exports = class cointrade extends Exchange {
             'pair': market.id,
         };
         const response = await this.publicGetOrdensPair (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'compra', 'venda', "preco", "volume");
+        return this.parseOrderBook (response, undefined, 'compra', 'venda', 'preco', 'volume');
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -142,7 +142,6 @@ module.exports = class cointrade extends Exchange {
         const request = {
             'pair': market['base'],
         };
-
         const response = await this.publicGetTicketMarketPair (this.extend (request, params));
         const ticker = this.safeValue (response, 'market', {});
         const timestamp = this.milliseconds ();
@@ -228,8 +227,7 @@ module.exports = class cointrade extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetAccountBalance (params);
         const result = { 'info': response };
-        let currencies = Object.keys (this.currencies);
-
+        const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
             const code = currencies[i];
             const account = this.account ();
@@ -243,29 +241,26 @@ module.exports = class cointrade extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let method = 'privatePostBook' + this.capitalize (side);
+        const method = 'privatePostBook' + this.capitalize (side);
         const request = { 'market': this.marketId (symbol) };
-
         if (price > 0) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-
         request['amount'] = this.amountToPrecision (symbol, amount);
         request['limited'] = type === 'limit';
-        let timestamp = this.milliseconds ();
-
+        const timestamp = this.milliseconds ();
         const response = await this[method] (this.extend (request, params));
         // TODO: replace this with a call to parseOrder for unification
         return {
             'info': response,
-            'id': response["order_id"],
+            'id': response['order_id'],
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'type': type,
             'side': side,
             'amount': amount,
-            'price': price
+            'price': price,
         };
     }
 
@@ -274,7 +269,7 @@ module.exports = class cointrade extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateDeleteBookId (this.extend (request, params));        
+        const response = await this.privateDeleteBookId (this.extend (request, params));
         return response.sucesso;
     }
 
@@ -287,7 +282,7 @@ module.exports = class cointrade extends Exchange {
         const statuses = {
             'EMPTY': 'open',
             'CANCELED': 'canceled',
-            'CLOSED': 'closed'
+            'CLOSED': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
@@ -312,19 +307,17 @@ module.exports = class cointrade extends Exchange {
             'currency': market['quote'],
         };
         const price = this.safeFloat (order, 'price');
-
         const negotiations = this.safeValue (order, 'negociacoes', []);
-
         let average = 0;
         if (negotiations.length) {
             for (let index = 0; index < negotiations.length; index++) {
-                if (negotiations[index].price) {
-                    average + negotiations[index].price;
+                const price = this.safeFloat (negotiations[index], 'price', 0);
+                if (price > 0) {
+                    average = average + price;
                 }
             }
             average = average / negotiations.length;
         }
-
         const amount = this.safeFloat (order, 'amount');
         const filled = this.safeFloat (order, 'exec_amount');
         const remaining = amount - filled;
@@ -390,9 +383,7 @@ module.exports = class cointrade extends Exchange {
             request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
         }
         const response = await this.brokerGetUdfchartHistory (this.extend (request, params));
-
-        let ohlcv = [];
-
+        const ohlcv = [];
         for (let i = 0; i < response.t.length; i++) {
             ohlcv.push ({
                 'timestamp': response.t[i],
@@ -403,24 +394,21 @@ module.exports = class cointrade extends Exchange {
                 'volume': response.v[i],
             });
         }
-
         return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let method = "privateGetBook";
+        let method = 'privateGetBook';
         let market = undefined;
-
         let request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
-            method = "privateGetBookPair";
+            method = 'privateGetBookPair';
             request = {
                 'pair': market.id,
             };
         }
-
         const response = await this[method] (this.extend (request, params));
         const orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
@@ -429,27 +417,23 @@ module.exports = class cointrade extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = {}, body = undefined) {
         let url = this.urls['api'][api] + '/';
         url += this.implodeParams (path, params);
-        headers['Content-Type'] = "application/json";
-
-        if (api === "public" || api == 'broker') {
+        headers['Content-Type'] = 'application/json';
+        if (api === 'public' || api === 'broker') {
             const query = this.omit (params, this.extractParams (path));
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-        }
-        else {
+        } else {
             this.checkRequiredCredentials ();
-            let token = this.stringToBase64 (this.secret + ':' + this.apiKey);
+            const token = this.stringToBase64 (this.secret + ':' + this.apiKey);
             headers = {
                 'Content-Type': 'application/json; charset=UTF-8',
-                'Authorization': 'Basic ' + token
+                'Authorization': 'Basic ' + token,
             };
         }
-
-        if (method === "POST" || method === "PUT" || method === "DELETE") {
+        if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
             body = this.json (params);
         }
-
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
