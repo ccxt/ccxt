@@ -94,7 +94,7 @@ module.exports = class cointrade extends Exchange {
         });
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets () {
         const data = await this.publicGetTicketMarkets ();
         const result = [];
         for (let i = 0; i < data.markets.length; i++) {
