@@ -271,7 +271,7 @@ declare module 'ccxt' {
         verbose: boolean;
         twofa: boolean;// two-factor authentication
         substituteCommonCurrencyCodes: boolean;
-        timeframes: any;
+        timeframes: { [timeframe: string] : number | string };
         has: { [what: string]: any }; // https://github.com/ccxt/ccxt/pull/1984
         balance: object;
         orderbooks: object;
