@@ -30,6 +30,7 @@ class gdax extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderTrades' => true,
                 'fetchOrders' => true,
+                'fetchTime' => true,
                 'fetchTransactions' => true,
                 'withdraw' => true,
             ),
@@ -421,7 +422,7 @@ class gdax extends Exchange {
 
     public function fetch_time ($params = array ()) {
         $response = $this->publicGetTime ($params);
-        return $this->parse8601 ($response, 'iso');
+        return $this->parse8601 ($this->safe_string($response, 'iso'));
     }
 
     public function parse_order_status ($status) {

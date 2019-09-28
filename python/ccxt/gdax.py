@@ -39,6 +39,7 @@ class gdax (Exchange):
                 'fetchOrder': True,
                 'fetchOrderTrades': True,
                 'fetchOrders': True,
+                'fetchTime': True,
                 'fetchTransactions': True,
                 'withdraw': True,
             },
@@ -406,7 +407,7 @@ class gdax (Exchange):
 
     def fetch_time(self, params={}):
         response = self.publicGetTime(params)
-        return self.parse8601(response, 'iso')
+        return self.parse8601(self.safe_string(response, 'iso'))
 
     def parse_order_status(self, status):
         statuses = {
