@@ -515,7 +515,7 @@ module.exports = class crex24 extends Exchange {
                 cost = amount * price;
             }
         }
-        const id = undefined;
+        const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'orderId');
         let symbol = undefined;
