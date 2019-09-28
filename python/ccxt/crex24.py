@@ -509,7 +509,7 @@ class crex24 (Exchange):
         if price is not None:
             if amount is not None:
                 cost = amount * price
-        id = None
+        id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'orderId')
         symbol = None
