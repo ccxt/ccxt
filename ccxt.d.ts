@@ -75,13 +75,15 @@ declare module 'ccxt' {
         max: number | undefined;
     }
 
-    export interface Market extends Dictionary<any>{
+    export interface Market {
         id: string;
         symbol: string;
         base: string;
         quote: string;
+        baseId: string,
+        quoteId: string,
         active: boolean;
-        precision: { amount: number, price: number, cost: number };
+        precision: { base: number, quote: number, amount: number, price: number };
         limits: { amount: MinMax, price: MinMax, cost?: MinMax };
         tierBased: boolean,
         percentage: boolean,
