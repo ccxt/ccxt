@@ -407,6 +407,7 @@ class huobipro (Exchange):
             typeParts = type.split('-')
             side = typeParts[0]
             type = typeParts[1]
+        takerOrMaker = self.safe_string(trade, 'role')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'filled-amount', 'amount')
         cost = None
@@ -438,7 +439,7 @@ class huobipro (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -447,11 +448,17 @@ class huobipro (Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrderMatchresults(params)
-        trades = self.parse_trades(response['data'], None, since, limit)
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
-            trades = self.filter_by_symbol(trades, market['symbol'])
+            request['symbol'] = market['id']
+        if limit is not None:
+            request['size'] = limit  # 1-100 orders, default is 100
+        if since is not None:
+            request['start-date'] = self.ymd(since)  # maximum query window size is 2 days, query window shift should be within past 120 days
+        response = await self.privateGetOrderMatchresults(self.extend(request, params))
+        trades = self.parse_trades(response['data'], market, since, limit)
         return trades
 
     async def fetch_trades(self, symbol, since=None, limit=1000, params={}):
