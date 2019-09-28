@@ -411,7 +411,7 @@ class gdax extends Exchange {
         if ($since !== null) {
             $request['start'] = $this->ymdhms ($since);
             if ($limit === null) {
-                // https://docs.gdax.com/#get-historic-rates
+                // https://docs.pro.coinbase.com/#get-historic-rates
                 $limit = 300; // max = 300
             }
             $request['end'] = $this->ymdhms ($this->sum ($limit * $granularity * 1000, $since));
@@ -624,7 +624,7 @@ class gdax extends Exchange {
         } else {
             // deposit methodotherwise we did not receive a supported deposit location
             // relevant docs link for the Googlers
-            // https://docs.gdax.com/#deposits
+            // https://docs.pro.coinbase.com/#deposits
             throw new NotSupported($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
         }
         $response = $this->$method (array_merge ($request, $params));
