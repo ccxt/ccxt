@@ -311,6 +311,7 @@ declare module 'ccxt' {
         fetchTotalBalance (params?: any): Promise<PartialBalances>;
         fetchUsedBalance (params?: any): Promise<PartialBalances>;
         fetchFreeBalance (params?: any): Promise<PartialBalances>;
+        fetchOrder(id: string, symbol: string, params?: any): Promise<Order>;
         fetchOrderBook (symbol: string, limit?: number, params?: any): Promise<OrderBook>;
         fetchTicker (symbol: string): Promise<Ticker>;
         fetchTickers (symbols?: string[]): Promise<Tickers>;
