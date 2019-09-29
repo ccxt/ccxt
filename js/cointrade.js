@@ -28,6 +28,7 @@ module.exports = class cointrade extends Exchange {
                 'fetchOHLCV': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
+                'fetchTrades': false,
             },
             'timeframes': {
                 '5m': '5',
