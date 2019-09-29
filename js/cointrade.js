@@ -125,8 +125,8 @@ module.exports = class cointrade extends Exchange {
         return result;
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
+    fetchOrderBook (symbol, limit = undefined, params = {}) {
+        // await this.loadMarkets ();
         // const market = this.market (symbol);
         // const request = {
         //     'pair': market.id,
