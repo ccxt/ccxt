@@ -28,7 +28,6 @@ module.exports = class cointrade extends Exchange {
                 'fetchOHLCV': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
-                'fetchTrades': true,
             },
             'timeframes': {
                 '5m': '5',
@@ -168,49 +167,6 @@ module.exports = class cointrade extends Exchange {
             'quoteVolume': this.safeFloat (ticker, 'volume'),
             'info': ticker,
         };
-    }
-
-    parseTrade (trade, market = undefined) {
-        const date = this.safeValue (trade, 'data');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        const type = undefined;
-        const side = this.safeString (trade, 'tipo');
-        const price = this.safeFloat (trade, 'preco');
-        const amount = this.safeFloat (trade, 'volume');
-        let cost = undefined;
-        if (price !== undefined) {
-            if (amount !== undefined) {
-                cost = price * amount;
-            }
-        }
-        return {
-            'info': trade,
-            'timestamp': undefined,
-            'datetime': date,
-            'symbol': symbol,
-            'order': undefined,
-            'type': type,
-            'side': side === 'Compra' ? 'buy' : 'sell',
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': cost * this.fees.trading.maker,
-        };
-    }
-
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'pair': market.id,
-        };
-        const response = await this.publicGetTradesPair (this.extend (request, params));
-        const trades = this.safeValue (response, 'trades');
-        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
