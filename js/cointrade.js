@@ -171,16 +171,15 @@ module.exports = class cointrade extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeTimestamp (trade, 'date');
+        const date = this.safeValue (trade, 'data');
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
         }
-        const id = this.safeString (trade, 'tid');
         const type = undefined;
-        const side = this.safeString (trade, 'type');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
+        const side = this.safeString (trade, 'tipo');
+        const price = this.safeFloat (trade, 'preco');
+        const amount = this.safeFloat (trade, 'volume');
         let cost = undefined;
         if (price !== undefined) {
             if (amount !== undefined) {
@@ -188,39 +187,30 @@ module.exports = class cointrade extends Exchange {
             }
         }
         return {
-            'id': id,
             'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': date,
             'symbol': symbol,
             'order': undefined,
             'type': type,
-            'side': side,
+            'side': side === 'Compra' ? 'buy' : 'sell',
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': undefined,
+            'fee': cost * this.fees.trading.maker,
         };
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = 'publicGetCoinTrades';
         const request = {
-            'coin': market['base'],
+            'pair': market.id,
         };
-        if (since !== undefined) {
-            method += 'From';
-            request['from'] = parseInt (since / 1000);
-        }
-        const to = this.safeInteger (params, 'to');
-        if (to !== undefined) {
-            method += 'To';
-        }
-        const response = await this[method] (this.extend (request, params));
-        return this.parseTrades (response, market, since, limit);
+        const response = await this.publicGetTradesPair (this.extend (request, params));
+        const trades = this.safeValue (response, 'trades');
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchBalance (params = {}) {
