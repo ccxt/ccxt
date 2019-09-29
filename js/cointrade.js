@@ -62,7 +62,6 @@ module.exports = class cointrade extends Exchange {
                 },
                 'public': {
                     'get': [
-                        // 'ordens/{pair}',// order book by pair
                         'ticket/markets', // get market list
                         'ticket/market/{pair}', // fetch ticker by pair
                         'trades/{pair}', // last negotiations by pair
@@ -124,16 +123,6 @@ module.exports = class cointrade extends Exchange {
             });
         }
         return result;
-    }
-
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'pair': market.id,
-        };
-        const response = await this.publicGetOrdensPair (this.extend (request, params));
-        return this.parseOrderBook (response, undefined, 'compra', 'venda', 'preco', 'volume');
     }
 
     async fetchTicker (symbol, params = {}) {
