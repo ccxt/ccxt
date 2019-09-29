@@ -24,7 +24,7 @@ module.exports = class cointrade extends Exchange {
                 'fetchBalance': true,
                 'fetchOrder': true,
                 'fetchOrders': true,
-                'fetchOrderBook': true,
+                'fetchOrderBook': false,
                 'fetchOHLCV': true,
                 'fetchMarkets': true,
                 'fetchTicker': true,
