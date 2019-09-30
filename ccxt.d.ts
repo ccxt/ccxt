@@ -295,6 +295,7 @@ declare module 'ccxt' {
         loadMarkets (reload?: boolean): Promise<{ [symbol: string]: Market }>;
         fetchTicker (symbol: string, params?: { [x: string]: any }): Promise<Ticker>;
         fetchTickers (symbols?: string[], params?: { [x: string]: any }): Promise<{ [x: string]: Ticker }>;
+        fetchTime (): Promise<number>;
         fetchMarkets (): Promise<Market[]>;
         fetchOrderStatus (id: string, market: string): Promise<string>;
         encode (str: string): string;
