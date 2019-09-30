@@ -7,6 +7,12 @@ declare module 'ccxt' {
         [key: string]: T;
     }
 
+    // Marker interface for symbol strings in CCXT format (ASSET/QUOTE)
+    // Can substitute it with regex validated strings when the feature is available:
+    // https://github.com/Microsoft/TypeScript/issues/6579
+    interface TickerSymbol extends String {}
+    
+
     // error.js -----------------------------------------
 
     export class BaseError extends Error {
@@ -77,7 +83,7 @@ declare module 'ccxt' {
 
     export interface Market {
         id: string;
-        symbol: string;
+        symbol: TickerSymbol;
         base: string;
         quote: string;
         baseId: string,
@@ -98,7 +104,7 @@ declare module 'ccxt' {
         timestamp: number;
         lastTradeTimestamp: number;
         status: 'open' | 'closed' | 'canceled';
-        symbol: string;
+        symbol: TickerSymbol;
         type: 'market' | 'limit';
         side: 'buy' | 'sell';
         price: number;
@@ -129,14 +135,14 @@ declare module 'ccxt' {
         timestamp: number;               // Unix timestamp in milliseconds
         type?: 'market' | 'limit';       // order type, 'market', 'limit' or undefined/None/null
         side: 'buy' | 'sell';            // direction of the trade, 'buy' or 'sell'
-        symbol: string;                  // symbol in CCXT format
+        symbol: TickerSymbol;            // symbol in CCXT format
         takerOrMaker: 'taker' | 'maker'; // string, 'taker' or 'maker'
         cost: number;                    // total cost (including fees), `price * amount`
         fee: Fee;
     }
 
     export interface Ticker {
-        symbol: string;
+        symbol: TickerSymbol;
         info: any;
         timestamp: number;
         datetime: string;
@@ -317,7 +323,7 @@ declare module 'ccxt' {
         marketsById: Dictionary<Market>;
         currencies: Dictionary<Currency>;
         ids: string[];
-        symbols: string[];
+        symbols: TickerSymbol[];
         id: string;
         proxy: string;
         parse8601: typeof Date.parse
@@ -409,41 +415,41 @@ declare module 'ccxt' {
         fetchL2OrderBook (...args: any): Promise<any>; // TODO: add function signatures
         fetchLedger (...args: any): Promise<any>; // TODO: add function signatures
         fetchMarkets (): Promise<Market[]>;
-        fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<any>;
-        fetchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
-        fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        fetchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
-        fetchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
+        fetchMyTrades (symbol?: TickerSymbol, since?: any, limit?: any, params?: Params): Promise<any>;
+        fetchOHLCV (symbol: TickerSymbol, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
+        fetchOpenOrders (symbol?: TickerSymbol, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        fetchOrder (id: string, symbol: TickerSymbol, params?: Params): Promise<Order>;
+        fetchOrderBook (symbol: TickerSymbol, limit?: number, params?: Params): Promise<OrderBook>;
         fetchOrderBooks (...args: any): Promise<any>; // TODO: add function signatures
-        fetchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        fetchOrders (symbol?: TickerSymbol, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         fetchOrderStatus (id: string, market: string): Promise<string>;
         fetchStatus (...args: any): Promise<any>; // TODO: add function signatures
-        fetchTicker (symbol: string, params?: Params): Promise<Ticker>;
-        fetchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
+        fetchTicker (symbol: TickerSymbol, params?: Params): Promise<Ticker>;
+        fetchTickers (symbols?: TickerSymbol[], params?: Params): Promise<Dictionary<Ticker>>;
         fetchTime (params?: Params): Promise<number>;
         fetchTotalBalance (params?: Params): Promise<PartialBalances>;
-        fetchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
+        fetchTrades (symbol: TickerSymbol, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
         fetchTradingFee (...args: any): Promise<any>; // TODO: add function signatures
         fetchTradingFees (...args: any): Promise<any>; // TODO: add function signatures
         fetchTradingLimits (...args: any): Promise<any>; // TODO: add function signatures
         fetchTransactions (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
         fetchUsedBalance (params?: Params): Promise<PartialBalances>;
         fetchWithdrawals (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
-        getMarket (symbol: string): Market;
+        getMarket (symbol: TickerSymbol): Market;
         handleResponse (url: string, method: string, headers?: any, body?: any): any;
         initRestRateLimiter (): void;
         iso8601 (timestamp: number | string): string;
         loadMarkets (reload?: boolean): Promise<Dictionary<Market>>;
-        market (symbol: string): Market;
-        marketId (symbol: string): string;
-        marketIds (symbols: string[]): string[];
+        market (symbol: TickerSymbol): Market;
+        marketId (symbol: TickerSymbol): string;
+        marketIds (symbols: TickerSymbol[]): string[];
         microseconds (): number;
         nonce (): number;
         purgeCachedOrders (timestamp: number): void;
         request (path: string, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
         seconds (): number;
         setMarkets (markets: Market[], currencies?: Currency[]): Dictionary<Market>;
-        symbol (symbol: string): string;
+        symbol (symbol: TickerSymbol): string;
         withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
         YmdHMS (timestamp: string, infix: string) : string;
     }
