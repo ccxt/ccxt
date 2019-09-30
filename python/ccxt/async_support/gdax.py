@@ -397,11 +397,11 @@ class gdax (Exchange):
             'granularity': granularity,
         }
         if since is not None:
-            request['start'] = self.ymdhms(since)
+            request['start'] = self.iso8601(since)
             if limit is None:
                 # https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300  # max = 300
-            request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
+            request['end'] = self.iso8601(self.sum(limit * granularity * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
