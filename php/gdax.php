@@ -409,12 +409,12 @@ class gdax extends Exchange {
             'granularity' => $granularity,
         );
         if ($since !== null) {
-            $request['start'] = $this->ymdhms ($since);
+            $request['start'] = $this->iso8601 ($since);
             if ($limit === null) {
                 // https://docs.pro.coinbase.com/#get-historic-rates
                 $limit = 300; // max = 300
             }
-            $request['end'] = $this->ymdhms ($this->sum ($limit * $granularity * 1000, $since));
+            $request['end'] = $this->iso8601 ($this->sum ($limit * $granularity * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
