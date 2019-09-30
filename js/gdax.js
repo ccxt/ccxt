@@ -413,7 +413,7 @@ module.exports = class gdax extends Exchange {
                 // https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300; // max = 300
             }
-            request['end'] = this.iso8601 (this.sum (limit * granularity * 1000, since));
+            request['end'] = this.iso8601 (this.sum ((limit - 1) * granularity * 1000, since));
         }
         const response = await this.publicGetProductsIdCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
