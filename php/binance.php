@@ -22,6 +22,7 @@ class binance extends Exchange {
                 'CORS' => false,
                 'fetchBidsAsks' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOrder' => true,
@@ -239,10 +240,15 @@ class binance extends Exchange {
         return $this->milliseconds () - $this->options['timeDifference'];
     }
 
+    public function fetch_time ($params = array ()) {
+        $response = $this->publicGetTime ($params);
+        return $this->safe_float($response, 'serverTime');
+    }
+
     public function load_time_difference () {
-        $response = $this->publicGetTime ();
+        $serverTime = $this->fetch_time ();
         $after = $this->milliseconds ();
-        $this->options['timeDifference'] = intval ($after - $response['serverTime']);
+        $this->options['timeDifference'] = intval ($after - $serverTime);
         return $this->options['timeDifference'];
     }
 

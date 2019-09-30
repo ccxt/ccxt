@@ -166,11 +166,15 @@ class coinex extends Exchange {
             $key = $keys[$i];
             $market = $markets[$key];
             $id = $this->safe_string($market, 'name');
-            $baseId = $this->safe_string($market, 'trading_name');
+            $tradingName = $this->safe_string($market, 'trading_name');
+            $baseId = $tradingName;
             $quoteId = $this->safe_string($market, 'pricing_name');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            if ($tradingName === $id) {
+                $symbol = $id;
+            }
             $precision = array (
                 'amount' => $this->safe_integer($market, 'trading_decimal'),
                 'price' => $this->safe_integer($market, 'pricing_decimal'),

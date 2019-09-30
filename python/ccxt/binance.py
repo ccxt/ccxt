@@ -34,6 +34,7 @@ class binance (Exchange):
                 'CORS': False,
                 'fetchBidsAsks': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': True,
@@ -249,10 +250,14 @@ class binance (Exchange):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
+    def fetch_time(self, params={}):
+        response = self.publicGetTime(params)
+        return self.safe_float(response, 'serverTime')
+
     def load_time_difference(self):
-        response = self.publicGetTime()
+        serverTime = self.fetch_time()
         after = self.milliseconds()
-        self.options['timeDifference'] = int(after - response['serverTime'])
+        self.options['timeDifference'] = int(after - serverTime)
         return self.options['timeDifference']
 
     def fetch_markets(self, params={}):

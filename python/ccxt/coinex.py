@@ -171,11 +171,14 @@ class coinex (Exchange):
             key = keys[i]
             market = markets[key]
             id = self.safe_string(market, 'name')
-            baseId = self.safe_string(market, 'trading_name')
+            tradingName = self.safe_string(market, 'trading_name')
+            baseId = tradingName
             quoteId = self.safe_string(market, 'pricing_name')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            if tradingName == id:
+                symbol = id
             precision = {
                 'amount': self.safe_integer(market, 'trading_decimal'),
                 'price': self.safe_integer(market, 'pricing_decimal'),

@@ -271,7 +271,7 @@ declare module 'ccxt' {
         verbose: boolean;
         twofa: boolean;// two-factor authentication
         substituteCommonCurrencyCodes: boolean;
-        timeframes: any;
+        timeframes: { [timeframe: string] : number | string };
         has: { [what: string]: any }; // https://github.com/ccxt/ccxt/pull/1984
         balance: object;
         orderbooks: object;
@@ -295,6 +295,7 @@ declare module 'ccxt' {
         loadMarkets (reload?: boolean): Promise<{ [symbol: string]: Market }>;
         fetchTicker (symbol: string, params?: { [x: string]: any }): Promise<Ticker>;
         fetchTickers (symbols?: string[], params?: { [x: string]: any }): Promise<{ [x: string]: Ticker }>;
+        fetchTime (): Promise<number>;
         fetchMarkets (): Promise<Market[]>;
         fetchOrderStatus (id: string, market: string): Promise<string>;
         encode (str: string): string;
@@ -311,11 +312,12 @@ declare module 'ccxt' {
         fetchTotalBalance (params?: any): Promise<PartialBalances>;
         fetchUsedBalance (params?: any): Promise<PartialBalances>;
         fetchFreeBalance (params?: any): Promise<PartialBalances>;
+        fetchOrder(id: string, symbol: string, params?: any): Promise<Order>;
         fetchOrderBook (symbol: string, limit?: number, params?: any): Promise<OrderBook>;
         fetchTicker (symbol: string): Promise<Ticker>;
         fetchTickers (symbols?: string[]): Promise<Tickers>;
         fetchTrades (symbol: string, since?: number, limit?: number, params?: {}): Promise<Trade[]>;
-        fetchOHLCV? (symbol: string, timeframe?: string, since?: number, limit?: number, params?: {}): Promise<OHLCV[]>;
+        fetchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: {}): Promise<OHLCV[]>;
         fetchOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
         fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: {}): Promise<Order[]>;
         fetchCurrencies (params?: any): Promise<any>;
@@ -331,6 +333,7 @@ declare module 'ccxt' {
         iso8601 (timestamp: string): string;
         seconds (): number;
         microseconds (): number;
+        purgeCachedOrders (timestamp: number): void;
     }
 
     /* tslint:disable */

@@ -39,6 +39,7 @@ class gdax (Exchange):
                 'fetchOrder': True,
                 'fetchOrderTrades': True,
                 'fetchOrders': True,
+                'fetchTime': True,
                 'fetchTransactions': True,
                 'withdraw': True,
             },
@@ -398,7 +399,7 @@ class gdax (Exchange):
         if since is not None:
             request['start'] = self.ymdhms(since)
             if limit is None:
-                # https://docs.gdax.com/#get-historic-rates
+                # https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300  # max = 300
             request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
         response = self.publicGetProductsIdCandles(self.extend(request, params))
@@ -406,7 +407,7 @@ class gdax (Exchange):
 
     def fetch_time(self, params={}):
         response = self.publicGetTime(params)
-        return self.parse8601(response, 'iso')
+        return self.parse8601(self.safe_string(response, 'iso'))
 
     def parse_order_status(self, status):
         statuses = {
@@ -583,7 +584,7 @@ class gdax (Exchange):
         else:
             # deposit methodotherwise we did not receive a supported deposit location
             # relevant docs link for the Googlers
-            # https://docs.gdax.com/#deposits
+            # https://docs.pro.coinbase.com/#deposits
             raise NotSupported(self.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params')
         response = getattr(self, method)(self.extend(request, params))
         if not response:
