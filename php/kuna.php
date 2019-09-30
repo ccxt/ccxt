@@ -75,10 +75,8 @@ class kuna extends acx {
                 $slice = mb_substr($id, $index);
                 if (($index > 0) && ($slice === $quoteId)) {
                     $baseId = str_replace($quoteId, '', $id);
-                    $base = strtoupper($baseId);
-                    $quote = strtoupper($quoteId);
-                    $base = $this->common_currency_code($base);
-                    $quote = $this->common_currency_code($quote);
+                    $base = $this->safe_currency_code($baseId);
+                    $quote = $this->safe_currency_code($quoteId);
                     $symbol = $base . '/' . $quote;
                     $precision = array (
                         'amount' => 6,

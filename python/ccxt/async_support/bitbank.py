@@ -89,12 +89,12 @@ class bitbank (Exchange):
             },
             'fees': {
                 'trading': {
-                    'maker': -0.05 / 100,
-                    'taker': 0.15 / 100,
+                    'maker': -0.02 / 100,
+                    'taker': 0.12 / 100,
                 },
                 'funding': {
                     'withdraw': {
-                        # 'JPY': amount => amount > 756 if 30000 else 540,
+                        # 'JPY': 756 if (amount > 30000) else 540,
                         'BTC': 0.001,
                         'LTC': 0.001,
                         'XRP': 0.15,
@@ -257,10 +257,8 @@ class bitbank (Exchange):
         balances = response['data']['assets']
         for i in range(0, len(balances)):
             balance = balances[i]
-            id = balance['asset']
-            code = id
-            if id in self.currencies_by_id:
-                code = self.currencies_by_id[id]['code']
+            currencyId = self.safe_string(balance, 'asset')
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'free_amount'),
                 'used': self.safe_float(balance, 'locked_amount'),
@@ -283,7 +281,7 @@ class bitbank (Exchange):
         id = self.safe_string(order, 'order_id')
         marketId = self.safe_string(order, 'pair')
         symbol = None
-        if marketId and not market and(marketId in list(self.marketsById.keys())):
+        if marketId and not market and (marketId in list(self.marketsById.keys())):
             market = self.marketsById[marketId]
         if market is not None:
             symbol = market['symbol']
@@ -298,12 +296,8 @@ class bitbank (Exchange):
             if average is not None:
                 cost = filled * average
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        type = self.safe_string(order, 'type')
-        if type is not None:
-            type = type.lower()
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        type = self.safe_string_lower(order, 'type')
+        side = self.safe_string_lower(order, 'side')
         return {
             'id': id,
             'datetime': self.iso8601(timestamp),

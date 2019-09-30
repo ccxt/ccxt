@@ -178,10 +178,10 @@ module.exports = class dx extends Exchange {
             let [ base, quote ] = fullName.split ('/');
             let amountPrecision = 0;
             if (instrument['meQuantityMultiplier'] !== 0) {
-                amountPrecision = Math.log10 (instrument['meQuantityMultiplier']);
+                amountPrecision = parseInt (Math.log10 (instrument['meQuantityMultiplier']));
             }
-            base = this.commonCurrencyCode (base);
-            quote = this.commonCurrencyCode (quote);
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
             const baseId = this.safeString (asset, 'baseCurrencyId');
             const quoteId = this.safeString (asset, 'quotedCurrencyId');
             const baseNumericId = this.safeInteger (asset, 'baseCurrencyId');
@@ -267,8 +267,21 @@ module.exports = class dx extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "date":1546878960,
+        //         "open":0.038064,
+        //         "high":0.038064,
+        //         "low":0.038064,
+        //         "close":0.038064,
+        //         "volume":0.00755418,
+        //         "id":169042,
+        //         "instrumentId":1015,
+        //         "type":"1m"
+        //     }
+        //
         return [
-            this.safeFloat (ohlcv, 'date') * 1000,
+            this.safeTimestamp (ohlcv, 'date'),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
@@ -291,6 +304,23 @@ module.exports = class dx extends Exchange {
             },
         };
         const response = await this.publicPostAssetManagementHistory (this.extend (request, params));
+        //
+        //     {
+        //         "id":"1.565248994048e+12",
+        //         "result":{
+        //             "assets":[
+        //                 {"date":1546878960,"open":0.038064,"high":0.038064,"low":0.038064,"close":0.038064,"volume":0.00755418,"id":169042,"instrumentId":1015,"type":"1m"},
+        //                 {"date":1546878660,"open":0.037863,"high":0.037863,"low":0.037863,"close":0.037863,"volume":0.0075726,"id":169028,"instrumentId":1015,"type":"1m"},
+        //                 {"date":1546860360,"open":0.03864,"high":0.03864,"low":0.03864,"close":0.03864,"volume":0.0013524,"id":168924,"instrumentId":1015,"type":"1m"},
+        //                 {"date":1546848480,"open":0.038969,"high":0.038969,"low":0.038969,"close":0.038969,"volume":0.01654819,"id":168880,"instrumentId":1015,"type":"1m"},
+        //             ],
+        //             "total":{
+        //                 "count":52838
+        //             }
+        //         },
+        //         "error":null
+        //     }
+        //
         return this.parseOHLCVs (response['result']['assets'], market, timeframe, since, limit);
     }
 
@@ -360,7 +390,7 @@ module.exports = class dx extends Exchange {
         if (order['orderType'] === this.options['orderTypes']['market']) {
             orderType = 'market';
         }
-        const timestamp = order['time'] * 1000;
+        const timestamp = this.safeTimestamp (order, 'time');
         const quantity = this.objectToNumber (order['quantity']);
         const filledQuantity = this.objectToNumber (order['filledQuantity']);
         const id = this.safeString (order, 'externalOrderId');
@@ -422,15 +452,13 @@ module.exports = class dx extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const balance = this.safeValue (balances, currencyId, {});
-            if (currencyId in this.currencies_by_id) {
-                const code = this.currencies_by_id[currencyId]['code'];
-                const account = {
-                    'free': this.safeFloat (balance, 'available'),
-                    'used': this.safeFloat (balance, 'frozen'),
-                    'total': this.safeFloat (balance, 'total'),
-                };
-                result[code] = account;
-            }
+            const code = this.safeCurrencyCode (currencyId);
+            const account = {
+                'free': this.safeFloat (balance, 'available'),
+                'used': this.safeFloat (balance, 'frozen'),
+                'total': this.safeFloat (balance, 'total'),
+            };
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -505,7 +533,7 @@ module.exports = class dx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (!response) {
             return; // fallback to default error handler
         }

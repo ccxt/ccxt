@@ -174,7 +174,7 @@ class btcmarkets (Exchange):
         fee = self.safe_float(item, 'fee')
         status = self.parse_transaction_status(self.safe_string(item, 'status'))
         ccy = self.safe_string(item, 'currency')
-        code = self.common_currency_code(ccy)
+        code = self.safe_currency_code(ccy)
         # todo: self logic is duplicated below
         amount = self.safe_float(item, 'amount')
         if amount is not None:
@@ -207,8 +207,8 @@ class btcmarkets (Exchange):
             baseId = self.safe_string(market, 'instrument')
             quoteId = self.safe_string(market, 'currency')
             id = baseId + '/' + quoteId
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             # todo: refactor self
             fee = 0.0085 if (quote == 'AUD') else 0.0022
@@ -262,16 +262,17 @@ class btcmarkets (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             multiplier = 100000000
-            total = self.safe_float(balance, 'balance') / multiplier
-            used = self.safe_float(balance, 'pendingFunds') / multiplier
-            free = total - used
-            account = {
-                'free': free,
-                'used': used,
-                'total': total,
-            }
+            total = self.safe_float(balance, 'balance')
+            if total is not None:
+                total /= multiplier
+            used = self.safe_float(balance, 'pendingFunds')
+            if used is not None:
+                used /= multiplier
+            account = self.account()
+            account['used'] = used
+            account['total'] = total
             result[code] = account
         return self.parse_balance(result)
 
@@ -305,15 +306,11 @@ class btcmarkets (Exchange):
             'id': market['id'],
         }
         response = self.publicGetMarketIdOrderbook(self.extend(request, params))
-        timestamp = self.safe_integer(response, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -351,9 +348,7 @@ class btcmarkets (Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -519,7 +514,7 @@ class btcmarkets (Exchange):
             cost = 0
             for i in range(0, numTrades):
                 trade = trades[i]
-                cost = self.sum(cost, trade[i]['cost'])
+                cost = self.sum(cost, trade['cost'])
             if filled > 0:
                 average = cost / filled
             lastTradeTimestamp = trades[numTrades - 1]['timestamp']
@@ -634,7 +629,7 @@ class btcmarkets (Exchange):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'success' in response:

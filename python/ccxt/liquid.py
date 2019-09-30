@@ -26,6 +26,7 @@ class liquid (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': False,
+                'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -91,7 +92,6 @@ class liquid (Exchange):
                     ],
                 },
             },
-            'skipJsonOnStatusCodes': [401],
             'exceptions': {
                 'API rate limit exceeded. Please retry after 300s': DDoSProtection,
                 'API Authentication failed': AuthenticationError,
@@ -137,7 +137,7 @@ class liquid (Exchange):
         for i in range(0, len(response)):
             currency = response[i]
             id = self.safe_string(currency, 'currency')
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             active = currency['depositable'] and currency['withdrawable']
             amountPrecision = self.safe_integer(currency, 'display_precision')
             pricePrecision = self.safe_integer(currency, 'quoting_precision')
@@ -211,8 +211,8 @@ class liquid (Exchange):
             id = str(market['id'])
             baseId = market['base_currency']
             quoteId = market['quoted_currency']
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             maker = self.safe_float(market, 'maker_fee')
             taker = self.safe_float(market, 'taker_fee')
@@ -226,10 +226,10 @@ class liquid (Exchange):
             minAmount = None
             if baseCurrency is not None:
                 minAmount = self.safe_float(baseCurrency['info'], 'minimum_order_quantity')
-                precision['amount'] = self.safe_integer(baseCurrency['info'], 'quoting_precision')
+                # precision['amount'] = self.safe_integer(baseCurrency['info'], 'quoting_precision')
             minPrice = None
             if quoteCurrency is not None:
-                precision['price'] = self.safe_integer(quoteCurrency['info'], 'display_precision')
+                precision['price'] = self.safe_integer(quoteCurrency['info'], 'quoting_precision')
                 minPrice = math.pow(10, -precision['price'])
             minCost = None
             if minPrice is not None:
@@ -279,17 +279,9 @@ class liquid (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
-            total = self.safe_float(balance, 'balance')
-            account = {
-                'free': total,
-                'used': 0.0,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['total'] = self.safe_float(balance, 'balance')
             result[code] = account
         return self.parse_balance(result)
 
@@ -320,7 +312,7 @@ class liquid (Exchange):
                 if symbol in self.markets:
                     market = self.markets[symbol]
                 else:
-                    symbol = self.common_currency_code(baseId) + '/' + self.common_currency_code(quoteId)
+                    symbol = self.safe_currency_code(baseId) + '/' + self.safe_currency_code(quoteId)
         if market is not None:
             symbol = market['symbol']
         change = None
@@ -381,7 +373,7 @@ class liquid (Exchange):
         #       taker_side: "sell",
         #       created_at:  1512345678,
         #          my_side: "buy"           }
-        timestamp = self.safe_integer(trade, 'created_at') * 1000
+        timestamp = self.safe_timestamp(trade, 'created_at')
         orderId = self.safe_string(trade, 'order_id')
         # 'taker_side' gets filled for both fetchTrades and fetchMyTrades
         takerSide = self.safe_string(trade, 'taker_side')
@@ -570,9 +562,7 @@ class liquid (Exchange):
         #     }
         #
         orderId = self.safe_string(order, 'id')
-        timestamp = self.safe_integer(order, 'created_at')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(order, 'created_at')
         marketId = self.safe_string(order, 'product_id')
         market = self.safe_value(self.markets_by_id, marketId)
         status = self.parse_order_status(self.safe_string(order, 'status'))
@@ -605,7 +595,7 @@ class liquid (Exchange):
         lastTradeTimestamp = None
         if numTrades > 0:
             lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-            if not average and(tradeFilled > 0):
+            if not average and (tradeFilled > 0):
                 average = tradeCost / tradeFilled
             if cost is None:
                 cost = tradeCost
@@ -733,7 +723,7 @@ class liquid (Exchange):
         url = self.urls['api'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if code >= 200 and code < 300:
             return
         exceptions = self.exceptions

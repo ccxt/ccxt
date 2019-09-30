@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import NotSupported
+from ccxt.base.errors import BadSymbol
 
 
 class coincheck (Exchange):
@@ -177,8 +177,8 @@ class coincheck (Exchange):
                 symbol = market['symbol']
             else:
                 baseId, quoteId = marketId.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         return {
             'id': id,
@@ -200,19 +200,17 @@ class coincheck (Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         if symbol != 'BTC/JPY':
-            raise NotSupported(self.id + ' fetchOrderBook() supports BTC/JPY only')
+            raise BadSymbol(self.id + ' fetchOrderBook() supports BTC/JPY only')
         self.load_markets()
         response = self.publicGetOrderBooks(params)
         return self.parse_order_book(response)
 
     def fetch_ticker(self, symbol, params={}):
         if symbol != 'BTC/JPY':
-            raise NotSupported(self.id + ' fetchTicker() supports BTC/JPY only')
+            raise BadSymbol(self.id + ' fetchTicker() supports BTC/JPY only')
         self.load_markets()
         ticker = self.publicGetTicker(params)
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -256,8 +254,8 @@ class coincheck (Exchange):
                 ids = marketId.split('_')
                 baseId = ids[0]
                 quoteId = ids[1]
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if symbol is None:
             if market is not None:
@@ -314,7 +312,7 @@ class coincheck (Exchange):
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         if symbol != 'BTC/JPY':
-            raise NotSupported(self.id + ' fetchTrades() supports BTC/JPY only')
+            raise BadSymbol(self.id + ' fetchTrades() supports BTC/JPY only')
         self.load_markets()
         market = self.market(symbol)
         request = {

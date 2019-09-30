@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
@@ -17,6 +24,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
 
@@ -45,6 +53,7 @@ class gemini (Exchange):
                 'fetchTransactions': True,
                 'fetchWithdrawals': False,
                 'fetchDeposits': False,
+                'fetchOHLCV': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27816857-ce7be644-6096-11e7-82d6-3c257263229c.jpg',
@@ -73,30 +82,32 @@ class gemini (Exchange):
                 },
                 'public': {
                     'get': [
-                        'symbols',
-                        'pubticker/{symbol}',
-                        'book/{symbol}',
-                        'trades/{symbol}',
-                        'auction/{symbol}',
-                        'auction/{symbol}/history',
+                        'v1/symbols',
+                        'v1/pubticker/{symbol}',
+                        'v1/book/{symbol}',
+                        'v1/trades/{symbol}',
+                        'v1/auction/{symbol}',
+                        'v1/auction/{symbol}/history',
+                        'v2/candles/{symbol}/{timeframe}',
+                        'v2/ticker/{symbol}',
                     ],
                 },
                 'private': {
                     'post': [
-                        'order/new',
-                        'order/cancel',
-                        'order/cancel/session',
-                        'order/cancel/all',
-                        'order/status',
-                        'orders',
-                        'mytrades',
-                        'tradevolume',
-                        'transfers',
-                        'balances',
-                        'deposit/{currency}/newAddress',
-                        'withdraw/{currency}',
-                        'heartbeat',
-                        'transfers',
+                        'v1/order/new',
+                        'v1/order/cancel',
+                        'v1/order/cancel/session',
+                        'v1/order/cancel/all',
+                        'v1/order/status',
+                        'v1/orders',
+                        'v1/mytrades',
+                        'v1/tradevolume',
+                        'v1/transfers',
+                        'v1/balances',
+                        'v1/deposit/{currency}/newAddress',
+                        'v1/withdraw/{currency}',
+                        'v1/heartbeat',
+                        'v1/transfers',
                     ],
                 },
             },
@@ -115,6 +126,15 @@ class gemini (Exchange):
                 '500': ExchangeError,  # The server encountered an error
                 '502': ExchangeError,  # Technical issues are preventing the request from being satisfied
                 '503': ExchangeNotAvailable,  # The exchange is down for maintenance
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1hr',
+                '6h': '6hr',
+                '1d': '1day',
             },
             'exceptions': {
                 'exact': {
@@ -149,7 +169,9 @@ class gemini (Exchange):
                     'System': ExchangeError,  # We are experiencing technical issues
                     'UnsupportedOption': BadRequest,  # This order execution option is not supported.
                 },
-                'broad': {},
+                'broad': {
+                    'The Gemini Exchange is currently undergoing maintenance.': OnMaintenance,  # The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                },
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
@@ -206,11 +228,11 @@ class gemini (Exchange):
             minAmount = minAmountAsString.split(' ')
             amountPrecision = amountTickSizeAsString.split(' ')
             pricePrecision = priceTickSizeAsString.split(' ')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
-            symbol = base + '/' + quote
             baseId = baseId.lower()
             quoteId = quoteId.lower()
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
             precision = {
                 'amount': self.precision_from_string(amountPrecision[0]),
                 'price': self.precision_from_string(pricePrecision[0]),
@@ -244,17 +266,15 @@ class gemini (Exchange):
         return result
 
     def fetch_markets_from_api(self, params={}):
-        response = self.publicGetSymbols(params)
+        response = self.publicGetV1Symbols(params)
         result = []
         for i in range(0, len(response)):
             id = response[i]
             market = id
             baseId = id[0:3]
             quoteId = id[3:6]
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': None,
@@ -294,7 +314,7 @@ class gemini (Exchange):
         if limit is not None:
             request['limit_bids'] = limit
             request['limit_asks'] = limit
-        response = self.publicGetBookSymbol(self.extend(request, params))
+        response = self.publicGetV1BookSymbol(self.extend(request, params))
         return self.parse_order_book(response, None, 'bids', 'asks', 'price', 'amount')
 
     def fetch_ticker(self, symbol, params={}):
@@ -303,10 +323,10 @@ class gemini (Exchange):
         request = {
             'symbol': market['id'],
         }
-        ticker = self.publicGetPubtickerSymbol(self.extend(request, params))
+        ticker = self.publicGetV1PubtickerSymbol(self.extend(request, params))
         timestamp = self.safe_integer(ticker['volume'], 'timestamp')
-        baseVolume = self.safe_float(market, 'base')
-        quoteVolume = self.safe_float(market, 'quote')
+        baseCurrency = market['base']  # unified structures are guaranteed to have unified fields
+        quoteCurrency = market['quote']  # so we don't need safe-methods for unified structures
         last = self.safe_float(ticker, 'last')
         return {
             'symbol': symbol,
@@ -326,8 +346,8 @@ class gemini (Exchange):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_float(ticker['volume'], baseVolume),
-            'quoteVolume': self.safe_float(ticker['volume'], quoteVolume),
+            'baseVolume': self.safe_float(ticker['volume'], baseCurrency),
+            'quoteVolume': self.safe_float(ticker['volume'], quoteCurrency),
             'info': ticker,
         }
 
@@ -335,17 +355,12 @@ class gemini (Exchange):
         timestamp = self.safe_integer(trade, 'timestampms')
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
-        fee = self.safe_float(trade, 'fee_amount')
-        if fee is not None:
-            currency = self.safe_string(trade, 'fee_currency')
-            if currency is not None:
-                if currency in self.currencies_by_id:
-                    currency = self.currencies_by_id[currency]['code']
-                currency = self.common_currency_code(currency)
-            fee = {
-                'cost': self.safe_float(trade, 'fee_amount'),
-                'currency': currency,
-            }
+        feeCurrencyId = self.safe_string(trade, 'fee_currency')
+        feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+        fee = {
+            'cost': self.safe_float(trade, 'fee_amount'),
+            'currency': feeCurrencyCode,
+        }
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'amount')
         cost = None
@@ -353,9 +368,7 @@ class gemini (Exchange):
             if amount is not None:
                 cost = price * amount
         type = None
-        side = self.safe_string(trade, 'type')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'type')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -381,17 +394,17 @@ class gemini (Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.publicGetTradesSymbol(self.extend(request, params))
+        response = self.publicGetV1TradesSymbol(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostBalances(params)
+        response = self.privatePostV1Balances(params)
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')
             account['total'] = self.safe_float(balance, 'amount')
@@ -430,6 +443,7 @@ class gemini (Exchange):
         if market is not None:
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
+        side = self.safe_string_lower(order, 'side')
         return {
             'id': id,
             'info': order,
@@ -439,7 +453,7 @@ class gemini (Exchange):
             'status': status,
             'symbol': symbol,
             'type': type,
-            'side': order['side'].lower(),
+            'side': side,
             'price': price,
             'average': average,
             'cost': cost,
@@ -454,12 +468,12 @@ class gemini (Exchange):
         request = {
             'order_id': id,
         }
-        response = self.privatePostOrderStatus(self.extend(request, params))
+        response = self.privatePostV1OrderStatus(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        response = self.privatePostOrders(params)
+        response = self.privatePostV1Orders(params)
         orders = self.parse_orders(response, None, since, limit)
         if symbol is not None:
             market = self.market(symbol)  # throws on non-existent symbol
@@ -479,7 +493,7 @@ class gemini (Exchange):
             'side': side,
             'type': 'exchange limit',  # gemini allows limit orders only
         }
-        response = self.privatePostOrderNew(self.extend(request, params))
+        response = self.privatePostV1OrderNew(self.extend(request, params))
         return {
             'info': response,
             'id': response['order_id'],
@@ -490,7 +504,7 @@ class gemini (Exchange):
         request = {
             'order_id': id,
         }
-        return self.privatePostOrderCancel(self.extend(request, params))
+        return self.privatePostV1OrderCancel(self.extend(request, params))
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
@@ -504,7 +518,7 @@ class gemini (Exchange):
             request['limit_trades'] = limit
         if since is not None:
             request['timestamp'] = int(since / 1000)
-        response = self.privatePostMytrades(self.extend(request, params))
+        response = self.privatePostV1Mytrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
@@ -516,7 +530,7 @@ class gemini (Exchange):
             'amount': amount,
             'address': address,
         }
-        response = self.privatePostWithdrawCurrency(self.extend(request, params))
+        response = self.privatePostV1WithdrawCurrency(self.extend(request, params))
         return {
             'info': response,
             'id': self.safe_string(response, 'txHash'),
@@ -532,22 +546,15 @@ class gemini (Exchange):
             request['limit_transfers'] = limit
         if since is not None:
             request['timestamp'] = since
-        response = self.privatePostTransfers(self.extend(request, params))
+        response = self.privatePostV1Transfers(self.extend(request, params))
         return self.parseTransactions(response)
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'timestampms')
-        code = None
-        if currency is None:
-            currencyId = self.safe_string(transaction, 'currency')
-            if currencyId in self.currencies_by_id:
-                currency = self.currencies_by_id[currencyId]
-        if currency is not None:
-            code = currency['code']
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'destination')
-        type = self.safe_string(transaction, 'type')
-        if type is not None:
-            type = type.lower()
+        type = self.safe_string_lower(transaction, 'type')
         status = 'pending'
         # When deposits show as Advanced or Complete they are available for trading.
         if transaction['status']:
@@ -577,8 +584,6 @@ class gemini (Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = '/' + self.implode_params(path, params)
-        if api != 'web':
-            url = '/' + self.version + url
         query = self.omit(params, self.extract_params(path))
         if api == 'private':
             self.check_required_credentials()
@@ -602,8 +607,14 @@ class gemini (Exchange):
         url = self.urls['api'][api] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        broad = self.exceptions['broad']
         if response is None:
+            if isinstance(body, basestring):
+                broadKey = self.findBroadlyMatchedKey(broad, body)
+                feedback = self.id + ' ' + body
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
             return  # fallback to default error handler
         #
         #     {
@@ -622,7 +633,6 @@ class gemini (Exchange):
                 raise exact[reason](feedback)
             elif message in exact:
                 raise exact[message](feedback)
-            broad = self.exceptions['broad']
             broadKey = self.findBroadlyMatchedKey(broad, message)
             if broadKey is not None:
                 raise broad[broadKey](feedback)
@@ -634,7 +644,7 @@ class gemini (Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = self.privatePostDepositCurrencyNewAddress(self.extend(request, params))
+        response = self.privatePostV1DepositCurrencyNewAddress(self.extend(request, params))
         address = self.safe_string(response, 'address')
         self.check_address(address)
         return {
@@ -643,3 +653,13 @@ class gemini (Exchange):
             'tag': None,
             'info': response,
         }
+
+    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'timeframe': self.timeframes[timeframe],
+            'symbol': market['id'],
+        }
+        response = self.publicGetV2CandlesSymbolTimeframe(self.extend(request, params))
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)

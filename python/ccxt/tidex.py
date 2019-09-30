@@ -82,6 +82,7 @@ class tidex (Exchange):
                 },
                 'private': {
                     'post': [
+                        'getInfoExt',
                         'getInfo',
                         'Trade',
                         'ActiveOrders',
@@ -144,8 +145,7 @@ class tidex (Exchange):
             currency = response[i]
             id = self.safe_string(currency, 'symbol')
             precision = currency['amountPoint']
-            code = id.upper()
-            code = self.common_currency_code(code)
+            code = self.safe_currency_code(id)
             active = currency['visible'] is True
             canWithdraw = currency['withdrawEnable'] is True
             canDeposit = currency['depositEnable'] is True
@@ -219,10 +219,8 @@ class tidex (Exchange):
             id = keys[i]
             market = markets[id]
             baseId, quoteId = id.split('_')
-            base = baseId.upper()
-            quote = quoteId.upper()
-            base = self.common_currency_code(base)
-            quote = self.common_currency_code(quote)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'decimal_places'),
@@ -260,28 +258,18 @@ class tidex (Exchange):
 
     def fetch_balance(self, params={}):
         self.load_markets()
-        response = self.privatePostGetInfo(params)
+        response = self.privatePostGetInfoExt(params)
         balances = self.safe_value(response, 'return')
         result = {'info': balances}
         funds = self.safe_value(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId.upper())
-            total = None
-            used = None
-            if balances['open_orders'] == 0:
-                total = funds[currencyId]
-                used = 0.0
-            account = {
-                'free': funds[currencyId],
-                'used': used,
-                'total': total,
-            }
+            code = self.safe_currency_code(currencyId)
+            balance = self.safe_value(funds, currencyId, {})
+            account = self.account()
+            account['free'] = self.safe_float(balance, 'value')
+            account['used'] = self.safe_float(balance, 'inOrders')
             result[code] = account
         return self.parse_balance(result)
 
@@ -338,7 +326,7 @@ class tidex (Exchange):
         #        sell: 0.03377798,
         #     updated: 1537522009          }
         #
-        timestamp = ticker['updated'] * 1000
+        timestamp = self.safe_timestamp(ticker, 'updated')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -400,9 +388,7 @@ class tidex (Exchange):
         return tickers[symbol]
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         side = self.safe_string(trade, 'type')
         if side == 'ask':
             side = 'sell'
@@ -424,13 +410,7 @@ class tidex (Exchange):
         feeCost = self.safe_float(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionCurrency')
-            feeCurrencyId = feeCurrencyId.upper()
-            feeCurrency = self.safe_value(self.currencies_by_id, feeCurrencyId)
-            feeCurrencyCode = None
-            if feeCurrency is not None:
-                feeCurrencyCode = feeCurrency['code']
-            else:
-                feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -545,9 +525,7 @@ class tidex (Exchange):
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        timestamp = self.safe_integer(order, 'timestamp_created')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'timestamp_created')
         symbol = None
         if market is None:
             marketId = self.safe_string(order, 'pair')
@@ -751,7 +729,7 @@ class tidex (Exchange):
                     }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'success' in response:

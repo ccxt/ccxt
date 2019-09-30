@@ -230,7 +230,7 @@ class upbit extends Exchange {
         }
         $precision = null;
         $currencyId = $this->safe_string($currencyInfo, 'code');
-        $code = $this->common_currency_code($currencyId);
+        $code = $this->safe_currency_code($currencyId);
         return array (
             'info' => $response,
             'id' => $currencyId,
@@ -295,8 +295,8 @@ class upbit extends Exchange {
         $marketId = $this->safe_string($marketInfo, 'id');
         $baseId = $this->safe_string($ask, 'currency');
         $quoteId = $this->safe_string($bid, 'currency');
-        $base = $this->common_currency_code($baseId);
-        $quote = $this->common_currency_code($quoteId);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         $symbol = $base . '/' . $quote;
         $precision = array (
             'amount' => 8,
@@ -361,8 +361,8 @@ class upbit extends Exchange {
             $market = $response[$i];
             $id = $this->safe_string($market, 'market');
             list($quoteId, $baseId) = explode('-', $id);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => 8,
@@ -421,12 +421,7 @@ class upbit extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($currencyId);
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'locked');
@@ -444,8 +439,8 @@ class upbit extends Exchange {
             return $market['symbol'];
         }
         list($baseId, $quoteId) = explode($this->options['symbolSeparator'], $marketId);
-        $base = $this->common_currency_code($baseId);
-        $quote = $this->common_currency_code($quoteId);
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
         return $base . '/' . $quote;
     }
 
@@ -671,10 +666,7 @@ class upbit extends Exchange {
             $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
         }
         $side = null;
-        $askOrBid = $this->safe_string_2($trade, 'ask_bid', 'side');
-        if ($askOrBid !== null) {
-            $askOrBid = strtolower($askOrBid);
-        }
+        $askOrBid = $this->safe_string_lower_2($trade, 'ask_bid', 'side');
         if ($askOrBid === 'ask') {
             $side = 'sell';
         } else if ($askOrBid === 'bid') {
@@ -700,8 +692,8 @@ class upbit extends Exchange {
             $feeCurrency = $market['quote'];
         } else {
             list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
@@ -807,6 +799,10 @@ class upbit extends Exchange {
             $numMinutes = (int) round($timeframePeriod / 60);
             $request['unit'] = $numMinutes;
             $method .= 'Unit';
+        }
+        if ($since !== null) {
+            // convert `$since` to `to` value
+            $request['to'] = $this->iso8601 ($this->sum ($since, $timeframePeriod * $limit * 1000));
         }
         $response = $this->$method (array_merge ($request, $params));
         //
@@ -1054,14 +1050,8 @@ class upbit extends Exchange {
         if ($type === 'withdraw') {
             $type = 'withdrawal';
         }
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        $currency = $this->safe_value($this->currencies_by_id, $currencyId);
-        if ($currency !== null) {
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safe_currency_code($currencyId);
         $status = $this->parse_transaction_status ($this->safe_string($transaction, 'state'));
         $feeCost = $this->safe_float($transaction, 'fee');
         return array (
@@ -1170,8 +1160,8 @@ class upbit extends Exchange {
             $feeCurrency = $market['quote'];
         } else {
             list($baseId, $quoteId) = explode('-', $marketId);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $feeCurrency = $quote;
         }
@@ -1373,7 +1363,8 @@ class upbit extends Exchange {
         //
         $address = $this->safe_string($depositAddress, 'deposit_address');
         $tag = $this->safe_string($depositAddress, 'secondary_address');
-        $code = $this->common_currency_code($this->safe_string($depositAddress, 'currency'));
+        $currencyId = $this->safe_string($depositAddress, 'currency');
+        $code = $this->safe_currency_code($currencyId);
         $this->check_address($address);
         return array (
             'currency' => $code,
@@ -1503,7 +1494,7 @@ class upbit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default $error handler
         }

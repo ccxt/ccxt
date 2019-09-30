@@ -147,9 +147,10 @@ module.exports = class bithumb extends Exchange {
             const account = this.account ();
             const currency = this.currency (code);
             const currencyId = currency['id'];
-            account['total'] = this.safeFloat (balances, 'total_' + currencyId);
-            account['used'] = this.safeFloat (balances, 'in_use_' + currencyId);
-            account['free'] = this.safeFloat (balances, 'available_' + currencyId);
+            const lowercase = currencyId.toLowerCase ();
+            account['total'] = this.safeFloat (balances, 'total_' + lowercase);
+            account['used'] = this.safeFloat (balances, 'in_use_' + lowercase);
+            account['free'] = this.safeFloat (balances, 'available_' + lowercase);
             result[code] = account;
         }
         return this.parseBalance (result);
@@ -188,8 +189,12 @@ module.exports = class bithumb extends Exchange {
             }
             average = this.sum (open, close) / 2;
         }
-        const vwap = this.safeFloat (ticker, 'average_price');
-        const baseVolume = this.safeFloat (ticker, 'volume_1day');
+        const baseVolume = this.safeFloat (ticker, 'units_traded_24H');
+        const quoteVolume = this.safeFloat (ticker, 'acc_trade_value_24H');
+        let vwap = undefined;
+        if (quoteVolume !== undefined && baseVolume !== undefined) {
+            vwap = quoteVolume / baseVolume;
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -209,7 +214,7 @@ module.exports = class bithumb extends Exchange {
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
-            'quoteVolume': baseVolume * vwap,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         };
     }
@@ -409,7 +414,7 @@ module.exports = class bithumb extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }

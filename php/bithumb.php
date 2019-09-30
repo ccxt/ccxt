@@ -148,9 +148,10 @@ class bithumb extends Exchange {
             $account = $this->account ();
             $currency = $this->currency ($code);
             $currencyId = $currency['id'];
-            $account['total'] = $this->safe_float($balances, 'total_' . $currencyId);
-            $account['used'] = $this->safe_float($balances, 'in_use_' . $currencyId);
-            $account['free'] = $this->safe_float($balances, 'available_' . $currencyId);
+            $lowercase = strtolower($currencyId);
+            $account['total'] = $this->safe_float($balances, 'total_' . $lowercase);
+            $account['used'] = $this->safe_float($balances, 'in_use_' . $lowercase);
+            $account['free'] = $this->safe_float($balances, 'available_' . $lowercase);
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
@@ -189,8 +190,12 @@ class bithumb extends Exchange {
             }
             $average = $this->sum ($open, $close) / 2;
         }
-        $vwap = $this->safe_float($ticker, 'average_price');
-        $baseVolume = $this->safe_float($ticker, 'volume_1day');
+        $baseVolume = $this->safe_float($ticker, 'units_traded_24H');
+        $quoteVolume = $this->safe_float($ticker, 'acc_trade_value_24H');
+        $vwap = null;
+        if ($quoteVolume !== null && $baseVolume !== null) {
+            $vwap = $quoteVolume / $baseVolume;
+        }
         return array (
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -210,7 +215,7 @@ class bithumb extends Exchange {
             'percentage' => $percentage,
             'average' => $average,
             'baseVolume' => $baseVolume,
-            'quoteVolume' => $baseVolume * $vwap,
+            'quoteVolume' => $quoteVolume,
             'info' => $ticker,
         );
     }
@@ -410,7 +415,7 @@ class bithumb extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

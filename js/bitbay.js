@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError } = require ('./base/errors');
+const { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +18,7 @@ module.exports = class bitbay extends Exchange {
                 'CORS': true,
                 'withdraw': true,
                 'fetchMyTrades': true,
+                'fetchOpenOrders': true,
             },
             'urls': {
                 'referral': 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -137,6 +138,9 @@ module.exports = class bitbay extends Exchange {
                 // codes 507 and 508 are not specified in their docs
                 '509': ExchangeError, // The BIC/SWIFT is required for this currency
                 '510': ExchangeError, // Invalid market name
+                'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
+                'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
+                'OFFER_NOT_FOUND': OrderNotFound,
             },
         });
     }
@@ -174,8 +178,8 @@ module.exports = class bitbay extends Exchange {
             const baseId = this.safeString (first, 'currency');
             const quoteId = this.safeString (second, 'currency');
             const id = baseId + quoteId;
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
                 'amount': this.safeInteger (first, 'scale'),
@@ -211,6 +215,79 @@ module.exports = class bitbay extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.v1_01PrivateGetTradingOffer (this.extend (request, params));
+        const items = this.safeValue (response, 'items', []);
+        return this.parseOrders (items, undefined, since, limit, { 'status': 'open' });
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        //     {
+        //         market: 'ETH-EUR',
+        //         offerType: 'Sell',
+        //         id: '93d3657b-d616-11e9-9248-0242ac110005',
+        //         currentAmount: '0.04',
+        //         lockedAmount: '0.04',
+        //         rate: '280',
+        //         startAmount: '0.04',
+        //         time: '1568372806924',
+        //         postOnly: false,
+        //         hidden: false,
+        //         mode: 'limit',
+        //         receivedAmount: '0.0',
+        //         firstBalanceId: '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
+        //         secondBalanceId: 'ab43023b-4079-414c-b340-056e3430a3af'
+        //     }
+        //
+        const marketId = this.safeString (order, 'market');
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (symbol === undefined) {
+            if (market !== undefined) {
+                symbol = market['symbol'];
+            }
+        }
+        const timestamp = this.safeInteger (order, 'time');
+        const amount = this.safeFloat (order, 'startAmount');
+        const remaining = this.safeFloat (order, 'currentAmount');
+        let filled = undefined;
+        if (amount !== undefined) {
+            if (remaining !== undefined) {
+                filled = Math.max (0, amount - remaining);
+            }
+        }
+        return {
+            'id': this.safeString (order, 'id'),
+            'info': order,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'status': undefined,
+            'symbol': symbol,
+            'type': this.safeString (order, 'mode'),
+            'side': this.safeStringLower (order, 'offerType'),
+            'price': this.safeFloat (order, 'rate'),
+            'amount': amount,
+            'cost': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'average': undefined,
+            'fee': undefined,
+        };
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -250,23 +327,20 @@ module.exports = class bitbay extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privatePostInfo (params);
+        const response = await this.v1_01PrivateGetBalancesBITBAYBalance (params);
         const balances = this.safeValue (response, 'balances');
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));
         }
         const result = { 'info': response };
-        const codes = Object.keys (this.currencies);
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currencyId = this.currencyId (code);
-            const balance = this.safeValue (balances, currencyId);
-            if (balance !== undefined) {
-                const account = this.account ();
-                account['free'] = this.safeFloat (balance, 'available');
-                account['used'] = this.safeFloat (balance, 'locked');
-                result[code] = account;
-            }
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['used'] = this.safeFloat (balance, 'lockedFunds');
+            account['free'] = this.safeFloat (balance, 'availableFunds');
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
@@ -318,6 +392,354 @@ module.exports = class bitbay extends Exchange {
         };
     }
 
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        const balanceCurrencies = [];
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            balanceCurrencies.push (currency['id']);
+        }
+        let request = {
+            'balanceCurrencies': balanceCurrencies,
+        };
+        if (since !== undefined) {
+            request['fromTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        request = this.extend (request, params);
+        const response = await this.v1_01PrivateGetBalancesBITBAYHistory ({ 'query': this.json (request) });
+        const items = response['items'];
+        return this.parseLedger (items, undefined, since, limit);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //    FUNDS_MIGRATION
+        //    {
+        //      "historyId": "84ea7a29-7da5-4de5-b0c0-871e83cad765",
+        //      "balance": {
+        //        "id": "821ec166-cb88-4521-916c-f4eb44db98df",
+        //        "currency": "LTC",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "LTC"
+        //      },
+        //      "detailId": null,
+        //      "time": 1506128252968,
+        //      "type": "FUNDS_MIGRATION",
+        //      "value": 0.0009957,
+        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
+        //      "fundsAfter": { "total": 0.0009957, "available": 0.0009957, "locked": 0 },
+        //      "change": { "total": 0.0009957, "available": 0.0009957, "locked": 0 }
+        //    }
+        //
+        //    CREATE_BALANCE
+        //    {
+        //      "historyId": "d0fabd8d-9107-4b5e-b9a6-3cab8af70d49",
+        //      "balance": {
+        //        "id": "653ffcf2-3037-4ebe-8e13-d5ea1a01d60d",
+        //        "currency": "BTG",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "BTG"
+        //      },
+        //      "detailId": null,
+        //      "time": 1508895244751,
+        //      "type": "CREATE_BALANCE",
+        //      "value": 0,
+        //      "fundsBefore": { "total": null, "available": null, "locked": null },
+        //      "fundsAfter": { "total": 0, "available": 0, "locked": 0 },
+        //      "change": { "total": 0, "available": 0, "locked": 0 }
+        //    }
+        //
+        //    BITCOIN_GOLD_FORK
+        //    {
+        //      "historyId": "2b4d52d3-611c-473d-b92c-8a8d87a24e41",
+        //      "balance": {
+        //        "id": "653ffcf2-3037-4ebe-8e13-d5ea1a01d60d",
+        //        "currency": "BTG",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "BTG"
+        //      },
+        //      "detailId": null,
+        //      "time": 1508895244778,
+        //      "type": "BITCOIN_GOLD_FORK",
+        //      "value": 0.00453512,
+        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
+        //      "fundsAfter": { "total": 0.00453512, "available": 0.00453512, "locked": 0 },
+        //      "change": { "total": 0.00453512, "available": 0.00453512, "locked": 0 }
+        //    }
+        //
+        //    ADD_FUNDS
+        //    {
+        //      "historyId": "3158236d-dae5-4a5d-81af-c1fa4af340fb",
+        //      "balance": {
+        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "currency": "BTC",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "BTC"
+        //      },
+        //      "detailId": "8e83a960-e737-4380-b8bb-259d6e236faa",
+        //      "time": 1520631178816,
+        //      "type": "ADD_FUNDS",
+        //      "value": 0.628405,
+        //      "fundsBefore": { "total": 0.00453512, "available": 0.00453512, "locked": 0 },
+        //      "fundsAfter": { "total": 0.63294012, "available": 0.63294012, "locked": 0 },
+        //      "change": { "total": 0.628405, "available": 0.628405, "locked": 0 }
+        //    }
+        //
+        //    TRANSACTION_PRE_LOCKING
+        //    {
+        //      "historyId": "e7d19e0f-03b3-46a8-bc72-dde72cc24ead",
+        //      "balance": {
+        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "currency": "BTC",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "BTC"
+        //      },
+        //      "detailId": null,
+        //      "time": 1520706403868,
+        //      "type": "TRANSACTION_PRE_LOCKING",
+        //      "value": -0.1,
+        //      "fundsBefore": { "total": 0.63294012, "available": 0.63294012, "locked": 0 },
+        //      "fundsAfter": { "total": 0.63294012, "available": 0.53294012, "locked": 0.1 },
+        //      "change": { "total": 0, "available": -0.1, "locked": 0.1 }
+        //    }
+        //
+        //    TRANSACTION_POST_OUTCOME
+        //    {
+        //      "historyId": "c4010825-231d-4a9c-8e46-37cde1f7b63c",
+        //      "balance": {
+        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "currency": "BTC",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "BTC"
+        //      },
+        //      "detailId": "bf2876bc-b545-4503-96c8-ef4de8233876",
+        //      "time": 1520706404032,
+        //      "type": "TRANSACTION_POST_OUTCOME",
+        //      "value": -0.01771415,
+        //      "fundsBefore": { "total": 0.63294012, "available": 0.53294012, "locked": 0.1 },
+        //      "fundsAfter": { "total": 0.61522597, "available": 0.53294012, "locked": 0.08228585 },
+        //      "change": { "total": -0.01771415, "available": 0, "locked": -0.01771415 }
+        //    }
+        //
+        //    TRANSACTION_POST_INCOME
+        //    {
+        //      "historyId": "7f18b7af-b676-4125-84fd-042e683046f6",
+        //      "balance": {
+        //        "id": "ab43023b-4079-414c-b340-056e3430a3af",
+        //        "currency": "EUR",
+        //        "type": "FIAT",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "EUR"
+        //      },
+        //      "detailId": "f5fcb274-0cc7-4385-b2d3-bae2756e701f",
+        //      "time": 1520706404035,
+        //      "type": "TRANSACTION_POST_INCOME",
+        //      "value": 628.78,
+        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
+        //      "fundsAfter": { "total": 628.78, "available": 628.78, "locked": 0 },
+        //      "change": { "total": 628.78, "available": 628.78, "locked": 0 }
+        //    }
+        //
+        //    TRANSACTION_COMMISSION_OUTCOME
+        //    {
+        //      "historyId": "843177fa-61bc-4cbf-8be5-b029d856c93b",
+        //      "balance": {
+        //        "id": "ab43023b-4079-414c-b340-056e3430a3af",
+        //        "currency": "EUR",
+        //        "type": "FIAT",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "EUR"
+        //      },
+        //      "detailId": "f5fcb274-0cc7-4385-b2d3-bae2756e701f",
+        //      "time": 1520706404050,
+        //      "type": "TRANSACTION_COMMISSION_OUTCOME",
+        //      "value": -2.71,
+        //      "fundsBefore": { "total": 766.06, "available": 766.06, "locked": 0 },
+        //      "fundsAfter": { "total": 763.35,"available": 763.35, "locked": 0 },
+        //      "change": { "total": -2.71, "available": -2.71, "locked": 0 }
+        //    }
+        //
+        //    TRANSACTION_OFFER_COMPLETED_RETURN
+        //    {
+        //      "historyId": "cac69b04-c518-4dc5-9d86-e76e91f2e1d2",
+        //      "balance": {
+        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "currency": "BTC",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "BTC"
+        //      },
+        //      "detailId": null,
+        //      "time": 1520714886425,
+        //      "type": "TRANSACTION_OFFER_COMPLETED_RETURN",
+        //      "value": 0.00000196,
+        //      "fundsBefore": { "total": 0.00941208, "available": 0.00941012, "locked": 0.00000196 },
+        //      "fundsAfter": { "total": 0.00941208, "available": 0.00941208, "locked": 0 },
+        //      "change": { "total": 0, "available": 0.00000196, "locked": -0.00000196 }
+        //    }
+        //
+        //    WITHDRAWAL_LOCK_FUNDS
+        //    {
+        //      "historyId": "03de2271-66ab-4960-a786-87ab9551fc14",
+        //      "balance": {
+        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "currency": "BTC",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "BTC"
+        //      },
+        //      "detailId": "6ad3dc72-1d6d-4ec2-8436-ca43f85a38a6",
+        //      "time": 1522245654481,
+        //      "type": "WITHDRAWAL_LOCK_FUNDS",
+        //      "value": -0.8,
+        //      "fundsBefore": { "total": 0.8, "available": 0.8, "locked": 0 },
+        //      "fundsAfter": { "total": 0.8, "available": 0, "locked": 0.8 },
+        //      "change": { "total": 0, "available": -0.8, "locked": 0.8 }
+        //    }
+        //
+        //    WITHDRAWAL_SUBTRACT_FUNDS
+        //    {
+        //      "historyId": "b0308c89-5288-438d-a306-c6448b1a266d",
+        //      "balance": {
+        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "currency": "BTC",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "BTC"
+        //      },
+        //      "detailId": "6ad3dc72-1d6d-4ec2-8436-ca43f85a38a6",
+        //      "time": 1522246526186,
+        //      "type": "WITHDRAWAL_SUBTRACT_FUNDS",
+        //      "value": -0.8,
+        //      "fundsBefore": { "total": 0.8, "available": 0, "locked": 0.8 },
+        //      "fundsAfter": { "total": 0, "available": 0, "locked": 0 },
+        //      "change": { "total": -0.8, "available": 0, "locked": -0.8 }
+        //    }
+        //
+        //    TRANSACTION_OFFER_ABORTED_RETURN
+        //    {
+        //      "historyId": "b1a3c075-d403-4e05-8f32-40512cdd88c0",
+        //      "balance": {
+        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "currency": "BTC",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "BTC"
+        //      },
+        //      "detailId": null,
+        //      "time": 1522512298662,
+        //      "type": "TRANSACTION_OFFER_ABORTED_RETURN",
+        //      "value": 0.0564931,
+        //      "fundsBefore": { "total": 0.44951311, "available": 0.39302001, "locked": 0.0564931 },
+        //      "fundsAfter": { "total": 0.44951311, "available": 0.44951311, "locked": 0 },
+        //      "change": { "total": 0, "available": 0.0564931, "locked": -0.0564931 }
+        //    }
+        //
+        //    WITHDRAWAL_UNLOCK_FUNDS
+        //    {
+        //      "historyId": "0ed569a2-c330-482e-bb89-4cb553fb5b11",
+        //      "balance": {
+        //        "id": "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "currency": "BTC",
+        //        "type": "CRYPTO",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "BTC"
+        //      },
+        //      "detailId": "0c7be256-c336-4111-bee7-4eb22e339700",
+        //      "time": 1527866360785,
+        //      "type": "WITHDRAWAL_UNLOCK_FUNDS",
+        //      "value": 0.05045,
+        //      "fundsBefore": { "total": 0.86001578, "available": 0.80956578, "locked": 0.05045 },
+        //      "fundsAfter": { "total": 0.86001578, "available": 0.86001578, "locked": 0 },
+        //      "change": { "total": 0, "available": 0.05045, "locked": -0.05045 }
+        //    }
+        //
+        //    TRANSACTION_COMMISSION_RETURN
+        //    {
+        //      "historyId": "07c89c27-46f1-4d7a-8518-b73798bf168a",
+        //      "balance": {
+        //        "id": "ab43023b-4079-414c-b340-056e3430a3af",
+        //        "currency": "EUR",
+        //        "type": "FIAT",
+        //        "userId": "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name": "EUR"
+        //      },
+        //      "detailId": null,
+        //      "time": 1528304043063,
+        //      "type": "TRANSACTION_COMMISSION_RETURN",
+        //      "value": 0.6,
+        //      "fundsBefore": { "total": 0, "available": 0, "locked": 0 },
+        //      "fundsAfter": { "total": 0.6, "available": 0.6, "locked": 0 },
+        //      "change": { "total": 0.6, "available": 0.6, "locked": 0 }
+        //    }
+        //
+        const timestamp = this.safeInteger (item, 'time');
+        const balance = this.safeValue (item, 'balance', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const change = this.safeValue (item, 'change', {});
+        let amount = this.safeFloat (change, 'total');
+        let direction = 'in';
+        if (amount < 0) {
+            direction = 'out';
+            amount = -amount;
+        }
+        const id = this.safeString (item, 'historyId');
+        // there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
+        // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
+        const referenceId = this.safeString (item, 'detailId');
+        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
+        const fundsBefore = this.safeValue (item, 'fundsBefore', {});
+        const before = this.safeFloat (fundsBefore, 'total');
+        const fundsAfter = this.safeValue (item, 'fundsAfter', {});
+        const after = this.safeFloat (fundsAfter, 'total');
+        return {
+            'info': item,
+            'id': id,
+            'direction': direction,
+            'account': undefined,
+            'referenceId': referenceId,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'amount': amount,
+            'before': before,
+            'after': after,
+            'status': 'ok',
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fee': undefined,
+        };
+    }
+
+    parseLedgerEntryType (type) {
+        const types = {
+            'ADD_FUNDS': 'transaction',
+            'BITCOIN_GOLD_FORK': 'transaction',
+            'CREATE_BALANCE': 'transaction',
+            'FUNDS_MIGRATION': 'transaction',
+            'WITHDRAWAL_LOCK_FUNDS': 'transaction',
+            'WITHDRAWAL_SUBTRACT_FUNDS': 'transaction',
+            'WITHDRAWAL_UNLOCK_FUNDS': 'transaction',
+            'TRANSACTION_COMMISSION_OUTCOME': 'fee',
+            'TRANSACTION_COMMISSION_RETURN': 'fee',
+            'TRANSACTION_OFFER_ABORTED_RETURN': 'trade',
+            'TRANSACTION_OFFER_COMPLETED_RETURN': 'trade',
+            'TRANSACTION_POST_INCOME': 'trade',
+            'TRANSACTION_POST_OUTCOME': 'trade',
+            'TRANSACTION_PRE_LOCKING': 'trade',
+        };
+        return this.safeString (types, type, type);
+    }
+
     parseTrade (trade, market) {
         if ('tid' in trade) {
             return this.parsePublicTrade (trade, market);
@@ -326,19 +748,19 @@ module.exports = class bitbay extends Exchange {
         }
     }
 
-    parseMyTrade (trade, market) {
+    parseMyTrade (trade, market = undefined) {
         //
         //     {
-        //         id: '5b6780e2-5bac-4ac7-88f4-b49b5957d33a',
-        //         market: 'BTC-EUR',
-        //         time: '1520719374684',
-        //         amount: '0.3',
-        //         rate: '7502',
-        //         initializedBy: 'Sell',
+        //         amount: "0.29285199",
+        //         commissionValue: "0.00125927",
+        //         id: "11c8203a-a267-11e9-b698-0242ac110007",
+        //         initializedBy: "Buy",
+        //         market: "ETH-EUR",
+        //         offerId: "11c82038-a267-11e9-b698-0242ac110007",
+        //         rate: "277",
+        //         time: "1562689917517",
+        //         userAction: "Buy",
         //         wasTaker: true,
-        //         userAction: 'Sell',
-        //         offerId: 'd093b0aa-b9c9-4a52-b3e2-673443a6188b',
-        //         commissionValue: null
         //     }
         //
         const timestamp = this.safeInteger (trade, 'time');
@@ -354,16 +776,37 @@ module.exports = class bitbay extends Exchange {
                 cost = price * amount;
             }
         }
-        const commissionValue = this.safeFloat (trade, 'commissionValue');
+        const feeCost = this.safeFloat (trade, 'commissionValue');
+        const marketId = this.safeString (trade, 'market');
+        let base = undefined;
+        let symbol = undefined;
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+                base = market['base'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('-');
+                base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if (market !== undefined) {
+            if (symbol === undefined) {
+                symbol = market['symbol'];
+            }
+            if (base === undefined) {
+                base = market['base'];
+            }
+        }
         let fee = undefined;
-        if (commissionValue !== undefined) {
-            // it always seems to be null so don't know what currency to use
+        if (feeCost !== undefined) {
             fee = {
-                'currency': undefined,
-                'cost': commissionValue,
+                'currency': base,
+                'cost': feeCost,
             };
         }
-        const marketId = this.safeString (trade, 'market');
         const order = this.safeString (trade, 'offerId');
         // todo: check this logic
         const type = order ? 'limit' : 'market';
@@ -372,7 +815,7 @@ module.exports = class bitbay extends Exchange {
             'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': this.findSymbol (marketId.replace ('-', '')),
+            'symbol': symbol,
             'type': type,
             'side': side,
             'price': price,
@@ -394,10 +837,7 @@ module.exports = class bitbay extends Exchange {
         //         "tid":"0"
         //     }
         //
-        let timestamp = this.safeInteger (trade, 'date');
-        if (timestamp !== undefined) {
-            timestamp *= 1000;
-        }
+        const timestamp = this.safeTimestamp (trade, 'date');
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         const side = this.safeString (trade, 'type');
@@ -467,25 +907,51 @@ module.exports = class bitbay extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        if (type !== 'limit') {
-            throw new ExchangeError (this.id + ' allows limit orders only');
-        }
         const market = this.market (symbol);
+        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
-            'type': side,
-            'currency': market['baseId'],
+            'symbol': tradingSymbol,
+            'offerType': side,
             'amount': amount,
-            'payment_currency': market['quoteId'],
-            'rate': price,
+            'mode': type,
         };
-        return await this.privatePostTrade (this.extend (request, params));
+        if (type === 'limit') {
+            request['rate'] = price;
+        }
+        //     {
+        //         status: 'Ok',
+        //         completed: false, // can deduce status from here
+        //         offerId: 'ce9cc72e-d61c-11e9-9248-0242ac110005',
+        //         transactions: [], // can deduce order info from here
+        //     }
+        const response = await this.v1_01PrivatePostTradingOfferSymbol (this.extend (request, params));
+        return {
+            'id': this.safeString (response, 'offerId'),
+            'info': response,
+        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        const side = this.safeString (params, 'side');
+        if (side === undefined) {
+            throw new ExchangeError (this.id + ' cancelOrder() requires a `side` parameter ("buy" or "sell")');
+        }
+        const price = this.safeValue (params, 'price');
+        if (price === undefined) {
+            throw new ExchangeError (this.id + ' cancelOrder() requires a `price` parameter (float or string)');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
+            'symbol': tradingSymbol,
             'id': id,
+            'side': side,
+            'price': price,
         };
-        return await this.privatePostCancel (this.extend (request, params));
+        // { status: 'Fail', errors: [ 'NOT_RECOGNIZED_OFFER_TYPE' ] }  -- if required params are missing
+        // { status: 'Ok', errors: [] }
+        return this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (this.extend (request, params));
     }
 
     isFiat (currency) {
@@ -543,13 +1009,16 @@ module.exports = class bitbay extends Exchange {
             this.checkRequiredCredentials ();
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
-            if (Object.keys (query).length) {
-                url += '?' + this.urlencode (query);
-            }
             const nonce = this.milliseconds ();
-            const payload = this.apiKey + nonce;
-            if (body !== undefined) {
-                body = this.json (body);
+            let payload = undefined;
+            if (method !== 'POST') {
+                if (Object.keys (query).length) {
+                    url += '?' + this.urlencode (query);
+                }
+                payload = this.apiKey + nonce;
+            } else if (body === undefined) {
+                body = this.json (query);
+                payload = this.apiKey + nonce + body;
             }
             headers = {
                 'Request-Timestamp': nonce,
@@ -573,7 +1042,7 @@ module.exports = class bitbay extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response) {
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return; // fallback to default error handler
         }
@@ -609,6 +1078,22 @@ module.exports = class bitbay extends Exchange {
             if (code in this.exceptions) {
                 throw new exceptions[code] (feedback);
             } else {
+                throw new ExchangeError (feedback);
+            }
+        } else if ('status' in response) {
+            //
+            //      {"status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"]}
+            //
+            const status = this.safeString (response, 'status');
+            if (status === 'Fail') {
+                const errors = this.safeValue (response, 'errors');
+                const feedback = this.id + ' ' + this.json (response);
+                for (let i = 0; i < errors.length; i++) {
+                    const error = errors[i];
+                    if (error in this.exceptions) {
+                        throw new this.exceptions[error] (feedback);
+                    }
+                }
                 throw new ExchangeError (feedback);
             }
         }

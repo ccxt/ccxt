@@ -19,6 +19,7 @@ class bitbay extends Exchange {
                 'CORS' => true,
                 'withdraw' => true,
                 'fetchMyTrades' => true,
+                'fetchOpenOrders' => true,
             ),
             'urls' => array (
                 'referral' => 'https://auth.bitbay.net/ref/jHlbB4mIkdS1',
@@ -138,6 +139,9 @@ class bitbay extends Exchange {
                 // codes 507 and 508 are not specified in their docs
                 '509' => '\\ccxt\\ExchangeError', // The BIC/SWIFT is required for this currency
                 '510' => '\\ccxt\\ExchangeError', // Invalid market name
+                'FUNDS_NOT_SUFFICIENT' => '\\ccxt\\InsufficientFunds',
+                'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS' => '\\ccxt\\InvalidOrder',
+                'OFFER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
             ),
         ));
     }
@@ -175,8 +179,8 @@ class bitbay extends Exchange {
             $baseId = $this->safe_string($first, 'currency');
             $quoteId = $this->safe_string($second, 'currency');
             $id = $baseId . $quoteId;
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
                 'amount' => $this->safe_integer($first, 'scale'),
@@ -212,6 +216,79 @@ class bitbay extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_open_orders ($symbol = null, $since = null, $limit = null, $params = array ()) {
+        $this->load_markets();
+        $request = array();
+        $response = $this->v1_01PrivateGetTradingOffer (array_merge ($request, $params));
+        $items = $this->safe_value($response, 'items', array());
+        return $this->parse_orders($items, null, $since, $limit, array( 'status' => 'open' ));
+    }
+
+    public function parse_order ($order, $market = null) {
+        //
+        //     {
+        //         $market => 'ETH-EUR',
+        //         offerType => 'Sell',
+        //         id => '93d3657b-d616-11e9-9248-0242ac110005',
+        //         currentAmount => '0.04',
+        //         lockedAmount => '0.04',
+        //         rate => '280',
+        //         startAmount => '0.04',
+        //         time => '1568372806924',
+        //         postOnly => false,
+        //         hidden => false,
+        //         mode => 'limit',
+        //         receivedAmount => '0.0',
+        //         firstBalanceId => '5b816c3e-437c-4e43-9bef-47814ae7ebfc',
+        //         secondBalanceId => 'ab43023b-4079-414c-b340-056e3430a3af'
+        //     }
+        //
+        $marketId = $this->safe_string($order, 'market');
+        $symbol = null;
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if ($symbol === null) {
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
+        }
+        $timestamp = $this->safe_integer($order, 'time');
+        $amount = $this->safe_float($order, 'startAmount');
+        $remaining = $this->safe_float($order, 'currentAmount');
+        $filled = null;
+        if ($amount !== null) {
+            if ($remaining !== null) {
+                $filled = max (0, $amount - $remaining);
+            }
+        }
+        return array (
+            'id' => $this->safe_string($order, 'id'),
+            'info' => $order,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'lastTradeTimestamp' => null,
+            'status' => null,
+            'symbol' => $symbol,
+            'type' => $this->safe_string($order, 'mode'),
+            'side' => $this->safe_string_lower($order, 'offerType'),
+            'price' => $this->safe_float($order, 'rate'),
+            'amount' => $amount,
+            'cost' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
+            'average' => null,
+            'fee' => null,
+        );
     }
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -251,23 +328,20 @@ class bitbay extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostInfo ($params);
+        $response = $this->v1_01PrivateGetBalancesBITBAYBalance ($params);
         $balances = $this->safe_value($response, 'balances');
         if ($balances === null) {
             throw new ExchangeError($this->id . ' empty $balance $response ' . $this->json ($response));
         }
         $result = array( 'info' => $response );
-        $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
-        for ($i = 0; $i < count ($codes); $i++) {
-            $code = $codes[$i];
-            $currencyId = $this->currencyId ($code);
-            $balance = $this->safe_value($balances, $currencyId);
-            if ($balance !== null) {
-                $account = $this->account ();
-                $account['free'] = $this->safe_float($balance, 'available');
-                $account['used'] = $this->safe_float($balance, 'locked');
-                $result[$code] = $account;
-            }
+        for ($i = 0; $i < count ($balances); $i++) {
+            $balance = $balances[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account ();
+            $account['used'] = $this->safe_float($balance, 'lockedFunds');
+            $account['free'] = $this->safe_float($balance, 'availableFunds');
+            $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
@@ -319,6 +393,354 @@ class bitbay extends Exchange {
         );
     }
 
+    public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {
+        $balanceCurrencies = array();
+        if ($code !== null) {
+            $currency = $this->currency ($code);
+            $balanceCurrencies[] = $currency['id'];
+        }
+        $request = array (
+            'balanceCurrencies' => $balanceCurrencies,
+        );
+        if ($since !== null) {
+            $request['fromTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $request = array_merge ($request, $params);
+        $response = $this->v1_01PrivateGetBalancesBITBAYHistory (array( 'query' => $this->json ($request) ));
+        $items = $response['items'];
+        return $this->parse_ledger($items, null, $since, $limit);
+    }
+
+    public function parse_ledger_entry ($item, $currency = null) {
+        //
+        //    FUNDS_MIGRATION
+        //    {
+        //      "historyId" => "84ea7a29-7da5-4de5-b0c0-871e83cad765",
+        //      "$balance" => array (
+        //        "$id" => "821ec166-cb88-4521-916c-f4eb44db98df",
+        //        "$currency" => "LTC",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "LTC"
+        //      ),
+        //      "detailId" => null,
+        //      "time" => 1506128252968,
+        //      "$type" => "FUNDS_MIGRATION",
+        //      "value" => 0.0009957,
+        //      "$fundsBefore" => array( "total" => 0, "available" => 0, "locked" => 0 ),
+        //      "$fundsAfter" => array( "total" => 0.0009957, "available" => 0.0009957, "locked" => 0 ),
+        //      "$change" => array( "total" => 0.0009957, "available" => 0.0009957, "locked" => 0 )
+        //    }
+        //
+        //    CREATE_BALANCE
+        //    {
+        //      "historyId" => "d0fabd8d-9107-4b5e-b9a6-3cab8af70d49",
+        //      "$balance" => array (
+        //        "$id" => "653ffcf2-3037-4ebe-8e13-d5ea1a01d60d",
+        //        "$currency" => "BTG",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "BTG"
+        //      ),
+        //      "detailId" => null,
+        //      "time" => 1508895244751,
+        //      "$type" => "CREATE_BALANCE",
+        //      "value" => 0,
+        //      "$fundsBefore" => array( "total" => null, "available" => null, "locked" => null ),
+        //      "$fundsAfter" => array( "total" => 0, "available" => 0, "locked" => 0 ),
+        //      "$change" => array( "total" => 0, "available" => 0, "locked" => 0 )
+        //    }
+        //
+        //    BITCOIN_GOLD_FORK
+        //    {
+        //      "historyId" => "2b4d52d3-611c-473d-b92c-8a8d87a24e41",
+        //      "$balance" => array (
+        //        "$id" => "653ffcf2-3037-4ebe-8e13-d5ea1a01d60d",
+        //        "$currency" => "BTG",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "BTG"
+        //      ),
+        //      "detailId" => null,
+        //      "time" => 1508895244778,
+        //      "$type" => "BITCOIN_GOLD_FORK",
+        //      "value" => 0.00453512,
+        //      "$fundsBefore" => array( "total" => 0, "available" => 0, "locked" => 0 ),
+        //      "$fundsAfter" => array( "total" => 0.00453512, "available" => 0.00453512, "locked" => 0 ),
+        //      "$change" => array( "total" => 0.00453512, "available" => 0.00453512, "locked" => 0 )
+        //    }
+        //
+        //    ADD_FUNDS
+        //    {
+        //      "historyId" => "3158236d-dae5-4a5d-81af-c1fa4af340fb",
+        //      "$balance" => array (
+        //        "$id" => "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "$currency" => "BTC",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "BTC"
+        //      ),
+        //      "detailId" => "8e83a960-e737-4380-b8bb-259d6e236faa",
+        //      "time" => 1520631178816,
+        //      "$type" => "ADD_FUNDS",
+        //      "value" => 0.628405,
+        //      "$fundsBefore" => array( "total" => 0.00453512, "available" => 0.00453512, "locked" => 0 ),
+        //      "$fundsAfter" => array( "total" => 0.63294012, "available" => 0.63294012, "locked" => 0 ),
+        //      "$change" => array( "total" => 0.628405, "available" => 0.628405, "locked" => 0 )
+        //    }
+        //
+        //    TRANSACTION_PRE_LOCKING
+        //    {
+        //      "historyId" => "e7d19e0f-03b3-46a8-bc72-dde72cc24ead",
+        //      "$balance" => array (
+        //        "$id" => "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "$currency" => "BTC",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "BTC"
+        //      ),
+        //      "detailId" => null,
+        //      "time" => 1520706403868,
+        //      "$type" => "TRANSACTION_PRE_LOCKING",
+        //      "value" => -0.1,
+        //      "$fundsBefore" => array( "total" => 0.63294012, "available" => 0.63294012, "locked" => 0 ),
+        //      "$fundsAfter" => array( "total" => 0.63294012, "available" => 0.53294012, "locked" => 0.1 ),
+        //      "$change" => array( "total" => 0, "available" => -0.1, "locked" => 0.1 )
+        //    }
+        //
+        //    TRANSACTION_POST_OUTCOME
+        //    {
+        //      "historyId" => "c4010825-231d-4a9c-8e46-37cde1f7b63c",
+        //      "$balance" => array (
+        //        "$id" => "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "$currency" => "BTC",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "BTC"
+        //      ),
+        //      "detailId" => "bf2876bc-b545-4503-96c8-ef4de8233876",
+        //      "time" => 1520706404032,
+        //      "$type" => "TRANSACTION_POST_OUTCOME",
+        //      "value" => -0.01771415,
+        //      "$fundsBefore" => array( "total" => 0.63294012, "available" => 0.53294012, "locked" => 0.1 ),
+        //      "$fundsAfter" => array( "total" => 0.61522597, "available" => 0.53294012, "locked" => 0.08228585 ),
+        //      "$change" => array( "total" => -0.01771415, "available" => 0, "locked" => -0.01771415 )
+        //    }
+        //
+        //    TRANSACTION_POST_INCOME
+        //    {
+        //      "historyId" => "7f18b7af-b676-4125-84fd-042e683046f6",
+        //      "$balance" => array (
+        //        "$id" => "ab43023b-4079-414c-b340-056e3430a3af",
+        //        "$currency" => "EUR",
+        //        "$type" => "FIAT",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "EUR"
+        //      ),
+        //      "detailId" => "f5fcb274-0cc7-4385-b2d3-bae2756e701f",
+        //      "time" => 1520706404035,
+        //      "$type" => "TRANSACTION_POST_INCOME",
+        //      "value" => 628.78,
+        //      "$fundsBefore" => array( "total" => 0, "available" => 0, "locked" => 0 ),
+        //      "$fundsAfter" => array( "total" => 628.78, "available" => 628.78, "locked" => 0 ),
+        //      "$change" => array( "total" => 628.78, "available" => 628.78, "locked" => 0 )
+        //    }
+        //
+        //    TRANSACTION_COMMISSION_OUTCOME
+        //    {
+        //      "historyId" => "843177fa-61bc-4cbf-8be5-b029d856c93b",
+        //      "$balance" => array (
+        //        "$id" => "ab43023b-4079-414c-b340-056e3430a3af",
+        //        "$currency" => "EUR",
+        //        "$type" => "FIAT",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "EUR"
+        //      ),
+        //      "detailId" => "f5fcb274-0cc7-4385-b2d3-bae2756e701f",
+        //      "time" => 1520706404050,
+        //      "$type" => "TRANSACTION_COMMISSION_OUTCOME",
+        //      "value" => -2.71,
+        //      "$fundsBefore" => array( "total" => 766.06, "available" => 766.06, "locked" => 0 ),
+        //      "$fundsAfter" => array( "total" => 763.35,"available" => 763.35, "locked" => 0 ),
+        //      "$change" => array( "total" => -2.71, "available" => -2.71, "locked" => 0 )
+        //    }
+        //
+        //    TRANSACTION_OFFER_COMPLETED_RETURN
+        //    {
+        //      "historyId" => "cac69b04-c518-4dc5-9d86-e76e91f2e1d2",
+        //      "$balance" => array (
+        //        "$id" => "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "$currency" => "BTC",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "BTC"
+        //      ),
+        //      "detailId" => null,
+        //      "time" => 1520714886425,
+        //      "$type" => "TRANSACTION_OFFER_COMPLETED_RETURN",
+        //      "value" => 0.00000196,
+        //      "$fundsBefore" => array( "total" => 0.00941208, "available" => 0.00941012, "locked" => 0.00000196 ),
+        //      "$fundsAfter" => array( "total" => 0.00941208, "available" => 0.00941208, "locked" => 0 ),
+        //      "$change" => array( "total" => 0, "available" => 0.00000196, "locked" => -0.00000196 )
+        //    }
+        //
+        //    WITHDRAWAL_LOCK_FUNDS
+        //    {
+        //      "historyId" => "03de2271-66ab-4960-a786-87ab9551fc14",
+        //      "$balance" => array (
+        //        "$id" => "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "$currency" => "BTC",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "BTC"
+        //      ),
+        //      "detailId" => "6ad3dc72-1d6d-4ec2-8436-ca43f85a38a6",
+        //      "time" => 1522245654481,
+        //      "$type" => "WITHDRAWAL_LOCK_FUNDS",
+        //      "value" => -0.8,
+        //      "$fundsBefore" => array( "total" => 0.8, "available" => 0.8, "locked" => 0 ),
+        //      "$fundsAfter" => array( "total" => 0.8, "available" => 0, "locked" => 0.8 ),
+        //      "$change" => array( "total" => 0, "available" => -0.8, "locked" => 0.8 )
+        //    }
+        //
+        //    WITHDRAWAL_SUBTRACT_FUNDS
+        //    {
+        //      "historyId" => "b0308c89-5288-438d-a306-c6448b1a266d",
+        //      "$balance" => array (
+        //        "$id" => "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "$currency" => "BTC",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "BTC"
+        //      ),
+        //      "detailId" => "6ad3dc72-1d6d-4ec2-8436-ca43f85a38a6",
+        //      "time" => 1522246526186,
+        //      "$type" => "WITHDRAWAL_SUBTRACT_FUNDS",
+        //      "value" => -0.8,
+        //      "$fundsBefore" => array( "total" => 0.8, "available" => 0, "locked" => 0.8 ),
+        //      "$fundsAfter" => array( "total" => 0, "available" => 0, "locked" => 0 ),
+        //      "$change" => array( "total" => -0.8, "available" => 0, "locked" => -0.8 )
+        //    }
+        //
+        //    TRANSACTION_OFFER_ABORTED_RETURN
+        //    {
+        //      "historyId" => "b1a3c075-d403-4e05-8f32-40512cdd88c0",
+        //      "$balance" => array (
+        //        "$id" => "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "$currency" => "BTC",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "BTC"
+        //      ),
+        //      "detailId" => null,
+        //      "time" => 1522512298662,
+        //      "$type" => "TRANSACTION_OFFER_ABORTED_RETURN",
+        //      "value" => 0.0564931,
+        //      "$fundsBefore" => array( "total" => 0.44951311, "available" => 0.39302001, "locked" => 0.0564931 ),
+        //      "$fundsAfter" => array( "total" => 0.44951311, "available" => 0.44951311, "locked" => 0 ),
+        //      "$change" => array( "total" => 0, "available" => 0.0564931, "locked" => -0.0564931 )
+        //    }
+        //
+        //    WITHDRAWAL_UNLOCK_FUNDS
+        //    {
+        //      "historyId" => "0ed569a2-c330-482e-bb89-4cb553fb5b11",
+        //      "$balance" => array (
+        //        "$id" => "3a7e7a1e-0324-49d5-8f59-298505ebd6c7",
+        //        "$currency" => "BTC",
+        //        "$type" => "CRYPTO",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "BTC"
+        //      ),
+        //      "detailId" => "0c7be256-c336-4111-bee7-4eb22e339700",
+        //      "time" => 1527866360785,
+        //      "$type" => "WITHDRAWAL_UNLOCK_FUNDS",
+        //      "value" => 0.05045,
+        //      "$fundsBefore" => array( "total" => 0.86001578, "available" => 0.80956578, "locked" => 0.05045 ),
+        //      "$fundsAfter" => array( "total" => 0.86001578, "available" => 0.86001578, "locked" => 0 ),
+        //      "$change" => array( "total" => 0, "available" => 0.05045, "locked" => -0.05045 )
+        //    }
+        //
+        //    TRANSACTION_COMMISSION_RETURN
+        //    {
+        //      "historyId" => "07c89c27-46f1-4d7a-8518-b73798bf168a",
+        //      "$balance" => array (
+        //        "$id" => "ab43023b-4079-414c-b340-056e3430a3af",
+        //        "$currency" => "EUR",
+        //        "$type" => "FIAT",
+        //        "userId" => "a34d361d-7bad-49c1-888e-62473b75d877",
+        //        "name" => "EUR"
+        //      ),
+        //      "detailId" => null,
+        //      "time" => 1528304043063,
+        //      "$type" => "TRANSACTION_COMMISSION_RETURN",
+        //      "value" => 0.6,
+        //      "$fundsBefore" => array( "total" => 0, "available" => 0, "locked" => 0 ),
+        //      "$fundsAfter" => array( "total" => 0.6, "available" => 0.6, "locked" => 0 ),
+        //      "$change" => array( "total" => 0.6, "available" => 0.6, "locked" => 0 )
+        //    }
+        //
+        $timestamp = $this->safe_integer($item, 'time');
+        $balance = $this->safe_value($item, 'balance', array());
+        $currencyId = $this->safe_string($balance, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $change = $this->safe_value($item, 'change', array());
+        $amount = $this->safe_float($change, 'total');
+        $direction = 'in';
+        if ($amount < 0) {
+            $direction = 'out';
+            $amount = -$amount;
+        }
+        $id = $this->safe_string($item, 'historyId');
+        // there are 2 undocumented api calls => (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
+        // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
+        $referenceId = $this->safe_string($item, 'detailId');
+        $type = $this->parse_ledger_entry_type ($this->safe_string($item, 'type'));
+        $fundsBefore = $this->safe_value($item, 'fundsBefore', array());
+        $before = $this->safe_float($fundsBefore, 'total');
+        $fundsAfter = $this->safe_value($item, 'fundsAfter', array());
+        $after = $this->safe_float($fundsAfter, 'total');
+        return array (
+            'info' => $item,
+            'id' => $id,
+            'direction' => $direction,
+            'account' => null,
+            'referenceId' => $referenceId,
+            'referenceAccount' => null,
+            'type' => $type,
+            'currency' => $code,
+            'amount' => $amount,
+            'before' => $before,
+            'after' => $after,
+            'status' => 'ok',
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601 ($timestamp),
+            'fee' => null,
+        );
+    }
+
+    public function parse_ledger_entry_type ($type) {
+        $types = array (
+            'ADD_FUNDS' => 'transaction',
+            'BITCOIN_GOLD_FORK' => 'transaction',
+            'CREATE_BALANCE' => 'transaction',
+            'FUNDS_MIGRATION' => 'transaction',
+            'WITHDRAWAL_LOCK_FUNDS' => 'transaction',
+            'WITHDRAWAL_SUBTRACT_FUNDS' => 'transaction',
+            'WITHDRAWAL_UNLOCK_FUNDS' => 'transaction',
+            'TRANSACTION_COMMISSION_OUTCOME' => 'fee',
+            'TRANSACTION_COMMISSION_RETURN' => 'fee',
+            'TRANSACTION_OFFER_ABORTED_RETURN' => 'trade',
+            'TRANSACTION_OFFER_COMPLETED_RETURN' => 'trade',
+            'TRANSACTION_POST_INCOME' => 'trade',
+            'TRANSACTION_POST_OUTCOME' => 'trade',
+            'TRANSACTION_PRE_LOCKING' => 'trade',
+        );
+        return $this->safe_string($types, $type, $type);
+    }
+
     public function parse_trade ($trade, $market) {
         if (is_array($trade) && array_key_exists('tid', $trade)) {
             return $this->parse_public_trade ($trade, $market);
@@ -327,19 +749,19 @@ class bitbay extends Exchange {
         }
     }
 
-    public function parse_my_trade ($trade, $market) {
+    public function parse_my_trade ($trade, $market = null) {
         //
         //     {
-        //         id => '5b6780e2-5bac-4ac7-88f4-b49b5957d33a',
-        //         $market => 'BTC-EUR',
-        //         time => '1520719374684',
-        //         $amount => '0.3',
-        //         rate => '7502',
-        //         initializedBy => 'Sell',
+        //         $amount => "0.29285199",
+        //         commissionValue => "0.00125927",
+        //         id => "11c8203a-a267-11e9-b698-0242ac110007",
+        //         initializedBy => "Buy",
+        //         $market => "ETH-EUR",
+        //         offerId => "11c82038-a267-11e9-b698-0242ac110007",
+        //         rate => "277",
+        //         time => "1562689917517",
+        //         $userAction => "Buy",
         //         $wasTaker => true,
-        //         $userAction => 'Sell',
-        //         offerId => 'd093b0aa-b9c9-4a52-b3e2-673443a6188b',
-        //         $commissionValue => null
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'time');
@@ -355,16 +777,37 @@ class bitbay extends Exchange {
                 $cost = $price * $amount;
             }
         }
-        $commissionValue = $this->safe_float($trade, 'commissionValue');
+        $feeCost = $this->safe_float($trade, 'commissionValue');
+        $marketId = $this->safe_string($trade, 'market');
+        $base = null;
+        $symbol = null;
+        if ($marketId !== null) {
+            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
+                $market = $this->markets_by_id[$marketId];
+                $symbol = $market['symbol'];
+                $base = $market['base'];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
+            }
+        }
+        if ($market !== null) {
+            if ($symbol === null) {
+                $symbol = $market['symbol'];
+            }
+            if ($base === null) {
+                $base = $market['base'];
+            }
+        }
         $fee = null;
-        if ($commissionValue !== null) {
-            // it always seems to be null so don't know what currency to use
+        if ($feeCost !== null) {
             $fee = array (
-                'currency' => null,
-                'cost' => $commissionValue,
+                'currency' => $base,
+                'cost' => $feeCost,
             );
         }
-        $marketId = $this->safe_string($trade, 'market');
         $order = $this->safe_string($trade, 'offerId');
         // todo => check this logic
         $type = $order ? 'limit' : 'market';
@@ -373,7 +816,7 @@ class bitbay extends Exchange {
             'order' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $this->find_symbol(str_replace('-', '', $marketId)),
+            'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
             'price' => $price,
@@ -395,10 +838,7 @@ class bitbay extends Exchange {
         //         "tid":"0"
         //     }
         //
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
@@ -468,25 +908,51 @@ class bitbay extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        if ($type !== 'limit') {
-            throw new ExchangeError($this->id . ' allows limit orders only');
-        }
         $market = $this->market ($symbol);
+        $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
         $request = array (
-            'type' => $side,
-            'currency' => $market['baseId'],
+            'symbol' => $tradingSymbol,
+            'offerType' => $side,
             'amount' => $amount,
-            'payment_currency' => $market['quoteId'],
-            'rate' => $price,
+            'mode' => $type,
         );
-        return $this->privatePostTrade (array_merge ($request, $params));
+        if ($type === 'limit') {
+            $request['rate'] = $price;
+        }
+        //     {
+        //         status => 'Ok',
+        //         completed => false, // can deduce status from here
+        //         offerId => 'ce9cc72e-d61c-11e9-9248-0242ac110005',
+        //         transactions => array(), // can deduce order info from here
+        //     }
+        $response = $this->v1_01PrivatePostTradingOfferSymbol (array_merge ($request, $params));
+        return array (
+            'id' => $this->safe_string($response, 'offerId'),
+            'info' => $response,
+        );
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $side = $this->safe_string($params, 'side');
+        if ($side === null) {
+            throw new ExchangeError($this->id . ' cancelOrder() requires a `$side` parameter ("buy" or "sell")');
+        }
+        $price = $this->safe_value($params, 'price');
+        if ($price === null) {
+            throw new ExchangeError($this->id . ' cancelOrder() requires a `$price` parameter (float or string)');
+        }
+        $this->load_markets();
+        $market = $this->market ($symbol);
+        $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
         $request = array (
+            'symbol' => $tradingSymbol,
             'id' => $id,
+            'side' => $side,
+            'price' => $price,
         );
-        return $this->privatePostCancel (array_merge ($request, $params));
+        // array( status => 'Fail', errors => array ( 'NOT_RECOGNIZED_OFFER_TYPE' ) )  -- if required $params are missing
+        // array( status => 'Ok', errors => array() )
+        return $this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice (array_merge ($request, $params));
     }
 
     public function is_fiat ($currency) {
@@ -544,13 +1010,16 @@ class bitbay extends Exchange {
             $this->check_required_credentials();
             $query = $this->omit ($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params);
-            if ($query) {
-                $url .= '?' . $this->urlencode ($query);
-            }
             $nonce = $this->milliseconds ();
-            $payload = $this->apiKey . $nonce;
-            if ($body !== null) {
-                $body = $this->json ($body);
+            $payload = null;
+            if ($method !== 'POST') {
+                if ($query) {
+                    $url .= '?' . $this->urlencode ($query);
+                }
+                $payload = $this->apiKey . $nonce;
+            } else if ($body === null) {
+                $body = $this->json ($query);
+                $payload = $this->apiKey . $nonce . $body;
             }
             $headers = array (
                 'Request-Timestamp' => $nonce,
@@ -574,14 +1043,14 @@ class bitbay extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return; // fallback to default $error handler
         }
         if (is_array($response) && array_key_exists('code', $response)) {
             //
             // bitbay returns the integer 'success' => 1 key from their private API
-            // or an integer 'code' value from 0 to 510 and an error message
+            // or an integer 'code' value from 0 to 510 and an $error message
             //
             //      array( 'success' => 1, ... )
             //      array( 'code' => 502, 'message' => 'Invalid sign' )
@@ -610,6 +1079,22 @@ class bitbay extends Exchange {
             if (is_array($this->exceptions) && array_key_exists($code, $this->exceptions)) {
                 throw new $exceptions[$code]($feedback);
             } else {
+                throw new ExchangeError($feedback);
+            }
+        } else if (is_array($response) && array_key_exists('status', $response)) {
+            //
+            //      array("$status":"Fail","$errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"])
+            //
+            $status = $this->safe_string($response, 'status');
+            if ($status === 'Fail') {
+                $errors = $this->safe_value($response, 'errors');
+                $feedback = $this->id . ' ' . $this->json ($response);
+                for ($i = 0; $i < count ($errors); $i++) {
+                    $error = $errors[$i];
+                    if (is_array($this->exceptions) && array_key_exists($error, $this->exceptions)) {
+                        throw new $this->exceptions[$error]($feedback);
+                    }
+                }
                 throw new ExchangeError($feedback);
             }
         }

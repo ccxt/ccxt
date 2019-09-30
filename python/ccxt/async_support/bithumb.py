@@ -149,9 +149,10 @@ class bithumb (Exchange):
             account = self.account()
             currency = self.currency(code)
             currencyId = currency['id']
-            account['total'] = self.safe_float(balances, 'total_' + currencyId)
-            account['used'] = self.safe_float(balances, 'in_use_' + currencyId)
-            account['free'] = self.safe_float(balances, 'available_' + currencyId)
+            lowercase = currencyId.lower()
+            account['total'] = self.safe_float(balances, 'total_' + lowercase)
+            account['used'] = self.safe_float(balances, 'in_use_' + lowercase)
+            account['free'] = self.safe_float(balances, 'available_' + lowercase)
             result[code] = account
         return self.parse_balance(result)
 
@@ -178,13 +179,16 @@ class bithumb (Exchange):
         change = None
         percentage = None
         average = None
-        if (close is not None) and(open is not None):
+        if (close is not None) and (open is not None):
             change = close - open
             if open > 0:
                 percentage = change / open * 100
             average = self.sum(open, close) / 2
-        vwap = self.safe_float(ticker, 'average_price')
-        baseVolume = self.safe_float(ticker, 'volume_1day')
+        baseVolume = self.safe_float(ticker, 'units_traded_24H')
+        quoteVolume = self.safe_float(ticker, 'acc_trade_value_24H')
+        vwap = None
+        if quoteVolume is not None and baseVolume is not None:
+            vwap = quoteVolume / baseVolume
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -204,7 +208,7 @@ class bithumb (Exchange):
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
-            'quoteVolume': baseVolume * vwap,
+            'quoteVolume': quoteVolume,
             'info': ticker,
         }
 
@@ -341,7 +345,7 @@ class bithumb (Exchange):
         }
         if currency == 'XRP' or currency == 'XMR':
             destination = self.safe_string(params, 'destination')
-            if (tag is None) and(destination is None):
+            if (tag is None) and (destination is None):
                 raise ExchangeError(self.id + ' ' + code + ' withdraw() requires a tag argument or an extra destination param')
             elif tag is not None:
                 request['destination'] = tag
@@ -379,7 +383,7 @@ class bithumb (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if 'status' in response:

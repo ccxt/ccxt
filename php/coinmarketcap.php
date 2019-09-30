@@ -111,7 +111,7 @@ class coinmarketcap extends Exchange {
             'E-Dinar Coin' => 'E-Dinar Coin', // conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin' => 'EDRcoin', // conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash' => 'ENTCash', // conflict with ENT (Eternity)
-            'FairGame' => 'FairGame',
+            'FairCoin' => 'FairCoin', // conflict with FAIR (FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token' => 'Fabric Token',
             'GET Protocol' => 'GET Protocol',
             'Global Tour Coin' => 'Global Tour Coin', // conflict with GTC (Game.com)
@@ -176,10 +176,8 @@ class coinmarketcap extends Exchange {
     }
 
     public function parse_ticker ($ticker, $market = null) {
-        $timestamp = $this->safe_integer($ticker, 'last_updated');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        } else {
+        $timestamp = $this->safe_timestamp($ticker, 'last_updated');
+        if ($timestamp === null) {
             $timestamp = $this->milliseconds ();
         }
         $change = $this->safe_float($ticker, 'percent_change_24h');

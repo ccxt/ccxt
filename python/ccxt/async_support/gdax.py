@@ -39,6 +39,7 @@ class gdax (Exchange):
                 'fetchOrder': True,
                 'fetchOrderTrades': True,
                 'fetchOrders': True,
+                'fetchTime': True,
                 'fetchTransactions': True,
                 'withdraw': True,
             },
@@ -172,8 +173,8 @@ class gdax (Exchange):
             id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             priceLimits = {
                 'min': self.safe_float(market, 'quote_increment'),
@@ -239,7 +240,7 @@ class gdax (Exchange):
             account = response[i]
             accountId = self.safe_string(account, 'id')
             currencyId = self.safe_string(account, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             result.append({
                 'id': accountId,
                 'type': None,
@@ -255,7 +256,7 @@ class gdax (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = {
                 'free': self.safe_float(balance, 'available'),
                 'used': self.safe_float(balance, 'hold'),
@@ -396,17 +397,17 @@ class gdax (Exchange):
             'granularity': granularity,
         }
         if since is not None:
-            request['start'] = self.ymdhms(since)
+            request['start'] = self.iso8601(since)
             if limit is None:
-                # https://docs.gdax.com/#get-historic-rates
+                # https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300  # max = 300
-            request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
+            request['end'] = self.iso8601(self.sum(limit * granularity * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)
-        return self.parse8601(self.parse8601(response, 'iso'))
+        return self.parse8601(self.safe_string(response, 'iso'))
 
     def parse_order_status(self, status):
         statuses = {
@@ -420,17 +421,21 @@ class gdax (Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        timestamp = self.parse8601(order['created_at'])
+        timestamp = self.parse8601(self.safe_string(order, 'created_at'))
         symbol = None
-        if market is None:
-            marketId = self.safe_string(order, 'product_id')
+        marketId = self.safe_string(order, 'product_id')
+        quote = None
+        if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
+            else:
+                baseId, quoteId = marketId.split('-')
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
+                symbol = base + '/' + quote
         status = self.parse_order_status(self.safe_string(order, 'status'))
         price = self.safe_float(order, 'price')
-        amount = self.safe_float_2(order, 'size', 'funds')
-        if amount is None:
-            amount = self.safe_float(order, 'specified_funds')
+        amount = self.safe_float(order, 'size')
         filled = self.safe_float(order, 'filled_size')
         remaining = None
         if amount is not None:
@@ -443,12 +448,14 @@ class gdax (Exchange):
             feeCurrencyCode = None
             if market is not None:
                 feeCurrencyCode = market['quote']
+            elif quote is not None:
+                feeCurrencyCode = quote
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
                 'rate': None,
             }
-        if market is not None:
+        if (symbol is None) and (market is not None):
             symbol = market['symbol']
         id = self.safe_string(order, 'id')
         type = self.safe_string(order, 'type')
@@ -577,7 +584,7 @@ class gdax (Exchange):
         else:
             # deposit methodotherwise we did not receive a supported deposit location
             # relevant docs link for the Googlers
-            # https://docs.gdax.com/#deposits
+            # https://docs.pro.coinbase.com/#deposits
             raise NotSupported(self.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params')
         response = await getattr(self, method)(self.extend(request, params))
         if not response:
@@ -654,13 +661,8 @@ class gdax (Exchange):
         txid = self.safe_string(details, 'crypto_transaction_hash')
         timestamp = self.parse8601(self.safe_string(transaction, 'created_at'))
         updated = self.parse8601(self.safe_string(transaction, 'processed_at'))
-        code = None
         currencyId = self.safe_string(transaction, 'currency')
-        if currencyId in self.currencies_by_id:
-            currency = self.currencies_by_id[currencyId]
-            code = currency['code']
-        else:
-            code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId, currency)
         fee = None
         status = self.parse_transaction_status(transaction)
         amount = self.safe_float(transaction, 'amount')
@@ -702,7 +704,6 @@ class gdax (Exchange):
                 if query:
                     body = self.json(query)
                     payload = body
-            # payload = body if (body) else ''
             what = nonce + method + request + payload
             secret = base64.b64decode(self.secret)
             signature = self.hmac(self.encode(what), secret, hashlib.sha256, 'base64')
@@ -767,7 +768,7 @@ class gdax (Exchange):
             'info': response,
         }
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if (code == 400) or (code == 404):
             if body[0] == '{':
                 message = response['message']

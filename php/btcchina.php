@@ -103,8 +103,8 @@ class btcchina extends Exchange {
             $quoteId = mb_substr($id, 3, 6 - 3);
             $base = strtoupper($baseId);
             $quote = strtoupper($quoteId);
-            $base = $this->common_currency_code($base);
-            $quote = $this->common_currency_code($quote);
+            $base = $this->safe_currency_code($base);
+            $quote = $this->safe_currency_code($quote);
             $symbol = $base . '/' . $quote;
             $result[] = array (
                 'id' => $id,
@@ -154,18 +154,12 @@ class btcchina extends Exchange {
         $method = $market['api'] . 'GetOrderbook';
         $request = $this->create_market_request ($market);
         $response = $this->$method (array_merge ($request, $params));
-        $timestamp = $this->safe_integer($response, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($response, 'date');
         return $this->parse_order_book($response, $timestamp);
     }
 
     public function parse_ticker ($ticker, $market) {
-        $timestamp = $this->safe_integer($ticker, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'date');
         $last = $this->safe_float($ticker, 'last');
         return array (
             'timestamp' => $timestamp,
@@ -228,10 +222,7 @@ class btcchina extends Exchange {
     }
 
     public function parse_trade ($trade, $market) {
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float($trade, 'amount');
         $cost = null;
@@ -265,10 +256,7 @@ class btcchina extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        $side = $this->safe_string($trade, 'side');
-        if ($side !== null) {
-            $side = strtolower($side);
-        }
+        $side = $this->safe_string_lower($trade, 'side');
         return array (
             'id' => null,
             'info' => $trade,
@@ -298,7 +286,7 @@ class btcchina extends Exchange {
         $request = $this->create_market_request ($market);
         if ($market['plus']) {
             $now = $this->milliseconds ();
-            $request['start_time'] = $now - 86400 * 1000;
+            $request['start_time'] = $now - 86400000;
             $request['end_time'] = $now;
         } else {
             $method .= 's'; // trades vs trade

@@ -4,6 +4,14 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
+import json
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -144,9 +152,7 @@ class btcbox (Exchange):
         return self.parse_ticker(response, market)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000  # GMT time
+        timestamp = self.safe_timestamp(trade, 'date')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -342,7 +348,7 @@ class btcbox (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # resort to defaultErrorHandler
         # typical error response: {"result":false,"code":"401"}
@@ -357,3 +363,13 @@ class btcbox (Exchange):
         if errorCode in exceptions:
             raise exceptions[errorCode](feedback)
         raise ExchangeError(feedback)  # unknown message
+
+    async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
+        response = await self.fetch2(path, api, method, params, headers, body)
+        if isinstance(response, basestring):
+            # sometimes the exchange returns whitespace prepended to json
+            response = self.strip(response)
+            if not self.is_json_encoded_object(response):
+                raise ExchangeError(self.id + ' ' + response)
+            response = json.loads(response)
+        return response

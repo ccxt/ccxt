@@ -44,6 +44,7 @@ class oceanex extends Exchange {
                 'createMarketOrder' => true,
                 'createOrder' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
                 'cancelAllOrders' => true,
             ),
             'timeframes' => array (
@@ -129,8 +130,8 @@ class oceanex extends Exchange {
             $id = $this->safe_value($market, 'id');
             $name = $this->safe_value($market, 'name');
             list($baseId, $quoteId) = explode('/', $name);
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $baseId = strtolower($baseId);
             $quoteId = strtolower($quoteId);
             $symbol = $base . '/' . $quote;
@@ -248,10 +249,7 @@ class oceanex extends Exchange {
         //         }
         //
         $ticker = $this->safe_value($data, 'ticker', array());
-        $timestamp = $this->safe_integer($data, 'at');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($data, 'at');
         return array (
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -306,10 +304,7 @@ class oceanex extends Exchange {
         //     }
         //
         $orderbook = $this->safe_value($response, 'data', array());
-        $timestamp = $this->safe_integer($orderbook, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp = $timestamp * 1000;
-        }
+        $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
         return $this->parse_order_book($orderbook, $timestamp);
     }
 
@@ -356,10 +351,7 @@ class oceanex extends Exchange {
             $marketId = $this->safe_string($orderbook, 'market');
             $market = $this->markets_by_id[$marketId];
             $symbol = $market['symbol'];
-            $timestamp = $this->safe_integer($orderbook, 'timestamp');
-            if ($timestamp !== null) {
-                $timestamp = $timestamp * 1000;
-            }
+            $timestamp = $this->safe_timestamp($orderbook, 'timestamp');
             $result[$symbol] = $this->parse_order_book($orderbook, $timestamp);
         }
         return $result;
@@ -401,11 +393,9 @@ class oceanex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $timestamp = $this->safe_integer($trade, 'created_on');
+        $timestamp = $this->safe_timestamp($trade, 'created_on');
         if ($timestamp === null) {
             $timestamp = $this->parse8601 ($this->safe_string($trade, 'created_at'));
-        } else {
-            $timestamp = $timestamp * 1000;
         }
         return array (
             'info' => $trade,
@@ -429,8 +419,7 @@ class oceanex extends Exchange {
         //
         //     array("code":0,"message":"Operation successful","data":1559433420)
         //
-        $timestamp = $this->safe_integer($response, 'data');
-        return $timestamp * 1000;
+        return $this->safe_timestamp($response, 'data');
     }
 
     public function fetch_all_trading_fees ($params = array ()) {
@@ -470,12 +459,7 @@ class oceanex extends Exchange {
         for ($i = 0; $i < count ($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_value($balance, 'currency');
-            $code = $currencyId;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code(strtoupper($currencyId));
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
             $account['free'] = $this->safe_float($balance, 'balance');
             $account['used'] = $this->safe_float($balance, 'locked');
@@ -502,15 +486,26 @@ class oceanex extends Exchange {
     }
 
     public function fetch_order ($id, $symbol = null, $params = array ()) {
+        $ids = $id;
+        if (!gettype ($id) === 'array' && count (array_filter (array_keys ($id), 'is_string')) == 0) {
+            $ids = array ( $id );
+        }
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market ($symbol);
         }
-        $request = array( 'ids' => [$id] );
+        $request = array( 'ids' => $ids );
         $response = $this->privateGetOrders (array_merge ($request, $params));
         $data = $this->safe_value($response, 'data');
-        if ($data === null || strlen ($data) === 0) {
+        $dataLength = is_array ($data) ? count ($data) : 0;
+        if ($data === null) {
+            throw new OrderNotFound($this->id . ' could not found matching order');
+        }
+        if (gettype ($id) === 'array' && count (array_filter (array_keys ($id), 'is_string')) == 0) {
+            return $this->parse_orders($data, $market);
+        }
+        if ($dataLength === 0) {
             throw new OrderNotFound($this->id . ' could not found matching order');
         }
         return $this->parse_order($data[0], $market);
@@ -575,11 +570,9 @@ class oceanex extends Exchange {
                 $symbol = $market['symbol'];
             }
         }
-        $timestamp = $this->safe_integer($order, 'created_on');
+        $timestamp = $this->safe_timestamp($order, 'created_on');
         if ($timestamp === null) {
             $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
-        } else {
-            $timestamp = $timestamp * 1000;
         }
         return array (
             'info' => $order,
@@ -625,18 +618,21 @@ class oceanex extends Exchange {
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostOrderDelete (array_merge (array( 'id' => $id ), $params));
         $data = $this->safe_value($response, 'data');
         return $this->parse_order($data);
     }
 
     public function cancel_orders ($ids, $symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostOrderDeleteMulti (array_merge (array( 'ids' => $ids ), $params));
         $data = $this->safe_value($response, 'data');
         return $this->parse_orders($data);
     }
 
     public function cancel_all_orders ($symbol = null, $params = array ()) {
+        $this->load_markets();
         $response = $this->privatePostOrdersClear ($params);
         $data = $this->safe_value($response, 'data');
         return $this->parse_orders($data);
@@ -676,7 +672,7 @@ class oceanex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         //
         //     array("$code":1011,"$message":"This IP '5.228.233.138' is not allowed","data":array())
         //

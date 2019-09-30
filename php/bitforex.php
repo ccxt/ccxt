@@ -227,8 +227,8 @@ class bitforex extends Exchange {
             $symbolParts = explode('-', $id);
             $baseId = $symbolParts[2];
             $quoteId = $symbolParts[1];
-            $base = $this->common_currency_code(strtoupper($baseId));
-            $quote = $this->common_currency_code(strtoupper($quoteId));
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $active = true;
             $precision = array (
@@ -318,14 +318,14 @@ class bitforex extends Exchange {
         $data = $response['data'];
         $result = array( 'info' => $response );
         for ($i = 0; $i < count ($data); $i++) {
-            $current = $data[$i];
-            $currencyId = $current['currency'];
-            $code = $this->common_currency_code(strtoupper($currencyId));
+            $balance = $data[$i];
+            $currencyId = $this->safe_string($balance, 'currency');
+            $code = $this->safe_currency_code($currencyId);
             $account = $this->account ();
+            $account['used'] = $this->safe_float($balance, 'frozen');
+            $account['free'] = $this->safe_float($balance, 'active');
+            $account['total'] = $this->safe_float($balance, 'fix');
             $result[$code] = $account;
-            $result[$code]['used'] = $this->safe_float($current, 'frozen');
-            $result[$code]['free'] = $this->safe_float($current, 'active');
-            $result[$code]['total'] = $this->safe_float($current, 'fix');
         }
         return $this->parse_balance($result);
     }
@@ -373,14 +373,9 @@ class bitforex extends Exchange {
             $request['size'] = $limit;
         }
         $response = $this->publicGetApiV1MarketDepth (array_merge ($request, $params));
-        $data = $response['data'];
-        $timestamp = $response['time'];
-        $bidsKey = 'bids';
-        $asksKey = 'asks';
-        $priceKey = 'price';
-        $amountKey = 'amount';
-        $orderbook = $this->parse_order_book($data, $timestamp, $bidsKey, $asksKey, $priceKey, $amountKey);
-        return $orderbook;
+        $data = $this->safe_value($response, 'data');
+        $timestamp = $this->safe_integer($response, 'time');
+        return $this->parse_order_book($data, $timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     public function parse_order_status ($status) {
@@ -541,7 +536,7 @@ class bitforex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (gettype ($body) !== 'string') {
             return; // fallback to default error handler
         }

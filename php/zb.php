@@ -78,7 +78,6 @@ class zb extends Exchange {
                 'www' => 'https://www.zb.com',
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
-                'referral' => 'https://vip.zb.com/user/register?recommendCode=bn070u',
             ),
             'api' => array (
                 'public' => array (
@@ -174,12 +173,12 @@ class zb extends Exchange {
             $id = $keys[$i];
             $market = $markets[$id];
             list($baseId, $quoteId) = explode('_', $id);
-            $base = $this->common_currency_code(strtoupper($baseId));
-            $quote = $this->common_currency_code(strtoupper($quoteId));
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $precision = array (
-                'amount' => $market['amountScale'],
-                'price' => $market['priceScale'],
+                'amount' => $this->safe_integer($market, 'amountScale'),
+                'price' => $this->safe_integer($market, 'priceScale'),
             );
             $result[] = array (
                 'id' => $id,
@@ -230,12 +229,7 @@ class zb extends Exchange {
             //                 key => "btc"         }
             $account = $this->account ();
             $currencyId = $this->safe_string($balance, 'key');
-            $code = null;
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-                $code = $this->currencies_by_id[$currencyId]['code'];
-            } else {
-                $code = $this->common_currency_code($this->safe_string($balance, 'enName'));
-            }
+            $code = $this->safe_currency_code($currencyId);
             $account['free'] = $this->safe_float($balance, 'available');
             $account['used'] = $this->safe_float($balance, 'freez');
             $result[$code] = $account;
@@ -359,10 +353,7 @@ class zb extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $side = $this->safe_string($trade, 'trade_type');
         $side = ($side === 'bid') ? 'buy' : 'sell';
         $id = $this->safe_string($trade, 'tid');
@@ -624,7 +615,7 @@ class zb extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

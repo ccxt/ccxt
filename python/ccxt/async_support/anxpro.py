@@ -25,6 +25,7 @@ class anxpro (Exchange):
             'name': 'ANXPro',
             'countries': ['JP', 'SG', 'HK', 'NZ'],
             'rateLimit': 1500,
+            'userAgent': self.userAgents['chrome'],
             'has': {
                 'CORS': False,
                 'fetchCurrencies': True,
@@ -153,6 +154,7 @@ class anxpro (Exchange):
         })
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        # todo: migrate self to fetchLedger
         await self.load_markets()
         request = {}
         if since is not None:
@@ -212,8 +214,8 @@ class anxpro (Exchange):
         #     }
         #
         transactions = self.safe_value(response, 'transactions', [])
-        grouped = self.group_by(transactions, 'transactionType')
-        depositsAndWithdrawals = self.array_concat(grouped['DEPOSIT'], grouped['WITHDRAWAL'])
+        grouped = self.group_by(transactions, 'transactionType', [])
+        depositsAndWithdrawals = self.array_concat(self.safe_value(grouped, 'DEPOSIT', []), self.safe_value(grouped, 'WITHDRAWAL', []))
         return self.parseTransactions(depositsAndWithdrawals, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
@@ -300,7 +302,7 @@ class anxpro (Exchange):
                         address = addressText
             type = 'deposit'
         currencyId = self.safe_string(transaction, 'ccy')
-        code = self.common_currency_code(currencyId)
+        code = self.safe_currency_code(currencyId)
         transactionState = self.safe_string(transaction, 'transactionState')
         status = self.parse_transaction_status(transactionState)
         feeCost = self.safe_float(transaction, 'fee')
@@ -440,8 +442,7 @@ class anxpro (Exchange):
         price = self.safe_float(trade, 'price')
         amount = self.safe_float(trade, 'tradedCurrencyFillAmount')
         cost = self.safe_float(trade, 'settlementCurrencyFillAmount')
-        side = self.safe_string(trade, 'side')
-        side = None if (side is None) else side.lower()
+        side = self.safe_string_lower(trade, 'side')
         return {
             'id': id,
             'order': orderId,
@@ -459,8 +460,9 @@ class anxpro (Exchange):
 
     async def fetch_currencies(self, params={}):
         response = await self.v3publicGetCurrencyStatic(params)
-        result = {}
-        currencies = response['currencyStatic']['currencies']
+        #
+        #   {
+        #     "currencyStatic": {
         #       "currencies": {
         #         "HKD": {
         #           "decimals": 2,
@@ -509,11 +511,40 @@ class anxpro (Exchange):
         #           "assetIcon": "/images/currencies/crypto/ETH.svg"
         #         },
         #       },
+        #       "currencyPairs": {
+        #         "ETHUSD": {
+        #           "priceDecimals": 5,
+        #           "engineSettings": {
+        #             "tradingEnabled": True,
+        #             "displayEnabled": True,
+        #             "cancelOnly": True,
+        #             "verifyRequired": False,
+        #             "restrictedBuy": False,
+        #             "restrictedSell": False
+        #           },
+        #           "minOrderRate": 10.00000000,
+        #           "maxOrderRate": 10000.00000000,
+        #           "displayPriceDecimals": 5,
+        #           "tradedCcy": "ETH",
+        #           "settlementCcy": "USD",
+        #           "preferredMarket": "ANX",
+        #           "chartEnabled": True,
+        #           "simpleTradeEnabled": False
+        #         },
+        #       },
+        #     },
+        #     "timestamp": "1549840691039",
+        #     "resultCode": "OK"
+        #   }
+        #
+        currencyStatic = self.safe_value(response, 'currencyStatic', {})
+        currencies = self.safe_value(currencyStatic, 'currencies', {})
+        result = {}
         ids = list(currencies.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             currency = currencies[id]
-            code = self.common_currency_code(id)
+            code = self.safe_currency_code(id)
             engineSettings = self.safe_value(currency, 'engineSettings')
             depositsEnabled = self.safe_value(engineSettings, 'depositsEnabled')
             withdrawalsEnabled = self.safe_value(engineSettings, 'withdrawalsEnabled')
@@ -521,9 +552,7 @@ class anxpro (Exchange):
             active = depositsEnabled and withdrawalsEnabled and displayEnabled
             precision = self.safe_integer(currency, 'decimals')
             fee = self.safe_float(currency, 'networkFee')
-            type = self.safe_string(currency, 'type')
-            if type != 'None':
-                type = type.lower()
+            type = self.safe_string_lower(currency, 'type')
             result[code] = {
                 'id': id,
                 'code': code,
@@ -664,8 +693,8 @@ class anxpro (Exchange):
             #
             baseId = self.safe_string(market, 'tradedCcy')
             quoteId = self.safe_string(market, 'settlementCcy')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             baseCurrency = self.safe_value(currencies, baseId, {})
             quoteCurrency = self.safe_value(currencies, quoteId, {})
@@ -713,11 +742,7 @@ class anxpro (Exchange):
         result = {'info': balance}
         for c in range(0, len(currencyIds)):
             currencyId = currencyIds[c]
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             wallet = self.safe_value(wallets, currencyId)
             account['free'] = self.safe_float(wallet['Available_Balance'], 'value')
@@ -732,8 +757,7 @@ class anxpro (Exchange):
         }
         response = await self.publicGetCurrencyPairMoneyDepthFull(self.extend(request, params))
         orderbook = self.safe_value(response, 'data', {})
-        t = self.safe_integer(orderbook, 'dataUpdateTime')
-        timestamp = t if (t is None) else int(t / 1000)
+        timestamp = self.safe_integer_product(orderbook, 'dataUpdateTime', 0.001)
         return self.parse_order_book(orderbook, timestamp, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_ticker(self, symbol, params={}):
@@ -743,8 +767,7 @@ class anxpro (Exchange):
         }
         response = await self.publicGetCurrencyPairMoneyTicker(self.extend(request, params))
         ticker = self.safe_value(response, 'data', {})
-        t = self.safe_integer(ticker, 'dataUpdateTime')
-        timestamp = t if (t is None) else int(t / 1000)
+        timestamp = self.safe_integer_product(ticker, 'dataUpdateTime', 0.001)
         bid = self.safe_float(ticker['buy'], 'value')
         ask = self.safe_float(ticker['sell'], 'value')
         baseVolume = self.safe_float(ticker['vol'], 'value')
@@ -894,12 +917,12 @@ class anxpro (Exchange):
         settlementCurrency = self.safe_string(order, 'settlementCurrency')
         symbol = self.find_symbol(tradedCurrency + '/' + settlementCurrency)
         buyTradedCurrency = self.safe_string(order, 'buyTradedCurrency')
-        side = buyTradedCurrency == 'buy' if 'true' else 'sell'
+        side = 'buy' if (buyTradedCurrency == 'true') else 'sell'
         timestamp = self.safe_integer(order, 'timestamp')
         lastTradeTimestamp = None
         trades = []
         filled = 0
-        type = self.safe_string(order, 'orderType').lower()
+        type = self.safe_string_lower(order, 'orderType')
         for i in range(0, len(order['trades'])):
             trade = order['trades'][i]
             tradeTimestamp = self.safe_integer(trade, 'timestamp')
@@ -910,7 +933,7 @@ class anxpro (Exchange):
             filled = self.sum(filled, parsedTrade['amount'])
         price = self.safe_float(order, 'limitPriceInSettlementCurrency')
         executedAverageRate = self.safe_float(order, 'executedAverageRate')
-        remaining = type == 0 if 'market' else self.safe_float(order, 'tradedCurrencyAmountOutstanding')
+        remaining = 0 if (type == 'market') else self.safe_float(order, 'tradedCurrencyAmountOutstanding')
         amount = self.safe_float(order, 'tradedCurrencyAmount')
         if not amount:
             settlementCurrencyAmount = self.safe_float(order, 'settlementCurrencyAmount')
@@ -1121,12 +1144,12 @@ class anxpro (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None or response == '':
             return
         result = self.safe_string(response, 'result')
         code = self.safe_string(response, 'resultCode')
-        if ((result is not None) and(result != 'success')) or ((code is not None) and(code != 'OK')):
+        if ((result is not None) and (result != 'success')) or ((code is not None) and (code != 'OK')):
             message = self.safe_string(response, 'error')
             feedback = self.id + ' ' + body
             exact = self.exceptions['exact']

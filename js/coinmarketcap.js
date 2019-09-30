@@ -110,7 +110,7 @@ module.exports = class coinmarketcap extends Exchange {
             'E-Dinar Coin': 'E-Dinar Coin', // conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin': 'EDRcoin', // conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash', // conflict with ENT (Eternity)
-            'FairGame': 'FairGame',
+            'FairCoin': 'FairCoin', // conflict with FAIR (FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token': 'Fabric Token',
             'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin', // conflict with GTC (Game.com)
@@ -175,10 +175,8 @@ module.exports = class coinmarketcap extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        let timestamp = this.safeInteger (ticker, 'last_updated');
-        if (timestamp !== undefined) {
-            timestamp = timestamp * 1000;
-        } else {
+        let timestamp = this.safeTimestamp (ticker, 'last_updated');
+        if (timestamp === undefined) {
             timestamp = this.milliseconds ();
         }
         const change = this.safeFloat (ticker, 'percent_change_24h');

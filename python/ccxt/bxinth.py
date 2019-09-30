@@ -21,6 +21,7 @@ class bxinth (Exchange):
                 'fetchOpenOrders': True,
             },
             'urls': {
+                'referral': 'https://bx.in.th/ref/cYHknT/',
                 'logo': 'https://user-images.githubusercontent.com/1294454/27766412-567b1eb4-5ed7-11e7-94a8-ff6a3884f6c5.jpg',
                 'api': 'https://bx.in.th/api',
                 'www': 'https://bx.in.th',
@@ -87,8 +88,8 @@ class bxinth (Exchange):
             baseId = self.safe_string(market, 'secondary_currency')
             quoteId = self.safe_string(market, 'primary_currency')
             active = self.safe_value(market, 'active')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             result.append({
                 'id': id,
@@ -110,7 +111,7 @@ class bxinth (Exchange):
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             balance = self.safe_value(balances, currencyId, {})
             account = self.account()
             account['free'] = self.safe_float(balance, 'available')

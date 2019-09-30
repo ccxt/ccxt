@@ -82,17 +82,12 @@ class bl3p extends Exchange {
             $account = $this->account ();
             $account['free'] = $this->safe_float($available, 'value');
             $account['total'] = $this->safe_float($balance, 'value');
-            if ($account['total']) {
-                if ($account['free']) {
-                    $account['used'] = $account['total'] - $account['free'];
-                }
-            }
             $result[$code] = $account;
         }
         return $this->parse_balance($result);
     }
 
-    public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 0) {
+    public function parse_bid_ask ($bidask, $priceKey = 0, $amountKey = 1) {
         return [
             $bidask[$priceKey] / 100000.0,
             $bidask[$amountKey] / 100000000.0,
@@ -114,10 +109,7 @@ class bl3p extends Exchange {
             'market' => $this->market_id($symbol),
         );
         $ticker = $this->publicGetMarketTicker (array_merge ($request, $params));
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        if ($timestamp !== null) {
-            $timestamp *= 1000;
-        }
+        $timestamp = $this->safe_timestamp($ticker, 'timestamp');
         $last = $this->safe_float($ticker, 'last');
         return array (
             'symbol' => $symbol,

@@ -147,10 +147,7 @@ class btcbox extends Exchange {
     }
 
     public function parse_trade ($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'date');
-        if ($timestamp !== null) {
-            $timestamp *= 1000; // GMT time
-        }
+        $timestamp = $this->safe_timestamp($trade, 'date');
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -377,7 +374,7 @@ class btcbox extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // resort to defaultErrorHandler
         }
@@ -396,5 +393,18 @@ class btcbox extends Exchange {
             throw new $exceptions[$errorCode]($feedback);
         }
         throw new ExchangeError($feedback); // unknown message
+    }
+
+    public function request ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
+        if (gettype ($response) === 'string') {
+            // sometimes the exchange returns whitespace prepended to json
+            $response = $this->strip ($response);
+            if (!$this->is_json_encoded_object($response)) {
+                throw new ExchangeError($this->id . ' ' . $response);
+            }
+            $response = json_decode($response, $as_associative_array = true);
+        }
+        return $response;
     }
 }

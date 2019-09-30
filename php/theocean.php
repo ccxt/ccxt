@@ -17,7 +17,6 @@ class theocean extends Exchange {
             'countries' => array ( 'US' ),
             'rateLimit' => 3000,
             'version' => 'v1',
-            'certified' => true,
             'requiresWeb3' => true,
             'timeframes' => array (
                 '5m' => '300',
@@ -127,8 +126,8 @@ class theocean extends Exchange {
             $quoteToken = $this->safe_value($market, 'quoteToken', array());
             $baseId = $this->safe_string($baseToken, 'address');
             $quoteId = $this->safe_string($quoteToken, 'address');
-            $base = $this->common_currency_code($this->safe_string($baseToken, 'symbol'));
-            $quote = $this->common_currency_code($this->safe_string($quoteToken, 'symbol'));
+            $base = $this->safe_currency_code($this->safe_string($baseToken, 'symbol'));
+            $quote = $this->safe_currency_code($this->safe_string($quoteToken, 'symbol'));
             $symbol = $base . '/' . $quote;
             $id = $baseId . '/' . $quoteId;
             $baseDecimals = $this->safe_integer($baseToken, 'decimals');
@@ -176,7 +175,7 @@ class theocean extends Exchange {
     public function parse_ohlcv ($ohlcv, $market = null, $timeframe = '5m', $since = null, $limit = null) {
         $baseDecimals = $this->safe_integer($this->options['decimals'], $market['base'], 18);
         return array (
-            $this->safe_integer($ohlcv, 'startTime') * 1000,
+            $this->safe_timestamp($ohlcv, 'startTime'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
@@ -888,7 +887,7 @@ class theocean extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return; // fallback to default error handler
         }

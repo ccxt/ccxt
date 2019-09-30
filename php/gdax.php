@@ -30,6 +30,7 @@ class gdax extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderTrades' => true,
                 'fetchOrders' => true,
+                'fetchTime' => true,
                 'fetchTransactions' => true,
                 'withdraw' => true,
             ),
@@ -164,8 +165,8 @@ class gdax extends Exchange {
             $id = $this->safe_string($market, 'id');
             $baseId = $this->safe_string($market, 'base_currency');
             $quoteId = $this->safe_string($market, 'quote_currency');
-            $base = $this->common_currency_code($baseId);
-            $quote = $this->common_currency_code($quoteId);
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
             $priceLimits = array (
                 'min' => $this->safe_float($market, 'quote_increment'),
@@ -234,7 +235,7 @@ class gdax extends Exchange {
             $account = $response[$i];
             $accountId = $this->safe_string($account, 'id');
             $currencyId = $this->safe_string($account, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $result[] = array (
                 'id' => $accountId,
                 'type' => null,
@@ -252,7 +253,7 @@ class gdax extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'currency');
-            $code = $this->common_currency_code($currencyId);
+            $code = $this->safe_currency_code($currencyId);
             $account = array (
                 'free' => $this->safe_float($balance, 'available'),
                 'used' => $this->safe_float($balance, 'hold'),
@@ -408,12 +409,12 @@ class gdax extends Exchange {
             'granularity' => $granularity,
         );
         if ($since !== null) {
-            $request['start'] = $this->ymdhms ($since);
+            $request['start'] = $this->iso8601 ($since);
             if ($limit === null) {
-                // https://docs.gdax.com/#get-historic-rates
+                // https://docs.pro.coinbase.com/#get-historic-rates
                 $limit = 300; // max = 300
             }
-            $request['end'] = $this->ymdhms ($this->sum ($limit * $granularity * 1000, $since));
+            $request['end'] = $this->iso8601 ($this->sum ($limit * $granularity * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -421,7 +422,7 @@ class gdax extends Exchange {
 
     public function fetch_time ($params = array ()) {
         $response = $this->publicGetTime ($params);
-        return $this->parse8601 ($this->parse8601 ($response, 'iso'));
+        return $this->parse8601 ($this->safe_string($response, 'iso'));
     }
 
     public function parse_order_status ($status) {
@@ -437,20 +438,23 @@ class gdax extends Exchange {
     }
 
     public function parse_order ($order, $market = null) {
-        $timestamp = $this->parse8601 ($order['created_at']);
+        $timestamp = $this->parse8601 ($this->safe_string($order, 'created_at'));
         $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($order, 'product_id');
+        $marketId = $this->safe_string($order, 'product_id');
+        $quote = null;
+        if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
+            } else {
+                list($baseId, $quoteId) = explode('-', $marketId);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = $base . '/' . $quote;
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $price = $this->safe_float($order, 'price');
-        $amount = $this->safe_float_2($order, 'size', 'funds');
-        if ($amount === null) {
-            $amount = $this->safe_float($order, 'specified_funds');
-        }
+        $amount = $this->safe_float($order, 'size');
         $filled = $this->safe_float($order, 'filled_size');
         $remaining = null;
         if ($amount !== null) {
@@ -465,6 +469,8 @@ class gdax extends Exchange {
             $feeCurrencyCode = null;
             if ($market !== null) {
                 $feeCurrencyCode = $market['quote'];
+            } else if ($quote !== null) {
+                $feeCurrencyCode = $quote;
             }
             $fee = array (
                 'cost' => $feeCost,
@@ -472,7 +478,7 @@ class gdax extends Exchange {
                 'rate' => null,
             );
         }
-        if ($market !== null) {
+        if (($symbol === null) && ($market !== null)) {
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($order, 'id');
@@ -618,7 +624,7 @@ class gdax extends Exchange {
         } else {
             // deposit methodotherwise we did not receive a supported deposit location
             // relevant docs link for the Googlers
-            // https://docs.gdax.com/#deposits
+            // https://docs.pro.coinbase.com/#deposits
             throw new NotSupported($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
         }
         $response = $this->$method (array_merge ($request, $params));
@@ -710,14 +716,8 @@ class gdax extends Exchange {
         $txid = $this->safe_string($details, 'crypto_transaction_hash');
         $timestamp = $this->parse8601 ($this->safe_string($transaction, 'created_at'));
         $updated = $this->parse8601 ($this->safe_string($transaction, 'processed_at'));
-        $code = null;
         $currencyId = $this->safe_string($transaction, 'currency');
-        if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
-            $currency = $this->currencies_by_id[$currencyId];
-            $code = $currency['code'];
-        } else {
-            $code = $this->common_currency_code($currencyId);
-        }
+        $code = $this->safe_currency_code($currencyId, $currency);
         $fee = null;
         $status = $this->parse_transaction_status ($transaction);
         $amount = $this->safe_float($transaction, 'amount');
@@ -765,7 +765,6 @@ class gdax extends Exchange {
                     $payload = $body;
                 }
             }
-            // $payload = ($body) ? $body : '';
             $what = $nonce . $method . $request . $payload;
             $secret = base64_decode ($this->secret);
             $signature = $this->hmac ($this->encode ($what), $secret, 'sha256', 'base64');
@@ -838,7 +837,7 @@ class gdax extends Exchange {
         );
     }
 
-    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response) {
+    public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (($code === 400) || ($code === 404)) {
             if ($body[0] === '{') {
                 $message = $response['message'];

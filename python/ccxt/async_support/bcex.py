@@ -304,8 +304,8 @@ class bcex (Exchange):
                 quoteId = self.safe_string(market, 'coin_to')
                 base = baseId.upper()
                 quote = quoteId.upper()
-                base = self.common_currency_code(base)
-                quote = self.common_currency_code(quote)
+                base = self.safe_currency_code(base)
+                quote = self.safe_currency_code(quote)
                 id = baseId + '2' + quoteId
                 symbol = base + '/' + quote
                 active = True
@@ -346,9 +346,7 @@ class bcex (Exchange):
         symbol = None
         if market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer_2(trade, 'date', 'created')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
+        timestamp = self.safe_timestamp_2(trade, 'date', 'created')
         id = self.safe_string(trade, 'tid')
         orderId = self.safe_string(trade, 'order_id')
         amount = self.safe_float_2(trade, 'number', 'amount')
@@ -398,11 +396,7 @@ class bcex (Exchange):
             parts = key.split('_')
             currencyId = parts[0]
             lockOrOver = parts[1]
-            code = currencyId.upper()
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(code)
+            code = self.safe_currency_code(currencyId)
             if not(code in list(result.keys())):
                 result[code] = self.account()
             if lockOrOver == 'lock':
@@ -457,9 +451,7 @@ class bcex (Exchange):
         }
         response = await self.publicPostApiOrderDepth(self.extend(request, params))
         data = self.safe_value(response, 'data')
-        timestamp = self.safe_integer(data, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(data, 'date')
         return self.parse_order_book(data, timestamp)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
@@ -490,9 +482,7 @@ class bcex (Exchange):
         }
         response = await self.privatePostApiOrderOrderInfo(self.extend(request, params))
         order = self.safe_value(response, 'data')
-        timestamp = self.safe_integer(order, 'created')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'created')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         side = self.safe_string(order, 'flag')
         if side == 'sale':
@@ -519,9 +509,7 @@ class bcex (Exchange):
 
     def parse_order(self, order, market=None):
         id = self.safe_string(order, 'id')
-        timestamp = self.safe_integer(order, 'datetime')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(order, 'datetime')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -627,7 +615,7 @@ class bcex (Exchange):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response):
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         errorCode = self.safe_value(response, 'code')

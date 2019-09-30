@@ -14,6 +14,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class deribit (Exchange):
@@ -137,6 +138,7 @@ class deribit (Exchange):
                 '11030': ExchangeError,  # "other_reject <Reason>" Some rejects which are not considered as very often, more info may be specified in <Reason>
                 '11031': ExchangeError,  # "other_error <Error>" Some errors which are not considered as very often, more info may be specified in <Error>
             },
+            'precisionMode': TICK_SIZE,
             'options': {
                 'fetchTickerQuotes': True,
             },
@@ -151,50 +153,107 @@ class deribit (Exchange):
             id = self.safe_string(market, 'instrumentName')
             baseId = self.safe_string(market, 'baseCurrency')
             quoteId = self.safe_string(market, 'currency')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            type = self.safe_string(market, 'kind')
+            future = (type == 'future')
+            option = (type == 'option')
+            active = self.safe_value(market, 'isActive')
+            precision = {
+                'amount': self.safe_float(market, 'minTradeAmount'),
+                'price': self.safe_float(market, 'tickSize'),
+            }
             result.append({
                 'id': id,
                 'symbol': id,
                 'base': base,
                 'quote': quote,
-                'active': market['isActive'],
-                'precision': {
-                    'amount': market['minTradeSize'],
-                    'price': market['tickSize'],
-                },
+                'active': active,
+                'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': market['minTradeSize'],
+                        'min': self.safe_float(market, 'minTradeAmount'),
+                        'max': None,
                     },
                     'price': {
-                        'min': market['tickSize'],
+                        'min': self.safe_float(market, 'tickSize'),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
                     },
                 },
-                'type': market['kind'],
+                'type': type,
                 'spot': False,
-                'future': market['kind'] == 'future',
-                'option': market['kind'] == 'option',
+                'future': future,
+                'option': option,
                 'info': market,
             })
         return result
 
     async def fetch_balance(self, params={}):
+        await self.load_markets()
         response = await self.privateGetAccount(params)
+        #
+        #     {
+        #         "usOut":1569048827943520,
+        #         "usIn":1569048827943020,
+        #         "usDiff":500,
+        #         "testnet":false,
+        #         "success":true,
+        #         "result":{
+        #             "equity":2e-9,
+        #             "maintenanceMargin":0.0,
+        #             "initialMargin":0.0,
+        #             "availableFunds":0.0,
+        #             "balance":0.0,
+        #             "marginBalance":0.0,
+        #             "SUPL":0.0,
+        #             "SRPL":0.0,
+        #             "PNL":0.0,
+        #             "optionsPNL":0.0,
+        #             "optionsSUPL":0.0,
+        #             "optionsSRPL":0.0,
+        #             "optionsD":0.0,
+        #             "optionsG":0.0,
+        #             "optionsV":0.0,
+        #             "optionsTh":0.0,
+        #             "futuresPNL":0.0,
+        #             "futuresSUPL":0.0,
+        #             "futuresSRPL":0.0,
+        #             "deltaTotal":0.0,
+        #             "sessionFunding":0.0,
+        #             "depositAddress":"13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        #             "currency":"BTC"
+        #         },
+        #         "message":""
+        #     }
+        #
         result = {
-            'BTC': {
-                'free': self.safe_float(response['result'], 'availableFunds'),
-                'used': self.safe_float(response['result'], 'maintenanceMargin'),
-                'total': self.safe_float(response['result'], 'equity'),
-            },
+            'info': response,
         }
+        balance = self.safe_value(response, 'result', {})
+        currencyId = self.safe_string(balance, 'currency')
+        code = self.safe_currency_code(currencyId)
+        account = self.account()
+        account['free'] = self.safe_float(balance, 'availableFunds')
+        account['used'] = self.safe_float(balance, 'maintenanceMargin')
+        account['total'] = self.safe_float(balance, 'equity')
+        result[code] = account
         return self.parse_balance(result)
 
-    async def fetch_deposit_address(self, currency, params={}):
-        response = await self.privateGetAccount(params)
-        address = self.safe_string(response, 'depositAddress')
+    async def fetch_deposit_address(self, code, params={}):
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateGetAccount(self.extend(request, params))
+        result = self.safe_value(response, 'result', {})
+        address = self.safe_string(result, 'depositAddress')
         return {
-            'currency': self.common_currency_code('BTC'),
+            'currency': code,
             'address': address,
             'tag': None,
             'info': response,
@@ -291,7 +350,7 @@ class deribit (Exchange):
         feeCost = self.safe_float(trade, 'fee')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'feeCurrency')
-            feeCurrencyCode = self.common_currency_code(feeCurrencyId)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrencyCode,
@@ -416,9 +475,7 @@ class deribit (Exchange):
             if price is not None:
                 cost = price * filled
         status = self.parse_order_status(self.safe_string(order, 'state'))
-        side = self.safe_string(order, 'direction')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'direction')
         feeCost = self.safe_float(order, 'commission')
         if feeCost is not None:
             feeCost = abs(feeCost)
@@ -593,14 +650,14 @@ class deribit (Exchange):
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return  # fallback to default error handler
         #
         #     {"usOut":1535877098645376,"usIn":1535877098643364,"usDiff":2012,"testnet":false,"success":false,"message":"order_not_found","error":10004}
         #
         error = self.safe_string(response, 'error')
-        if (error is not None) and(error != '0'):
+        if (error is not None) and (error != '0'):
             feedback = self.id + ' ' + body
             exceptions = self.exceptions
             if error in exceptions:

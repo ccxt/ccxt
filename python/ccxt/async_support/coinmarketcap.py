@@ -110,7 +110,7 @@ class coinmarketcap (Exchange):
             'E-Dinar Coin': 'E-Dinar Coin',  # conflict with EDR Endor Protocol and EDRCoin
             'EDRcoin': 'EDRcoin',  # conflict with EDR Endor Protocol and E-Dinar Coin
             'ENTCash': 'ENTCash',  # conflict with ENT(Eternity)
-            'FairGame': 'FairGame',
+            'FairCoin': 'FairCoin',  # conflict with FAIR(FairGame) https://github.com/ccxt/ccxt/pull/5865
             'Fabric Token': 'Fabric Token',
             'GET Protocol': 'GET Protocol',
             'Global Tour Coin': 'Global Tour Coin',  # conflict with GTC(Game.com)
@@ -169,10 +169,8 @@ class coinmarketcap (Exchange):
         return await self.publicGetGlobal(request)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_integer(ticker, 'last_updated')
-        if timestamp is not None:
-            timestamp = timestamp * 1000
-        else:
+        timestamp = self.safe_timestamp(ticker, 'last_updated')
+        if timestamp is None:
             timestamp = self.milliseconds()
         change = self.safe_float(ticker, 'percent_change_24h')
         last = None

@@ -144,9 +144,8 @@ class rightbtc (Exchange):
         })
 
     def fetch_markets(self, params={}):
-        response = self.publicGetTradingPairs(params)
         # zh = self.publicGetGetAssetsTradingPairsZh()
-        markets = self.extend(response['status']['message'])
+        markets = self.publicGetTradingPairs(params)
         marketIds = list(markets.keys())
         result = []
         for i in range(0, len(marketIds)):
@@ -154,8 +153,8 @@ class rightbtc (Exchange):
             market = markets[id]
             baseId = self.safe_string(market, 'bid_asset_symbol')
             quoteId = self.safe_string(market, 'ask_asset_symbol')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'bid_asset_decimals'),
@@ -234,7 +233,7 @@ class rightbtc (Exchange):
         }
         response = self.publicGetTickerTradingPair(self.extend(request, params))
         result = self.safe_value(response, 'result')
-        if not result:
+        if result is None:
             raise ExchangeError(self.id + ' fetchTicker returned an empty response for symbol ' + symbol)
         return self.parse_ticker(result, market)
 
@@ -309,8 +308,7 @@ class rightbtc (Exchange):
             symbol = market['symbol']
         cost = self.cost_to_precision(symbol, price * amount)
         cost = float(cost)
-        side = self.safe_string(trade, 'side')
-        side = side.lower()
+        side = self.safe_string_lower(trade, 'side')
         if side == 'b':
             side = 'buy'
         elif side == 's':
@@ -390,11 +388,7 @@ class rightbtc (Exchange):
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset')
-            code = currencyId
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             account = self.account()
             # https://github.com/ccxt/ccxt/issues/3873
             account['free'] = self.divide_safe_float(balance, 'balance', 1e8)
@@ -499,9 +493,7 @@ class rightbtc (Exchange):
                 if remaining is not None:
                     filled = max(0, amount - remaining)
         type = 'limit'
-        side = self.safe_string(order, 'side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'side')
         feeCost = self.divide_safe_float(order, 'min_fee', 1e8)
         fee = None
         if feeCost is not None:
@@ -699,7 +691,7 @@ class rightbtc (Exchange):
                 headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         status = self.safe_value(response, 'status')

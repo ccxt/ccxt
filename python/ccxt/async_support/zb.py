@@ -87,7 +87,6 @@ class zb (Exchange):
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
-                'referral': 'https://vip.zb.com/user/register?recommendCode=bn070u',
             },
             'api': {
                 'public': {
@@ -182,12 +181,12 @@ class zb (Exchange):
             id = keys[i]
             market = markets[id]
             baseId, quoteId = id.split('_')
-            base = self.common_currency_code(baseId.upper())
-            quote = self.common_currency_code(quoteId.upper())
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
-                'amount': market['amountScale'],
-                'price': market['priceScale'],
+                'amount': self.safe_integer(market, 'amountScale'),
+                'price': self.safe_integer(market, 'priceScale'),
             }
             result.append({
                 'id': id,
@@ -236,11 +235,7 @@ class zb (Exchange):
             #                 key: "btc"         }
             account = self.account()
             currencyId = self.safe_string(balance, 'key')
-            code = None
-            if currencyId in self.currencies_by_id:
-                code = self.currencies_by_id[currencyId]['code']
-            else:
-                code = self.common_currency_code(self.safe_string(balance, 'enName'))
+            code = self.safe_currency_code(currencyId)
             account['free'] = self.safe_float(balance, 'available')
             account['used'] = self.safe_float(balance, 'freez')
             result[code] = account
@@ -349,9 +344,7 @@ class zb (Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'date')
-        if timestamp is not None:
-            timestamp *= 1000
+        timestamp = self.safe_timestamp(trade, 'date')
         side = self.safe_string(trade, 'trade_type')
         side = 'buy' if (side == 'bid') else 'sell'
         id = self.safe_string(trade, 'tid')
@@ -523,7 +516,7 @@ class zb (Exchange):
         cost = self.safe_float(order, 'trade_money')
         average = None
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        if (cost is not None) and(filled is not None) and(filled > 0):
+        if (cost is not None) and (filled is not None) and (filled > 0):
             average = cost / filled
         id = self.safe_string(order, 'id')
         return {
@@ -580,7 +573,7 @@ class zb (Exchange):
             url += '/' + path + '?' + auth + '&' + suffix
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response):
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
         if body[0] == '{':
