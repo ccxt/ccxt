@@ -58,6 +58,7 @@ class binance extends Exchange {
                     'web' => 'https://www.binance.com',
                     'wapi' => 'https://api.binance.com/wapi/v3',
                     'sapi' => 'https://api.binance.com/sapi/v1',
+                    'fapiPrivate' => 'https://fapi.binance.com/fapi/v1',
                     'public' => 'https://api.binance.com/api/v1',
                     'private' => 'https://api.binance.com/api/v3',
                     'v3' => 'https://api.binance.com/api/v3',
@@ -137,6 +138,23 @@ class binance extends Exchange {
                         'sub-account/list',
                         'sub-account/transfer/history',
                         'sub-account/assets',
+                    ),
+                ),
+                'fapiPrivate' => array (
+                    'get' => array (
+                        'allOrders',
+                        'openOrders',
+                        'order',
+                        'account',
+                        'balance',
+                        'positionRisk',
+                        'userTrades',
+                    ),
+                    'post' => array (
+                        'order',
+                    ),
+                    'delete' => array (
+                        'order',
                     ),
                 ),
                 'v3' => array (
@@ -1294,7 +1312,7 @@ class binance extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus')) {
+        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate')) {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge (array (
                 'timestamp' => $this->nonce (),

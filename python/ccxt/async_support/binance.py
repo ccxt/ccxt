@@ -70,6 +70,7 @@ class binance (Exchange):
                     'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
@@ -149,6 +150,23 @@ class binance (Exchange):
                         'sub-account/list',
                         'sub-account/transfer/history',
                         'sub-account/assets',
+                    ],
+                },
+                'fapiPrivate': {
+                    'get': [
+                        'allOrders',
+                        'openOrders',
+                        'order',
+                        'account',
+                        'balance',
+                        'positionRisk',
+                        'userTrades',
+                    ],
+                    'post': [
+                        'order',
+                    ],
+                    'delete': [
+                        'order',
                     ],
                 },
                 'v3': {
@@ -1194,7 +1212,7 @@ class binance (Exchange):
                 'X-MBX-APIKEY': self.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus'):
+        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({
                 'timestamp': self.nonce(),
