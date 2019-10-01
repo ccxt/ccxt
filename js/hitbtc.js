@@ -495,6 +495,12 @@ module.exports = class hitbtc extends Exchange {
                 'USD': 'USDT',
                 'XBT': 'BTC',
             },
+            'exceptions': {
+                'exact': {
+                },
+                'broad': {
+                },
+            },
             'options': {
                 'defaultTimeInForce': 'FOK',
             },
@@ -1009,5 +1015,26 @@ module.exports = class hitbtc extends Exchange {
             throw new ExchangeError (this.id + ' ' + this.json (response));
         }
         return response;
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (!response) {
+            return; // fallback to default error handler
+        }
+        const error = this.safeValue (response, 'error');
+        if (error) {
+            const code = this.safeValue (error, 'code');
+            const feedback = this.id + ' ' + this.json (response);
+            const exact = this.exceptions['exact'];
+            if (code in exact) {
+                throw new exact[code] (feedback);
+            }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, error);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown error
+        }
     }
 };
