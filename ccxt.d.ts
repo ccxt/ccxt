@@ -409,7 +409,7 @@ declare module 'ccxt' {
         fetchLedger (...args: any): Promise<any>; // TODO: add function signatures
         fetchMarkets (): Promise<Market[]>;
         fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<any>;
-        fetchOHLCV? (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
+        fetchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
         fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         fetchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
         fetchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
