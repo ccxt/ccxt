@@ -376,75 +376,75 @@ declare module 'ccxt' {
         hasWithdraw: boolean;
 
         // methods
-        getMarket (symbol: string): Market;
-        describe (): any;
-        defaults (): any;
-        nonce (): number;
-        encodeURIComponent (...args: any[]): string;
-        checkRequiredCredentials (): void;
-        initRestRateLimiter (): void;
-        handleResponse (url: string, method: string, headers?: any, body?: any): any;
-        defineRestApi (api: any, methodName: any, options?: Dictionary<any>): void;
-        fetch (url: string, method?: string, headers?: any, body?: any): Promise<any>;
-        fetch2 (path: any, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
-        setMarkets (markets: Market[], currencies?: Currency[]): Dictionary<Market>;
-        loadMarkets (reload?: boolean): Promise<Dictionary<Market>>;
-        fetchTicker (symbol: string, params?: Params): Promise<Ticker>;
-        fetchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
-        fetchTime (params?: Params): Promise<number>;
-        fetchMarkets (): Promise<Market[]>;
-        fetchOrderStatus (id: string, market: string): Promise<string>;
-        encode (str: string): string;
-        decode (str: string): string;
         account (): Balance;
-        commonCurrencyCode (currency: string): string;
-        market (symbol: string): Market;
-        marketId (symbol: string): string;
-        marketIds (symbols: string[]): string[];
-        symbol (symbol: string): string;
-        extractParams (str: string): string[];
-        createOrder (symbol: string, type: 'market'|'limit', side: 'buy'|'sell', amount: number, price?: number, params?: Params): Promise<any>;
-        fetchBalance (params?: Params): Promise<Balances>;
-        fetchTotalBalance (params?: Params): Promise<PartialBalances>;
-        fetchUsedBalance (params?: Params): Promise<PartialBalances>;
-        fetchFreeBalance (params?: Params): Promise<PartialBalances>;
-        fetchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
-        fetchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
-        fetchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
-        fetchOHLCV? (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
-        fetchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        fetchCurrencies (params?: Params): Promise<Dictionary<Currency>>;
-        fetchTransactions (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
-        fetchDeposits (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
-        fetchWithdrawals (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
-        cancelOrder (id: string, symbol?: string, params?: Params): Promise<any>;
-        createDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
-        fetchDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
-        withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
-        request (path: string, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
-        YmdHMS (timestamp: string, infix: string) : string;
-        iso8601 (timestamp: string): string;
-        seconds (): number;
-        microseconds (): number;
-        purgeCachedOrders (timestamp: number): void;
         cancelAllOrders (...args: any): Promise<any>; // TODO: add function signatures
+        cancelOrder (id: string, symbol?: string, params?: Params): Promise<any>;
         cancelOrders (...args: any): Promise<any>; // TODO: add function signatures
+        checkRequiredCredentials (): void;
+        commonCurrencyCode (currency: string): string;
+        createDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
         createLimitOrder (...args: any): Promise<any>; // TODO: add function signatures
         createMarketOrder (...args: any): Promise<any>; // TODO: add function signatures
+        createOrder (symbol: string, type: 'market'|'limit', side: 'buy'|'sell', amount: number, price?: number, params?: Params): Promise<any>;
+        decode (str: string): string;
+        defaults (): any;
+        defineRestApi (api: any, methodName: any, options?: Dictionary<any>): void;
         deposit (...args: any): Promise<any>; // TODO: add function signatures
+        describe (): any;
         editOrder (...args: any): Promise<any>; // TODO: add function signatures
+        encode (str: string): string;
+        encodeURIComponent (...args: any[]): string;
+        extractParams (str: string): string[];
+        fetch (url: string, method?: string, headers?: any, body?: any): Promise<any>;
+        fetch2 (path: any, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
+        fetchBalance (params?: Params): Promise<Balances>;
         fetchBidsAsks (symbols?: string[], params?: Params): Promise<any>;
         fetchClosedOrders (...args: any): Promise<any>; // TODO: add function signatures
+        fetchCurrencies (params?: Params): Promise<Dictionary<Currency>>;
+        fetchDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
+        fetchDeposits (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
+        fetchFreeBalance (params?: Params): Promise<PartialBalances>;
         fetchFundingFees (...args: any): Promise<any>; // TODO: add function signatures
         fetchL2OrderBook (...args: any): Promise<any>; // TODO: add function signatures
         fetchLedger (...args: any): Promise<any>; // TODO: add function signatures
+        fetchMarkets (): Promise<Market[]>;
         fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<any>;
+        fetchOHLCV? (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
+        fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        fetchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
+        fetchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
         fetchOrderBooks (...args: any): Promise<any>; // TODO: add function signatures
+        fetchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        fetchOrderStatus (id: string, market: string): Promise<string>;
         fetchStatus (...args: any): Promise<any>; // TODO: add function signatures
+        fetchTicker (symbol: string, params?: Params): Promise<Ticker>;
+        fetchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
+        fetchTime (params?: Params): Promise<number>;
+        fetchTotalBalance (params?: Params): Promise<PartialBalances>;
+        fetchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
         fetchTradingFee (...args: any): Promise<any>; // TODO: add function signatures
         fetchTradingFees (...args: any): Promise<any>; // TODO: add function signatures
         fetchTradingLimits (...args: any): Promise<any>; // TODO: add function signatures
+        fetchTransactions (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
+        fetchUsedBalance (params?: Params): Promise<PartialBalances>;
+        fetchWithdrawals (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
+        getMarket (symbol: string): Market;
+        handleResponse (url: string, method: string, headers?: any, body?: any): any;
+        initRestRateLimiter (): void;
+        iso8601 (timestamp: string): string;
+        loadMarkets (reload?: boolean): Promise<Dictionary<Market>>;
+        market (symbol: string): Market;
+        marketId (symbol: string): string;
+        marketIds (symbols: string[]): string[];
+        microseconds (): number;
+        nonce (): number;
+        purgeCachedOrders (timestamp: number): void;
+        request (path: string, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
+        seconds (): number;
+        setMarkets (markets: Market[], currencies?: Currency[]): Dictionary<Market>;
+        symbol (symbol: string): string;
+        withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
+        YmdHMS (timestamp: string, infix: string) : string;
     }
 
     /* tslint:disable */
