@@ -26,6 +26,7 @@ const {
     , microseconds
     , seconds
     , iso8601
+    , rfc2616
     , parse8601
     , parseDate
     , sleep
