@@ -256,7 +256,6 @@ module.exports = class exmo extends Exchange {
                             { 'pair': 'ZAG/BTC', 'min_q': '1', 'max_q': '10000000', 'min_p': '0.00000001', 'max_p': '0.1', 'min_a': '0.00001', 'max_a': '100' },
                             { 'pair': 'EXM/BTC', 'min_q': '1', 'max_q': '157022513', 'min_p': '0.0000009', 'max_p': '0.0000009', 'min_a': '0.000001', 'max_a': '141' },
                         ],
-                        ],
                         'fees': [
                             {
                                 'group': 'crypto',
