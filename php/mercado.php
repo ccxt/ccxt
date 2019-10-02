@@ -87,11 +87,11 @@ class mercado extends Exchange {
                 ),
             ),
             'markets' => array (
-                'BTC/BRL' => array( 'id' => 'BRLBTC', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'precision' => array ( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Bitcoin' ),
-                'LTC/BRL' => array( 'id' => 'BRLLTC', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL', 'precision' => array ( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Litecoin' ),
-                'BCH/BRL' => array( 'id' => 'BRLBCH', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL', 'precision' => array ( 'amount' => 8, 'price' => 5 ), 'suffix' => 'BCash' ),
-                'XRP/BRL' => array( 'id' => 'BRLXRP', 'symbol' => 'XRP/BRL', 'base' => 'XRP', 'quote' => 'BRL', 'precision' => array ( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Ripple' ),
-                'ETH/BRL' => array( 'id' => 'BRLETH', 'symbol' => 'ETH/BRL', 'base' => 'ETH', 'quote' => 'BRL', 'precision' => array ( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Ethereum' ),
+                'BTC/BRL' => array( 'id' => 'BRLBTC', 'symbol' => 'BTC/BRL', 'base' => 'BTC', 'quote' => 'BRL', 'precision' => array( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Bitcoin' ),
+                'LTC/BRL' => array( 'id' => 'BRLLTC', 'symbol' => 'LTC/BRL', 'base' => 'LTC', 'quote' => 'BRL', 'precision' => array( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Litecoin' ),
+                'BCH/BRL' => array( 'id' => 'BRLBCH', 'symbol' => 'BCH/BRL', 'base' => 'BCH', 'quote' => 'BRL', 'precision' => array( 'amount' => 8, 'price' => 5 ), 'suffix' => 'BCash' ),
+                'XRP/BRL' => array( 'id' => 'BRLXRP', 'symbol' => 'XRP/BRL', 'base' => 'XRP', 'quote' => 'BRL', 'precision' => array( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Ripple' ),
+                'ETH/BRL' => array( 'id' => 'BRLETH', 'symbol' => 'ETH/BRL', 'base' => 'ETH', 'quote' => 'BRL', 'precision' => array( 'amount' => 8, 'price' => 5 ), 'suffix' => 'Ethereum' ),
             ),
             'fees' => array (
                 'trading' => array (

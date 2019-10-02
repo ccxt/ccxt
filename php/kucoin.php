@@ -528,8 +528,8 @@ class kucoin extends Exchange {
         $currencyId = $this->currencyId ($code);
         $request = array( 'currency' => $currencyId );
         $response = $this->privatePostDepositAddresses (array_merge ($request, $params));
-        // BCH array("$code":"200000","$data":{"$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":"")}
-        // BTC array("$code":"200000","$data":{"$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":"")}
+        // BCH array("$code":"200000","$data":array("$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
+        // BTC array("$code":"200000","$data":array("$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
         $data = $this->safe_value($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
@@ -551,8 +551,8 @@ class kucoin extends Exchange {
         $currencyId = $this->currencyId ($code);
         $request = array( 'currency' => $currencyId );
         $response = $this->privateGetDepositAddresses (array_merge ($request, $params));
-        // BCH array("$code":"200000","$data":{"$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":"")}
-        // BTC array("$code":"200000","$data":{"$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":"")}
+        // BCH array("$code":"200000","$data":array("$address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
+        // BTC array("$code":"200000","$data":array("$address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
         $data = $this->safe_value($response, 'data', array());
         $address = $this->safe_string($data, 'address');
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the $address
@@ -1577,7 +1577,7 @@ class kucoin extends Exchange {
         // bad
         //     array( "$code" => "400100", "msg" => "validation.createOrder.clientOidIsRequired" )
         // good
-        //     array( $code => '200000', data => { ... )}
+        //     array( $code => '200000', data => array( ... ))
         //
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
