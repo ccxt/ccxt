@@ -394,6 +394,9 @@ module.exports = class whitebit extends Exchange {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }
+        if (code === 404) {
+            throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
+        }
         if (body.length > 0) {
             if (body[0] === '{') {
                 const success = this.safeValue (response, 'success');
