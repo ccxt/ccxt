@@ -239,6 +239,7 @@ module.exports = class binance extends Exchange {
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
+                'defaultMarket': 'spotMargin', // 'spotMargin', 'futures'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 'recvWindow': 5 * 1000, // 5 sec, binance default
@@ -288,7 +289,14 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetExchangeInfo (params);
+        const marketType = this.options['defaultMarket'];
+        let method = 'GetExchangeInfo';
+        if (marketType === 'futures') {
+            method = 'fapiPublic' + method;
+        } else {
+            method = 'public' + method;
+        }
+        const response = await this[method] (params);
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -305,7 +313,7 @@ module.exports = class binance extends Exchange {
             const quoteId = market['quoteAsset'];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            const symbol = (marketType === 'futures') ? id : base + '/' + quote;
             const filters = this.indexBy (market['filters'], 'filterType');
             const precision = {
                 'base': market['baseAssetPrecision'],
