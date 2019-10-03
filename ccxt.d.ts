@@ -268,6 +268,7 @@ declare module 'ccxt' {
         urls: {
             logo: string;
             api: string | Dictionary<string>;
+            test: string | Dictionary<string>;
             www: string;
             doc: string[];
             api_management?: string;
