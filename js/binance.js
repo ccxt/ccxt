@@ -717,12 +717,18 @@ module.exports = class binance extends Exchange {
             timestamp = this.safeInteger (order, 'time');
         } else if ('transactTime' in order) {
             timestamp = this.safeInteger (order, 'transactTime');
+        } else if ('updateTime' in order) {
+            // futures order
+            timestamp = this.safeInteger (order, 'updateTime');
         }
         let price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'origQty');
         const filled = this.safeFloat (order, 'executedQty');
         let remaining = undefined;
-        let cost = this.safeFloat (order, 'cummulativeQuoteQty');
+        // - Spot/Margin market: cummulativeQuoteQty
+        // - Futures market: cumQuote.
+        //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
+        let cost = this.safeFloat2 (order, 'cummulativeQuoteQty', 'cumQuote');
         if (filled !== undefined) {
             if (amount !== undefined) {
                 remaining = amount - filled;
@@ -805,23 +811,49 @@ module.exports = class binance extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const marketType = this.options['defaultMarket'];
         const market = this.market (symbol);
         // the next 5 lines are added to support for testing orders
-        let method = 'privatePostOrder';
-        const test = this.safeValue (params, 'test', false);
-        if (test) {
-            method += 'Test';
-            params = this.omit (params, 'test');
+        let method = 'PostOrder';
+        if (marketType === 'futures') {
+            method = 'fapiPrivate' + method;
+        } else {
+            method = 'private' + method;
+            const test = this.safeValue (params, 'test', false);
+            if (test) {
+                method += 'Test';
+                params = this.omit (params, 'test');
+            }
         }
         const uppercaseType = type.toUpperCase ();
-        const newOrderRespType = this.safeValue (this.options['newOrderRespType'], type, 'RESULT');
+        const marketOrderType = {
+            'spotMargin': [
+                'LIMIT',
+                'STOP_LOSS',
+                'TAKE_PROFIT',
+                'STOP_LOSS_LIMIT',
+                'TAKE_PROFIT_LIMIT',
+                'LIMIT_MAKER',
+            ],
+            'futures': [
+                'LIMIT',
+                'MARKET',
+                'STOP',
+            ],
+        };
+        const validOrderTypes = this.safeValue (marketOrderType, marketType, []);
+        if (!this.inArray (uppercaseType, validOrderTypes)) {
+            throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type in ' + marketType + ' market');
+        }
         const request = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'type': uppercaseType,
             'side': side.toUpperCase (),
-            'newOrderRespType': newOrderRespType, // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
         };
+        if (marketType === 'spotMargin') {
+            request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        }
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
         let stopPriceIsRequired = false;
@@ -835,6 +867,9 @@ module.exports = class binance extends Exchange {
             priceIsRequired = true;
             timeInForceIsRequired = true;
         } else if (uppercaseType === 'LIMIT_MAKER') {
+            priceIsRequired = true;
+        } else if (uppercaseType === 'STOP') {
+            stopPriceIsRequired = true;
             priceIsRequired = true;
         }
         if (priceIsRequired) {
