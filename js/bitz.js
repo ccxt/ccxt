@@ -1014,11 +1014,11 @@ module.exports = class bitz extends Exchange {
 
     parseTransactionStatus (status) {
         const statuses = {
-            1: 'pending',
-            2: 'pending',
-            3: 'pending',
-            4: 'ok',
-            5: 'canceled',
+            '1': 'pending',
+            '2': 'pending',
+            '3': 'pending',
+            '4': 'ok',
+            '5': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
