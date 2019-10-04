@@ -30,6 +30,7 @@ class gdax extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderTrades' => true,
                 'fetchOrders' => true,
+                'fetchTime' => true,
                 'fetchTransactions' => true,
                 'withdraw' => true,
             ),
@@ -408,12 +409,12 @@ class gdax extends Exchange {
             'granularity' => $granularity,
         );
         if ($since !== null) {
-            $request['start'] = $this->ymdhms ($since);
+            $request['start'] = $this->iso8601 ($since);
             if ($limit === null) {
-                // https://docs.gdax.com/#get-historic-rates
+                // https://docs.pro.coinbase.com/#get-historic-rates
                 $limit = 300; // max = 300
             }
-            $request['end'] = $this->ymdhms ($this->sum ($limit * $granularity * 1000, $since));
+            $request['end'] = $this->iso8601 ($this->sum (($limit - 1) * $granularity * 1000, $since));
         }
         $response = $this->publicGetProductsIdCandles (array_merge ($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -421,7 +422,7 @@ class gdax extends Exchange {
 
     public function fetch_time ($params = array ()) {
         $response = $this->publicGetTime ($params);
-        return $this->parse8601 ($response, 'iso');
+        return $this->parse8601 ($this->safe_string($response, 'iso'));
     }
 
     public function parse_order_status ($status) {
@@ -623,7 +624,7 @@ class gdax extends Exchange {
         } else {
             // deposit methodotherwise we did not receive a supported deposit location
             // relevant docs link for the Googlers
-            // https://docs.gdax.com/#deposits
+            // https://docs.pro.coinbase.com/#deposits
             throw new NotSupported($this->id . ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
         }
         $response = $this->$method (array_merge ($request, $params));

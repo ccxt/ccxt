@@ -34,6 +34,7 @@ class binance (Exchange):
                 'CORS': False,
                 'fetchBidsAsks': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOrder': True,
@@ -69,6 +70,7 @@ class binance (Exchange):
                     'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
@@ -80,6 +82,7 @@ class binance (Exchange):
                     'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                     'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
                 ],
+                'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
@@ -147,6 +150,23 @@ class binance (Exchange):
                         'sub-account/list',
                         'sub-account/transfer/history',
                         'sub-account/assets',
+                    ],
+                },
+                'fapiPrivate': {
+                    'get': [
+                        'allOrders',
+                        'openOrders',
+                        'order',
+                        'account',
+                        'balance',
+                        'positionRisk',
+                        'userTrades',
+                    ],
+                    'post': [
+                        'order',
+                    ],
+                    'delete': [
+                        'order',
                     ],
                 },
                 'v3': {
@@ -249,10 +269,14 @@ class binance (Exchange):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
+    async def fetch_time(self, params={}):
+        response = await self.publicGetTime(params)
+        return self.safe_float(response, 'serverTime')
+
     async def load_time_difference(self):
-        response = await self.publicGetTime()
+        serverTime = await self.fetch_time()
         after = self.milliseconds()
-        self.options['timeDifference'] = int(after - response['serverTime'])
+        self.options['timeDifference'] = int(after - serverTime)
         return self.options['timeDifference']
 
     async def fetch_markets(self, params={}):
@@ -1188,7 +1212,7 @@ class binance (Exchange):
                 'X-MBX-APIKEY': self.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
-        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus'):
+        if (api == 'private') or (api == 'sapi') or (api == 'wapi' and path != 'systemStatus') or (api == 'fapiPrivate'):
             self.check_required_credentials()
             query = self.urlencode(self.extend({
                 'timestamp': self.nonce(),

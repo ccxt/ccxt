@@ -496,6 +496,13 @@ class hitbtc extends Exchange {
                 'USD' => 'USDT',
                 'XBT' => 'BTC',
             ),
+            'exceptions' => array (
+                'exact' => array (
+                    '2001' => '\\ccxt\\BadSymbol', // array("error":array("code":2001,"message":"Symbol not found","description":"Try get /api/2/public/symbol, to get list of all available symbols."))
+                ),
+                'broad' => array (
+                ),
+            ),
             'options' => array (
                 'defaultTimeInForce' => 'FOK',
             ),
@@ -1010,5 +1017,26 @@ class hitbtc extends Exchange {
             throw new ExchangeError($this->id . ' ' . $this->json ($response));
         }
         return $response;
+    }
+
+    public function handle_errors ($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+        if (!$response) {
+            return; // fallback to default $error handler
+        }
+        $error = $this->safe_value($response, 'error');
+        if ($error) {
+            $code = $this->safe_value($error, 'code');
+            $feedback = $this->id . ' ' . $this->json ($response);
+            $exact = $this->exceptions['exact'];
+            if (is_array($exact) && array_key_exists($code, $exact)) {
+                throw new $exact[$code]($feedback);
+            }
+            $broad = $this->exceptions['broad'];
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey]($feedback);
+            }
+            throw new ExchangeError($feedback); // unknown $error
+        }
     }
 }

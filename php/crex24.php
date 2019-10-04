@@ -516,7 +516,7 @@ class crex24 extends Exchange {
                 $cost = $amount * $price;
             }
         }
-        $id = null;
+        $id = $this->safe_string($trade, 'id');
         $side = $this->safe_string($trade, 'side');
         $orderId = $this->safe_string($trade, 'orderId');
         $symbol = null;

@@ -960,9 +960,9 @@ class cointiger extends huobipro {
                     // 订单状态不能取消,订单取消失败 = Order status cannot be canceled
                     // 根据订单号没有查询到订单,订单取消失败 = The order was not queried according to the order number
                     //
-                    // array("$code":"0","msg":"suc","data":{"success":array(),"failed":[array ("err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-$code":"8")])}
-                    // array("$code":"0","msg":"suc","data":{"success":array(),"failed":[array ("err-msg":"Parameter error","order-id":32857050,"err-$code":"2"),array("err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-$code":"8")])}
-                    // array("$code":"0","msg":"suc","data":{"success":array(),"failed":[array ("err-msg":"Parameter error","order-id":98549677,"err-$code":"2"),array("err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-$code":"8")])}
+                    // array("$code":"0","msg":"suc","data":array("success":array(),"failed":[array("err-msg":"订单状态不能取消,订单取消失败","order-id":32857051,"err-$code":"8")]))
+                    // array("$code":"0","msg":"suc","data":array("success":array(),"failed":[array("err-msg":"Parameter error","order-id":32857050,"err-$code":"2"),array("err-msg":"订单状态不能取消,订单取消失败","order-id":32857050,"err-$code":"8")]))
+                    // array("$code":"0","msg":"suc","data":array("success":array(),"failed":[array("err-msg":"Parameter error","order-id":98549677,"err-$code":"2"),array("err-msg":"根据订单号没有查询到订单,订单取消失败","order-id":98549677,"err-$code":"8")]))
                     //
                     if (mb_strpos($feedback, '订单状态不能取消,订单取消失败') !== false) {
                         if (mb_strpos($feedback, 'Parameter error') !== false) {

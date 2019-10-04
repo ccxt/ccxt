@@ -29,6 +29,7 @@ Want this place? Contact us: info@ccxt.trade
 
 - <sub>[![Nomics API](https://user-images.githubusercontent.com/1294454/53875704-2ffbcc80-4016-11e9-828b-337409955609.png)](https://p.nomics.com/cryptocurrency-bitcoin-api)</sub>&nbsp; **[Nomics API](https://p.nomics.com/cryptocurrency-bitcoin-api)**&nbsp;&mdash;&nbsp;enterprise-grade [crypto market cap & pricing data](https://nomics.com) API for your fund, smart contract, or app.
 - <sub>[![CoinGecko API](https://user-images.githubusercontent.com/1294454/61426409-fbccdc80-a922-11e9-9198-2364acf56bd1.png)](https://www.coingecko.com/api?utm_source=ccxt)</sub>&nbsp; **[CoinGecko API](https://www.coingecko.com/api?utm_source=ccxt)**&nbsp;&mdash;&nbsp;free, reliable, and complete cryptocurrency data for your app. No keys required!
+- <sub>[![Quadency](https://user-images.githubusercontent.com/1294454/65726219-3db19600-e0bd-11e9-854b-aa66dabefca0.png)](https://quadency.com?utm_source=ccxt)</sub>&nbsp; **[Quadency](https://quadency.com?utm_source=ccxt)**&nbsp;&mdash;&nbsp;professional crypto terminal, algo trading, and unified streaming APIs.
 
 
 ## Certified Cryptocurrency Exchanges
@@ -226,13 +227,13 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1194/dist/ccxt.browser.js
-* unpkg: https://unpkg.com/ccxt@1.18.1194/dist/ccxt.browser.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1218/dist/ccxt.browser.js
+* unpkg: https://unpkg.com/ccxt@1.18.1218/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1194/dist/ccxt.browser.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1218/dist/ccxt.browser.js"></script>
 ```
 
 Creates a global `ccxt` object:

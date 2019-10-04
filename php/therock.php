@@ -1204,7 +1204,7 @@ class therock extends Exchange {
         //     {
         //         "$errors":
         //         array (
-        //             array( "$message" => ":currency is not a valid value for param currency","code" => "11","meta" => array ( "key":"currency","value":":currency") ),
+        //             array( "$message" => ":currency is not a valid value for param currency","code" => "11","meta" => array( "key":"currency","value":":currency") ),
         //             array( "$message" => "Address allocation limit reached for currency :currency.","code" => "13" ),
         //             array( "$message" => "Request already running", "code" => "50"),
         //             array( "$message" => "cannot specify multiple address types", "code" => "12" ),

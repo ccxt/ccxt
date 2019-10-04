@@ -29,6 +29,7 @@ module.exports = class gdax extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderTrades': true,
                 'fetchOrders': true,
+                'fetchTime': true,
                 'fetchTransactions': true,
                 'withdraw': true,
             },
@@ -407,12 +408,12 @@ module.exports = class gdax extends Exchange {
             'granularity': granularity,
         };
         if (since !== undefined) {
-            request['start'] = this.ymdhms (since);
+            request['start'] = this.iso8601 (since);
             if (limit === undefined) {
-                // https://docs.gdax.com/#get-historic-rates
+                // https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300; // max = 300
             }
-            request['end'] = this.ymdhms (this.sum (limit * granularity * 1000, since));
+            request['end'] = this.iso8601 (this.sum ((limit - 1) * granularity * 1000, since));
         }
         const response = await this.publicGetProductsIdCandles (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
@@ -420,7 +421,7 @@ module.exports = class gdax extends Exchange {
 
     async fetchTime (params = {}) {
         const response = await this.publicGetTime (params);
-        return this.parse8601 (response, 'iso');
+        return this.parse8601 (this.safeString (response, 'iso'));
     }
 
     parseOrderStatus (status) {
@@ -622,7 +623,7 @@ module.exports = class gdax extends Exchange {
         } else {
             // deposit methodotherwise we did not receive a supported deposit location
             // relevant docs link for the Googlers
-            // https://docs.gdax.com/#deposits
+            // https://docs.pro.coinbase.com/#deposits
             throw new NotSupported (this.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params');
         }
         const response = await this[method] (this.extend (request, params));
