@@ -52,15 +52,42 @@ module.exports = class bitpanda extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1MINUTES',
-                '5m': '5MINUTES',
-                '15m': '15MINUTES',
-                '30m': '30MINUTES',
-                '1h': '1HOURS',
-                '4h': '4HOURS',
-                '1d': '1DAYS',
-                '1w': '1WEEKS',
-                '1M': '1MONTHS',
+                '1m': {
+                    'period': 1,
+                    'unit': 'MINUTES',
+                },
+                '5m': {
+                    'period': 5,
+                    'unit': 'MINUTES',
+                },
+                '15m': {
+                    'period': 15,
+                    'unit': 'MINUTES',
+                },
+                '30m': {
+                    'period': 30,
+                    'unit': 'MINUTES',
+                },
+                '1h': {
+                    'period': 1,
+                    'unit': 'HOURS',
+                },
+                '4h': {
+                    'period': 4,
+                    'unit': 'HOURS',
+                },
+                '1d': {
+                    'period': 1,
+                    'unit': 'DAYS',
+                },
+                '1w': {
+                    'period': 1,
+                    'unit': 'WEEKS',
+                },
+                '1M': {
+                    'period': 1,
+                    'unit': 'MONTHS',
+                },
             },
             'version': 'v1',
             'urls': {
@@ -261,7 +288,7 @@ module.exports = class bitpanda extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCurrencies (params);
-        const result = [];
+        const result = {};
         for (let i = 0; i < response.length; i++) {
             const currency = response[i];
             const id = this.safeString (currency, 'code');
@@ -385,12 +412,10 @@ module.exports = class bitpanda extends Exchange {
             throw new ExchangeError (this.id + ' does not have the timeframe option: ' + timeframe);
         }
         const market = this.market (symbol);
-        const period = time.substring (0, 1);
-        const unit = time.substring (1, time.length);
         const request = {
             'instrument': market['id'],
-            'period': period,
-            'unit': unit,
+            'period': time['period'],
+            'unit': time['unit'],
         };
         if (since === undefined) {
             throw new ExchangeError (this.id + ' since needs to defined for OHLC');
