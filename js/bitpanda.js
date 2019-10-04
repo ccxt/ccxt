@@ -555,6 +555,17 @@ module.exports = class bitpanda extends Exchange {
         };
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        return [
+            this.parse8601 (this.safeString (ohlcv, 'time')),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
     parseOrder (order) {
         const id = this.safeString (order, 'order_id');
         const time = this.safeString (order, 'time');
