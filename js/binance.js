@@ -717,9 +717,6 @@ module.exports = class binance extends Exchange {
             timestamp = this.safeInteger (order, 'time');
         } else if ('transactTime' in order) {
             timestamp = this.safeInteger (order, 'transactTime');
-        } else if ('updateTime' in order) {
-            // futures order
-            timestamp = this.safeInteger (order, 'updateTime');
         }
         let price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'origQty');
@@ -781,7 +778,7 @@ module.exports = class binance extends Exchange {
             if (filled) {
                 average = cost / filled;
                 if (this.options['parseOrderToPrecision']) {
-                    average = parseFloat (this.amountToPrecision (symbol, average));
+                    average = parseFloat (this.costToPrecision (symbol, average));
                 }
             }
             if (this.options['parseOrderToPrecision']) {
@@ -900,16 +897,23 @@ module.exports = class binance extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
+        const marketType = this.options['defaultMarket'];
+        let method = 'GetOrder';
+        if (marketType === 'futures') {
+            method = 'fapiPrivate' + method;
+        } else {
+            method = 'private' + method;
+        }
         const request = {
             'symbol': market['id'],
         };
+        const origClientOrderId = this.safeValue (params, 'origClientOrderId');
         if (origClientOrderId !== undefined) {
             request['origClientOrderId'] = origClientOrderId;
         } else {
             request['orderId'] = parseInt (id);
         }
-        const response = await this.privateGetOrder (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -928,8 +932,16 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAllOrders (this.extend (request, params));
+        const marketType = this.options['defaultMarket'];
+        let method = 'GetAllOrders';
+        if (marketType === 'futures') {
+            method = 'fapiPrivate' + method;
+        } else {
+            method = 'private' + method;
+        }
+        const response = await this[method] (this.extend (request, params));
         //
+        //  Spot:
         //     [
         //         {
         //             "symbol": "LTCBTC",
@@ -948,6 +960,25 @@ module.exports = class binance extends Exchange {
         //             "time": 1499827319559,
         //             "updateTime": 1499827319559,
         //             "isWorking": true
+        //         }
+        //     ]
+        //
+        //  Futures:
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "orderId": 1,
+        //             "clientOrderId": "myOrder1",
+        //             "price": "0.1",
+        //             "origQty": "1.0",
+        //             "executedQty": "1.0",
+        //             "cumQuote": "10.0",
+        //             "status": "NEW",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "side": "BUY",
+        //             "stopPrice": "0.0",
+        //             "updateTime": 1499827319559
         //         }
         //     ]
         //
