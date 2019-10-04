@@ -647,13 +647,16 @@ module.exports = class bitpanda extends Exchange {
         if (response === undefined) {
             return;
         }
-        if (response['error'] === undefined || code < 400) {
+        if (code < 400) {
             return;
         }
-        const errorKey = response['error'];
-        const exception = this.exceptions[errorKey];
+        const error = this.safeValue (response, 'error');
+        if (error === undefined){
+            return;
+        }
+        const exception = this.exceptions[error];
         if (exception !== undefined) {
-            throw new this.exceptions[errorKey] (errorKey);
+            throw new this.exceptions[error] (error);
         }
         throw new ExchangeError (this.id + ' ' + this.json (response));
     }
