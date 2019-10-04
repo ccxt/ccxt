@@ -1069,7 +1069,6 @@ module.exports = class bitz extends Exchange {
         //   "coin":"usdt",
         //   "memo":""
         // }
-
         let timestamp = this.safeInteger (transaction, 'updated');
         if (timestamp === 0) {
             timestamp = undefined;
@@ -1078,7 +1077,6 @@ module.exports = class bitz extends Exchange {
         const code = this.safeCurrencyCode (currencyId, currency);
         const type = this.safeStringLower (transaction, 'type');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-
         return {
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'txid'),
