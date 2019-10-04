@@ -1025,7 +1025,7 @@ module.exports = class bitz extends Exchange {
 
     parseTransaction (transaction, currency = undefined) {
         //
-        //     { 
+        //     {
         //         "id": '96275',
         //         "uid": '2109073',
         //         "wallet": '0xf4c4141c0127bc37b1d0c409a091920eba13ada7',
