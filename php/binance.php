@@ -1086,7 +1086,7 @@ class binance extends Exchange {
         //                             asset => "ETH",
         //                            status =>  1                                                                    } ) }
         //
-        return $this->parseTransactions ($response['depositList'], $currency, $since, $limit);
+        return $this->parse_transactions($response['depositList'], $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1122,7 +1122,7 @@ class binance extends Exchange {
         //                              status =>  6                       }  ),
         //            success =>    true                                         }
         //
-        return $this->parseTransactions ($response['withdrawList'], $currency, $since, $limit);
+        return $this->parse_transactions($response['withdrawList'], $currency, $since, $limit);
     }
 
     public function parse_transaction_status_by_type ($status, $type = null) {

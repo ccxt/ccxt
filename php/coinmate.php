@@ -243,7 +243,7 @@ class coinmate extends Exchange {
         }
         $response = $this->privatePostTransferHistory (array_merge ($request, $params));
         $items = $response['data'];
-        return $this->parseTransactions ($items, null, $since, $limit);
+        return $this->parse_transactions($items, null, $since, $limit);
     }
 
     public function parse_transaction_status ($status) {

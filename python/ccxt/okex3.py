@@ -2016,7 +2016,7 @@ class okex3 (Exchange):
             request['code'] = currency['code']
             method += 'Currency'
         response = getattr(self, method)(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit, params)
+        return self.parse_transactions(response, currency, since, limit, params)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -2028,7 +2028,7 @@ class okex3 (Exchange):
             request['code'] = currency['code']
             method += 'Currency'
         response = getattr(self, method)(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit, params)
+        return self.parse_transactions(response, currency, since, limit, params)
 
     def parse_transaction_status(self, status):
         #

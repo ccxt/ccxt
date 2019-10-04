@@ -224,7 +224,7 @@ class coinbase extends Exchange {
         $accountId = $this->safe_string($params, 'account_id');
         $params = $this->omit ($params, 'account_id');
         if ($accountId === null) {
-            $this->loadAccounts ();
+            $this->load_accounts();
             for ($i = 0; $i < count ($this->accounts); $i++) {
                 $account = $this->accounts[$i];
                 if ($account['code'] === $code && $account['type'] === 'wallet') {
@@ -310,7 +310,7 @@ class coinbase extends Exchange {
         $this->load_markets();
         $query = $this->omit ($params, array ( 'account_id', 'accountId' ));
         $response = $this->$method (array_merge ($request, $query));
-        return $this->parseTransactions ($response['data'], null, $since, $limit);
+        return $this->parse_transactions($response['data'], null, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -969,7 +969,7 @@ class coinbase extends Exchange {
 
     public function find_account_id ($code) {
         $this->load_markets();
-        $this->loadAccounts ();
+        $this->load_accounts();
         for ($i = 0; $i < count ($this->accounts); $i++) {
             $account = $this->accounts[$i];
             if ($account['code'] === $code) {

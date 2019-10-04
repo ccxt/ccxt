@@ -991,7 +991,7 @@ class bitfinex extends Exchange {
         //         }
         //     )
         //
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {

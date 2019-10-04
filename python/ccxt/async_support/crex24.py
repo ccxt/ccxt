@@ -1013,7 +1013,7 @@ class crex24 (Exchange):
         #         ...
         #     ]
         #
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         request = {

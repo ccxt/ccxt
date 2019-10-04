@@ -547,7 +547,7 @@ class gemini (Exchange):
         if since is not None:
             request['timestamp'] = since
         response = self.privatePostV1Transfers(self.extend(request, params))
-        return self.parseTransactions(response)
+        return self.parse_transactions(response)
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'timestampms')

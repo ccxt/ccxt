@@ -553,8 +553,8 @@ class idex extends Exchange {
         //         '0xab555fc301779dd92fd41ccd143b1d72776ae7b5acfc59ca44a1d376f68fda15',
         //        withdrawalNumber => 1444070,
         //        status => 'COMPLETE' } ) }
-        $deposits = $this->parseTransactions ($response['deposits'], $currency, $since, $limit);
-        $withdrawals = $this->parseTransactions ($response['withdrawals'], $currency, $since, $limit);
+        $deposits = $this->parse_transactions($response['deposits'], $currency, $since, $limit);
+        $withdrawals = $this->parse_transactions($response['withdrawals'], $currency, $since, $limit);
         return $this->array_concat($deposits, $withdrawals);
     }
 

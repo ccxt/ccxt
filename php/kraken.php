@@ -1226,7 +1226,7 @@ class kraken extends Exchange {
     public function parse_transactions_by_type ($type, $transactions, $code = null, $since = null, $limit = null) {
         $result = array();
         for ($i = 0; $i < count ($transactions); $i++) {
-            $transaction = $this->parse_transaction (array_merge (array (
+            $transaction = $this->parse_transaction(array_merge (array (
                 'type' => $type,
             ), $transactions[$i]));
             $result[] = $transaction;

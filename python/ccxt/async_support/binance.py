@@ -1005,7 +1005,7 @@ class binance (Exchange):
         #                             asset: "ETH",
         #                            status:  1                                                                    }]}
         #
-        return self.parseTransactions(response['depositList'], currency, since, limit)
+        return self.parse_transactions(response['depositList'], currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1038,7 +1038,7 @@ class binance (Exchange):
         #                              status:  6                       }  ],
         #            success:    True                                         }
         #
-        return self.parseTransactions(response['withdrawList'], currency, since, limit)
+        return self.parse_transactions(response['withdrawList'], currency, since, limit)
 
     def parse_transaction_status_by_type(self, status, type=None):
         if type is None:

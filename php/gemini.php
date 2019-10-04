@@ -569,7 +569,7 @@ class gemini extends Exchange {
             $request['timestamp'] = $since;
         }
         $response = $this->privatePostV1Transfers (array_merge ($request, $params));
-        return $this->parseTransactions ($response);
+        return $this->parse_transactions($response);
     }
 
     public function parse_transaction ($transaction, $currency = null) {

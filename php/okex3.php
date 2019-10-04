@@ -2098,7 +2098,7 @@ class okex3 extends Exchange {
             $method .= 'Currency';
         }
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit, $params);
+        return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -2112,7 +2112,7 @@ class okex3 extends Exchange {
             $method .= 'Currency';
         }
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit, $params);
+        return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
     public function parse_transaction_status ($status) {

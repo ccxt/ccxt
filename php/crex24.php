@@ -1064,7 +1064,7 @@ class crex24 extends Exchange {
         //         ...
         //     )
         //
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1183,7 +1183,7 @@ class crex24 extends Exchange {
             $request['paymentId'] = $tag;
         }
         $response = $this->accountPostWithdraw (array_merge ($request, $params));
-        return $this->parse_transaction ($response);
+        return $this->parse_transaction($response);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

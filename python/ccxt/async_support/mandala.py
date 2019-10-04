@@ -1437,7 +1437,7 @@ class mandala (Exchange):
         #
         data = self.safe_value(response, 'data', {})
         deposits = self.safe_value(data, 'Deposits', [])
-        return self.parseTransactions(deposits, currency, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -1473,7 +1473,7 @@ class mandala (Exchange):
         #
         data = self.safe_value(response, 'data', {})
         withdrawals = self.safe_value(data, 'Withdrawals', [])
-        return self.parseTransactions(withdrawals, currency, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {
