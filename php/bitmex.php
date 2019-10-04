@@ -137,6 +137,7 @@ class bitmex extends Exchange {
             'exceptions' => array (
                 'exact' => array (
                     'Invalid API Key.' => '\\ccxt\\AuthenticationError',
+                    'This key is disabled.' => '\\ccxt\\PermissionDenied',
                     'Access Denied' => '\\ccxt\\PermissionDenied',
                     'Duplicate clOrdID' => '\\ccxt\\InvalidOrder',
                     'orderQty is invalid' => '\\ccxt\\InvalidOrder',
@@ -331,7 +332,7 @@ class bitmex extends Exchange {
         }
         $request = array_replace_recursive ($request, $params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
-        // E.g. self.urlencode(array("filter" => array ("open" => True))) will return "filter=array('open':+True)"
+        // E.g. self.urlencode(array("filter" => array("open" => True))) will return "filter=array('open':+True)"
         // Bitmex doesn't like that. Hence resorting to this hack.
         if (is_array($request) && array_key_exists('filter', $request)) {
             $request['filter'] = $this->json ($request['filter']);
@@ -371,7 +372,7 @@ class bitmex extends Exchange {
         }
         $request = array_replace_recursive ($request, $params);
         // why the hassle? urlencode in python is kinda broken for nested dicts.
-        // E.g. self.urlencode(array("filter" => array ("open" => True))) will return "filter=array('open':+True)"
+        // E.g. self.urlencode(array("filter" => array("open" => True))) will return "filter=array('open':+True)"
         // Bitmex doesn't like that. Hence resorting to this hack.
         if (is_array($request) && array_key_exists('filter', $request)) {
             $request['filter'] = $this->json ($request['filter']);
@@ -989,7 +990,7 @@ class bitmex extends Exchange {
         }
         $takerOrMaker = null;
         if ($fee !== null) {
-            $takerOrMaker = $fee['cost'] < 0 ? 'maker' : 'taker';
+            $takerOrMaker = ($fee['cost'] < 0) ? 'maker' : 'taker';
         }
         $symbol = null;
         $marketId = $this->safe_string($trade, 'symbol');

@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError } = require ('./base/errors');
+const { ExchangeError, BadRequest, InvalidNonce, RequestTimeout, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, AuthenticationError, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -27,7 +27,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchDeposits': true,
                 'fetchFundingFees': false,
                 'fetchMyTrades': true,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrders': false,
@@ -38,6 +38,18 @@ module.exports = class crex24 extends Exchange {
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'withdraw': true,
+            },
+            'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1mo',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47813922-6f12cc00-dd5d-11e8-97c6-70f957712d47.jpg',
@@ -55,6 +67,7 @@ module.exports = class crex24 extends Exchange {
                         'tickers',
                         'recentTrades',
                         'orderBook',
+                        'ohlcv',
                     ],
                 },
                 'trading': {
@@ -130,6 +143,7 @@ module.exports = class crex24 extends Exchange {
                 'broad': {
                     'API Key': AuthenticationError, // "API Key '9edc48de-d5b0-4248-8e7e-f59ffcd1c7f1' doesn't exist."
                     'Insufficient funds': InsufficientFunds, // "Insufficient funds: new order requires 10 ETH which is more than the available balance."
+                    'has been delisted.': BadSymbol, // {"errorDescription":"Instrument '$PAC-BTC' has been delisted."}
                 },
             },
         });
@@ -501,7 +515,7 @@ module.exports = class crex24 extends Exchange {
                 cost = amount * price;
             }
         }
-        const id = undefined;
+        const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'orderId');
         let symbol = undefined;
@@ -561,6 +575,39 @@ module.exports = class crex24 extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        // { timestamp: '2019-09-21T10:36:00Z',
+        //     open: 0.02152,
+        //     high: 0.02156,
+        //     low: 0.02152,
+        //     close: 0.02156,
+        //     volume: 0.01741259 }
+        const date = this.safeString (ohlcv, 'timestamp');
+        const timestamp = this.parse8601 (date);
+        return [
+            timestamp,
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'granularity': this.timeframes[timeframe],
+            'instrument': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // Accepted values: 1 - 1000. If the parameter is not specified, the number of results is limited to 100
+        }
+        const response = await this.publicGetOhlcv (this.extend (request, params));
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'submitting': 'open', // A newly created limit order has a status "submitting" until it has been processed.
@@ -597,7 +644,7 @@ module.exports = class crex24 extends Exchange {
         //     }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
+        const symbol = this.findSymbol (this.safeString (order, 'instrument'), market);
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         let price = this.safeFloat (order, 'price');
         const amount = this.safeFloat (order, 'volume');

@@ -132,19 +132,24 @@ class huobipro extends Exchange {
                 ),
             ),
             'exceptions' => array (
-                'gateway-internal-error' => '\\ccxt\\ExchangeNotAvailable', // array("status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null)
-                'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
-                'invalid-amount' => '\\ccxt\\InvalidOrder', // eg "Paramemter `amount` is invalid."
-                'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
-                'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
-                'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
-                'order-limitorder-price-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
-                'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
-                'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
-                'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
-                'api-signature-check-failed' => '\\ccxt\\AuthenticationError',
-                'api-signature-not-valid' => '\\ccxt\\AuthenticationError', // array("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => Incorrect Access key [Access key错误]","data":null)
-                'base-record-invalid' => '\\ccxt\\OrderNotFound', // https://github.com/ccxt/ccxt/issues/5750
+                'exact' => array (
+                    // err-code
+                    'gateway-internal-error' => '\\ccxt\\ExchangeNotAvailable', // array("status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null)
+                    'account-frozen-balance-insufficient-error' => '\\ccxt\\InsufficientFunds', // array("status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left => `0.0027`","data":null)
+                    'invalid-amount' => '\\ccxt\\InvalidOrder', // eg "Paramemter `amount` is invalid."
+                    'order-limitorder-amount-min-error' => '\\ccxt\\InvalidOrder', // limit order amount error, min => `0.001`
+                    'order-marketorder-amount-min-error' => '\\ccxt\\InvalidOrder', // market order amount error, min => `0.01`
+                    'order-limitorder-price-min-error' => '\\ccxt\\InvalidOrder', // limit order price error
+                    'order-limitorder-price-max-error' => '\\ccxt\\InvalidOrder', // limit order price error
+                    'order-orderstate-error' => '\\ccxt\\OrderNotFound', // canceling an already canceled order
+                    'order-queryorder-invalid' => '\\ccxt\\OrderNotFound', // querying a non-existent order
+                    'order-update-error' => '\\ccxt\\ExchangeNotAvailable', // undocumented error
+                    'api-signature-check-failed' => '\\ccxt\\AuthenticationError',
+                    'api-signature-not-valid' => '\\ccxt\\AuthenticationError', // array("status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid => Incorrect Access key [Access key错误]","data":null)
+                    'base-record-invalid' => '\\ccxt\\OrderNotFound', // https://github.com/ccxt/ccxt/issues/5750
+                    // err-msg
+                    'invalid symbol' => '\\ccxt\\BadSymbol', // array("ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol")
+                ),
             ),
             'options' => array (
                 // https://github.com/ccxt/ccxt/issues/5376
@@ -422,6 +427,7 @@ class huobipro extends Exchange {
             $side = $typeParts[0];
             $type = $typeParts[1];
         }
+        $takerOrMaker = $this->safe_string($trade, 'role');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'filled-amount', 'amount');
         $cost = null;
@@ -459,7 +465,7 @@ class huobipro extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -469,12 +475,20 @@ class huobipro extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrderMatchresults ($params);
-        $trades = $this->parse_trades($response['data'], null, $since, $limit);
+        $market = null;
+        $request = array();
         if ($symbol !== null) {
             $market = $this->market ($symbol);
-            $trades = $this->filter_by_symbol($trades, $market['symbol']);
+            $request['symbol'] = $market['id'];
         }
+        if ($limit !== null) {
+            $request['size'] = $limit; // 1-100 orders, default is 100
+        }
+        if ($since !== null) {
+            $request['start-date'] = $this->ymd ($since); // maximum query window size is 2 days, query window shift should be within past 120 days
+        }
+        $response = $this->privateGetOrderMatchresults (array_merge ($request, $params));
+        $trades = $this->parse_trades($response['data'], $market, $since, $limit);
         return $trades;
     }
 
@@ -1034,9 +1048,13 @@ class huobipro extends Exchange {
             if ($status === 'error') {
                 $code = $this->safe_string($response, 'err-code');
                 $feedback = $this->id . ' ' . $this->json ($response);
-                $exceptions = $this->exceptions;
+                $exceptions = $this->exceptions['exact'];
                 if (is_array($exceptions) && array_key_exists($code, $exceptions)) {
                     throw new $exceptions[$code]($feedback);
+                }
+                $message = $this->safe_string($response, 'err-msg');
+                if (is_array($exceptions) && array_key_exists($message, $exceptions)) {
+                    throw new $exceptions[$message]($feedback);
                 }
                 throw new ExchangeError($feedback);
             }

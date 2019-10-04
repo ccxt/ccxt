@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import InvalidNonce
 
 
@@ -144,6 +145,9 @@ class bitbay (Exchange):
                 # codes 507 and 508 are not specified in their docs
                 '509': ExchangeError,  # The BIC/SWIFT is required for self currency
                 '510': ExchangeError,  # Invalid market name
+                'FUNDS_NOT_SUFFICIENT': InsufficientFunds,
+                'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS': InvalidOrder,
+                'OFFER_NOT_FOUND': OrderNotFound,
             },
         })
 
@@ -317,22 +321,19 @@ class bitbay (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        response = await self.privatePostInfo(params)
+        response = await self.v1_01PrivateGetBalancesBITBAYBalance(params)
         balances = self.safe_value(response, 'balances')
         if balances is None:
             raise ExchangeError(self.id + ' empty balance response ' + self.json(response))
         result = {'info': response}
-        codes = list(self.currencies.keys())
-        for i in range(0, len(codes)):
-            code = codes[i]
-            # rewrite with safeCurrencyCode, traverse by currency ids
-            currencyId = self.currencyId(code)
-            balance = self.safe_value(balances, currencyId)
-            if balance is not None:
-                account = self.account()
-                account['free'] = self.safe_float(balance, 'available')
-                account['used'] = self.safe_float(balance, 'locked')
-                result[code] = account
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['used'] = self.safe_float(balance, 'lockedFunds')
+            account['free'] = self.safe_float(balance, 'availableFunds')
+            result[code] = account
         return self.parse_balance(result)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -894,10 +895,24 @@ class bitbay (Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        side = self.safe_string(params, 'side')
+        if side is None:
+            raise ExchangeError(self.id + ' cancelOrder() requires a `side` parameter("buy" or "sell")')
+        price = self.safe_value(params, 'price')
+        if price is None:
+            raise ExchangeError(self.id + ' cancelOrder() requires a `price` parameter(float or string)')
+        await self.load_markets()
+        market = self.market(symbol)
+        tradingSymbol = market['baseId'] + '-' + market['quoteId']
         request = {
+            'symbol': tradingSymbol,
             'id': id,
+            'side': side,
+            'price': price,
         }
-        return await self.privatePostCancel(self.extend(request, params))
+        # {status: 'Fail', errors: ['NOT_RECOGNIZED_OFFER_TYPE']}  -- if required params are missing
+        # {status: 'Ok', errors: []}
+        return self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
 
     def is_fiat(self, currency):
         fiatCurrencies = {
@@ -950,7 +965,7 @@ class bitbay (Exchange):
             url += '/' + self.implode_params(path, params)
             nonce = self.milliseconds()
             payload = None
-            if method == 'GET':
+            if method != 'POST':
                 if query:
                     url += '?' + self.urlencode(query)
                 payload = self.apiKey + nonce
@@ -1012,4 +1027,17 @@ class bitbay (Exchange):
             if code in self.exceptions:
                 raise exceptions[code](feedback)
             else:
+                raise ExchangeError(feedback)
+        elif 'status' in response:
+            #
+            #      {"status":"Fail","errors":["OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS"]}
+            #
+            status = self.safe_string(response, 'status')
+            if status == 'Fail':
+                errors = self.safe_value(response, 'errors')
+                feedback = self.id + ' ' + self.json(response)
+                for i in range(0, len(errors)):
+                    error = errors[i]
+                    if error in self.exceptions:
+                        raise self.exceptions[error](feedback)
                 raise ExchangeError(feedback)

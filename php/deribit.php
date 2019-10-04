@@ -186,22 +186,68 @@ class deribit extends Exchange {
     }
 
     public function fetch_balance ($params = array ()) {
+        $this->load_markets();
         $response = $this->privateGetAccount ($params);
+        //
+        //     {
+        //         "usOut":1569048827943520,
+        //         "usIn":1569048827943020,
+        //         "usDiff":500,
+        //         "testnet":false,
+        //         "success":true,
+        //         "$result":array (
+        //             "equity":2e-9,
+        //             "maintenanceMargin":0.0,
+        //             "initialMargin":0.0,
+        //             "availableFunds":0.0,
+        //             "$balance":0.0,
+        //             "marginBalance":0.0,
+        //             "SUPL":0.0,
+        //             "SRPL":0.0,
+        //             "PNL":0.0,
+        //             "optionsPNL":0.0,
+        //             "optionsSUPL":0.0,
+        //             "optionsSRPL":0.0,
+        //             "optionsD":0.0,
+        //             "optionsG":0.0,
+        //             "optionsV":0.0,
+        //             "optionsTh":0.0,
+        //             "futuresPNL":0.0,
+        //             "futuresSUPL":0.0,
+        //             "futuresSRPL":0.0,
+        //             "deltaTotal":0.0,
+        //             "sessionFunding":0.0,
+        //             "depositAddress":"13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        //             "currency":"BTC"
+        //         ),
+        //         "message":""
+        //     }
+        //
         $result = array (
-            'BTC' => array (
-                'free' => $this->safe_float($response['result'], 'availableFunds'),
-                'used' => $this->safe_float($response['result'], 'maintenanceMargin'),
-                'total' => $this->safe_float($response['result'], 'equity'),
-            ),
+            'info' => $response,
         );
+        $balance = $this->safe_value($response, 'result', array());
+        $currencyId = $this->safe_string($balance, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        $account = $this->account ();
+        $account['free'] = $this->safe_float($balance, 'availableFunds');
+        $account['used'] = $this->safe_float($balance, 'maintenanceMargin');
+        $account['total'] = $this->safe_float($balance, 'equity');
+        $result[$code] = $account;
         return $this->parse_balance($result);
     }
 
-    public function fetch_deposit_address ($currency, $params = array ()) {
-        $response = $this->privateGetAccount ($params);
-        $address = $this->safe_string($response, 'depositAddress');
+    public function fetch_deposit_address ($code, $params = array ()) {
+        $this->load_markets();
+        $currency = $this->currency ($code);
+        $request = array (
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetAccount (array_merge ($request, $params));
+        $result = $this->safe_value($response, 'result', array());
+        $address = $this->safe_string($result, 'depositAddress');
         return array (
-            'currency' => $this->safe_currency_code('BTC'),
+            'currency' => $code,
             'address' => $address,
             'tag' => null,
             'info' => $response,

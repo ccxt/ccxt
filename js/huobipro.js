@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ExchangeNotAvailable, InvalidOrder, OrderNotFound, InsufficientFunds, ArgumentsRequired, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -131,19 +131,24 @@ module.exports = class huobipro extends Exchange {
                 },
             },
             'exceptions': {
-                'gateway-internal-error': ExchangeNotAvailable, // {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
-                'account-frozen-balance-insufficient-error': InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
-                'invalid-amount': InvalidOrder, // eg "Paramemter `amount` is invalid."
-                'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
-                'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
-                'order-limitorder-price-min-error': InvalidOrder, // limit order price error
-                'order-limitorder-price-max-error': InvalidOrder, // limit order price error
-                'order-orderstate-error': OrderNotFound, // canceling an already canceled order
-                'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
-                'order-update-error': ExchangeNotAvailable, // undocumented error
-                'api-signature-check-failed': AuthenticationError,
-                'api-signature-not-valid': AuthenticationError, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
-                'base-record-invalid': OrderNotFound, // https://github.com/ccxt/ccxt/issues/5750
+                'exact': {
+                    // err-code
+                    'gateway-internal-error': ExchangeNotAvailable, // {"status":"error","err-code":"gateway-internal-error","err-msg":"Failed to load data. Try again later.","data":null}
+                    'account-frozen-balance-insufficient-error': InsufficientFunds, // {"status":"error","err-code":"account-frozen-balance-insufficient-error","err-msg":"trade account balance is not enough, left: `0.0027`","data":null}
+                    'invalid-amount': InvalidOrder, // eg "Paramemter `amount` is invalid."
+                    'order-limitorder-amount-min-error': InvalidOrder, // limit order amount error, min: `0.001`
+                    'order-marketorder-amount-min-error': InvalidOrder, // market order amount error, min: `0.01`
+                    'order-limitorder-price-min-error': InvalidOrder, // limit order price error
+                    'order-limitorder-price-max-error': InvalidOrder, // limit order price error
+                    'order-orderstate-error': OrderNotFound, // canceling an already canceled order
+                    'order-queryorder-invalid': OrderNotFound, // querying a non-existent order
+                    'order-update-error': ExchangeNotAvailable, // undocumented error
+                    'api-signature-check-failed': AuthenticationError,
+                    'api-signature-not-valid': AuthenticationError, // {"status":"error","err-code":"api-signature-not-valid","err-msg":"Signature not valid: Incorrect Access key [Access key错误]","data":null}
+                    'base-record-invalid': OrderNotFound, // https://github.com/ccxt/ccxt/issues/5750
+                    // err-msg
+                    'invalid symbol': BadSymbol, // {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
+                },
             },
             'options': {
                 // https://github.com/ccxt/ccxt/issues/5376
@@ -421,6 +426,7 @@ module.exports = class huobipro extends Exchange {
             side = typeParts[0];
             type = typeParts[1];
         }
+        const takerOrMaker = this.safeString (trade, 'role');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat2 (trade, 'filled-amount', 'amount');
         let cost = undefined;
@@ -458,7 +464,7 @@ module.exports = class huobipro extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -468,12 +474,20 @@ module.exports = class huobipro extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetOrderMatchresults (params);
-        let trades = this.parseTrades (response['data'], undefined, since, limit);
+        let market = undefined;
+        const request = {};
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            trades = this.filterBySymbol (trades, market['symbol']);
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
+        if (limit !== undefined) {
+            request['size'] = limit; // 1-100 orders, default is 100
+        }
+        if (since !== undefined) {
+            request['start-date'] = this.ymd (since); // maximum query window size is 2 days, query window shift should be within past 120 days
+        }
+        const response = await this.privateGetOrderMatchresults (this.extend (request, params));
+        const trades = this.parseTrades (response['data'], market, since, limit);
         return trades;
     }
 
@@ -1033,9 +1047,13 @@ module.exports = class huobipro extends Exchange {
             if (status === 'error') {
                 const code = this.safeString (response, 'err-code');
                 const feedback = this.id + ' ' + this.json (response);
-                const exceptions = this.exceptions;
+                const exceptions = this.exceptions['exact'];
                 if (code in exceptions) {
                     throw new exceptions[code] (feedback);
+                }
+                const message = this.safeString (response, 'err-msg');
+                if (message in exceptions) {
+                    throw new exceptions[message] (feedback);
                 }
                 throw new ExchangeError (feedback);
             }

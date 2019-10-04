@@ -308,7 +308,7 @@ class luno extends Exchange {
                 $takerOrMaker = 'taker';
             }
         } else {
-            $side = ($trade['is_buy']) ? 'buy' : 'sell';
+            $side = $trade['is_buy'] ? 'buy' : 'sell';
         }
         $feeBase = $this->safe_float($trade, 'fee_base');
         $feeCounter = $this->safe_float($trade, 'fee_counter');

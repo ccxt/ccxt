@@ -164,6 +164,7 @@ class okex3 (Exchange):
                         'accounts/{currency}',
                         'accounts/{currency}/leverage',
                         'accounts/{currency}/ledger',
+                        'order_algo/{instrument_id}',
                         'orders/{instrument_id}',
                         'orders/{instrument_id}/{order_id}',
                         'orders/{instrument_id}/{client_oid}',
@@ -189,6 +190,8 @@ class okex3 (Exchange):
                         'accounts/margin_mode',
                         'order',
                         'orders',
+                        'order_algo',
+                        'cancel_algos',
                         'cancel_order/{instrument_id}/{order_id}',
                         'cancel_order/{instrument_id}/{client_oid}',
                         'cancel_batch_orders/{instrument_id}',
@@ -474,7 +477,6 @@ class okex3 (Exchange):
             'commonCurrencies': {
                 # OKEX refers to ERC20 version of Aeternity(AEToken)
                 'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
-                'FAIR': 'FairGame',
                 'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
                 'MAG': 'Maggie',
@@ -933,7 +935,7 @@ class okex3 (Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': self.safe_string(trade, 'trade_id'),
+            'id': self.safe_string_2(trade, 'trade_id', 'ledger_id'),
             'order': orderId,
             'type': None,
             'takerOrMaker': takerOrMaker,
@@ -2113,7 +2115,7 @@ class okex3 (Exchange):
             address = addressTo
         else:
             type = 'deposit'
-            address = addressFrom
+            address = addressTo
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId)
         amount = self.safe_float(transaction, 'amount')
@@ -2140,6 +2142,8 @@ class okex3 (Exchange):
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'address': address,
+            'tagFrom': None,
+            'tagTo': None,
             'tag': None,
             'status': status,
             'type': type,
@@ -2154,6 +2158,10 @@ class okex3 (Exchange):
         }
 
     def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
+        # okex actually returns ledger entries instead of fills here, so each fill in the order
+        # is represented by two trades with opposite buy/sell sides, not one :\
+        # self aspect renders the 'fills' endpoint unusable for fetchOrderTrades
+        # until either OKEX fixes the API or we workaround self on our side somehow
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades requires a symbol argument')
         self.load_markets()
@@ -2176,25 +2184,19 @@ class okex3 (Exchange):
         # spot trades, margin trades
         #
         #     [
-        #         [
-        #             {
-        #                 "created_at":"2019-03-15T02:52:56.000Z",
-        #                 "exec_type":"T",  # whether the order is taker or maker
-        #                 "fee":"0.00000082",
-        #                 "instrument_id":"BTC-USDT",
-        #                 "ledger_id":"3963052721",
-        #                 "liquidity":"T",  # whether the order is taker or maker
-        #                 "order_id":"2482659399697408",
-        #                 "price":"3888.6",
-        #                 "product_id":"BTC-USDT",
-        #                 "side":"buy",
-        #                 "size":"0.00055306",
-        #                 "timestamp":"2019-03-15T02:52:56.000Z"
-        #             },
-        #         ],
         #         {
-        #             "before":"3963052722",
-        #             "after":"3963052718"
+        #             "created_at":"2019-09-20T07:15:24.000Z",
+        #             "exec_type":"T",
+        #             "fee":"0",
+        #             "instrument_id":"ETH-USDT",
+        #             "ledger_id":"7173486113",
+        #             "liquidity":"T",
+        #             "order_id":"3553868136523776",
+        #             "price":"217.59",
+        #             "product_id":"ETH-USDT",
+        #             "side":"sell",
+        #             "size":"0.04619899",
+        #             "timestamp":"2019-09-20T07:15:24.000Z"
         #         }
         #     ]
         #
@@ -2215,15 +2217,7 @@ class okex3 (Exchange):
         #         }
         #     ]
         #
-        trades = None
-        if market['type'] == 'swap' or market['type'] == 'futures':
-            trades = response
-        else:
-            responseLength = len(response)
-            if responseLength < 1:
-                return []
-            trades = response[0]
-        return self.parse_trades(trades, market, since, limit)
+        return self.parse_trades(response, market, since, limit)
 
     def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         self.load_markets()

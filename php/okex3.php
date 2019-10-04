@@ -140,6 +140,7 @@ class okex3 extends Exchange {
                         'accounts/{currency}',
                         'accounts/{currency}/leverage',
                         'accounts/{currency}/ledger',
+                        'order_algo/{instrument_id}',
                         'orders/{instrument_id}',
                         'orders/{instrument_id}/{order_id}',
                         'orders/{instrument_id}/{client_oid}',
@@ -165,6 +166,8 @@ class okex3 extends Exchange {
                         'accounts/margin_mode',
                         'order',
                         'orders',
+                        'order_algo',
+                        'cancel_algos',
                         'cancel_order/{instrument_id}/{order_id}',
                         'cancel_order/{instrument_id}/{client_oid}',
                         'cancel_batch_orders/{instrument_id}',
@@ -450,7 +453,6 @@ class okex3 extends Exchange {
             'commonCurrencies' => array (
                 // OKEX refers to ERC20 version of Aeternity (AEToken)
                 'AE' => 'AET', // https://github.com/ccxt/ccxt/issues/4981
-                'FAIR' => 'FairGame',
                 'HOT' => 'Hydro Protocol',
                 'HSR' => 'HC',
                 'MAG' => 'Maggie',
@@ -940,7 +942,7 @@ class okex3 extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601 ($timestamp),
             'symbol' => $symbol,
-            'id' => $this->safe_string($trade, 'trade_id'),
+            'id' => $this->safe_string_2($trade, 'trade_id', 'ledger_id'),
             'order' => $orderId,
             'type' => null,
             'takerOrMaker' => $takerOrMaker,
@@ -2199,7 +2201,7 @@ class okex3 extends Exchange {
             $address = $addressTo;
         } else {
             $type = 'deposit';
-            $address = $addressFrom;
+            $address = $addressTo;
         }
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId);
@@ -2230,6 +2232,8 @@ class okex3 extends Exchange {
             'addressFrom' => $addressFrom,
             'addressTo' => $addressTo,
             'address' => $address,
+            'tagFrom' => null,
+            'tagTo' => null,
             'tag' => null,
             'status' => $status,
             'type' => $type,
@@ -2245,6 +2249,10 @@ class okex3 extends Exchange {
     }
 
     public function fetch_order_trades ($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        // okex actually returns ledger entries instead of fills here, so each fill in the order
+        // is represented by two trades with opposite buy/sell sides, not one :\
+        // this aspect renders the 'fills' endpoint unusable for fetchOrderTrades
+        // until either OKEX fixes the API or we workaround this on our side somehow
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument');
         }
@@ -2266,32 +2274,26 @@ class okex3 extends Exchange {
         $method = $type . 'GetFills';
         $response = $this->$method (array_merge ($request, $query));
         //
-        // spot $trades, margin $trades
+        // spot trades, margin trades
         //
         //     array (
-        //         array (
-        //             array (
-        //                 "created_at":"2019-03-15T02:52:56.000Z",
-        //                 "exec_type":"T", // whether the order is taker or maker
-        //                 "fee":"0.00000082",
-        //                 "instrument_id":"BTC-USDT",
-        //                 "ledger_id":"3963052721",
-        //                 "liquidity":"T", // whether the order is taker or maker
-        //                 "order_id":"2482659399697408",
-        //                 "price":"3888.6",
-        //                 "product_id":"BTC-USDT",
-        //                 "side":"buy",
-        //                 "size":"0.00055306",
-        //                 "timestamp":"2019-03-15T02:52:56.000Z"
-        //             ),
-        //         ),
         //         {
-        //             "before":"3963052722",
-        //             "after":"3963052718"
+        //             "created_at":"2019-09-20T07:15:24.000Z",
+        //             "exec_type":"T",
+        //             "fee":"0",
+        //             "instrument_id":"ETH-USDT",
+        //             "ledger_id":"7173486113",
+        //             "liquidity":"T",
+        //             "order_id":"3553868136523776",
+        //             "price":"217.59",
+        //             "product_id":"ETH-USDT",
+        //             "side":"sell",
+        //             "size":"0.04619899",
+        //             "timestamp":"2019-09-20T07:15:24.000Z"
         //         }
         //     )
         //
-        // futures $trades, swap $trades
+        // futures trades, swap trades
         //
         //     array (
         //         {
@@ -2301,24 +2303,14 @@ class okex3 extends Exchange {
         //             "price":"3.633",
         //             "order_qty":"1.0000",
         //             "fee":"-0.000551",
-        //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap $trades
-        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures $trades
+        //             "created_at":"2019-03-21T04:41:58.0Z", // missing in swap trades
+        //             "timestamp":"2019-03-25T05:56:31.287Z", // missing in futures trades
         //             "exec_type":"M", // whether the order is taker or maker
-        //             "side":"short", // "buy" in futures $trades
+        //             "side":"short", // "buy" in futures trades
         //         }
         //     )
         //
-        $trades = null;
-        if ($market['type'] === 'swap' || $market['type'] === 'futures') {
-            $trades = $response;
-        } else {
-            $responseLength = is_array ($response) ? count ($response) : 0;
-            if ($responseLength < 1) {
-                return array();
-            }
-            $trades = $response[0];
-        }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function fetch_ledger ($code = null, $since = null, $limit = null, $params = array ()) {

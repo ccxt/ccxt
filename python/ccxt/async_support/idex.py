@@ -30,6 +30,7 @@ class idex (Exchange):
                 'fetchBalance': True,
                 'createOrder': True,
                 'cancelOrder': True,
+                'fetchOpenOrders': True,
                 'fetchTransactions': True,
                 'fetchTrades': False,
                 'fetchMyTrades': True,
@@ -707,7 +708,7 @@ class idex (Exchange):
             buy = self.safe_currency_code(self.safe_string(params, 'tokenBuy'))
             sell = self.safe_currency_code(self.safe_string(params, 'tokenSell'))
             if buy is not None and sell is not None:
-                symbol = side == buy + '/' + sell if 'buy' else sell + '/' + buy
+                symbol = (buy + '/' + sell) if (side == 'buy') else (sell + '/' + buy)
         if symbol is None and market is not None:
             symbol = market['symbol']
         id = self.safe_string(order, 'orderHash')
@@ -872,7 +873,7 @@ class idex (Exchange):
             'cost': feeCost,
         }
         if feeCost is not None and amount is not None:
-            feeCurrencyAmount = feeCurrency == cost if 'ETH' else amount
+            feeCurrencyAmount = cost if (feeCurrency == 'ETH') else amount
             fee['rate'] = feeCost / feeCurrencyAmount
         orderId = self.safe_string(trade, 'orderHash')
         return {

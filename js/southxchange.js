@@ -40,6 +40,7 @@ module.exports = class southxchange extends Exchange {
                     'post': [
                         'cancelMarketOrders',
                         'cancelOrder',
+                        'getOrder',
                         'generatenewaddress',
                         'listOrders',
                         'listBalances',

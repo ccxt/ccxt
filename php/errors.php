@@ -12,7 +12,9 @@ $error_hierarchy = array (
                 'AccountSuspended' => array(),
             ),
             'ArgumentsRequired' => array(),
-            'BadRequest' => array(),
+            'BadRequest' => array (
+                'BadSymbol' => array(),
+            ),
             'BadResponse' => array (
                 'NullResponse' => array(),
             ),
@@ -32,7 +34,9 @@ $error_hierarchy = array (
         ),
         'NetworkError' => array (
             'DDoSProtection' => array(),
-            'ExchangeNotAvailable' => array(),
+            'ExchangeNotAvailable' => array (
+                'OnMaintenance' => array(),
+            ),
             'InvalidNonce' => array(),
             'RequestTimeout' => array(),
         ),

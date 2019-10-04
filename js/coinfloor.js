@@ -331,8 +331,8 @@ module.exports = class coinfloor extends Exchange {
                 };
             }
             return [
-                this.extend (result, { 'currency': base, 'amount': Math.abs (baseAmount), 'direction': baseAmount > 0 ? 'in' : 'out' }),
-                this.extend (result, { 'currency': quote, 'amount': Math.abs (quoteAmount), 'direction': quoteAmount > 0 ? 'in' : 'out', 'fee': fee }),
+                this.extend (result, { 'currency': base, 'amount': Math.abs (baseAmount), 'direction': (baseAmount > 0) ? 'in' : 'out' }),
+                this.extend (result, { 'currency': quote, 'amount': Math.abs (quoteAmount), 'direction': (quoteAmount > 0) ? 'in' : 'out', 'fee': fee }),
             ];
             //
             // if fee is base or quote depending on buy/sell side
@@ -340,15 +340,15 @@ module.exports = class coinfloor extends Exchange {
             //     const baseFee = (baseAmount > 0) ? { 'currency': base, 'cost': feeCost } : undefined;
             //     const quoteFee = (quoteAmount > 0) ? { 'currency': quote, 'cost': feeCost } : undefined;
             //     return [
-            //         this.extend (result, { 'currency': base, 'amount': baseAmount, 'direction': baseAmount > 0 ? 'in' : 'out', 'fee': baseFee }),
-            //         this.extend (result, { 'currency': quote, 'amount': quoteAmount, 'direction': quoteAmount > 0 ? 'in' : 'out', 'fee': quoteFee }),
+            //         this.extend (result, { 'currency': base, 'amount': baseAmount, 'direction': (baseAmount > 0) ? 'in' : 'out', 'fee': baseFee }),
+            //         this.extend (result, { 'currency': quote, 'amount': quoteAmount, 'direction': (quoteAmount > 0) ? 'in' : 'out', 'fee': quoteFee }),
             //     ];
             //
             // fee as the 3rd item
             //
             //     return [
-            //         this.extend (result, { 'currency': base, 'amount': baseAmount, 'direction': baseAmount > 0 ? 'in' : 'out' }),
-            //         this.extend (result, { 'currency': quote, 'amount': quoteAmount, 'direction': quoteAmount > 0 ? 'in' : 'out' }),
+            //         this.extend (result, { 'currency': base, 'amount': baseAmount, 'direction': (baseAmount > 0) ? 'in' : 'out' }),
+            //         this.extend (result, { 'currency': quote, 'amount': quoteAmount, 'direction': (quoteAmount > 0) ? 'in' : 'out' }),
             //         this.extend (result, { 'currency': feeCurrency, 'amount': feeCost, 'direction': 'out', 'type': 'fee' }),
             //     ];
             //
@@ -356,8 +356,8 @@ module.exports = class coinfloor extends Exchange {
             //
             // it's a regular transaction (deposit or withdrawal)
             //
-            const amount = baseAmount === 0 ? quoteAmount : baseAmount;
-            const code = baseAmount === 0 ? quote : base;
+            const amount = (baseAmount === 0) ? quoteAmount : baseAmount;
+            const code = (baseAmount === 0) ? quote : base;
             const direction = (amount > 0) ? 'in' : 'out';
             if (feeCost !== undefined) {
                 fee = {

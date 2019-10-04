@@ -751,7 +751,7 @@ class rightbtc extends Exchange {
         $status = $this->safe_value($response, 'status');
         if ($status !== null) {
             //
-            //     array("$status":{"$success":0,"$message":"ERR_USERTOKEN_NOT_FOUND")}
+            //     array("$status":array("$success":0,"$message":"ERR_USERTOKEN_NOT_FOUND"))
             //
             $success = $this->safe_string($status, 'success');
             if ($success !== '1') {

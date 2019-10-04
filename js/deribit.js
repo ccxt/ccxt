@@ -186,22 +186,68 @@ module.exports = class deribit extends Exchange {
     }
 
     async fetchBalance (params = {}) {
+        await this.loadMarkets ();
         const response = await this.privateGetAccount (params);
+        //
+        //     {
+        //         "usOut":1569048827943520,
+        //         "usIn":1569048827943020,
+        //         "usDiff":500,
+        //         "testnet":false,
+        //         "success":true,
+        //         "result":{
+        //             "equity":2e-9,
+        //             "maintenanceMargin":0.0,
+        //             "initialMargin":0.0,
+        //             "availableFunds":0.0,
+        //             "balance":0.0,
+        //             "marginBalance":0.0,
+        //             "SUPL":0.0,
+        //             "SRPL":0.0,
+        //             "PNL":0.0,
+        //             "optionsPNL":0.0,
+        //             "optionsSUPL":0.0,
+        //             "optionsSRPL":0.0,
+        //             "optionsD":0.0,
+        //             "optionsG":0.0,
+        //             "optionsV":0.0,
+        //             "optionsTh":0.0,
+        //             "futuresPNL":0.0,
+        //             "futuresSUPL":0.0,
+        //             "futuresSRPL":0.0,
+        //             "deltaTotal":0.0,
+        //             "sessionFunding":0.0,
+        //             "depositAddress":"13tUtNsJSZa1F5GeCmwBywVrymHpZispzw",
+        //             "currency":"BTC"
+        //         },
+        //         "message":""
+        //     }
+        //
         const result = {
-            'BTC': {
-                'free': this.safeFloat (response['result'], 'availableFunds'),
-                'used': this.safeFloat (response['result'], 'maintenanceMargin'),
-                'total': this.safeFloat (response['result'], 'equity'),
-            },
+            'info': response,
         };
+        const balance = this.safeValue (response, 'result', {});
+        const currencyId = this.safeString (balance, 'currency');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeFloat (balance, 'availableFunds');
+        account['used'] = this.safeFloat (balance, 'maintenanceMargin');
+        account['total'] = this.safeFloat (balance, 'equity');
+        result[code] = account;
         return this.parseBalance (result);
     }
 
-    async fetchDepositAddress (currency, params = {}) {
-        const response = await this.privateGetAccount (params);
-        const address = this.safeString (response, 'depositAddress');
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetAccount (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        const address = this.safeString (result, 'depositAddress');
         return {
-            'currency': this.safeCurrencyCode ('BTC'),
+            'currency': code,
             'address': address,
             'tag': undefined,
             'info': response,

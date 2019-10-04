@@ -34,7 +34,7 @@ use kornrunner\Keccak;
 use kornrunner\Solidity;
 use Elliptic\EC;
 
-$version = '1.18.1143';
+$version = '1.18.1219';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -53,7 +53,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.18.1143';
+    const VERSION = '1.18.1219';
 
     public static $eth_units = array (
         'wei'        => '1',
@@ -94,6 +94,7 @@ class Exchange {
         'bigone',
         'binance',
         'binanceje',
+        'binanceus',
         'bit2c',
         'bitbank',
         'bitbay',
@@ -1581,26 +1582,26 @@ class Exchange {
     }
 
     public function parse_balance($balance) {
-        $currencies = array_keys($this->omit($balance, 'info'));
+        $currencies = $this->omit($balance, 'info');
 
         $balance['free'] = array();
         $balance['used'] = array();
         $balance['total'] = array();
 
-        foreach ($currencies as $currency) {
-            if (!isset($currencies[$currency]['total'])) {
-                if (isset($currencies[$currency]['free']) && isset($currencies[$currency]['used'])) {
-                    $currencies[$currency]['total'] = static::sum($currencies[$currency]['free'], $currencies[$currency]['used']);
+        foreach ($currencies as $code => $value) {
+            if (!isset($value['total'])) {
+                if (isset($value['free']) && isset($value['used'])) {
+                    $currencies[$code]['total'] = static::sum($value['free'], $value['used']);
                 }
             }
-            if (!isset($currencies[$currency]['used'])) {
-                if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['free'])) {
-                    $currencies[$currency]['used'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['free']);
+            if (!isset($value['used'])) {
+                if (isset($value['total']) && isset($value['free'])) {
+                    $currencies[$code]['used'] = static::sum($value['total'], -$value['free']);
                 }
             }
-            if (!isset($currencies[$currency]['free'])) {
-                if (isset($currencies[$currency]['total']) && isset($currencies[$currency]['used'])) {
-                    $currencies[$currency]['free'] = static::sum($currencies[$currency]['total'], -$currencies[$currency]['used']);
+            if (!isset($value['free'])) {
+                if (isset($value['total']) && isset($value['used'])) {
+                    $currencies[$code]['free'] = static::sum($value['total'], -$value['used']);
                 }
             }
         }
@@ -1608,8 +1609,9 @@ class Exchange {
         $accounts = array('free', 'used', 'total');
         foreach ($accounts as $account) {
             $balance[$account] = array();
-            foreach ($currencies as $currency) {
-                $balance[$account][$currency] = $balance[$currency][$account];
+            foreach ($currencies as $code => $value) {
+                $balance[$code] = isset($balance[$code]) ? $balance[$code] : array();
+                $balance[$code][$account] = $balance[$account][$code] = $value[$account];
             }
         }
         return $balance;
@@ -2321,7 +2323,7 @@ class Exchange {
             return $this->markets[$symbol];
         }
 
-        throw new ExchangeError($this->id . ' does not have market symbol ' . $symbol);
+        throw new BadSymbol($this->id . ' does not have market symbol ' . $symbol);
     }
 
     public function market_ids($symbols) {
@@ -2385,7 +2387,7 @@ class Exchange {
         $nonfiltered = get_object_vars($this);
         $filtered = array();
         foreach ($nonfiltered as $key => $value) {
-            if ((strpos($key, 'has') !== false) && (key !== 'has')) {
+            if ((strpos($key, 'has') !== false) && ($key !== 'has')) {
                 $filtered[$key] = $value;
             }
         }

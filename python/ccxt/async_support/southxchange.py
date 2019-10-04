@@ -42,6 +42,7 @@ class southxchange (Exchange):
                     'post': [
                         'cancelMarketOrders',
                         'cancelOrder',
+                        'getOrder',
                         'generatenewaddress',
                         'listOrders',
                         'listBalances',

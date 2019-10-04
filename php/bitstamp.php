@@ -1096,7 +1096,7 @@ class bitstamp extends Exchange {
         }
         //
         //     array("$error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
-        //     array("$status" => "$error", "$reason" => {"__all__" => ["Minimum order size is 5.0 EUR."])}
+        //     array("$status" => "$error", "$reason" => array("__all__" => ["Minimum order size is 5.0 EUR."]))
         //     reuse of a nonce gives => array( $status => 'error', $reason => 'Invalid nonce', $code => 'API0004' )
         $status = $this->safe_string($response, 'status');
         $error = $this->safe_value($response, 'error');

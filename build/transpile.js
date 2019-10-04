@@ -302,7 +302,9 @@ const phpRegexes = [
     [ /([^'])this_\./g, '$1$this_->' ],
     [ /\{\}/g, 'array()' ],
     [ /\[\]/g, 'array()' ],
-    [ /\{([^\n\}]+)\}/g, 'array($1)' ],
+
+// add {}-array syntax conversions up to 20 levels deep in the same line
+]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
     [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
     [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
     [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],

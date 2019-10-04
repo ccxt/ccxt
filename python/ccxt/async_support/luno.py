@@ -283,7 +283,7 @@ class luno (Exchange):
             else:
                 takerOrMaker = 'taker'
         else:
-            side = 'buy' if (trade['is_buy']) else 'sell'
+            side = 'buy' if trade['is_buy'] else 'sell'
         feeBase = self.safe_float(trade, 'fee_base')
         feeCounter = self.safe_float(trade, 'fee_counter')
         feeCurrency = None

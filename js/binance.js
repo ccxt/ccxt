@@ -22,6 +22,7 @@ module.exports = class binance extends Exchange {
                 'CORS': false,
                 'fetchBidsAsks': true,
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOrder': true,
@@ -57,6 +58,7 @@ module.exports = class binance extends Exchange {
                     'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
@@ -68,6 +70,7 @@ module.exports = class binance extends Exchange {
                     'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                     'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
                 ],
+                'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
@@ -77,12 +80,44 @@ module.exports = class binance extends Exchange {
                         'assetWithdraw/getAllAsset.html',
                     ],
                 },
+                // the API structure below will need 3-layer apidefs
                 'sapi': {
                     'get': [
+                        // these endpoints require this.apiKey
+                        'margin/asset',
+                        'margin/pair',
+                        'margin/allAssets',
+                        'margin/allPairs',
+                        'margin/priceIndex',
+                        // these endpoints require this.apiKey + this.secret
                         'asset/assetDividend',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/account',
+                        'margin/transfer',
+                        'margin/interestHistory',
+                        'margin/forceLiquidationRec',
+                        'margin/order',
+                        'margin/openOrders',
+                        'margin/allOrders',
+                        'margin/myTrades',
+                        'margin/maxBorrowable',
+                        'margin/maxTransferable',
                     ],
                     'post': [
                         'asset/dust',
+                        'margin/transfer',
+                        'margin/loan',
+                        'margin/repay',
+                        'margin/order',
+                        'userDataStream',
+                    ],
+                    'put': [
+                        'userDataStream',
+                    ],
+                    'delete': [
+                        'margin/order',
+                        'userDataStream',
                     ],
                 },
                 'wapi': {
@@ -103,6 +138,23 @@ module.exports = class binance extends Exchange {
                         'sub-account/list',
                         'sub-account/transfer/history',
                         'sub-account/assets',
+                    ],
+                },
+                'fapiPrivate': {
+                    'get': [
+                        'allOrders',
+                        'openOrders',
+                        'order',
+                        'account',
+                        'balance',
+                        'positionRisk',
+                        'userTrades',
+                    ],
+                    'post': [
+                        'order',
+                    ],
+                    'delete': [
+                        'order',
                     ],
                 },
                 'v3': {
@@ -133,6 +185,9 @@ module.exports = class binance extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'allOrderList', // oco
+                        'openOrderList', // oco
+                        'orderList', // oco
                         'order',
                         'openOrders',
                         'allOrders',
@@ -140,10 +195,12 @@ module.exports = class binance extends Exchange {
                         'myTrades',
                     ],
                     'post': [
+                        'order/oco',
                         'order',
                         'order/test',
                     ],
                     'delete': [
+                        'orderList', // oco
                         'order',
                     ],
                 },
@@ -202,10 +259,15 @@ module.exports = class binance extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
+    async fetchTime (params = {}) {
+        const response = await this.publicGetTime (params);
+        return this.safeFloat (response, 'serverTime');
+    }
+
     async loadTimeDifference () {
-        const response = await this.publicGetTime ();
+        const serverTime = await this.fetchTime ();
         const after = this.milliseconds ();
-        this.options['timeDifference'] = parseInt (after - response['serverTime']);
+        this.options['timeDifference'] = parseInt (after - serverTime);
         return this.options['timeDifference'];
     }
 
@@ -377,11 +439,12 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchStatus (params = {}) {
-        const systemStatus = await this.wapiGetSystemStatus ();
-        const status = this.safeValue (systemStatus, 'status');
+        const response = await this.wapiGetSystemStatus ();
+        let status = this.safeValue (response, 'status');
         if (status !== undefined) {
+            status = (status === 0) ? 'ok' : 'maintenance';
             this.status = this.extend (this.status, {
-                'status': status === 0 ? 'ok' : 'maintenance',
+                'status': status,
                 'updated': this.milliseconds (),
             });
         }
@@ -508,7 +571,7 @@ module.exports = class binance extends Exchange {
             side = trade['isBuyerMaker'] ? 'sell' : 'buy';
         } else {
             if ('isBuyer' in trade) {
-                side = (trade['isBuyer']) ? 'buy' : 'sell'; // this is a true side
+                side = trade['isBuyer'] ? 'buy' : 'sell'; // this is a true side
             }
         }
         let fee = undefined;
@@ -1249,7 +1312,7 @@ module.exports = class binance extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus')) {
+        if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'fapiPrivate')) {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.extend ({
                 'timestamp': this.nonce (),
