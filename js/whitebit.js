@@ -239,7 +239,7 @@ module.exports = class whitebit extends Exchange {
         const symbol = this.findSymbol (this.safeString (ticker, 'market'), market);
         const last = this.safeFloat (ticker, 'last');
         const time = this.milliseconds ();
-        const change = this.safeFloat (ticker, 'change') || 0;
+        const change = this.safeFloat (ticker, 'change');
         return {
             'symbol': symbol,
             'timestamp': time,
@@ -255,7 +255,7 @@ module.exports = class whitebit extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change * 0.01,
+            'change': (change !== undefined) ? change * 0.01 : undefined,
             'percentage': change,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
@@ -297,7 +297,7 @@ module.exports = class whitebit extends Exchange {
         }
         const response = await this.publicV2GetDepthPair (this.extend (request, params));
         const result = this.safeValue (response, 'result');
-        const timestamp = this.parseDate (this.safeString (result, 'lastUpdateTimestamp'));
+        const timestamp = this.parse8601 (this.safeString (result, 'lastUpdateTimestamp'));
         const orderbook = this.parseOrderBook (result, timestamp);
         orderbook['nonce'] = this.safeInteger (result, timestamp);
         return orderbook;
@@ -319,7 +319,7 @@ module.exports = class whitebit extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'time') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'time');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const id = this.safeString (trade, 'id');
@@ -337,12 +337,12 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': amount * price,
+            'cost': (amount !== undefined && price !== undefined) ? amount * price : undefined,
             'fee': undefined,
         };
     }
 
-    async fetchOHLCV (symbol, timeframe = '1H', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -375,7 +375,7 @@ module.exports = class whitebit extends Exchange {
         const response = await this.webGetV1Healthcheck ();
         const status = this.safeInteger (response, 'status');
         this.status = this.extend (this.status, {
-            'status': status !== 503 ? 'ok' : 'maintenance',
+            'status': (status !== 503) ? 'ok' : 'maintenance',
             'updated': this.milliseconds (),
         });
         return this.status;
@@ -397,17 +397,15 @@ module.exports = class whitebit extends Exchange {
         if (code === 404) {
             throw new ExchangeError (this.id + ' ' + code.toString () + ' endpoint not found');
         }
-        if (body.length > 0) {
-            if (body[0] === '{') {
-                const success = this.safeValue (response, 'success');
-                if (!success) {
-                    const message = response['message'];
-                    if (message) {
-                        throw new ExchangeError (message);
-                    } else {
-                        const feedback = this.id + ' ' + this.json (response);
-                        throw new ExchangeError (feedback);
-                    }
+        if (response !== undefined) {
+            const success = this.safeValue (response, 'success');
+            if (!success) {
+                const message = response['message'];
+                if (message) {
+                    throw new ExchangeError (message);
+                } else {
+                    const feedback = this.id + ' ' + this.json (response);
+                    throw new ExchangeError (feedback);
                 }
             }
         }
