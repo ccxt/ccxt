@@ -1102,7 +1102,6 @@ module.exports = class bitz extends Exchange {
             }, transactions[i]));
             result.push (transaction);
         }
-        console.error(result);
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
