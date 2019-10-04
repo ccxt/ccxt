@@ -1090,8 +1090,8 @@ module.exports = class bitz extends Exchange {
             'status': status,
             'updated': timestamp,
             'fee': undefined,
-            'info': transaction
-        }
+            'info': transaction,
+        };
     }
 
     parseTransactionsByType (type, transactions, code = undefined, since = undefined, limit = undefined) {
