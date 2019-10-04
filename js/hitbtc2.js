@@ -1019,8 +1019,10 @@ module.exports = class hitbtc2 extends hitbtc {
     parseTransactionType (type) {
         const types = {
             'payin': 'deposit',
+            'bankToExchange': 'deposit',
             'payout': 'withdrawal',
             'withdraw': 'withdrawal',
+            'exchangeToBank': 'withdrawal',
         };
         return this.safeString (types, type, type);
     }
