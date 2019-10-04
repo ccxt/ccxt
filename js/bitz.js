@@ -1024,51 +1024,55 @@ module.exports = class bitz extends Exchange {
     }
 
     parseTransaction (transaction, currency = undefined) {
-        // { 
-        //   "id": '96275',
-        //   "uid": '2109073',
-        //   "wallet": '0xf4c4141c0127bc37b1d0c409a091920eba13ada7',
-        //   "txid": '0xb7adfa52aa566f9ac112e3c01f77bd91179b19eab12092a9a5a8b33d5086e31d',
-        //   "confirm": '12',
-        //   "number": '0.50000000',
-        //   "status": 4,
-        //   "updated": '1534944168605',
-        //   "addressUrl": 'https://etherscan.io/address/',
-        //   "txidUrl": 'https://etherscan.io/tx/',
-        //   "description": 'Ethereum',
-        //   "coin": 'eth',
-        //   "memo": ''
-        // }
-        // {
-        //   "id":"397574",
-        //   "uid":"2033056",
-        //   "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
-        //   "txid":"",
-        //   "confirm":"0",
-        //   "number":"1000.00000000",
-        //   "status":1,
-        //   "updated":"0",
-        //   "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
-        //   "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
-        //   "description":"Tether",
-        //   "coin":"usdt",
-        //   "memo":""
-        // }
-        // {
-        //   "id":"153606",
-        //   "uid":"2033056",
-        //   "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
-        //   "txid":"aa2b179f84cd6dedafd41845e0fbf7f01e14c0d71ea3140d03d6f5a9ccd93199",
-        //   "confirm":"0",
-        //   "number":"761.11110000",
-        //   "status":4,
-        //   "updated":"1536726133579",
-        //   "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
-        //   "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
-        //   "description":"Tether",
-        //   "coin":"usdt",
-        //   "memo":""
-        // }
+        //
+        //     { 
+        //         "id": '96275',
+        //         "uid": '2109073',
+        //         "wallet": '0xf4c4141c0127bc37b1d0c409a091920eba13ada7',
+        //         "txid": '0xb7adfa52aa566f9ac112e3c01f77bd91179b19eab12092a9a5a8b33d5086e31d',
+        //         "confirm": '12',
+        //         "number": '0.50000000',
+        //         "status": 4,
+        //         "updated": '1534944168605',
+        //         "addressUrl": 'https://etherscan.io/address/',
+        //         "txidUrl": 'https://etherscan.io/tx/',
+        //         "description": 'Ethereum',
+        //         "coin": 'eth',
+        //         "memo": ''
+        //     }
+        //
+        //     {
+        //         "id":"397574",
+        //         "uid":"2033056",
+        //         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        //         "txid":"",
+        //         "confirm":"0",
+        //         "number":"1000.00000000",
+        //         "status":1,
+        //         "updated":"0",
+        //         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        //         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        //         "description":"Tether",
+        //         "coin":"usdt",
+        //         "memo":""
+        //     }
+        //
+        //     {
+        //         "id":"153606",
+        //         "uid":"2033056",
+        //         "wallet":"1AG1gZvQAYu3WBvgg7p4BMMghQD2gE693k",
+        //         "txid":"aa2b179f84cd6dedafd41845e0fbf7f01e14c0d71ea3140d03d6f5a9ccd93199",
+        //         "confirm":"0",
+        //         "number":"761.11110000",
+        //         "status":4,
+        //         "updated":"1536726133579",
+        //         "addressUrl":"http://omniexplorer.info/lookupadd.aspx?address=",
+        //         "txidUrl":"http://omniexplorer.info/lookuptx.aspx?txid=",
+        //         "description":"Tether",
+        //         "coin":"usdt",
+        //         "memo":""
+        //     }
+        //
         let timestamp = this.safeInteger (transaction, 'updated');
         if (timestamp === 0) {
             timestamp = undefined;
