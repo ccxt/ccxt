@@ -1076,7 +1076,7 @@ module.exports = class bitz extends Exchange {
         }
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const type = this.safeStringLower (transaction, 'type'); // DEPOSIT or WITHDRAWAL
+        const type = this.safeStringLower (transaction, 'type');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
 
         return {
@@ -1085,7 +1085,7 @@ module.exports = class bitz extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': this.safeString (transaction, 'wallet'),
-            'tag': this.safeString (transaction, 'memo'), // refix it properly for the tag from description
+            'tag': this.safeString (transaction, 'memo'),
             'type': type,
             'amount': this.safeFloat (transaction, 'number'),
             'currency': code,
