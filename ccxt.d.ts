@@ -432,7 +432,7 @@ declare module 'ccxt' {
         getMarket (symbol: string): Market;
         handleResponse (url: string, method: string, headers?: any, body?: any): any;
         initRestRateLimiter (): void;
-        iso8601 (timestamp: string): string;
+        iso8601 (timestamp: number | string): string;
         loadMarkets (reload?: boolean): Promise<Dictionary<Market>>;
         market (symbol: string): Market;
         marketId (symbol: string): string;
