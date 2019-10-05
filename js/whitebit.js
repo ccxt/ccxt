@@ -239,7 +239,11 @@ module.exports = class whitebit extends Exchange {
         const symbol = this.findSymbol (this.safeString (ticker, 'market'), market);
         const last = this.safeFloat (ticker, 'last');
         const time = this.milliseconds ();
-        const change = this.safeFloat (ticker, 'change');
+        const percentage = this.safeFloat (ticker, 'change');
+        let change = undefined;
+        if (percentage !== undefined) {
+            change = percentage * 0.01;
+        }
         return {
             'symbol': symbol,
             'timestamp': time,
@@ -255,8 +259,8 @@ module.exports = class whitebit extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': (change !== undefined) ? change * 0.01 : undefined,
-            'percentage': change,
+            'change': change,
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
             'quoteVolume': this.safeFloat (ticker, 'deal'),
@@ -325,6 +329,10 @@ module.exports = class whitebit extends Exchange {
         const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'type');
         const symbol = market['symbol'];
+        let cost = undefined;
+        if (amount !== undefined && price !== undefined) {
+            cost = amount * price;
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -337,7 +345,7 @@ module.exports = class whitebit extends Exchange {
             'side': side,
             'price': price,
             'amount': amount,
-            'cost': (amount !== undefined && price !== undefined) ? amount * price : undefined,
+            'cost': cost,
             'fee': undefined,
         };
     }
@@ -374,8 +382,12 @@ module.exports = class whitebit extends Exchange {
     async fetchStatus (params = {}) {
         const response = await this.webGetV1Healthcheck ();
         const status = this.safeInteger (response, 'status');
+        let formattedStatus = 'ok';
+        if (status === 503) {
+            formattedStatus = 'maintenance';
+        }
         this.status = this.extend (this.status, {
-            'status': (status !== 503) ? 'ok' : 'maintenance',
+            'status': formattedStatus,
             'updated': this.milliseconds (),
         });
         return this.status;
