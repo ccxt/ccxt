@@ -266,6 +266,7 @@ class okex3 extends Exchange {
                     '1' => '\\ccxt\\ExchangeError', // array( "code" => 1, "message" => "System error" )
                     // undocumented
                     'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeError', // array( "message" => "failure to get a peer from the ring-balancer" )
+                    '"instrument_id" is an invalid parameter' => '\\ccxt\\BadSymbol', // array("code":30024,"message":"\"instrument_id\" is an invalid parameter")
                     '4010' => '\\ccxt\\PermissionDenied', // array( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
                     // common
                     '30001' => '\\ccxt\\AuthenticationError', // array( "code" => 30001, "message" => 'request header "OK_ACCESS_KEY" cannot be blank')
@@ -2691,9 +2692,6 @@ class okex3 extends Exchange {
         $exact = $this->exceptions['exact'];
         $message = $this->safe_string($response, 'message');
         $errorCode = $this->safe_string_2($response, 'code', 'error_code');
-        if (is_array($exact) && array_key_exists($errorCode, $exact)) {
-            throw new $exact[$errorCode]($feedback);
-        }
         if ($message !== null) {
             if (is_array($exact) && array_key_exists($message, $exact)) {
                 throw new $exact[$message]($feedback);
@@ -2703,6 +2701,11 @@ class okex3 extends Exchange {
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }
+        }
+        if (is_array($exact) && array_key_exists($errorCode, $exact)) {
+            throw new $exact[$errorCode]($feedback);
+        }
+        if ($message !== null) {
             throw new ExchangeError($feedback); // unknown $message
         }
     }
