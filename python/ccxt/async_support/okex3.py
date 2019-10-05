@@ -50,6 +50,7 @@ class okex3 (Exchange):
                 'fetchCurrencies': False,  # see below
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
+                'fetchTime': True,
                 'fetchTransactions': False,
                 'fetchMyTrades': False,  # they don't have it
                 'fetchDepositAddress': True,

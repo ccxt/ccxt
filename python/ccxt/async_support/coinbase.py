@@ -44,6 +44,7 @@ class coinbase (Exchange):
                 'fetchOrders': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
+                'fetchTime': True,
                 'fetchBidsAsks': False,
                 'fetchTrades': False,
                 'withdraw': False,

@@ -46,6 +46,7 @@ class stronghold (Exchange):
                 'fetchCurrencies': True,
                 'fetchOrderBook': True,
                 'fetchOpenOrders': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchMyTrades': True,
                 'fetchDepositAddress': False,

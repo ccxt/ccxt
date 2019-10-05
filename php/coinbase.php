@@ -41,6 +41,7 @@ class coinbase extends Exchange {
                 'fetchOrders' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => false,
+                'fetchTime' => true,
                 'fetchBidsAsks' => false,
                 'fetchTrades' => false,
                 'withdraw' => false,
