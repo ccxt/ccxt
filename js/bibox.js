@@ -73,6 +73,11 @@ module.exports = class bibox extends Exchange {
                         'transfer',
                     ],
                 },
+                'v2private': {
+                    'post': [
+                        'assets/transfer/spot',
+                    ],
+                },
             },
             'fees': {
                 'trading': {
@@ -172,8 +177,9 @@ module.exports = class bibox extends Exchange {
             baseVolume = this.safeFloat (ticker, 'vol24H');
         }
         let open = undefined;
-        if ((last !== undefined) && (change !== undefined))
+        if ((last !== undefined) && (change !== undefined)) {
             open = last - change;
+        }
         let percentage = this.safeString (ticker, 'percent');
         if (percentage !== undefined) {
             percentage = percentage.replace ('%', '');
@@ -245,11 +251,13 @@ module.exports = class bibox extends Exchange {
             if (marketId === undefined) {
                 let baseId = this.safeString (trade, 'coin_symbol');
                 let quoteId = this.safeString (trade, 'currency_symbol');
-                if ((baseId !== undefined) && (quoteId !== undefined))
+                if ((baseId !== undefined) && (quoteId !== undefined)) {
                     marketId = baseId + '_' + quoteId;
+                }
             }
-            if (marketId in this.markets_by_id)
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
+            }
         }
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -626,10 +634,12 @@ module.exports = class bibox extends Exchange {
             let marketId = undefined;
             let baseId = this.safeString (order, 'coin_symbol');
             let quoteId = this.safeString (order, 'currency_symbol');
-            if ((baseId !== undefined) && (quoteId !== undefined))
+            if ((baseId !== undefined) && (quoteId !== undefined)) {
                 marketId = baseId + '_' + quoteId;
-            if (marketId in this.markets_by_id)
+            }
+            if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
+            }
         }
         if (market !== undefined) {
             symbol = market['symbol'];
@@ -643,10 +653,12 @@ module.exports = class bibox extends Exchange {
         let cost = this.safeFloat2 (order, 'deal_money', 'money');
         let remaining = undefined;
         if (filled !== undefined) {
-            if (amount !== undefined)
+            if (amount !== undefined) {
                 remaining = amount - filled;
-            if (cost === undefined)
+            }
+            if (cost === undefined) {
                 cost = price * filled;
+            }
         }
         let side = (order['order_side'] === 1) ? 'buy' : 'sell';
         let status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -707,8 +719,9 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 200, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let response = await this.privatePostOrderpending ({
@@ -725,8 +738,9 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined)
+        if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
+        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         let size = (limit) ? limit : 200;
@@ -769,19 +783,23 @@ module.exports = class bibox extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         let currency = this.currency (code);
-        if (this.password === undefined)
-            if (!('trade_pwd' in params))
+        if (this.password === undefined) {
+            if (!('trade_pwd' in params)) {
                 throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a trade_pwd parameter');
-        if (!('totp_code' in params))
+            }
+        }
+        if (!('totp_code' in params)) {
             throw new ExchangeError (this.id + ' withdraw() requires a totp_code parameter for 2FA authentication');
+        }
         let body = {
             'trade_pwd': this.password,
             'coin_symbol': currency['id'],
             'amount': amount,
             'addr': address,
         };
-        if (tag !== undefined)
+        if (tag !== undefined) {
             body['address_remark'] = tag;
+        }
         let response = await this.privatePostTransfer ({
             'cmd': 'transfer/transferOut',
             'body': this.extend (body, params),
@@ -798,8 +816,9 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         let withdrawFees = {};
         let info = {};
-        if (codes === undefined)
+        if (codes === undefined) {
             codes = Object.keys (this.currencies);
+        }
         for (let i = 0; i < codes.length; i++) {
             let code = codes[i];
             let currency = this.currency (code);
@@ -823,10 +842,20 @@ module.exports = class bibox extends Exchange {
         let url = this.urls['api'] + '/' + this.version + '/' + path;
         let cmds = this.json ([ params ]);
         if (api === 'public') {
-            if (method !== 'GET')
+            if (method !== 'GET') {
                 body = { 'cmds': cmds };
-            else if (Object.keys (params).length)
+            } else if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
+        } else if (api === 'v2private') {
+          this.checkRequiredCredentials ();
+          url = this.urls['api'] + '/v2/' + path;
+          cmds = this.json( params );
+          body = {
+              'body': cmds,
+              'apikey': this.apiKey,
+              'sign': this.hmac (this.encode (cmds), this.encode (this.secret), 'md5'),
+          };
         } else {
             this.checkRequiredCredentials ();
             body = {
@@ -835,8 +864,9 @@ module.exports = class bibox extends Exchange {
                 'sign': this.hmac (this.encode (cmds), this.encode (this.secret), 'md5'),
             };
         }
-        if (body !== undefined)
+        if (body !== undefined) {
             body = this.json (body, { 'convertArraysToObjects': true });
+        }
         headers = { 'Content-Type': 'application/json' };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
@@ -857,8 +887,9 @@ module.exports = class bibox extends Exchange {
                     }
                     throw new ExchangeError (this.id + ': "error" in response: ' + body);
                 }
-                if (!('result' in response))
+                if (!('result' in response)) {
                     throw new ExchangeError (this.id + ' ' + body);
+                }
             }
         }
     }
