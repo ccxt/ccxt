@@ -86,26 +86,31 @@ module.exports = class btcchina extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        let markets = await this.publicGetTicker ({
+        const request = {
             'market': 'all',
-        });
-        let result = [];
-        let keys = Object.keys (markets);
-        for (let p = 0; p < keys.length; p++) {
-            let key = keys[p];
-            let market = markets[key];
-            let parts = key.split ('_');
-            let id = parts[1];
-            let base = id.slice (0, 3);
-            let quote = id.slice (3, 6);
-            base = base.toUpperCase ();
-            quote = quote.toUpperCase ();
-            let symbol = base + '/' + quote;
+        };
+        const markets = await this.publicGetTicker (this.extend (request, params));
+        const result = [];
+        const keys = Object.keys (markets);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const market = markets[key];
+            const parts = key.split ('_');
+            const id = parts[1];
+            const baseId = id.slice (0, 3);
+            const quoteId = id.slice (3, 6);
+            let base = baseId.toUpperCase ();
+            let quote = quoteId.toUpperCase ();
+            base = this.safeCurrencyCode (base);
+            quote = this.safeCurrencyCode (quote);
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
                 'info': market,
             });
         }
@@ -114,44 +119,46 @@ module.exports = class btcchina extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        let response = await this.privatePostGetAccountInfo ();
-        let balances = response['result'];
-        let result = { 'info': balances };
-        let currencies = Object.keys (this.currencies);
-        for (let i = 0; i < currencies.length; i++) {
-            let currency = currencies[i];
-            let lowercase = currency.toLowerCase ();
-            let account = this.account ();
-            if (lowercase in balances['balance'])
-                account['total'] = parseFloat (balances['balance'][lowercase]['amount']);
-            if (lowercase in balances['frozen'])
-                account['used'] = parseFloat (balances['frozen'][lowercase]['amount']);
-            account['free'] = account['total'] - account['used'];
-            result[currency] = account;
+        const response = await this.privatePostGetAccountInfo (params);
+        const balances = this.safeValue (response, 'result');
+        const result = { 'info': balances };
+        const codes = Object.keys (this.currencies);
+        for (let i = 0; i < codes.length; i++) {
+            const code = codes[i];
+            const currency = this.currency (code);
+            const account = this.account ();
+            const currencyId = currency['id'];
+            if (currencyId in balances['balance']) {
+                account['total'] = parseFloat (balances['balance'][currencyId]['amount']);
+            }
+            if (currencyId in balances['frozen']) {
+                account['used'] = parseFloat (balances['frozen'][currencyId]['amount']);
+            }
+            result[code] = account;
         }
         return this.parseBalance (result);
     }
 
     createMarketRequest (market) {
-        let request = {};
-        let field = (market['plus']) ? 'symbol' : 'market';
+        const request = {};
+        const field = (market['plus']) ? 'symbol' : 'market';
         request[field] = market['id'];
         return request;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = market['api'] + 'GetOrderbook';
-        let request = this.createMarketRequest (market);
-        let orderbook = await this[method] (this.extend (request, params));
-        let timestamp = orderbook['date'] * 1000;
-        return this.parseOrderBook (orderbook, timestamp);
+        const market = this.market (symbol);
+        const method = market['api'] + 'GetOrderbook';
+        const request = this.createMarketRequest (market);
+        const response = await this[method] (this.extend (request, params));
+        const timestamp = this.safeTimestamp (response, 'date');
+        return this.parseOrderBook (response, timestamp);
     }
 
     parseTicker (ticker, market) {
-        let timestamp = ticker['date'] * 1000;
-        let last = this.safeFloat (ticker, 'last');
+        const timestamp = this.safeTimestamp (ticker, 'date');
+        const last = this.safeFloat (ticker, 'last');
         return {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -174,10 +181,11 @@ module.exports = class btcchina extends Exchange {
     }
 
     parseTickerPlus (ticker, market) {
-        let timestamp = ticker['Timestamp'];
+        const timestamp = this.safeInteger (ticker, 'Timestamp');
         let symbol = undefined;
-        if (market)
+        if (market !== undefined) {
             symbol = market['symbol'];
+        }
         return {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -200,33 +208,53 @@ module.exports = class btcchina extends Exchange {
 
     async fetchTicker (symbol, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = market['api'] + 'GetTicker';
-        let request = this.createMarketRequest (market);
-        let tickers = await this[method] (this.extend (request, params));
-        let ticker = tickers['ticker'];
-        if (market['plus'])
+        const market = this.market (symbol);
+        const method = market['api'] + 'GetTicker';
+        const request = this.createMarketRequest (market);
+        const response = await this[method] (this.extend (request, params));
+        const ticker = this.safeValue (response, 'ticker');
+        if (market['plus']) {
             return this.parseTickerPlus (ticker, market);
+        }
         return this.parseTicker (ticker, market);
     }
 
     parseTrade (trade, market) {
-        let timestamp = parseInt (trade['date']) * 1000;
+        const timestamp = this.safeTimestamp (trade, 'date');
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'amount');
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = amount * price;
+            }
+        }
+        const id = this.safeString (trade, 'tid');
         return {
-            'id': trade['tid'],
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
             'side': undefined,
-            'price': trade['price'],
-            'amount': trade['amount'],
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         };
     }
 
     parseTradePlus (trade, market) {
-        let timestamp = this.parse8601 (trade['timestamp']);
+        const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
+        const price = this.safeFloat (trade, 'price');
+        const amount = this.safeFloat (trade, 'size');
+        let cost = undefined;
+        if (amount !== undefined) {
+            if (price !== undefined) {
+                cost = amount * price;
+            }
+        }
+        const side = this.safeStringLower (trade, 'side');
         return {
             'id': undefined,
             'info': trade,
@@ -234,14 +262,15 @@ module.exports = class btcchina extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
             'type': undefined,
-            'side': trade['side'].toLowerCase (),
-            'price': trade['price'],
-            'amount': trade['size'],
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
         };
     }
 
     parseTradesPlus (trades, market = undefined) {
-        let result = [];
+        const result = [];
         for (let i = 0; i < trades.length; i++) {
             result.push (this.parseTradePlus (trades[i], market));
         }
@@ -250,17 +279,17 @@ module.exports = class btcchina extends Exchange {
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
+        const market = this.market (symbol);
         let method = market['api'] + 'GetTrade';
-        let request = this.createMarketRequest (market);
+        const request = this.createMarketRequest (market);
         if (market['plus']) {
-            let now = this.milliseconds ();
-            request['start_time'] = now - 86400 * 1000;
+            const now = this.milliseconds ();
+            request['start_time'] = now - 86400000;
             request['end_time'] = now;
         } else {
             method += 's'; // trades vs trade
         }
-        let response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         if (market['plus']) {
             return this.parseTradesPlus (response['trades'], market);
         }
@@ -269,28 +298,30 @@ module.exports = class btcchina extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = this.market (symbol);
-        let method = 'privatePost' + this.capitalize (side) + 'Order2';
-        let order = {};
-        let id = market['id'].toUpperCase ();
+        const market = this.market (symbol);
+        const method = 'privatePost' + this.capitalize (side) + 'Order2';
+        const request = {};
+        const id = market['id'].toUpperCase ();
         if (type === 'market') {
-            order['params'] = [ undefined, amount, id ];
+            request['params'] = [ undefined, amount, id ];
         } else {
-            order['params'] = [ price, amount, id ];
+            request['params'] = [ price, amount, id ];
         }
-        let response = await this[method] (this.extend (order, params));
+        const response = await this[method] (this.extend (request, params));
+        const orderId = this.safeString (response, 'id');
         return {
             'info': response,
-            'id': response['id'],
+            'id': orderId,
         };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        let market = params['market']; // TODO fixme
-        return await this.privatePostCancelOrder (this.extend ({
+        const market = params['market']; // TODO fixme
+        const request = {
             'params': [ id, market ],
-        }, params));
+        };
+        return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
     nonce () {
@@ -302,33 +333,35 @@ module.exports = class btcchina extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             let p = [];
-            if ('params' in params)
+            if ('params' in params) {
                 p = params['params'];
-            let nonce = this.nonce ();
-            let request = {
+            }
+            const nonce = this.nonce ();
+            const request = {
                 'method': path,
                 'id': nonce,
                 'params': p,
             };
             p = p.join (',');
             body = this.json (request);
-            let query = (
-                'tonce=' + nonce +
-                '&accesskey=' + this.apiKey +
-                '&requestmethod=' + method.toLowerCase () +
-                '&id=' + nonce +
-                '&method=' + path +
-                '&params=' + p
-            );
-            let signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
-            let auth = this.encode (this.apiKey + ':' + signature);
+            const query = [
+                'tonce=' + nonce,
+                'accesskey=' + this.apiKey,
+                'requestmethod=' + method.toLowerCase (),
+                'id=' + nonce,
+                'method=' + path,
+                'params=' + p,
+            ].join ('&');
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha1');
+            const auth = this.encode (this.apiKey + ':' + signature);
             headers = {
                 'Authorization': 'Basic ' + this.stringToBase64 (auth),
                 'Json-Rpc-Tonce': nonce,
             };
         } else {
-            if (Object.keys (params).length)
+            if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

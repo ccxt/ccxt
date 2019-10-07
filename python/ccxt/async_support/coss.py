@@ -111,8 +111,8 @@ class coss (Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.0020,
-                    'maker': 0.0014,
+                    'taker': 0.0025,
+                    'maker': 0.0,
                 },
                 'funding': {
                     'tierBased': False,
@@ -161,8 +161,8 @@ class coss (Exchange):
             market = markets[i]
             marketId = market['symbol']
             baseId, quoteId = marketId.split('_')
-            base = self.common_currency_code(baseId)
-            quote = self.common_currency_code(quoteId)
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             precision = {
                 'amount': self.safe_integer(market, 'amount_limit_decimal'),
@@ -236,7 +236,7 @@ class coss (Exchange):
         for i in range(0, len(response)):
             currency = response[i]
             currencyId = self.safe_string(currency, 'currency_code')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             name = self.safe_string(currency, 'name')
             allowBuy = self.safe_value(currency, 'allow_buy')
             allowSell = self.safe_value(currency, 'allow_sell')
@@ -308,7 +308,7 @@ class coss (Exchange):
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency_code')
-            code = self.common_currency_code(currencyId)
+            code = self.safe_currency_code(currencyId)
             total = self.safe_float(balance, 'total')
             used = self.safe_float(balance, 'in_order')
             free = self.safe_float(balance, 'available')
@@ -404,8 +404,8 @@ class coss (Exchange):
         if market is None:
             if marketId is not None:
                 baseId, quoteId = marketId.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         if market is not None:
             symbol = market['symbol']
@@ -531,7 +531,7 @@ class coss (Exchange):
         cost = parts[0]
         code = None
         if numParts > 1:
-            code = self.common_currency_code(parts[1])
+            code = self.safe_currency_code(parts[1])
         return {
             'cost': cost,
             'currency': code,
@@ -563,17 +563,15 @@ class coss (Exchange):
         id = self.safe_string(trade, 'id')
         timestamp = self.safe_integer(trade, 'time')
         orderId = self.safe_string(trade, 'order_id')
-        side = self.safe_string(trade, 'order_side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(trade, 'order_side')
         symbol = None
         marketId = self.safe_string(trade, 'symbol')
         if marketId is not None:
             market = self.safe_value(self.markets_by_id, marketId, market)
             if market is None:
                 baseId, quoteId = marketId.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
         elif market is not None:
             symbol = market['symbol']
@@ -584,18 +582,19 @@ class coss (Exchange):
             if price is not None:
                 cost = price * amount
         result = {
+            'id': id,
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'id': id,
             'order': orderId,
             'type': None,
-            'takerOrMaker': None,
             'side': side,
+            'takerOrMaker': None,
             'price': price,
-            'cost': cost,
             'amount': amount,
+            'cost': cost,
+            'fee': None,
         }
         fee = self.parse_trade_fee(self.safe_string(trade, 'fee'))
         if fee is not None:
@@ -685,9 +684,10 @@ class coss (Exchange):
 
     async def fetch_order(self, id, symbol=None, params={}):
         await self.load_markets()
-        response = await self.tradePostOrderDetails(self.extend({
+        request = {
             'order_id': id,
-        }, params))
+        }
+        response = await self.tradePostOrderDetails(self.extend(request, params))
         return self.parse_order(response)
 
     async def fetch_order_trades(self, id, symbol=None, since=None, limit=None, params={}):
@@ -720,7 +720,7 @@ class coss (Exchange):
             'OPEN': 'open',
             'CANCELLED': 'canceled',
             'FILLED': 'closed',
-            'PARTIAL_FILL': 'open',
+            'PARTIAL_FILL': 'closed',
             'CANCELLING': 'open',
         }
         return self.safe_string(statuses, status.upper(), status)
@@ -756,8 +756,8 @@ class coss (Exchange):
             market = self.safe_value(self.markets_by_id, marketId, market)
             if market is None:
                 baseId, quoteId = marketId.split('_')
-                base = self.common_currency_code(baseId)
-                quote = self.common_currency_code(quoteId)
+                base = self.safe_currency_code(baseId)
+                quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
             else:
                 symbol = market['symbol']
@@ -772,9 +772,7 @@ class coss (Exchange):
             if filled is not None:
                 remaining = amount - filled
         average = self.safe_float(order, 'avg')
-        side = self.safe_string(order, 'order_side')
-        if side is not None:
-            side = side.lower()
+        side = self.safe_string_lower(order, 'order_side')
         cost = self.safe_float(order, 'total')
         fee = None
         trades = None
@@ -803,11 +801,12 @@ class coss (Exchange):
         market = self.market(symbol)
         request = {
             'order_symbol': market['id'],
-            'order_price': float(self.price_to_precision(symbol, price)),
-            'order_size': float(self.amount_to_precision(symbol, amount)),
+            'order_size': self.amount_to_precision(symbol, amount),
             'order_side': side.upper(),
             'type': type,
         }
+        if price is not None:
+            request['order_price'] = self.price_to_precision(symbol, price)
         response = await self.tradePostOrderAdd(self.extend(request, params))
         #
         #     {

@@ -47,6 +47,7 @@
 ![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/gdax.svg)
 ![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/kraken.svg)
 ![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/poloniex.svg)
+![GitHub search hit counter](https://img.shields.io/github/search/ccxt/ccxt/kucoin.svg)
 
 ## Opencollective
 

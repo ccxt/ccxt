@@ -7,7 +7,14 @@
 "use strict";
 
 const fs   = require ('fs')
-    , path = require ('path')
+    , {
+        replaceInFile,
+        logReplaceInFile,
+        overwriteFile,
+        createFolderRecursively,
+        regexAll
+    } = require ('./common.js')
+    , { basename } = require ('path')
     , log  = require ('ololog')
     , ansi = require ('ansicolor').nice
     , errors = require ('../js/base/errors.js')
@@ -18,28 +25,6 @@ const fs   = require ('fs')
 
 const [ /* node */, /* script */, filename ] = process.argv
 
-// ---------------------------------------------------------------------------
-
-function replaceInFile (filename, regex, replacement) {
-    let contents = fs.readFileSync (filename, 'utf8')
-    const parts = contents.split (regex)
-    const newContents = parts[0] + replacement + parts[1]
-    fs.truncateSync (filename)
-    fs.writeFileSync (filename, newContents)
-}
-
-// ----------------------------------------------------------------------------
-
-function regexAll (text, array) {
-
-    for (let i in array) {
-        let regex = array[i][0]
-        regex = typeof regex === 'string' ? new RegExp (regex, 'g') : new RegExp (regex)
-        text = text.replace (regex, array[i][1])
-    }
-    return text
-}
-
 // ----------------------------------------------------------------------------
 // TODO: rewrite commonRegexes from hardcoded logic to conversion methods
 
@@ -48,11 +33,19 @@ const commonRegexes = [
     [ /\.deepExtend\s/g, '.deep_extend'],
     [ /\.safeFloat2\s/g, '.safe_float_2'],
     [ /\.safeInteger2\s/g, '.safe_integer_2'],
+    [ /\.safeIntegerProduct2\s/g, '.safe_integer_product_2'],
+    [ /\.safeTimestamp2\s/g, '.safe_timestamp_2'],
     [ /\.safeString2\s/g, '.safe_string_2'],
+    [ /\.safeStringLower2\s/g, '.safe_string_lower_2'],
+    [ /\.safeStringUpper2\s/g, '.safe_string_upper_2'],
     [ /\.safeValue2\s/g, '.safe_value_2'],
     [ /\.safeFloat\s/g, '.safe_float'],
     [ /\.safeInteger\s/g, '.safe_integer'],
+    [ /\.safeIntegerProduct\s/g, '.safe_integer_product'],
+    [ /\.safeTimestamp\s/g, '.safe_timestamp'],
     [ /\.safeString\s/g, '.safe_string'],
+    [ /\.safeStringLower\s/g, '.safe_string_lower'],
+    [ /\.safeStringUpper\s/g, '.safe_string_upper'],
     [ /\.safeValue\s/g, '.safe_value'],
     [ /\.inArray\s/g, '.in_array'],
     [ /\.toArray\s/g, '.to_array'],
@@ -75,6 +68,8 @@ const commonRegexes = [
     [ /\.parseTrades\s/g, '.parse_trades'],
     [ /\.parseTrade\s/g, '.parse_trade'],
     [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
+    [ /\.parseTransaction\s/g, '.parse_transaction'],
+    [ /\.parseTransactions\s/g, '.parse_transactions'],
     [ /\.parseOrderBook\s/g, '.parse_order_book'],
     [ /\.parseBidsAsks\s/g, '.parse_bids_asks'],
     [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
@@ -121,6 +116,7 @@ const commonRegexes = [
     [ /\.currencyToPrecision\s/g, '.currency_to_precision'],
     [ /\.costToPrecision\s/g, '.cost_to_precision'],
     [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
+    [ /\.loadAccounts\s/g, '.load_accounts'],
     [ /\.loadFees\s/g, '.load_fees'],
     [ /\.loadMarkets\s/g, '.load_markets'],
     [ /\.fetchMarkets\s/g, '.fetch_markets'],
@@ -142,6 +138,10 @@ const commonRegexes = [
     [ /\.signBodyWithSecret\s/g, '.sign_body_with_secret'],
     [ /\.isJsonEncodedObject\s/g, '.is_json_encoded_object'],
     [ /\.setSandboxMode\s/g, '.set_sandbox_mode'],
+    [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
+    [ /\.roundTimeframe/g, '.round_timeframe'],
+    [ /errorHierarchy/g, 'error_hierarchy'],
+    [ /\'use strict\';?\s+/g, '' ],
 ]
 
 // ----------------------------------------------------------------------------
@@ -183,9 +183,9 @@ const pythonRegexes = [
     // [ /this\.urlencode\s/g, '_urlencode.urlencode ' ], // use self.urlencode instead
     [ /this\./g, 'self.' ],
     [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)/g, 'list($1.keys())' ],
     [ /\[([^\]]+)\]\.join\s*\(([^\)]+)\)/g, "$2.join([$1])" ],
@@ -211,7 +211,8 @@ const pythonRegexes = [
     [ /([^\s]+)\.length/g, 'len($1)' ],
     [ /\.push\s*\(([\s\S]+?)\);/g, '.append($1);' ],
     [ /^(\s*}\s*$)+/gm, '' ],
-    [ /;/g, '' ],
+    [ /\;(\s+?\/\/.+?)/g, '$1' ],
+    [ /\;$/gm, '' ],
     [ /\.toUpperCase\s*/g, '.upper' ],
     [ /\.toLowerCase\s*/g, '.lower' ],
     [ /JSON\.stringify\s*/g, 'json.dumps' ],
@@ -246,6 +247,8 @@ const pythonRegexes = [
     [ /console\.log\s/g, 'print' ],
     [ /process\.exit\s+/g, 'sys.exit' ],
     [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+    [ /\sand\(/g, ' and (' ],
+    [ /\sor\(/g, ' or (' ],
     [ /\[ /g, '[' ],              // PEP8 E201 remove whitespaces after left [ square bracket
     [ /\{ /g, '{' ],              // PEP8 E201 remove whitespaces after left { bracket
     [ /([^\s]+) \]/g, '$1]' ],    // PEP8 E202 remove whitespaces before right ] square bracket
@@ -291,8 +294,8 @@ const phpRegexes = [
     [ /this\.stringToBase64/g, 'base64_encode' ],
     [ /this\.base64ToBinary/g, 'base64_decode' ],
     [ /this\.deepExtend/g, 'array_replace_recursive'],
-    [ /(\w+)\.shift\s*\(\)/g, 'array_shift ($1)' ],
-    [ /(\w+)\.pop\s*\(\)/g, 'array_pop ($1)' ],
+    [ /(\w+)\.shift\s*\(\)/g, 'array_shift($1)' ],
+    [ /(\w+)\.pop\s*\(\)/g, 'array_pop($1)' ],
 
 // insert common regexes in the middle (critical)
 ].concat (commonRegexes).concat ([
@@ -300,18 +303,20 @@ const phpRegexes = [
     [ /this\./g, '$this->' ],
     [ / this;/g, ' $this;' ],
     [ /([^'])this_\./g, '$1$this_->' ],
-    [ /\{\}/g, 'array ()' ],
-    [ /\[\]/g, 'array ()' ],
-    [ /\{([^\n\}]+)\}/g, 'array ($1)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list ($2)' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values (list ($2))' ],
-    [ /([^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
+    [ /\{\}/g, 'array()' ],
+    [ /\[\]/g, 'array()' ],
+
+// add {}-array syntax conversions up to 20 levels deep in the same line
+]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
+    [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
     [ /Object\.keys\s*\((.*)\)\.length/g, '$1' ],
-    [ /Object\.keys\s*\((.*)\)/g, 'is_array ($1) ? array_keys ($1) : array ()' ],
+    [ /Object\.keys\s*\((.*)\)/g, 'is_array($1) ? array_keys($1) : array()' ],
     [ /([^\s]+\s*\(\))\.toString \(\)/g, '(string) $1' ],
     [ /([^\s]+)\.toString \(\)/g, '(string) $1' ],
-    [ /throw new Error \((.*)\)/g, 'throw new \\Exception ($1)' ],
-    [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1 ($2)' ],
+    [ /throw new Error \((.*)\)/g, 'throw new \\Exception($1)' ],
+    [ /throw new ([\S]+) \((.*)\)/g, 'throw new $1($2)' ],
     [ /throw ([\S]+)\;/g, 'throw $$$1;' ],
     [ '([^a-z]+) (' + Object.keys (errors).join ('|') + ')([^\\s])', "$1 '\\\\ccxt\\\\$2'$3" ],
     [ /\}\s+catch \(([\S]+)\) {/g, '} catch (Exception $$$1) {' ],
@@ -326,40 +331,40 @@ const phpRegexes = [
 // add {}-array syntax conversions up to 20 levels deep
 ]).concat ([ ... Array (20) ].map (x => [ /\{([^\;\{]+?)\}([^\s])/g, 'array ($1)$2' ])).concat ([
 
-    [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode ($2, array ($1))" ],
+    [ /\[\s*([^\]]+?)\s*\]\.join\s*\(\s*([^\)]+?)\s*\)/g, "implode($2, array($1))" ],
 
 // add []-array syntax conversions up to 20 levels deep
 ]).concat ([ ... Array (20) ].map (x => [ /\[(\s[^\]]+?\s)\]/g, 'array ($1)' ])).concat ([
 
     [ /JSON\.stringify/g, 'json_encode' ],
-    [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode ($1, $$as_associative_array = true)' ],
-    [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
+    [ /JSON\.parse\s+\(([^\)]+)\)/g, 'json_decode($1, $$as_associative_array = true)' ],
+    [ /([^\(\s]+)\.includes\s+\(([^\)]+)\)/g, 'mb_strpos($1, $2)' ],
     // [ /\'([^\']+)\'\.sprintf\s*\(([^\)]+)\)/g, "sprintf ('$1', $2)" ],
-    [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf ('%.$2f', $1)" ],
-    [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf ('%.' . $2 . 'f', $1)" ],
+    [ /([^\s]+)\.toFixed\s*\(([0-9]+)\)/g, "sprintf('%.$2f', $1)" ],
+    [ /([^\s]+)\.toFixed\s*\(([^\)]+)\)/g, "sprintf('%.' . $2 . 'f', $1)" ],
     [ /parseFloat\s/g, 'floatval '],
     [ /parseInt\s/g, 'intval '],
     [ / \+ /g, ' . ' ],
     [ / \+\= /g, ' .= ' ],
-    [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper ($1)' ],
-    [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower ($1)' ],
-    [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^\)]+)\)/g, 'str_replace ($2, $1)' ],
+    [ /([^\s\(]+(?:\s*\(.+\))?)\.toUpperCase\s*\(\)/g, 'strtoupper($1)' ],
+    [ /([^\s\(]+(?:\s*\(.+\))?)\.toLowerCase\s*\(\)/g, 'strtolower($1)' ],
+    [ /([^\s\(]+(?:\s*\(.+\))?)\.replace\s*\(([^\)]+)\)/g, 'str_replace($2, $1)' ],
     [ /this\[([^\]+]+)\]/g, '$$this->$$$1' ],
-    [ /([^\s\(]+).slice \(([^\)\:]+)\)/g, 'mb_substr ($1, $2)' ],
-    [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr ($1, $2, $3)' ],
-    [ /([^\s\(]+).split \(('[^']*'|[^\,]+?)\)/g, 'explode ($2, $1)' ],
-    [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor ($1)' ],
+    [ /([^\s\(]+).slice \(([^\)\:,]+)\)/g, 'mb_substr($1, $2)' ],
+    [ /([^\s\(]+).slice \(([^\,\)]+)\,\s*([^\)]+)\)/g, 'mb_substr($1, $2, $3 - $2)' ],
+    [ /([^\s\(]+).split \(('[^']*'|[^\,]+?)\)/g, 'explode($2, $1)' ],
+    [ /Math\.floor\s*\(([^\)]+)\)/g, '(int) floor($1)' ],
     [ /Math\.abs\s*\(([^\)]+)\)/g, 'abs ($1)' ],
-    [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round ($1)' ],
-    [ /Math\.ceil\s*\(([^\)]+)\)/g, '(int) ceil ($1)' ],
-    [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow ($1)' ],
+    [ /Math\.round\s*\(([^\)]+)\)/g, '(int) round($1)' ],
+    [ /Math\.ceil\s*\(([^\)]+)\)/g, '(int) ceil($1)' ],
+    [ /Math\.pow\s*\(([^\)]+)\)/g, 'pow($1)' ],
     [ /Math\.log/g, 'log' ],
-    [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod ($1, $2)' ],
-    [ /\(([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos ($1, $2) !== false)' ],
-    [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos ($1, $2) !== false' ],
-    [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos ($1, $2)' ],
-    [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array ($2) && array_key_exists ($1, $2))' ],
-    [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode ($2, $1)' ],
+    [ /([^\(\s]+)\s+%\s+([^\s\)]+)/g, 'fmod($1, $2)' ],
+    [ /\(([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0\)/g, '(mb_strpos($1, $2) !== false)' ],
+    [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)\s*\>\=\s*0/g, 'mb_strpos($1, $2) !== false' ],
+    [ /([^\s\(]+)\.indexOf\s*\(([^\)]+)\)/g, 'mb_strpos($1, $2)' ],
+    [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array($2) && array_key_exists($1, $2))' ],
+    [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode($2, $1)' ],
     [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
     [ /Math\.(max|min)/g, '$1' ],
     [ /console\.log/g, 'var_dump'],
@@ -503,7 +508,9 @@ function transpileJavaScriptToPython3 ({ js, className, removeEmptyLines }) {
     }
 
     // special case for Python super
-    python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
+    if (className) {
+        python3Body = python3Body.replace (/super\./g, 'super(' + className + ', self).')
+    }
 
     return python3Body
 }
@@ -523,7 +530,7 @@ function transpilePython3ToPython2 (py) {
 function transpileJavaScriptToPHP ({ js, variables }) {
 
     // match all local variables (let, const or var)
-    let localVariablesRegex = /[^a-zA-Z0-9_](?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
+    let localVariablesRegex = /(?:^|[^a-zA-Z0-9_])(?:let|const|var)\s+(?:\[([^\]]+)\]|([a-zA-Z0-9_]+))/g // local variables
 
     let allVariables = (variables || []).map (x => x); // clone the array
     // process the variables created in destructuring assignments as well
@@ -547,12 +554,14 @@ function transpileJavaScriptToPHP ({ js, variables }) {
         allVariables.push (catchClauseMatches[1])
     }
 
+    allVariables = allVariables.map (error => regexAll(error, commonRegexes))
+
     // append $ to all variables in the method (PHP syntax demands $ at the beginning of a variable name)
-    let phpVariablesRegexes = allVariables.map (x => [ "([^$$a-zA-Z0-9\\.\\>'_/])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
+    let phpVariablesRegexes = allVariables.map (x => [ "(^|[^$$a-zA-Z0-9\\.\\>'_/])" + x + "([^a-zA-Z0-9'_/])", '$1$$' + x + '$2' ])
 
     // support for php syntax for object-pointer dereference
     // convert all $variable.property to $variable->property
-    let variablePropertiesRegexes = allVariables.map (x => [ "([^a-zA-Z0-9\\.\\>'_])" + x + '\\.', '$1' + x + '->' ])
+    let variablePropertiesRegexes = allVariables.map (x => [ "(^|[^a-zA-Z0-9\\.\\>'_])" + x + '\\.', '$1' + x + '->' ])
 
     // transpile JS → PHP
     let phpBody = regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes))
@@ -731,7 +740,7 @@ function transpileDerivedExchangeFiles (folder, pattern = '.js') {
     const ids = require ('../exchanges.json').ids;
 
     const classNames = fs.readdirSync (folder)
-        .filter (file => file.includes (pattern) && ids.includes (path.basename (file, pattern)))
+        .filter (file => file.includes (pattern) && ids.includes (basename (file, pattern)))
         .map (file => transpileDerivedExchangeFile (folder, file))
 
     if (classNames.length === 0)
@@ -742,47 +751,22 @@ function transpileDerivedExchangeFiles (folder, pattern = '.js') {
         classes[className] = baseClass
     })
 
+    function deleteOldTranspiledFiles (folder, pattern) {
+        fs.readdirSync (folder)
+            .filter (file =>
+                !fs.lstatSync (folder + file).isDirectory () &&
+                file.match (pattern) &&
+                !(file.replace (/\.[a-z]+$/, '') in classes) &&
+                !file.match (/^Exchange|errors|__init__|\\./))
+            .map (file => folder + file)
+            .forEach (file => log.red ('Deleting ' + file.yellow) && fs.unlinkSync (file))
+    }
+
+    deleteOldTranspiledFiles (python2Folder, /\.pyc?$/)
+    deleteOldTranspiledFiles (python3Folder, /\.pyc?$/)
+    deleteOldTranspiledFiles (phpFolder, /\.php$/)
+
     return classes
-}
-
-//-----------------------------------------------------------------------------
-
-function copyFile (oldName, newName) {
-    let contents = fs.readFileSync (oldName, 'utf8')
-    fs.truncateSync (newName)
-    fs.writeFileSync (newName, contents)
-}
-
-//-----------------------------------------------------------------------------
-
-function overwriteFile (filename, contents) {
-    // log.cyan ('Overwriting → ' + filename.yellow)
-    fs.closeSync (fs.openSync (filename, 'a'));
-    fs.truncateSync (filename)
-    fs.writeFileSync (filename, contents)
-}
-
-//----------------------------------------------------------------------------
-
-function createFolder (folder) {
-    try {
-        fs.mkdirSync (folder)
-    } catch (err) {
-        if (err.code !== 'EEXIST') {
-            throw err
-        }
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function createFolderRecursively (folder) {
-
-    const parts = folder.split (path.sep)
-
-    for (let i = 1; i <= parts.length; i++) {
-        createFolder (path.join.apply (null, parts.slice (0, i)))
-    }
 }
 
 //-----------------------------------------------------------------------------
@@ -854,8 +838,7 @@ sys.path.append(root)\n\
 const phpPreamble = "\
 <?php\n\
 namespace ccxt;\n\
-include_once (__DIR__.'/../Exchange.php');\n\
-\n\
+include_once (__DIR__.'/../../ccxt.php');\n\
 // ----------------------------------------------------------------------------\n\
 \n\
 // PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\
@@ -875,7 +858,6 @@ function transpileDateTimeTests () {
     let js = fs.readFileSync (jsFile).toString ()
 
     js = regexAll (js, [
-        [ /\'use strict\';?\s+/g, '' ],
         [ /[^\n]+require[^\n]+\n/g, '' ],
         [/^\/\*.*\s+/mg, ''],
     ])
@@ -887,6 +869,7 @@ function transpileDateTimeTests () {
     const pythonHeader =
 "\n\
 import ccxt  # noqa: F402\n\
+from ccxt.base.decimal_to_precision import ROUND_UP, ROUND_DOWN  # noqa F401\n\
 \n\
 # ----------------------------------------------------------------------------\n\
 \n"
@@ -900,6 +883,8 @@ import ccxt  # noqa: F402\n\
     overwriteFile (pyFile, python)
     overwriteFile (phpFile, php)
 }
+
+//-----------------------------------------------------------------------------
 
 function transpilePrecisionTests () {
 
@@ -927,6 +912,7 @@ from ccxt.base.decimal_to_precision import TRUNCATE              # noqa F401\n\
 from ccxt.base.decimal_to_precision import ROUND                 # noqa F401\n\
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES        # noqa F401\n\
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS    # noqa F401\n\
+from ccxt.base.decimal_to_precision import TICK_SIZE             # noqa F401\n\
 from ccxt.base.decimal_to_precision import PAD_WITH_ZERO         # noqa F401\n\
 from ccxt.base.decimal_to_precision import NO_PADDING            # noqa F401\n\
 from ccxt.base.decimal_to_precision import number_to_string      # noqa F401\n\
@@ -969,9 +955,91 @@ function number_to_string ($x) {\n\
 
 //-----------------------------------------------------------------------------
 
+function transpileCryptoTests () {
+    const jsFile = './js/test/base/functions/test.crypto.js'
+    const pyFile = './python/test/test_crypto.py'
+    const phpFile = './php/test/test_crypto.php'
+
+    log.magenta ('Transpiling from', jsFile.yellow)
+    let js = fs.readFileSync (jsFile).toString ()
+
+    js = regexAll (js, [
+        [ /\'use strict\';?\s+/g, '' ],
+        [ /[^\n]+require[^\n]+\n/g, '' ],
+        [ /function equals \([\S\s]+?return true\n}\n/g, '' ],
+    ])
+
+    let { python3Body, python2Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+
+    const pythonHeader = `
+import ccxt  # noqa: F402
+
+Exchange = ccxt.Exchange
+hash = Exchange.hash
+ecdsa = Exchange.ecdsa
+jwt = Exchange.jwt
+encode = Exchange.encode
+
+
+def equals(a, b):
+    return a == b
+`
+    const phpHeader = `
+function hash(...$args) {
+    return Exchange::hash(...$args);
+}
+
+function encode(...$args) {
+    return Exchange::encode(...$args);
+}
+
+function ecdsa(...$args) {
+    return Exchange::ecdsa(...$args);
+}
+
+function jwt(...$args) {
+    return Exchange::jwt(...$args);
+}
+
+function equals($a, $b) {
+    return $a === $b;
+}`
+
+    const python = pyPreamble + pythonHeader + python2Body
+    const php = phpPreamble + phpHeader + phpBody
+
+    log.magenta ('→', pyFile.yellow)
+    log.magenta ('→', phpFile.yellow)
+
+    overwriteFile (pyFile, python)
+    overwriteFile (phpFile, php)
+}
+
+//-----------------------------------------------------------------------------
+
+function transpileErrorHierarchy () {
+
+    const errorHierarchyFilename = './js/base/errorHierarchy.js'
+
+    let js = fs.readFileSync (errorHierarchyFilename, 'utf8')
+
+    js = regexAll (js, [
+        [ /module\.exports = [^\;]+\;\n/s, '' ],
+    ]).trim ()
+
+    const { python3Body, phpBody } = transpileJavaScriptToPythonAndPHP ({ js })
+
+    const message = 'Transpiling error hierachy →'
+    logReplaceInFile (message, './python/ccxt/base/errors.py', /error_hierarchy = .+?\n\}/s, python3Body)
+    logReplaceInFile (message, './php/errors.php',             /\$error_hierarchy = .+?\n\)\;/s, phpBody)
+}
+
+//-----------------------------------------------------------------------------
+
 createFolderRecursively (python2Folder)
 createFolderRecursively (python3Folder)
 createFolderRecursively (phpFolder)
+
 
 const classes = transpileDerivedExchangeFiles ('./js/', filename)
 
@@ -983,10 +1051,11 @@ if (classes === null) {
 // HINT: if we're going to support specific class definitions this process won't work anymore as it will override the definitions.
 exportTypeScriptDeclarations (classes)  // we use typescript?
 
+transpileErrorHierarchy ()
 transpilePrecisionTests ()
 transpileDateTimeTests ()
+transpileCryptoTests ()
 transpilePythonAsyncToSync ('./python/test/test_async.py', './python/test/test.py')
-// transpilePrecisionTests ('./js/test/base/functions/test.number.js', './python/test/test_decimal_to_precision.py', './php/test/decimal_to_precision.php')
 
 //-----------------------------------------------------------------------------
 
