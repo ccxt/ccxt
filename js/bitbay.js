@@ -292,11 +292,13 @@ module.exports = class bitbay extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const markets = symbol ? [ this.marketId (symbol) ] : [];
-        const request = {
-            'markets': markets,
-        };
-        const response = await this.v1_01PrivateGetTradingHistoryTransactions (this.extend ({ 'query': this.json (request) }, params));
+        const request = {};
+        if (symbol) {
+            const markets = [ this.marketId (symbol) ];
+            request['markets'] = markets;
+        }
+        const query = { 'query': this.json (this.extend (request, params)) };
+        const response = await this.v1_01PrivateGetTradingHistoryTransactions (query);
         //
         //     {
         //         status: 'Ok',
