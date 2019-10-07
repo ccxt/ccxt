@@ -761,7 +761,7 @@ class coinex (Exchange):
         #         "message": "Ok"
         #     }
         #
-        return self.parseTransactions(response['data'], currency, since, limit)
+        return self.parse_transactions(response['data'], currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
@@ -801,7 +801,7 @@ class coinex (Exchange):
         #         "message": "Ok"
         #     }
         #
-        return self.parseTransactions(response['data'], currency, since, limit)
+        return self.parse_transactions(response['data'], currency, since, limit)
 
     def nonce(self):
         return self.milliseconds()

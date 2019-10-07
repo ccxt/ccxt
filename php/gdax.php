@@ -666,7 +666,7 @@ class gdax extends Exchange {
 
     public function fetch_transactions ($code = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $this->loadAccounts ();
+        $this->load_accounts();
         $currency = null;
         $id = $this->safe_string($params, 'id'); // $account $id
         if ($id === null) {
@@ -691,7 +691,7 @@ class gdax extends Exchange {
         for ($i = 0; $i < count ($response); $i++) {
             $response[$i]['currency'] = $code;
         }
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function parse_transaction_status ($transaction) {

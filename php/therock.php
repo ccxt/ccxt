@@ -865,7 +865,7 @@ class therock extends Exchange {
         $transactions = $this->safe_value($response, 'transactions', array());
         $transactionTypes = array ( 'withdraw', 'atm_payment' );
         $depositsAndWithdrawals = $this->filter_by_array($transactions, 'type', $transactionTypes, false);
-        return $this->parseTransactions ($depositsAndWithdrawals, $currency, $since, $limit);
+        return $this->parse_transactions($depositsAndWithdrawals, $currency, $since, $limit);
     }
 
     public function parse_order_status ($status) {

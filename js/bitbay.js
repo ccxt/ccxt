@@ -292,11 +292,13 @@ module.exports = class bitbay extends Exchange {
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const markets = symbol ? [ this.marketId (symbol) ] : [];
-        const request = {
-            'markets': markets,
-        };
-        const response = await this.v1_01PrivateGetTradingHistoryTransactions ({ 'query': this.json (this.extend (request, params)) });
+        const request = {};
+        if (symbol) {
+            const markets = [ this.marketId (symbol) ];
+            request['markets'] = markets;
+        }
+        const query = { 'query': this.json (this.extend (request, params)) };
+        const response = await this.v1_01PrivateGetTradingHistoryTransactions (query);
         //
         //     {
         //         status: 'Ok',
@@ -740,16 +742,7 @@ module.exports = class bitbay extends Exchange {
         return this.safeString (types, type, type);
     }
 
-    parseTrade (trade, market) {
-        if ('tid' in trade) {
-            return this.parsePublicTrade (trade, market);
-        } else {
-            return this.parseMyTrade (trade, market);
-        }
-    }
-
-    parseMyTrade (trade, market = undefined) {
-        //
+    parseTrade (trade, market = undefined) {
         //     {
         //         amount: "0.29285199",
         //         commissionValue: "0.00125927",
@@ -762,38 +755,23 @@ module.exports = class bitbay extends Exchange {
         //         userAction: "Buy",
         //         wasTaker: true,
         //     }
-        //     {
-        //         "id": "d26a124d-d62d-11e9-9248-0242ac110005",
-        //         "rate": "161.8",
-        //         "time": "1568382790355",
-        //         "amount": "0.04",
-        //         "market": "ETH-EUR",
-        //         "offerId": "d25d8f27-d62d-11e9-9248-0242ac110005",
-        //         "wasTaker": false,
-        //         "userAction": "Sell",
-        //         "initializedBy": "Buy",
-        //         "commissionValue": "0.02"
-        //     }
-        //
-        //     {
-        //         "id": "a677f1c4-d635-11e9-9248-0242ac110005",
-        //         "rate": "162.11",
-        //         "time": "1568386152600",
-        //         "amount": "0.04",
-        //         "market": "ETH-EUR",
-        //         "offerId": "a5f7500c-d635-11e9-9248-0242ac110005",
-        //         "wasTaker": false,
-        //         "userAction": "Buy",
-        //         "initializedBy": "Sell",
-        //         "commissionValue": "0.00012"
-        //     }
-        const timestamp = this.safeInteger (trade, 'time');
+        // Public trades
+        //     { id: 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        //          t: '1570108958831',
+        //          a: '0.04776653',
+        //          r: '0.02145854',
+        //          ty: 'Sell'
+        //      }
+        const timestamp = this.safeInteger2 (trade, 'time', 't');
         const userAction = this.safeString (trade, 'userAction');
         const side = (userAction === 'Buy') ? 'buy' : 'sell';
         const wasTaker = this.safeValue (trade, 'wasTaker');
-        const takerOrMaker = wasTaker ? 'taker' : 'maker';
-        const price = this.safeFloat (trade, 'rate');
-        const amount = this.safeFloat (trade, 'amount');
+        let takerOrMaker = undefined;
+        if (wasTaker !== undefined) {
+            takerOrMaker = wasTaker ? 'taker' : 'maker';
+        }
+        const price = this.safeFloat2 (trade, 'rate', 'r');
+        const amount = this.safeFloat2 (trade, 'amount', 'a');
         let cost = undefined;
         if (amount !== undefined) {
             if (price !== undefined) {
@@ -803,18 +781,16 @@ module.exports = class bitbay extends Exchange {
         const feeCost = this.safeFloat (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
         let base = undefined;
-        let quote = undefined;
         let symbol = undefined;
         if (marketId !== undefined) {
             if (marketId in this.markets_by_id) {
                 market = this.markets_by_id[marketId];
                 symbol = market['symbol'];
                 base = market['base'];
-                quote = market['quote'];
             } else {
                 const [ baseId, quoteId ] = marketId.split ('-');
                 base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
+                const quote = this.safeCurrencyCode (quoteId);
                 symbol = base + '/' + quote;
             }
         }
@@ -829,13 +805,16 @@ module.exports = class bitbay extends Exchange {
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
-                'currency': side === 'buy' ? base : quote,
+                'currency': base,
                 'cost': feeCost,
             };
         }
         const order = this.safeString (trade, 'offerId');
         // todo: check this logic
-        const type = order ? 'limit' : 'market';
+        let type = undefined;
+        if (order !== undefined) {
+            type = order ? 'limit' : 'market';
+        }
         return {
             'id': this.safeString (trade, 'id'),
             'order': order,
@@ -853,82 +832,22 @@ module.exports = class bitbay extends Exchange {
         };
     }
 
-    parsePublicTrade (trade, market = undefined) {
-        //
-        //     {
-        //         "date":1459608665,
-        //         "price":0.02722571,
-        //         "type":"sell",
-        //         "amount":1.08112001,
-        //         "tid":"0"
-        //     }
-        //
-        const timestamp = this.safeTimestamp (trade, 'date');
-        const id = this.safeString (trade, 'tid');
-        const type = undefined;
-        const side = this.safeString (trade, 'type');
-        const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        let cost = undefined;
-        if (amount !== undefined) {
-            if (price !== undefined) {
-                cost = price * amount;
-            }
-        }
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
-            'id': id,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'order': undefined,
-            'takerOrMaker': undefined,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': undefined,
-        };
-    }
-
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const tradingSymbol = market['baseId'] + '-' + market['quoteId'];
         const request = {
-            'id': market['id'],
+            'symbol': tradingSymbol,
         };
-        const response = await this.publicGetIdTrades (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "date":1459608665,
-        //             "price":0.02722571,
-        //             "type":"sell",
-        //             "amount":1.08112001,
-        //             "tid":"0"
-        //         },
-        //         {
-        //             "date":1459698930,
-        //             "price":0.029,
-        //             "type":"buy",
-        //             "amount":0.444188,
-        //             "tid":"1"
-        //         },
-        //         {
-        //             "date":1459726670,
-        //             "price":0.029,
-        //             "type":"buy",
-        //             "amount":0.25459599,
-        //             "tid":"2"
-        //         }
-        //     ]
-        //
-        return this.parseTrades (response, market, since, limit);
+        if (since !== undefined) {
+            request['fromTime'] = since - 1; // result does not include exactly `since` time therefore decrease by 1
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default - 10, max - 300
+        }
+        const response = await this.v1_01PublicGetTradingTransactionsSymbol (this.extend (request, params));
+        const items = this.safeValue (response, 'items');
+        return this.parseTrades (items, symbol, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {

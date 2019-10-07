@@ -576,7 +576,7 @@ class bitmex extends Exchange {
         if ($code !== null) {
             $currency = $this->currency ($code);
         }
-        return $this->parseTransactions ($transactions, $currency, $since, $limit);
+        return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
     public function parse_transaction_status ($status) {

@@ -650,7 +650,7 @@ class coinex extends Exchange {
         //     }
         //
         $transaction = $this->safe_value($response, 'data', array());
-        return $this->parse_transaction ($transaction, $currency);
+        return $this->parse_transaction($transaction, $currency);
     }
 
     public function parse_transaction_status ($status) {
@@ -809,7 +809,7 @@ class coinex extends Exchange {
         //         "message" => "Ok"
         //     }
         //
-        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+        return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -852,7 +852,7 @@ class coinex extends Exchange {
         //         "message" => "Ok"
         //     }
         //
-        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+        return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
     public function nonce () {

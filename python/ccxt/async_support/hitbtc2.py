@@ -882,7 +882,7 @@ class hitbtc2 (hitbtc):
         if since is not None:
             request['startTime'] = since
         response = await self.privateGetAccountTransactions(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #

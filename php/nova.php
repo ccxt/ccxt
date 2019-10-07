@@ -489,7 +489,7 @@ class nova extends Exchange {
             $currency = $this->currency ($code);
         }
         $deposits = $this->safe_value($response, 'items', array());
-        return $this->parseTransactions ($deposits, $currency, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -502,7 +502,7 @@ class nova extends Exchange {
             $currency = $this->currency ($code);
         }
         $withdrawals = $this->safe_value($response, 'items', array());
-        return $this->parseTransactions ($withdrawals, $currency, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function sign ($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

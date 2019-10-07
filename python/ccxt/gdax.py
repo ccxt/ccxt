@@ -620,7 +620,7 @@ class gdax (Exchange):
 
     def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
-        self.loadAccounts()
+        self.load_accounts()
         currency = None
         id = self.safe_string(params, 'id')  # account id
         if id is None:
@@ -640,7 +640,7 @@ class gdax (Exchange):
         response = self.privateGetAccountsIdTransfers(self.extend(request, params))
         for i in range(0, len(response)):
             response[i]['currency'] = code
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status(self, transaction):
         canceled = self.safe_value(transaction, 'canceled_at')

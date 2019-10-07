@@ -1235,7 +1235,7 @@ class exmo (Exchange):
         #       ],
         #     }
         #
-        return self.parseTransactions(response['history'], currency, since, limit)
+        return self.parse_transactions(response['history'], currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/'

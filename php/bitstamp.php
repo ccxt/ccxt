@@ -654,7 +654,7 @@ class bitstamp extends Exchange {
             $currency = $this->currency ($code);
         }
         $transactions = $this->filter_by_array($response, 'type', array ( '0', '1' ), false);
-        return $this->parseTransactions ($transactions, $currency, $since, $limit);
+        return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -688,7 +688,7 @@ class bitstamp extends Exchange {
         //         ),
         //     )
         //
-        return $this->parseTransactions ($response, null, $since, $limit);
+        return $this->parse_transactions($response, null, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {

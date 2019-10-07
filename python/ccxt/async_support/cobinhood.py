@@ -692,7 +692,7 @@ class cobinhood (Exchange):
             'currency': currency['id'],
         }
         response = await self.privateGetWalletDeposits(self.extend(request, params))
-        return self.parseTransactions(response['result']['deposits'], currency)
+        return self.parse_transactions(response['result']['deposits'], currency)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -703,7 +703,7 @@ class cobinhood (Exchange):
             'currency': currency['id'],
         }
         response = await self.privateGetWalletWithdrawals(self.extend(request, params))
-        return self.parseTransactions(response['result']['withdrawals'], currency)
+        return self.parse_transactions(response['result']['withdrawals'], currency)
 
     def parse_transaction_status(self, status):
         statuses = {

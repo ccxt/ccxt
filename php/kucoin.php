@@ -1283,7 +1283,7 @@ class kucoin extends Exchange {
         //     }
         //
         $responseData = $response['data']['items'];
-        return $this->parseTransactions ($responseData, $currency, $since, $limit, array( 'type' => 'deposit' ));
+        return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'deposit' ));
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1348,7 +1348,7 @@ class kucoin extends Exchange {
         //     }
         //
         $responseData = $response['data']['items'];
-        return $this->parseTransactions ($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+        return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
     public function fetch_balance ($params = array ()) {
@@ -1399,7 +1399,7 @@ class kucoin extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchLedger requires a $code param');
         }
         $this->load_markets();
-        $this->loadAccounts ();
+        $this->load_accounts();
         $currency = $this->currency ($code);
         $accountId = $this->safe_string($params, 'accountId');
         if ($accountId === null) {
