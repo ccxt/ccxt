@@ -288,11 +288,12 @@ class bitbay (Exchange):
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         self.load_markets()
-        markets = [self.market_id(symbol)] if symbol else []
-        request = {
-            'markets': markets,
-        }
-        response = self.v1_01PrivateGetTradingHistoryTransactions(self.extend({'query': self.json(request)}, params))
+        request = {}
+        if symbol:
+            markets = [self.market_id(symbol)]
+            request['markets'] = markets
+        query = {'query': self.json(self.extend(request, params))}
+        response = self.v1_01PrivateGetTradingHistoryTransactions(query)
         #
         #     {
         #         status: 'Ok',
@@ -757,12 +758,14 @@ class bitbay (Exchange):
         feeCost = self.safe_float(trade, 'commissionValue')
         marketId = self.safe_string(trade, 'market')
         base = None
+        quote = None
         symbol = None
         if marketId is not None:
             if marketId in self.markets_by_id:
                 market = self.markets_by_id[marketId]
                 symbol = market['symbol']
                 base = market['base']
+                quote = market['quote']
             else:
                 baseId, quoteId = marketId.split('-')
                 base = self.safe_currency_code(baseId)
@@ -775,8 +778,9 @@ class bitbay (Exchange):
                 base = market['base']
         fee = None
         if feeCost is not None:
+            feeCcy = side == base if 'buy' else quote
             fee = {
-                'currency': base,
+                'currency': feeCcy,
                 'cost': feeCost,
             }
         order = self.safe_string(trade, 'offerId')

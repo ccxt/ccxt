@@ -293,11 +293,13 @@ class bitbay extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $markets = $symbol ? array ( $this->market_id($symbol) ) : array();
-        $request = array (
-            'markets' => $markets,
-        );
-        $response = $this->v1_01PrivateGetTradingHistoryTransactions (array_merge (array( 'query' => $this->json ($request) ), $params));
+        $request = array();
+        if ($symbol) {
+            $markets = array ( $this->market_id($symbol) );
+            $request['markets'] = $markets;
+        }
+        $query = array( 'query' => $this->json (array_merge ($request, $params)) );
+        $response = $this->v1_01PrivateGetTradingHistoryTransactions ($query);
         //
         //     {
         //         status => 'Ok',
@@ -780,12 +782,14 @@ class bitbay extends Exchange {
         $feeCost = $this->safe_float($trade, 'commissionValue');
         $marketId = $this->safe_string($trade, 'market');
         $base = null;
+        $quote = null;
         $symbol = null;
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
                 $base = $market['base'];
+                $quote = $market['quote'];
             } else {
                 list($baseId, $quoteId) = explode('-', $marketId);
                 $base = $this->safe_currency_code($baseId);
@@ -803,8 +807,9 @@ class bitbay extends Exchange {
         }
         $fee = null;
         if ($feeCost !== null) {
+            $feeCcy = $side === 'buy' ? $base : $quote;
             $fee = array (
-                'currency' => $base,
+                'currency' => $feeCcy,
                 'cost' => $feeCost,
             );
         }
