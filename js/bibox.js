@@ -73,6 +73,11 @@ module.exports = class bibox extends Exchange {
                         'transfer',
                     ],
                 },
+                'v2private': {
+                    'post': [
+                        'assets/transfer/post',
+                    ],
+                },
             },
             'fees': {
                 'trading': {
@@ -820,7 +825,8 @@ module.exports = class bibox extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version + '/' + path;
+        let version = (api === 'v2private') ? 'v2' : this.version;
+        let url = this.urls['api'] + '/' + version + '/' + path;
         let cmds = this.json ([ params ]);
         if (api === 'public') {
             if (method !== 'GET')
