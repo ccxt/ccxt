@@ -100,6 +100,7 @@ const exchanges = {
     'coinmate':                require ('./js/coinmate.js'),
     'coinone':                 require ('./js/coinone.js'),
     'coinspot':                require ('./js/coinspot.js'),
+    'coinsuper':               require ('./js/coinsuper.js'),
     'cointiger':               require ('./js/cointiger.js'),
     'coolcoin':                require ('./js/coolcoin.js'),
     'coss':                    require ('./js/coss.js'),
