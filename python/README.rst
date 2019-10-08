@@ -49,7 +49,7 @@ Certified Cryptocurrency Exchanges
 +-------------------------------------------------------------------------+----------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `coss <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                       | coss     | `COSS <https://www.coss.io/c/reg?r=OWCMHQVW2Q>`__                       | 1   | `API <https://api.coss.io/v1/spec>`__                                                           | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------+----------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `idex <https://idex.market>`__                                          | idex     | `IDEX <https://idex.market>`__                                          | \*  | `API <https://github.com/AuroraDAO/idex-api-docs>`__                                            | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
+| `idex <https://idex.market>`__                                          | idex     | `IDEX <https://idex.market>`__                                          | \*  | `API <https://docs.idex.market/>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------+----------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `kraken <https://www.kraken.com>`__                                     | kraken   | `Kraken <https://www.kraken.com>`__                                     | 0   | `API <https://www.kraken.com/features/api>`__                                                   | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +-------------------------------------------------------------------------+----------+-------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -236,7 +236,7 @@ The ccxt library currently supports the following 127 cryptocurrency exchange ma
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | ice3x              | `ICE3X <https://ice3x.com?ref=14341802>`__                                                 | 1   | `API <https://ice3x.co.za/ice-cubed-bitcoin-exchange-api-documentation-1-june-2017>`__          |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| idex               | `IDEX <https://idex.market>`__                                                             | \*  | `API <https://github.com/AuroraDAO/idex-api-docs>`__                                            | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
+| idex               | `IDEX <https://idex.market>`__                                                             | \*  | `API <https://docs.idex.market/>`__                                                             | `CCXT Certified <https://github.com/ccxt/ccxt/wiki/Certification>`__ |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | independentreserve | `Independent Reserve <https://www.independentreserve.com>`__                               | \*  | `API <https://www.independentreserve.com/API>`__                                                |                                                                      |
 +--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -372,14 +372,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1226/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.1226/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1229/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.1229/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1226/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1229/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

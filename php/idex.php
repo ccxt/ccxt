@@ -50,7 +50,7 @@ class idex extends Exchange {
                 'api' => 'https://api.idex.market',
                 'www' => 'https://idex.market',
                 'doc' => array (
-                    'https://github.com/AuroraDAO/idex-api-docs',
+                    'https://docs.idex.market/',
                 ),
             ),
             'api' => array (
