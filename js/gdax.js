@@ -113,8 +113,8 @@ module.exports = class gdax extends Exchange {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
-                    'maker': 0.15 / 100, // highest fee of all tiers
-                    'taker': 0.25 / 100, // highest fee of all tiers
+                    'maker': 0.5 / 100, // highest fee of all tiers
+                    'taker': 0.5 / 100, // highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': false,
