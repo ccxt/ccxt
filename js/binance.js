@@ -67,8 +67,7 @@ module.exports = class binance extends Exchange {
                 'www': 'https://www.binance.com',
                 'referral': 'https://www.binance.com/?ref=10205187',
                 'doc': [
-                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
-                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
+                    'https://binance-docs.github.io/apidocs/spot/en',
                 ],
                 'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
