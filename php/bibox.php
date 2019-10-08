@@ -74,6 +74,11 @@ class bibox extends Exchange {
                         'transfer',
                     ),
                 ),
+                'v2private' => array (
+                    'post' => array (
+                        'assets/transfer/spot',
+                    ),
+                ),
             ),
             'fees' => array (
                 'trading' => array (
@@ -890,6 +895,15 @@ class bibox extends Exchange {
             } else if ($params) {
                 $url .= '?' . $this->urlencode ($params);
             }
+        } else if ($api === 'v2private') {
+            $this->check_required_credentials();
+            $url = $this->urls['api'] . '/v2/' . $path;
+            $json_params = $this->json ($params);
+            $body = array (
+                'body' => $json_params,
+                'apikey' => $this->apiKey,
+                'sign' => $this->hmac ($this->encode ($json_params), $this->encode ($this->secret), 'md5'),
+            );
         } else {
             $this->check_required_credentials();
             $body = array (

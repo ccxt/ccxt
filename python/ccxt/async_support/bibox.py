@@ -91,6 +91,11 @@ class bibox (Exchange):
                         'transfer',
                     ],
                 },
+                'v2private': {
+                    'post': [
+                        'assets/transfer/spot',
+                    ],
+                },
             },
             'fees': {
                 'trading': {
@@ -829,6 +834,15 @@ class bibox (Exchange):
                 body = {'cmds': cmds}
             elif params:
                 url += '?' + self.urlencode(params)
+        elif api == 'v2private':
+            self.check_required_credentials()
+            url = self.urls['api'] + '/v2/' + path
+            json_params = self.json(params)
+            body = {
+                'body': json_params,
+                'apikey': self.apiKey,
+                'sign': self.hmac(self.encode(json_params), self.encode(self.secret), hashlib.md5),
+            }
         else:
             self.check_required_credentials()
             body = {
