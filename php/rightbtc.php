@@ -38,8 +38,7 @@ class rightbtc extends Exchange {
                 'api' => 'https://www.rightbtc.com/api',
                 'www' => 'https://www.rightbtc.com',
                 'doc' => array (
-                    'https://52.53.159.206/api/trader/',
-                    'https://support.rightbtc.com/hc/en-us/articles/360012809412',
+                    'https://docs.rightbtc.com/api/',
                 ),
                 // eslint-disable-next-line no-useless-escape
                 // 'fees' => 'https://www.rightbtc.com/\#\!/support/fee',
