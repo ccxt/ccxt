@@ -912,7 +912,7 @@ class hitbtc2 extends hitbtc {
             $request['startTime'] = $since;
         }
         $response = $this->privateGetAccountTransactions (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -1480,7 +1480,7 @@ class hitbtc2 extends hitbtc {
             if ($code === 429) {
                 return;
             }
-            // array("error":{"$code":20002,"$message":"Order not found","description":"")}
+            // array("error":array("$code":20002,"$message":"Order not found","description":""))
             if ($body[0] === '{') {
                 if (is_array($response) && array_key_exists('error', $response)) {
                     $code = $this->safe_string($response['error'], 'code');

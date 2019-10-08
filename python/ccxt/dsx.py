@@ -984,7 +984,7 @@ class dsx (Exchange):
         #     }
         #
         transactions = self.safe_value(response, 'return', [])
-        return self.parseTransactions(transactions, currency, since, limit)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {

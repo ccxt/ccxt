@@ -477,7 +477,7 @@ class bibox (Exchange):
         deposits = self.safe_value(response['result'], 'items', [])
         for i in range(0, len(deposits)):
             deposits[i]['type'] = 'deposit'
-        return self.parseTransactions(deposits, currency, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -499,7 +499,7 @@ class bibox (Exchange):
         withdrawals = self.safe_value(response['result'], 'items', [])
         for i in range(0, len(withdrawals)):
             withdrawals[i]['type'] = 'withdrawal'
-        return self.parseTransactions(withdrawals, currency, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #

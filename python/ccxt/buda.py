@@ -652,7 +652,7 @@ class buda (Exchange):
         }
         response = self.privateGetCurrenciesCurrencyDeposits(self.extend(request, params))
         deposits = self.safe_value(response, 'deposits')
-        return self.parseTransactions(deposits, currency, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -665,7 +665,7 @@ class buda (Exchange):
         }
         response = self.privateGetCurrenciesCurrencyWithdrawals(self.extend(request, params))
         withdrawals = self.safe_value(response, 'withdrawals')
-        return self.parseTransactions(withdrawals, currency, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         self.check_address(address)

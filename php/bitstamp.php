@@ -654,7 +654,7 @@ class bitstamp extends Exchange {
             $currency = $this->currency ($code);
         }
         $transactions = $this->filter_by_array($response, 'type', array ( '0', '1' ), false);
-        return $this->parseTransactions ($transactions, $currency, $since, $limit);
+        return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -688,7 +688,7 @@ class bitstamp extends Exchange {
         //         ),
         //     )
         //
-        return $this->parseTransactions ($response, null, $since, $limit);
+        return $this->parse_transactions($response, null, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -1096,7 +1096,7 @@ class bitstamp extends Exchange {
         }
         //
         //     array("$error" => "No permission found") // fetchDepositAddress returns this on apiKeys that don't have the permission required
-        //     array("$status" => "$error", "$reason" => {"__all__" => ["Minimum order size is 5.0 EUR."])}
+        //     array("$status" => "$error", "$reason" => array("__all__" => ["Minimum order size is 5.0 EUR."]))
         //     reuse of a nonce gives => array( $status => 'error', $reason => 'Invalid nonce', $code => 'API0004' )
         $status = $this->safe_string($response, 'status');
         $error = $this->safe_value($response, 'error');

@@ -808,9 +808,9 @@ class liquid extends Exchange {
             }
         } else if ($errors !== null) {
             //
-            //  array( "$errors" => { "user" => ["not_enough_free_balance"] )}
-            //  array( "$errors" => { "quantity" => ["less_than_order_size"] )}
-            //  array( "$errors" => { "order" => ["Can not update partially filled order"] )}
+            //  array( "$errors" => array( "user" => ["not_enough_free_balance"] ))
+            //  array( "$errors" => array( "quantity" => ["less_than_order_size"] ))
+            //  array( "$errors" => array( "order" => ["Can not update partially filled order"] ))
             //
             $types = is_array($errors) ? array_keys($errors) : array();
             for ($i = 0; $i < count ($types); $i++) {

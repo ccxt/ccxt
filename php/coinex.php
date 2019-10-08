@@ -166,11 +166,15 @@ class coinex extends Exchange {
             $key = $keys[$i];
             $market = $markets[$key];
             $id = $this->safe_string($market, 'name');
-            $baseId = $this->safe_string($market, 'trading_name');
+            $tradingName = $this->safe_string($market, 'trading_name');
+            $baseId = $tradingName;
             $quoteId = $this->safe_string($market, 'pricing_name');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $symbol = $base . '/' . $quote;
+            if ($tradingName === $id) {
+                $symbol = $id;
+            }
             $precision = array (
                 'amount' => $this->safe_integer($market, 'trading_decimal'),
                 'price' => $this->safe_integer($market, 'pricing_decimal'),
@@ -646,7 +650,7 @@ class coinex extends Exchange {
         //     }
         //
         $transaction = $this->safe_value($response, 'data', array());
-        return $this->parse_transaction ($transaction, $currency);
+        return $this->parse_transaction($transaction, $currency);
     }
 
     public function parse_transaction_status ($status) {
@@ -805,7 +809,7 @@ class coinex extends Exchange {
         //         "message" => "Ok"
         //     }
         //
-        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+        return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
     public function fetch_deposits ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -848,7 +852,7 @@ class coinex extends Exchange {
         //         "message" => "Ok"
         //     }
         //
-        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+        return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
     public function nonce () {

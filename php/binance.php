@@ -22,6 +22,7 @@ class binance extends Exchange {
                 'CORS' => false,
                 'fetchBidsAsks' => true,
                 'fetchTickers' => true,
+                'fetchTime' => true,
                 'fetchOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOrder' => true,
@@ -57,6 +58,7 @@ class binance extends Exchange {
                     'web' => 'https://www.binance.com',
                     'wapi' => 'https://api.binance.com/wapi/v3',
                     'sapi' => 'https://api.binance.com/sapi/v1',
+                    'fapiPrivate' => 'https://fapi.binance.com/fapi/v1',
                     'public' => 'https://api.binance.com/api/v1',
                     'private' => 'https://api.binance.com/api/v3',
                     'v3' => 'https://api.binance.com/api/v3',
@@ -68,6 +70,7 @@ class binance extends Exchange {
                     'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
                     'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
                 ),
+                'api_management' => 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees' => 'https://www.binance.com/en/fee/schedule',
             ),
             'api' => array (
@@ -135,6 +138,23 @@ class binance extends Exchange {
                         'sub-account/list',
                         'sub-account/transfer/history',
                         'sub-account/assets',
+                    ),
+                ),
+                'fapiPrivate' => array (
+                    'get' => array (
+                        'allOrders',
+                        'openOrders',
+                        'order',
+                        'account',
+                        'balance',
+                        'positionRisk',
+                        'userTrades',
+                    ),
+                    'post' => array (
+                        'order',
+                    ),
+                    'delete' => array (
+                        'order',
                     ),
                 ),
                 'v3' => array (
@@ -239,10 +259,15 @@ class binance extends Exchange {
         return $this->milliseconds () - $this->options['timeDifference'];
     }
 
+    public function fetch_time ($params = array ()) {
+        $response = $this->publicGetTime ($params);
+        return $this->safe_float($response, 'serverTime');
+    }
+
     public function load_time_difference () {
-        $response = $this->publicGetTime ();
+        $serverTime = $this->fetch_time ();
         $after = $this->milliseconds ();
-        $this->options['timeDifference'] = intval ($after - $response['serverTime']);
+        $this->options['timeDifference'] = intval ($after - $serverTime);
         return $this->options['timeDifference'];
     }
 
@@ -1061,7 +1086,7 @@ class binance extends Exchange {
         //                             asset => "ETH",
         //                            status =>  1                                                                    } ) }
         //
-        return $this->parseTransactions ($response['depositList'], $currency, $since, $limit);
+        return $this->parse_transactions($response['depositList'], $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1097,7 +1122,7 @@ class binance extends Exchange {
         //                              status =>  6                       }  ),
         //            success =>    true                                         }
         //
-        return $this->parseTransactions ($response['withdrawList'], $currency, $since, $limit);
+        return $this->parse_transactions($response['withdrawList'], $currency, $since, $limit);
     }
 
     public function parse_transaction_status_by_type ($status, $type = null) {
@@ -1287,7 +1312,7 @@ class binance extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus')) {
+        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate')) {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge (array (
                 'timestamp' => $this->nonce (),

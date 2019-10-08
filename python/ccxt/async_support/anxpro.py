@@ -216,7 +216,7 @@ class anxpro (Exchange):
         transactions = self.safe_value(response, 'transactions', [])
         grouped = self.group_by(transactions, 'transactionType', [])
         depositsAndWithdrawals = self.array_concat(self.safe_value(grouped, 'DEPOSIT', []), self.safe_value(grouped, 'WITHDRAWAL', []))
-        return self.parseTransactions(depositsAndWithdrawals, currency, since, limit)
+        return self.parse_transactions(depositsAndWithdrawals, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #

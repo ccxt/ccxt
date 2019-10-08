@@ -481,9 +481,9 @@ class coinegg extends Exchange {
             return;
         }
         // private endpoints return the following structure:
-        // array("$result":true,"data":{...)} - success
+        // array("$result":true,"data":array(...)) - success
         // array("$result":false,"$code":"103") - failure
-        // array("$code":0,"msg":"Suceess","data":{"uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000")}
+        // array("$code":0,"msg":"Suceess","data":array("uid":"2716039","btc_balance":"0.00000000","btc_lock":"0.00000000","xrp_balance":"0.00000000","xrp_lock":"0.00000000"))
         $result = $this->safe_value($response, 'result');
         if ($result === null) {
             // public endpoint ← this comment left here by the contributor, in fact a missing $result does not necessarily mean a public endpoint...

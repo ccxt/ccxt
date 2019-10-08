@@ -463,7 +463,7 @@ class nova (Exchange):
         if code is not None:
             currency = self.currency(code)
         deposits = self.safe_value(response, 'items', [])
-        return self.parseTransactions(deposits, currency, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         response = self.privatePostGetwithdrawalhistory(params)
@@ -473,7 +473,7 @@ class nova (Exchange):
         if code is not None:
             currency = self.currency(code)
         withdrawals = self.safe_value(response, 'items', [])
-        return self.parseTransactions(withdrawals, currency, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'] + '/' + self.version + '/'
