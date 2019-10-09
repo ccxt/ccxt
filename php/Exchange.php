@@ -186,7 +186,6 @@ class Exchange {
         'mercado',
         'mixcoins',
         'negociecoins',
-        'nova',
         'oceanex',
         'okcoincny',
         'okcoinusd',
