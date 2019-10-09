@@ -853,8 +853,10 @@ module.exports = class gdax extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('message' in response) {
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+        if (typeof response !== 'string') {
+            if ('message' in response) {
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
         }
         return response;
     }
