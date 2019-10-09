@@ -220,6 +220,7 @@ class bittrex extends Exchange {
                 'WHITELIST_VIOLATION_IP' => '\\ccxt\\PermissionDenied',
                 'DUST_TRADE_DISALLOWED_MIN_VALUE' => '\\ccxt\\InvalidOrder',
                 'RESTRICTED_MARKET' => '\\ccxt\\BadSymbol',
+                'We are down for scheduled maintenance, but we\u2019ll be back up shortly.' => '\\ccxt\\OnMaintenance', // array("success":false,"message":"We are down for scheduled maintenance, but we\u2019ll be back up shortly.","result":null,"explanation":null)
             ),
             'options' => array (
                 'parseOrderStatus' => false,
@@ -727,8 +728,8 @@ class bittrex extends Exchange {
         //
         // we cannot filter by `$since` timestamp, as it isn't set by Bittrex
         // see https://github.com/ccxt/ccxt/issues/4067
-        // return $this->parseTransactions ($response['result'], $currency, $since, $limit);
-        return $this->parseTransactions ($response['result'], $currency, null, $limit);
+        // return $this->parse_transactions($response['result'], $currency, $since, $limit);
+        return $this->parse_transactions($response['result'], $currency, null, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -773,7 +774,7 @@ class bittrex extends Exchange {
         //         ]
         //     }
         //
-        return $this->parseTransactions ($response['result'], $currency, $since, $limit);
+        return $this->parse_transactions($response['result'], $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {

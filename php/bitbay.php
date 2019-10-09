@@ -141,6 +141,7 @@ class bitbay extends Exchange {
                 '510' => '\\ccxt\\ExchangeError', // Invalid market name
                 'FUNDS_NOT_SUFFICIENT' => '\\ccxt\\InsufficientFunds',
                 'OFFER_FUNDS_NOT_EXCEEDING_MINIMUMS' => '\\ccxt\\InvalidOrder',
+                'OFFER_NOT_FOUND' => '\\ccxt\\OrderNotFound',
             ),
         ));
     }
@@ -292,11 +293,13 @@ class bitbay extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $markets = $symbol ? array ( $this->market_id($symbol) ) : array();
-        $request = array (
-            'markets' => $markets,
-        );
-        $response = $this->v1_01PrivateGetTradingHistoryTransactions (array_merge (array( 'query' => $this->json ($request) ), $params));
+        $request = array();
+        if ($symbol) {
+            $markets = array ( $this->market_id($symbol) );
+            $request['markets'] = $markets;
+        }
+        $query = array( 'query' => $this->json (array_merge ($request, $params)) );
+        $response = $this->v1_01PrivateGetTradingHistoryTransactions ($query);
         //
         //     {
         //         status => 'Ok',
@@ -740,16 +743,7 @@ class bitbay extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_trade ($trade, $market) {
-        if (is_array($trade) && array_key_exists('tid', $trade)) {
-            return $this->parse_public_trade ($trade, $market);
-        } else {
-            return $this->parse_my_trade ($trade, $market);
-        }
-    }
-
-    public function parse_my_trade ($trade, $market = null) {
-        //
+    public function parse_trade ($trade, $market = null) {
         //     {
         //         $amount => "0.29285199",
         //         commissionValue => "0.00125927",
@@ -762,14 +756,23 @@ class bitbay extends Exchange {
         //         $userAction => "Buy",
         //         $wasTaker => true,
         //     }
-        //
-        $timestamp = $this->safe_integer($trade, 'time');
+        // Public trades
+        //     { id => 'df00b0da-e5e0-11e9-8c19-0242ac11000a',
+        //          t => '1570108958831',
+        //          a => '0.04776653',
+        //          r => '0.02145854',
+        //          ty => 'Sell'
+        //      }
+        $timestamp = $this->safe_integer_2($trade, 'time', 't');
         $userAction = $this->safe_string($trade, 'userAction');
         $side = ($userAction === 'Buy') ? 'buy' : 'sell';
         $wasTaker = $this->safe_value($trade, 'wasTaker');
-        $takerOrMaker = $wasTaker ? 'taker' : 'maker';
-        $price = $this->safe_float($trade, 'rate');
-        $amount = $this->safe_float($trade, 'amount');
+        $takerOrMaker = null;
+        if ($wasTaker !== null) {
+            $takerOrMaker = $wasTaker ? 'taker' : 'maker';
+        }
+        $price = $this->safe_float_2($trade, 'rate', 'r');
+        $amount = $this->safe_float_2($trade, 'amount', 'a');
         $cost = null;
         if ($amount !== null) {
             if ($price !== null) {
@@ -779,12 +782,14 @@ class bitbay extends Exchange {
         $feeCost = $this->safe_float($trade, 'commissionValue');
         $marketId = $this->safe_string($trade, 'market');
         $base = null;
+        $quote = null;
         $symbol = null;
         if ($marketId !== null) {
             if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
                 $market = $this->markets_by_id[$marketId];
                 $symbol = $market['symbol'];
                 $base = $market['base'];
+                $quote = $market['quote'];
             } else {
                 list($baseId, $quoteId) = explode('-', $marketId);
                 $base = $this->safe_currency_code($baseId);
@@ -802,14 +807,18 @@ class bitbay extends Exchange {
         }
         $fee = null;
         if ($feeCost !== null) {
+            $feeCcy = $side === 'buy' ? $base : $quote;
             $fee = array (
-                'currency' => $base,
+                'currency' => $feeCcy,
                 'cost' => $feeCost,
             );
         }
         $order = $this->safe_string($trade, 'offerId');
         // todo => check this logic
-        $type = $order ? 'limit' : 'market';
+        $type = null;
+        if ($order !== null) {
+            $type = $order ? 'limit' : 'market';
+        }
         return array (
             'id' => $this->safe_string($trade, 'id'),
             'order' => $order,
@@ -827,82 +836,22 @@ class bitbay extends Exchange {
         );
     }
 
-    public function parse_public_trade ($trade, $market = null) {
-        //
-        //     {
-        //         "date":1459608665,
-        //         "$price":0.02722571,
-        //         "$type":"sell",
-        //         "$amount":1.08112001,
-        //         "tid":"0"
-        //     }
-        //
-        $timestamp = $this->safe_timestamp($trade, 'date');
-        $id = $this->safe_string($trade, 'tid');
-        $type = null;
-        $side = $this->safe_string($trade, 'type');
-        $price = $this->safe_float($trade, 'price');
-        $amount = $this->safe_float($trade, 'amount');
-        $cost = null;
-        if ($amount !== null) {
-            if ($price !== null) {
-                $cost = $price * $amount;
-            }
-        }
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array (
-            'id' => $id,
-            'info' => $trade,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601 ($timestamp),
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'order' => null,
-            'takerOrMaker' => null,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
-            'fee' => null,
-        );
-    }
-
     public function fetch_trades ($symbol, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
         $market = $this->market ($symbol);
+        $tradingSymbol = $market['baseId'] . '-' . $market['quoteId'];
         $request = array (
-            'id' => $market['id'],
+            'symbol' => $tradingSymbol,
         );
-        $response = $this->publicGetIdTrades (array_merge ($request, $params));
-        //
-        //     array (
-        //         array (
-        //             "date":1459608665,
-        //             "price":0.02722571,
-        //             "type":"sell",
-        //             "amount":1.08112001,
-        //             "tid":"0"
-        //         ),
-        //         array (
-        //             "date":1459698930,
-        //             "price":0.029,
-        //             "type":"buy",
-        //             "amount":0.444188,
-        //             "tid":"1"
-        //         ),
-        //         {
-        //             "date":1459726670,
-        //             "price":0.029,
-        //             "type":"buy",
-        //             "amount":0.25459599,
-        //             "tid":"2"
-        //         }
-        //     )
-        //
-        return $this->parse_trades($response, $market, $since, $limit);
+        if ($since !== null) {
+            $request['fromTime'] = $since - 1; // result does not include exactly `$since` time therefore decrease by 1
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit; // default - 10, max - 300
+        }
+        $response = $this->v1_01PublicGetTradingTransactionsSymbol (array_merge ($request, $params));
+        $items = $this->safe_value($response, 'items');
+        return $this->parse_trades($items, $symbol, $since, $limit);
     }
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {

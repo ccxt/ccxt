@@ -407,6 +407,7 @@ class huobipro (Exchange):
             typeParts = type.split('-')
             side = typeParts[0]
             type = typeParts[1]
+        takerOrMaker = self.safe_string(trade, 'role')
         price = self.safe_float(trade, 'price')
         amount = self.safe_float_2(trade, 'filled-amount', 'amount')
         cost = None
@@ -438,7 +439,7 @@ class huobipro (Exchange):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -447,11 +448,17 @@ class huobipro (Exchange):
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
-        response = await self.privateGetOrderMatchresults(params)
-        trades = self.parse_trades(response['data'], None, since, limit)
+        market = None
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
-            trades = self.filter_by_symbol(trades, market['symbol'])
+            request['symbol'] = market['id']
+        if limit is not None:
+            request['size'] = limit  # 1-100 orders, default is 100
+        if since is not None:
+            request['start-date'] = self.ymd(since)  # maximum query window size is 2 days, query window shift should be within past 120 days
+        response = await self.privateGetOrderMatchresults(self.extend(request, params))
+        trades = self.parse_trades(response['data'], market, since, limit)
         return trades
 
     async def fetch_trades(self, symbol, since=None, limit=1000, params={}):
@@ -574,7 +581,7 @@ class huobipro (Exchange):
 
     async def fetch_balance(self, params={}):
         await self.load_markets()
-        await self.loadAccounts()
+        await self.load_accounts()
         method = self.options['fetchBalanceMethod']
         request = {
             'id': self.accounts[0]['id'],
@@ -658,7 +665,7 @@ class huobipro (Exchange):
         accountId = self.safe_string(params, 'account-id')
         if accountId is None:
             # pick the first account
-            await self.loadAccounts()
+            await self.load_accounts()
             for i in range(0, len(self.accounts)):
                 account = self.accounts[i]
                 if account['type'] == 'spot':
@@ -804,7 +811,7 @@ class huobipro (Exchange):
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         await self.load_markets()
-        await self.loadAccounts()
+        await self.load_accounts()
         market = self.market(symbol)
         request = {
             'account-id': self.accounts[0]['id'],
@@ -975,7 +982,7 @@ class huobipro (Exchange):
             request['size'] = limit  # max 100
         response = await self.privateGetQueryDepositWithdraw(self.extend(request, params))
         # return response
-        return self.parseTransactions(response['data'], currency, since, limit)
+        return self.parse_transactions(response['data'], currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         if limit is None or limit > 100:
@@ -994,7 +1001,7 @@ class huobipro (Exchange):
             request['size'] = limit  # max 100
         response = await self.privateGetQueryDepositWithdraw(self.extend(request, params))
         # return response
-        return self.parseTransactions(response['data'], currency, since, limit)
+        return self.parse_transactions(response['data'], currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #

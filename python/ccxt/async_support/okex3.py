@@ -19,6 +19,7 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -50,6 +51,7 @@ class okex3 (Exchange):
                 'fetchCurrencies': False,  # see below
                 'fetchDeposits': True,
                 'fetchWithdrawals': True,
+                'fetchTime': True,
                 'fetchTransactions': False,
                 'fetchMyTrades': False,  # they don't have it
                 'fetchDepositAddress': True,
@@ -289,6 +291,7 @@ class okex3 (Exchange):
                     '1': ExchangeError,  # {"code": 1, "message": "System error"}
                     # undocumented
                     'failure to get a peer from the ring-balancer': ExchangeError,  # {"message": "failure to get a peer from the ring-balancer"}
+                    '"instrument_id" is an invalid parameter': BadSymbol,  # {"code":30024,"message":"\"instrument_id\" is an invalid parameter"}
                     '4010': PermissionDenied,  # {"code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings "}
                     # common
                     '30001': AuthenticationError,  # {"code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
@@ -477,7 +480,6 @@ class okex3 (Exchange):
             'commonCurrencies': {
                 # OKEX refers to ERC20 version of Aeternity(AEToken)
                 'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
-                'FAIR': 'FairGame',
                 'HOT': 'Hydro Protocol',
                 'HSR': 'HC',
                 'MAG': 'Maggie',
@@ -2017,7 +2019,7 @@ class okex3 (Exchange):
             request['code'] = currency['code']
             method += 'Currency'
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit, params)
+        return self.parse_transactions(response, currency, since, limit, params)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
@@ -2029,7 +2031,7 @@ class okex3 (Exchange):
             request['code'] = currency['code']
             method += 'Currency'
         response = await getattr(self, method)(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit, params)
+        return self.parse_transactions(response, currency, since, limit, params)
 
     def parse_transaction_status(self, status):
         #
@@ -2580,8 +2582,6 @@ class okex3 (Exchange):
         exact = self.exceptions['exact']
         message = self.safe_string(response, 'message')
         errorCode = self.safe_string_2(response, 'code', 'error_code')
-        if errorCode in exact:
-            raise exact[errorCode](feedback)
         if message is not None:
             if message in exact:
                 raise exact[message](feedback)
@@ -2589,4 +2589,7 @@ class okex3 (Exchange):
             broadKey = self.findBroadlyMatchedKey(broad, message)
             if broadKey is not None:
                 raise broad[broadKey](feedback)
+        if errorCode in exact:
+            raise exact[errorCode](feedback)
+        if message is not None:
             raise ExchangeError(feedback)  # unknown message

@@ -644,7 +644,7 @@ class gateio (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        return self.parseTransactions(transactions, currency, since, limit)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         return await self.fetch_transactions_by_type(None, code, since, limit, params)

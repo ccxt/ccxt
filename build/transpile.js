@@ -68,6 +68,8 @@ const commonRegexes = [
     [ /\.parseTrades\s/g, '.parse_trades'],
     [ /\.parseTrade\s/g, '.parse_trade'],
     [ /\.parseTradingViewOHLCV\s/g, '.parse_trading_view_ohlcv'],
+    [ /\.parseTransaction\s/g, '.parse_transaction'],
+    [ /\.parseTransactions\s/g, '.parse_transactions'],
     [ /\.parseOrderBook\s/g, '.parse_order_book'],
     [ /\.parseBidsAsks\s/g, '.parse_bids_asks'],
     [ /\.parseBidAsk\s/g, '.parse_bid_ask'],
@@ -114,6 +116,7 @@ const commonRegexes = [
     [ /\.currencyToPrecision\s/g, '.currency_to_precision'],
     [ /\.costToPrecision\s/g, '.cost_to_precision'],
     [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
+    [ /\.loadAccounts\s/g, '.load_accounts'],
     [ /\.loadFees\s/g, '.load_fees'],
     [ /\.loadMarkets\s/g, '.load_markets'],
     [ /\.fetchMarkets\s/g, '.fetch_markets'],
@@ -304,7 +307,9 @@ const phpRegexes = [
     [ /([^'])this_\./g, '$1$this_->' ],
     [ /\{\}/g, 'array()' ],
     [ /\[\]/g, 'array()' ],
-    [ /\{([^\n\}]+)\}/g, 'array($1)' ],
+
+// add {}-array syntax conversions up to 20 levels deep in the same line
+]).concat ([ ... Array (20) ].map (x => [ /\{([^\n\}]+)\}/g, 'array($1)' ] )).concat ([
     [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1list($2)' ],
     [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}/g, '$1array_values(list($2))' ],
     [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],

@@ -171,11 +171,14 @@ class coinex (Exchange):
             key = keys[i]
             market = markets[key]
             id = self.safe_string(market, 'name')
-            baseId = self.safe_string(market, 'trading_name')
+            tradingName = self.safe_string(market, 'trading_name')
+            baseId = tradingName
             quoteId = self.safe_string(market, 'pricing_name')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
+            if tradingName == id:
+                symbol = id
             precision = {
                 'amount': self.safe_integer(market, 'trading_decimal'),
                 'price': self.safe_integer(market, 'pricing_decimal'),
@@ -758,7 +761,7 @@ class coinex (Exchange):
         #         "message": "Ok"
         #     }
         #
-        return self.parseTransactions(response['data'], currency, since, limit)
+        return self.parse_transactions(response['data'], currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
@@ -798,7 +801,7 @@ class coinex (Exchange):
         #         "message": "Ok"
         #     }
         #
-        return self.parseTransactions(response['data'], currency, since, limit)
+        return self.parse_transactions(response['data'], currency, since, limit)
 
     def nonce(self):
         return self.milliseconds()

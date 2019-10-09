@@ -509,7 +509,7 @@ class crex24 (Exchange):
         if price is not None:
             if amount is not None:
                 cost = amount * price
-        id = None
+        id = self.safe_string(trade, 'id')
         side = self.safe_string(trade, 'side')
         orderId = self.safe_string(trade, 'orderId')
         symbol = None
@@ -1013,7 +1013,7 @@ class crex24 (Exchange):
         #         ...
         #     ]
         #
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         request = {

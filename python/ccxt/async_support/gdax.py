@@ -39,6 +39,7 @@ class gdax (Exchange):
                 'fetchOrder': True,
                 'fetchOrderTrades': True,
                 'fetchOrders': True,
+                'fetchTime': True,
                 'fetchTransactions': True,
                 'withdraw': True,
             },
@@ -122,8 +123,8 @@ class gdax (Exchange):
                 'trading': {
                     'tierBased': True,  # complicated tier system per coin
                     'percentage': True,
-                    'maker': 0.15 / 100,  # highest fee of all tiers
-                    'taker': 0.25 / 100,  # highest fee of all tiers
+                    'maker': 0.5 / 100,  # highest fee of all tiers
+                    'taker': 0.5 / 100,  # highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': False,
@@ -396,17 +397,17 @@ class gdax (Exchange):
             'granularity': granularity,
         }
         if since is not None:
-            request['start'] = self.ymdhms(since)
+            request['start'] = self.iso8601(since)
             if limit is None:
-                # https://docs.gdax.com/#get-historic-rates
+                # https://docs.pro.coinbase.com/#get-historic-rates
                 limit = 300  # max = 300
-            request['end'] = self.ymdhms(self.sum(limit * granularity * 1000, since))
+            request['end'] = self.iso8601(self.sum((limit - 1) * granularity * 1000, since))
         response = await self.publicGetProductsIdCandles(self.extend(request, params))
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
 
     async def fetch_time(self, params={}):
         response = await self.publicGetTime(params)
-        return self.parse8601(response, 'iso')
+        return self.parse8601(self.safe_string(response, 'iso'))
 
     def parse_order_status(self, status):
         statuses = {
@@ -583,7 +584,7 @@ class gdax (Exchange):
         else:
             # deposit methodotherwise we did not receive a supported deposit location
             # relevant docs link for the Googlers
-            # https://docs.gdax.com/#deposits
+            # https://docs.pro.coinbase.com/#deposits
             raise NotSupported(self.id + ' deposit() requires one of `coinbase_account_id` or `payment_method_id` extra params')
         response = await getattr(self, method)(self.extend(request, params))
         if not response:
@@ -619,7 +620,7 @@ class gdax (Exchange):
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
         await self.load_markets()
-        await self.loadAccounts()
+        await self.load_accounts()
         currency = None
         id = self.safe_string(params, 'id')  # account id
         if id is None:
@@ -639,7 +640,7 @@ class gdax (Exchange):
         response = await self.privateGetAccountsIdTransfers(self.extend(request, params))
         for i in range(0, len(response)):
             response[i]['currency'] = code
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction_status(self, transaction):
         canceled = self.safe_value(transaction, 'canceled_at')

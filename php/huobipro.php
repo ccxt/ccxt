@@ -427,6 +427,7 @@ class huobipro extends Exchange {
             $side = $typeParts[0];
             $type = $typeParts[1];
         }
+        $takerOrMaker = $this->safe_string($trade, 'role');
         $price = $this->safe_float($trade, 'price');
         $amount = $this->safe_float_2($trade, 'filled-amount', 'amount');
         $cost = null;
@@ -464,7 +465,7 @@ class huobipro extends Exchange {
             'symbol' => $symbol,
             'type' => $type,
             'side' => $side,
-            'takerOrMaker' => null,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
             'cost' => $cost,
@@ -474,12 +475,20 @@ class huobipro extends Exchange {
 
     public function fetch_my_trades ($symbol = null, $since = null, $limit = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privateGetOrderMatchresults ($params);
-        $trades = $this->parse_trades($response['data'], null, $since, $limit);
+        $market = null;
+        $request = array();
         if ($symbol !== null) {
             $market = $this->market ($symbol);
-            $trades = $this->filter_by_symbol($trades, $market['symbol']);
+            $request['symbol'] = $market['id'];
         }
+        if ($limit !== null) {
+            $request['size'] = $limit; // 1-100 orders, default is 100
+        }
+        if ($since !== null) {
+            $request['start-date'] = $this->ymd ($since); // maximum query window size is 2 days, query window shift should be within past 120 days
+        }
+        $response = $this->privateGetOrderMatchresults (array_merge ($request, $params));
+        $trades = $this->parse_trades($response['data'], $market, $since, $limit);
         return $trades;
     }
 
@@ -613,7 +622,7 @@ class huobipro extends Exchange {
 
     public function fetch_balance ($params = array ()) {
         $this->load_markets();
-        $this->loadAccounts ();
+        $this->load_accounts();
         $method = $this->options['fetchBalanceMethod'];
         $request = array (
             'id' => $this->accounts[0]['id'],
@@ -710,7 +719,7 @@ class huobipro extends Exchange {
         $accountId = $this->safe_string($params, 'account-id');
         if ($accountId === null) {
             // pick the first $account
-            $this->loadAccounts ();
+            $this->load_accounts();
             for ($i = 0; $i < count ($this->accounts); $i++) {
                 $account = $this->accounts[$i];
                 if ($account['type'] === 'spot') {
@@ -876,7 +885,7 @@ class huobipro extends Exchange {
 
     public function create_order ($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         $this->load_markets();
-        $this->loadAccounts ();
+        $this->load_accounts();
         $market = $this->market ($symbol);
         $request = array (
             'account-id' => $this->accounts[0]['id'],
@@ -1073,7 +1082,7 @@ class huobipro extends Exchange {
         }
         $response = $this->privateGetQueryDepositWithdraw (array_merge ($request, $params));
         // return $response
-        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+        return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1097,7 +1106,7 @@ class huobipro extends Exchange {
         }
         $response = $this->privateGetQueryDepositWithdraw (array_merge ($request, $params));
         // return $response
-        return $this->parseTransactions ($response['data'], $currency, $since, $limit);
+        return $this->parse_transactions($response['data'], $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {

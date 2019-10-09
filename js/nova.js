@@ -72,6 +72,9 @@ module.exports = class nova extends Exchange {
                     'taker': 0.2 / 100,
                 },
             },
+            'commonCurrencies': {
+                'FAIR': 'FairCoin',
+            },
         });
     }
 

@@ -314,7 +314,7 @@ class bleutrade (bittrex):
         await self.load_markets()
         method = 'accountGetDeposithistory' if (type == 'deposit') else 'accountGetWithdrawhistory'
         response = await getattr(self, method)(params)
-        result = self.parseTransactions(response['result'])
+        result = self.parse_transactions(response['result'])
         return self.filterByCurrencySinceLimit(result, code, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
