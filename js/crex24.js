@@ -819,7 +819,6 @@ module.exports = class crex24 extends Exchange {
             const market = this.market (symbol)
             request.instrument = market['id'];
         }
-
         const response = await this.tradingGetOrderHistory (this.extend (request, params));
         // [
         //     {
@@ -841,7 +840,6 @@ module.exports = class crex24 extends Exchange {
         //     }
         //   ]
         return this.parseOrders(response);
-
     }
 
     async fetchOrdersByIds (ids = undefined, since = undefined, limit = undefined, params = {}) {
