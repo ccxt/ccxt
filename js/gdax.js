@@ -113,8 +113,8 @@ module.exports = class gdax extends Exchange {
                 'trading': {
                     'tierBased': true, // complicated tier system per coin
                     'percentage': true,
-                    'maker': 0.15 / 100, // highest fee of all tiers
-                    'taker': 0.25 / 100, // highest fee of all tiers
+                    'maker': 0.5 / 100, // highest fee of all tiers
+                    'taker': 0.5 / 100, // highest fee of all tiers
                 },
                 'funding': {
                     'tierBased': false,
@@ -175,10 +175,6 @@ module.exports = class gdax extends Exchange {
                 'amount': this.precisionFromString (this.safeString (market, 'base_increment')),
                 'price': this.precisionFromString (this.safeString (market, 'quote_increment')),
             };
-            let taker = this.fees['trading']['taker'];  // does not seem right
-            if ((base === 'ETH') || (base === 'LTC')) {
-                taker = 0.003;
-            }
             const active = market['status'] === 'online';
             result.push (this.extend (this.fees['trading'], {
                 'id': id,
@@ -199,7 +195,6 @@ module.exports = class gdax extends Exchange {
                         'max': this.safeFloat (market, 'max_market_funds'),
                     },
                 },
-                'taker': taker,
                 'active': active,
                 'info': market,
             }));
@@ -858,8 +853,10 @@ module.exports = class gdax extends Exchange {
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const response = await this.fetch2 (path, api, method, params, headers, body);
-        if ('message' in response) {
-            throw new ExchangeError (this.id + ' ' + this.json (response));
+        if (typeof response !== 'string') {
+            if ('message' in response) {
+                throw new ExchangeError (this.id + ' ' + this.json (response));
+            }
         }
         return response;
     }

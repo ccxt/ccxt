@@ -68,10 +68,9 @@ class bibox (Exchange):
                 'api': 'https://api.bibox.com',
                 'www': 'https://www.bibox.com',
                 'doc': [
-                    'https://github.com/Biboxcom/api_reference/wiki/home_en',
-                    'https://github.com/Biboxcom/api_reference/wiki/api_reference',
+                    'https://github.com/Biboxcom/API_Docs_en/wiki',
                 ],
-                'fees': 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
+                'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://www.bibox.com/signPage?id=11114745&lang=en',
             },
             'api': {
@@ -89,6 +88,11 @@ class bibox (Exchange):
                         'user',
                         'orderpending',
                         'transfer',
+                    ],
+                },
+                'v2private': {
+                    'post': [
+                        'assets/transfer/spot',
                     ],
                 },
             },
@@ -829,6 +833,15 @@ class bibox (Exchange):
                 body = {'cmds': cmds}
             elif params:
                 url += '?' + self.urlencode(params)
+        elif api == 'v2private':
+            self.check_required_credentials()
+            url = self.urls['api'] + '/v2/' + path
+            json_params = self.json(params)
+            body = {
+                'body': json_params,
+                'apikey': self.apiKey,
+                'sign': self.hmac(self.encode(json_params), self.encode(self.secret), hashlib.md5),
+            }
         else:
             self.check_required_credentials()
             body = {
