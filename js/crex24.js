@@ -30,7 +30,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchTickers': true,
                 'fetchTradingFee': false, // actually, true, but will be implemented later
@@ -73,6 +73,7 @@ module.exports = class crex24 extends Exchange {
                 'trading': {
                     'get': [
                         'orderStatus',
+                        'orderTrades',
                         'activeOrders',
                         'orderHistory',
                         'tradeHistory',
@@ -802,6 +803,44 @@ module.exports = class crex24 extends Exchange {
             throw new OrderNotFound (this.id + ' fetchOrder could not fetch order id ' + id);
         }
         return this.parseOrder (response[0]);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {}
+        if(since){
+            request.from = this.iso8601 (since).replace(/\.\d{3}/,'') // We need to trim out ms beacuse exchange does not support
+        }
+        if(limit){
+            request.limit = limit
+        }
+        // If symbol not provided fetches orders for all symbols
+        if (symbol) {
+            request.instrument = this.market (symbol)['id']
+        }
+
+        const response = await this.tradingGetOrderHistory (this.extend (request, params));
+        // [
+        //     {
+        //       "id": 468535711,
+        //       "timestamp": "2018-06-02T16:42:40Z",
+        //       "instrument": "BTC-EUR",
+        //       "side": "sell",
+        //       "type": "limit",
+        //       "status": "submitting",
+        //       "cancellationReason": null,
+        //       "timeInForce": "GTC",
+        //       "volume": 0.00770733,
+        //       "price": 6724.9,
+        //       "stopPrice": null,
+        //       "remainingVolume": 0.00770733,
+        //       "lastUpdate": "2018-06-02T16:42:40Z",
+        //       "parentOrderId": null,
+        //       "childOrderId": null
+        //     }
+        //   ]
+        return this.parseOrders(response)
+
     }
 
     async fetchOrdersByIds (ids = undefined, since = undefined, limit = undefined, params = {}) {
