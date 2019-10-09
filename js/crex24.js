@@ -124,6 +124,8 @@ module.exports = class crex24 extends Exchange {
             },
             // exchange-specific options
             'options': {
+                'fetchOrdersMethod': 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
+                'fetchClosedOrdersMethod': 'tradingGetOrderHistory', // or 'tradingGetActiveOrders'
                 'fetchTickersMethod': 'publicGetTicker24hr',
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultLimitOrderType': 'limit', // or 'limit_maker'
@@ -814,31 +816,33 @@ module.exports = class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // If symbol not provided fetches orders for all symbols
-        if (symbol) {
+        if (symbol !== undefined) {
             const market = this.market (symbol);
             request['instrument'] = market['id'];
         }
-        const response = await this.tradingGetOrderHistory (this.extend (request, params));
-        // [
-        //     {
-        //       "id": 468535711,
-        //       "timestamp": "2018-06-02T16:42:40Z",
-        //       "instrument": "BTC-EUR",
-        //       "side": "sell",
-        //       "type": "limit",
-        //       "status": "submitting",
-        //       "cancellationReason": null,
-        //       "timeInForce": "GTC",
-        //       "volume": 0.00770733,
-        //       "price": 6724.9,
-        //       "stopPrice": null,
-        //       "remainingVolume": 0.00770733,
-        //       "lastUpdate": "2018-06-02T16:42:40Z",
-        //       "parentOrderId": null,
-        //       "childOrderId": null
-        //     }
-        //   ]
+        const method = this.safeString (this.options, 'fetchOrdersMethod', 'tradingGetOrderHistory');
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": 468535711,
+        //             "timestamp": "2018-06-02T16:42:40Z",
+        //             "instrument": "BTC-EUR",
+        //             "side": "sell",
+        //             "type": "limit",
+        //             "status": "submitting",
+        //             "cancellationReason": null,
+        //             "timeInForce": "GTC",
+        //             "volume": 0.00770733,
+        //             "price": 6724.9,
+        //             "stopPrice": null,
+        //             "remainingVolume": 0.00770733,
+        //             "lastUpdate": "2018-06-02T16:42:40Z",
+        //             "parentOrderId": null,
+        //             "childOrderId": null
+        //         }
+        //     ]
+        //
         return this.parseOrders (response);
     }
 
@@ -937,7 +941,8 @@ module.exports = class crex24 extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // min 1, max 1000, default 100
         }
-        const response = await this.tradingGetActiveOrders (this.extend (request, params));
+        const method = this.safeString (this.options, 'fetchClosedOrdersMethod', 'tradingGetOrderHistory');
+        const response = await this[method] (this.extend (request, params));
         //     [
         //         {
         //             "id": 468535711,
