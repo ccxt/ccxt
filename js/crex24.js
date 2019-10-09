@@ -839,7 +839,7 @@ module.exports = class crex24 extends Exchange {
         //       "childOrderId": null
         //     }
         //   ]
-        return this.parseOrders(response);
+        return this.parseOrders (response);
     }
 
     async fetchOrdersByIds (ids = undefined, since = undefined, limit = undefined, params = {}) {
