@@ -808,15 +808,16 @@ module.exports = class crex24 extends Exchange {
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const request = {}
-        if(since){
+        if (since !== undefined) {
             request.from = this.ymdhms (since, 'T');
         }
-        if(limit){
+        if (limit !== undefined) {
             request.limit = limit;
         }
         // If symbol not provided fetches orders for all symbols
         if (symbol) {
-            request.instrument = this.market (symbol)['id'];
+            const market = this.market (symbol)
+            request.instrument = market['id'];
         }
 
         const response = await this.tradingGetOrderHistory (this.extend (request, params));
