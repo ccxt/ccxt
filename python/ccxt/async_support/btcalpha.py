@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 
@@ -109,6 +110,12 @@ class btcalpha (Exchange):
             },
             'commonCurrencies': {
                 'CBC': 'Cashbery',
+            },
+            'exceptions': {
+                'exact': {},
+                'broad': {
+                    'Out of balance': InsufficientFunds,  # {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
+                },
             },
         })
 
@@ -392,11 +399,23 @@ class btcalpha (Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return  # fallback to default error handler
-        if code < 400:
-            return  # fallback to default error handler
-        message = self.id + ' ' + self.safe_value(response, 'detail', body)
+        #
+        #     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
+        #
+        error = self.safe_string(response, 'error')
+        feedback = self.id + ' ' + body
+        if error is not None:
+            exact = self.exceptions['exact']
+            if error in exact:
+                raise exact[error](feedback)
+            broad = self.exceptions['broad']
+            broadKey = self.findBroadlyMatchedKey(broad, error)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
         if code == 401 or code == 403:
-            raise AuthenticationError(message)
+            raise AuthenticationError(feedback)
         elif code == 429:
-            raise DDoSProtection(message)
-        raise ExchangeError(message)
+            raise DDoSProtection(feedback)
+        if code < 400:
+            return
+        raise ExchangeError(feedback)
