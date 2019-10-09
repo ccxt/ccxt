@@ -809,15 +809,15 @@ module.exports = class crex24 extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
-            request.from = this.ymdhms (since, 'T');
+            request['from'] = this.ymdhms (since, 'T');
         }
         if (limit !== undefined) {
-            request.limit = limit;
+            request['limit'] = limit;
         }
         // If symbol not provided fetches orders for all symbols
         if (symbol) {
             const market = this.market (symbol);
-            request.instrument = market['id'];
+            request['instrument'] = market['id'];
         }
         const response = await this.tradingGetOrderHistory (this.extend (request, params));
         // [
