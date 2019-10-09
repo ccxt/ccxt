@@ -807,7 +807,7 @@ module.exports = class crex24 extends Exchange {
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {}
+        const request = {};
         if (since !== undefined) {
             request.from = this.ymdhms (since, 'T');
         }
@@ -816,7 +816,7 @@ module.exports = class crex24 extends Exchange {
         }
         // If symbol not provided fetches orders for all symbols
         if (symbol) {
-            const market = this.market (symbol)
+            const market = this.market (symbol);
             request.instrument = market['id'];
         }
         const response = await this.tradingGetOrderHistory (this.extend (request, params));
