@@ -809,14 +809,14 @@ module.exports = class crex24 extends Exchange {
         await this.loadMarkets ();
         const request = {}
         if(since){
-            request.from = this.iso8601 (since).replace(/\.\d{3}/,'') // We need to trim out ms beacuse exchange does not support
+            request.from = this.ymdhms (since, 'T');
         }
         if(limit){
-            request.limit = limit
+            request.limit = limit;
         }
         // If symbol not provided fetches orders for all symbols
         if (symbol) {
-            request.instrument = this.market (symbol)['id']
+            request.instrument = this.market (symbol)['id'];
         }
 
         const response = await this.tradingGetOrderHistory (this.extend (request, params));
@@ -839,7 +839,7 @@ module.exports = class crex24 extends Exchange {
         //       "childOrderId": null
         //     }
         //   ]
-        return this.parseOrders(response)
+        return this.parseOrders(response);
 
     }
 
