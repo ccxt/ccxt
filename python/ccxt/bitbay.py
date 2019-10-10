@@ -912,7 +912,7 @@ class bitbay (Exchange):
             self.check_required_credentials()
             query = self.omit(params, self.extract_params(path))
             url += '/' + self.implode_params(path, params)
-            nonce = self.milliseconds()
+            nonce = str(self.milliseconds())
             payload = None
             if method != 'POST':
                 if query:

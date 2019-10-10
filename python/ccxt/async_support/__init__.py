@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1237'
+__version__ = '1.18.1241'
 
 # -----------------------------------------------------------------------------
 
@@ -86,7 +86,6 @@ from ccxt.async_support.btctradeim import btctradeim                      # noqa
 from ccxt.async_support.btctradeua import btctradeua                      # noqa: F401
 from ccxt.async_support.btcturk import btcturk                            # noqa: F401
 from ccxt.async_support.buda import buda                                  # noqa: F401
-from ccxt.async_support.bxinth import bxinth                              # noqa: F401
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.chilebit import chilebit                          # noqa: F401
 from ccxt.async_support.cobinhood import cobinhood                        # noqa: F401
@@ -108,7 +107,6 @@ from ccxt.async_support.cointiger import cointiger                        # noqa
 from ccxt.async_support.coolcoin import coolcoin                          # noqa: F401
 from ccxt.async_support.coss import coss                                  # noqa: F401
 from ccxt.async_support.crex24 import crex24                              # noqa: F401
-from ccxt.async_support.crypton import crypton                            # noqa: F401
 from ccxt.async_support.deribit import deribit                            # noqa: F401
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.dsx import dsx                                    # noqa: F401
@@ -214,7 +212,6 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
-    'bxinth',
     'cex',
     'chilebit',
     'cobinhood',
@@ -236,7 +233,6 @@ exchanges = [
     'coolcoin',
     'coss',
     'crex24',
-    'crypton',
     'deribit',
     'digifinex',
     'dsx',
