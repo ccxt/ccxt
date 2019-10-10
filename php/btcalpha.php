@@ -106,6 +106,12 @@ class btcalpha extends Exchange {
             'commonCurrencies' => array (
                 'CBC' => 'Cashbery',
             ),
+            'exceptions' => array (
+                'exact' => array(),
+                'broad' => array (
+                    'Out of balance' => '\\ccxt\\InsufficientFunds', // array("date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC")
+                ),
+            ),
         ));
     }
 
@@ -431,17 +437,32 @@ class btcalpha extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return; // fallback to default $error handler
+        }
+        //
+        //     array("date":1570599531.4814300537,"$error":"Out of balance -9.99243661 BTC")
+        //
+        $error = $this->safe_string($response, 'error');
+        $feedback = $this->id . ' ' . $body;
+        if ($error !== null) {
+            $exact = $this->exceptions['exact'];
+            if (is_array($exact) && array_key_exists($error, $exact)) {
+                throw new $exact[$error]($feedback);
+            }
+            $broad = $this->exceptions['broad'];
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey]($feedback);
+            }
+        }
+        if ($code === 401 || $code === 403) {
+            throw new AuthenticationError($feedback);
+        } else if ($code === 429) {
+            throw new DDoSProtection($feedback);
         }
         if ($code < 400) {
-            return; // fallback to default error handler
+            return;
         }
-        $message = $this->id . ' ' . $this->safe_value($response, 'detail', $body);
-        if ($code === 401 || $code === 403) {
-            throw new AuthenticationError($message);
-        } else if ($code === 429) {
-            throw new DDoSProtection($message);
-        }
-        throw new ExchangeError($message);
+        throw new ExchangeError($feedback);
     }
 }

@@ -171,6 +171,8 @@ module.exports = class okex3 extends Exchange {
                         'cancel_order/{instrument_id}/{order_id}',
                         'cancel_order/{instrument_id}/{client_oid}',
                         'cancel_batch_orders/{instrument_id}',
+                        'close_position',
+                        'cancel_all',
                     ],
                 },
                 'swap': {
