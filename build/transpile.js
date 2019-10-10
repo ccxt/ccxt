@@ -141,6 +141,7 @@ const commonRegexes = [
     [ /\.safeCurrencyCode\s/g, '.safe_currency_code'],
     [ /\.roundTimeframe/g, '.round_timeframe'],
     [ /errorHierarchy/g, 'error_hierarchy'],
+    [ /base16ToBinary/g, 'base16_to_binary'],
     [ /\'use strict\';?\s+/g, '' ],
 ]
 

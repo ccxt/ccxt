@@ -2053,6 +2053,10 @@ class Exchange(object):
     def numberToBE(n, size):
         return Exchange.decimal_to_bytes(int(n), 'big').rjust(size, b'\x00')
 
+    @staticmethod
+    def base_16_to_binary(s):
+        return base64.b16decode(s, True)
+
     # python supports arbitrarily big integers
     @staticmethod
     def divide(a, b):
