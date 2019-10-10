@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
@@ -184,9 +191,6 @@ class gdax (Exchange):
                 'amount': self.precision_from_string(self.safe_string(market, 'base_increment')),
                 'price': self.precision_from_string(self.safe_string(market, 'quote_increment')),
             }
-            taker = self.fees['trading']['taker']  # does not seem right
-            if (base == 'ETH') or (base == 'LTC'):
-                taker = 0.003
             active = market['status'] == 'online'
             result.append(self.extend(self.fees['trading'], {
                 'id': id,
@@ -207,7 +211,6 @@ class gdax (Exchange):
                         'max': self.safe_float(market, 'max_market_funds'),
                     },
                 },
-                'taker': taker,
                 'active': active,
                 'info': market,
             }))
@@ -785,6 +788,7 @@ class gdax (Exchange):
 
     async def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = await self.fetch2(path, api, method, params, headers, body)
-        if 'message' in response:
-            raise ExchangeError(self.id + ' ' + self.json(response))
+        if not isinstance(response, basestring):
+            if 'message' in response:
+                raise ExchangeError(self.id + ' ' + self.json(response))
         return response
