@@ -251,6 +251,8 @@ module.exports = class bytetrade extends Exchange {
                 'price': this.safeInteger (market['precision'], 'price'),
             };
             const active = this.safeString (market, 'active');
+            const normalBase = base.split ('@')[0];
+            const normalSymbol = normalBase + '/' + quote;
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -261,6 +263,7 @@ module.exports = class bytetrade extends Exchange {
                 'info': market,
                 'active': active,
                 'precision': precision,
+                'normalSymbol': normalSymbol,
                 'limits': {
                     'amount': {
                         'min': amountMin,
@@ -513,7 +516,7 @@ module.exports = class bytetrade extends Exchange {
         } else {
             typeNum = 2;
         }
-        const marketName = market['base'].split ('@')[0] + '/' + market['quote']
+        const normalSymbol = market['normalSymbol'];
         const baseId = market['baseId'];
         const baseCurrency = this.currencies_by_id[baseId];
         const amountChainWithoutTruncate = this.toWei (amount, 'ether', baseCurrency['precision']['amount']);
@@ -547,8 +550,8 @@ module.exports = class bytetrade extends Exchange {
             this.stringToBinary (this.encode (this.apiKey)),
             this.numberToLE (sideNum, 1),
             this.numberToLE (typeNum, 1),
-            this.numberToLE (marketName.length, 1),
-            this.stringToBinary (this.encode (marketName)),
+            this.numberToLE (normalSymbol.length, 1),
+            this.stringToBinary (this.encode (normalSymbol)),
             this.numberToLE (this.divide (amountChain, eightBytes), 8),
             this.numberToLE (this.modulo (amountChain, eightBytes), 8),
             this.numberToLE (this.divide (priceChain, eightBytes), 8),
@@ -580,7 +583,7 @@ module.exports = class bytetrade extends Exchange {
             'creator': this.apiKey,
             'side': sideNum,
             'order_type': typeNum,
-            'market_name': marketName,
+            'market_name': normalSymbol,
             'amount': amountChain,
             'price': priceChain,
             'use_btt_as_fee': false,
@@ -730,7 +733,7 @@ module.exports = class bytetrade extends Exchange {
         const market = this.market (symbol);
         const baseId = market['baseId'];
         const quoteId = market['quoteId'];
-        const marketName = market['base'].split ('@')[0] + '/' + market['quote'];
+        const normalSymbol = market['normalSymbol'];
         const feeAmount = '300000000000000';
         const now = this.milliseconds ();
         const expiration = 0;
@@ -750,8 +753,8 @@ module.exports = class bytetrade extends Exchange {
             this.numberToLE (feeAmount, 8),  // string for 32 bit php
             this.numberToLE (this.apiKey.length, 1),
             this.stringToBinary (this.encode (this.apiKey)),
-            this.numberToLE (marketName.length, 1),
-            this.stringToBinary (this.encode (marketName)),
+            this.numberToLE (normalSymbol.length, 1),
+            this.stringToBinary (this.encode (normalSymbol)),
             this.base16ToBinary (id),
             this.numberToLE (parseInt (quoteId), 4),
             this.numberToLE (parseInt (baseId), 4),
@@ -773,7 +776,7 @@ module.exports = class bytetrade extends Exchange {
             'fee': feeAmount,
             'creator': this.apiKey,
             'order_id': id,
-            'market_name': marketName,
+            'market_name': normalSymbol,
             'money_id': parseInt (quoteId),
             'stock_id': parseInt (baseId),
         };
