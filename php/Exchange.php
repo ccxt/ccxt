@@ -144,7 +144,6 @@ class Exchange {
         'coolcoin',
         'coss',
         'crex24',
-        'crypton',
         'deribit',
         'digifinex',
         'dsx',
