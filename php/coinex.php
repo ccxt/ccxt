@@ -894,7 +894,8 @@ class coinex extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
-        if ($code !== '0' || !$data) {
+        $message = $this->safe_string($response, 'message');
+        if (($code !== '0') || ($data === null) || (($message !== 'Ok') && !$data)) {
             $responseCodes = array (
                 '24' => '\\ccxt\\AuthenticationError',
                 '25' => '\\ccxt\\AuthenticationError',
