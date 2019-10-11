@@ -7,7 +7,7 @@ namespace ccxt;
 
 use Exception as Exception; // a common import
 
-class coinbaseprime extends gdax {
+class coinbaseprime extends coinbasepro {
 
     public function describe () {
         return array_replace_recursive (parent::describe (), array (
