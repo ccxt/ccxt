@@ -894,7 +894,7 @@ module.exports = class coinex extends Exchange {
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
         const message = this.safeString (response, 'message');
-        if ((code !== '0') || (data === undefined) || (!data && (message !== 'Ok'))) {
+        if ((code !== '0') || (data === undefined) || ((message !== 'Ok') && !data)) {
             const responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,
