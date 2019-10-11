@@ -837,7 +837,8 @@ class coinex (Exchange):
         response = await self.fetch2(path, api, method, params, headers, body)
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
-        if code != '0' or not data:
+        message = self.safe_string(response, 'message')
+        if (code != '0') or (data is None) or ((message != 'Ok') and not data):
             responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,
