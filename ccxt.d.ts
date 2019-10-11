@@ -494,8 +494,8 @@ declare module 'ccxt' {
     export class chilebit extends foxbit {}
     export class cobinhood extends Exchange {}
     export class coinbase extends Exchange {}
-    export class coinbaseprime extends gdax {}
-    export class coinbasepro extends gdax {}
+    export class coinbaseprime extends coinbasepro {}
+    export class coinbasepro extends Exchange {}
     export class coincheck extends Exchange {}
     export class coinegg extends Exchange {}
     export class coinex extends Exchange {}
@@ -524,7 +524,6 @@ declare module 'ccxt' {
     export class foxbit extends Exchange {}
     export class fybse extends Exchange {}
     export class gateio extends Exchange {}
-    export class gdax extends Exchange {}
     export class gemini extends Exchange {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
