@@ -1202,7 +1202,11 @@ module.exports = class hitbtc2 extends hitbtc {
                     feeCost = 0;
                 }
                 tradesCost = this.sum (tradesCost, trades[i]['cost']);
-                feeCost = this.sum (feeCost, trades[i]['fee']['cost']);
+                const tradeFee = this.safeValue (trades[i], 'fee', {});
+                const tradeFeeCost = this.safeFloat (tradeFee, 'cost');
+                if (tradeFeeCost !== undefined) {
+                    feeCost = this.sum (feeCost, tradeFeeCost);
+                }
             }
             cost = tradesCost;
             if ((filled !== undefined) && (filled > 0)) {

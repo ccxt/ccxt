@@ -34,6 +34,7 @@ See Also
 -  \ `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__\   `Nomics API <https://p.nomics.com/cryptocurrency-bitcoin-api>`__ — enterprise-grade `crypto market cap & pricing data <https://nomics.com>`__ API for your fund, smart contract, or app.
 -  \ `CoinGecko API <https://www.coingecko.com/api?utm_source=ccxt>`__\   `CoinGecko API <https://www.coingecko.com/api?utm_source=ccxt>`__ — free, reliable, and complete cryptocurrency data for your app. No keys required!
 -  \ `Quadency <https://quadency.com?utm_source=ccxt>`__\   `Quadency <https://quadency.com?utm_source=ccxt>`__ — professional crypto terminal, algo trading, and unified streaming APIs.
+-  \ `TabTrader <https://tab-trader.com>`__\   `TabTrader <https://tab-trader.com>`__ — trading on all exchanges in one app. Avaliable on `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__ and `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__.
 
 Certified Cryptocurrency Exchanges
 ----------------------------------
@@ -65,7 +66,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 124 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -218,8 +219,6 @@ The ccxt library currently supports the following 124 cryptocurrency exchange ma
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `gateio <https://www.gate.io/signup/2436035>`__                                           | gateio             | `Gate.io <https://www.gate.io/signup/2436035>`__                                           | 2   | `API <https://gate.io/api2>`__                                                                  |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `gdax <https://www.gdax.com>`__                                                           | gdax               | `GDAX <https://www.gdax.com>`__                                                            | \*  | `API <https://docs.gdax.com>`__                                                                 |                                                                      |
-+-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `gemini <https://gemini.com/>`__                                                          | gemini             | `Gemini <https://gemini.com/>`__                                                           | 1   | `API <https://docs.gemini.com/rest-api>`__                                                      |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `hitbtc <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                     | hitbtc             | `HitBTC <https://hitbtc.com/?ref_id=5a5d39a65d466>`__                                      | 1   | `API <https://github.com/hitbtc-com/hitbtc-api/blob/master/APIv1.md>`__                         |                                                                      |
@@ -366,14 +365,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1241/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.1241/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1245/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.1245/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1241/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1245/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
