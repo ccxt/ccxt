@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, ArgumentsRequired, BadRequest, AuthenticationError, DDoSProtection } = require ('./base/errors');
-const { TRUNCATE, NO_PADDING, SIGNIFICANT_DIGITS } = require ('./base/functions/number');
+const { TRUNCATE, NO_PADDING, DECIMAL_PLACES } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ module.exports = class bytetrade extends Exchange {
             'urls': {
                 'test': 'https://api-v2-test.bytetrade.com',
                 'logo': 'https://user-images.githubusercontent.com/246404/60647143-9c28f880-9e6f-11e9-8b94-fbdd0d3f2c5d.png',
-                'api': 'https://api-v2.bytetrade.com',
+                'api': 'https://api-v2-test.bytetrade.com',
                 'www': 'https://www.bytetrade.com',
                 'referral': '',
                 'doc': 'https://github.com/Bytetrade/bytetrade-official-api-docs/wiki',
@@ -121,6 +121,7 @@ module.exports = class bytetrade extends Exchange {
                 code = this.commonCurrencies[id];
             } else {
                 code = this.safeString (currency, 'name');
+                code = code.toUpperCase ();
             }
             const name = this.safeString (currency, 'fullname');
             // in bytetrade.com DEX, request https://api-v2.bytetrade.com/currencies will return currencies,
@@ -252,7 +253,8 @@ module.exports = class bytetrade extends Exchange {
             };
             const active = this.safeString (market, 'active');
             const normalBase = base.split ('@')[0];
-            const normalSymbol = normalBase + '/' + quote;
+            const normalQuote = quote.split ('@')[0];
+            const normalSymbol = normalBase + '/' + normalQuote;
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -518,15 +520,13 @@ module.exports = class bytetrade extends Exchange {
         }
         const normalSymbol = market['normalSymbol'];
         const baseId = market['baseId'];
-        const baseCurrency = this.currencies_by_id[baseId];
-        const amountChainWithoutTruncate = this.toWei (amount, 'ether', baseCurrency['precision']['amount']);
-        const amountTruncate = baseCurrency['precision']['amount'] - market['precision']['amount'];
-        const amountChain = this.decimalToPrecision (amountChainWithoutTruncate, TRUNCATE, amountTruncate, SIGNIFICANT_DIGITS, NO_PADDING);
+        const baseCurrency = this.currency (market['base']);
+        const amountTruncated = this.amountToPrecision (symbol, amount);
+        const amountChain = this.toWei (amountTruncated, 'ether', baseCurrency['precision']['amount']);
         const quoteId = market['quoteId'];
-        const quoteCurrency = this.currencies_by_id[quoteId];
-        const priceChainWithoutTruncate = this.toWei (price, 'ether', quoteCurrency['precision']['amount']);
-        const priceTruncate = quoteCurrency['precision']['amount'] - market['precision']['price'];
-        const priceChain = this.decimalToPrecision (priceChainWithoutTruncate, TRUNCATE, priceTruncate, SIGNIFICANT_DIGITS, NO_PADDING);
+        const quoteCurrency = this.currency (market['quote']);
+        const priceRounded = this.priceToPrecision (symbol, price);
+        const priceChain = this.toWei (priceRounded, 'ether', quoteCurrency['precision']['amount']);
         const now = this.milliseconds ();
         const expiration = this.milliseconds ();
         let datetime = this.iso8601 (now);
@@ -827,10 +827,9 @@ module.exports = class bytetrade extends Exchange {
             throw new ArgumentsRequired ('transfer requires this.apiKey');
         }
         await this.loadMarkets ();
-        const currency = this.currencies[code];
-        const amountChainWithoutTruncate = this.toWei (amount, 'ether', currency['precision']['amount']);
-        const amountTruncate = currency['precision']['amount'] - currency['info']['transferPrecision'];
-        const amountChain = this.decimalToPrecision (amountChainWithoutTruncate, TRUNCATE, amountTruncate, SIGNIFICANT_DIGITS, NO_PADDING);
+        const currency = this.currency (code);
+        const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
+        const amountChain = this.toWei (amountTruncate, 'ether', currency['precision']['amount']);
         const assetType = parseInt (currency['id']);
         const now = this.milliseconds ();
         const expiration = now;
@@ -1114,7 +1113,8 @@ module.exports = class bytetrade extends Exchange {
         const feeAmount = '300000000000000';
         const currency = this.currency (code);
         const coinId = currency['id'];
-        const amountChain = this.toWei (amount, 'ether', currency['info']['externalPrecision']);
+        const amountTruncate = this.decimalToPrecision (amount, TRUNCATE, currency['info']['transferPrecision'], DECIMAL_PLACES, NO_PADDING);
+        const amountChain = this.toWei (amountTruncate, 'ether', currency['precision']['amount']);
         const eightBytes = this.pow ('2', '64');
         const byteStringArray = [
             this.numberToBE (1, 32),
