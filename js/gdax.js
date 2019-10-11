@@ -7,11 +7,11 @@ const { InsufficientFunds, ArgumentsRequired, ExchangeError, InvalidOrder, Inval
 
 // ----------------------------------------------------------------------------
 
-module.exports = class gdax extends Exchange {
+module.exports = class coinbasepro extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
-            'id': 'gdax',
-            'name': 'GDAX',
+            'id': 'coinbasepro',
+            'name': 'Coinbase Pro',
             'countries': [ 'US' ],
             'rateLimit': 1000,
             'userAgent': this.userAgents['chrome'],
@@ -42,14 +42,14 @@ module.exports = class gdax extends Exchange {
                 '1d': 86400,
             },
             'urls': {
-                'test': 'https://api-public.sandbox.gdax.com',
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766527-b1be41c6-5edb-11e7-95f6-5b496c469e2c.jpg',
-                'api': 'https://api.gdax.com',
-                'www': 'https://www.gdax.com',
-                'doc': 'https://docs.gdax.com',
+                'test': 'https://api-public.sandbox.pro.coinbase.com',
+                'logo': 'https://user-images.githubusercontent.com/1294454/41764625-63b7ffde-760a-11e8-996d-a6328fa9347a.jpg',
+                'api': 'https://api.pro.coinbase.com',
+                'www': 'https://pro.coinbase.com/',
+                'doc': 'https://docs.pro.coinbase.com/',
                 'fees': [
-                    'https://www.gdax.com/fees',
-                    'https://support.gdax.com/customer/en/portal/topics/939402-depositing-and-withdrawing-funds/articles',
+                    'https://docs.pro.coinbase.com/#fees',
+                    'https://support.pro.coinbase.com/customer/en/portal/articles/2945310-fees',
                 ],
             },
             'requiredCredentials': {
@@ -333,7 +333,7 @@ module.exports = class gdax extends Exchange {
         const id = this.safeString (trade, 'trade_id');
         let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         const orderId = this.safeString (trade, 'order_id');
-        // GDAX returns inverted side to fetchMyTrades vs fetchTrades
+        // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         if (orderId !== undefined) {
             side = (trade['side'] === 'buy') ? 'buy' : 'sell';
         }
@@ -613,7 +613,7 @@ module.exports = class gdax extends Exchange {
             // deposit from a payment_method, like a bank account
             method += 'PaymentMethod';
         } else if ('coinbase_account_id' in params) {
-            // deposit into GDAX account from a Coinbase account
+            // deposit into Coinbase Pro account from a Coinbase account
             method += 'CoinbaseAccount';
         } else {
             // deposit methodotherwise we did not receive a supported deposit location
