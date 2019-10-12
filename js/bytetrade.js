@@ -121,7 +121,6 @@ module.exports = class bytetrade extends Exchange {
                 code = this.commonCurrencies[id];
             } else {
                 code = this.safeString (currency, 'name');
-                code = code.toUpperCase ();
             }
             const name = this.safeString (currency, 'fullname');
             // in bytetrade.com DEX, request https://api-v2.bytetrade.com/currencies will return currencies,
