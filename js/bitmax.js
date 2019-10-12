@@ -116,20 +116,9 @@ module.exports = class bitmax extends Exchange {
             },
             'options': {
                 'accountGroup': -1,
-                'fetchTradesMethod': 'publicGetAggTrades',
-                'fetchTickersMethod': 'publicGetTicker24hr',
-                'defaultTimeInForce': 'GTC',
-                'defaultLimitOrderType': 'limit',
-                'hasAlreadyAuthenticatedSuccessfully': false,
-                'warnOnFetchOpenOrdersWithoutSymbol': true,
-                'recvWindow': 5 * 1000,
                 'timeDifference': 0,
                 'adjustForTimeDifference': false,
                 'parseOrderToPrecision': false,
-                'newOrderRespType': {
-                    'market': 'FULL',
-                    'limit': 'RESULT',
-                },
             },
             'exceptions': {},
         });
