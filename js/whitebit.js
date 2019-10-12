@@ -125,6 +125,25 @@ module.exports = class whitebit extends Exchange {
 
     async fetchMarkets (params = {}) {
         const response = await this.publicV2GetMarkets (params);
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result":[
+        //             {
+        //                 "name":"BTC_USD",
+        //                 "moneyPrec":"2",
+        //                 "stock":"BTC",
+        //                 "money":"USD",
+        //                 "stockPrec":"6",
+        //                 "feePrec":"4",
+        //                 "minAmount":"0.001",
+        //                 "tradesEnabled":true,
+        //                 "minTotal":"0.001"
+        //             }
+        //         ]
+        //     }
+        //
         const markets = this.safeValue (response, 'result');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
