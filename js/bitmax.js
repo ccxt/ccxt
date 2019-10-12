@@ -18,9 +18,7 @@ module.exports = class bitmax extends Exchange {
             'certified': false,
             // new metainfo interface
             'has': {
-                'fetchDepositAddress': true,
                 'CORS': false,
-                'fetchBidsAsks': false,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': false,
@@ -30,11 +28,8 @@ module.exports = class bitmax extends Exchange {
                 'fetchClosedOrders': true,
                 'withdraw': false,
                 'fetchFundingFees': false,
-                'fetchDeposits': false,
-                'fetchWithdrawals': false,
                 'fetchTransactions': false,
                 'fetchCurrencies': true,
-                'fetchStatus': false,
             },
             'timeframes': {
                 '1m': '1',
