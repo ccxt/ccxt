@@ -54,10 +54,7 @@ module.exports = class bitmax extends Exchange {
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/12462602/60425376-f41fef00-9c24-11e9-899b-e3af164ff9e2.png',
-                'api': {
-                    'public': 'https://bitmax.io/api/v1',
-                    'private': 'https://bitmax.io/api/v1',
-                },
+                'api': 'https://bitmax.io/api/v1',
                 'www': 'https://bitmax.io',
                 'referral': 'https://bitmax.io/#/register?inviteCode=0PPRJOQ2',
                 'doc': [
@@ -534,7 +531,7 @@ module.exports = class bitmax extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
+        let url = this.urls['api'];
         // fix sign params
         if (this.options['accountGroup'] !== -1 && api === 'private') {
             url = url.replace ('/api/', '/' + this.number_to_string (this.options['accountGroup']) + '/api/');
