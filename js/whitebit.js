@@ -33,7 +33,6 @@ module.exports = class whitebit extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchFundingFees': false,
-                'fetchL2OrderBook': false,
                 'fetchLedger': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': false,
