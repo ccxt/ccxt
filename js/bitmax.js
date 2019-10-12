@@ -312,12 +312,26 @@ module.exports = class bitmax extends Exchange {
             request['n'] = limit; // default = maximum = 100
         }
         const response = await this.publicGetDepth (this.extend (request, params));
-        const orderbook = this.parseOrderBook (response);
+        //
+        //     {
+        //         "m":"depth",
+        //         "ts":1570866464777,
+        //         "seqnum":5124140078,
+        //         "s":"ETH/USDT",
+        //         "asks":[
+        //             ["183.57","5.92"],
+        //             ["183.6","10.185"]
+        //         ],
+        //         "bids":[
+        //             ["183.54","0.16"],
+        //             ["183.53","10.8"],
+        //         ]
+        //     }
+        //
         const timestamp = this.safeInteger (response, 'ts');
-        orderbook['nonce'] = timestamp;
-        orderbook['timestamp'] = timestamp;
-        orderbook['datetime'] = this.iso8601 (timestamp);
-        return orderbook;
+        const result = this.parseOrderBook (response, timestamp);
+        result['nonce'] = this.safeInteger (response, 'seqnum');
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
