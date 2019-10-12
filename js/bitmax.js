@@ -335,8 +335,32 @@ module.exports = class bitmax extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "symbol":"BCH/USDT",
+        //         "interval":"1d",
+        //         "barStartTime":1570866600000,
+        //         "openPrice":"225.16",
+        //         "closePrice":"224.05",
+        //         "highPrice":"226.08",
+        //         "lowPrice":"218.92",
+        //         "volume":"8607.036"
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'barStartTime');
-        const symbol = this.findSymbol (this.safeString (ticker, 'symbol'), market);
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'symbol');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        } else if (marketId !== undefined) {
+            const [ baseId, quoteId ] = marketId.split ('/');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            symbol = base + '/' + quote;
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
         const last = this.safeFloat (ticker, 'closePrice');
         return {
             'symbol': symbol,
@@ -344,20 +368,20 @@ module.exports = class bitmax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'highPrice'),
             'low': this.safeFloat (ticker, 'lowPrice'),
-            'bid': this.safeFloat (ticker, 'bidPrice'),
-            'bidVolume': this.safeFloat (ticker, 'bidQty'),
-            'ask': this.safeFloat (ticker, 'askPrice'),
-            'askVolume': this.safeFloat (ticker, 'askQty'),
-            'vwap': this.safeFloat (ticker, 'weightedAvgPrice'),
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
             'open': this.safeFloat (ticker, 'openPrice'),
             'close': last,
             'last': last,
-            'previousClose': this.safeFloat (ticker, 'prevClosePrice'), // previous day close
-            'change': this.safeFloat (ticker, 'priceChange'),
-            'percentage': this.safeFloat (ticker, 'priceChangePercent'),
+            'previousClose': undefined, // previous day close
+            'change': undefined,
+            'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeFloat (ticker, 'volume'),
-            'quoteVolume': this.safeFloat (ticker, 'quoteVolume'),
+            'quoteVolume': undefined,
             'info': ticker,
         };
     }
@@ -382,9 +406,7 @@ module.exports = class bitmax extends Exchange {
 
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const request = {
-        };
-        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        const response = await this.publicGetTicker24hr (params);
         return this.parseTickers (response, symbols);
     }
 
