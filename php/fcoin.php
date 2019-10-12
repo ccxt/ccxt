@@ -479,7 +479,7 @@ class fcoin extends Exchange {
             'side' => $side,
             'type' => $orderType,
         );
-        if ($type === 'limit') {
+        if (($type === 'limit') || ($type === 'ioc') || ($type === 'fok')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->privatePostOrders (array_merge ($request, $params));
