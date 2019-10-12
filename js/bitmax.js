@@ -87,12 +87,18 @@ module.exports = class bitmax extends Exchange {
                         'order/history',
                         'order/{coid}',
                         'transaction',
+                        'margin/ref-price',
+                        'margin/balance',
+                        'margin/order/open',
+                        'margin/order',
                     ],
                     'post': [
+                        'margin/order',
                         'order',
                         'order/batch',
                     ],
                     'delete': [
+                        'margin/order',
                         'order',
                         'order/all',
                         'order/batch',
