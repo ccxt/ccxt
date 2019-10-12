@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, AuthenticationError, ExchangeError } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError, InsufficientFunds } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -121,7 +121,8 @@ module.exports = class bitmax extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    '2100': AuthenticationError, //  {"code":2100,"message":"ApiKeyFailure"}
+                    '2100': AuthenticationError, // {"code":2100,"message":"ApiKeyFailure"}
+                    '6010': InsufficientFunds, // {'code': 6010, 'message': 'Not enough balance.'}
                 },
                 'broad': {},
             },
@@ -775,6 +776,7 @@ module.exports = class bitmax extends Exchange {
         }
         //
         //     {"code":2100,"message":"ApiKeyFailure"}
+        //     {'code': 6010, 'message': 'Not enough balance.'}
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
