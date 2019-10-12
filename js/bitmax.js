@@ -57,7 +57,6 @@ module.exports = class bitmax extends Exchange {
                 'api': 'https://bitmax.io/api',
                 'test': 'https://bitmax-test.io/api',
                 'www': 'https://bitmax.io',
-                'referral': 'https://bitmax.io/#/register?inviteCode=0PPRJOQ2',
                 'doc': [
                     'https://github.com/bitmax-exchange/api-doc/blob/master/bitmax-api-doc-v1.2.md',
                 ],
@@ -584,18 +583,12 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         await this.loadAccountGroup ();
         const market = this.market (symbol);
-        const test = this.safeValue (params, 'test', false);
-        if (test) {
-            params = this.omit (params, 'test');
-        }
-        price = this.priceToPrecision (symbol, price);
-        amount = this.amountToPrecision (symbol, amount);
         const request = {
             'coid': this.coid (),
             'time': this.nonce (),
             'symbol': market['id'],
-            'orderPrice': this.number_to_string (price),
-            'orderQty': this.number_to_string (amount),
+            'orderPrice': this.priceToPrecision (symbol, price),
+            'orderQty': this.amountToPrecision (symbol, amount),
             'orderType': type,
             'side': side,
         };
