@@ -163,7 +163,7 @@ module.exports = class bitmax extends Exchange {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'type': currency['CoinType'],
+                'type': undefined,
                 'name': this.safeString (currency, 'assetName'),
                 'active': active,
                 'fee': fee,
