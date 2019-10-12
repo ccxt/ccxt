@@ -33,7 +33,7 @@ module.exports = class bitmax extends Exchange {
                 'fetchDeposits': false,
                 'fetchWithdrawals': false,
                 'fetchTransactions': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchStatus': false,
             },
             'timeframes': {
@@ -132,8 +132,67 @@ module.exports = class bitmax extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
+    async fetchCurrencies (params = {}) {
+        const response = await this.publicGetAssets (params);
+        //
+        //     [
+        //         {
+        //           "assetCode" : "LTO",
+        //           "assetName" : "LTO",
+        //           "precisionScale" : 9,
+        //           "nativeScale" : 3,
+        //           "withdrawalFee" : 5.0,
+        //           "minWithdrawalAmt" : 10.0,
+        //           "status" : "Normal"
+        //         },
+        //     ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const currency = response[i];
+            const id = this.safeString (currency, 'assetCode');
+            // todo: will need to rethink the fees
+            // to add support for multiple withdrawal/deposit methods and
+            // differentiated fees for each particular method
+            const code = this.safeCurrencyCode (id);
+            const precision = this.safeInteger (currency, 'precisionScale');
+            const fee = this.safeFloat (currency, 'withdrawalFee'); // todo: redesign
+            const status = this.safeString (currency, 'status');
+            const active = (status === 'Normal');
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'type': currency['CoinType'],
+                'name': this.safeString (currency, 'assetName'),
+                'active': active,
+                'fee': fee,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': Math.pow (10, -precision),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': Math.pow (10, -precision),
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeFloat (currency, 'minWithdrawalAmt'),
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}) {
-        const markets = await this.publicGetProducts (params);
+        const response = await this.publicGetProducts (params);
         //
         //     [
         //         {
@@ -157,8 +216,8 @@ module.exports = class bitmax extends Exchange {
         //     ]
         //
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseAsset');
             const quoteId = this.safeString (market, 'quoteAsset');
