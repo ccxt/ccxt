@@ -379,20 +379,20 @@ declare module 'ccxt' {
         // methods
         account (): Balance;
         cancelAllOrders (...args: any): Promise<any>; // TODO: add function signatures
-        cancelOrder (id: string, symbol?: string, params?: Params): Promise<any>;
+        cancelOrder (id: string, symbol?: string, params?: Params): Promise<Order>;
         cancelOrders (...args: any): Promise<any>; // TODO: add function signatures
         checkRequiredCredentials (): void;
         commonCurrencyCode (currency: string): string;
         createDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
-        createLimitOrder (...args: any): Promise<any>; // TODO: add function signatures
-        createMarketOrder (...args: any): Promise<any>; // TODO: add function signatures
-        createOrder (symbol: string, type: 'market'|'limit', side: 'buy'|'sell', amount: number, price?: number, params?: Params): Promise<any>;
+        createLimitOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
+        createMarketOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
+        createOrder (symbol: string, type: Order['type'], side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
         decode (str: string): string;
         defaults (): any;
         defineRestApi (api: any, methodName: any, options?: Dictionary<any>): void;
         deposit (...args: any): Promise<any>; // TODO: add function signatures
         describe (): any;
-        editOrder (...args: any): Promise<any>; // TODO: add function signatures
+        editOrder (id: string, symbol: string, type: Order['type'], side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
         encode (str: string): string;
         encodeURIComponent (...args: any[]): string;
         extractParams (str: string): string[];
@@ -400,7 +400,7 @@ declare module 'ccxt' {
         fetch2 (path: any, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
         fetchBalance (params?: Params): Promise<Balances>;
         fetchBidsAsks (symbols?: string[], params?: Params): Promise<any>;
-        fetchClosedOrders (...args: any): Promise<any>; // TODO: add function signatures
+        fetchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         fetchCurrencies (params?: Params): Promise<Dictionary<Currency>>;
         fetchDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
         fetchDeposits (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
