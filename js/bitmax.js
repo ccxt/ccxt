@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired } = require ('./base/errors');
+const { ArgumentsRequired, AuthenticationError, ExchangeError } = require ('./base/errors');
 const { ROUND } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
@@ -119,7 +119,12 @@ module.exports = class bitmax extends Exchange {
                 'adjustForTimeDifference': false,
                 'parseOrderToPrecision': false,
             },
-            'exceptions': {},
+            'exceptions': {
+                'exact': {
+                    '2100': AuthenticationError, //  {"code":2100,"message":"ApiKeyFailure"}
+                },
+                'broad': {},
+            },
         });
     }
 
@@ -762,5 +767,32 @@ module.exports = class bitmax extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to default error handler
+        }
+        //
+        //     {"code":2100,"message":"ApiKeyFailure"}
+        //
+        const code = this.safeString (response, 'code');
+        const message = this.safeString (response, 'message');
+        if ((code !== undefined) || (message !== undefined)) {
+            const feedback = this.id + ' ' + body;
+            const exact = this.exceptions['exact'];
+            if (code in exact) {
+                throw new exact[code] (feedback);
+            }
+            if (message in exact) {
+                throw new exact[message] (feedback);
+            }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, message);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
+            throw new ExchangeError (feedback); // unknown message
+        }
     }
 };
