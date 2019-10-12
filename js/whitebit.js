@@ -190,20 +190,42 @@ module.exports = class whitebit extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicV2GetAssets (params);
-        const data = this.safeValue (response, 'result');
-        const ids = Object.keys (data);
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result":{
+        //             "BTC":{
+        //                 "id":"4f37bc79-f612-4a63-9a81-d37f7f9ff622",
+        //                 "lastUpdateTimestamp":"2019-10-12T04:40:05.000Z",
+        //                 "name":"Bitcoin",
+        //                 "canWithdraw":true,
+        //                 "canDeposit":true,
+        //                 "minWithdrawal":"0.001",
+        //                 "maxWithdrawal":"0",
+        //                 "makerFee":"0.1",
+        //                 "takerFee":"0.1"
+        //             }
+        //         }
+        //     }
+        //
+        const currencies = this.safeValue (response, 'result');
+        const ids = Object.keys (currencies);
         const result = {};
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const currency = data[id];
+            const currency = currencies[id];
             const name = this.safeString (currency, 'name');
+            const canDeposit = this.safeValue (currency, 'canDeposit', true);
+            const canWithdraw = this.safeValue (currency, 'canWithdraw', true);
+            const active = canDeposit && canWithdraw;
             const code = this.safeCurrencyCode (id);
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency, // the original payload
                 'name': name,
-                'active': true,
+                'active': active,
                 'fee': undefined,
                 'precision': undefined,
                 'limits': {
