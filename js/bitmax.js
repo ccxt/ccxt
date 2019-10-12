@@ -133,8 +133,29 @@ module.exports = class bitmax extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const response = await this.publicGetProducts (params);
-        const markets = response;
+        const markets = await this.publicGetProducts (params);
+        //
+        //     [
+        //         {
+        //             "symbol" : "BCH/USDT",
+        //             "domain" : "USDS",
+        //             "baseAsset" : "BCH",
+        //             "quoteAsset" : "USDT",
+        //             "priceScale" : 2,
+        //             "qtyScale" : 3,
+        //             "notionalScale" : 9,
+        //             "minQty" : "0.000000001",
+        //             "maxQty" : "1000000000",
+        //             "minNotional" : "5",
+        //             "maxNotional" : "200000",
+        //             "status" : "Normal",
+        //             "miningStatus" : "",
+        //             "marginTradable" : true,
+        //             "commissionType" : "Quote",
+        //             "commissionReserveRate" : 0.0010000000
+        //         },
+        //     ]
+        //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -162,16 +183,16 @@ module.exports = class bitmax extends Exchange {
                 'precision': precision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -precision['amount']),
-                        'max': undefined,
+                        'min': this.safeFloat (market, 'minQty'),
+                        'max': this.safeFloat (market, 'maxQty'),
                     },
                     'price': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeFloat (market, 'minNotional'),
+                        'max': this.safeFloat (market, 'maxNotional'),
                     },
                 },
             };
