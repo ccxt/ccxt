@@ -15,7 +15,7 @@ module.exports = class bitmax extends Exchange {
             'name': 'BitMax',
             'countries': [ 'CN' ], // China
             'rateLimit': 500,
-            'certified': true,
+            'certified': false,
             // new metainfo interface
             'has': {
                 'fetchDepositAddress': true,
