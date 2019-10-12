@@ -75,6 +75,7 @@ module.exports = class bitmax extends Exchange {
                         'ticker/24hr',
                         'barhist',
                         'barhist/info',
+                        'margin/ref-price',
                     ],
                 },
                 'private': {
@@ -87,7 +88,6 @@ module.exports = class bitmax extends Exchange {
                         'order/history',
                         'order/{coid}',
                         'transaction',
-                        'margin/ref-price',
                         'margin/balance',
                         'margin/order/open',
                         'margin/order',
