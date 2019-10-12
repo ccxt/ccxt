@@ -132,20 +132,14 @@ module.exports = class bitmax extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
-            // "123456" is a "test symbol/market"
-            if (id === '123456') {
-                continue;
-            }
-            const baseId = market['baseAsset'];
-            const quoteId = market['quoteAsset'];
-            const base = this.commonCurrencyCode (baseId);
-            const quote = this.commonCurrencyCode (quoteId);
+            const baseId = this.safeString (market, 'baseAsset');
+            const quoteId = this.safeString (market, 'quoteAsset');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'base': market['qtyScale'],
-                'quote': market['qtyScale'],
-                'amount': market['qtyScale'],
-                'price': market['notionalScale'],
+                'amount': this.safeInteger (market, 'qtyScale'),
+                'price': this.safeInteger (market, 'notionalScale'),
             };
             const status = this.safeString (market, 'status');
             const active = (status === 'Normal');
