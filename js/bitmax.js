@@ -461,11 +461,24 @@ module.exports = class bitmax extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        // public fetchTrades
+        //
+        //     {
+        //         "p":  "13.75",         // price
+        //         "q":  "6.68",          // quantity
+        //         "t":  1528988084944,   // timestamp
+        //         "bm": False            // if true, the buyer is the market maker
+        //     }
+        //
         const timestamp = this.safeInteger (trade, 't');
         const price = this.safeFloat (trade, 'p');
         const amount = this.safeFloat (trade, 'q');
         const takerOrMaker = trade['bm'] ? 'maker' : 'taker';
-        const symbol = market['symbol'];
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -490,9 +503,23 @@ module.exports = class bitmax extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['n'] = limit; // default = 500, maximum = 1000
+            request['n'] = limit; // currently limited to 100 or fewer
         }
         const response = await this.publicGetTrades (this.extend (request, params));
+        //
+        //     {
+        //         "m": "marketTrades",       // message type
+        //         "s": "ETH/BTC",            // symbol
+        //         "trades": [
+        //             {
+        //                 "p":  "13.75",         // price
+        //                 "q":  "6.68",          // quantity
+        //                 "t":  1528988084944,   // timestamp
+        //                 "bm": False            // if true, the buyer is the market maker
+        //             },
+        //         ]
+        //     }
+        //
         const trades = this.safeValue (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
