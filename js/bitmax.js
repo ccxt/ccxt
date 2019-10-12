@@ -55,6 +55,7 @@ module.exports = class bitmax extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/12462602/60425376-f41fef00-9c24-11e9-899b-e3af164ff9e2.png',
                 'api': 'https://bitmax.io/api',
+                'test': 'https://bitmax-test.io/api',
                 'www': 'https://bitmax.io',
                 'referral': 'https://bitmax.io/#/register?inviteCode=0PPRJOQ2',
                 'doc': [
