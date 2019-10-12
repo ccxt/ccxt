@@ -12,8 +12,8 @@ module.exports = class bitmax extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'bitmax',
-            'name': 'bitmax',
-            'countries': [ 'CN' ], // Japan, Malta
+            'name': 'BitMax',
+            'countries': [ 'CN' ], // China
             'rateLimit': 500,
             'certified': true,
             // new metainfo interface
@@ -51,6 +51,7 @@ module.exports = class bitmax extends Exchange {
                 '1w': '1w',
                 '1M': '1m',
             },
+            'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/12462602/60425376-f41fef00-9c24-11e9-899b-e3af164ff9e2.png',
                 'api': {
