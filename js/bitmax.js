@@ -37,16 +37,16 @@ module.exports = class bitmax extends Exchange {
                 'fetchStatus': false,
             },
             'timeframes': {
-                '1m': 1,
-                '3m': 3,
-                '5m': 5,
-                '15m': 15,
-                '30m': 30,
-                '1h': 60,
-                '2h': 120,
-                '4h': 240,
-                '6h': 360,
-                '12h': 720,
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '2h': '120',
+                '4h': '240',
+                '6h': '360',
+                '12h': '720',
                 '1d': '1d',
                 '1w': '1w',
                 '1M': '1m',
@@ -411,14 +411,30 @@ module.exports = class bitmax extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
-        // this exchange return data is wrong, sometimes open > high
+        //
+        //     [
+        //         {
+        //             "m":"bar",
+        //             "s":"ETH/BTC",
+        //             "ba":"ETH",
+        //             "qa":"BTC",
+        //             "i":"1",
+        //             "t":1570867020000,
+        //             "o":"0.022023",
+        //             "c":"0.022018",
+        //             "h":"0.022023",
+        //             "l":"0.022018",
+        //             "v":"2.510",
+        //         }
+        //     ]
+        //
         return [
-            ohlcv['t'],
-            parseFloat (ohlcv['o']),
-            parseFloat (ohlcv['h']),
-            parseFloat (ohlcv['l']),
-            parseFloat (ohlcv['c']),
-            parseFloat (ohlcv['v']),
+            this.safeInteger (ohlcv, 't'),
+            this.safeFloat (ohlcv, 'o'),
+            this.safeFloat (ohlcv, 'h'),
+            this.safeFloat (ohlcv, 'l'),
+            this.safeFloat (ohlcv, 'c'),
+            this.safeFloat (ohlcv, 'v'),
         ];
     }
 
@@ -429,9 +445,18 @@ module.exports = class bitmax extends Exchange {
             'symbol': market['symbol'],
             'interval': this.timeframes[timeframe],
         };
-        const now = this.nonce ();
-        request['from'] = now - this.timeframes[timeframe] * 60 * 1000 * 500;
-        request['to'] = now;
+        // if since and limit are not specified
+        // the exchange will return just 1 last candle by default
+        const duration = this.parseTimeframe (timeframe);
+        if (since !== undefined) {
+            request['from'] = since;
+            if (limit !== undefined) {
+                request['to'] = this.sum (request['from'], limit * duration * 1000, 1);
+            }
+        } else if (limit !== undefined) {
+            request['to'] = this.milliseconds ();
+            request['from'] = request['to'] - limit * duration * 1000 - 1;
+        }
         const response = await this.publicGetBarhist (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
