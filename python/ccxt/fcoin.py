@@ -461,7 +461,7 @@ class fcoin (Exchange):
             'side': side,
             'type': orderType,
         }
-        if type == 'limit':
+        if (type == 'limit') or (type == 'ioc') or (type == 'fok'):
             request['price'] = self.price_to_precision(symbol, price)
         response = self.privatePostOrders(self.extend(request, params))
         return {

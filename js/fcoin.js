@@ -478,7 +478,7 @@ module.exports = class fcoin extends Exchange {
             'side': side,
             'type': orderType,
         };
-        if (type === 'limit') {
+        if ((type === 'limit') || (type === 'ioc') || (type === 'fok')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
