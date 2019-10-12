@@ -278,9 +278,13 @@ module.exports = class bitmax extends Exchange {
 
     async loadAccountGroup () {
         if (this.options['accountGroup'] === -1) {
-            const res = await this.privateGetUserInfo ();
-            const group = this.safeInteger (res, 'accountGroup', -1);
-            this.options['accountGroup'] = group;
+            const response = await this.privateGetUserInfo ();
+            //
+            //     {
+            //         "accountGroup": 5
+            //     }
+            //
+            this.options['accountGroup'] = this.safeInteger (response, 'accountGroup', -1);
         }
     }
 
@@ -288,14 +292,33 @@ module.exports = class bitmax extends Exchange {
         await this.loadMarkets ();
         await this.loadAccountGroup ();
         const response = await this.privateGetBalance (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "status": "success",     // this field will be deprecated soon
+        //         "email": "foo@bar.com",  // this field will be deprecated soon
+        //         "data": [
+        //             {
+        //                 "assetCode":       "TSC",
+        //                 "assetName":       "Ethereum",
+        //                 "totalAmount":     "20.03",    // total balance amount
+        //                 "availableAmount": "20.03",    // balance amount available to trade
+        //                 "inOrderAmount":   "0.000",    // in order amount
+        //                 "btcValue":        "70.81"     // the current BTC value of the balance
+        //                                                 // ("btcValue" might not be available when price is missing)
+        //             },
+        //         ]
+        //     }
+        //
         const result = { 'info': response };
         const balances = this.safeValue (response, 'data', []);
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
-            const code = balance['assetCode'];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'assetCode'));
             const account = this.account ();
             account['free'] = this.safeFloat (balance, 'availableAmount');
             account['used'] = this.safeFloat (balance, 'inOrderAmount');
+            account['total'] = this.safeFloat (balance, 'totalAmount');
             result[code] = account;
         }
         return this.parseBalance (result);
