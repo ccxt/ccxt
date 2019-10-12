@@ -65,11 +65,16 @@ module.exports = class bitmax extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'assets',
+                        'depth',
+                        'fees',
+                        'quote',
                         'depth',
                         'trades',
                         'products',
                         'ticker/24hr',
                         'barhist',
+                        'barhist/info',
                     ],
                 },
                 'private': {
