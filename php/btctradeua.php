@@ -52,7 +52,7 @@ class btctradeua extends Exchange {
             ),
             'markets' => array (
                 'BCH/UAH' => array( 'id' => 'bch_uah', 'symbol' => 'BCH/UAH', 'base' => 'BCH', 'quote' => 'UAH', 'baseId' => 'bch', 'quoteId' => 'uah' ),
-                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array ( 'price' => 1 ), 'limits' => array( 'amount' => array ( 'min' => 0.0000000001 ))),
+                'BTC/UAH' => array( 'id' => 'btc_uah', 'symbol' => 'BTC/UAH', 'base' => 'BTC', 'quote' => 'UAH', 'baseId' => 'btc', 'quoteId' => 'uah', 'precision' => array( 'price' => 1 ), 'limits' => array( 'amount' => array( 'min' => 0.0000000001 ))),
                 'DASH/BTC' => array( 'id' => 'dash_btc', 'symbol' => 'DASH/BTC', 'base' => 'DASH', 'quote' => 'BTC', 'baseId' => 'dash', 'quoteId' => 'btc' ),
                 'DASH/UAH' => array( 'id' => 'dash_uah', 'symbol' => 'DASH/UAH', 'base' => 'DASH', 'quote' => 'UAH', 'baseId' => 'dash', 'quoteId' => 'uah' ),
                 'DOGE/BTC' => array( 'id' => 'doge_btc', 'symbol' => 'DOGE/BTC', 'base' => 'DOGE', 'quote' => 'BTC', 'baseId' => 'doge', 'quoteId' => 'btc' ),

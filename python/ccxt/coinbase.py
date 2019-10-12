@@ -44,6 +44,7 @@ class coinbase (Exchange):
                 'fetchOrders': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
+                'fetchTime': True,
                 'fetchBidsAsks': False,
                 'fetchTrades': False,
                 'withdraw': False,
@@ -223,7 +224,7 @@ class coinbase (Exchange):
         accountId = self.safe_string(params, 'account_id')
         params = self.omit(params, 'account_id')
         if accountId is None:
-            self.loadAccounts()
+            self.load_accounts()
             for i in range(0, len(self.accounts)):
                 account = self.accounts[i]
                 if account['code'] == code and account['type'] == 'wallet':
@@ -302,7 +303,7 @@ class coinbase (Exchange):
         self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         response = getattr(self, method)(self.extend(request, query))
-        return self.parseTransactions(response['data'], None, since, limit)
+        return self.parse_transactions(response['data'], None, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         # fiat only, for crypto transactions use fetchLedger
@@ -458,7 +459,7 @@ class coinbase (Exchange):
         if market is None:
             baseId = self.safe_string(totalObject, 'currency')
             quoteId = self.safe_string(amountObject, 'currency')
-            if (baseId is not None) and(quoteId is not None):
+            if (baseId is not None) and (quoteId is not None):
                 base = self.safe_currency_code(baseId)
                 quote = self.safe_currency_code(quoteId)
                 symbol = base + '/' + quote
@@ -935,7 +936,7 @@ class coinbase (Exchange):
 
     def find_account_id(self, code):
         self.load_markets()
-        self.loadAccounts()
+        self.load_accounts()
         for i in range(0, len(self.accounts)):
             account = self.accounts[i]
             if account['code'] == code:

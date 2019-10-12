@@ -165,11 +165,15 @@ module.exports = class coinex extends Exchange {
             const key = keys[i];
             const market = markets[key];
             const id = this.safeString (market, 'name');
-            const baseId = this.safeString (market, 'trading_name');
+            const tradingName = this.safeString (market, 'trading_name');
+            const baseId = tradingName;
             const quoteId = this.safeString (market, 'pricing_name');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
+            let symbol = base + '/' + quote;
+            if (tradingName === id) {
+                symbol = id;
+            }
             const precision = {
                 'amount': this.safeInteger (market, 'trading_decimal'),
                 'price': this.safeInteger (market, 'pricing_decimal'),
@@ -889,7 +893,8 @@ module.exports = class coinex extends Exchange {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
-        if (code !== '0' || !data) {
+        const message = this.safeString (response, 'message');
+        if ((code !== '0') || (data === undefined) || ((message !== 'Ok') && !data)) {
             const responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,

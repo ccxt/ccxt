@@ -30,6 +30,7 @@ class idex (Exchange):
                 'fetchBalance': True,
                 'createOrder': True,
                 'cancelOrder': True,
+                'fetchOpenOrders': True,
                 'fetchTransactions': True,
                 'fetchTrades': False,
                 'fetchMyTrades': True,
@@ -54,7 +55,7 @@ class idex (Exchange):
                 'api': 'https://api.idex.market',
                 'www': 'https://idex.market',
                 'doc': [
-                    'https://github.com/AuroraDAO/idex-api-docs',
+                    'https://docs.idex.market/',
                 ],
             },
             'api': {
@@ -345,14 +346,15 @@ class idex (Exchange):
         for i in range(0, len(keys)):
             currency = keys[i]
             balance = response[currency]
-            result[currency] = {
+            code = self.safe_currency_code(currency)
+            result[code] = {
                 'free': self.safe_float(balance, 'available'),
                 'used': self.safe_float(balance, 'onOrders'),
             }
         return self.parse_balance(result)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
-        self.check_required_credentials()
+        self.check_required_dependencies()
         await self.load_markets()
         market = self.market(symbol)
         if type == 'limit':
@@ -478,7 +480,6 @@ class idex (Exchange):
         return self.options['contractAddress']
 
     async def cancel_order(self, orderId, symbol=None, params={}):
-        self.check_required_credentials()
         nonce = await self.get_nonce()
         orderToHash = {
             'orderHash': orderId,
@@ -530,8 +531,8 @@ class idex (Exchange):
         #         '0xab555fc301779dd92fd41ccd143b1d72776ae7b5acfc59ca44a1d376f68fda15',
         #        withdrawalNumber: 1444070,
         #        status: 'COMPLETE'}]}
-        deposits = self.parseTransactions(response['deposits'], currency, since, limit)
-        withdrawals = self.parseTransactions(response['withdrawals'], currency, since, limit)
+        deposits = self.parse_transactions(response['deposits'], currency, since, limit)
+        withdrawals = self.parse_transactions(response['withdrawals'], currency, since, limit)
         return self.array_concat(deposits, withdrawals)
 
     def parse_transaction(self, item, currency=None):
@@ -542,7 +543,7 @@ class idex (Exchange):
         #    '0xd6eefd81c7efc9beeb35b924d6db3c93a78bf7eac082ba87e107ad4e94bccdcf',
         #   depositNumber: 1586430}
         amount = self.safe_float(item, 'amount')
-        timestamp = self.safe_integer(item, 'timestamp') * 1000
+        timestamp = self.safe_timestamp(item, 'timestamp')
         txhash = self.safe_string(item, 'transactionHash')
         id = None
         type = None
@@ -686,7 +687,7 @@ class idex (Exchange):
         #   amount: '210',
         #   status: 'open',
         #   total: '0.1533'}
-        timestamp = self.safe_integer(order, 'timestamp') * 1000
+        timestamp = self.safe_timestamp(order, 'timestamp')
         side = self.safe_string(order, 'type')
         symbol = None
         amount = None
@@ -702,12 +703,12 @@ class idex (Exchange):
         if 'market' in order:
             marketId = order['market']
             symbol = self.markets_by_id[marketId]['symbol']
-        elif (side is not None) and('params' in list(order.keys())):
+        elif (side is not None) and ('params' in list(order.keys())):
             params = order['params']
             buy = self.safe_currency_code(self.safe_string(params, 'tokenBuy'))
             sell = self.safe_currency_code(self.safe_string(params, 'tokenSell'))
             if buy is not None and sell is not None:
-                symbol = side == buy + '/' + sell if 'buy' else sell + '/' + buy
+                symbol = (buy + '/' + sell) if (side == 'buy') else (sell + '/' + buy)
         if symbol is None and market is not None:
             symbol = market['symbol']
         id = self.safe_string(order, 'orderHash')
@@ -858,7 +859,7 @@ class idex (Exchange):
                     feeCurrency = sell
         if symbol is None and market is not None:
             symbol = market['symbol']
-        timestamp = self.safe_integer(trade, 'timestamp') * 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         id = self.safe_string(trade, 'tid')
         amount = self.safe_float(trade, 'amount')
         price = self.safe_float(trade, 'price')
@@ -872,7 +873,7 @@ class idex (Exchange):
             'cost': feeCost,
         }
         if feeCost is not None and amount is not None:
-            feeCurrencyAmount = feeCurrency == cost if 'ETH' else amount
+            feeCurrencyAmount = cost if (feeCurrency == 'ETH') else amount
             fee['rate'] = feeCost / feeCurrencyAmount
         orderId = self.safe_string(trade, 'orderHash')
         return {
@@ -892,7 +893,7 @@ class idex (Exchange):
         }
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
-        self.check_required_credentials()
+        self.check_required_dependencies()
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
@@ -928,6 +929,9 @@ class idex (Exchange):
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
+        if api == 'private':
+            self.check_required_credentials()
+            headers['API-Key'] = self.apiKey
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_idex_create_order_hash(self, order):

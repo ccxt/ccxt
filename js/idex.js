@@ -24,6 +24,7 @@ module.exports = class idex extends Exchange {
                 'fetchBalance': true,
                 'createOrder': true,
                 'cancelOrder': true,
+                'fetchOpenOrders': true,
                 'fetchTransactions': true,
                 'fetchTrades': false,
                 'fetchMyTrades': true,
@@ -48,7 +49,7 @@ module.exports = class idex extends Exchange {
                 'api': 'https://api.idex.market',
                 'www': 'https://idex.market',
                 'doc': [
-                    'https://github.com/AuroraDAO/idex-api-docs',
+                    'https://docs.idex.market/',
                 ],
             },
             'api': {
@@ -353,7 +354,8 @@ module.exports = class idex extends Exchange {
         for (let i = 0; i < keys.length; i++) {
             const currency = keys[i];
             const balance = response[currency];
-            result[currency] = {
+            const code = this.safeCurrencyCode (currency);
+            result[code] = {
                 'free': this.safeFloat (balance, 'available'),
                 'used': this.safeFloat (balance, 'onOrders'),
             };
@@ -362,7 +364,7 @@ module.exports = class idex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
-        this.checkRequiredCredentials ();
+        this.checkRequiredDependencies ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (type === 'limit') {
@@ -496,7 +498,6 @@ module.exports = class idex extends Exchange {
     }
 
     async cancelOrder (orderId, symbol = undefined, params = {}) {
-        this.checkRequiredCredentials ();
         const nonce = await this.getNonce ();
         const orderToHash = {
             'orderHash': orderId,
@@ -564,7 +565,7 @@ module.exports = class idex extends Exchange {
         //    '0xd6eefd81c7efc9beeb35b924d6db3c93a78bf7eac082ba87e107ad4e94bccdcf',
         //   depositNumber: 1586430 }
         const amount = this.safeFloat (item, 'amount');
-        const timestamp = this.safeInteger (item, 'timestamp') * 1000;
+        const timestamp = this.safeTimestamp (item, 'timestamp');
         const txhash = this.safeString (item, 'transactionHash');
         let id = undefined;
         let type = undefined;
@@ -716,7 +717,7 @@ module.exports = class idex extends Exchange {
         //   amount: '210',
         //   status: 'open',
         //   total: '0.1533' }
-        const timestamp = this.safeInteger (order, 'timestamp') * 1000;
+        const timestamp = this.safeTimestamp (order, 'timestamp');
         const side = this.safeString (order, 'type');
         let symbol = undefined;
         let amount = undefined;
@@ -738,7 +739,7 @@ module.exports = class idex extends Exchange {
             const buy = this.safeCurrencyCode (this.safeString (params, 'tokenBuy'));
             const sell = this.safeCurrencyCode (this.safeString (params, 'tokenSell'));
             if (buy !== undefined && sell !== undefined) {
-                symbol = side === 'buy' ? buy + '/' + sell : sell + '/' + buy;
+                symbol = (side === 'buy') ? (buy + '/' + sell) : (sell + '/' + buy);
             }
         }
         if (symbol === undefined && market !== undefined) {
@@ -907,7 +908,7 @@ module.exports = class idex extends Exchange {
         if (symbol === undefined && market !== undefined) {
             symbol = market['symbol'];
         }
-        const timestamp = this.safeInteger (trade, 'timestamp') * 1000;
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
         const id = this.safeString (trade, 'tid');
         const amount = this.safeFloat (trade, 'amount');
         const price = this.safeFloat (trade, 'price');
@@ -922,7 +923,7 @@ module.exports = class idex extends Exchange {
             'cost': feeCost,
         };
         if (feeCost !== undefined && amount !== undefined) {
-            const feeCurrencyAmount = feeCurrency === 'ETH' ? cost : amount;
+            const feeCurrencyAmount = (feeCurrency === 'ETH') ? cost : amount;
             fee['rate'] = feeCost / feeCurrencyAmount;
         }
         const orderId = this.safeString (trade, 'orderHash');
@@ -944,7 +945,7 @@ module.exports = class idex extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
-        this.checkRequiredCredentials ();
+        this.checkRequiredDependencies ();
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -981,6 +982,10 @@ module.exports = class idex extends Exchange {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         };
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            headers['API-Key'] = this.apiKey;
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

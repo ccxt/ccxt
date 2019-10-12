@@ -92,7 +92,7 @@ class livecoin extends Exchange {
             ),
             'commonCurrencies' => array (
                 'BTCH' => 'Bithash',
-                'CPC' => 'CapriCoin',
+                'CPC' => 'Capricoin',
                 'EDR' => 'E-Dinar Coin', // conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT' => 'EETT',
                 'FirstBlood' => '1ST',
@@ -126,6 +126,7 @@ class livecoin extends Exchange {
                     '503' => '\\ccxt\\ExchangeNotAvailable',
                 ),
                 'broad' => array (
+                    'insufficient funds' => '\\ccxt\\InsufficientFunds', // https://github.com/ccxt/ccxt/issues/5749
                     'NOT FOUND' => '\\ccxt\\OrderNotFound',
                     'Cannot find order' => '\\ccxt\\OrderNotFound',
                     'Minimal amount is' => '\\ccxt\\InvalidOrder',
@@ -812,7 +813,7 @@ class livecoin extends Exchange {
             $request['limit'] = $limit; // default is 100
         }
         $response = $this->privateGetPaymentHistoryTransactions (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -835,7 +836,7 @@ class livecoin extends Exchange {
             $request['start'] = $since;
         }
         $response = $this->privateGetPaymentHistoryTransactions (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function fetch_deposit_address ($currency, $params = array ()) {
@@ -901,15 +902,12 @@ class livecoin extends Exchange {
         if (!$success) {
             $feedback = $this->id . ' ' . $body;
             $broad = $this->exceptions['broad'];
-            $message = $this->safe_string($response, 'message');
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
-            }
-            $exception = $this->safe_string($response, 'exception');
-            $broadKey = $this->findBroadlyMatchedKey ($broad, $exception);
-            if ($broadKey !== null) {
-                throw new $broad[$broadKey]($feedback);
+            $message = $this->safe_string_2($response, 'message', 'exception');
+            if ($message !== null) {
+                $broadKey = $this->findBroadlyMatchedKey ($broad, $message);
+                if ($broadKey !== null) {
+                    throw new $broad[$broadKey]($feedback);
+                }
             }
             throw new ExchangeError($feedback);
         }

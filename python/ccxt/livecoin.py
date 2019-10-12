@@ -104,7 +104,7 @@ class livecoin (Exchange):
             },
             'commonCurrencies': {
                 'BTCH': 'Bithash',
-                'CPC': 'CapriCoin',
+                'CPC': 'Capricoin',
                 'EDR': 'E-Dinar Coin',  # conflicts with EDR for Endor Protocol and EDRCoin
                 'eETT': 'EETT',
                 'FirstBlood': '1ST',
@@ -138,6 +138,7 @@ class livecoin (Exchange):
                     '503': ExchangeNotAvailable,
                 },
                 'broad': {
+                    'insufficient funds': InsufficientFunds,  # https://github.com/ccxt/ccxt/issues/5749
                     'NOT FOUND': OrderNotFound,
                     'Cannot find order': OrderNotFound,
                     'Minimal amount is': InvalidOrder,
@@ -755,7 +756,7 @@ class livecoin (Exchange):
         if limit is not None:
             request['limit'] = limit  # default is 100
         response = self.privateGetPaymentHistoryTransactions(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -774,7 +775,7 @@ class livecoin (Exchange):
         if since is not None:
             request['start'] = since
         response = self.privateGetPaymentHistoryTransactions(self.extend(request, params))
-        return self.parseTransactions(response, currency, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def fetch_deposit_address(self, currency, params={}):
         request = {
@@ -829,12 +830,9 @@ class livecoin (Exchange):
         if not success:
             feedback = self.id + ' ' + body
             broad = self.exceptions['broad']
-            message = self.safe_string(response, 'message')
-            broadKey = self.findBroadlyMatchedKey(broad, message)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
-            exception = self.safe_string(response, 'exception')
-            broadKey = self.findBroadlyMatchedKey(broad, exception)
-            if broadKey is not None:
-                raise broad[broadKey](feedback)
+            message = self.safe_string_2(response, 'message', 'exception')
+            if message is not None:
+                broadKey = self.findBroadlyMatchedKey(broad, message)
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
             raise ExchangeError(feedback)

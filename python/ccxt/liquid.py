@@ -26,6 +26,7 @@ class liquid (Exchange):
             'rateLimit': 1000,
             'has': {
                 'CORS': False,
+                'fetchCurrencies': True,
                 'fetchTickers': True,
                 'fetchOrder': True,
                 'fetchOrders': True,
@@ -225,10 +226,10 @@ class liquid (Exchange):
             minAmount = None
             if baseCurrency is not None:
                 minAmount = self.safe_float(baseCurrency['info'], 'minimum_order_quantity')
-                precision['amount'] = self.safe_integer(baseCurrency['info'], 'quoting_precision')
+                # precision['amount'] = self.safe_integer(baseCurrency['info'], 'quoting_precision')
             minPrice = None
             if quoteCurrency is not None:
-                precision['price'] = self.safe_integer(quoteCurrency['info'], 'display_precision')
+                precision['price'] = self.safe_integer(quoteCurrency['info'], 'quoting_precision')
                 minPrice = math.pow(10, -precision['price'])
             minCost = None
             if minPrice is not None:
@@ -594,7 +595,7 @@ class liquid (Exchange):
         lastTradeTimestamp = None
         if numTrades > 0:
             lastTradeTimestamp = trades[numTrades - 1]['timestamp']
-            if not average and(tradeFilled > 0):
+            if not average and (tradeFilled > 0):
                 average = tradeCost / tradeFilled
             if cost is None:
                 cost = tradeCost

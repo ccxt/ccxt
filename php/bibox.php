@@ -51,10 +51,9 @@ class bibox extends Exchange {
                 'api' => 'https://api.bibox.com',
                 'www' => 'https://www.bibox.com',
                 'doc' => array (
-                    'https://github.com/Biboxcom/api_reference/wiki/home_en',
-                    'https://github.com/Biboxcom/api_reference/wiki/api_reference',
+                    'https://github.com/Biboxcom/API_Docs_en/wiki',
                 ),
-                'fees' => 'https://bibox.zendesk.com/hc/en-us/articles/115004417013-Fee-Structure-on-Bibox',
+                'fees' => 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral' => 'https://www.bibox.com/signPage?id=11114745&lang=en',
             ),
             'api' => array (
@@ -72,6 +71,11 @@ class bibox extends Exchange {
                         'user',
                         'orderpending',
                         'transfer',
+                    ),
+                ),
+                'v2private' => array (
+                    'post' => array (
+                        'assets/transfer/spot',
                     ),
                 ),
             ),
@@ -500,7 +504,7 @@ class bibox extends Exchange {
         for ($i = 0; $i < count ($deposits); $i++) {
             $deposits[$i]['type'] = 'deposit';
         }
-        return $this->parseTransactions ($deposits, $currency, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -526,7 +530,7 @@ class bibox extends Exchange {
         for ($i = 0; $i < count ($withdrawals); $i++) {
             $withdrawals[$i]['type'] = 'withdrawal';
         }
-        return $this->parseTransactions ($withdrawals, $currency, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -701,7 +705,7 @@ class bibox extends Exchange {
                 'currency' => null,
             );
         }
-        $cost = $cost ? $cost : floatval ($price) * $filled;
+        $cost = $cost ? $cost : (floatval ($price) * $filled);
         return array (
             'info' => $order,
             'id' => $id,
@@ -743,7 +747,7 @@ class bibox extends Exchange {
             $market = $this->market ($symbol);
             $pair = $market['id'];
         }
-        $size = ($limit) ? $limit : 200;
+        $size = $limit ? $limit : 200;
         $request = array (
             'cmd' => 'orderpending/orderPendingList',
             'body' => array_merge (array (
@@ -784,7 +788,7 @@ class bibox extends Exchange {
         }
         $this->load_markets();
         $market = $this->market ($symbol);
-        $size = ($limit) ? $limit : 200;
+        $size = $limit ? $limit : 200;
         $request = array (
             'cmd' => 'orderpending/orderHistoryList',
             'body' => array_merge (array (
@@ -890,6 +894,15 @@ class bibox extends Exchange {
             } else if ($params) {
                 $url .= '?' . $this->urlencode ($params);
             }
+        } else if ($api === 'v2private') {
+            $this->check_required_credentials();
+            $url = $this->urls['api'] . '/v2/' . $path;
+            $json_params = $this->json ($params);
+            $body = array (
+                'body' => $json_params,
+                'apikey' => $this->apiKey,
+                'sign' => $this->hmac ($this->encode ($json_params), $this->encode ($this->secret), 'md5'),
+            );
         } else {
             $this->check_required_credentials();
             $body = array (

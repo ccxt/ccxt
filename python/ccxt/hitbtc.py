@@ -6,6 +6,7 @@
 from ccxt.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -500,6 +501,13 @@ class hitbtc (Exchange):
                 'USD': 'USDT',
                 'XBT': 'BTC',
             },
+            'exceptions': {
+                'exact': {
+                    '2001': BadSymbol,  # {"error":{"code":2001,"message":"Symbol not found","description":"Try get /api/2/public/symbol, to get list of all available symbols."}}
+                },
+                'broad': {
+                },
+            },
             'options': {
                 'defaultTimeInForce': 'FOK',
             },
@@ -954,3 +962,19 @@ class hitbtc (Exchange):
                     raise InsufficientFunds(self.id + ' ' + self.json(response))
             raise ExchangeError(self.id + ' ' + self.json(response))
         return response
+
+    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if not response:
+            return  # fallback to default error handler
+        error = self.safe_value(response, 'error')
+        if error:
+            code = self.safe_value(error, 'code')
+            feedback = self.id + ' ' + self.json(response)
+            exact = self.exceptions['exact']
+            if code in exact:
+                raise exact[code](feedback)
+            broad = self.exceptions['broad']
+            broadKey = self.findBroadlyMatchedKey(broad, error)
+            if broadKey is not None:
+                raise broad[broadKey](feedback)
+            raise ExchangeError(feedback)  # unknown error

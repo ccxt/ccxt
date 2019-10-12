@@ -102,7 +102,7 @@ class btcmarkets (Exchange):
             request['since'] = since
         response = await self.privateGetFundtransferHistory(self.extend(request, params))
         transactions = response['fundTransfers']
-        return self.parseTransactions(transactions, None, since, limit)
+        return self.parse_transactions(transactions, None, since, limit)
 
     def parse_transaction_status(self, status):
         # todo: find more statuses

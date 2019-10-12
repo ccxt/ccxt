@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, InsufficientFunds, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, NotSupported } = require ('./base/errors');
+const { BadSymbol, ExchangeError, ExchangeNotAvailable, ArgumentsRequired, InsufficientFunds, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, NotSupported } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -150,6 +150,7 @@ module.exports = class fcoin extends Exchange {
                 '3008': InvalidOrder,
                 '6004': InvalidNonce,
                 '6005': AuthenticationError, // Illegal API Signature
+                '40003': BadSymbol,
             },
             'commonCurrencies': {
                 'DAG': 'DAGX',
@@ -477,7 +478,7 @@ module.exports = class fcoin extends Exchange {
             'side': side,
             'type': orderType,
         };
-        if (type === 'limit') {
+        if ((type === 'limit') || (type === 'ioc') || (type === 'fok')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));

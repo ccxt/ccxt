@@ -103,6 +103,15 @@ class btcalpha extends Exchange {
                     ),
                 ),
             ),
+            'commonCurrencies' => array (
+                'CBC' => 'Cashbery',
+            ),
+            'exceptions' => array (
+                'exact' => array(),
+                'broad' => array (
+                    'Out of balance' => '\\ccxt\\InsufficientFunds', // array("date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC")
+                ),
+            ),
         ));
     }
 
@@ -282,6 +291,18 @@ class btcalpha extends Exchange {
         $trades = $this->safe_value($order, 'trades', array());
         $trades = $this->parse_trades($trades, $market);
         $side = $this->safe_string_2($order, 'my_side', 'type');
+        $filled = null;
+        $numTrades = is_array ($trades) ? count ($trades) : 0;
+        if ($numTrades > 0) {
+            $filled = 0.0;
+            for ($i = 0; $i < $numTrades; $i++) {
+                $filled = $this->sum ($filled, $trades[$i]['amount']);
+            }
+        }
+        $remaining = null;
+        if (($amount !== null) && ($amount > 0) && ($filled !== null)) {
+            $remaining = max (0, $amount - $filled);
+        }
         return array (
             'id' => $id,
             'datetime' => $this->iso8601 ($timestamp),
@@ -293,8 +314,8 @@ class btcalpha extends Exchange {
             'price' => $price,
             'cost' => null,
             'amount' => $amount,
-            'filled' => null,
-            'remaining' => null,
+            'filled' => $filled,
+            'remaining' => $remaining,
             'trades' => $trades,
             'fee' => null,
             'info' => $order,
@@ -314,7 +335,11 @@ class btcalpha extends Exchange {
         if (!$response['success']) {
             throw new InvalidOrder($this->id . ' ' . $this->json ($response));
         }
-        return $this->parse_order($response, $market);
+        $order = $this->parse_order($response, $market);
+        $amount = ($order['amount'] > 0) ? $order['amount'] : $amount;
+        return array_merge ($order, array (
+            'amount' => $amount,
+        ));
     }
 
     public function cancel_order ($id, $symbol = null, $params = array ()) {
@@ -412,17 +437,32 @@ class btcalpha extends Exchange {
 
     public function handle_errors ($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return; // fallback to default error handler
+            return; // fallback to default $error handler
+        }
+        //
+        //     array("date":1570599531.4814300537,"$error":"Out of balance -9.99243661 BTC")
+        //
+        $error = $this->safe_string($response, 'error');
+        $feedback = $this->id . ' ' . $body;
+        if ($error !== null) {
+            $exact = $this->exceptions['exact'];
+            if (is_array($exact) && array_key_exists($error, $exact)) {
+                throw new $exact[$error]($feedback);
+            }
+            $broad = $this->exceptions['broad'];
+            $broadKey = $this->findBroadlyMatchedKey ($broad, $error);
+            if ($broadKey !== null) {
+                throw new $broad[$broadKey]($feedback);
+            }
+        }
+        if ($code === 401 || $code === 403) {
+            throw new AuthenticationError($feedback);
+        } else if ($code === 429) {
+            throw new DDoSProtection($feedback);
         }
         if ($code < 400) {
-            return; // fallback to default error handler
+            return;
         }
-        $message = $this->id . ' ' . $this->safe_value($response, 'detail', $body);
-        if ($code === 401 || $code === 403) {
-            throw new AuthenticationError($message);
-        } else if ($code === 429) {
-            throw new DDoSProtection($message);
-        }
-        throw new ExchangeError($message);
+        throw new ExchangeError($feedback);
     }
 }

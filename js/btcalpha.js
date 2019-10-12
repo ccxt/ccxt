@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder } = require ('./base/errors');
+const { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -100,6 +100,15 @@ module.exports = class btcalpha extends Exchange {
                         'BCH': undefined,
                         'QBIC': 0.5,
                     },
+                },
+            },
+            'commonCurrencies': {
+                'CBC': 'Cashbery',
+            },
+            'exceptions': {
+                'exact': {},
+                'broad': {
+                    'Out of balance': InsufficientFunds, // {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
                 },
             },
         });
@@ -281,6 +290,18 @@ module.exports = class btcalpha extends Exchange {
         let trades = this.safeValue (order, 'trades', []);
         trades = this.parseTrades (trades, market);
         const side = this.safeString2 (order, 'my_side', 'type');
+        let filled = undefined;
+        const numTrades = trades.length;
+        if (numTrades > 0) {
+            filled = 0.0;
+            for (let i = 0; i < numTrades; i++) {
+                filled = this.sum (filled, trades[i]['amount']);
+            }
+        }
+        let remaining = undefined;
+        if ((amount !== undefined) && (amount > 0) && (filled !== undefined)) {
+            remaining = Math.max (0, amount - filled);
+        }
         return {
             'id': id,
             'datetime': this.iso8601 (timestamp),
@@ -292,8 +313,8 @@ module.exports = class btcalpha extends Exchange {
             'price': price,
             'cost': undefined,
             'amount': amount,
-            'filled': undefined,
-            'remaining': undefined,
+            'filled': filled,
+            'remaining': remaining,
             'trades': trades,
             'fee': undefined,
             'info': order,
@@ -313,7 +334,11 @@ module.exports = class btcalpha extends Exchange {
         if (!response['success']) {
             throw new InvalidOrder (this.id + ' ' + this.json (response));
         }
-        return this.parseOrder (response, market);
+        const order = this.parseOrder (response, market);
+        amount = (order['amount'] > 0) ? order['amount'] : amount;
+        return this.extend (order, {
+            'amount': amount,
+        });
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -413,15 +438,30 @@ module.exports = class btcalpha extends Exchange {
         if (response === undefined) {
             return; // fallback to default error handler
         }
-        if (code < 400) {
-            return; // fallback to default error handler
+        //
+        //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
+        //
+        const error = this.safeString (response, 'error');
+        const feedback = this.id + ' ' + body;
+        if (error !== undefined) {
+            const exact = this.exceptions['exact'];
+            if (error in exact) {
+                throw new exact[error] (feedback);
+            }
+            const broad = this.exceptions['broad'];
+            const broadKey = this.findBroadlyMatchedKey (broad, error);
+            if (broadKey !== undefined) {
+                throw new broad[broadKey] (feedback);
+            }
         }
-        const message = this.id + ' ' + this.safeValue (response, 'detail', body);
         if (code === 401 || code === 403) {
-            throw new AuthenticationError (message);
+            throw new AuthenticationError (feedback);
         } else if (code === 429) {
-            throw new DDoSProtection (message);
+            throw new DDoSProtection (feedback);
         }
-        throw new ExchangeError (message);
+        if (code < 400) {
+            return;
+        }
+        throw new ExchangeError (feedback);
     }
 };

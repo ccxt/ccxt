@@ -90,6 +90,9 @@ class latoken extends Exchange {
                     'taker' => 0.1 / 100,
                 ),
             ),
+            'commonCurrencies' => array (
+                'TSL' => 'Treasure SL',
+            ),
             'options' => array (
                 'createOrderMethod' => 'private_post_order_new', // private_post_order_test_order
             ),
@@ -168,7 +171,7 @@ class latoken extends Exchange {
                     'max' => null,
                 ),
                 'price' => array (
-                    'min' => null,
+                    'min' => pow(10, -$precision['price']),
                     'max' => null,
                 ),
                 'cost' => array (
@@ -356,8 +359,8 @@ class latoken extends Exchange {
             'change' => $change,
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $this->safe_float($ticker, 'volume'),
-            'quoteVolume' => null,
+            'baseVolume' => null,
+            'quoteVolume' => $this->safe_float($ticker, 'volume'),
             'info' => $ticker,
         );
     }
@@ -616,7 +619,10 @@ class latoken extends Exchange {
             }
         }
         $timeFilled = $this->safe_timestamp($order, 'timeFilled');
-        $lastTradeTimestamp = ($timeFilled > 0) ? $timeFilled : null;
+        $lastTradeTimestamp = null;
+        if (($timeFilled !== null) && ($timeFilled > 0)) {
+            $lastTradeTimestamp = $timeFilled;
+        }
         return array (
             'id' => $id,
             'info' => $order,
@@ -839,14 +845,14 @@ class latoken extends Exchange {
         }
         //
         //     array( "$message" => "Request limit reached!", "details" => "Request limit reached. Maximum allowed => 1 per 1s. Please try again in 1 second(s)." )
-        //     array( "$error" => { "$message" => "Pair 370 is not found","errorType":"RequestError","statusCode":400 )}
-        //     array( "$error" => { "$message" => "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 )}
-        //     array( "$error" => { "$message" => "Request is out of time", "errorType" => "RequestError", "statusCode":400 )}
-        //     array( "$error" => { "$message" => "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 )}
-        //     array( "$error" => { "$message" => "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 )}
-        //     array( "$error" => { "$message" => "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 )}
-        //     array( "$error" => { "$message" => "Symbol must be specified","errorType":"RequestError","statusCode":400 )}
-        //     array( "$error" => { "$message" => "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 )}
+        //     array( "$error" => array( "$message" => "Pair 370 is not found","errorType":"RequestError","statusCode":400 ))
+        //     array( "$error" => array( "$message" => "Signature or ApiKey is not valid","errorType":"RequestError","statusCode":400 ))
+        //     array( "$error" => array( "$message" => "Request is out of time", "errorType" => "RequestError", "statusCode":400 ))
+        //     array( "$error" => array( "$message" => "Price needs to be greater than 0","errorType":"ValidationError","statusCode":400 ))
+        //     array( "$error" => array( "$message" => "Side is not valid, Price needs to be greater than 0, Amount needs to be greater than 0, The Symbol field is required., OrderType is not valid","errorType":"ValidationError","statusCode":400 ))
+        //     array( "$error" => array( "$message" => "Cancelable order whit ID 1563460289.571254.704945@0370:1 not found","errorType":"RequestError","statusCode":400 ))
+        //     array( "$error" => array( "$message" => "Symbol must be specified","errorType":"RequestError","statusCode":400 ))
+        //     array( "$error" => array( "$message" => "Order 1563460289.571254.704945@0370:1 is not found","errorType":"RequestError","statusCode":400 ))
         //
         $message = $this->safe_string($response, 'message');
         $exact = $this->exceptions['exact'];

@@ -86,7 +86,7 @@ class coinone (Exchange):
                 'ZRX/KRW': {'id': 'zrx', 'symbol': 'ZRX/KRW', 'base': 'ZRX', 'quote': 'KRW', 'baseId': 'zrx', 'quoteId': 'krw'},
                 'LUNA/KRW': {'id': 'luna', 'symbol': 'LUNA/KRW', 'base': 'LUNA', 'quote': 'KRW', 'baseId': 'luna', 'quoteId': 'krw'},
                 'ATOM/KRW': {'id': 'atom', 'symbol': 'ATOM/KRW', 'base': 'ATOM', 'quote': 'KRW', 'baseId': 'atom', 'quoteId': 'krw'},
-                'VNT/KRW': {'id': 'vnt', 'symbol': 'vnt/KRW', 'base': 'VNT', 'quote': 'KRW', 'baseId': 'vnt', 'quoteId': 'krw'},
+                'VNT/KRW': {'id': 'vnt', 'symbol': 'VNT/KRW', 'base': 'VNT', 'quote': 'KRW', 'baseId': 'vnt', 'quoteId': 'krw'},
             },
             'fees': {
                 'trading': {

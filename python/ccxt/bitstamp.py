@@ -242,7 +242,7 @@ class bitstamp (Exchange):
             'pair': self.market_id(symbol),
         }
         response = self.publicGetOrderBookPair(self.extend(request, params))
-        timestamp = self.safe_integer_product(response, 'timestamp', 1000)
+        timestamp = self.safe_timestamp(response, 'timestamp')
         return self.parse_order_book(response, timestamp)
 
     def fetch_ticker(self, symbol, params={}):
@@ -251,7 +251,7 @@ class bitstamp (Exchange):
             'pair': self.market_id(symbol),
         }
         ticker = self.publicGetTickerPair(self.extend(request, params))
-        timestamp = self.safe_integer_product(ticker, 'timestamp', 1000)
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         vwap = self.safe_float(ticker, 'vwap')
         baseVolume = self.safe_float(ticker, 'volume')
         quoteVolume = None
@@ -311,7 +311,7 @@ class bitstamp (Exchange):
             id = ids[i]
             if id.find('_') < 0:
                 value = self.safe_float(transaction, id)
-                if (value is not None) and(value != 0):
+                if (value is not None) and (value != 0):
                     return id
         return None
 
@@ -619,7 +619,7 @@ class bitstamp (Exchange):
         if code is not None:
             currency = self.currency(code)
         transactions = self.filter_by_array(response, 'type', ['0', '1'], False)
-        return self.parseTransactions(transactions, currency, since, limit)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         self.load_markets()
@@ -651,7 +651,7 @@ class bitstamp (Exchange):
         #         },
         #     ]
         #
-        return self.parseTransactions(response, None, since, limit)
+        return self.parse_transactions(response, None, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -705,7 +705,7 @@ class bitstamp (Exchange):
         elif currency is not None:
             amount = self.safe_float(transaction, currency['id'], amount)
             feeCurrency = currency['code']
-        elif (code is not None) and(currencyId is not None):
+        elif (code is not None) and (currencyId is not None):
             amount = self.safe_float(transaction, currencyId, amount)
             feeCurrency = code
         if amount is not None:
@@ -851,7 +851,7 @@ class bitstamp (Exchange):
                 trades.append(trade)
             lastTradeTimestamp = trades[numTransactions - 1]['timestamp']
         status = self.parse_order_status(self.safe_string(order, 'status'))
-        if (status == 'closed') and(amount is None):
+        if (status == 'closed') and (amount is None):
             amount = filled
         remaining = None
         if amount is not None:

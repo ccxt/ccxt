@@ -366,11 +366,9 @@ class btcbox (Exchange):
 
     def request(self, path, api='public', method='GET', params={}, headers=None, body=None):
         response = self.fetch2(path, api, method, params, headers, body)
-        # sometimes the exchange returns whitespace prepended to json
-        # the code below removes excessive spaces
         if isinstance(response, basestring):
-            response = response.split(' ')
-            response = ''.join(response)
+            # sometimes the exchange returns whitespace prepended to json
+            response = self.strip(response)
             if not self.is_json_encoded_object(response):
                 raise ExchangeError(self.id + ' ' + response)
             response = json.loads(response)

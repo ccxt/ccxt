@@ -4,6 +4,13 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
+
+# -----------------------------------------------------------------------------
+
+try:
+    basestring  # Python 3
+except NameError:
+    basestring = str  # Python 2
 import base64
 import hashlib
 from ccxt.base.errors import ExchangeError
@@ -17,6 +24,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 
 
@@ -161,7 +169,9 @@ class gemini (Exchange):
                     'System': ExchangeError,  # We are experiencing technical issues
                     'UnsupportedOption': BadRequest,  # This order execution option is not supported.
                 },
-                'broad': {},
+                'broad': {
+                    'The Gemini Exchange is currently undergoing maintenance.': OnMaintenance,  # The Gemini Exchange is currently undergoing maintenance. Please check https://status.gemini.com/ for more information.
+                },
             },
             'options': {
                 'fetchMarketsMethod': 'fetch_markets_from_web',
@@ -537,7 +547,7 @@ class gemini (Exchange):
         if since is not None:
             request['timestamp'] = since
         response = self.privatePostV1Transfers(self.extend(request, params))
-        return self.parseTransactions(response)
+        return self.parse_transactions(response)
 
     def parse_transaction(self, transaction, currency=None):
         timestamp = self.safe_integer(transaction, 'timestampms')
@@ -598,7 +608,13 @@ class gemini (Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        broad = self.exceptions['broad']
         if response is None:
+            if isinstance(body, basestring):
+                broadKey = self.findBroadlyMatchedKey(broad, body)
+                feedback = self.id + ' ' + body
+                if broadKey is not None:
+                    raise broad[broadKey](feedback)
             return  # fallback to default error handler
         #
         #     {
@@ -617,7 +633,6 @@ class gemini (Exchange):
                 raise exact[reason](feedback)
             elif message in exact:
                 raise exact[message](feedback)
-            broad = self.exceptions['broad']
             broadKey = self.findBroadlyMatchedKey(broad, message)
             if broadKey is not None:
                 raise broad[broadKey](feedback)

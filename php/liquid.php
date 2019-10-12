@@ -18,6 +18,7 @@ class liquid extends Exchange {
             'rateLimit' => 1000,
             'has' => array (
                 'CORS' => false,
+                'fetchCurrencies' => true,
                 'fetchTickers' => true,
                 'fetchOrder' => true,
                 'fetchOrders' => true,
@@ -220,11 +221,11 @@ class liquid extends Exchange {
             $minAmount = null;
             if ($baseCurrency !== null) {
                 $minAmount = $this->safe_float($baseCurrency['info'], 'minimum_order_quantity');
-                $precision['amount'] = $this->safe_integer($baseCurrency['info'], 'quoting_precision');
+                // $precision['amount'] = $this->safe_integer($baseCurrency['info'], 'quoting_precision');
             }
             $minPrice = null;
             if ($quoteCurrency !== null) {
-                $precision['price'] = $this->safe_integer($quoteCurrency['info'], 'display_precision');
+                $precision['price'] = $this->safe_integer($quoteCurrency['info'], 'quoting_precision');
                 $minPrice = pow(10, -$precision['price']);
             }
             $minCost = null;
@@ -807,9 +808,9 @@ class liquid extends Exchange {
             }
         } else if ($errors !== null) {
             //
-            //  array( "$errors" => { "user" => ["not_enough_free_balance"] )}
-            //  array( "$errors" => { "quantity" => ["less_than_order_size"] )}
-            //  array( "$errors" => { "order" => ["Can not update partially filled order"] )}
+            //  array( "$errors" => array( "user" => ["not_enough_free_balance"] ))
+            //  array( "$errors" => array( "quantity" => ["less_than_order_size"] ))
+            //  array( "$errors" => array( "order" => ["Can not update partially filled order"] ))
             //
             $types = is_array($errors) ? array_keys($errors) : array();
             for ($i = 0; $i < count ($types); $i++) {

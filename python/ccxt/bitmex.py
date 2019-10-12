@@ -146,6 +146,7 @@ class bitmex (Exchange):
             'exceptions': {
                 'exact': {
                     'Invalid API Key.': AuthenticationError,
+                    'This key is disabled.': PermissionDenied,
                     'Access Denied': PermissionDenied,
                     'Duplicate clOrdID': InvalidOrder,
                     'orderQty is invalid': InvalidOrder,
@@ -546,7 +547,7 @@ class bitmex (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        return self.parseTransactions(transactions, currency, since, limit)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {
@@ -934,7 +935,7 @@ class bitmex (Exchange):
             }
         takerOrMaker = None
         if fee is not None:
-            takerOrMaker = fee['cost'] < 'maker' if 0 else 'taker'
+            takerOrMaker = 'maker' if (fee['cost'] < 0) else 'taker'
         symbol = None
         marketId = self.safe_string(trade, 'symbol')
         if marketId is not None:

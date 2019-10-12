@@ -912,7 +912,7 @@ class hitbtc2 extends hitbtc {
             $request['startTime'] = $since;
         }
         $response = $this->privateGetAccountTransactions (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit);
+        return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
     public function parse_transaction ($transaction, $currency = null) {
@@ -1203,7 +1203,11 @@ class hitbtc2 extends hitbtc {
                     $feeCost = 0;
                 }
                 $tradesCost = $this->sum ($tradesCost, $trades[$i]['cost']);
-                $feeCost = $this->sum ($feeCost, $trades[$i]['fee']['cost']);
+                $tradeFee = $this->safe_value($trades[$i], 'fee', array());
+                $tradeFeeCost = $this->safe_float($tradeFee, 'cost');
+                if ($tradeFeeCost !== null) {
+                    $feeCost = $this->sum ($feeCost, $tradeFeeCost);
+                }
             }
             $cost = $tradesCost;
             if (($filled !== null) && ($filled > 0)) {
@@ -1475,7 +1479,12 @@ class hitbtc2 extends hitbtc {
             if (($code === 503) || ($code === 504)) {
                 throw new ExchangeNotAvailable($feedback);
             }
-            // array("error":{"$code":20002,"$message":"Order not found","description":"")}
+            // fallback to default error handler on rate limit errors
+            // array("$code":429,"$message":"Too many requests","description":"Too many requests")
+            if ($code === 429) {
+                return;
+            }
+            // array("error":array("$code":20002,"$message":"Order not found","description":""))
             if ($body[0] === '{') {
                 if (is_array($response) && array_key_exists('error', $response)) {
                     $code = $this->safe_string($response['error'], 'code');

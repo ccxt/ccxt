@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.1092'
+__version__ = '1.18.1247'
 
 # ----------------------------------------------------------------------------
 
@@ -67,6 +67,7 @@ from ccxt.base.errors import OrderNotFillable               # noqa: F401
 
 from ccxt._1btcxe import _1btcxe                            # noqa: F401
 from ccxt.acx import acx                                    # noqa: F401
+from ccxt.adara import adara                                # noqa: F401
 from ccxt.allcoin import allcoin                            # noqa: F401
 from ccxt.anxpro import anxpro                              # noqa: F401
 from ccxt.bcex import bcex                                  # noqa: F401
@@ -75,6 +76,7 @@ from ccxt.bibox import bibox                                # noqa: F401
 from ccxt.bigone import bigone                              # noqa: F401
 from ccxt.binance import binance                            # noqa: F401
 from ccxt.binanceje import binanceje                        # noqa: F401
+from ccxt.binanceus import binanceus                        # noqa: F401
 from ccxt.bit2c import bit2c                                # noqa: F401
 from ccxt.bitbank import bitbank                            # noqa: F401
 from ccxt.bitbay import bitbay                              # noqa: F401
@@ -103,7 +105,6 @@ from ccxt.btctradeim import btctradeim                      # noqa: F401
 from ccxt.btctradeua import btctradeua                      # noqa: F401
 from ccxt.btcturk import btcturk                            # noqa: F401
 from ccxt.buda import buda                                  # noqa: F401
-from ccxt.bxinth import bxinth                              # noqa: F401
 from ccxt.cex import cex                                    # noqa: F401
 from ccxt.chilebit import chilebit                          # noqa: F401
 from ccxt.cobinhood import cobinhood                        # noqa: F401
@@ -125,7 +126,6 @@ from ccxt.cointiger import cointiger                        # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
 from ccxt.coss import coss                                  # noqa: F401
 from ccxt.crex24 import crex24                              # noqa: F401
-from ccxt.crypton import crypton                            # noqa: F401
 from ccxt.deribit import deribit                            # noqa: F401
 from ccxt.digifinex import digifinex                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
@@ -139,7 +139,6 @@ from ccxt.flowbtc import flowbtc                            # noqa: F401
 from ccxt.foxbit import foxbit                              # noqa: F401
 from ccxt.fybse import fybse                                # noqa: F401
 from ccxt.gateio import gateio                              # noqa: F401
-from ccxt.gdax import gdax                                  # noqa: F401
 from ccxt.gemini import gemini                              # noqa: F401
 from ccxt.hitbtc import hitbtc                              # noqa: F401
 from ccxt.hitbtc2 import hitbtc2                            # noqa: F401
@@ -166,7 +165,6 @@ from ccxt.mandala import mandala                            # noqa: F401
 from ccxt.mercado import mercado                            # noqa: F401
 from ccxt.mixcoins import mixcoins                          # noqa: F401
 from ccxt.negociecoins import negociecoins                  # noqa: F401
-from ccxt.nova import nova                                  # noqa: F401
 from ccxt.oceanex import oceanex                            # noqa: F401
 from ccxt.okcoincny import okcoincny                        # noqa: F401
 from ccxt.okcoinusd import okcoinusd                        # noqa: F401
@@ -194,6 +192,7 @@ from ccxt.zb import zb                                      # noqa: F401
 exchanges = [
     '_1btcxe',
     'acx',
+    'adara',
     'allcoin',
     'anxpro',
     'bcex',
@@ -202,6 +201,7 @@ exchanges = [
     'bigone',
     'binance',
     'binanceje',
+    'binanceus',
     'bit2c',
     'bitbank',
     'bitbay',
@@ -230,7 +230,6 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
-    'bxinth',
     'cex',
     'chilebit',
     'cobinhood',
@@ -252,7 +251,6 @@ exchanges = [
     'coolcoin',
     'coss',
     'crex24',
-    'crypton',
     'deribit',
     'digifinex',
     'dsx',
@@ -266,7 +264,6 @@ exchanges = [
     'foxbit',
     'fybse',
     'gateio',
-    'gdax',
     'gemini',
     'hitbtc',
     'hitbtc2',
@@ -293,7 +290,6 @@ exchanges = [
     'mercado',
     'mixcoins',
     'negociecoins',
-    'nova',
     'oceanex',
     'okcoincny',
     'okcoinusd',

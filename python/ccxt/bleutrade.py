@@ -314,7 +314,7 @@ class bleutrade (bittrex):
         self.load_markets()
         method = 'accountGetDeposithistory' if (type == 'deposit') else 'accountGetWithdrawhistory'
         response = getattr(self, method)(params)
-        result = self.parseTransactions(response['result'])
+        result = self.parse_transactions(response['result'])
         return self.filterByCurrencySinceLimit(result, code, since, limit)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
@@ -558,9 +558,9 @@ class bleutrade (bittrex):
         if 'Created' in order:
             timestamp = self.parse8601(order['Created'] + '+00:00')
         lastTradeTimestamp = None
-        if ('TimeStamp' in list(order.keys())) and(order['TimeStamp'] is not None):
+        if ('TimeStamp' in list(order.keys())) and (order['TimeStamp'] is not None):
             lastTradeTimestamp = self.parse8601(order['TimeStamp'] + '+00:00')
-        if ('Closed' in list(order.keys())) and(order['Closed'] is not None):
+        if ('Closed' in list(order.keys())) and (order['Closed'] is not None):
             lastTradeTimestamp = self.parse8601(order['Closed'] + '+00:00')
         if timestamp is None:
             timestamp = lastTradeTimestamp
@@ -700,7 +700,7 @@ class bleutrade (bittrex):
             self.check_required_credentials()
             if api == 'account':
                 url += api + '/'
-            if ((api == 'account') and(path != 'withdraw')) or (path == 'openorders'):
+            if ((api == 'account') and (path != 'withdraw')) or (path == 'openorders'):
                 url += method.lower()
             request = {
                 'apikey': self.apiKey,

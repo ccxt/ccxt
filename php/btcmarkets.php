@@ -98,7 +98,7 @@ class btcmarkets extends Exchange {
         }
         $response = $this->privateGetFundtransferHistory (array_merge ($request, $params));
         $transactions = $response['fundTransfers'];
-        return $this->parseTransactions ($transactions, null, $since, $limit);
+        return $this->parse_transactions($transactions, null, $since, $limit);
     }
 
     public function parse_transaction_status ($status) {
