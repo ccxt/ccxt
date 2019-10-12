@@ -120,10 +120,6 @@ module.exports = class whitebit extends Exchange {
                     'maker': 0.001,
                 },
             },
-            'commonCurrencies': {},
-            // exchange-specific options
-            'options': {},
-            'exceptions': {},
         });
     }
 
@@ -134,11 +130,12 @@ module.exports = class whitebit extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
-            const baseId = market['stock'];
-            const quoteId = market['money'];
+            const baseId = this.safeString (market, 'stock');
+            const quoteId = this.safeString (market, 'money');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
+            const active = this.safeValue (market, 'tradesEnabled');
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -147,10 +144,8 @@ module.exports = class whitebit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'info': market,
-                'active': market['tradesEnabled'],
+                'active': active,
                 'precision': {
-                    'base': this.safeInteger (market, 'stockPrec'),
-                    'quote': this.safeInteger (market, 'moneyPrec'),
                     'amount': this.safeInteger (market, 'stockPrec'),
                     'price': this.safeInteger (market, 'moneyPrec'),
                 },
