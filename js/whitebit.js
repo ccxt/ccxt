@@ -400,7 +400,9 @@ module.exports = class whitebit extends Exchange {
         }
         const response = await this.publicV1GetKline (this.extend (request, params));
         const result = this.safeValue (response, 'result');
-        return this.parseOHLCVs (result, market, timeframe, since, limit);
+        // console.log (since, result[0][0] * 1000);
+        // process.exit ();
+        return this.parseOHLCVs (result, market, timeframe);//, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
