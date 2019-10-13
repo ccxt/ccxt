@@ -509,8 +509,7 @@ module.exports = class coinex extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'type': side,
         };
-        if (type === 'limit') {
-            price = parseFloat (price); // this line is deprecated
+        if ((type === 'limit') || (type === 'ioc')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this[method] (this.extend (request, params));
