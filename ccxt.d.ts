@@ -379,20 +379,20 @@ declare module 'ccxt' {
         // methods
         account (): Balance;
         cancelAllOrders (...args: any): Promise<any>; // TODO: add function signatures
-        cancelOrder (id: string, symbol?: string, params?: Params): Promise<any>;
+        cancelOrder (id: string, symbol?: string, params?: Params): Promise<Order>;
         cancelOrders (...args: any): Promise<any>; // TODO: add function signatures
         checkRequiredCredentials (): void;
         commonCurrencyCode (currency: string): string;
         createDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
-        createLimitOrder (...args: any): Promise<any>; // TODO: add function signatures
-        createMarketOrder (...args: any): Promise<any>; // TODO: add function signatures
-        createOrder (symbol: string, type: 'market'|'limit', side: 'buy'|'sell', amount: number, price?: number, params?: Params): Promise<any>;
+        createLimitOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
+        createMarketOrder (symbol: string, side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
+        createOrder (symbol: string, type: Order['type'], side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
         decode (str: string): string;
         defaults (): any;
         defineRestApi (api: any, methodName: any, options?: Dictionary<any>): void;
         deposit (...args: any): Promise<any>; // TODO: add function signatures
         describe (): any;
-        editOrder (...args: any): Promise<any>; // TODO: add function signatures
+        editOrder (id: string, symbol: string, type: Order['type'], side: Order['side'], amount: number, price?: number, params?: Params): Promise<Order>;
         encode (str: string): string;
         encodeURIComponent (...args: any[]): string;
         extractParams (str: string): string[];
@@ -400,7 +400,7 @@ declare module 'ccxt' {
         fetch2 (path: any, api?: string, method?: string, params?: Params, headers?: any, body?: any): Promise<any>;
         fetchBalance (params?: Params): Promise<Balances>;
         fetchBidsAsks (symbols?: string[], params?: Params): Promise<any>;
-        fetchClosedOrders (...args: any): Promise<any>; // TODO: add function signatures
+        fetchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         fetchCurrencies (params?: Params): Promise<Dictionary<Currency>>;
         fetchDepositAddress (currency: string, params?: Params): Promise<DepositAddressResponse>;
         fetchDeposits (currency?: string, since?: number, limit?: number, params?: Params): Promise<Transaction[]>;
@@ -490,13 +490,12 @@ declare module 'ccxt' {
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
     export class buda extends Exchange {}
-    export class bxinth extends Exchange {}
     export class cex extends Exchange {}
     export class chilebit extends foxbit {}
     export class cobinhood extends Exchange {}
     export class coinbase extends Exchange {}
-    export class coinbaseprime extends gdax {}
-    export class coinbasepro extends gdax {}
+    export class coinbaseprime extends coinbasepro {}
+    export class coinbasepro extends Exchange {}
     export class coincheck extends Exchange {}
     export class coinegg extends Exchange {}
     export class coinex extends Exchange {}
@@ -512,7 +511,6 @@ declare module 'ccxt' {
     export class coolcoin extends coinegg {}
     export class coss extends Exchange {}
     export class crex24 extends Exchange {}
-    export class crypton extends Exchange {}
     export class deribit extends Exchange {}
     export class digifinex extends Exchange {}
     export class dsx extends Exchange {}
@@ -526,7 +524,6 @@ declare module 'ccxt' {
     export class foxbit extends Exchange {}
     export class fybse extends Exchange {}
     export class gateio extends Exchange {}
-    export class gdax extends Exchange {}
     export class gemini extends Exchange {}
     export class hitbtc extends Exchange {}
     export class hitbtc2 extends hitbtc {}
@@ -553,7 +550,6 @@ declare module 'ccxt' {
     export class mercado extends Exchange {}
     export class mixcoins extends Exchange {}
     export class negociecoins extends Exchange {}
-    export class nova extends Exchange {}
     export class oceanex extends Exchange {}
     export class okcoincny extends okcoinusd {}
     export class okcoinusd extends Exchange {}

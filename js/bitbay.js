@@ -957,7 +957,7 @@ module.exports = class bitbay extends Exchange {
             this.checkRequiredCredentials ();
             const query = this.omit (params, this.extractParams (path));
             url += '/' + this.implodeParams (path, params);
-            const nonce = this.milliseconds ();
+            const nonce = this.milliseconds ().toString ();
             let payload = undefined;
             if (method !== 'POST') {
                 if (Object.keys (query).length) {

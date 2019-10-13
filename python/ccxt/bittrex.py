@@ -438,11 +438,11 @@ class bittrex (Exchange):
                 'limits': {
                     'amount': {
                         'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                     'price': {
                         'min': math.pow(10, -precision),
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                     'cost': {
                         'min': None,
@@ -450,7 +450,7 @@ class bittrex (Exchange):
                     },
                     'withdraw': {
                         'min': fee,
-                        'max': math.pow(10, precision),
+                        'max': None,
                     },
                 },
             }

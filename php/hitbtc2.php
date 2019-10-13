@@ -1203,7 +1203,11 @@ class hitbtc2 extends hitbtc {
                     $feeCost = 0;
                 }
                 $tradesCost = $this->sum ($tradesCost, $trades[$i]['cost']);
-                $feeCost = $this->sum ($feeCost, $trades[$i]['fee']['cost']);
+                $tradeFee = $this->safe_value($trades[$i], 'fee', array());
+                $tradeFeeCost = $this->safe_float($tradeFee, 'cost');
+                if ($tradeFeeCost !== null) {
+                    $feeCost = $this->sum ($feeCost, $tradeFeeCost);
+                }
             }
             $cost = $tradesCost;
             if (($filled !== null) && ($filled > 0)) {

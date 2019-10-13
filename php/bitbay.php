@@ -958,7 +958,7 @@ class bitbay extends Exchange {
             $this->check_required_credentials();
             $query = $this->omit ($params, $this->extract_params($path));
             $url .= '/' . $this->implode_params($path, $params);
-            $nonce = $this->milliseconds ();
+            $nonce = (string) $this->milliseconds ();
             $payload = null;
             if ($method !== 'POST') {
                 if ($query) {

@@ -510,8 +510,7 @@ class coinex extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'type' => $side,
         );
-        if ($type === 'limit') {
-            $price = floatval ($price); // this line is deprecated
+        if (($type === 'limit') || ($type === 'ioc')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->$method (array_merge ($request, $params));
@@ -894,7 +893,8 @@ class coinex extends Exchange {
         $response = $this->fetch2 ($path, $api, $method, $params, $headers, $body);
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
-        if ($code !== '0' || !$data) {
+        $message = $this->safe_string($response, 'message');
+        if (($code !== '0') || ($data === null) || (($message !== 'Ok') && !$data)) {
             $responseCodes = array (
                 '24' => '\\ccxt\\AuthenticationError',
                 '25' => '\\ccxt\\AuthenticationError',

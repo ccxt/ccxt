@@ -509,8 +509,7 @@ module.exports = class coinex extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'type': side,
         };
-        if (type === 'limit') {
-            price = parseFloat (price); // this line is deprecated
+        if ((type === 'limit') || (type === 'ioc')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this[method] (this.extend (request, params));
@@ -893,7 +892,8 @@ module.exports = class coinex extends Exchange {
         const response = await this.fetch2 (path, api, method, params, headers, body);
         const code = this.safeString (response, 'code');
         const data = this.safeValue (response, 'data');
-        if (code !== '0' || !data) {
+        const message = this.safeString (response, 'message');
+        if ((code !== '0') || (data === undefined) || ((message !== 'Ok') && !data)) {
             const responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,
