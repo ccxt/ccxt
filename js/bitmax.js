@@ -28,6 +28,7 @@ module.exports = class bitmax extends Exchange {
                 'fetchClosedOrders': true,
                 'fetchTransactions': false,
                 'fetchCurrencies': true,
+                'cancelAllOrders': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -651,12 +652,12 @@ module.exports = class bitmax extends Exchange {
             'time': this.milliseconds (), // milliseconds since UNIX epoch in UTC
             'symbol': market['id'],
             // 'orderPrice': this.priceToPrecision (symbol, price), // optional, limit price of the order. This field is required for limit orders and stop limit orders
-            // 'stopPrice': '15.7', // optional, stop price of the order. This field is required for stop market orders and stop limit orders.
+            // 'stopPrice': '15.7', // optional, stopPrice of the order. This field is required for stop_market orders and stop limit orders
             'orderQty': this.amountToPrecision (symbol, amount),
-            'orderType': type, // order type, you shall specify one of the following: "limit", "market", "stop_market", "stop_limit".
+            'orderType': type, // order type, you shall specify one of the following: "limit", "market", "stop_market", "stop_limit"
             'side': side, // "buy" or "sell"
-            // 'postOnly': true, // optional, if true, the order will either be posted to the limit order book or be cancelled, i.e. the order cannot take liquidity; default value is false
-            // 'timeInForce': 'GTC', // optional, default is "GTC". Currently supports "GTC" (good-till-canceled) and "IOC" (immediate-or-cancel).
+            // 'postOnly': true, // optional, if true, the order will either be posted to the limit order book or be cancelled, i.e. the order cannot take liquidity, default is false
+            // 'timeInForce': 'GTC', // optional, supports "GTC" good-till-canceled and "IOC" immediate-or-cancel
         };
         if ((type === 'limit') || (type === 'stop_limit')) {
             request['orderPrice'] = this.priceToPrecision (symbol, price);
@@ -740,8 +741,36 @@ module.exports = class bitmax extends Exchange {
             'time': this.nonce (),
         };
         const response = await this.privateDeleteOrder (this.extend (request, params));
+        //
+        //     {
+        //         'code': 0,
+        //         'status': 'success', // this field will be deprecated soon
+        //         'email': 'foo@bar.com', // this field will be deprecated soon
+        //         'data': {
+        //             'action': 'cancel',
+        //             'coid': 'gaSRTi3o3Yo4PaXpVK0NSLP47vmJuLea',
+        //             'success': True,
+        //         }
+        //     }
+        //
         const order = this.safeValue (response, 'data', {});
         return this.parseOrder (order);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        const request = {
+            // 'side': 'buy', // optional string field (case-insensitive), either "buy" or "sell"
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id']; // optional
+        }
+        const response = await this.privateDeleteOrderAll (this.extend (request, params));
+        //
+        //     ?
+        //
+        return response;
     }
 
     coid () {
