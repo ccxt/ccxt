@@ -114,7 +114,6 @@ module.exports = class bitmax extends Exchange {
             'options': {
                 'accountGroup': -1,
                 'timeDifference': 0,
-                'adjustForTimeDifference': false,
                 'parseOrderToPrecision': false,
             },
             'exceptions': {
