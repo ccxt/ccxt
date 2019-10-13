@@ -1095,39 +1095,26 @@ module.exports = class bitmax extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.version;
-        // fix sign params
-        if (this.options['accountGroup'] !== -1 && api === 'private') {
-            url = url.replace ('/api/', '/' + this.number_to_string (this.options['accountGroup']) + '/api/');
-        }
-        url += '/' + this.implodeParams (path, params);
-        // fix sign error
-        path = path.replace ('/{coid}', '');
-        url = url.replace ('v1/order/history', 'v2/order/history');
-        let timestamp = this.nonce ();
+        let url = this.version + '/' + this.implodeParams (path, params);
         if (api === 'private') {
             this.checkRequiredCredentials ();
-            let coid = this.coid ();
-            if ('coid' in params) {
-                coid = params['coid'];
-            }
-            if ('time' in params) {
-                timestamp = params['time'];
-            }
-            timestamp = this.number_to_string (timestamp);
-            let query = timestamp + '+' + path;
-            if (method !== 'GET') {
-                query += '+' + coid;
-            }
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256', 'base64');
+            const accountGroup = this.safeString (this.options, 'accountGroup');
+            url = accountGroup + '/' + url;
+            const coid = this.safeString (params, 'coid');
+            const timestamp = this.safeString (params, 'time');
+            let query = timestamp + '+' + path.replace ('/{coid}', ''); // fix sign error
             headers = {
                 'x-auth-key': this.apiKey,
-                'x-auth-signature': signature,
                 'x-auth-timestamp': timestamp,
                 'Content-Type': 'application/json',
             };
-            if (method !== 'GET') {
+            if (coid !== undefined) {
+                query += '+' + coid;
                 headers['x-auth-coid'] = coid;
+            }
+            const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256', 'base64');
+            headers['signature'] = signature;
+            if (method !== 'GET') {
                 body = this.json (params);
             }
         } else {
@@ -1135,6 +1122,7 @@ module.exports = class bitmax extends Exchange {
                 url += '?' + this.urlencode (params);
             }
         }
+        url = this.urls['api'] + '/' + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
