@@ -148,7 +148,6 @@ class Exchange {
         'digifinex',
         'dsx',
         'dx',
-        'ethfinex',
         'exmo',
         'exx',
         'fcoin',
