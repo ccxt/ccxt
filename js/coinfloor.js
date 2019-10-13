@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ExchangeError, NotSupported } = require ('./base/errors');
+const { InsufficientFunds, ExchangeError, NotSupported, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -64,6 +64,7 @@ module.exports = class coinfloor extends Exchange {
             'exceptions': {
                 'exact': {
                     'You have insufficient funds.': InsufficientFunds,
+                    'Tonce is out of sequence.': InvalidNonce,
                 },
             },
         });
@@ -470,17 +471,19 @@ module.exports = class coinfloor extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
-        if (code >= 400) {
-            if (body[0] === '{') {
-                const message = response['error_msg'];
-                const feedback = this.id + ' ' + body;
-                const exact = this.exceptions['exact'];
-                if (message in exact) {
-                    throw new exact[message] (feedback);
-                }
-            }
-            throw new ExchangeError (this.id + ' ' + body);
+        if (code < 400) {
+            return;
         }
+        if (response === undefined) {
+            return;
+        }
+        const message = this.safeString (response, 'error_msg');
+        const feedback = this.id + ' ' + body;
+        const exact = this.exceptions['exact'];
+        if (message in exact) {
+            throw new exact[message] (feedback);
+        }
+        throw new ExchangeError (feedback);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

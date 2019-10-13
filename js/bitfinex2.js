@@ -26,7 +26,7 @@ module.exports = class bitfinex2 extends bitfinex {
                 'fetchDepositAddress': false,
                 'fetchClosedOrders': false,
                 'fetchFundingFees': false,
-                'fetchMyTrades': false, // has to be false https://github.com/ccxt/ccxt/issues/4971
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': true,
@@ -574,8 +574,6 @@ module.exports = class bitfinex2 extends bitfinex {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        // this.has['fetchMyTrades'] is set to false
-        // https://github.com/ccxt/ccxt/issues/4971
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -594,25 +592,6 @@ module.exports = class bitfinex2 extends bitfinex {
             method = 'privatePostAuthRTradesSymbolHist';
         }
         const response = await this[method] (this.extend (request, params));
-        //
-        //     [
-        //         [
-        //             ID,
-        //             PAIR,
-        //             MTS_CREATE,
-        //             ORDER_ID,
-        //             EXEC_AMOUNT,
-        //             EXEC_PRICE,
-        //             ORDER_TYPE,
-        //             ORDER_PRICE,
-        //             MAKER,
-        //             FEE,
-        //             FEE_CURRENCY,
-        //             ...
-        //         ],
-        //         ...
-        //     ]
-        //
         return this.parseTrades (response, market, since, limit);
     }
 

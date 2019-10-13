@@ -5,6 +5,8 @@
 
 from ccxt.async_support.base.exchange import Exchange
 import base64
+from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import NotSupported
 
 
@@ -62,6 +64,11 @@ class coinfloor (Exchange):
                 'BTC/GBP': {'id': 'XBT/GBP', 'symbol': 'BTC/GBP', 'base': 'BTC', 'quote': 'GBP', 'baseId': 'XBT', 'quoteId': 'GBP', 'precision': {'price': 0, 'amount': 4}},
                 'BTC/EUR': {'id': 'XBT/EUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'XBT', 'quoteId': 'EUR', 'precision': {'price': 0, 'amount': 4}},
                 'ETH/GBP': {'id': 'ETH/GBP', 'symbol': 'ETH/GBP', 'base': 'ETH', 'quote': 'GBP', 'baseId': 'ETH', 'quoteId': 'GBP', 'precision': {'price': 0, 'amount': 4}},
+            },
+            'exceptions': {
+                'exact': {
+                    'You have insufficient funds.': InsufficientFunds,
+                },
             },
         })
 
@@ -426,6 +433,18 @@ class coinfloor (Exchange):
         #     "type": 0
         #   }
         return self.parse_orders(response, market, since, limit, {'status': 'open'})
+
+    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+        if code < 400:
+            return
+        if response is None:
+            return
+        message = self.safe_string(response, 'error_msg')
+        feedback = self.id + ' ' + body
+        exact = self.exceptions['exact']
+        if message in exact:
+            raise exact[message](feedback)
+        raise ExchangeError(feedback)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         # curl -k -u '[User ID]/[API key]:[Passphrase]' https://webapi.coinfloor.co.uk:8090/bist/XBT/GBP/balance/
