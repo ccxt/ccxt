@@ -494,7 +494,7 @@ module.exports = class bitmax extends Exchange {
         //         "p": "13.75", // price
         //         "q": "6.68", // quantity
         //         "t": 1528988084944, // timestamp
-        //         "bm": False            // if true, the buyer is the market maker
+        //         "bm": False, // if true, the buyer is the market maker, we only use this field to "define the side" of a public trade
         //     }
         //
         // private fetchOrderTrades
@@ -530,25 +530,53 @@ module.exports = class bitmax extends Exchange {
         const timestamp = this.safeInteger (trade, 't');
         const price = this.safeFloat (trade, 'p');
         const amount = this.safeFloat (trade, 'q');
-        const takerOrMaker = trade['bm'] ? 'maker' : 'taker';
+        const buyerIsMaker = this.safeValue (trade, 'bm');
         let symbol = undefined;
-        if (market !== undefined) {
+        const marketId = this.safeString (trade, 's');
+        if (marketId !== undefined) {
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = market.split ('/');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
+        let fee = undefined;
+        const feeCost = this.safeFloat (trade, 'fee');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'fa');
+            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        const orderId = this.safeString (trade, 'coid');
+        let side = this.safeStringLower (trade, 'side');
+        if ((side === undefined) && (buyerIsMaker !== undefined)) {
+            side = buyerIsMaker ? 'buy' : 'sell';
+        }
+        const type = this.safeStringLower (trade, 'orderType');
         return {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': undefined,
-            'order': undefined,
-            'type': undefined,
-            'takerOrMaker': takerOrMaker,
-            'side': undefined,
+            'order': orderId,
+            'type': type,
+            'takerOrMaker': undefined,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': price * amount,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
@@ -571,7 +599,7 @@ module.exports = class bitmax extends Exchange {
         //                 "p": "13.75", // price
         //                 "q": "6.68", // quantity
         //                 "t": 1528988084944, // timestamp
-        //                 "bm": False            // if true, the buyer is the market maker
+        //                 "bm": False, // if true, the buyer is the market maker
         //             },
         //         ]
         //     }
