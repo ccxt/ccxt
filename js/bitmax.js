@@ -25,6 +25,7 @@ module.exports = class bitmax extends Exchange {
                 'fetchOrder': true,
                 'fetchOrders': false,
                 'fetchOpenOrders': true,
+                'fetchOrderTrades': true,
                 'fetchClosedOrders': true,
                 'fetchTransactions': false,
                 'fetchCurrencies': true,
@@ -81,6 +82,7 @@ module.exports = class bitmax extends Exchange {
                         'order',
                         'order/history',
                         'order/{coid}',
+                        'order/fills/{coid}',
                         'transaction',
                         'margin/balance',
                         'margin/order/open',
@@ -495,6 +497,36 @@ module.exports = class bitmax extends Exchange {
         //         "bm": False            // if true, the buyer is the market maker
         //     }
         //
+        // private fetchOrderTrades
+        //
+        //     {
+        //         "ap": "0.029062965", // average filled price
+        //         "bb": "36851.981", // base asset total balance
+        //         "bc": "0", // if possitive, this is the BTMX commission charged by reverse mining, if negative, this is the mining output of the current fill.
+        //         "bpb": "36851.981", // base asset pending balance
+        //         "btmxBal": "0.0", // optional, the BTMX balance of the current account. This field is only available when bc is non-zero.
+        //         "cat": "CASH", // account category: CASH/MARGIN
+        //         "coid": "41g6wtPRFrJXgg6YxjqI6Qoog139Dmoi", // client order id, (needed to cancel order)
+        //         "ei": "NULL_VAL", // execution instruction
+        //         "errorCode": "NULL_VAL", // if the order is rejected, this field explains why
+        //         "execId": "12562285", // for each user, this is a strictly increasing long integer (represented as string)
+        //         "f": "78.074", // filled quantity, this is the aggregated quantity executed by all past fills
+        //         "fa": "BTC", // fee asset
+        //         "fee": "0.000693608", // fee
+        //         'lp': "0.029064", // last price, the price executed by the last fill
+        //         "l": "11.932", // last quantity, the quantity executed by the last fill
+        //         "m": "order", // message type
+        //         "orderType": "Limit", // Limit, Market, StopLimit, StopMarket
+        //         "p": "0.029066", // limit price, only available for limit and stop limit orders
+        //         "q": "100.000", // order quantity
+        //         "qb": "98878.642957097", // quote asset total balance
+        //         "qpb": "98877.967247508", // quote asset pending balance
+        //         "s": "ETH/BTC", // symbol
+        //         "side": "Buy", // side
+        //         "status": "PartiallyFilled", // order status
+        //         "t": 1561131458389, // timestamp
+        //     }
+        //
         const timestamp = this.safeInteger (trade, 't');
         const price = this.safeFloat (trade, 'p');
         const amount = this.safeFloat (trade, 'q');
@@ -750,6 +782,57 @@ module.exports = class bitmax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccountGroup ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {
+            'coid': id,
+        };
+        const response = await this.privateGetOrderFillsCoid (this.extend (request, params));
+        //
+        //     {
+        //         'code': 0,
+        //         'status': 'success', // this field will be deprecated soon
+        //         'email': 'foo@bar.com', // this field will be deprecated soon
+        //         "data": [
+        //             {
+        //                 "ap": "0.029062965", // average filled price
+        //                 "bb": "36851.981", // base asset total balance
+        //                 "bc": "0", // if possitive, this is the BTMX commission charged by reverse mining, if negative, this is the mining output of the current fill.
+        //                 "bpb": "36851.981", // base asset pending balance
+        //                 "btmxBal": "0.0", // optional, the BTMX balance of the current account. This field is only available when bc is non-zero.
+        //                 "cat": "CASH", // account category: CASH/MARGIN
+        //                 "coid": "41g6wtPRFrJXgg6YxjqI6Qoog139Dmoi", // client order id, (needed to cancel order)
+        //                 "ei": "NULL_VAL", // execution instruction
+        //                 "errorCode": "NULL_VAL", // if the order is rejected, this field explains why
+        //                 "execId": "12562285", // for each user, this is a strictly increasing long integer (represented as string)
+        //                 "f": "78.074", // filled quantity, this is the aggregated quantity executed by all past fills
+        //                 "fa": "BTC", // fee asset
+        //                 "fee": "0.000693608", // fee
+        //                 'lp': "0.029064", // last price, the price executed by the last fill
+        //                 "l": "11.932", // last quantity, the quantity executed by the last fill
+        //                 "m": "order", // message type
+        //                 "orderType": "Limit", // Limit, Market, StopLimit, StopMarket
+        //                 "p": "0.029066", // limit price, only available for limit and stop limit orders
+        //                 "q": "100.000", // order quantity
+        //                 "qb": "98878.642957097", // quote asset total balance
+        //                 "qpb": "98877.967247508", // quote asset pending balance
+        //                 "s": "ETH/BTC", // symbol
+        //                 "side": "Buy", // side
+        //                 "status": "PartiallyFilled", // order status
+        //                 "t": 1561131458389, // timestamp
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTrades (data, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
