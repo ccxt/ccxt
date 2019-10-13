@@ -30,6 +30,7 @@ module.exports = class bitmax extends Exchange {
                 'fetchTransactions': false,
                 'fetchCurrencies': true,
                 'cancelAllOrders': true,
+                'fetchDepositAddress': true,
             },
             'timeframes': {
                 '1m': '1',
@@ -75,6 +76,7 @@ module.exports = class bitmax extends Exchange {
                 },
                 'private': {
                     'get': [
+                        'deposit',
                         'user/info',
                         'balance',
                         'order/batch',
@@ -1017,6 +1019,8 @@ module.exports = class bitmax extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccountGroup ();
         const request = {
             // 'side': 'buy', // optional string field (case-insensitive), either "buy" or "sell"
         };
@@ -1038,6 +1042,57 @@ module.exports = class bitmax extends Exchange {
         const clientOrderId = parts.join ('');
         const coid = clientOrderId.slice (0, 32);
         return coid;
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        await this.loadMarkets ();
+        await this.loadAccountGroup ();
+        const currency = this.currency (code);
+        const request = {
+            'requestId': this.coid (),
+            'time': this.milliseconds (),
+            'assetCode': currency['id'],
+        };
+        // note: it is highly recommended to use V2 version of this route,
+        // especially for assets with multiple block chains such as USDT.
+        const response = await this.privateGetDeposit (this.extend (request, params));
+        //
+        // v1
+        //
+        //     {
+        //         "data": {
+        //             "address": "0x26a3CB49578F07000575405a57888681249c35Fd"
+        //         },
+        //         "email": "igor.kroitor@gmial.com",
+        //         "status": "success",
+        //     }
+        //
+        // v2 (not supported yet)
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "asset": "XRP",
+        //                 "blockChain": "Ripple",
+        //                 "addressData": {
+        //                     "address": "rpinhtY4p35bPmVXPbfWRUtZ1w1K1gYShB",
+        //                     "destTag": "54301"
+        //                 }
+        //             }
+        //         ],
+        //         "email": "xxx@xxx.com",
+        //         "status": "success" // the request has been submitted to the server
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const address = this.safeString (data, 'address');
+        this.checkAddress (address);
+        return {
+            'currency': code,
+            'address': address,
+            'info': response,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
