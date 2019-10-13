@@ -773,7 +773,7 @@ module.exports = class bitmax extends Exchange {
         await this.loadAccountGroup ();
         let market = undefined;
         const request = {
-            'side': 'buy', // or 'sell', optional
+            // 'side': 'buy', // or 'sell', optional
         };
         if (symbol !== undefined) {
             market = this.market (symbol);
