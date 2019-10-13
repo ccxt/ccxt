@@ -946,11 +946,11 @@ module.exports = class bitmax extends Exchange {
         //         'status': 'success', // this field will be deprecated soon
         //         'email': 'foo@bar.com', // this field will be deprecated soon
         //         'data': {
-        //         'page': 1,
-        //         'pageSize': 20,
-        //         'limit': 500,
-        //         'hasNext': False,
-        //         'data': [
+        //             'page': 1,
+        //             'pageSize': 20,
+        //             'limit': 500,
+        //             'hasNext': False,
+        //             'data': [
         //                 {
         //                     'time': 1566091429000, // The last execution time of the order (This timestamp is in second level resolution)
         //                     'coid': 'QgQIMJhPFrYfUf60ZTihmseTqhzzwOCx',
@@ -976,13 +976,14 @@ module.exports = class bitmax extends Exchange {
         //                     'errorCode': 'NULL_VAL',
         //                     'execInst': 'NULL_VAL',
         //                     "sendingTime": 1566091382736, // The sending time of the order
-        //                 },
+        //                },
         //             ]
         //         }
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrders (data, market, since, limit);
+        const orders = this.safeValue (data, 'data', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
