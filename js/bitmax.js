@@ -560,6 +560,19 @@ module.exports = class bitmax extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //
+        //     {
+        //         "coid": "xxx...xxx",
+        //         "action": "new",
+        //         "success": true  // success = true means the order has been submitted to the matching engine.
+        //     }
+        //
+        // fetchOrders, fetchOpenOrders, fetchClosedOrders
+        //
+        // ...
+        //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
         let timestamp = undefined;
@@ -652,16 +665,17 @@ module.exports = class bitmax extends Exchange {
         //
         //     {
         //         "code": 0,
-        //         "email": "foo@bar.com",  // this field will be deprecated soon
-        //         "status": "success",     // this field will be deprecated soon
-        //         data: {
+        //         "email": "foo@bar.com", // this field will be deprecated soon
+        //         "status": "success", // this field will be deprecated soon
+        //         "data": {
         //             "coid": "xxx...xxx",
         //             "action": "new",
-        //             "success": true  // success = true means the order has been submitted to the matching engine.
+        //             "success": true, // success = true means the order has been submitted to the matching engine
         //         }
         //     }
         //
-        return this.parseOrder (response, market);
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
