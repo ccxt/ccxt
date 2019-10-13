@@ -113,7 +113,6 @@ module.exports = class bitmax extends Exchange {
             },
             'options': {
                 'accountGroup': -1,
-                'timeDifference': 0,
                 'parseOrderToPrecision': false,
             },
             'exceptions': {
@@ -121,14 +120,11 @@ module.exports = class bitmax extends Exchange {
                     '2100': AuthenticationError, // {"code":2100,"message":"ApiKeyFailure"}
                     '6010': InsufficientFunds, // {'code': 6010, 'message': 'Not enough balance.'}
                     '60060': InvalidOrder, // { 'code': 60060, 'message': 'The order is already filled or canceled.' }
+                    '600503': InvalidOrder, // {"code":600503,"message":"Notional is too small."}
                 },
                 'broad': {},
             },
         });
-    }
-
-    nonce () {
-        return this.milliseconds () - this.options['timeDifference'];
     }
 
     async fetchCurrencies (params = {}) {
@@ -998,7 +994,7 @@ module.exports = class bitmax extends Exchange {
             'symbol': market['id'],
             'coid': this.coid (),
             'origCoid': id,
-            'time': this.nonce (),
+            'time': this.milliseconds (),
         };
         const response = await this.privateDeleteOrder (this.extend (request, params));
         //
