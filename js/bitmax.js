@@ -296,16 +296,16 @@ module.exports = class bitmax extends Exchange {
         //
         //     {
         //         "code": 0,
-        //         "status": "success",     // this field will be deprecated soon
-        //         "email": "foo@bar.com",  // this field will be deprecated soon
+        //         "status": "success", // this field will be deprecated soon
+        //         "email": "foo@bar.com", // this field will be deprecated soon
         //         "data": [
         //             {
-        //                 "assetCode":       "TSC",
-        //                 "assetName":       "Ethereum",
-        //                 "totalAmount":     "20.03",    // total balance amount
-        //                 "availableAmount": "20.03",    // balance amount available to trade
-        //                 "inOrderAmount":   "0.000",    // in order amount
-        //                 "btcValue":        "70.81"     // the current BTC value of the balance
+        //                 "assetCode": "TSC",
+        //                 "assetName": "Ethereum",
+        //                 "totalAmount": "20.03", // total balance amount
+        //                 "availableAmount": "20.03", // balance amount available to trade
+        //                 "inOrderAmount": "0.000", // in order amount
+        //                 "btcValue": "70.81"     // the current BTC value of the balance
         //                                                 // ("btcValue" might not be available when price is missing)
         //             },
         //         ]
@@ -489,9 +489,9 @@ module.exports = class bitmax extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "p":  "13.75",         // price
-        //         "q":  "6.68",          // quantity
-        //         "t":  1528988084944,   // timestamp
+        //         "p": "13.75", // price
+        //         "q": "6.68", // quantity
+        //         "t": 1528988084944, // timestamp
         //         "bm": False            // if true, the buyer is the market maker
         //     }
         //
@@ -532,13 +532,13 @@ module.exports = class bitmax extends Exchange {
         const response = await this.publicGetTrades (this.extend (request, params));
         //
         //     {
-        //         "m": "marketTrades",       // message type
-        //         "s": "ETH/BTC",            // symbol
+        //         "m": "marketTrades", // message type
+        //         "s": "ETH/BTC", // symbol
         //         "trades": [
         //             {
-        //                 "p":  "13.75",         // price
-        //                 "q":  "6.68",          // quantity
-        //                 "t":  1528988084944,   // timestamp
+        //                 "p": "13.75", // price
+        //                 "q": "6.68", // quantity
+        //                 "t": 1528988084944, // timestamp
         //                 "bm": False            // if true, the buyer is the market maker
         //             },
         //         ]
@@ -570,7 +570,7 @@ module.exports = class bitmax extends Exchange {
         //         "success": true  // success = true means the order has been submitted to the matching engine.
         //     }
         //
-        // fetchOrder
+        // fetchOrder, fetchOpenOrders
         //
         //     {
         //         "accountCategory": "CASH",
@@ -598,10 +598,6 @@ module.exports = class bitmax extends Exchange {
         //         "sendingTime": 1566091503547, // The sending time of the order
         //         "userId": "supEQeSJQllKkxYSgLOoVk7hJAX59WSz"
         //     }
-        //
-        // fetchOrders, fetchOpenOrders, fetchClosedOrders
-        //
-        // ...
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
@@ -775,12 +771,52 @@ module.exports = class bitmax extends Exchange {
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.loadAccountGroup ();
-        const market = this.market (symbol);
-        const request = {};
-        request['symbol'] = market['id'];
+        let market = undefined;
+        const request = {
+            'side': 'buy', // or 'sell', optional
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
         const response = await this.privateGetOrderOpen (this.extend (request, params));
-        const orders = this.safeValue (response, 'data', []);
-        return this.parseOrders (orders, market, since, limit);
+        //
+        //     {
+        //         'code': 0,
+        //         'status': 'success', // this field will be deprecated soon
+        //         'email': 'foo@bar.com', // this field will be deprecated soon
+        //         "data": [
+        //             {
+        //                 "accountCategory": "CASH",
+        //                 "accountId": "cshKAhmTHQNUKhR1pQyrDOdotE3Tsnz4",
+        //                 "avgPrice": "0.000000000",
+        //                 "baseAsset": "ETH",
+        //                 "btmxCommission": "0.000000000",
+        //                 "coid": "41g6wtPRFrJXgg6Y7vpIkcCyWhgcK0cF", // the unique identifier, you will need, this value to cancel this order
+        //                 "errorCode": "NULL_VAL",
+        //                 "execId": "12452288",
+        //                 "execInst": "NULL_VAL",
+        //                 "fee": "0.000000000", // cumulative fee paid for this order
+        //                 "feeAsset": "", // the asset
+        //                 "filledQty": "0.000000000", // filled quantity
+        //                 "notional": "0.000000000",
+        //                 "orderPrice": "0.310000000", // only available for limit and stop limit orders
+        //                 "orderQty": "1.000000000",
+        //                 "orderType": "StopLimit",
+        //                 "quoteAsset": "BTC",
+        //                 "side": "Buy",
+        //                 "status": "PendingNew",
+        //                 "stopPrice": "0.300000000", // only available for stop market and stop limit orders
+        //                 "symbol": "ETH/BTC",
+        //                 "time": 1566091628227, // The last execution time of the order
+        //                 "sendingTime": 1566091503547, // The sending time of the order
+        //                 "userId": "supEQeSJQllKkxYSgLOoVk7hJAX59WSz"
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
