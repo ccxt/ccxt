@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { InsufficientFunds, ExchangeError, NotSupported } = require ('./base/errors');
+const { InsufficientFunds, ExchangeError, NotSupported, InvalidNonce } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -64,6 +64,7 @@ module.exports = class coinfloor extends Exchange {
             'exceptions': {
                 'exact': {
                     'You have insufficient funds.': InsufficientFunds,
+                    'Tonce is out of sequence.': InvalidNonce,
                 },
             },
         });
