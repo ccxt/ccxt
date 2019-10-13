@@ -570,7 +570,7 @@ module.exports = class bitmax extends Exchange {
         //         "success": true  // success = true means the order has been submitted to the matching engine.
         //     }
         //
-        // fetchOrder, fetchOpenOrders
+        // fetchOrder, fetchOpenOrders, fetchClosedOrders
         //
         //     {
         //         "accountCategory": "CASH",
@@ -820,9 +820,74 @@ module.exports = class bitmax extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = { 'status': 'Filled' };
-        const orders = await this.fetchOrders (symbol, since, limit, this.extend (request, params));
-        return orders;
+        await this.loadMarkets ();
+        await this.loadAccountGroup ();
+        let market = undefined;
+        const request = {
+            // 'symbol': 'ETH/BTC', // optional
+            // 'category': 'CASH', // optional, string
+            // 'orderType': 'Market', // optional, string
+            // 'page': 1, // optional, integer type, starts at 1
+            // 'pageSize': 100, // optional, integer type
+            // 'side': 'buy', // or 'sell', optional, case insensitive.
+            // 'startTime': 1566091628227, // optional, integer milliseconds since UNIX epoch representing the start of the range
+            // 'endTime': 1566091628227, // optional, integer milliseconds since UNIX epoch representing the end of the range
+            // 'status': 'Filled', // optional, can only be one of "Filled", "Canceled", "Rejected"
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateGetOrderHistory (this.extend (request, params));
+        //
+        //     {
+        //         'code': 0,
+        //         'status': 'success', // this field will be deprecated soon
+        //         'email': 'foo@bar.com', // this field will be deprecated soon
+        //         'data': {
+        //         'page': 1,
+        //         'pageSize': 20,
+        //         'limit': 500,
+        //         'hasNext': False,
+        //         'data': [
+        //                 {
+        //                     'time': 1566091429000, // The last execution time of the order (This timestamp is in second level resolution)
+        //                     'coid': 'QgQIMJhPFrYfUf60ZTihmseTqhzzwOCx',
+        //                     'execId': '331',
+        //                     'symbol': 'BTMX/USDT',
+        //                     'orderType': 'Market',
+        //                     'baseAsset': 'BTMX',
+        //                     'quoteAsset': 'USDT',
+        //                     'side': 'Buy',
+        //                     'stopPrice': '0.000000000', // only meaningful for stop market and stop limit orders
+        //                     'orderPrice': '0.123000000', // only meaningful for limit and stop limit orders
+        //                     'orderQty': '9229.409000000',
+        //                     'filledQty': '9229.409000000',
+        //                     'avgPrice': '0.095500000',
+        //                     'fee': '0.352563424',
+        //                     'feeAsset': 'USDT',
+        //                     'btmxCommission': '0.000000000',
+        //                     'status': 'Filled',
+        //                     'notional': '881.408559500',
+        //                     'userId': '5DNEppWy33SayHjFQpgQUTjwNMSjEhD3',
+        //                     'accountId': 'ACPHERRWRIA3VQADMEAB2ZTLYAXNM3PJ',
+        //                     'accountCategory': 'CASH',
+        //                     'errorCode': 'NULL_VAL',
+        //                     'execInst': 'NULL_VAL',
+        //                     "sendingTime": 1566091382736, // The sending time of the order
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrders (data, market, since, limit);
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
