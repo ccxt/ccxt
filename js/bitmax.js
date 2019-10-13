@@ -634,15 +634,33 @@ module.exports = class bitmax extends Exchange {
         await this.loadAccountGroup ();
         const market = this.market (symbol);
         const request = {
-            'coid': this.coid (),
-            'time': this.nonce (),
+            'coid': this.coid (), // a unique identifier of length 32
+            'time': this.milliseconds (), // milliseconds since UNIX epoch in UTC
             'symbol': market['id'],
-            'orderPrice': this.priceToPrecision (symbol, price),
+            // 'orderPrice': this.priceToPrecision (symbol, price), // optional, limit price of the order. This field is required for limit orders and stop limit orders
+            // 'stopPrice': '15.7', // optional, stop price of the order. This field is required for stop market orders and stop limit orders.
             'orderQty': this.amountToPrecision (symbol, amount),
-            'orderType': type,
-            'side': side,
+            'orderType': type, // order type, you shall specify one of the following: "limit", "market", "stop_market", "stop_limit".
+            'side': side, // "buy" or "sell"
+            // 'postOnly': true, // optional, if true, the order will either be posted to the limit order book or be cancelled, i.e. the order cannot take liquidity; default value is false
+            // 'timeInForce': 'GTC', // optional, default is "GTC". Currently supports "GTC" (good-till-canceled) and "IOC" (immediate-or-cancel).
         };
+        if ((type === 'limit') || (type === 'stop_limit')) {
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
+        }
         const response = await this.privatePostOrder (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "email": "foo@bar.com",  // this field will be deprecated soon
+        //         "status": "success",     // this field will be deprecated soon
+        //         data: {
+        //             "coid": "xxx...xxx",
+        //             "action": "new",
+        //             "success": true  // success = true means the order has been submitted to the matching engine.
+        //         }
+        //     }
+        //
         return this.parseOrder (response, market);
     }
 
