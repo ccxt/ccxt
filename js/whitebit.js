@@ -358,7 +358,7 @@ module.exports = class whitebit extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['start'] = since * 0.001;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
