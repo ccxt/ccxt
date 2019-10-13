@@ -486,8 +486,7 @@ class coinex (Exchange):
             'amount': self.amount_to_precision(symbol, amount),
             'type': side,
         }
-        if type == 'limit':
-            price = float(price)  # self line is deprecated
+        if (type == 'limit') or (type == 'ioc'):
             request['price'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(request, params))
         order = self.parse_order(response['data'], market)

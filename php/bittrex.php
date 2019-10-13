@@ -427,11 +427,11 @@ class bittrex extends Exchange {
                 'limits' => array (
                     'amount' => array (
                         'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                     'price' => array (
                         'min' => pow(10, -$precision),
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                     'cost' => array (
                         'min' => null,
@@ -439,7 +439,7 @@ class bittrex extends Exchange {
                     ),
                     'withdraw' => array (
                         'min' => $fee,
-                        'max' => pow(10, $precision),
+                        'max' => null,
                     ),
                 ),
             );
