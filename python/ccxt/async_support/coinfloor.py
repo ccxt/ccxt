@@ -8,6 +8,7 @@ import base64
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import InvalidNonce
 
 
 class coinfloor (Exchange):
@@ -68,6 +69,7 @@ class coinfloor (Exchange):
             'exceptions': {
                 'exact': {
                     'You have insufficient funds.': InsufficientFunds,
+                    'Tonce is out of sequence.': InvalidNonce,
                 },
             },
         })
