@@ -23,7 +23,7 @@ module.exports = class bitmax extends Exchange {
                 'fetchOHLCV': true,
                 'fetchMyTrades': false,
                 'fetchOrder': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOpenOrders': true,
                 'fetchClosedOrders': true,
                 'fetchTransactions': false,
@@ -750,22 +750,6 @@ module.exports = class bitmax extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOrder (data, market);
-    }
-
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        await this.loadAccountGroup ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const response = await this.privateGetOrderHistory (this.extend (request, params));
-        let orders = this.safeValue (response, 'data', {});
-        orders = this.safeValue (orders, 'data', {});
-        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
