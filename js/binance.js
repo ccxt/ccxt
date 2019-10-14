@@ -450,7 +450,12 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = maximum = 100
         }
-        const response = await this.publicGetDepth (this.extend (request, params));
+        const marketType = this.options['defaultMarket'];
+        let method = 'publicGetDepth';
+        if (marketType === 'futures') {
+            method = 'fapiPublicGetDepth';
+        }
+        const response = await this[method] (this.extend (request, params));
         const orderbook = this.parseOrderBook (response);
         orderbook['nonce'] = this.safeInteger (response, 'lastUpdateId');
         return orderbook;
@@ -1051,7 +1056,12 @@ module.exports = class binance extends Exchange {
             const fetchOpenOrdersRateLimit = parseInt (numSymbols / 2);
             throw new ExchangeError (this.id + ' fetchOpenOrders WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         }
-        const response = await this.privateGetOpenOrders (this.extend (request, params));
+        const marketType = this.options['defaultMarket'];
+        let method = 'privateGetOpenOrders';
+        if (marketType === 'futures') {
+            method = 'fapiPrivateGetOpenOrders';
+        }
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1071,7 +1081,12 @@ module.exports = class binance extends Exchange {
             'orderId': parseInt (id),
             // 'origClientOrderId': id,
         };
-        const response = await this.privateDeleteOrder (this.extend (request, params));
+        const marketType = this.options['defaultMarket'];
+        let method = 'privateDeleteOrder';
+        if (marketType === 'futures') {
+            method = 'fapiPrivateDeleteOrder';
+        }
+        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1140,7 +1155,7 @@ module.exports = class binance extends Exchange {
 
     async fetchMyDustTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         //
-        // Bianance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
+        // Binance provides an opportunity to trade insignificant (i.e. non-tradable and non-withdrawable)
         // token leftovers (of any asset) into `BNB` coin which in turn can be used to pay trading fees with it.
         // The corresponding trades history is called the `Dust Log` and can be requested via the following end-point:
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
