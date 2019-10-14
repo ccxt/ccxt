@@ -1098,18 +1098,18 @@ module.exports = class bitmax extends Exchange {
             url = accountGroup + '/' + url;
             const coid = this.safeString (params, 'coid');
             const timestamp = this.safeString (params, 'time');
-            let query = timestamp + '+' + path.replace ('/{coid}', ''); // fix sign error
+            let auth = timestamp + '+' + path.replace ('/{coid}', ''); // fix sign error
             headers = {
                 'x-auth-key': this.apiKey,
                 'x-auth-timestamp': timestamp,
                 'Content-Type': 'application/json',
             };
             if (coid !== undefined) {
-                query += '+' + coid;
+                auth += '+' + coid;
                 headers['x-auth-coid'] = coid;
             }
-            const signature = this.hmac (this.encode (query), this.encode (this.secret), 'sha256', 'base64');
-            headers['signature'] = signature;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
+            headers['x-auth-signature'] = signature;
             if (method !== 'GET') {
                 body = this.json (params);
             }
