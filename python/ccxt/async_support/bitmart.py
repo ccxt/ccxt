@@ -111,7 +111,7 @@ class bitmart (Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.001,
+                    'taker': 0.002,
                     'maker': 0.001,
                     'tiers': {
                         'taker': [
