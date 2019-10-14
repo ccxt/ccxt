@@ -596,9 +596,6 @@ module.exports = class whitebit extends Exchange {
         if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
         }
-        headers = {
-            'Content-Type': 'text/plan; charset=UTF-8',
-        };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
