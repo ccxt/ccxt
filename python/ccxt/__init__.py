@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.1254'
+__version__ = '1.18.1255'
 
 # ----------------------------------------------------------------------------
 
@@ -130,7 +130,6 @@ from ccxt.deribit import deribit                            # noqa: F401
 from ccxt.digifinex import digifinex                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
 from ccxt.dx import dx                                      # noqa: F401
-from ccxt.ethfinex import ethfinex                          # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.exx import exx                                    # noqa: F401
 from ccxt.fcoin import fcoin                                # noqa: F401
@@ -255,7 +254,6 @@ exchanges = [
     'digifinex',
     'dsx',
     'dx',
-    'ethfinex',
     'exmo',
     'exx',
     'fcoin',

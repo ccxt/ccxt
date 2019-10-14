@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1254'
+__version__ = '1.18.1255'
 
 # -----------------------------------------------------------------------------
 
@@ -111,7 +111,6 @@ from ccxt.async_support.deribit import deribit                            # noqa
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.dsx import dsx                                    # noqa: F401
 from ccxt.async_support.dx import dx                                      # noqa: F401
-from ccxt.async_support.ethfinex import ethfinex                          # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.exx import exx                                    # noqa: F401
 from ccxt.async_support.fcoin import fcoin                                # noqa: F401
@@ -236,7 +235,6 @@ exchanges = [
     'digifinex',
     'dsx',
     'dx',
-    'ethfinex',
     'exmo',
     'exx',
     'fcoin',

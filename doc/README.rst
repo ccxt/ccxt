@@ -66,7 +66,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The ccxt library currently supports the following 123 cryptocurrency exchange markets and trading APIs:
+The ccxt library currently supports the following 122 cryptocurrency exchange markets and trading APIs:
 
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 |        logo                                                                               | id                 | name                                                                                       | ver | doc                                                                                             | certified                                                            |
@@ -200,8 +200,6 @@ The ccxt library currently supports the following 123 cryptocurrency exchange ma
 | `dsx <https://dsx.uk>`__                                                                  | dsx                | `DSX <https://dsx.uk>`__                                                                   | 3   | `API <https://dsx.uk/developers/publicApi>`__                                                   |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `dx <https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139>`__          | dx                 | `DX.Exchange <https://dx.exchange/registration?dx_cid=20&dx_scname=100001100000038139>`__  | 1   | `API <https://apidocs.dx.exchange>`__                                                           |                                                                      |
-+-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| `ethfinex <https://www.ethfinex.com>`__                                                   | ethfinex           | `Ethfinex <https://www.ethfinex.com>`__                                                    | 1   | `API <https://bitfinex.readme.io/v1/docs>`__                                                    |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | `exmo <https://exmo.me/?ref=131685>`__                                                    | exmo               | `EXMO <https://exmo.me/?ref=131685>`__                                                     | 1   | `API <https://exmo.me/en/api_doc?ref=131685>`__                                                 |                                                                      |
 +-------------------------------------------------------------------------------------------+--------------------+--------------------------------------------------------------------------------------------+-----+-------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
@@ -365,14 +363,14 @@ JavaScript (for use with the ``<script>`` tag):
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
--  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1254/dist/ccxt.browser.js
--  unpkg: https://unpkg.com/ccxt@1.18.1254/dist/ccxt.browser.js
+-  jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.18.1255/dist/ccxt.browser.js
+-  unpkg: https://unpkg.com/ccxt@1.18.1255/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code:: html
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1254/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.18.1255/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
