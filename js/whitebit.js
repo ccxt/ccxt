@@ -12,7 +12,7 @@ module.exports = class whitebit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'whitebit',
             'name': 'WhiteBit',
-            'version': '1',
+            'version': 'v2',
             'countries': [ 'EE' ],
             'rateLimit': 500,
             'has': {
