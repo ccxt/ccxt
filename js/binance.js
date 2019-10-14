@@ -277,7 +277,12 @@ module.exports = class binance extends Exchange {
     }
 
     async fetchTime (params = {}) {
-        const response = await this.publicGetTime (params);
+        const marketType = this.options['defaultMarket'];
+        let method = 'PublicGetTime';
+        if (marketType === 'futures') {
+            method = 'fapi' + method;
+        }
+        const response = await this[method] (params);
         return this.safeFloat (response, 'serverTime');
     }
 
@@ -404,17 +409,38 @@ module.exports = class binance extends Exchange {
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetAccount (params);
+        const marketType = this.options['defaultMarket'];
+        let method = 'GetAccount';
+        if (marketType === 'futures') {
+            method = 'fapiPrivate' + method;
+        } else {
+            method = 'private' + method;
+        }
+        const response = await this[method] (params);
         const result = { 'info': response };
-        const balances = this.safeValue (response, 'balances', []);
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = balance['asset'];
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeFloat (balance, 'free');
-            account['used'] = this.safeFloat (balance, 'locked');
-            result[code] = account;
+        if (marketType === 'futures') {
+            const assets = this.safeValue (response, 'assets', []);
+            for (let i = 0; i < assets.length; i++) {
+                const asset = assets[i];
+                const currencyId = asset['asset'];
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['used'] = this.safeFloat (asset, 'initialMargin');
+                account['total'] = this.safeFloat (asset, 'marginBalance');
+                account['free'] = account['total'] - account['used'];
+                result[code] = account;
+            }
+        } else {
+            const balances = this.safeValue (response, 'balances', []);
+            for (let i = 0; i < balances.length; i++) {
+                const balance = balances[i];
+                const currencyId = balance['asset'];
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeFloat (balance, 'free');
+                account['used'] = this.safeFloat (balance, 'locked');
+                result[code] = account;
+            }
         }
         return this.parseBalance (result);
     }
