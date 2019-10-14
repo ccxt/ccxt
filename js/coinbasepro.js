@@ -333,7 +333,7 @@ module.exports = class coinbasepro extends Exchange {
         const id = this.safeString (trade, 'trade_id');
         let side = (trade['side'] === 'buy') ? 'sell' : 'buy';
         const orderId = this.safeString (trade, 'order_id');
-        // GDAX returns inverted side to fetchMyTrades vs fetchTrades
+        // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         if (orderId !== undefined) {
             side = (trade['side'] === 'buy') ? 'buy' : 'sell';
         }
@@ -613,7 +613,7 @@ module.exports = class coinbasepro extends Exchange {
             // deposit from a payment_method, like a bank account
             method += 'PaymentMethod';
         } else if ('coinbase_account_id' in params) {
-            // deposit into GDAX account from a Coinbase account
+            // deposit into Coinbase Pro account from a Coinbase account
             method += 'CoinbaseAccount';
         } else {
             // deposit methodotherwise we did not receive a supported deposit location
