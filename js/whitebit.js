@@ -374,7 +374,7 @@ module.exports = class whitebit extends Exchange {
             parseFloat (ohlcv[1]),
             parseFloat (ohlcv[3]),
             parseFloat (ohlcv[4]),
-            parseFloat(ohlcv[2]),
+            parseFloat (ohlcv[2]),
             parseFloat (ohlcv[5]),
         ];
     }
