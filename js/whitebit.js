@@ -393,16 +393,14 @@ module.exports = class whitebit extends Exchange {
             'interval': this.timeframes[timeframe],
         };
         if (since !== undefined) {
-            request['startTime'] = since;
+            request['start'] = parseInt (since / 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
         const response = await this.publicV1GetKline (this.extend (request, params));
         const result = this.safeValue (response, 'result');
-        // console.log (since, result[0][0] * 1000);
-        // process.exit ();
-        return this.parseOHLCVs (result, market, timeframe);//, since, limit);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
