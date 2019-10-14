@@ -847,10 +847,7 @@ module.exports = class idex extends Exchange {
         }
     }
 
-    async fetchTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTrades requires a symbol');
-        }
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
