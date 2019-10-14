@@ -503,7 +503,12 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetTicker24hr (this.extend (request, params));
+        const marketType = this.options['defaultMarket'];
+        let method = 'publicGetTicker24hr';
+        if (marketType === 'futures') {
+            method = 'fapiPublicGetTicker24hr';
+        }
+        const response = await this[method] (this.extend (request, params));
         return this.parseTicker (response, market);
     }
 
@@ -517,7 +522,12 @@ module.exports = class binance extends Exchange {
 
     async fetchBidsAsks (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await this.publicGetTickerBookTicker (params);
+        const marketType = this.options['defaultMarket'];
+        let method = 'publicGetTickerBookTicker';
+        if (marketType === 'futures') {
+            method = 'fapiPublicGetTickerBookTicker';
+        }
+        const response = await this[method] (params);
         return this.parseTickers (response, symbols);
     }
 
@@ -552,7 +562,12 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default == max == 500
         }
-        const response = await this.publicGetKlines (this.extend (request, params));
+        const marketType = this.options['defaultMarket'];
+        let method = 'publicGetKlines';
+        if (marketType === 'futures') {
+            method = 'fapiPublicGetKlines';
+        }
+        const response = await this[method] (this.extend (request, params));
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
