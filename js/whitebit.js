@@ -304,20 +304,36 @@ module.exports = class whitebit extends Exchange {
         //         "change":"0.76",
         //     }
         //
-        // fetchTickers
+        // fetchTickers v1
         //
+        //     {
+        //         "at":1571022144,
+        //         "ticker": {
+        //             "bid":"0.022024",
+        //             "ask":"0.022042",
+        //             "low":"0.02161",
+        //             "high":"0.022062",
+        //             "last":"0.022036",
+        //             "vol":"2813.503",
+        //             "deal":"61.457279261",
+        //             "change":"0.95"
+        //         }
+        //     }
+        //
+        const timestamp = this.safeTimestamp (ticker, 'at', this.milliseconds ());
+        ticker = this.safeValue (ticker, 'ticker', ticker);
+        let symbol = undefined;
         const symbol = this.findSymbol (this.safeString (ticker, 'market'), market);
         const last = this.safeFloat (ticker, 'last');
-        const time = this.milliseconds ();
         const percentage = this.safeFloat (ticker, 'change');
         let change = undefined;
         if (percentage !== undefined) {
-            change = percentage * 0.01;
+            change = this.numberToString (percentage * 0.01);
         }
         return {
             'symbol': symbol,
-            'timestamp': time,
-            'datetime': this.iso8601 (time),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
             'bid': this.safeFloat (ticker, 'bid'),
@@ -341,23 +357,47 @@ module.exports = class whitebit extends Exchange {
     async fetchTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         const response = await this.publicV1GetTickers (params);
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result": {
+        //             "ETH_BTC": {
+        //                 "at":1571022144,
+        //                 "ticker": {
+        //                     "bid":"0.022024",
+        //                     "ask":"0.022042",
+        //                     "low":"0.02161",
+        //                     "high":"0.022062",
+        //                     "last":"0.022036",
+        //                     "vol":"2813.503",
+        //                     "deal":"61.457279261",
+        //                     "change":"0.95"
+        //                 }
+        //             },
+        //         },
+        //     }
+        //
         const data = this.safeValue (response, 'result');
-        const ids = Object.keys (data);
-        const result = [];
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const tickerData = data[id];
-            result.push (this.extend (tickerData, { 'market': id }));
+        const marketIds = Object.keys (data);
+        const result = {};
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            let market = undefined;
+            let symbol = marketId;
+            if (marketId in this.markets_by_id) {
+                market = this.markets_by_id[marketId];
+                symbol = market['symbol'];
+            } else {
+                const [ baseId, quoteId ] = marketId.split ('_');
+                const base = this.safeCurrencyCode (baseId);
+                const quote = this.safeCurrencyCode (quoteId);
+                symbol = base + '/' + quote;
+            }
+            const ticker = this.parseTicker (data[marketId], market);
+            result[symbol] = this.extend (ticker, { 'symbol': symbol });
         }
-        return this.parseTickers (result, symbols);
-    }
-
-    parseTickers (rawTickers, symbols = undefined) {
-        const tickers = [];
-        for (let i = 0; i < rawTickers.length; i++) {
-            tickers.push (this.parseTicker (rawTickers[i]));
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -372,9 +412,7 @@ module.exports = class whitebit extends Exchange {
         const response = await this.publicV2GetDepthPair (this.extend (request, params));
         const result = this.safeValue (response, 'result');
         const timestamp = this.parse8601 (this.safeString (result, 'lastUpdateTimestamp'));
-        const orderbook = this.parseOrderBook (result, timestamp);
-        orderbook['nonce'] = this.safeInteger (result, timestamp);
-        return orderbook;
+        return this.parseOrderBook (result, timestamp);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
