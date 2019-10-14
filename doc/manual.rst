@@ -2154,6 +2154,8 @@ This process may differ from exchange to exchange. Some exchanges may want the s
 
 **You should not share the same API keypair across multiple instances of an exchange running simultaneously, in separate scripts or in multiple threads. Using the same keypair from different instances simultaneously may cause all sorts of unexpected behaviour.**
 
+**DO NOT REUSE API KEYS WITH DIFFERENT SOFTWARE! The other software will screw your nonce too high. If you get**\ `InvalidNonce <#invalid-nonce>`__\ **errors – make sure to generate a fresh new keypair first and foremost.**
+
 The authentication is already handled for you, so you don’t need to perform any of those steps manually unless you are implementing a new exchange class. The only thing you need for trading is the actual API key pair.
 
 API Keys Setup
