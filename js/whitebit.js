@@ -323,7 +323,9 @@ module.exports = class whitebit extends Exchange {
         const timestamp = this.safeTimestamp (ticker, 'at', this.milliseconds ());
         ticker = this.safeValue (ticker, 'ticker', ticker);
         let symbol = undefined;
-        const symbol = this.findSymbol (this.safeString (ticker, 'market'), market);
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         const last = this.safeFloat (ticker, 'last');
         const percentage = this.safeFloat (ticker, 'change');
         let change = undefined;
