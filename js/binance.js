@@ -583,6 +583,27 @@ module.exports = class binance extends Exchange {
         //         "isBestMatch": true
         //     }
         //
+        // futures trades
+        // https://binance-docs.github.io/apidocs/futures/en/#account-trade-list-user_data
+        //
+        //     {
+        //       "accountId": 20,
+        //       "buyer": False,
+        //       "commission": "-0.07819010",
+        //       "commissionAsset": "USDT",
+        //       "counterPartyId": 653,
+        //       "id": 698759,
+        //       "maker": False,
+        //       "orderId": 25851813,
+        //       "price": "7819.01",
+        //       "qty": "0.002",
+        //       "quoteQty": "0.01563",
+        //       "realizedPnl": "-0.91539999",
+        //       "side": "SELL",
+        //       "symbol": "BTCUSDT",
+        //       "time": 1569514978020
+        //     }
+        //
         const timestamp = this.safeInteger2 (trade, 'T', 'time');
         const price = this.safeFloat2 (trade, 'p', 'price');
         const amount = this.safeFloat2 (trade, 'q', 'qty');
@@ -1027,7 +1048,14 @@ module.exports = class binance extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
+        const marketType = this.options['defaultMarket'];
         const market = this.market (symbol);
+        let method = undefined;
+        if (marketType === 'futures') {
+            method = 'fapiPrivateGetUserTrades';
+        } else {
+            method = 'privateGetMyTrades';
+        }
         const request = {
             'symbol': market['id'],
         };
@@ -1037,8 +1065,9 @@ module.exports = class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetMyTrades (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
+        // spot trade
         //     [
         //         {
         //             "symbol": "BNBBTC",
@@ -1055,6 +1084,27 @@ module.exports = class binance extends Exchange {
         //         }
         //     ]
         //
+        // futures trade
+        //
+        //     [
+        //         {
+        //             "accountId": 20,
+        //             "buyer": False,
+        //             "commission": "-0.07819010",
+        //             "commissionAsset": "USDT",
+        //             "counterPartyId": 653,
+        //             "id": 698759,
+        //             "maker": False,
+        //             "orderId": 25851813,
+        //             "price": "7819.01",
+        //             "qty": "0.002",
+        //             "quoteQty": "0.01563",
+        //             "realizedPnl": "-0.91539999",
+        //             "side": "SELL",
+        //             "symbol": "BTCUSDT",
+        //             "time": 1569514978020
+        //         }
+        //     ]
         return this.parseTrades (response, market, since, limit);
     }
 
