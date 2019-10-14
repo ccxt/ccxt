@@ -105,7 +105,7 @@ class bitmart extends Exchange {
                 'trading' => array (
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.001,
+                    'taker' => 0.002,
                     'maker' => 0.001,
                     'tiers' => array (
                         'taker' => [
