@@ -412,7 +412,26 @@ module.exports = class whitebit extends Exchange {
             request['limit'] = limit; // default = 50, maximum = 100
         }
         const response = await this.publicV2GetDepthPair (this.extend (request, params));
-        const result = this.safeValue (response, 'result');
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result":{
+        //             "lastUpdateTimestamp":"2019-10-14T03:15:47.000Z",
+        //             "asks":[
+        //                 ["0.02204","2.03"],
+        //                 ["0.022041","2.492"],
+        //                 ["0.022042","2.254"],
+        //             ],
+        //             "bids":[
+        //                 ["0.022018","2.327"],
+        //                 ["0.022017","1.336"],
+        //                 ["0.022015","2.089"],
+        //             ],
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
         const timestamp = this.parse8601 (this.safeString (result, 'lastUpdateTimestamp'));
         return this.parseOrderBook (result, timestamp);
     }
@@ -428,17 +447,44 @@ module.exports = class whitebit extends Exchange {
             request['limit'] = limit; // default = 50, maximum = 10000
         }
         const response = await this.publicV1GetHistory (this.extend (request, params));
-        const result = this.safeValue (response, 'result');
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result":[
+        //             {
+        //                 "id":11887426,
+        //                 "type":"buy",
+        //                 "time":1571023057.413769,
+        //                 "amount":"0.171",
+        //                 "price":"0.022052"
+        //             }
+        //         ],
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
+        //
+        //     {
+        //         "id":11887426,
+        //         "type":"buy",
+        //         "time":1571023057.413769,
+        //         "amount":"0.171",
+        //         "price":"0.022052"
+        //     }
+        //
         const timestamp = this.safeTimestamp (trade, 'time');
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         const id = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'type');
-        const symbol = market['symbol'];
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
         let cost = undefined;
         if (amount !== undefined && price !== undefined) {
             cost = amount * price;
