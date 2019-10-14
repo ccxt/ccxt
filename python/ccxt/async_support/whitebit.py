@@ -573,9 +573,6 @@ class whitebit (Exchange):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         if query:
             url += '?' + self.urlencode(query)
-        headers = {
-            'Content-Type': 'text/plan; charset=UTF-8',
-        }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

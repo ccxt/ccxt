@@ -597,9 +597,6 @@ class whitebit extends Exchange {
         if ($query) {
             $url .= '?' . $this->urlencode ($query);
         }
-        $headers = {
-            'Content-Type' => 'text/plan; charset=UTF-8',
-        };
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
