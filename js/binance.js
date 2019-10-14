@@ -280,7 +280,7 @@ module.exports = class binance extends Exchange {
         const marketType = this.options['defaultMarket'];
         let method = 'PublicGetTime';
         if (marketType === 'futures') {
-            method = 'fapi' + method;
+            method = 'fapiPublicGetTime';
         }
         const response = await this[method] (params);
         return this.safeFloat (response, 'serverTime');
@@ -295,11 +295,9 @@ module.exports = class binance extends Exchange {
 
     async fetchMarkets (params = {}) {
         const marketType = this.options['defaultMarket'];
-        let method = 'GetExchangeInfo';
+        let method = 'publicGetExchangeInfo';
         if (marketType === 'futures') {
-            method = 'fapiPublic' + method;
-        } else {
-            method = 'public' + method;
+            method = 'fapiPublicGetExchangeInfo';
         }
         const response = await this[method] (params);
         if (this.options['adjustForTimeDifference']) {
@@ -410,11 +408,9 @@ module.exports = class binance extends Exchange {
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
         const marketType = this.options['defaultMarket'];
-        let method = 'GetAccount';
+        let method = 'privateGetAccount';
         if (marketType === 'futures') {
-            method = 'fapiPrivate' + method;
-        } else {
-            method = 'private' + method;
+            method = 'fapiPrivateGetAccount';
         }
         const response = await this[method] (params);
         const result = { 'info': response };
@@ -858,11 +854,10 @@ module.exports = class binance extends Exchange {
         const marketType = this.options['defaultMarket'];
         const market = this.market (symbol);
         // the next 5 lines are added to support for testing orders
-        let method = 'PostOrder';
+        let method = 'privatePostOrder';
         if (marketType === 'futures') {
-            method = 'fapiPrivate' + method;
+            method = 'fapiPrivatePostOrder';
         } else {
-            method = 'private' + method;
             const test = this.safeValue (params, 'test', false);
             if (test) {
                 method += 'Test';
@@ -945,11 +940,9 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketType = this.options['defaultMarket'];
-        let method = 'GetOrder';
+        let method = 'privateGetOrder';
         if (marketType === 'futures') {
-            method = 'fapiPrivate' + method;
-        } else {
-            method = 'private' + method;
+            method = 'fapiPrivateGetOrder';
         }
         const request = {
             'symbol': market['id'],
@@ -980,11 +973,9 @@ module.exports = class binance extends Exchange {
             request['limit'] = limit;
         }
         const marketType = this.options['defaultMarket'];
-        let method = 'GetAllOrders';
+        let method = 'privateGetAllOrders';
         if (marketType === 'futures') {
-            method = 'fapiPrivate' + method;
-        } else {
-            method = 'private' + method;
+            method = 'fapiPrivateGetAllOrders';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -1076,11 +1067,9 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const marketType = this.options['defaultMarket'];
         const market = this.market (symbol);
-        let method = undefined;
+        let method = 'privateGetMyTrades';
         if (marketType === 'futures') {
             method = 'fapiPrivateGetUserTrades';
-        } else {
-            method = 'privateGetMyTrades';
         }
         const request = {
             'symbol': market['id'],
