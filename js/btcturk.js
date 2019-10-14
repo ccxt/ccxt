@@ -52,7 +52,7 @@ module.exports = class btcturk extends Exchange {
             'fees': {
                 'trading': {
                     'maker': 0.002 * 1.18,
-                    'taker': 0.0035 * 1.18,
+                    'taker': 0.003 * 1.18,
                 },
             },
         });
