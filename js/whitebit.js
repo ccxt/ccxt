@@ -267,10 +267,45 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
         };
         const response = await this.publicV1GetTicker (this.extend (request, params));
-        return this.parseTicker (response, market);
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result": {
+        //             "bid":"0.021979",
+        //             "ask":"0.021996",
+        //             "open":"0.02182",
+        //             "high":"0.022039",
+        //             "low":"0.02161",
+        //             "last":"0.021987",
+        //             "volume":"2810.267",
+        //             "deal":"61.383565474",
+        //             "change":"0.76",
+        //         },
+        //     }
+        //
+        const ticker = this.safeValue (response, 'result', {});
+        return this.parseTicker (ticker, market);
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // fetchTicker
+        //
+        //     {
+        //         "bid":"0.021979",
+        //         "ask":"0.021996",
+        //         "open":"0.02182",
+        //         "high":"0.022039",
+        //         "low":"0.02161",
+        //         "last":"0.021987",
+        //         "volume":"2810.267",
+        //         "deal":"61.383565474",
+        //         "change":"0.76",
+        //     }
+        //
+        // fetchTickers
+        //
         const symbol = this.findSymbol (this.safeString (ticker, 'market'), market);
         const last = this.safeFloat (ticker, 'last');
         const time = this.milliseconds ();
