@@ -200,7 +200,8 @@ module.exports = class whitebit extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const currency = currencies[id];
-            const name = this.safeString (currency, 'name');
+            // breaks down in Python due to utf8 encoding issues on the exchange side
+            // const name = this.safeString (currency, 'name');
             const canDeposit = this.safeValue (currency, 'canDeposit', true);
             const canWithdraw = this.safeValue (currency, 'canWithdraw', true);
             const active = canDeposit && canWithdraw;
@@ -209,7 +210,7 @@ module.exports = class whitebit extends Exchange {
                 'id': id,
                 'code': code,
                 'info': currency, // the original payload
-                'name': name,
+                'name': undefined, // see the comment above
                 'active': active,
                 'fee': undefined,
                 'precision': undefined,
@@ -595,6 +596,9 @@ module.exports = class whitebit extends Exchange {
         if (Object.keys (query).length) {
             url += '?' + this.urlencode (query);
         }
+        headers = {
+            'Content-Type': 'text/plan; charset=UTF-8',
+        };
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
