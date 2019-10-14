@@ -865,6 +865,8 @@ class binance (Exchange):
         request = {
             'symbol': market['id'],
         }
+        if since is not None:
+            request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetMyTrades(self.extend(request, params))
