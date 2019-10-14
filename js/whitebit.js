@@ -107,8 +107,8 @@ module.exports = class whitebit extends Exchange {
                         'ticker',
                         'assets',
                         'fee',
-                        'depth/{pair}',
-                        'trades/{pair}',
+                        'depth/{market}',
+                        'trades/{market}',
                     ],
                 },
             },
@@ -119,6 +119,9 @@ module.exports = class whitebit extends Exchange {
                     'taker': 0.001,
                     'maker': 0.001,
                 },
+            },
+            'options': {
+                'fetchTradesMethod': 'fetchTradesV1',
             },
         });
     }
@@ -406,12 +409,12 @@ module.exports = class whitebit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'pair': market['id'],
+            'market': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit; // default = 50, maximum = 100
         }
-        const response = await this.publicV2GetDepthPair (this.extend (request, params));
+        const response = await this.publicV2GetDepthMarket (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -436,7 +439,7 @@ module.exports = class whitebit extends Exchange {
         return this.parseOrderBook (result, timestamp);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchTradesV1 (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -466,7 +469,43 @@ module.exports = class whitebit extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
+    async fetchTradesV2 (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default = 50, maximum = 10000
+        }
+        const response = await this.publicV2GetTradesMarket (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "message":"",
+        //         "result": [
+        //             {
+        //                 "tradeId":11903347,
+        //                 "price":"0.022044",
+        //                 "volume":"0.029",
+        //                 "time":"2019-10-14T06:30:57.000Z",
+        //                 "isBuyerMaker":false
+        //             },
+        //         ],
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseTrades (result, market, since, limit);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        const method = this.safeString (this.options, 'fetchTradesMethod', 'fetchTradesV2');
+        return await this[method] (symbol, since, limit, params);
+    }
+
     parseTrade (trade, market = undefined) {
+        //
+        // fetchTradesV1
         //
         //     {
         //         "id":11887426,
@@ -476,11 +515,30 @@ module.exports = class whitebit extends Exchange {
         //         "price":"0.022052"
         //     }
         //
-        const timestamp = this.safeTimestamp (trade, 'time');
+        // fetchTradesV2
+        //
+        //     {
+        //         "tradeId":11903347,
+        //         "price":"0.022044",
+        //         "volume":"0.029",
+        //         "time":"2019-10-14T06:30:57.000Z",
+        //         "isBuyerMaker":false
+        //     }
+        //
+        let timestamp = this.safeValue (trade, 'time');
+        if (typeof timestamp === 'string') {
+            timestamp = this.parse8601 (timestamp);
+        } else {
+            timestamp = parseInt (timestamp * 1000);
+        }
         const price = this.safeFloat (trade, 'price');
-        const amount = this.safeFloat (trade, 'amount');
-        const id = this.safeString (trade, 'id');
-        const side = this.safeString (trade, 'type');
+        const amount = this.safeFloat2 (trade, 'amount', 'volume');
+        const id = this.safeString2 (trade, 'id', 'tradeId');
+        let side = this.safeString (trade, 'type');
+        if (side === undefined) {
+            const isBuyerMaker = this.safeValue (trade, 'isBuyerMaker');
+            side = isBuyerMaker ? 'buy' : 'sell';
+        }
         let symbol = undefined;
         if (market !== undefined) {
             symbol = market['symbol'];
