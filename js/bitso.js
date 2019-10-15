@@ -34,8 +34,8 @@ module.exports = class bitso extends Exchange {
                     'default': 8,
                     'XRP': 6,
                     'MXN': 2,
-                    'TUSD': 2
-                }
+                    'TUSD': 2,
+                },
             },
             'api': {
                 'public': {
