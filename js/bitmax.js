@@ -57,7 +57,7 @@ module.exports = class bitmax extends Exchange {
                     'https://github.com/bitmax-exchange/api-doc/blob/master/bitmax-api-doc-v1.2.md',
                 ],
                 'fees': 'https://bitmax.io/#/feeRate/tradeRate',
-                'referral': 'https://bitmax.io/#/register?inviteCode=EL6BXBQM',bit
+                'referral': 'https://bitmax.io/#/register?inviteCode=EL6BXBQM',
             },
             'api': {
                 'public': {
