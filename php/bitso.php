@@ -30,13 +30,13 @@ class bitso extends Exchange {
                 'fees' => 'https://bitso.com/fees?l=es',
                 'referral' => 'https://bitso.com/?ref=itej',
             ),
-            'options' => array(
-                'precision' => array(
-                    'default' => 8,
+            'options' => array (
+                'precision' => array (
                     'XRP' => 6,
                     'MXN' => 2,
-                    'TUSD' => 2
-                )
+                    'TUSD' => 2,
+                ),
+                'defaultPrecision' => 8,
             ),
             'api' => array (
                 'public' => array (
@@ -127,8 +127,8 @@ class bitso extends Exchange {
                 ),
             );
             $precision = array (
-                'amount' => $this->options['precision'][$base] ? $this->options['precision'][$base] : $this->options['precision']['default'],
-                'price' => $this->options['precision'][$quote] ? $this->options['precision'][$quote] : $this->options['precision']['default'],
+                'amount' => $this->safe_integer($this->options['precision'], $base, $this->options['defaultPrecision']),
+                'price' => $this->safe_integer($this->options['precision'], $quote, $this->options['defaultPrecision']),
             );
             $result[] = array (
                 'id' => $id,

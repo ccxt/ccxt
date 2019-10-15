@@ -42,11 +42,11 @@ class bitso (Exchange):
             },
             'options': {
                 'precision': {
-                    'default': 8,
                     'XRP': 6,
                     'MXN': 2,
-                    'TUSD': 2
-                }
+                    'TUSD': 2,
+                },
+                'defaultPrecision': 8,
             },
             'api': {
                 'public': {
@@ -136,8 +136,8 @@ class bitso (Exchange):
                 },
             }
             precision = {
-                'amount': base in self.options['precision'] ? self.options['precision'][base] : self.options['precision']['default'],
-                'price': quote in self.options['precision'] ? self.options['precision'][quote] : self.options['precision']['default'],
+                'amount': self.safe_integer(self.options['precision'], base, self.options['defaultPrecision']),
+                'price': self.safe_integer(self.options['precision'], quote, self.options['defaultPrecision']),
             }
             result.append({
                 'id': id,
