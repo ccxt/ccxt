@@ -1180,22 +1180,6 @@ module.exports = class bitmex extends Exchange {
         return false;
     }
 
-    async fetchStatus (params = {}) {
-        try {
-            const { timestamp } = await this.request('');
-            this.status = this.extend(this.status, {
-                'status': 'ok',
-                'updated': timestamp,
-            });
-        } catch (error) {
-            this.status = this.extend(this.status, {
-                'status': 'maintenance',
-                'updated': this.milliseconds(),
-            });
-        }
-        return this.status;
-    }
-
     async withdraw (code, amount, address, tag = undefined, params = {}) {
         this.checkAddress (address);
         await this.loadMarkets ();
