@@ -114,8 +114,8 @@ class fcoin extends Exchange {
                 'trading' => array (
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.001,
-                    'taker' => 0.001,
+                    'maker' => -0.0002,
+                    'taker' => 0.0003,
                 ),
             ),
             'limits' => array (
