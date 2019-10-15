@@ -334,7 +334,7 @@ class coinbasepro extends Exchange {
         $id = $this->safe_string($trade, 'trade_id');
         $side = ($trade['side'] === 'buy') ? 'sell' : 'buy';
         $orderId = $this->safe_string($trade, 'order_id');
-        // GDAX returns inverted $side to fetchMyTrades vs fetchTrades
+        // Coinbase Pro returns inverted $side to fetchMyTrades vs fetchTrades
         if ($orderId !== null) {
             $side = ($trade['side'] === 'buy') ? 'buy' : 'sell';
         }
@@ -614,7 +614,7 @@ class coinbasepro extends Exchange {
             // deposit from a payment_method, like a bank account
             $method .= 'PaymentMethod';
         } else if (is_array($params) && array_key_exists('coinbase_account_id', $params)) {
-            // deposit into GDAX account from a Coinbase account
+            // deposit into Coinbase Pro account from a Coinbase account
             $method .= 'CoinbaseAccount';
         } else {
             // deposit methodotherwise we did not receive a supported deposit location
