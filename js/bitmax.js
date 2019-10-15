@@ -50,7 +50,7 @@ module.exports = class bitmax extends Exchange {
             'version': 'v1',
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/12462602/60425376-f41fef00-9c24-11e9-899b-e3af164ff9e2.png',
-                'api': 'https://bitmax.io/api',
+                'api': 'https://bitmax.io',
                 'test': 'https://bitmax-test.io/api',
                 'www': 'https://bitmax.io',
                 'doc': [
@@ -112,7 +112,7 @@ module.exports = class bitmax extends Exchange {
                 },
             },
             'options': {
-                'accountGroup': -1,
+                'accountGroup': undefined,
                 'parseOrderToPrecision': false,
             },
             'exceptions': {
@@ -277,15 +277,18 @@ module.exports = class bitmax extends Exchange {
     }
 
     async loadAccountGroup () {
-        if (this.options['accountGroup'] === -1) {
+        let accountGroup = this.safeString (this.options, 'accountGroup');
+        if (accountGroup === undefined) {
             const response = await this.privateGetUserInfo ();
             //
             //     {
             //         "accountGroup": 5
             //     }
             //
-            this.options['accountGroup'] = this.safeInteger (response, 'accountGroup', -1);
+            accountGroup = this.safeString (response, 'accountGroup');
+            this.options['accountGroup'] = accountGroup;
         }
+        return accountGroup;
     }
 
     async fetchBalance (params = {}) {
@@ -1091,13 +1094,20 @@ module.exports = class bitmax extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.version + '/' + this.implodeParams (path, params);
-        if (api === 'private') {
+        let url = '/api/' + this.version + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
             this.checkRequiredCredentials ();
             const accountGroup = this.safeString (this.options, 'accountGroup');
-            url = accountGroup + '/' + url;
-            const coid = this.safeString (params, 'coid');
-            const timestamp = this.safeString (params, 'time');
+            if (accountGroup !== undefined) {
+                url = '/' + accountGroup + url;
+            }
+            const coid = this.safeString (query, 'coid');
+            const timestamp = this.milliseconds ().toString (); // safeString (params, 'time');
             let auth = timestamp + '+' + path.replace ('/{coid}', ''); // fix sign error
             headers = {
                 'x-auth-key': this.apiKey,
@@ -1111,14 +1121,10 @@ module.exports = class bitmax extends Exchange {
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'base64');
             headers['x-auth-signature'] = signature;
             if (method !== 'GET') {
-                body = this.json (params);
-            }
-        } else {
-            if (Object.keys (params).length) {
-                url += '?' + this.urlencode (params);
+                body = this.json (query);
             }
         }
-        url = this.urls['api'] + '/' + url;
+        url = this.urls['api'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -1133,7 +1139,8 @@ module.exports = class bitmax extends Exchange {
         //
         const code = this.safeString (response, 'code');
         const message = this.safeString (response, 'message');
-        if ((code !== undefined) || (message !== undefined)) {
+        const error = (code !== undefined) && (code !== '0');
+        if (error || (message !== undefined)) {
             const feedback = this.id + ' ' + body;
             const exact = this.exceptions['exact'];
             if (code in exact) {
