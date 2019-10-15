@@ -515,7 +515,6 @@ declare module 'ccxt' {
     export class digifinex extends Exchange {}
     export class dsx extends Exchange {}
     export class dx extends Exchange {}
-    export class ethfinex extends bitfinex {}
     export class exmo extends Exchange {}
     export class exx extends Exchange {}
     export class fcoin extends Exchange {}
@@ -569,6 +568,7 @@ declare module 'ccxt' {
     export class vaultoro extends Exchange {}
     export class vbtc extends foxbit {}
     export class virwox extends Exchange {}
+    export class whitebit extends Exchange {}
     export class xbtce extends Exchange {}
     export class yobit extends Exchange {}
     export class zaif extends Exchange {}

@@ -510,8 +510,7 @@ class coinex extends Exchange {
             'amount' => $this->amount_to_precision($symbol, $amount),
             'type' => $side,
         );
-        if ($type === 'limit') {
-            $price = floatval ($price); // this line is deprecated
+        if (($type === 'limit') || ($type === 'ioc')) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
         $response = $this->$method (array_merge ($request, $params));

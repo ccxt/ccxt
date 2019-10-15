@@ -934,6 +934,9 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }

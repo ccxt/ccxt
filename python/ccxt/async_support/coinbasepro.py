@@ -337,7 +337,7 @@ class coinbasepro (Exchange):
         id = self.safe_string(trade, 'trade_id')
         side = 'sell' if (trade['side'] == 'buy') else 'buy'
         orderId = self.safe_string(trade, 'order_id')
-        # GDAX returns inverted side to fetchMyTrades vs fetchTrades
+        # Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         if orderId is not None:
             side = 'buy' if (trade['side'] == 'buy') else 'sell'
         price = self.safe_float(trade, 'price')
@@ -582,7 +582,7 @@ class coinbasepro (Exchange):
             # deposit from a payment_method, like a bank account
             method += 'PaymentMethod'
         elif 'coinbase_account_id' in params:
-            # deposit into GDAX account from a Coinbase account
+            # deposit into Coinbase Pro account from a Coinbase account
             method += 'CoinbaseAccount'
         else:
             # deposit methodotherwise we did not receive a supported deposit location

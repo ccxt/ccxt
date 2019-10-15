@@ -1107,6 +1107,7 @@ class anxpro (Exchange):
         return {
             'currency': code,
             'address': address,
+            'tag': None,
             'info': response,
         }
 

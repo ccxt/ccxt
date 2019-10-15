@@ -32,7 +32,7 @@ module.exports = class bigone extends Exchange {
                 },
                 'www': 'https://big.one',
                 'doc': 'https://open.big.one/docs/api.html',
-                'fees': 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
+                'fees': 'https://bigone.zendesk.com/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
                 'referral': 'https://b1.run/users/new?code=D3LLBVFT',
             },
             'api': {
@@ -73,10 +73,10 @@ module.exports = class bigone extends Exchange {
                 'funding': {
                     // HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
                     'withdraw': {
-                        'BTC': 0.002,
-                        'ETH': 0.01,
+                        'BTC': 0.001,
+                        'ETH': 0.005,
                         'EOS': 0.01,
-                        'ZEC': 0.002,
+                        'ZEC': 0.003,
                         'LTC': 0.01,
                         'QTUM': 0.01,
                         // 'INK': 0.01 QTUM,
@@ -85,7 +85,7 @@ module.exports = class bigone extends Exchange {
                         'GAS': 0.0,
                         'BTS': 1.0,
                         'GXS': 0.1,
-                        'BITCNY': 1.0,
+                        'BITCNY': 19.0,
                     },
                 },
             },

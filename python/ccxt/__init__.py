@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '1.18.1250'
+__version__ = '1.18.1265'
 
 # ----------------------------------------------------------------------------
 
@@ -130,7 +130,6 @@ from ccxt.deribit import deribit                            # noqa: F401
 from ccxt.digifinex import digifinex                        # noqa: F401
 from ccxt.dsx import dsx                                    # noqa: F401
 from ccxt.dx import dx                                      # noqa: F401
-from ccxt.ethfinex import ethfinex                          # noqa: F401
 from ccxt.exmo import exmo                                  # noqa: F401
 from ccxt.exx import exx                                    # noqa: F401
 from ccxt.fcoin import fcoin                                # noqa: F401
@@ -184,6 +183,7 @@ from ccxt.upbit import upbit                                # noqa: F401
 from ccxt.vaultoro import vaultoro                          # noqa: F401
 from ccxt.vbtc import vbtc                                  # noqa: F401
 from ccxt.virwox import virwox                              # noqa: F401
+from ccxt.whitebit import whitebit                          # noqa: F401
 from ccxt.xbtce import xbtce                                # noqa: F401
 from ccxt.yobit import yobit                                # noqa: F401
 from ccxt.zaif import zaif                                  # noqa: F401
@@ -255,7 +255,6 @@ exchanges = [
     'digifinex',
     'dsx',
     'dx',
-    'ethfinex',
     'exmo',
     'exx',
     'fcoin',
@@ -309,6 +308,7 @@ exchanges = [
     'vaultoro',
     'vbtc',
     'virwox',
+    'whitebit',
     'xbtce',
     'yobit',
     'zaif',

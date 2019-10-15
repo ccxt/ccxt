@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.18.1250'
+__version__ = '1.18.1265'
 
 # -----------------------------------------------------------------------------
 
@@ -111,7 +111,6 @@ from ccxt.async_support.deribit import deribit                            # noqa
 from ccxt.async_support.digifinex import digifinex                        # noqa: F401
 from ccxt.async_support.dsx import dsx                                    # noqa: F401
 from ccxt.async_support.dx import dx                                      # noqa: F401
-from ccxt.async_support.ethfinex import ethfinex                          # noqa: F401
 from ccxt.async_support.exmo import exmo                                  # noqa: F401
 from ccxt.async_support.exx import exx                                    # noqa: F401
 from ccxt.async_support.fcoin import fcoin                                # noqa: F401
@@ -165,6 +164,7 @@ from ccxt.async_support.upbit import upbit                                # noqa
 from ccxt.async_support.vaultoro import vaultoro                          # noqa: F401
 from ccxt.async_support.vbtc import vbtc                                  # noqa: F401
 from ccxt.async_support.virwox import virwox                              # noqa: F401
+from ccxt.async_support.whitebit import whitebit                          # noqa: F401
 from ccxt.async_support.xbtce import xbtce                                # noqa: F401
 from ccxt.async_support.yobit import yobit                                # noqa: F401
 from ccxt.async_support.zaif import zaif                                  # noqa: F401
@@ -236,7 +236,6 @@ exchanges = [
     'digifinex',
     'dsx',
     'dx',
-    'ethfinex',
     'exmo',
     'exx',
     'fcoin',
@@ -290,6 +289,7 @@ exchanges = [
     'vaultoro',
     'vbtc',
     'virwox',
+    'whitebit',
     'xbtce',
     'yobit',
     'zaif',

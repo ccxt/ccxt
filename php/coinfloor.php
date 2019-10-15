@@ -65,6 +65,7 @@ class coinfloor extends Exchange {
             'exceptions' => array (
                 'exact' => array (
                     'You have insufficient funds.' => '\\ccxt\\InsufficientFunds',
+                    'Tonce is out of sequence.' => '\\ccxt\\InvalidNonce',
                 ),
             ),
         ));

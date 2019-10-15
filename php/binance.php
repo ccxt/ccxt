@@ -934,6 +934,9 @@ class binance extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
