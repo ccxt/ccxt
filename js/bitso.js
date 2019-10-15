@@ -31,11 +31,11 @@ module.exports = class bitso extends Exchange {
             },
             'options': {
                 'precision': {
-                    'default': 8,
                     'XRP': 6,
                     'MXN': 2,
                     'TUSD': 2,
                 },
+                'defaultPrecision': 8,
             },
             'api': {
                 'public': {
@@ -126,8 +126,8 @@ module.exports = class bitso extends Exchange {
                 },
             };
             const precision = {
-                'amount': this.options.precision[base] ? this.options.precision[base] : this.options.precision.default,
-                'price': this.options.precision[quote] ? this.options.precision[quote] : this.options.precision.default,
+                'amount': this.safeInteger (this.options['precision'], base, this.options['defaultPrecision']),
+                'price': this.safeInteger (this.options['precision'], quote, this.options['defaultPrecision']),
             };
             result.push ({
                 'id': id,
