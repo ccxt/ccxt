@@ -40,6 +40,14 @@ class bitso (Exchange):
                 'fees': 'https://bitso.com/fees?l=es',
                 'referral': 'https://bitso.com/?ref=itej',
             },
+            'options': {
+                'precision': {
+                    'default': 8,
+                    'XRP': 6,
+                    'MXN': 2,
+                    'TUSD': 2
+                }
+            },
             'api': {
                 'public': {
                     'get': [
@@ -128,8 +136,8 @@ class bitso (Exchange):
                 },
             }
             precision = {
-                'amount': self.precision_from_string(market['minimum_amount']),
-                'price': self.precision_from_string(market['minimum_price']),
+                'amount': base in self.options['precision'] ? self.options['precision'][base] : self.options['precision']['default'],
+                'price': quote in self.options['precision'] ? self.options['precision'][quote] : self.options['precision']['default'],
             }
             result.append({
                 'id': id,
