@@ -49,7 +49,7 @@ module.exports = class bitmax extends Exchange {
             },
             'version': 'v1',
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/12462602/60425376-f41fef00-9c24-11e9-899b-e3af164ff9e2.png',
+                'logo': 'https://user-images.githubusercontent.com/1294454/66820319-19710880-ef49-11e9-8fbe-16be62a11992.jpg',
                 'api': 'https://bitmax.io',
                 'test': 'https://bitmax-test.io/api',
                 'www': 'https://bitmax.io',
