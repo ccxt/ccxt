@@ -740,7 +740,7 @@ module.exports = class bitmax extends Exchange {
         const market = this.market (symbol);
         const request = {
             'coid': this.coid (), // a unique identifier of length 32
-            'time': this.milliseconds (), // milliseconds since UNIX epoch in UTC
+            // 'time': this.milliseconds (), // milliseconds since UNIX epoch in UTC, this is filled in the private section of the sign() method below
             'symbol': market['id'],
             // 'orderPrice': this.priceToPrecision (symbol, price), // optional, limit price of the order. This field is required for limit orders and stop limit orders
             // 'stopPrice': '15.7', // optional, stopPrice of the order. This field is required for stop_market orders and stop limit orders
@@ -1003,7 +1003,7 @@ module.exports = class bitmax extends Exchange {
             'symbol': market['id'],
             'coid': this.coid (),
             'origCoid': id,
-            'time': this.milliseconds (),
+            // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
         };
         const response = await this.privateDeleteOrder (this.extend (request, params));
         //
@@ -1054,7 +1054,7 @@ module.exports = class bitmax extends Exchange {
         const currency = this.currency (code);
         const request = {
             'requestId': this.coid (),
-            'time': this.milliseconds (),
+            // 'time': this.milliseconds (), // this is filled in the private section of the sign() method below
             'assetCode': currency['id'],
         };
         // note: it is highly recommended to use V2 version of this route,
@@ -1118,11 +1118,11 @@ module.exports = class bitmax extends Exchange {
                 url = '/' + accountGroup + url;
             }
             const coid = this.safeString (query, 'coid');
-            const timestamp = this.milliseconds ().toString (); // safeString (params, 'time');
-            let auth = timestamp + '+' + path.replace ('/{coid}', ''); // fix sign error
+            query['time'] = this.milliseconds ().toString ();
+            let auth = query['time'] + '+' + path.replace ('/{coid}', ''); // fix sign error
             headers = {
                 'x-auth-key': this.apiKey,
-                'x-auth-timestamp': timestamp,
+                'x-auth-timestamp': query['time'],
                 'Content-Type': 'application/json',
             };
             if (coid !== undefined) {
