@@ -30,6 +30,14 @@ class bitso extends Exchange {
                 'fees' => 'https://bitso.com/fees?l=es',
                 'referral' => 'https://bitso.com/?ref=itej',
             ),
+            'options' => array(
+                'precision' => array(
+                    'default' => 8,
+                    'XRP' => 6,
+                    'MXN' => 2,
+                    'TUSD' => 2
+                )
+            ),
             'api' => array (
                 'public' => array (
                     'get' => array (
@@ -119,8 +127,8 @@ class bitso extends Exchange {
                 ),
             );
             $precision = array (
-                'amount' => $this->precision_from_string($market['minimum_amount']),
-                'price' => $this->precision_from_string($market['minimum_price']),
+                'amount' => $this->options['precision'][$base] ? $this->options['precision'][$base] : $this->options['precision']['default'],
+                'price' => $this->options['precision'][$quote] ? $this->options['precision'][$quote] : $this->options['precision']['default'],
             );
             $result[] = array (
                 'id' => $id,
