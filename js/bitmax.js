@@ -670,10 +670,7 @@ module.exports = class bitmax extends Exchange {
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const symbol = this.findSymbol (this.safeString (order, 'symbol'), market);
-        let timestamp = undefined;
-        if ('time' in order) {
-            timestamp = this.safeInteger (order, 'time');
-        }
+        const timestamp = this.safeInteger (order, 'sendingTime');
         let price = this.safeFloat (order, 'orderPrice');
         const amount = this.safeFloat (order, 'orderQty');
         const filled = this.safeFloat (order, 'filledQty');
