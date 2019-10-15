@@ -19,6 +19,7 @@ module.exports = class bitmax extends Exchange {
             // new metainfo interface
             'has': {
                 'CORS': false,
+                'fetchAccounts': true,
                 'fetchTickers': true,
                 'fetchOHLCV': true,
                 'fetchMyTrades': false,
@@ -277,24 +278,31 @@ module.exports = class bitmax extends Exchange {
         };
     }
 
-    async loadAccountGroup () {
+    async fetchAccounts (params = {}) {
         let accountGroup = this.safeString (this.options, 'accountGroup');
+        let response = undefined;
         if (accountGroup === undefined) {
-            const response = await this.privateGetUserInfo ();
+            response = await this.privateGetUserInfo (params);
             //
             //     {
             //         "accountGroup": 5
             //     }
             //
             accountGroup = this.safeString (response, 'accountGroup');
-            this.options['accountGroup'] = accountGroup;
         }
-        return accountGroup;
+        return [
+            {
+                'id': accountGroup,
+                'type': undefined,
+                'currency': undefined,
+                'info': response,
+            },
+        ];
     }
 
     async fetchBalance (params = {}) {
         await this.loadMarkets ();
-        await this.loadAccountGroup ();
+        await this.loadAccounts ();
         const response = await this.privateGetBalance (params);
         //
         //     {
@@ -731,7 +739,7 @@ module.exports = class bitmax extends Exchange {
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccountGroup ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
         const request = {
             'coid': this.coid (), // a unique identifier of length 32
@@ -767,7 +775,7 @@ module.exports = class bitmax extends Exchange {
 
     async fetchOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccountGroup ();
+        await this.loadAccounts ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -815,7 +823,7 @@ module.exports = class bitmax extends Exchange {
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccountGroup ();
+        await this.loadAccounts ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -866,7 +874,7 @@ module.exports = class bitmax extends Exchange {
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccountGroup ();
+        await this.loadAccounts ();
         let market = undefined;
         const request = {
             // 'side': 'buy', // or 'sell', optional
@@ -917,7 +925,7 @@ module.exports = class bitmax extends Exchange {
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccountGroup ();
+        await this.loadAccounts ();
         let market = undefined;
         const request = {
             // 'symbol': 'ETH/BTC', // optional
@@ -992,7 +1000,7 @@ module.exports = class bitmax extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires a symbol argument');
         }
         await this.loadMarkets ();
-        await this.loadAccountGroup ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -1019,7 +1027,7 @@ module.exports = class bitmax extends Exchange {
 
     async cancelAllOrders (symbol = undefined, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccountGroup ();
+        await this.loadAccounts ();
         const request = {
             // 'side': 'buy', // optional string field (case-insensitive), either "buy" or "sell"
         };
@@ -1045,7 +1053,7 @@ module.exports = class bitmax extends Exchange {
 
     async fetchDepositAddress (code, params = {}) {
         await this.loadMarkets ();
-        await this.loadAccountGroup ();
+        await this.loadAccounts ();
         const currency = this.currency (code);
         const request = {
             'requestId': this.coid (),
@@ -1103,7 +1111,12 @@ module.exports = class bitmax extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            const accountGroup = this.safeString (this.options, 'accountGroup');
+            let accountGroup = this.safeString (this.options, 'accountGroup');
+            if (accountGroup === undefined) {
+                if (this.accounts !== undefined) {
+                    accountGroup = this.accounts[0]['id'];
+                }
+            }
             if (accountGroup !== undefined) {
                 url = '/' + accountGroup + url;
             }
