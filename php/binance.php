@@ -954,7 +954,7 @@ class binance extends Exchange {
         //             "time" => 1499865549590,
         //             "isBuyer" => true,
         //             "isMaker" => false,
-        //             "isBestMatch" => true
+        //             "isBestMatch" => true,
         //         }
         //     )
         //

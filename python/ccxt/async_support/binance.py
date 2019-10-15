@@ -883,7 +883,7 @@ class binance (Exchange):
         #             "time": 1499865549590,
         #             "isBuyer": True,
         #             "isMaker": False,
-        #             "isBestMatch": True
+        #             "isBestMatch": True,
         #         }
         #     ]
         #
