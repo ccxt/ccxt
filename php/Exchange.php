@@ -124,6 +124,7 @@ class Exchange {
         'btctradeua',
         'btcturk',
         'buda',
+        'bytetrade',
         'cex',
         'chilebit',
         'cobinhood',
@@ -1119,7 +1120,7 @@ class Exchange {
         return $signature;
     }
 
-    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $canonical_r = false) {
+    public static function ecdsa($request, $secret, $algorithm = 'p256', $hash = null, $fixedLength = false) {
         $digest = $request;
         if ($hash !== null) {
             $digest = static::hash($request, $hash, 'hex');
@@ -1128,7 +1129,8 @@ class Exchange {
         $key = $ec->keyFromPrivate($secret);
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
         $count = new BN ('0');
-        while ($canonical_r && $ellipticSignature->r->gt($ec->nh)) {
+        $minimumSize = (new BN ('1'))->shln (8 * 31)->sub (new BN ('1'));
+        while (($fixedLength && $ellipticSignature->r->gt($ec->nh)) || $ellipticSignature->r->lte($minimumSize) || $ellipticSignature->s->lte($minimumSize)) {
             $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $count->toArray('le', 32)));
             $count = $count->add(new BN('1'));
         }

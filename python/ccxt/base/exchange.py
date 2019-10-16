@@ -1068,7 +1068,8 @@ class Exchange(object):
         return priv_key.sign(Exchange.encode(request), padding.PKCS1v15(), algorithm)
 
     @staticmethod
-    def ecdsa(request, secret, algorithm='p256', hash=None, canonical_r=False):
+    def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
+        # your welcome - frosty00
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
             'p224': [ecdsa.NIST224p, 'sha256'],
@@ -1087,14 +1088,17 @@ class Exchange(object):
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
-        r_int, s_int, order, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=lambda *args: args)
+        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
+        r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
         counter = 0
-        while canonical_r and r_int > order / 2:
-            r_int, s_int, order, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
-                                                                   sigencode=lambda *args: args,
+        minimum_size = (1 << (8 * 31)) - 1
+        half_order = key.privkey.order / 2
+        while (fixed_length and r_int > half_order) or r_int <= minimum_size or s_int <= minimum_size:
+            r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
+                                                                   sigencode=ecdsa.util.sigencode_strings_canonize,
                                                                    extra_entropy=Exchange.numberToLE(counter, 32))
+            r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
             counter += 1
-        r_binary, s_binary, v = ecdsa.util.sigencode_strings_canonize(r_int, s_int, order, v)
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
         return {
             'r': r,

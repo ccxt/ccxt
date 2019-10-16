@@ -76,7 +76,7 @@ function jwt (request, secret, alg = 'HS256') {
     return [ token, signature ].join ('.')
 }
 
-function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, canonical_r = false) {
+function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, fixedLength = false) {
     let digest = request
     if (hashFunction !== undefined) {
         digest = hash (request, hashFunction, 'hex')
@@ -84,7 +84,8 @@ function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, c
     const curve = new EC (algorithm)
     let signature = curve.sign (digest, secret, 'hex',  { 'canonical': true })
     let counter = new BN ('0')
-    while (canonical_r && signature.r.gt (curve.nh)) {
+    const minimum_size = new BN ('1').shln (8 * 31).sub (new BN ('1'))
+    while ((fixedLength && signature.r.gt (curve.nh)) || signature.r.lte (minimum_size) || signature.s.lte (minimum_size)) {
         signature = curve.sign (digest, secret, 'hex',  { 'canonical': true, 'extraEntropy': counter.toArray ('le', 32)})
         counter = counter.add (new BN ('1'))
     }
