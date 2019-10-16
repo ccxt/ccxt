@@ -2203,6 +2203,7 @@ module.exports = class okex3 extends Exchange {
             id = withdrawalId;
             address = addressTo;
         } else {
+            id = this.safeString (transaction, 'payment_id');
             type = 'deposit';
             address = addressTo;
         }
