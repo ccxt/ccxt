@@ -2119,6 +2119,7 @@ class okex3 (Exchange):
             id = withdrawalId
             address = addressTo
         else:
+            id = self.safe_string(transaction, 'payment_id')
             type = 'deposit'
             address = addressTo
         currencyId = self.safe_string(transaction, 'currency')

@@ -2204,6 +2204,7 @@ class okex3 extends Exchange {
             $id = $withdrawalId;
             $address = $addressTo;
         } else {
+            $id = $this->safe_string($transaction, 'payment_id');
             $type = 'deposit';
             $address = $addressTo;
         }
