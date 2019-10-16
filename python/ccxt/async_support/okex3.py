@@ -931,7 +931,11 @@ class okex3 (Exchange):
         if feeCost is not None:
             feeCurrency = None
             fee = {
-                'cost': feeCost,
+                # fee is either a positive number(invitation rebate)
+                # or a negative number(transaction fee deduction)
+                # therefore we need to invert the fee
+                # more about it https://github.com/ccxt/ccxt/issues/5909
+                'cost': -feeCost,
                 'currency': feeCurrency,
             }
         orderId = self.safe_string(trade, 'order_id')
