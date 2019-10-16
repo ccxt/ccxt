@@ -719,6 +719,9 @@ module.exports = class binance extends Exchange {
                 if ((cost !== undefined) && (filled !== undefined)) {
                     if ((cost > 0) && (filled > 0)) {
                         price = cost / filled;
+                        if (this.options['parseOrderToPrecision']) {
+                            price = parseFloat (this.priceToPrecision (symbol, price));
+                        }
                     }
                 }
             }
@@ -746,6 +749,9 @@ module.exports = class binance extends Exchange {
         if (cost !== undefined) {
             if (filled) {
                 average = cost / filled;
+                if (this.options['parseOrderToPrecision']) {
+                    average = parseFloat (this.amountToPrecision (symbol, average));
+                }
             }
             if (this.options['parseOrderToPrecision']) {
                 cost = parseFloat (this.costToPrecision (symbol, cost));
