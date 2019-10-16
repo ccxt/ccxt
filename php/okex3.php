@@ -936,7 +936,11 @@ class okex3 extends Exchange {
         if ($feeCost !== null) {
             $feeCurrency = null;
             $fee = array (
-                'cost' => $feeCost,
+                // $fee is either a positive number (invitation rebate)
+                // or a negative number (transaction $fee deduction)
+                // therefore we need to invert the $fee
+                // more about it https://github.com/ccxt/ccxt/issues/5909
+                'cost' => -$feeCost,
                 'currency' => $feeCurrency,
             );
         }
