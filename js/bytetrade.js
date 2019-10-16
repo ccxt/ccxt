@@ -121,7 +121,6 @@ module.exports = class bytetrade extends Exchange {
                 code = this.commonCurrencies[id];
             } else {
                 code = this.safeString (currency, 'name');
-                code = code.toUpperCase ();
             }
             const name = this.safeString (currency, 'fullname');
             // in bytetrade.com DEX, request https://api-v2.bytetrade.com/currencies will return currencies,
@@ -232,8 +231,8 @@ module.exports = class bytetrade extends Exchange {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
             // there may be duplicate codes
-            let base = this.safeCurrencyCode (this.safeString (market, 'baseName'));
-            let quote = this.safeCurrencyCode (this.safeString (market, 'quoteName'));
+            let base = this.safeString (market, 'baseName');
+            let quote = this.safeString (market, 'quoteName');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
             if (baseId in this.commonCurrencies) {
