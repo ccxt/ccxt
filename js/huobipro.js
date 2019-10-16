@@ -446,7 +446,6 @@ module.exports = class huobipro extends Exchange {
             if ((feeCost === undefined) || (feeCost === 0.0)) {
                 feeCost = filledPoints;
                 const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'fee-deduct-currency'));
-                // feeCurrency = this.safeCurrencyCode ('HBPOINT');
             }
         }
         if (feeCost !== undefined) {
