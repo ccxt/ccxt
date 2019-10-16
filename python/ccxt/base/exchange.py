@@ -1093,7 +1093,7 @@ class Exchange(object):
         counter = 0
         minimum_size = (1 << (8 * 31)) - 1
         half_order = key.privkey.order / 2
-        while (fixed_length and r_int > half_order) or r_int <= minimum_size or s_int <= minimum_size:
+        while fixed_length and (r_int > half_order or r_int <= minimum_size or s_int <= minimum_size):
             r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
                                                                    sigencode=ecdsa.util.sigencode_strings_canonize,
                                                                    extra_entropy=Exchange.numberToLE(counter, 32))

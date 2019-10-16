@@ -1130,7 +1130,7 @@ class Exchange {
         $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true));
         $count = new BN ('0');
         $minimumSize = (new BN ('1'))->shln (8 * 31)->sub (new BN ('1'));
-        while (($fixedLength && $ellipticSignature->r->gt($ec->nh)) || $ellipticSignature->r->lte($minimumSize) || $ellipticSignature->s->lte($minimumSize)) {
+        while ($fixedLength && ($ellipticSignature->r->gt($ec->nh) || $ellipticSignature->r->lte($minimumSize) || $ellipticSignature->s->lte($minimumSize))) {
             $ellipticSignature = $key->sign($digest, 'hex', array('canonical' => true, 'extraEntropy' => $count->toArray('le', 32)));
             $count = $count->add(new BN('1'));
         }
