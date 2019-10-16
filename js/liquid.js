@@ -55,10 +55,10 @@ module.exports = class liquid extends Exchange {
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts', // add fetchAccounts
-                        'crypto_withdrawals', // add fetchTransactions
+                        'crypto_withdrawals', // add fetchWithdrawals
                         'executions/me',
                         'fiat_accounts', // add fetchAccounts
-                        'fund_infos',
+                        'fund_infos', // add fetchDeposits
                         'loan_bids',
                         'loans',
                         'orders',
@@ -69,7 +69,7 @@ module.exports = class liquid extends Exchange {
                         'trading_accounts',
                         'trading_accounts/{id}',
                         'transactions',
-                        'withdrawals', // add fetchTransactions
+                        'withdrawals', // add fetchWithdrawals
                     ],
                     'post': [
                         'crypto_withdrawals',
@@ -788,6 +788,63 @@ module.exports = class liquid extends Exchange {
         //     }
         //
         return this.parseTransaction (response, currency);
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'pending': 'pending',
+            'cancelled': 'canceled',
+            'approved': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": 1353,
+        //         "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+        //         "amount": 1.0,
+        //         "state": "pending",
+        //         "currency": "BTC",
+        //         "withdrawal_fee": 0.0,
+        //         "created_at": 1568016450,
+        //         "updated_at": 1568016450,
+        //         "payment_id": null
+        //     }
+        //
+        // fetchDeposits, fetchWithdrawals
+        //
+        //     ...
+        //
+        const id = this.safeString (transaction, 'id');
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString2 (transaction, 'payment_id', 'memo_value');
+        const txid = undefined;
+        const currencyId = this.safeString (transaction, 'asset');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const timestamp = this.safeTimestamp (transaction, 'created_at');
+        const updated = this.safeTimestamp (transaction, 'updated_at');
+        const type = 'withdrawal';
+        const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
+        const amount = this.safeFloat (transaction, 'amount');
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': address,
+            'tag': tag,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'fee': undefined,
+        };
     }
 
     nonce () {
