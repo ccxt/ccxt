@@ -423,7 +423,7 @@ class huobipro (Exchange):
         if filledPoints is not None:
             if (feeCost is None) or (feeCost == 0.0):
                 feeCost = filledPoints
-                feeCurrency = self.safe_currency_code('HBPOINT')
+                feeCurrency = self.safe_currency_code(self.safe_string(trade, 'fee-deduct-currency'))
         if feeCost is not None:
             fee = {
                 'cost': feeCost,
