@@ -1088,7 +1088,7 @@ class Exchange(object):
             digest = base64.b16decode(encoded_request, casefold=True)
         key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
         r_int, s_int, order, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=lambda *args: args)
-        counter = 1
+        counter = 0
         while canonical_r and r_int > order / 2:
             r_int, s_int, order, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
                                                                    sigencode=lambda *args: args,
