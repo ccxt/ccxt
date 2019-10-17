@@ -25,6 +25,7 @@ module.exports = class coinsbit extends Exchange {
                 'api': {
                     'public': 'http://coinsbit.io',
                     'private': 'http://coinsbit.io',
+                    'wapi': 'wss://coinsbit.io/trade_ws',
                 },
                 'www': 'https://coinsbit.io/',
                 'doc': [
@@ -33,60 +34,71 @@ module.exports = class coinsbit extends Exchange {
                 'fees': 'https://coinsbit.io/fee-schedule',
             },
             'api': {
-                'market': {
-                    'get': [
-                        'history/kline', // 获取K线数据
-                        'detail/merged', // 获取聚合行情(Ticker)
-                        'depth', // 获取 Market Depth 数据
-                        'trade', // 获取 Trade Detail 数据
-                        'history/trade', // 批量获取最近的交易记录
-                        'detail', // 获取 Market Detail 24小时成交量数据
-                        'tickers',
-                    ],
-                },
                 'public': {
                     'get': [
-                        'common/symbols', // 查询系统支持的所有交易对
-                        'common/currencys', // 查询系统支持的所有币种
-                        'common/timestamp', // 查询系统当前时间
-                        'common/exchange', // order limits
-                        'settings/currencys', // ?language=en-US
+                        'markets',
+                        'tickers',
+                        'ticker',
+                        'book',
+                        'history',
+                        'symbols',
+                        'depth/result'
                     ],
+                    'post': [
+                        'order/new',
+                        'order/cancel',
+                        'orders',
+                        'account/balances',
+                        'account/balance',
+                        'account/order',
+                        'account/order_history'
+                    ]
                 },
                 'private': {
                     'get': [
-                        'account/accounts', // 查询当前用户的所有账户(即account-id)
-                        'account/accounts/{id}/balance', // 查询指定账户的余额
-                        'order/openOrders',
-                        'order/orders',
-                        'order/orders/{id}', // 查询某个订单详情
-                        'order/orders/{id}/matchresults', // 查询某个订单的成交明细
-                        'order/history', // 查询当前委托、历史委托
-                        'order/matchresults', // 查询当前成交、历史成交
-                        'dw/withdraw-virtual/addresses', // 查询虚拟币提现地址
-                        'query/deposit-withdraw',
-                        'margin/loan-orders', // 借贷订单
-                        'margin/accounts/balance', // 借贷账户详情
-                        'points/actions',
-                        'points/orders',
-                        'subuser/aggregate-balance',
+                        'markets',
+                        'tickers',
+                        'ticker',
+                        'book',
+                        'history',
+                        'symbols',
+                        'depth/result'
                     ],
                     'post': [
-                        'order/orders/place', // 创建并执行一个新订单 (一步下单， 推荐使用)
-                        'order/orders', // 创建一个新的订单请求 （仅创建订单，不执行下单）
-                        'order/orders/{id}/place', // 执行一个订单 （仅执行已创建的订单）
-                        'order/orders/{id}/submitcancel', // 申请撤销一个订单请求
-                        'order/orders/batchcancel', // 批量撤销订单
-                        'dw/balance/transfer', // 资产划转
-                        'dw/withdraw/api/create', // 申请提现虚拟币
-                        'dw/withdraw-virtual/create', // 申请提现虚拟币
-                        'dw/withdraw-virtual/{id}/place', // 确认申请虚拟币提现
-                        'dw/withdraw-virtual/{id}/cancel', // 申请取消提现虚拟币
-                        'dw/transfer-in/margin', // 现货账户划入至借贷账户
-                        'dw/transfer-out/margin', // 借贷账户划出至现货账户
-                        'margin/orders', // 申请借贷
-                        'margin/orders/{id}/repay', // 归还借贷
-                        'subuser/transfer',
+                        'order/new',
+                        'order/cancel',
+                        'orders',
+                        'account/balances',
+                        'account/balance',
+                        'account/order',
+                        'account/order_history'
+                    ]
+                },
+                'wapi': {
+                    'server': [
+                        'ping',
+                        'time',
+                    ],
+                    'kline': [
+                        'subscribe',
+                        'unsubscribe',
+                    ],
+                    'price': [
+                        'subscribe',
+                        'unsubscribe',
+                    ],
+                    'state': [
+                        'query'
+                        'subscribe',
+                        'unsubscribe',
+                    ],
+                    'deals': [
+                        'subscribe',
+                        'unsubscribe',
+                    ],
+                    'depth': [
+                        'subscribe',
+                        'unsubscribe',
                     ],
                 },
             },
