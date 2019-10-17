@@ -1087,8 +1087,10 @@ class Exchange(object):
             digest = Exchange.hash(encoded_request, hash, 'binary')
         else:
             digest = base64.b16decode(encoded_request, casefold=True)
-        key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret), casefold=True), curve=curve_info[0])
-        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function, sigencode=ecdsa.util.sigencode_strings_canonize)
+        key = ecdsa.SigningKey.from_string(base64.b16decode(Exchange.encode(secret),
+                                                            casefold=True), curve=curve_info[0])
+        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
+                                                              sigencode=ecdsa.util.sigencode_strings_canonize)
         r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
         counter = 0
         minimum_size = (1 << (8 * 31)) - 1
