@@ -1097,8 +1097,8 @@ class Exchange(object):
         half_order = key.privkey.order / 2
         while fixed_length and (r_int > half_order or r_int <= minimum_size or s_int <= minimum_size):
             r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
-                                                                   sigencode=ecdsa.util.sigencode_strings_canonize,
-                                                                   extra_entropy=Exchange.numberToLE(counter, 32))
+                                                                  sigencode=ecdsa.util.sigencode_strings_canonize,
+                                                                  extra_entropy=Exchange.numberToLE(counter, 32))
             r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
             counter += 1
         r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
