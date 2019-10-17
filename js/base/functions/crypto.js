@@ -85,7 +85,7 @@ function ecdsa (request, secret, algorithm = 'p256', hashFunction = undefined, f
     let signature = curve.sign (digest, secret, 'hex',  { 'canonical': true })
     let counter = new BN ('0')
     const minimum_size = new BN ('1').shln (8 * 31).sub (new BN ('1'))
-    while ((fixedLength && signature.r.gt (curve.nh)) || signature.r.lte (minimum_size) || signature.s.lte (minimum_size)) {
+    while (fixedLength && (signature.r.gt (curve.nh) || signature.r.lte (minimum_size) || signature.s.lte (minimum_size))) {
         signature = curve.sign (digest, secret, 'hex',  { 'canonical': true, 'extraEntropy': counter.toArray ('le', 32)})
         counter = counter.add (new BN ('1'))
     }
