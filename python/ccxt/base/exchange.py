@@ -768,10 +768,7 @@ class Exchange(object):
     @staticmethod
     def filter_by(array, key, value=None):
         if value:
-            grouped = Exchange.group_by(array, key)
-            if value in grouped:
-                return grouped[value]
-            return []
+            return list(filter(lambda x: x[key] == value, array))
         return array
 
     @staticmethod
