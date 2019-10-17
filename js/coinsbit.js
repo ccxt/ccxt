@@ -88,7 +88,7 @@ module.exports = class coinsbit extends Exchange {
                         'unsubscribe',
                     ],
                     'state': [
-                        'query'
+                        'query',
                         'subscribe',
                         'unsubscribe',
                     ],
