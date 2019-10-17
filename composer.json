@@ -227,7 +227,7 @@
         "psr-4": {
             "ccxt\\" : "php/"
         },
-        "files": [ "ccxt.php" ]
+        "files": [ "php/errors.php" ]
     },
     "require": {
         "php": ">=5.4.0",
