@@ -1533,15 +1533,15 @@ class Exchange(object):
     def parse_timeframe(timeframe):
         amount = int(timeframe[0:-1])
         unit = timeframe[-1]
-        if 'y' in unit:
+        if 'y' == unit:
             scale = 60 * 60 * 24 * 365
-        elif 'M' in unit:
+        elif 'M' == unit:
             scale = 60 * 60 * 24 * 30
-        elif 'w' in unit:
+        elif 'w' == unit:
             scale = 60 * 60 * 24 * 7
-        elif 'd' in unit:
+        elif 'd' == unit:
             scale = 60 * 60 * 24
-        elif 'h' in unit:
+        elif 'h' == unit:
             scale = 60 * 60
         else:
             scale = 60  # 1m by default
