@@ -103,6 +103,7 @@ from ccxt.async_support.coingi import coingi                              # noqa
 from ccxt.async_support.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.async_support.coinmate import coinmate                          # noqa: F401
 from ccxt.async_support.coinone import coinone                            # noqa: F401
+from ccxt.async_support.coinsbit import coinsbit                          # noqa: F401
 from ccxt.async_support.coinspot import coinspot                          # noqa: F401
 from ccxt.async_support.cointiger import cointiger                        # noqa: F401
 from ccxt.async_support.coolcoin import coolcoin                          # noqa: F401
@@ -229,6 +230,7 @@ exchanges = [
     'coinmarketcap',
     'coinmate',
     'coinone',
+    'coinsbit',
     'coinspot',
     'cointiger',
     'coolcoin',

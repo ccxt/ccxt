@@ -122,6 +122,7 @@ from ccxt.coingi import coingi                              # noqa: F401
 from ccxt.coinmarketcap import coinmarketcap                # noqa: F401
 from ccxt.coinmate import coinmate                          # noqa: F401
 from ccxt.coinone import coinone                            # noqa: F401
+from ccxt.coinsbit import coinsbit                          # noqa: F401
 from ccxt.coinspot import coinspot                          # noqa: F401
 from ccxt.cointiger import cointiger                        # noqa: F401
 from ccxt.coolcoin import coolcoin                          # noqa: F401
@@ -248,6 +249,7 @@ exchanges = [
     'coinmarketcap',
     'coinmate',
     'coinone',
+    'coinsbit',
     'coinspot',
     'cointiger',
     'coolcoin',

@@ -507,6 +507,7 @@ declare module 'ccxt' {
     export class coinmarketcap extends Exchange {}
     export class coinmate extends Exchange {}
     export class coinone extends Exchange {}
+    export class coinsbit extends Exchange {}
     export class coinspot extends Exchange {}
     export class cointiger extends huobipro {}
     export class coolcoin extends coinegg {}

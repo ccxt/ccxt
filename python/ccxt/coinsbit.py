@@ -4,9 +4,8 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
-import hashlib
-from ccxt.base.errors import ArgumentsRequired
+import math
+from ccxt.base.errors import ExchangeError
 
 
 class coinsbit (Exchange):
@@ -36,26 +35,60 @@ class coinsbit (Exchange):
                 'fees': 'https://coinsbit.io/fee-schedule',
             },
             'api': {
+                'market': {
+                    'get': [
+                        'history/kline',  # 获取K线数据
+                        'detail/merged',  # 获取聚合行情(Ticker)
+                        'depth',  # 获取 Market Depth 数据
+                        'trade',  # 获取 Trade Detail 数据
+                        'history/trade',  # 批量获取最近的交易记录
+                        'detail',  # 获取 Market Detail 24小时成交量数据
+                        'tickers',
+                    ],
+                },
                 'public': {
                     'get': [
-                        '{PAR}/ticker',
-                        '{PAR}/orderbook',
-                        '{PAR}/trades',
-                        '{PAR}/trades/{timestamp_inicial}',
-                        '{PAR}/trades/{timestamp_inicial}/{timestamp_final}',
+                        'common/symbols',  # 查询系统支持的所有交易对
+                        'common/currencys',  # 查询系统支持的所有币种
+                        'common/timestamp',  # 查询系统当前时间
+                        'common/exchange',  # order limits
+                        'settings/currencys',  # ?language=en-US
                     ],
                 },
                 'private': {
                     'get': [
-                        'user/balance',
-                        'user/order/{orderId}',
+                        'account/accounts',  # 查询当前用户的所有账户(即account-id)
+                        'account/accounts/{id}/balance',  # 查询指定账户的余额
+                        'order/openOrders',
+                        'order/orders',
+                        'order/orders/{id}',  # 查询某个订单详情
+                        'order/orders/{id}/matchresults',  # 查询某个订单的成交明细
+                        'order/history',  # 查询当前委托、历史委托
+                        'order/matchresults',  # 查询当前成交、历史成交
+                        'dw/withdraw-virtual/addresses',  # 查询虚拟币提现地址
+                        'query/deposit-withdraw',
+                        'margin/loan-orders',  # 借贷订单
+                        'margin/accounts/balance',  # 借贷账户详情
+                        'points/actions',
+                        'points/orders',
+                        'subuser/aggregate-balance',
                     ],
                     'post': [
-                        'user/order',
-                        'user/orders',
-                    ],
-                    'delete': [
-                        'user/order/{orderId}',
+                        'order/orders/place',  # 创建并执行一个新订单(一步下单， 推荐使用)
+                        'order/orders',  # 创建一个新的订单请求 （仅创建订单，不执行下单）
+                        'order/orders/{id}/place',  # 执行一个订单 （仅执行已创建的订单）
+                        'order/orders/{id}/submitcancel',  # 申请撤销一个订单请求
+                        'order/orders/batchcancel',  # 批量撤销订单
+                        'dw/balance/transfer',  # 资产划转
+                        'dw/withdraw/api/create',  # 申请提现虚拟币
+                        'dw/withdraw-virtual/create',  # 申请提现虚拟币
+                        'dw/withdraw-virtual/{id}/place',  # 确认申请虚拟币提现
+                        'dw/withdraw-virtual/{id}/cancel',  # 申请取消提现虚拟币
+                        'dw/transfer-in/margin',  # 现货账户划入至借贷账户
+                        'dw/transfer-out/margin',  # 借贷账户划出至现货账户
+                        'margin/orders',  # 申请借贷
+                        'margin/orders/{id}/repay',  # 归还借贷
+                        'subuser/transfer',
                     ],
                 },
             },
@@ -73,3 +106,58 @@ class coinsbit (Exchange):
                 },
             },
         })
+
+    def fetch_markets(self, params={}):
+        method = self.options['fetchMarketsMethod']
+        response = getattr(self, method)(params)
+        markets = self.safe_value(response, 'data')
+        numMarkets = len(markets)
+        if numMarkets < 1:
+            raise ExchangeError(self.id + ' publicGetCommonSymbols returned empty response: ' + self.json(markets))
+        result = []
+        for i in range(0, len(markets)):
+            market = markets[i]
+            baseId = self.safe_string(market, 'base-currency')
+            quoteId = self.safe_string(market, 'quote-currency')
+            id = baseId + quoteId
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            symbol = base + '/' + quote
+            precision = {
+                'amount': market['amount-precision'],
+                'price': market['price-precision'],
+            }
+            maker = 0 if (base == 'OMG') else 0.2 / 100
+            taker = 0 if (base == 'OMG') else 0.2 / 100
+            minAmount = self.safe_float(market, 'min-order-amt', math.pow(10, -precision['amount']))
+            minCost = self.safe_float(market, 'min-order-value', 0)
+            state = self.safe_string(market, 'state')
+            active = (state == 'online')
+            result.append({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': active,
+                'precision': precision,
+                'taker': taker,
+                'maker': maker,
+                'limits': {
+                    'amount': {
+                        'min': minAmount,
+                        'max': None,
+                    },
+                    'price': {
+                        'min': math.pow(10, -precision['price']),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': minCost,
+                        'max': None,
+                    },
+                },
+                'info': market,
+            })
+        return result

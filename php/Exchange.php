@@ -140,6 +140,7 @@ class Exchange {
         'coinmarketcap',
         'coinmate',
         'coinone',
+        'coinsbit',
         'coinspot',
         'cointiger',
         'coolcoin',
