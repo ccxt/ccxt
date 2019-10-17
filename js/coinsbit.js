@@ -23,9 +23,9 @@ module.exports = class coinsbit extends Exchange {
             },
             'urls': {
                 'api': {
-                    'public': 'http://coinsbit.io',
-                    'private': 'http://coinsbit.io',
-                    'wapi': 'wss://coinsbit.io/trade_ws',
+                    'public': 'http://coinsbit.io/api/v1/public',
+                    'private': 'http://coinsbit.io/api/v1/private',
+                    'wapi': 'wss://coinsbit.io/api/v1/trade_ws',
                 },
                 'www': 'https://coinsbit.io/',
                 'doc': [
@@ -119,9 +119,8 @@ module.exports = class coinsbit extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
-        const method = this.options['fetchMarketsMethod'];
-        const response = await this[method] (params);
-        const markets = this.safeValue (response, 'data');
+        const response = await this.publicGetMarkets (params);
+        const markets = this.safeValue (response, 'result');
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
@@ -129,22 +128,17 @@ module.exports = class coinsbit extends Exchange {
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
-            const baseId = this.safeString (market, 'base-currency');
-            const quoteId = this.safeString (market, 'quote-currency');
+            const baseId = this.safeString (market, 'stock');
+            const quoteId = this.safeString (market, 'money');
             const id = baseId + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const precision = {
-                'amount': market['amount-precision'],
-                'price': market['price-precision'],
+                'amount': market['stockPrec'],
+                'price': market['moneyPrec'],
             };
-            const maker = (base === 'OMG') ? 0 : 0.2 / 100;
-            const taker = (base === 'OMG') ? 0 : 0.2 / 100;
-            const minAmount = this.safeFloat (market, 'min-order-amt', Math.pow (10, -precision['amount']));
-            const minCost = this.safeFloat (market, 'min-order-value', 0);
-            const state = this.safeString (market, 'state');
-            const active = (state === 'online');
+            const minAmount = this.safeFloat (market, 'minAmount', 0);
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -152,10 +146,8 @@ module.exports = class coinsbit extends Exchange {
                 'quote': quote,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
+                'active': true,
                 'precision': precision,
-                'taker': taker,
-                'maker': maker,
                 'limits': {
                     'amount': {
                         'min': minAmount,
@@ -166,7 +158,7 @@ module.exports = class coinsbit extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': minCost,
+                        'min': -1 * Math.log10 (precision['amount']),
                         'max': undefined,
                     },
                 },
@@ -174,5 +166,32 @@ module.exports = class coinsbit extends Exchange {
             });
         }
         return result;
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/';
+
+        url += this.implodeParams (path, params);
+        let query = this.omit (params, this.extractParams (path));
+        if (api === 'public') {
+            if (Object.keys (query).length) {
+                url += '?' + this.urlencode (query);
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ().toString ();
+            const auth = nonce + this.uid + this.apiKey;
+            const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
+            query = this.extend ({
+                'key': this.apiKey,
+                'signature': signature.toUpperCase (),
+                'nonce': nonce,
+            }, query);
+            body = this.urlencode (query);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 };
