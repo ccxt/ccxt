@@ -2741,6 +2741,10 @@ class Exchange {
         }
     }
 
+    public function soliditySha3 ($array) {
+        return Solidity::sha3(...$array);
+    }
+
     public static function totp($key) {
         function base32_decode($s) {
             static $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
