@@ -21,8 +21,6 @@ Current feature list:
 
 ## Sponsored Promotion
 
-<!-- Want this place? Contact us: info@ccxt.trade -->
-
 [![Official Trezor Shop](https://user-images.githubusercontent.com/1294454/67031092-80ddb280-f119-11e9-9452-da41777ff346.jpg)](https://shop.trezor.io/?offer_id=10&aff_id=3580)
 
 ## See Also
