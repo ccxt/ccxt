@@ -62,7 +62,7 @@ module.exports = class bybit extends Exchange {
                     'public': 'https://api.bybit.com/open-api',
                     'private': 'https://api.bybit.com/open-api',
                 },
-                'logo': 'https://api2.bybit.com/bybit.png',
+                'logo': 'https://user-images.githubusercontent.com/3198806/66993457-30a52700-f0fe-11e9-810c-a4a51e36fd20.png',
                 'www': 'https://www.bybit.com',
                 'doc': [
                     'https://github.com/bybit-exchange/bybit-official-api-docs',
