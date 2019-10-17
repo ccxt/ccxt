@@ -445,14 +445,11 @@ class Exchange {
     }
 
     public function filter_by($array, $key, $value = null) {
-        if ($value) {
-            $grouped = static::group_by($array, $key);
-            if (is_array($grouped) && array_key_exists($value, $grouped)) {
-                return $grouped[$value];
-            }
-            return array();
+        $grouped = static::group_by($array, $key);
+        if (is_array($grouped) && array_key_exists($value, $grouped)) {
+            return $grouped[$value];
         }
-        return $array;
+        return array();
     }
 
     public static function group_by($array, $key) {
