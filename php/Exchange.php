@@ -352,7 +352,7 @@ class Exchange {
         } elseif ($unit === 'm') {
             $scale = 60;
         } else {
-            throw new NotSupported('timeframe unit ' + $unit + ' is not supported');
+            throw new NotSupported('timeframe unit ' . $unit . ' is not supported');
         }
         return $amount * $scale;
     }
