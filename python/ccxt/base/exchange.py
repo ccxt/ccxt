@@ -767,9 +767,7 @@ class Exchange(object):
 
     @staticmethod
     def filter_by(array, key, value=None):
-        if value:
-            return list(filter(lambda x: x[key] == value, array))
-        return array
+        return list(filter(lambda x: x[key] == value, array))
 
     @staticmethod
     def filterBy(array, key, value=None):
