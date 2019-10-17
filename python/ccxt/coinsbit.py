@@ -17,7 +17,6 @@ class coinsbit (Exchange):
             'name': 'Coinsbit',
             'countries': ['BR'],
             'rateLimit': 1000,
-            'version': 'v3',
             'has': {
                 'createMarketOrder': False,
                 'fetchOrder': True,
@@ -26,17 +25,15 @@ class coinsbit (Exchange):
                 'fetchClosedOrders': True,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/38008571-25a6246e-3258-11e8-969b-aeb691049245.jpg',
                 'api': {
-                    'public': 'https://broker.negociecoins.com.br/api/v3',
-                    'private': 'https://broker.negociecoins.com.br/tradeapi/v1',
+                    'public': 'http://coinsbit.io',
+                    'private': 'http://coinsbit.io',
                 },
-                'www': 'https://www.negociecoins.com.br',
+                'www': 'https://coinsbit.io/',
                 'doc': [
-                    'https://www.negociecoins.com.br/documentacao-tradeapi',
-                    'https://www.negociecoins.com.br/documentacao-api',
+                    'https://www.notion.so/API-COINSBIT-WS-API-COINSBIT-cf1044cff30646d49a0bab0e28f27a87',
                 ],
-                'fees': 'https://www.negociecoins.com.br/comissoes',
+                'fees': 'https://coinsbit.io/fee-schedule',
             },
             'api': {
                 'public': {
@@ -62,36 +59,17 @@ class coinsbit (Exchange):
                     ],
                 },
             },
-            'markets': {
-                'B2X/BRL': {'id': 'b2xbrl', 'symbol': 'B2X/BRL', 'base': 'B2X', 'quote': 'BRL'},
-                'BCH/BRL': {'id': 'bchbrl', 'symbol': 'BCH/BRL', 'base': 'BCH', 'quote': 'BRL'},
-                'BTC/BRL': {'id': 'btcbrl', 'symbol': 'BTC/BRL', 'base': 'BTC', 'quote': 'BRL'},
-                'BTG/BRL': {'id': 'btgbrl', 'symbol': 'BTG/BRL', 'base': 'BTG', 'quote': 'BRL'},
-                'DASH/BRL': {'id': 'dashbrl', 'symbol': 'DASH/BRL', 'base': 'DASH', 'quote': 'BRL'},
-                'LTC/BRL': {'id': 'ltcbrl', 'symbol': 'LTC/BRL', 'base': 'LTC', 'quote': 'BRL'},
-            },
             'fees': {
                 'trading': {
-                    'maker': 0.005,
-                    'taker': 0.005,
+                    'maker': 0.002,
+                    'taker': 0.002,
                 },
                 'funding': {
                     'withdraw': {
-                        'BTC': 0.001,
-                        'BCH': 0.00003,
-                        'BTG': 0.00009,
-                        'LTC': 0.005,
+                        'BTC': 0.0,
+                        'ETH': 0.0,
+                        'KSH': 0.0,
                     },
                 },
-            },
-            'limits': {
-                'amount': {
-                    'min': 0.001,
-                    'max': None,
-                },
-            },
-            'precision': {
-                'amount': 8,
-                'price': 8,
             },
         })
