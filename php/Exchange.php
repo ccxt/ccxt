@@ -2742,7 +2742,7 @@ class Exchange {
     }
 
     public function soliditySha3 ($array) {
-        return Solidity::sha3(...$array);
+        return @Solidity::sha3 (... $array);
     }
 
     public static function totp($key) {
