@@ -58,6 +58,7 @@ class binance extends Exchange {
                     'web' => 'https://www.binance.com',
                     'wapi' => 'https://api.binance.com/wapi/v3',
                     'sapi' => 'https://api.binance.com/sapi/v1',
+                    'fapiPrivate' => 'https://fapi.binance.com/fapi/v1',
                     'public' => 'https://api.binance.com/api/v1',
                     'private' => 'https://api.binance.com/api/v3',
                     'v3' => 'https://api.binance.com/api/v3',
@@ -66,9 +67,9 @@ class binance extends Exchange {
                 'www' => 'https://www.binance.com',
                 'referral' => 'https://www.binance.com/?ref=10205187',
                 'doc' => array (
-                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
-                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
+                    'https://binance-docs.github.io/apidocs/spot/en',
                 ),
+                'api_management' => 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees' => 'https://www.binance.com/en/fee/schedule',
             ),
             'api' => array (
@@ -136,6 +137,23 @@ class binance extends Exchange {
                         'sub-account/list',
                         'sub-account/transfer/history',
                         'sub-account/assets',
+                    ),
+                ),
+                'fapiPrivate' => array (
+                    'get' => array (
+                        'allOrders',
+                        'openOrders',
+                        'order',
+                        'account',
+                        'balance',
+                        'positionRisk',
+                        'userTrades',
+                    ),
+                    'post' => array (
+                        'order',
+                    ),
+                    'delete' => array (
+                        'order',
                     ),
                 ),
                 'v3' => array (
@@ -701,6 +719,9 @@ class binance extends Exchange {
                 if (($cost !== null) && ($filled !== null)) {
                     if (($cost > 0) && ($filled > 0)) {
                         $price = $cost / $filled;
+                        if ($this->options['parseOrderToPrecision']) {
+                            $price = floatval ($this->price_to_precision($symbol, $price));
+                        }
                     }
                 }
             }
@@ -728,6 +749,9 @@ class binance extends Exchange {
         if ($cost !== null) {
             if ($filled) {
                 $average = $cost / $filled;
+                if ($this->options['parseOrderToPrecision']) {
+                    $average = floatval ($this->amount_to_precision($symbol, $average));
+                }
             }
             if ($this->options['parseOrderToPrecision']) {
                 $cost = floatval ($this->cost_to_precision($symbol, $cost));
@@ -916,6 +940,9 @@ class binance extends Exchange {
         $request = array (
             'symbol' => $market['id'],
         );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
@@ -933,7 +960,7 @@ class binance extends Exchange {
         //             "time" => 1499865549590,
         //             "isBuyer" => true,
         //             "isMaker" => false,
-        //             "isBestMatch" => true
+        //             "isBestMatch" => true,
         //         }
         //     )
         //
@@ -1067,7 +1094,7 @@ class binance extends Exchange {
         //                             asset => "ETH",
         //                            status =>  1                                                                    } ) }
         //
-        return $this->parseTransactions ($response['depositList'], $currency, $since, $limit);
+        return $this->parse_transactions($response['depositList'], $currency, $since, $limit);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1103,7 +1130,7 @@ class binance extends Exchange {
         //                              status =>  6                       }  ),
         //            success =>    true                                         }
         //
-        return $this->parseTransactions ($response['withdrawList'], $currency, $since, $limit);
+        return $this->parse_transactions($response['withdrawList'], $currency, $since, $limit);
     }
 
     public function parse_transaction_status_by_type ($status, $type = null) {
@@ -1293,7 +1320,7 @@ class binance extends Exchange {
                 'Content-Type' => 'application/x-www-form-urlencoded',
             );
         }
-        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus')) {
+        if (($api === 'private') || ($api === 'sapi') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'fapiPrivate')) {
             $this->check_required_credentials();
             $query = $this->urlencode (array_merge (array (
                 'timestamp' => $this->nonce (),

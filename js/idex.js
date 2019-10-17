@@ -26,7 +26,7 @@ module.exports = class idex extends Exchange {
                 'cancelOrder': true,
                 'fetchOpenOrders': true,
                 'fetchTransactions': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchMyTrades': true,
                 'withdraw': true,
                 'fetchOHLCV': false,
@@ -49,7 +49,7 @@ module.exports = class idex extends Exchange {
                 'api': 'https://api.idex.market',
                 'www': 'https://idex.market',
                 'doc': [
-                    'https://github.com/AuroraDAO/idex-api-docs',
+                    'https://docs.idex.market/',
                 ],
             },
             'api': {
@@ -847,6 +847,39 @@ module.exports = class idex extends Exchange {
         }
     }
 
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['start'] = parseInt (Math.floor (limit));
+        }
+        const response = await this.publicPostReturnTradeHistory (this.extend (request, params));
+        //    [ { type: 'buy',
+        //        date: '2019-07-25 11:24:41',
+        //        amount: '347.833140025692348611',
+        //        total: '0.050998794333719943',
+        //        uuid: 'cbdff960-aece-11e9-b566-c5d69c3be671',
+        //        tid: 4320867,
+        //        timestamp: 1564053881,
+        //        price: '0.000146618560640751',
+        //        taker: '0x0ab991497116f7f5532a4c2f4f7b1784488628e1',
+        //        maker: '0x1a961bc2e0d619d101f5f92a6be752132d7606e6',
+        //        orderHash:
+        //         '0xbec6485613a15be619c04c1425e8e821ebae42b88fa95ac4dfe8ba2beb363ee4',
+        //        transactionHash:
+        //         '0xf094e07b329ac8046e8f34db358415863c41daa36765c05516f4cf4f5b403ad1',
+        //        tokenBuy: '0x0000000000000000000000000000000000000000',
+        //        buyerFee: '0.695666280051384697',
+        //        gasFee: '28.986780264563232993',
+        //        sellerFee: '0.00005099879433372',
+        //        tokenSell: '0xb705268213d593b8fd88d3fdeff93aff5cbdcfae',
+        //        usdValue: '11.336926687304238214' } ]
+        return this.parseTrades (response, market, since, limit);
+    }
+
     parseTrade (trade, market = undefined) {
         // { type: 'buy',
         //   date: '2019-07-25 11:24:41',
@@ -873,7 +906,7 @@ module.exports = class idex extends Exchange {
         let symbol = undefined;
         const maker = this.safeString (trade, 'maker');
         let takerOrMaker = undefined;
-        if (maker !== undefined) {
+        if (maker !== undefined && this.walletAddress !== undefined) {
             if (maker.toLowerCase () === this.walletAddress.toLowerCase ()) {
                 takerOrMaker = 'maker';
             } else {

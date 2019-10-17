@@ -33,7 +33,7 @@ class bigone extends Exchange {
                 ),
                 'www' => 'https://big.one',
                 'doc' => 'https://open.big.one/docs/api.html',
-                'fees' => 'https://help.big.one/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
+                'fees' => 'https://bigone.zendesk.com/hc/en-us/articles/115001933374-BigONE-Fee-Policy',
                 'referral' => 'https://b1.run/users/new?code=D3LLBVFT',
             ),
             'api' => array (
@@ -74,10 +74,10 @@ class bigone extends Exchange {
                 'funding' => array (
                     // HARDCODING IS DEPRECATED THE FEES BELOW ARE TO BE REMOVED SOON
                     'withdraw' => array (
-                        'BTC' => 0.002,
-                        'ETH' => 0.01,
+                        'BTC' => 0.001,
+                        'ETH' => 0.005,
                         'EOS' => 0.01,
-                        'ZEC' => 0.002,
+                        'ZEC' => 0.003,
                         'LTC' => 0.01,
                         'QTUM' => 0.01,
                         // 'INK' => 0.01 QTUM,
@@ -86,7 +86,7 @@ class bigone extends Exchange {
                         'GAS' => 0.0,
                         'BTS' => 1.0,
                         'GXS' => 0.1,
-                        'BITCNY' => 1.0,
+                        'BITCNY' => 19.0,
                     ),
                 ),
             ),
@@ -677,8 +677,8 @@ class bigone extends Exchange {
             return; // fallback to default $error handler
         }
         //
-        //      array("$errors":{"detail":"Internal server $error")}
-        //      array("$errors":[{"message":"invalid nonce, nonce should be a 19bits number","$code":10030)],"$data":null}
+        //      array("$errors":array("detail":"Internal server $error"))
+        //      array("$errors":[array("message":"invalid nonce, nonce should be a 19bits number","$code":10030)],"$data":null)
         //
         $error = $this->safe_value($response, 'error');
         $errors = $this->safe_value($response, 'errors');

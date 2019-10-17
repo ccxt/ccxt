@@ -44,6 +44,7 @@ class coinbase (Exchange):
                 'fetchOrders': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
+                'fetchTime': True,
                 'fetchBidsAsks': False,
                 'fetchTrades': False,
                 'withdraw': False,
@@ -223,7 +224,7 @@ class coinbase (Exchange):
         accountId = self.safe_string(params, 'account_id')
         params = self.omit(params, 'account_id')
         if accountId is None:
-            await self.loadAccounts()
+            await self.load_accounts()
             for i in range(0, len(self.accounts)):
                 account = self.accounts[i]
                 if account['code'] == code and account['type'] == 'wallet':
@@ -302,7 +303,7 @@ class coinbase (Exchange):
         await self.load_markets()
         query = self.omit(params, ['account_id', 'accountId'])
         response = await getattr(self, method)(self.extend(request, query))
-        return self.parseTransactions(response['data'], None, since, limit)
+        return self.parse_transactions(response['data'], None, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         # fiat only, for crypto transactions use fetchLedger
@@ -935,7 +936,7 @@ class coinbase (Exchange):
 
     async def find_account_id(self, code):
         await self.load_markets()
-        await self.loadAccounts()
+        await self.load_accounts()
         for i in range(0, len(self.accounts)):
             account = self.accounts[i]
             if account['code'] == code:

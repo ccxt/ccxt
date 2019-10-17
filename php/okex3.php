@@ -26,6 +26,7 @@ class okex3 extends Exchange {
                 'fetchCurrencies' => false, // see below
                 'fetchDeposits' => true,
                 'fetchWithdrawals' => true,
+                'fetchTime' => true,
                 'fetchTransactions' => false,
                 'fetchMyTrades' => false, // they don't have it
                 'fetchDepositAddress' => true,
@@ -171,6 +172,8 @@ class okex3 extends Exchange {
                         'cancel_order/{instrument_id}/{order_id}',
                         'cancel_order/{instrument_id}/{client_oid}',
                         'cancel_batch_orders/{instrument_id}',
+                        'close_position',
+                        'cancel_all',
                     ),
                 ),
                 'swap' => array (
@@ -241,12 +244,12 @@ class okex3 extends Exchange {
                     'maker' => 0.0010,
                 ),
                 'futures' => array (
-                    'taker' => 0.0030,
-                    'maker' => 0.0020,
+                    'taker' => 0.0005,
+                    'maker' => 0.0002,
                 ),
                 'swap' => array (
-                    'taker' => 0.0070,
-                    'maker' => 0.0020,
+                    'taker' => 0.00075,
+                    'maker' => 0.00020,
                 ),
             ),
             'requiredCredentials' => array (
@@ -265,6 +268,7 @@ class okex3 extends Exchange {
                     '1' => '\\ccxt\\ExchangeError', // array( "code" => 1, "message" => "System error" )
                     // undocumented
                     'failure to get a peer from the ring-balancer' => '\\ccxt\\ExchangeError', // array( "message" => "failure to get a peer from the ring-balancer" )
+                    '"instrument_id" is an invalid parameter' => '\\ccxt\\BadSymbol', // array("code":30024,"message":"\"instrument_id\" is an invalid parameter")
                     '4010' => '\\ccxt\\PermissionDenied', // array( "code" => 4010, "message" => "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " )
                     // common
                     '30001' => '\\ccxt\\AuthenticationError', // array( "code" => 30001, "message" => 'request header "OK_ACCESS_KEY" cannot be blank')
@@ -932,7 +936,11 @@ class okex3 extends Exchange {
         if ($feeCost !== null) {
             $feeCurrency = null;
             $fee = array (
-                'cost' => $feeCost,
+                // $fee is either a positive number (invitation rebate)
+                // or a negative number (transaction $fee deduction)
+                // therefore we need to invert the $fee
+                // more about it https://github.com/ccxt/ccxt/issues/5909
+                'cost' => -$feeCost,
                 'currency' => $feeCurrency,
             );
         }
@@ -2098,7 +2106,7 @@ class okex3 extends Exchange {
             $method .= 'Currency';
         }
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit, $params);
+        return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -2112,7 +2120,7 @@ class okex3 extends Exchange {
             $method .= 'Currency';
         }
         $response = $this->$method (array_merge ($request, $params));
-        return $this->parseTransactions ($response, $currency, $since, $limit, $params);
+        return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
     public function parse_transaction_status ($status) {
@@ -2200,6 +2208,7 @@ class okex3 extends Exchange {
             $id = $withdrawalId;
             $address = $addressTo;
         } else {
+            $id = $this->safe_string($transaction, 'payment_id');
             $type = 'deposit';
             $address = $addressTo;
         }
@@ -2690,9 +2699,6 @@ class okex3 extends Exchange {
         $exact = $this->exceptions['exact'];
         $message = $this->safe_string($response, 'message');
         $errorCode = $this->safe_string_2($response, 'code', 'error_code');
-        if (is_array($exact) && array_key_exists($errorCode, $exact)) {
-            throw new $exact[$errorCode]($feedback);
-        }
         if ($message !== null) {
             if (is_array($exact) && array_key_exists($message, $exact)) {
                 throw new $exact[$message]($feedback);
@@ -2702,6 +2708,11 @@ class okex3 extends Exchange {
             if ($broadKey !== null) {
                 throw new $broad[$broadKey]($feedback);
             }
+        }
+        if (is_array($exact) && array_key_exists($errorCode, $exact)) {
+            throw new $exact[$errorCode]($feedback);
+        }
+        if ($message !== null) {
             throw new ExchangeError($feedback); // unknown $message
         }
     }

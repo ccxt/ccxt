@@ -547,7 +547,7 @@ class bitmex (Exchange):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        return self.parseTransactions(transactions, currency, since, limit)
+        return self.parse_transactions(transactions, currency, since, limit)
 
     def parse_transaction_status(self, status):
         statuses = {

@@ -486,8 +486,7 @@ class coinex (Exchange):
             'amount': self.amount_to_precision(symbol, amount),
             'type': side,
         }
-        if type == 'limit':
-            price = float(price)  # self line is deprecated
+        if (type == 'limit') or (type == 'ioc'):
             request['price'] = self.price_to_precision(symbol, price)
         response = await getattr(self, method)(self.extend(request, params))
         order = self.parse_order(response['data'], market)
@@ -761,7 +760,7 @@ class coinex (Exchange):
         #         "message": "Ok"
         #     }
         #
-        return self.parseTransactions(response['data'], currency, since, limit)
+        return self.parse_transactions(response['data'], currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         if code is None:
@@ -801,7 +800,7 @@ class coinex (Exchange):
         #         "message": "Ok"
         #     }
         #
-        return self.parseTransactions(response['data'], currency, since, limit)
+        return self.parse_transactions(response['data'], currency, since, limit)
 
     def nonce(self):
         return self.milliseconds()
@@ -837,7 +836,8 @@ class coinex (Exchange):
         response = await self.fetch2(path, api, method, params, headers, body)
         code = self.safe_string(response, 'code')
         data = self.safe_value(response, 'data')
-        if code != '0' or not data:
+        message = self.safe_string(response, 'message')
+        if (code != '0') or (data is None) or ((message != 'Ok') and not data):
             responseCodes = {
                 '24': AuthenticationError,
                 '25': AuthenticationError,

@@ -97,6 +97,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 [Building some node js tools to setup machine learning trading](https://medium.com/@kid.bytes/building-some-node-js-tools-to-setup-machine-learning-trading-pt-2-13f44e1b1df7) – An article in a series on setting up some tools to get started with machine learning for crypto trading.
 
+[Trade and Invest Smarter — The Reinforcement Learning Way](https://towardsdatascience.com/trade-smarter-w-reinforcement-learning-a5e91163f315) – A deep dive into  trading and investing using deep reinforcement learning with Python.
+
 [CCXTが便利な理由！CCXTライブラリをインストールしよう](https://ryota-trade.com/?p=476) – An article in Japanese on getting CCXT up and runining.
 
 [Bitflyerや各取引所の個別APIをCCXTライブラリ経由で直接利用する方法](https://ryota-trade.com/?p=629) – How to use Bitflyer and individual API of each exchange directly via the CCXT library.

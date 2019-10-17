@@ -103,7 +103,6 @@ class yobit extends Exchange {
                 'EKO' => 'EkoCoin',
                 'ENTER' => 'ENTRC',
                 'EPC' => 'ExperienceCoin',
-                'ERT' => 'Eristica Token',
                 'ESC' => 'EdwardSnowden',
                 'EUROPE' => 'EUROP',
                 'EXT' => 'LifeExtension',

@@ -19,6 +19,7 @@ class itbit extends Exchange {
             'has' => array (
                 'CORS' => true,
                 'createMarketOrder' => false,
+                'fetchMyTrades' => true,
             ),
             'urls' => array (
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27822159-66153620-60ad-11e7-89e7-005f6d7f3de0.jpg',

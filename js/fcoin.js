@@ -113,8 +113,8 @@ module.exports = class fcoin extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.001,
-                    'taker': 0.001,
+                    'maker': -0.0002,
+                    'taker': 0.0003,
                 },
             },
             'limits': {
@@ -478,7 +478,7 @@ module.exports = class fcoin extends Exchange {
             'side': side,
             'type': orderType,
         };
-        if (type === 'limit') {
+        if ((type === 'limit') || (type === 'ioc') || (type === 'fok')) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));

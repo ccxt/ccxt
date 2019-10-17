@@ -42,12 +42,12 @@ module.exports = class okex extends okcoinusd {
                     'maker': 0.0010,
                 },
                 'future': {
-                    'taker': 0.0030,
-                    'maker': 0.0020,
+                    'taker': 0.0005,
+                    'maker': 0.0002,
                 },
                 'swap': {
-                    'taker': 0.0070,
-                    'maker': 0.0020,
+                    'taker': 0.00075,
+                    'maker': 0.0002,
                 },
             },
             'commonCurrencies': {

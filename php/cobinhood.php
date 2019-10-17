@@ -738,7 +738,7 @@ class cobinhood extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privateGetWalletDeposits (array_merge ($request, $params));
-        return $this->parseTransactions ($response['result']['deposits'], $currency);
+        return $this->parse_transactions($response['result']['deposits'], $currency);
     }
 
     public function fetch_withdrawals ($code = null, $since = null, $limit = null, $params = array ()) {
@@ -751,7 +751,7 @@ class cobinhood extends Exchange {
             'currency' => $currency['id'],
         );
         $response = $this->privateGetWalletWithdrawals (array_merge ($request, $params));
-        return $this->parseTransactions ($response['result']['withdrawals'], $currency);
+        return $this->parse_transactions($response['result']['withdrawals'], $currency);
     }
 
     public function parse_transaction_status ($status) {

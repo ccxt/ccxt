@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported } = require ('./base/errors');
+const { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, DDoSProtection, InsufficientFunds, InvalidNonce, CancelPending, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, NotSupported, BadSymbol } = require ('./base/errors');
 
 //  ---------------------------------------------------------------------------
 
@@ -25,6 +25,7 @@ module.exports = class okex3 extends Exchange {
                 'fetchCurrencies': false, // see below
                 'fetchDeposits': true,
                 'fetchWithdrawals': true,
+                'fetchTime': true,
                 'fetchTransactions': false,
                 'fetchMyTrades': false, // they don't have it
                 'fetchDepositAddress': true,
@@ -170,6 +171,8 @@ module.exports = class okex3 extends Exchange {
                         'cancel_order/{instrument_id}/{order_id}',
                         'cancel_order/{instrument_id}/{client_oid}',
                         'cancel_batch_orders/{instrument_id}',
+                        'close_position',
+                        'cancel_all',
                     ],
                 },
                 'swap': {
@@ -240,12 +243,12 @@ module.exports = class okex3 extends Exchange {
                     'maker': 0.0010,
                 },
                 'futures': {
-                    'taker': 0.0030,
-                    'maker': 0.0020,
+                    'taker': 0.0005,
+                    'maker': 0.0002,
                 },
                 'swap': {
-                    'taker': 0.0070,
-                    'maker': 0.0020,
+                    'taker': 0.00075,
+                    'maker': 0.00020,
                 },
             },
             'requiredCredentials': {
@@ -264,6 +267,7 @@ module.exports = class okex3 extends Exchange {
                     '1': ExchangeError, // { "code": 1, "message": "System error" }
                     // undocumented
                     'failure to get a peer from the ring-balancer': ExchangeError, // { "message": "failure to get a peer from the ring-balancer" }
+                    '"instrument_id" is an invalid parameter': BadSymbol, // {"code":30024,"message":"\"instrument_id\" is an invalid parameter"}
                     '4010': PermissionDenied, // { "code": 4010, "message": "For the security of your funds, withdrawals are not permitted within 24 hours after changing fund password  / mobile number / Google Authenticator settings " }
                     // common
                     '30001': AuthenticationError, // { "code": 30001, "message": 'request header "OK_ACCESS_KEY" cannot be blank'}
@@ -931,7 +935,11 @@ module.exports = class okex3 extends Exchange {
         if (feeCost !== undefined) {
             const feeCurrency = undefined;
             fee = {
-                'cost': feeCost,
+                // fee is either a positive number (invitation rebate)
+                // or a negative number (transaction fee deduction)
+                // therefore we need to invert the fee
+                // more about it https://github.com/ccxt/ccxt/issues/5909
+                'cost': -feeCost,
                 'currency': feeCurrency,
             };
         }
@@ -2199,6 +2207,7 @@ module.exports = class okex3 extends Exchange {
             id = withdrawalId;
             address = addressTo;
         } else {
+            id = this.safeString (transaction, 'payment_id');
             type = 'deposit';
             address = addressTo;
         }
@@ -2689,9 +2698,6 @@ module.exports = class okex3 extends Exchange {
         const exact = this.exceptions['exact'];
         const message = this.safeString (response, 'message');
         const errorCode = this.safeString2 (response, 'code', 'error_code');
-        if (errorCode in exact) {
-            throw new exact[errorCode] (feedback);
-        }
         if (message !== undefined) {
             if (message in exact) {
                 throw new exact[message] (feedback);
@@ -2701,6 +2707,11 @@ module.exports = class okex3 extends Exchange {
             if (broadKey !== undefined) {
                 throw new broad[broadKey] (feedback);
             }
+        }
+        if (errorCode in exact) {
+            throw new exact[errorCode] (feedback);
+        }
+        if (message !== undefined) {
             throw new ExchangeError (feedback); // unknown message
         }
     }

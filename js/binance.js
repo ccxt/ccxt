@@ -58,6 +58,7 @@ module.exports = class binance extends Exchange {
                     'web': 'https://www.binance.com',
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
                     'public': 'https://api.binance.com/api/v1',
                     'private': 'https://api.binance.com/api/v3',
                     'v3': 'https://api.binance.com/api/v3',
@@ -66,9 +67,9 @@ module.exports = class binance extends Exchange {
                 'www': 'https://www.binance.com',
                 'referral': 'https://www.binance.com/?ref=10205187',
                 'doc': [
-                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md',
-                    'https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md',
+                    'https://binance-docs.github.io/apidocs/spot/en',
                 ],
+                'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'api': {
@@ -136,6 +137,23 @@ module.exports = class binance extends Exchange {
                         'sub-account/list',
                         'sub-account/transfer/history',
                         'sub-account/assets',
+                    ],
+                },
+                'fapiPrivate': {
+                    'get': [
+                        'allOrders',
+                        'openOrders',
+                        'order',
+                        'account',
+                        'balance',
+                        'positionRisk',
+                        'userTrades',
+                    ],
+                    'post': [
+                        'order',
+                    ],
+                    'delete': [
+                        'order',
                     ],
                 },
                 'v3': {
@@ -701,6 +719,9 @@ module.exports = class binance extends Exchange {
                 if ((cost !== undefined) && (filled !== undefined)) {
                     if ((cost > 0) && (filled > 0)) {
                         price = cost / filled;
+                        if (this.options['parseOrderToPrecision']) {
+                            price = parseFloat (this.priceToPrecision (symbol, price));
+                        }
                     }
                 }
             }
@@ -728,6 +749,9 @@ module.exports = class binance extends Exchange {
         if (cost !== undefined) {
             if (filled) {
                 average = cost / filled;
+                if (this.options['parseOrderToPrecision']) {
+                    average = parseFloat (this.amountToPrecision (symbol, average));
+                }
             }
             if (this.options['parseOrderToPrecision']) {
                 cost = parseFloat (this.costToPrecision (symbol, cost));
@@ -916,6 +940,9 @@ module.exports = class binance extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -933,7 +960,7 @@ module.exports = class binance extends Exchange {
         //             "time": 1499865549590,
         //             "isBuyer": true,
         //             "isMaker": false,
-        //             "isBestMatch": true
+        //             "isBestMatch": true,
         //         }
         //     ]
         //
@@ -1293,7 +1320,7 @@ module.exports = class binance extends Exchange {
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
-        if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus')) {
+        if ((api === 'private') || (api === 'sapi') || (api === 'wapi' && path !== 'systemStatus') || (api === 'fapiPrivate')) {
             this.checkRequiredCredentials ();
             let query = this.urlencode (this.extend ({
                 'timestamp': this.nonce (),
