@@ -171,6 +171,7 @@ class bitz (Exchange):
                 'BOX': 'BOX Token',
                 'XRB': 'NANO',
                 'PXC': 'Pixiecoin',
+                'VTC': 'VoteCoin',
             },
             'exceptions': {
                 # '200': Success
