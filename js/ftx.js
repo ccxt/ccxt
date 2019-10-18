@@ -381,39 +381,68 @@ module.exports = class ftx extends Exchange {
     }
 
     parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "close":177.23,
+        //         "high":177.45,
+        //         "low":177.2,
+        //         "open":177.43,
+        //         "startTime":"2019-10-17T13:27:00+00:00",
+        //         "time":1571318820000.0,
+        //         "volume":0.0
+        //     }
+        //
         return [
-            ohlcv['time'],
-            ohlcv['open'],
-            ohlcv['high'],
-            ohlcv['low'],
-            ohlcv['close'],
-            ohlcv['volume'],
+            this.safeInteger (ohlcv, 'time'),
+            this.safeFloat (ohlcv, 'open'),
+            this.safeFloat (ohlcv, 'high'),
+            this.safeFloat (ohlcv, 'low'),
+            this.safeFloat (ohlcv, 'close'),
+            this.safeFloat (ohlcv, 'volume'),
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const marketType = this.safeString (market, 'type');
         const request = {
-            'market': market['id'],
+            'market_name': market['id'],
             'resolution': this.timeframes[timeframe],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        if (marketType !== undefined && marketType === 'future') {  // check if it is a future market
-            if (since !== undefined) {
-                request['start_time'] = since;
-            }
-            const response = await this.publicGetFuturesMarketMarkCandles (this.extend (request, params));
-            const result = this.safeValue (response, 'result', []);
-            return this.parseOHLCVs (result, market, timeframe, since, limit);
-        } else {
-            const response = await this.publicGetMarketsMarketCandles (this.extend (request, params));
-            const result = this.safeValue (response, 'result', []);
-            return this.parseOHLCVs (result, market, timeframe, since, limit);
+        if (since !== undefined) {
+            request['start_time'] = parseInt (since / 1000);
         }
+        const response = await this.publicGetMarketsMarketNameCandles (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result":[
+        //             {
+        //                 "close":177.23,
+        //                 "high":177.45,
+        //                 "low":177.2,
+        //                 "open":177.43,
+        //                 "startTime":"2019-10-17T13:27:00+00:00",
+        //                 "time":1571318820000.0,
+        //                 "volume":0.0
+        //             },
+        //             {
+        //                 "close":177.26,
+        //                 "high":177.33,
+        //                 "low":177.23,
+        //                 "open":177.23,
+        //                 "startTime":"2019-10-17T13:28:00+00:00",
+        //                 "time":1571318880000.0,
+        //                 "volume":0.0
+        //             },
+        //         ],
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
