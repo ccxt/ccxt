@@ -141,6 +141,7 @@ class yobit extends Exchange {
                 'RCN' => 'RCoin',
                 'REP' => 'Republicoin',
                 'RUR' => 'RUB',
+                'TTC' => 'TittieCoin',
                 'XIN' => 'XINCoin',
             ),
             'options' => array (

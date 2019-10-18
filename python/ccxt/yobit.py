@@ -157,6 +157,7 @@ class yobit (Exchange):
                 'RCN': 'RCoin',
                 'REP': 'Republicoin',
                 'RUR': 'RUB',
+                'TTC': 'TittieCoin',
                 'XIN': 'XINCoin',
             },
             'options': {
