@@ -55,6 +55,7 @@ module.exports = class ftx extends Exchange {
             'api': {
                 'public': {
                     'get': [
+                        'coins',
                         'markets',
                         'markets/{market_name}',
                         'markets/{market_name}/orderbook', // ?depth={depth}
@@ -255,27 +256,66 @@ module.exports = class ftx extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        const symbol = market['symbol'];
+        //
+        //     {
+        //         "ask":171.29,
+        //         "baseCurrency":null, // base currency for spot markets
+        //         "bid":171.24,
+        //         "change1h":-0.0012244897959183673,
+        //         "change24h":-0.031603346901854366,
+        //         "changeBod":-0.03297013492914808,
+        //         "enabled":true,
+        //         "last":171.44,
+        //         "name":"ETH-PERP",
+        //         "price":171.29,
+        //         "priceIncrement":0.01,
+        //         "quoteCurrency":null, // quote currency for spot markets
+        //         "quoteVolume24h":8570651.12113,
+        //         "sizeIncrement":0.001,
+        //         "type":"future",
+        //         "underlying":"ETH", // null for spot markets
+        //         "volumeUsd24h":8570651.12113,
+        //     }
+        //
+        let symbol = undefined;
+        const marketId = this.safeString (ticker, 'name');
+        if (marketId in this.markets_by_id) {
+            market = this.markets_by_id[marketId];
+        } else {
+            const type = this.safeString (ticker, 'type');
+            if (type === 'future') {
+                symbol = marketId;
+            } else {
+                const base = this.safeCurrencyCode (this.safeString (ticker, 'baseCurrency'));
+                const quote = this.safeCurrencyCode (this.safeString (ticker, 'quoteCurrency'));
+                symbol = base + '/' + quote;
+            }
+        }
+        if ((symbol === undefined) && (market !== undefined)) {
+            symbol = market['symbol'];
+        }
+        const last = this.safeFloat (ticker, 'last');
+        const timestamp = this.milliseconds ();
         return {
             'symbol': symbol,
-            'timestamp': this.safeInteger (ticker, 'time'),
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeFloat (ticker, 'high'),
             'low': this.safeFloat (ticker, 'low'),
-            'bid': this.safeFloat (market['info'], 'bid'),
+            'bid': this.safeFloat (ticker, 'bid'),
             'bidVolume': undefined,
-            'ask': this.safeFloat (market['info'], 'ask'),
+            'ask': this.safeFloat (ticker, 'ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': this.safeFloat (market['info'], 'last'),
-            'last': this.safeFloat (market['info'], 'last'),
+            'close': last,
+            'last': last,
             'previousClose': undefined,
-            'change': this.safeFloat (ticker, 'change'),
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': this.safeFloat (ticker, 'change24h'),
             'average': undefined,
             'baseVolume': undefined,
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeFloat (ticker, 'quoteVolume24h'),
             'info': ticker,
         };
     }
@@ -284,10 +324,33 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            'market_name': market['id'],
         };
-        const method = (market['type'] === 'future') ? 'publicGetFuturesMarket' : 'publicGetMarkets';
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketName (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "result":{
+        //             "ask":171.29,
+        //             "baseCurrency":null, // base currency for spot markets
+        //             "bid":171.24,
+        //             "change1h":-0.0012244897959183673,
+        //             "change24h":-0.031603346901854366,
+        //             "changeBod":-0.03297013492914808,
+        //             "enabled":true,
+        //             "last":171.44,
+        //             "name":"ETH-PERP",
+        //             "price":171.29,
+        //             "priceIncrement":0.01,
+        //             "quoteCurrency":null, // quote currency for spot markets
+        //             "quoteVolume24h":8570651.12113,
+        //             "sizeIncrement":0.001,
+        //             "type":"future",
+        //             "underlying":"ETH", // null for spot markets
+        //             "volumeUsd24h":8570651.12113,
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
         return this.parseTicker (result, market);
     }
