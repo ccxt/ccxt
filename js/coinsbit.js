@@ -12,7 +12,8 @@ module.exports = class coinsbit extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coinsbit',
             'name': 'Coinsbit',
-            'countries': ['BR'],
+            'countries': ['EE'],
+            'version': 'v1',
             'rateLimit': 1000,
             'has': {
                 'createMarketOrder': false,
@@ -23,8 +24,8 @@ module.exports = class coinsbit extends Exchange {
             },
             'urls': {
                 'api': {
-                    'public': 'http://coinsbit.io/api/v1/public',
-                    'private': 'http://coinsbit.io/api/v1/private',
+                    'public': 'https://coinsbit.io/api/v1/public',
+                    'private': 'https://coinsbit.io/api/v1',
                     'wapi': 'wss://coinsbit.io/api/v1/trade_ws',
                 },
                 'www': 'https://coinsbit.io/',
@@ -123,7 +124,7 @@ module.exports = class coinsbit extends Exchange {
         const markets = this.safeValue (response, 'result');
         const numMarkets = markets.length;
         if (numMarkets < 1) {
-            throw new ExchangeError (this.id + ' publicGetCommonSymbols returned empty response: ' + this.json (markets));
+            throw new ExchangeError (this.id + ' publicGetMarkets returned empty response: ' + this.json (markets));
         }
         const result = [];
         for (let i = 0; i < markets.length; i++) {
@@ -168,30 +169,94 @@ module.exports = class coinsbit extends Exchange {
         return result;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/';
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let method = 'privatePostOrderNew';
+        const request = {
+            'pair': market['id'],
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+        };
+        const response = await this[method] (this.extend (request, params));
+        const order = this.parseOrder (response, market);
+        return this.extend (order, {
+            'type': type,
+        });
+    }
 
-        url += this.implodeParams (path, params);
+    async fetchBalance (params = {}) {
+        await this.loadMarkets ();
+        const query = this.omit (params, 'type');
+        const response = await this.privatePostAccountBalances (query);
+        const balances = this.safeValue (response, 'result');
+        const symbols = Object.keys (balances);
+        const result = { 'info': balances };
+        for (let i = 0; i < symbols.length; i ++) {
+            const currencyId = symbols[i];
+            const code = this.safeCurrencyCode (currencyId);
+            const balance = balances[code];
+
+            const account = this.account ();
+            account['free'] = this.safeFloat (balance, 'available');
+            account['total'] = this.safeFloat (balance, 'available') + this.safeFloat (balance, 'freeze');
+            result[code] = account;
+        }
+        return this.parseBalance (result);
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         let query = this.omit (params, this.extractParams (path));
+
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
         } else {
             this.checkRequiredCredentials ();
+            const request = '/api/' + this.version + '/' + this.implodeParams (path, params);
             const nonce = this.nonce ().toString ();
-            const auth = nonce + this.uid + this.apiKey;
-            const signature = this.encode (this.hmac (this.encode (auth), this.encode (this.secret)));
             query = this.extend ({
-                'key': this.apiKey,
-                'signature': signature.toUpperCase (),
-                'nonce': nonce,
+                'nonce': nonce.toString (),
+                'request': request,
             }, query);
-            body = this.urlencode (query);
+            body = this.json (query);
+            query = this.encode (body);
+            const payload = this.stringToBase64 (query);
+            const secret = this.encode (this.secret);
+            const signature = this.hmac (payload, secret, 'sha512');
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded',
+                'Content-type': 'application/json',
+                'X-TXC-APIKEY': this.apiKey,
+                'X-TXC-PAYLOAD': payload,
+                'X-TXC-SIGNATURE': signature
             };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    parseOrder (order, market = undefined) {
+        const id = this.safeString (order, 'id');
+        let side = this.safeString (order, 'type');
+
+        return {
+            'id': id,
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'status': status,
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'price': price,
+            'cost': cost,
+            'amount': amount,
+            'filled': filled,
+            'remaining': remaining,
+            'trades': trades,
+            'fee': fee,
+            'info': order,
+        };
     }
 };
