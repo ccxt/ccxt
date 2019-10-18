@@ -558,6 +558,9 @@ module.exports = class ftx extends Exchange {
     }
 
     handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return; // fallback to the default error handler
+        }
         const success = this.safeValue (response, 'success');
         if (!success) {
             if (body[0] === '{') {
