@@ -452,36 +452,47 @@ module.exports = class ftx extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const datetime = this.safeString (trade, 'time');
-        const timestamp = this.parse8601 (datetime);
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "id":1715826,
+        //         "liquidation":false,
+        //         "price":171.62,
+        //         "side":"buy",
+        //         "size":2.095,
+        //         "time":"2019-10-18T12:59:54.288166+00:00"
+        //     }
+        //
+        // fetchMyTrades
+        //
+        //     ...
+        //
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'size');
-        const id = this.safeString (market, 'id');
         const symbol = this.safeString (market, 'symbol');
-        const orderId = this.safeString (trade, 'id');
         const side = this.safeString (trade, 'side');
         let cost = undefined;
         if (price !== undefined && amount !== undefined) {
             cost = price * amount;
         }
+        const fee = undefined;
         return {
             'info': trade,
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'id': id,
-            'order': orderId,
+            'order': undefined,
             'type': undefined,
             'takerOrMaker': undefined,
             'side': side,
             'price': price,
             'amount': amount,
             'cost': cost,
-            'fee': {
-                'cost': undefined,
-                'currency': undefined,
-                'rate': undefined,
-            },
+            'fee': fee,
         };
     }
 
@@ -489,7 +500,7 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'market': market['id'],
+            'market_name': market['id'],
         };
         if (since !== undefined) {
             request['start_time'] = since;
@@ -497,7 +508,30 @@ module.exports = class ftx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetMarketsMarketTrades (this.extend (request, params));
+        const response = await this.publicGetMarketsMarketNameTrades (this.extend (request, params));
+        //
+        //     {
+        //         "success":true,
+        //         "result":[
+        //             {
+        //                 "id":1715826,
+        //                 "liquidation":false,
+        //                 "price":171.62,
+        //                 "side":"buy",
+        //                 "size":2.095,
+        //                 "time":"2019-10-18T12:59:54.288166+00:00"
+        //             },
+        //             {
+        //                 "id":1715763,
+        //                 "liquidation":false,
+        //                 "price":171.89,
+        //                 "side":"sell",
+        //                 "size":1.477,
+        //                 "time":"2019-10-18T12:58:38.443734+00:00"
+        //             },
+        //         ],
+        //     }
+        //
         const result = this.safeValue (response, 'result', []);
         return this.parseTrades (result, market, since, limit);
     }
